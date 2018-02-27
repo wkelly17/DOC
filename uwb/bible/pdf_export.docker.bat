@@ -4,4 +4,4 @@ if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 docker run ^
     --rm ^
     --volume %TEMP%:/working ^
-    pdf_export -d -c 1 -o /working/output --chunk-divider "<hr\/>"
+    pdf_export -d -c 1 -v ulb -o /working/output --chunk-divider "<hr\/>"
