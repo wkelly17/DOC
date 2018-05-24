@@ -190,6 +190,22 @@ class TnConverter(object):
                                                                            self.book_id.upper())))
 
             chunks = re.compile(r'\\s5\s*\n*').split(usfm)
+
+            # TODO Make this an option
+            # Break chunks into verses
+            chunks_per_verse = []
+            for chunk in chunks:
+                pending_chunk = None
+                for line in chunk.encode("utf-8").splitlines(True):
+                    pending_chunk = pending_chunk + line if pending_chunk else line
+                    if re.match(r'^\\v', line):
+                        # This is a verse.  Start a new chunk.
+                        chunks_per_verse.append(pending_chunk)
+                        pending_chunk = None
+                if pending_chunk:
+                    chunks_per_verse.append(pending_chunk)
+            chunks = chunks_per_verse
+
             header = chunks[0]
             book_chunks[resource]['header'] = header
             for chunk in chunks[1:]:
