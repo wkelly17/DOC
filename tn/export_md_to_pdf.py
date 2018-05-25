@@ -321,14 +321,14 @@ class TnConverter(object):
                     for verse in self.usfm_chunks['ulb'][chapter][first_verse]['verses']:
                         anchors += '<a id="tn-{0}-{1}-{2}"/>'.format(self.book_id, self.pad(chapter), self.pad(verse))
                     pre_md = '\n## {0}\n{1}\n\n'.format(title, anchors)
-                    pre_md += '### UDB:\n\n[[udb://{0}/{1}/{2}/{3}/{4}]]\n\n'\
-                        .format(self.lang_code, self.book_id, self.pad(chapter), self.pad(first_verse),
-                                self.pad(last_verse))
                     pre_md += '### ULB:\n\n[[ulb://{0}/{1}/{2}/{3}/{4}]]\n\n'\
                         .format(self.lang_code, self.book_id, self.pad(chapter), self.pad(first_verse),
                                 self.pad(last_verse))
                     pre_md += '### translationNotes\n'
-                    md = '{0}\n{1}'.format(pre_md, md)
+                    md = '{0}\n{1}\n\n'.format(pre_md, md)
+                    md += '### UDB:\n\n[[udb://{0}/{1}/{2}/{3}/{4}]]\n\n'\
+                        .format(self.lang_code, self.book_id, self.pad(chapter), self.pad(first_verse),
+                                self.pad(last_verse))
                     rc = 'rc://{0}/tn/help/{1}/{2}/{3}'.format(self.lang_code, self.book_id, self.pad(chapter),
                                                                self.pad(first_verse))
                     anchor_id = 'tn-{0}-{1}-{2}'.format(self.book_id, self.pad(chapter), self.pad(first_verse))
