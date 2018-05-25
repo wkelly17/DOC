@@ -308,7 +308,7 @@ class TnConverter(object):
                 chunk_files = sorted(glob(os.path.join(chapter_dir, '[0-9]*.md')))
                 for idx, chunk_file in enumerate(chunk_files):
                     first_verse = os.path.splitext(os.path.basename(chunk_file))[0].lstrip('0')
-                    last_verse = self.usfm_chunks['udb'][chapter][first_verse]['last_verse']
+                    last_verse = self.usfm_chunks['ulb'][chapter][first_verse]['last_verse']
                     if first_verse != last_verse:
                         title = '{0} {1}:{2}-{3}'.format(self.book_title, chapter, first_verse, last_verse)
                     else:
@@ -318,7 +318,7 @@ class TnConverter(object):
                     md = self.fix_tn_links(md, chapter)
                     md = md.replace('#### translationWords', '### translationWords')
                     anchors = ''
-                    for verse in self.usfm_chunks['udb'][chapter][first_verse]['verses']:
+                    for verse in self.usfm_chunks['ulb'][chapter][first_verse]['verses']:
                         anchors += '<a id="tn-{0}-{1}-{2}"/>'.format(self.book_id, self.pad(chapter), self.pad(verse))
                     pre_md = '\n## {0}\n{1}\n\n'.format(title, anchors)
                     pre_md += '### UDB:\n\n[[udb://{0}/{1}/{2}/{3}/{4}]]\n\n'\
