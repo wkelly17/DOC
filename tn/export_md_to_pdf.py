@@ -187,7 +187,7 @@ class TnConverter(object):
 
             bible_dir = getattr(self, '{0}_dir'.format(resource))
             usfm = read_file(os.path.join(bible_dir, '{0}-{1}.usfm'.format(BOOK_NUMBERS[self.book_id],
-                                                                           self.book_id.upper())))
+                                                                           self.book_id.upper())), "utf-8") 
 
             chunks = re.compile(r'\\s5\s*\n*').split(usfm)
 
@@ -196,7 +196,7 @@ class TnConverter(object):
             chunks_per_verse = []
             for chunk in chunks:
                 pending_chunk = None
-                for line in chunk.encode("utf-8").splitlines(True):
+                for line in chunk.splitlines(True):
                     pending_chunk = pending_chunk + line if pending_chunk else line
                     if re.match(r'^\\v', line):
                         # This is a verse.  Start a new chunk.
@@ -655,7 +655,7 @@ class TnConverter(object):
         return text
 
     def convert_md2html(self):
-        html = markdown.markdown(read_file(os.path.join(self.output_dir, '{0}.md'.format(self.filename_base))))
+        html = markdown.markdown(read_file(os.path.join(self.output_dir, '{0}.md'.format(self.filename_base)),"utf-8"))
         html = self.replace_bible_links(html)
         write_file(os.path.join(self.output_dir, '{0}.html'.format(self.filename_base)), html)
 
@@ -680,7 +680,10 @@ class TnConverter(object):
         path = tempfile.mkdtemp(dir=self.working_dir, prefix='usfm-{0}-{1}-{2}-{3}-{4}_'.
                                 format(self.lang_code, resource, self.book_id, chapter, verse))
         filename_base = '{0}-{1}-{2}-{3}'.format(resource, self.book_id, chapter, verse)
-        chunk = self.usfm_chunks[resource][chapter][verse]['usfm']
+        try:
+            chunk = self.usfm_chunks[resource][chapter][verse]['usfm']
+        except KeyError:
+            chunk = u''
         usfm = self.usfm_chunks[resource]['header']
         if '\\c' not in chunk:
             usfm += '\n\n\\c {0}\n'.format(chapter)
