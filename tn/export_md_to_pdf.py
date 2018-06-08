@@ -326,8 +326,24 @@ class TnConverter(object):
                                 self.pad(last_verse))
                     pre_md += '### translationNotes\n'
                     md = '{0}\n{1}\n\n'.format(pre_md, md)
+
+                    # If we're inside a UDB bridge, roll back to the beginning of it
+                    udb_first_verse = first_verse
+                    udb_first_verse_ok = False
+                    while not udb_first_verse_ok:
+                        try:
+                            chunk = self.usfm_chunks['udb'][chapter][udb_first_verse]['usfm']
+                            udb_first_verse_ok = True
+                        except KeyError:
+                            print(">>> Couldn't find UDB verse for {0} {1}".format(chapter, udb_first_verse))
+                            udb_first_verse_int = int(udb_first_verse) - 1
+                            if udb_first_verse_int <= 0:
+                                break
+                            udb_first_verse = str(udb_first_verse_int)
+                            print(">>> Rolling back to {0}".format(udb_first_verse))
+
                     md += '### UDB:\n\n[[udb://{0}/{1}/{2}/{3}/{4}]]\n\n'\
-                        .format(self.lang_code, self.book_id, self.pad(chapter), self.pad(first_verse),
+                        .format(self.lang_code, self.book_id, self.pad(chapter), self.pad(udb_first_verse),
                                 self.pad(last_verse))
                     rc = 'rc://{0}/tn/help/{1}/{2}/{3}'.format(self.lang_code, self.book_id, self.pad(chapter),
                                                                self.pad(first_verse))
