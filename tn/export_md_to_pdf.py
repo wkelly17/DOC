@@ -327,6 +327,11 @@ class TnConverter(object):
                     pre_md += '### translationNotes\n'
                     md = '{0}\n{1}\n\n'.format(pre_md, md)
 
+                    # TODO -- learning
+                    tw_md = "### translationWords\n\n"
+                    tw_md += "rc://en/tw/dict/bible/names/gad\n"
+                    md = "{0}\n{1}\n\n".format(md, tw_md)
+
                     # If we're inside a UDB bridge, roll back to the beginning of it
                     udb_first_verse = first_verse
                     udb_first_verse_ok = False
