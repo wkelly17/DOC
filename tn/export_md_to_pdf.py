@@ -22,12 +22,16 @@ import tempfile
 import markdown
 import shutil
 import subprocess
+
+import xlrd
+
 from glob import glob
 from bs4 import BeautifulSoup
 from usfm_tools.transform import UsfmTransform
 from ..general_tools.file_utils import write_file, read_file, unzip, load_yaml_object
 from ..general_tools.url_utils import download_file
 from ..general_tools.bible_books import BOOK_NUMBERS
+
 
 
 class TnConverter(object):
@@ -98,6 +102,11 @@ class TnConverter(object):
         self.version = None
         self.issued = None
         self.filename_base = None
+
+        # TODO CROZ Load tW cross-references
+        book = xlrd.open_workbook(os.path.join(self.working_dir, "BibleWordList.full.xlsx"))
+        print("The number of worksheets is {0}".format(book.nsheets))
+        print("Worksheet name(s): {0}".format(book.sheet_names()))
 
     def run(self):
         self.setup_resource_files()
@@ -191,7 +200,7 @@ class TnConverter(object):
 
             chunks = re.compile(r'\\s5\s*\n*').split(usfm)
 
-            # TODO Make this an option
+            # TODO CROZ Make this an option
             # Break chunks into verses
             chunks_per_verse = []
             for chunk in chunks:
@@ -327,7 +336,7 @@ class TnConverter(object):
                     pre_md += '### translationNotes\n'
                     md = '{0}\n{1}\n\n'.format(pre_md, md)
 
-                    # TODO -- learning
+                    # FIXME CROZ -- learning
                     tw_md = "### translationWords\n\n"
                     tw_md += "* [[rc://en/tw/dict/bible/names/malachi]]"
                     md = "{0}\n{1}\n\n".format(md, tw_md)
