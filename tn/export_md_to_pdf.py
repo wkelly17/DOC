@@ -102,36 +102,7 @@ class TnConverter(object):
         self.version = None
         self.issued = None
         self.filename_base = None
-
-        # TODO CROZ Load tW cross-references
-        def update_words_by_verse(data, book_name, chapter_num, verse_num, word):
-            if book_name not in data:
-                data[book_name] = {}
-            book = data[book_name]
-            if chapter_num not in book:
-                book[chapter_num] = {}
-            chapter = book[chapter_num]
-            if verse_num not in chapter:
-                chapter[verse_num] = []
-            verse = chapter[verse_num]
-            if word not in verse:
-                verse.append(word)
-
-        self.tw_words_by_verse = {}
-        workbook = openpyxl.load_workbook(os.path.join(self.working_dir, "BibleWordList.full.xlsx"), read_only=True)
-        sheet = workbook["AllFullInfo"]
-        # Start at row 2 (skipping header), rows are counted starting at 1
-        for row in sheet.iter_rows(min_row=2):
-            word = row[0].value
-            book_name = row[2].value
-            references = row[3].value
-            for reference in references.split(";"):
-                fields = reference.strip().split(":")
-                chapter_num = fields[0]
-                verse_num = fields[1]
-                update_words_by_verse(self.tw_words_by_verse, book_name, chapter_num, verse_num, word)
-            break #FIXME
-        print(self.tw_words_by_verse)
+        self.tw_words_by_verse = get_tw_words_by_verse(os.path.join(self.working_dir, "BibleWordList.full.xlsx"))
 
 
     def run(self):
@@ -164,6 +135,7 @@ class TnConverter(object):
                 print("Generating PDF...")
                 self.convert_html2pdf()
         self.pp.pprint(self.bad_links)
+
 
     def get_book_projects(self):
         projects = []
@@ -786,6 +758,38 @@ class TnConverter(object):
         print(command)
         subprocess.call(command, shell=True)
 
+def get_tw_words_by_verse(filename):
+    """ Read the given Excel file to get tW words for each book/chapter/verse of the Bible"""
+
+    def insert_word(data, book_name, chapter_num, verse_num, word):
+        """ Inserts a book/chapter/verse/word association into the dictionary"""
+        if book_name not in data:
+            data[book_name] = {}
+        book = data[book_name]
+        if chapter_num not in book:
+            book[chapter_num] = {}
+        chapter = book[chapter_num]
+        if verse_num not in chapter:
+            chapter[verse_num] = []
+        verse = chapter[verse_num]
+        if word not in verse:
+            verse.append(word)
+
+    tw_words_by_verse = {}
+    workbook = openpyxl.load_workbook(filename, read_only=True)
+    sheet = workbook["AllFullInfo"]
+    # Start at row 2 (skipping header), rows are counted starting at 1
+    for row in sheet.iter_rows(min_row=2):
+        word = row[0].value
+        book_name = row[2].value
+        references = row[3].value
+        for reference in references.split(";"):
+            fields = reference.strip().split(":")
+            chapter_num = fields[0].strip()
+            verse_num = fields[1].strip()
+            insert_word(tw_words_by_verse, book_name, chapter_num, verse_num, word)
+
+    return tw_words_by_verse
 
 def main(ta_tag, tn_tag, tq_tag, tw_tag, udb_tag, ulb_tag, lang_code, books, working_dir, output_dir):
     """
