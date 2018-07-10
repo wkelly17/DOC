@@ -353,9 +353,9 @@ class TnConverter(object):
                                     file_refs = self.tw_files_by_term_and_strongs[ref]
                                     if file_refs:
                                         for file_ref in file_refs:
-                                            print(file_ref)
                                             # tw_md += "* [[rc://en/tw/dict/bible/names/malachi]]"
-                                            tw_md += "* [[rc://en/tw/dict/bible/{0}/{1}]]\n".format(file_ref["folder"], file_ref["filename"][:-3])
+                                            file_ref_md = "* [[rc://en/tw/dict/bible/{0}/{1}]]\n".format(file_ref["folder"], file_ref["filename"][:-3])
+                                            tw_md += file_ref_md
                                 md = "{0}\n{1}\n\n".format(md, tw_md)
 
                     # If we're inside a UDB bridge, roll back to the beginning of it
