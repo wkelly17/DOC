@@ -105,7 +105,6 @@ class TnConverter(object):
         self.tw_words_by_verse = get_tw_words_by_verse(os.path.join(self.working_dir, "BibleWordList.full.xlsx"))
         self.tw_files_by_term_and_strongs = get_tw_files_by_term_and_strongs(os.path.join(self.working_dir, "RawData.xlsx"))
 
-
     def run(self):
         self.setup_resource_files()
         self.manifest = load_yaml_object(os.path.join(self.tn_dir, 'manifest.yaml'))
@@ -808,19 +807,9 @@ def get_tw_files_by_term_and_strongs(filename):
         for term in terms:
             for strongs_number in strongs_numbers:
                 key = (term, strongs_number)
-                if key in tw_files_by_term_and_strongs:
-                    print("WARNING: duplicate key ({term}, {strongs})".format(term=term, strongs=strongs_number))
-                tw_files_by_term_and_strongs[key] = { "folder": folder_name, "filename": file_name }
-
-            # if strongs_number in tw_files_by_term:
-            #     print("WARNING: duplicate strongs_number in tw_files_by_term: {0}".format(strongs_number))
-            # tw_files_by_term[strongs_number] = { "folder": folder_name, "filename": file_name }
-
-        # for term in terms.split(","):
-        #     term = term.strip()
-        #     if term in tw_files_by_term:
-        #         print("WARNING: duplicate term in tw_files_by_term: {0}".format(term))
-        #     tw_files_by_term[term] = { "folder": folder_name, "filename": file_name }
+                if key not in tw_files_by_term_and_strongs:
+                    tw_files_by_term_and_strongs[key] = []
+                tw_files_by_term_and_strongs[key].append({ "folder": folder_name, "filename": file_name })
 
     return tw_files_by_term_and_strongs
 
