@@ -335,9 +335,20 @@ class TnConverter(object):
                     md = '{0}\n{1}\n\n'.format(pre_md, md)
 
                     # FIXME CROZ -- learning
-                    tw_md = "### translationWords\n\n"
-                    tw_md += "* [[rc://en/tw/dict/bible/names/malachi]]"
-                    md = "{0}\n{1}\n\n".format(md, tw_md)
+                    print(self.book_title)
+                    print(chapter)
+                    print(first_verse)
+                    if self.book_title in self.tw_refs_by_verse:
+                        book_ref = self.tw_refs_by_verse[self.book_title]
+                        if chapter in book_ref:
+                            chapter_ref = book_ref[chapter]
+                            if first_verse in chapter_ref:
+                                tw_refs = chapter_ref[first_verse]
+                                tw_md = "### translationWords\n\n"
+                                for ref in tw_refs:
+                                    # tw_md += "* [[rc://en/tw/dict/bible/names/malachi]]"
+                                    print(ref)
+                                md = "{0}\n{1}\n\n".format(md, tw_md)
 
                     # If we're inside a UDB bridge, roll back to the beginning of it
                     udb_first_verse = first_verse
