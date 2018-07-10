@@ -103,7 +103,7 @@ class TnConverter(object):
         self.issued = None
         self.filename_base = None
         self.tw_words_by_verse = get_tw_words_by_verse(os.path.join(self.working_dir, "BibleWordList.full.xlsx"))
-        self.tw_files_by_word = get_tw_files_by_word(os.path.join(self.working_dir, "RawData.xlsx"))
+        self.tw_files_by_term_and_strongs = get_tw_files_by_term_and_strongs(os.path.join(self.working_dir, "RawData.xlsx"))
 
 
     def run(self):
@@ -782,6 +782,7 @@ def get_tw_words_by_verse(filename):
     # Start at row 2 (skipping header), rows are counted starting at 1
     for row in sheet.iter_rows(min_row=2):
         word = row[0].value
+        strongs_number = row[1].value
         book_name = row[2].value
         references = row[3].value
         for reference in references.split(";"):
@@ -790,25 +791,38 @@ def get_tw_words_by_verse(filename):
             verse_num = fields[1].strip()
             insert_word(tw_words_by_verse, book_name, chapter_num, verse_num, word)
 
-def get_tw_files_by_word(filename):
+def get_tw_files_by_term_and_strongs(filename):
     """ Read the given Excel file to get the Markdown folder and file for
-    each word """
+    each term """
 
-    tw_files_by_word = {}
+    tw_files_by_term_and_strongs = {}
     workbook = openpyxl.load_workbook(filename, read_only=True)
     sheet = workbook["Raw"]
     # Start at row 1 (no header), rows are counted starting at 1
     for row in sheet.iter_rows(min_row=1):
-        words = row[0].value
+        terms = [term.strip() for term in row[0].value.split(",")]
+        value = row[1].value if row[1].value else ""
+        strongs_numbers = [strongs.strip() for strongs in value.split(",")]
         folder_name = row[2].value
         file_name = row[3].value
-        for word in words.split(","):
-            word = word.strip()
-            if word in tw_files_by_word:
-                print("WARNING: duplicate word in tw_files_by_word: {0}".format(word))
-            tw_files_by_word[word] = { "folder": folder_name, "filename": file_name }
+        for term in terms:
+            for strongs_number in strongs_numbers:
+                key = (term, strongs_number)
+                if key in tw_files_by_term_and_strongs:
+                    print("WARNING: duplicate key ({term}, {strongs})".format(term=term, strongs=strongs_number))
+                tw_files_by_term_and_strongs[key] = { "folder": folder_name, "filename": file_name }
 
-    return tw_files_by_word
+            # if strongs_number in tw_files_by_term:
+            #     print("WARNING: duplicate strongs_number in tw_files_by_term: {0}".format(strongs_number))
+            # tw_files_by_term[strongs_number] = { "folder": folder_name, "filename": file_name }
+
+        # for term in terms.split(","):
+        #     term = term.strip()
+        #     if term in tw_files_by_term:
+        #         print("WARNING: duplicate term in tw_files_by_term: {0}".format(term))
+        #     tw_files_by_term[term] = { "folder": folder_name, "filename": file_name }
+
+    return tw_files_by_term_and_strongs
 
 def main(ta_tag, tn_tag, tq_tag, tw_tag, udb_tag, ulb_tag, lang_code, books, working_dir, output_dir):
     """
