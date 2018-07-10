@@ -335,9 +335,6 @@ class TnConverter(object):
                     md = '{0}\n{1}\n\n'.format(pre_md, md)
 
                     # FIXME CROZ -- learning
-                    print(self.book_title)
-                    print(chapter)
-                    print(first_verse)
                     if self.book_title in self.tw_refs_by_verse:
                         book_ref = self.tw_refs_by_verse[self.book_title]
                         if chapter in book_ref:
@@ -346,8 +343,19 @@ class TnConverter(object):
                                 tw_refs = chapter_ref[first_verse]
                                 tw_md = "### translationWords\n\n"
                                 for ref in tw_refs:
-                                    # tw_md += "* [[rc://en/tw/dict/bible/names/malachi]]"
-                                    print(ref)
+                                    if ref not in self.tw_files_by_term_and_strongs:
+                                        print("ERROR: {0} {1}:{2} - Ref not found: {3}".format(
+                                            self.book_title,
+                                            chapter,
+                                            first_verse,
+                                            str(ref)))
+                                        continue
+                                    file_refs = self.tw_files_by_term_and_strongs[ref]
+                                    if file_refs:
+                                        for file_ref in file_refs:
+                                            print(file_ref)
+                                            # tw_md += "* [[rc://en/tw/dict/bible/names/malachi]]"
+                                            tw_md += "* [[rc://en/tw/dict/bible/{0}/{1}]]\n".format(file_ref["folder"], file_ref["filename"][:-3])
                                 md = "{0}\n{1}\n\n".format(md, tw_md)
 
                     # If we're inside a UDB bridge, roll back to the beginning of it
