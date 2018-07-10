@@ -102,7 +102,7 @@ class TnConverter(object):
         self.version = None
         self.issued = None
         self.filename_base = None
-        self.tw_words_by_verse = get_tw_words_by_verse(os.path.join(self.working_dir, "BibleWordList.full.xlsx"))
+        self.tw_refs_by_verse = get_tw_refs_by_verse(os.path.join(self.working_dir, "BibleWordList.full.xlsx"))
         self.tw_files_by_term_and_strongs = get_tw_files_by_term_and_strongs(os.path.join(self.working_dir, "RawData.xlsx"))
 
     def run(self):
@@ -758,10 +758,10 @@ class TnConverter(object):
         print(command)
         subprocess.call(command, shell=True)
 
-def get_tw_words_by_verse(filename):
+def get_tw_refs_by_verse(filename):
     """ Read the given Excel file to get tW words for each book/chapter/verse of the Bible"""
 
-    def insert_word(data, book_name, chapter_num, verse_num, word):
+    def insert_ref(data, book_name, chapter_num, verse_num, word, strongs):
         """ Inserts a book/chapter/verse/word association into the dictionary"""
         if book_name not in data:
             data[book_name] = {}
@@ -772,10 +772,11 @@ def get_tw_words_by_verse(filename):
         if verse_num not in chapter:
             chapter[verse_num] = []
         verse = chapter[verse_num]
-        if word not in verse:
-            verse.append(word)
+        key = (word, strongs)
+        if key not in verse:
+            verse.append(key)
 
-    tw_words_by_verse = {}
+    tw_refs_by_verse = {}
     workbook = openpyxl.load_workbook(filename, read_only=True)
     sheet = workbook["AllFullInfo"]
     # Start at row 2 (skipping header), rows are counted starting at 1
@@ -788,7 +789,8 @@ def get_tw_words_by_verse(filename):
             fields = reference.strip().split(":")
             chapter_num = fields[0].strip()
             verse_num = fields[1].strip()
-            insert_word(tw_words_by_verse, book_name, chapter_num, verse_num, word)
+            insert_ref(tw_refs_by_verse, book_name, chapter_num, verse_num, word, strongs_number)
+    return tw_refs_by_verse
 
 def get_tw_files_by_term_and_strongs(filename):
     """ Read the given Excel file to get the Markdown folder and file for
