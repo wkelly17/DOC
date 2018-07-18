@@ -204,11 +204,13 @@ class TnConverter(object):
             for chunk in chunks:
                 pending_chunk = None
                 for line in chunk.splitlines(True):
-                    pending_chunk = pending_chunk + line if pending_chunk else line
-                    if re.match(r'^\\v', line):
-                        # This is a verse.  Start a new chunk.
+                    # If this is a new verse and there's a pending chunk,
+                    # finish it and start a new one.
+                    if re.match(r'^\\v', line) and pending_chunk:
                         chunks_per_verse.append(pending_chunk)
                         pending_chunk = None
+                    pending_chunk = pending_chunk + line if pending_chunk else line
+                # If there's a pending chunk, finish it.
                 if pending_chunk:
                     chunks_per_verse.append(pending_chunk)
             chunks = chunks_per_verse
