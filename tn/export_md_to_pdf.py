@@ -474,7 +474,10 @@ class TnConverter(object):
             id_tag = '<a id="{0}"/>'.format(self.resource_data[rc]['id'])
             md = re.compile(r'# ([^\n]+)\n').sub(r'# \1\n{0}\n'.format(id_tag), md, 1)
             md = self.increase_headers(md)
-            md += self.get_uses(rc)
+            uses = self.get_uses(rc)
+            if uses == "":
+                continue
+            md += uses
             md += '\n\n'
             tw_md += md
         return tw_md
