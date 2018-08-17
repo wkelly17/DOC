@@ -802,13 +802,13 @@ def get_tw_refs_by_verse(filename):
 
     tw_refs_by_verse = {}
     workbook = openpyxl.load_workbook(filename, read_only=True)
-    sheet = workbook["AllFullInfo"]
+    sheet = workbook["tW.list"]
     # Start at row 2 (skipping header), rows are counted starting at 1
     for row in sheet.iter_rows(min_row=2):
         word = row[0].value
         strongs_number = row[1].value
-        book_name = row[2].value
-        references = row[3].value
+        book_name = row[3].value
+        references = row[4].value
         for reference in references.split(";"):
             fields = reference.strip().split(":")
             chapter_num = fields[0].strip()
