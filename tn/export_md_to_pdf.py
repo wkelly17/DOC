@@ -480,6 +480,8 @@ class TnConverter(object):
             md += uses
             md += '\n\n'
             tw_md += md
+        tw_md = remove_md_section(tw_md, "Bible References")
+        tw_md = remove_md_section(tw_md, "Examples from the Bible stories")
         return tw_md
 
     def get_ta_markdown(self):
@@ -815,6 +817,29 @@ def get_tw_refs_by_verse(filename):
             verse_num = fields[1].strip()
             insert_ref(tw_refs_by_verse, book_name, chapter_num, verse_num, word, strongs_number)
     return tw_refs_by_verse
+
+def remove_md_section(md, section_name):
+    """ Given markdown and a section name, removes the section and the text
+    contained in the section. """
+    header_regex = re.compile("^#.*$")
+    section_regex = re.compile("^#+ " + section_name)
+    out_md = ""
+    in_section = False
+    for line in md.splitlines():
+        if in_section:
+            if header_regex.match(line):
+                # We found a header.  The section is over.
+                print("Found other header")
+                out_md += line + "\n"
+                in_section = False
+        else:
+            if section_regex.match(line):
+                # We found the section header.
+                print("Found target header: " + section_name)
+                in_section = True
+            else:
+                out_md += line + "\n"
+    return out_md
 
 def get_tw_files_by_term_and_strongs(filename):
     """ Read the given Excel file to get the Markdown folder and file for
