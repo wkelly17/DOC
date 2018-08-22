@@ -829,13 +829,11 @@ def remove_md_section(md, section_name):
         if in_section:
             if header_regex.match(line):
                 # We found a header.  The section is over.
-                print("Found other header")
                 out_md += line + "\n"
                 in_section = False
         else:
             if section_regex.match(line):
                 # We found the section header.
-                print("Found target header: " + section_name)
                 in_section = True
             else:
                 out_md += line + "\n"
