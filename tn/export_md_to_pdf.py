@@ -206,7 +206,7 @@ class TnConverter(object):
                 for line in chunk.splitlines(True):
                     # If this is a new verse and there's a pending chunk,
                     # finish it and start a new one.
-                    if re.match(r'^\\v', line) and pending_chunk:
+                    if re.search(r'\\v', line) and pending_chunk:
                         chunks_per_verse.append(pending_chunk)
                         pending_chunk = None
                     pending_chunk = pending_chunk + line if pending_chunk else line
@@ -228,6 +228,9 @@ class TnConverter(object):
                     continue
                 first_verse = verses[0]
                 last_verse = verses[-1]
+                # print(">>> get_usfm_chunks(): Chapter:", chapter)
+                # print(">>> get_usfm_chunks(): First Verse:", first_verse)
+                # print(">>> get_usfm_chunks(): Last Verse:", last_verse)
                 if chapter not in book_chunks[resource]:
                     book_chunks[resource][chapter] = {'chunks': []}
                 data = {
@@ -317,6 +320,8 @@ class TnConverter(object):
                 chunk_files = sorted(glob(os.path.join(chapter_dir, '[0-9]*.md')))
                 for idx, chunk_file in enumerate(chunk_files):
                     first_verse = os.path.splitext(os.path.basename(chunk_file))[0].lstrip('0')
+                    # print(">>> get_tn_markdown(): Chapter:", chapter)
+                    # print(">>> get_tn_markdown(): First Verse:", first_verse)
                     last_verse = self.usfm_chunks['ulb'][chapter][first_verse]['last_verse']
                     if first_verse != last_verse:
                         title = '{0} {1}:{2}-{3}'.format(self.book_title, chapter, first_verse, last_verse)
