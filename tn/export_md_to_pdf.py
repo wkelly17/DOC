@@ -359,9 +359,12 @@ class TnConverter(object):
                                         continue
                                     file_refs = self.tw_files_by_term_and_strongs[ref]
                                     if file_refs:
+                                        # print(">>> B/C/V:", self.book_title, chapter, first_verse)
+                                        # print(">>> ref:", ref)
                                         for file_ref in file_refs:
                                             # tw_md += "* [[rc://en/tw/dict/bible/names/malachi]]"
                                             file_ref_md = "* [[rc://en/tw/dict/bible/{0}/{1}]]\n".format(file_ref["folder"], file_ref["filename"][:-3])
+                                            # print(file_ref_md)
                                             tw_md += file_ref_md
                                 md = "{0}\n{1}\n\n".format(md, tw_md)
 
