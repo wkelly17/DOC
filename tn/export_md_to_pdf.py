@@ -815,7 +815,7 @@ def get_tw_refs_by_verse(filename):
     sheet = workbook["tW.list"]
     # Start at row 2 (skipping header), rows are counted starting at 1
     for row in sheet.iter_rows(min_row=2):
-        word = row[0].value
+        word = row[0].value.strip()
         strongs_number = row[1].value
         book_name = row[3].value
         references = row[4].value
