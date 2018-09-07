@@ -228,9 +228,6 @@ class TnConverter(object):
                     continue
                 first_verse = verses[0]
                 last_verse = verses[-1]
-                # print(">>> get_usfm_chunks(): Chapter:", chapter)
-                # print(">>> get_usfm_chunks(): First Verse:", first_verse)
-                # print(">>> get_usfm_chunks(): Last Verse:", last_verse)
                 if chapter not in book_chunks[resource]:
                     book_chunks[resource][chapter] = {'chunks': []}
                 data = {
@@ -239,7 +236,6 @@ class TnConverter(object):
                     'last_verse': last_verse,
                     'verses': verses
                 }
-                # print('chunk: {0}-{1}-{2}-{3}-{4}'.format(resource, self.book_id, chapter, first_verse, last_verse))
                 book_chunks[resource][chapter][first_verse] = data
                 book_chunks[resource][chapter]['chunks'].append(data)
         return book_chunks
@@ -320,8 +316,6 @@ class TnConverter(object):
                 chunk_files = sorted(glob(os.path.join(chapter_dir, '[0-9]*.md')))
                 for idx, chunk_file in enumerate(chunk_files):
                     first_verse = os.path.splitext(os.path.basename(chunk_file))[0].lstrip('0')
-                    # print(">>> get_tn_markdown(): Chapter:", chapter)
-                    # print(">>> get_tn_markdown(): First Verse:", first_verse)
                     last_verse = self.usfm_chunks['ulb'][chapter][first_verse]['last_verse']
                     if first_verse != last_verse:
                         title = '{0} {1}:{2}-{3}'.format(self.book_title, chapter, first_verse, last_verse)
@@ -341,7 +335,7 @@ class TnConverter(object):
                     pre_md += '### translationNotes\n'
                     md = '{0}\n{1}\n\n'.format(pre_md, md)
 
-                    # FIXME CROZ -- learning
+                    # Add translationWords for passage
                     if self.book_title in self.tw_refs_by_verse:
                         book_ref = self.tw_refs_by_verse[self.book_title]
                         if chapter in book_ref:
@@ -359,12 +353,8 @@ class TnConverter(object):
                                         continue
                                     file_refs = self.tw_files_by_term_and_strongs[ref]
                                     if file_refs:
-                                        # print(">>> B/C/V:", self.book_title, chapter, first_verse)
-                                        # print(">>> ref:", ref)
                                         for file_ref in file_refs:
-                                            # tw_md += "* [[rc://en/tw/dict/bible/names/malachi]]"
                                             file_ref_md = "* [[rc://en/tw/dict/bible/{0}/{1}]]\n".format(file_ref["folder"], file_ref["filename"][:-3])
-                                            # print(file_ref_md)
                                             tw_md += file_ref_md
                                 md = "{0}\n{1}\n\n".format(md, tw_md)
 
@@ -376,12 +366,10 @@ class TnConverter(object):
                             chunk = self.usfm_chunks['udb'][chapter][udb_first_verse]['usfm']
                             udb_first_verse_ok = True
                         except KeyError:
-                            print(">>> Couldn't find UDB verse for {0} {1}".format(chapter, udb_first_verse))
                             udb_first_verse_int = int(udb_first_verse) - 1
                             if udb_first_verse_int <= 0:
                                 break
                             udb_first_verse = str(udb_first_verse_int)
-                            print(">>> Rolling back to {0}".format(udb_first_verse))
 
                     md += '### UDB:\n\n[[udb://{0}/{1}/{2}/{3}/{4}]]\n\n'\
                         .format(self.lang_code, self.book_id, self.pad(chapter), self.pad(udb_first_verse),
