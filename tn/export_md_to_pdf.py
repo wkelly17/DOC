@@ -198,7 +198,6 @@ class TnConverter(object):
 
             chunks = re.compile(r'\\s5\s*\n*').split(usfm)
 
-            # TODO CROZ Make this an option
             # Break chunks into verses
             chunks_per_verse = []
             for chunk in chunks:
