@@ -22,12 +22,16 @@ import tempfile
 import markdown
 import shutil
 import subprocess
+
+import openpyxl
+
 from glob import glob
 from bs4 import BeautifulSoup
 from usfm_tools.transform import UsfmTransform
 from ..general_tools.file_utils import write_file, read_file, unzip, load_yaml_object
 from ..general_tools.url_utils import download_file
 from ..general_tools.bible_books import BOOK_NUMBERS
+
 
 
 class TnConverter(object):
@@ -98,6 +102,8 @@ class TnConverter(object):
         self.version = None
         self.issued = None
         self.filename_base = None
+        self.tw_refs_by_verse = get_tw_refs_by_verse(os.path.join(self.working_dir, "BibleWordList.full.xlsx"))
+        self.tw_files_by_term_and_strongs = get_tw_files_by_term_and_strongs(os.path.join(self.working_dir, "RawData.xlsx"))
 
     def run(self):
         self.setup_resource_files()
@@ -129,6 +135,7 @@ class TnConverter(object):
                 print("Generating PDF...")
                 self.convert_html2pdf()
         self.pp.pprint(self.bad_links)
+
 
     def get_book_projects(self):
         projects = []
@@ -187,9 +194,26 @@ class TnConverter(object):
 
             bible_dir = getattr(self, '{0}_dir'.format(resource))
             usfm = read_file(os.path.join(bible_dir, '{0}-{1}.usfm'.format(BOOK_NUMBERS[self.book_id],
-                                                                           self.book_id.upper())))
+                                                                           self.book_id.upper())), "utf-8") 
 
             chunks = re.compile(r'\\s5\s*\n*').split(usfm)
+
+            # Break chunks into verses
+            chunks_per_verse = []
+            for chunk in chunks:
+                pending_chunk = None
+                for line in chunk.splitlines(True):
+                    # If this is a new verse and there's a pending chunk,
+                    # finish it and start a new one.
+                    if re.search(r'\\v', line) and pending_chunk:
+                        chunks_per_verse.append(pending_chunk)
+                        pending_chunk = None
+                    pending_chunk = pending_chunk + line if pending_chunk else line
+                # If there's a pending chunk, finish it.
+                if pending_chunk:
+                    chunks_per_verse.append(pending_chunk)
+            chunks = chunks_per_verse
+
             header = chunks[0]
             book_chunks[resource]['header'] = header
             for chunk in chunks[1:]:
@@ -211,7 +235,6 @@ class TnConverter(object):
                     'last_verse': last_verse,
                     'verses': verses
                 }
-                # print('chunk: {0}-{1}-{2}-{3}-{4}'.format(resource, self.book_id, chapter, first_verse, last_verse))
                 book_chunks[resource][chapter][first_verse] = data
                 book_chunks[resource][chapter]['chunks'].append(data)
         return book_chunks
@@ -292,7 +315,7 @@ class TnConverter(object):
                 chunk_files = sorted(glob(os.path.join(chapter_dir, '[0-9]*.md')))
                 for idx, chunk_file in enumerate(chunk_files):
                     first_verse = os.path.splitext(os.path.basename(chunk_file))[0].lstrip('0')
-                    last_verse = self.usfm_chunks['udb'][chapter][first_verse]['last_verse']
+                    last_verse = self.usfm_chunks['ulb'][chapter][first_verse]['last_verse']
                     if first_verse != last_verse:
                         title = '{0} {1}:{2}-{3}'.format(self.book_title, chapter, first_verse, last_verse)
                     else:
@@ -302,17 +325,54 @@ class TnConverter(object):
                     md = self.fix_tn_links(md, chapter)
                     md = md.replace('#### translationWords', '### translationWords')
                     anchors = ''
-                    for verse in self.usfm_chunks['udb'][chapter][first_verse]['verses']:
+                    for verse in self.usfm_chunks['ulb'][chapter][first_verse]['verses']:
                         anchors += '<a id="tn-{0}-{1}-{2}"/>'.format(self.book_id, self.pad(chapter), self.pad(verse))
                     pre_md = '\n## {0}\n{1}\n\n'.format(title, anchors)
-                    pre_md += '### UDB:\n\n[[udb://{0}/{1}/{2}/{3}/{4}]]\n\n'\
-                        .format(self.lang_code, self.book_id, self.pad(chapter), self.pad(first_verse),
-                                self.pad(last_verse))
                     pre_md += '### ULB:\n\n[[ulb://{0}/{1}/{2}/{3}/{4}]]\n\n'\
                         .format(self.lang_code, self.book_id, self.pad(chapter), self.pad(first_verse),
                                 self.pad(last_verse))
                     pre_md += '### translationNotes\n'
-                    md = '{0}\n{1}'.format(pre_md, md)
+                    md = '{0}\n{1}\n\n'.format(pre_md, md)
+
+                    # Add translationWords for passage
+                    if self.book_title in self.tw_refs_by_verse:
+                        book_ref = self.tw_refs_by_verse[self.book_title]
+                        if chapter in book_ref:
+                            chapter_ref = book_ref[chapter]
+                            if first_verse in chapter_ref:
+                                tw_refs = chapter_ref[first_verse]
+                                tw_md = "### translationWords\n\n"
+                                for ref in tw_refs:
+                                    if ref not in self.tw_files_by_term_and_strongs:
+                                        print("ERROR: {0} {1}:{2} - Ref not found: {3}".format(
+                                            self.book_title,
+                                            chapter,
+                                            first_verse,
+                                            str(ref)))
+                                        continue
+                                    file_refs = self.tw_files_by_term_and_strongs[ref]
+                                    if file_refs:
+                                        for file_ref in file_refs:
+                                            file_ref_md = "* [[rc://en/tw/dict/bible/{0}/{1}]]\n".format(file_ref["folder"], file_ref["filename"][:-3])
+                                            tw_md += file_ref_md
+                                md = "{0}\n{1}\n\n".format(md, tw_md)
+
+                    # If we're inside a UDB bridge, roll back to the beginning of it
+                    udb_first_verse = first_verse
+                    udb_first_verse_ok = False
+                    while not udb_first_verse_ok:
+                        try:
+                            chunk = self.usfm_chunks['udb'][chapter][udb_first_verse]['usfm']
+                            udb_first_verse_ok = True
+                        except KeyError:
+                            udb_first_verse_int = int(udb_first_verse) - 1
+                            if udb_first_verse_int <= 0:
+                                break
+                            udb_first_verse = str(udb_first_verse_int)
+
+                    md += '### UDB:\n\n[[udb://{0}/{1}/{2}/{3}/{4}]]\n\n'\
+                        .format(self.lang_code, self.book_id, self.pad(chapter), self.pad(udb_first_verse),
+                                self.pad(last_verse))
                     rc = 'rc://{0}/tn/help/{1}/{2}/{3}'.format(self.lang_code, self.book_id, self.pad(chapter),
                                                                self.pad(first_verse))
                     anchor_id = 'tn-{0}-{1}-{2}'.format(self.book_id, self.pad(chapter), self.pad(first_verse))
@@ -409,9 +469,14 @@ class TnConverter(object):
             id_tag = '<a id="{0}"/>'.format(self.resource_data[rc]['id'])
             md = re.compile(r'# ([^\n]+)\n').sub(r'# \1\n{0}\n'.format(id_tag), md, 1)
             md = self.increase_headers(md)
-            md += self.get_uses(rc)
+            uses = self.get_uses(rc)
+            if uses == "":
+                continue
+            md += uses
             md += '\n\n'
             tw_md += md
+        tw_md = remove_md_section(tw_md, "Bible References")
+        tw_md = remove_md_section(tw_md, "Examples from the Bible stories")
         return tw_md
 
     def get_ta_markdown(self):
@@ -639,7 +704,7 @@ class TnConverter(object):
         return text
 
     def convert_md2html(self):
-        html = markdown.markdown(read_file(os.path.join(self.output_dir, '{0}.md'.format(self.filename_base))))
+        html = markdown.markdown(read_file(os.path.join(self.output_dir, '{0}.md'.format(self.filename_base)),"utf-8"))
         html = self.replace_bible_links(html)
         write_file(os.path.join(self.output_dir, '{0}.html'.format(self.filename_base)), html)
 
@@ -664,7 +729,10 @@ class TnConverter(object):
         path = tempfile.mkdtemp(dir=self.working_dir, prefix='usfm-{0}-{1}-{2}-{3}-{4}_'.
                                 format(self.lang_code, resource, self.book_id, chapter, verse))
         filename_base = '{0}-{1}-{2}-{3}'.format(resource, self.book_id, chapter, verse)
-        chunk = self.usfm_chunks[resource][chapter][verse]['usfm']
+        try:
+            chunk = self.usfm_chunks[resource][chapter][verse]['usfm']
+        except KeyError:
+            chunk = u''
         usfm = self.usfm_chunks[resource]['header']
         if '\\c' not in chunk:
             usfm += '\n\n\\c {0}\n'.format(chapter)
@@ -711,6 +779,83 @@ class TnConverter(object):
         print(command)
         subprocess.call(command, shell=True)
 
+def get_tw_refs_by_verse(filename):
+    """ Read the given Excel file to get tW words for each book/chapter/verse of the Bible"""
+
+    def insert_ref(data, book_name, chapter_num, verse_num, word, strongs):
+        """ Inserts a book/chapter/verse/word association into the dictionary"""
+        if book_name not in data:
+            data[book_name] = {}
+        book = data[book_name]
+        if chapter_num not in book:
+            book[chapter_num] = {}
+        chapter = book[chapter_num]
+        if verse_num not in chapter:
+            chapter[verse_num] = []
+        verse = chapter[verse_num]
+        key = (word, strongs)
+        if key not in verse:
+            verse.append(key)
+
+    tw_refs_by_verse = {}
+    workbook = openpyxl.load_workbook(filename, read_only=True)
+    sheet = workbook["tW.list"]
+    # Start at row 2 (skipping header), rows are counted starting at 1
+    for row in sheet.iter_rows(min_row=2):
+        word = row[0].value.strip()
+        strongs_number = row[1].value
+        book_name = row[3].value
+        references = row[4].value
+        for reference in references.split(";"):
+            fields = reference.strip().split(":")
+            chapter_num = fields[0].strip()
+            verse_num = fields[1].strip()
+            insert_ref(tw_refs_by_verse, book_name, chapter_num, verse_num, word, strongs_number)
+    return tw_refs_by_verse
+
+def remove_md_section(md, section_name):
+    """ Given markdown and a section name, removes the section and the text
+    contained in the section. """
+    header_regex = re.compile("^#.*$")
+    section_regex = re.compile("^#+ " + section_name)
+    out_md = ""
+    in_section = False
+    for line in md.splitlines():
+        if in_section:
+            if header_regex.match(line):
+                # We found a header.  The section is over.
+                out_md += line + "\n"
+                in_section = False
+        else:
+            if section_regex.match(line):
+                # We found the section header.
+                in_section = True
+            else:
+                out_md += line + "\n"
+    return out_md
+
+def get_tw_files_by_term_and_strongs(filename):
+    """ Read the given Excel file to get the Markdown folder and file for
+    each term """
+
+    tw_files_by_term_and_strongs = {}
+    workbook = openpyxl.load_workbook(filename, read_only=True)
+    sheet = workbook["Raw"]
+    # Start at row 1 (no header), rows are counted starting at 1
+    for row in sheet.iter_rows(min_row=1):
+        terms = [term.strip() for term in row[0].value.split(",")]
+        value = row[1].value if row[1].value else ""
+        strongs_numbers = [strongs.strip() for strongs in value.split(",")]
+        folder_name = row[2].value
+        file_name = row[3].value
+        for term in terms:
+            for strongs_number in strongs_numbers:
+                key = (term, strongs_number)
+                if key not in tw_files_by_term_and_strongs:
+                    tw_files_by_term_and_strongs[key] = []
+                tw_files_by_term_and_strongs[key].append({ "folder": folder_name, "filename": file_name })
+
+    return tw_files_by_term_and_strongs
 
 def main(ta_tag, tn_tag, tq_tag, tw_tag, udb_tag, ulb_tag, lang_code, books, working_dir, output_dir):
     """
