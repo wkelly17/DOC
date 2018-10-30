@@ -21,6 +21,7 @@ import argparse
 import tempfile
 import markdown
 import shutil
+import datetime
 import subprocess
 
 import openpyxl
@@ -752,6 +753,8 @@ class TnConverter(object):
         return html
 
     def convert_html2pdf(self):
+        now = datetime.datetime.now()
+        revision_date = "{}-{}-{}".format(now.year, now.month, now.day)
         command = """pandoc \
 --latex-engine="xelatex" \
 --template="tools/tn/tex/template.tex" \
@@ -765,6 +768,7 @@ class TnConverter(object):
 -V subtitle="translationNotes" \
 -V logo="{6}/icon-tn.png" \
 -V date="{3}" \
+-V revision_date="{8}" \
 -V version="{4}" \
 -V mainfont="Noto Serif" \
 -V sansfont="Noto Sans" \
@@ -775,7 +779,7 @@ class TnConverter(object):
 -o "{5}/{7}.pdf" \
 "{5}/{7}.html"
 """.format(BOOK_NUMBERS[self.book_id], self.book_id.upper(), self.book_title, self.issued, self.version, self.output_dir,
-           self.working_dir, self.filename_base)
+           self.working_dir, self.filename_base, revision_date)
         print(command)
         subprocess.call(command, shell=True)
 
