@@ -259,7 +259,7 @@ class TnConverter(object):
         if not os.path.isdir(book_dir):
             return ""
 
-        tn_md = '# translationNotes\n<a id="tn-{0}"/>\n\n'.format(self.book_id)
+        tn_md = '# Translation Notes\n<a id="tn-{0}"/>\n\n'.format(self.book_id)
 
         intro_file = os.path.join(book_dir, 'front', 'intro.md')
         book_has_intro = os.path.isfile(intro_file)
@@ -321,21 +321,21 @@ class TnConverter(object):
                     md = self.increase_headers(read_file(chunk_file), 3)
                     md = self.decrease_headers(md, 5)  # bring headers of 5 or more #'s down 1
                     md = self.fix_tn_links(md, chapter)
-                    md = md.replace('#### translationWords', '### translationWords')
+                    md = md.replace('#### Translation Words', '### Translation Words')
                     anchors = ''
                     for verse in self.usfm_chunks['ulb'][chapter][first_verse]['verses']:
                         anchors += '<a id="tn-{0}-{1}-{2}"/>'.format(self.book_id, self.pad(chapter), self.pad(verse))
                     pre_md = '\n## {0}\n{1}\n\n'.format(title, anchors)
-                    pre_md += '### ULB:\n\n[[ulb://{0}/{1}/{2}/{3}/{4}]]\n\n'\
+                    pre_md += '### Unlocked Literal Bible\n\n[[ulb://{0}/{1}/{2}/{3}/{4}]]\n\n'\
                         .format(self.lang_code, self.book_id, self.pad(chapter), self.pad(first_verse),
                                 self.pad(last_verse))
-                    pre_md += '### translationNotes\n'
+                    pre_md += '### Translation Notes\n'
                     md = '{0}\n{1}\n\n'.format(pre_md, md)
 
-                    # Add translationWords for passage
+                    # Add Translation Words for passage
                     tw_refs = get_tw_refs(self.tw_refs_by_verse, self.book_title, chapter, first_verse)
                     if tw_refs:
-                        tw_md = "### translationWords\n\n"
+                        tw_md = "### Translation Words\n\n"
                         for tw_ref in tw_refs:
                             file_ref_md = "* [{0}](rc://en/tw/dict/bible/{1}/{2})\n".format(
                                     tw_ref["Term"], tw_ref["Dir"], tw_ref["Ref"])
@@ -355,7 +355,7 @@ class TnConverter(object):
                                 break
                             udb_first_verse = str(udb_first_verse_int)
 
-                    md += '### UDB:\n\n[[udb://{0}/{1}/{2}/{3}/{4}]]\n\n'\
+                    md += '### Unlocked Dynamic Bible\n\n[[udb://{0}/{1}/{2}/{3}/{4}]]\n\n'\
                         .format(self.lang_code, self.book_id, self.pad(chapter), self.pad(udb_first_verse),
                                 self.pad(last_verse))
                     rc = 'rc://{0}/tn/help/{1}/{2}/{3}'.format(self.lang_code, self.book_id, self.pad(chapter),
@@ -384,8 +384,8 @@ class TnConverter(object):
         return tn_md
 
     def get_tq_markdown(self):
-        tq_md = '# translationQuestions\n<a id="tq-{0}"/>\n\n'.format(self.book_id)
-        title = '{0} translationQuestions'.format(self.book_title)
+        tq_md = '# Translation Questions\n<a id="tq-{0}"/>\n\n'.format(self.book_id)
+        title = '{0} Translation Questions'.format(self.book_title)
         rc = 'rc://{0}/tq/help/{1}' \
             .format(self.lang_code, self.book_id)
         anchor_id = 'tq-{0}'.format(self.book_id)
@@ -403,7 +403,7 @@ class TnConverter(object):
             if os.path.isdir(chapter_dir) and re.match(r'^\d+$', chapter):
                 id_tag = '<a id="tq-{0}-{1}"/>'.format(self.book_id, self.pad(chapter))
                 tq_md += '## {0} {1}\n{2}\n\n'.format(self.book_title, chapter, id_tag)
-                title = '{0} {1} translationQuestions'.format(self.book_title, chapter)
+                title = '{0} {1} Translation Questions'.format(self.book_title, chapter)
                 rc = 'rc://{0}/tq/help/{1}/{2}' \
                     .format(self.lang_code, self.book_id, self.pad(chapter))
                 anchor_id = 'tq-{0}-{1}'.format(self.book_id, self.pad(chapter))
@@ -425,7 +425,7 @@ class TnConverter(object):
                                                                                self.pad(first_verse), chapter,
                                                                                first_verse),
                                                                         md)
-                        title = '{0} {1}:{2} translationQuestions'.format(self.book_title, chapter, first_verse)
+                        title = '{0} {1}:{2} Translation Questions'.format(self.book_title, chapter, first_verse)
                         rc = 'rc://{0}/tq/help/{1}/{2}/{3}'\
                             .format(self.lang_code, self.book_id, self.pad(chapter), self.pad(first_verse))
                         anchor_id = 'tq-{0}-{1}-{2}'.format(self.book_id, self.pad(chapter), self.pad(first_verse))
@@ -442,7 +442,7 @@ class TnConverter(object):
         return tq_md
 
     def get_tw_markdown(self):
-        tw_md = '<a id="tw-{0}"/>\n# translationWords\n\n'.format(self.book_id)
+        tw_md = '<a id="tw-{0}"/>\n# Translation Words\n\n'.format(self.book_id)
         sorted_rcs = sorted(self.my_rcs, key=lambda k: self.resource_data[k]['title'].lower())
         for rc in sorted_rcs:
             if '/tw/' not in rc:
@@ -465,7 +465,7 @@ class TnConverter(object):
         return tw_md
 
     def get_ta_markdown(self):
-        ta_md = '<a id="ta-{0}"/>\n# translationAcademy\n\n'.format(self.book_id)
+        ta_md = '<a id="ta-{0}"/>\n# Translation Topics\n\n'.format(self.book_id)
         sorted_rcs = sorted(self.my_rcs, key=lambda k: self.resource_data[k]['title'].lower())
         for rc in sorted_rcs:
             if '/ta/' not in rc:
@@ -706,13 +706,13 @@ class TnConverter(object):
 -V geometry='hmargin=2cm' \
 -V geometry='vmargin=3cm' \
 -V title="{2}" \
--V subtitle="translationNotes" \
+-V subtitle="Translation Notes" \
 -V logo="{6}/icon-tn.png" \
 -V date="{3}" \
 -V revision_date="{8}" \
 -V version="{4}" \
--V mainfont="Noto Serif" \
--V sansfont="Noto Sans" \
+-V mainfont="Raleway" \
+-V sansfont="Raleway" \
 -V fontsize="13pt" \
 -V urlcolor="Bittersweet" \
 -V linkcolor="Bittersweet" \
