@@ -626,7 +626,7 @@ class TnConverter(object):
     def replace_rc_links(self, text):
         # Change [[rc://...]] rc links, e.g. [[rc://en/tw/help/bible/kt/word]] => [God's Word](#tw-kt-word)
         rep = dict((re.escape('[[{0}]]'.format(rc)), '[{0}]({1})'.
-                    format(self.resource_data[rc]['title'], self.resource_data[rc]['link']))
+                    format(self.resource_data[rc]['title'].strip(), self.resource_data[rc]['link']))
                    for rc in self.my_rcs)
         pattern = re.compile("|".join(rep.keys()))
         text = pattern.sub(lambda m: rep[re.escape(m.group(0))], text)
