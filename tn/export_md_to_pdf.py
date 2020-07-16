@@ -76,13 +76,14 @@ class TnConverter(object):
         if not self.output_dir:
             self.output_dir = self.working_dir
 
-        self.logger.debug('TEMP DIR IS {0}'.format(self.working_dir))
-        self.tn_dir = os.path.join(self.working_dir, '{0}_tn'.format(lang_code))
-        self.tw_dir = os.path.join(self.working_dir, '{0}_tw'.format(lang_code))
-        self.tq_dir = os.path.join(self.working_dir, '{0}_tq'.format(lang_code))
-        self.ta_dir = os.path.join(self.working_dir, '{0}_ta'.format(lang_code))
-        self.udb_dir = os.path.join(self.working_dir, '{0}_udb'.format(lang_code))
-        self.ulb_dir = os.path.join(self.working_dir, '{0}_ulb'.format(lang_code))
+        self.logger.debug("TEMP DIR IS {0}".format(self.working_dir))
+        self.logger.debug("A DEBUG message")
+        self.tn_dir = os.path.join(self.working_dir, "{0}_tn".format(lang_code))
+        self.tw_dir = os.path.join(self.working_dir, "{0}_tw".format(lang_code))
+        self.tq_dir = os.path.join(self.working_dir, "{0}_tq".format(lang_code))
+        self.ta_dir = os.path.join(self.working_dir, "{0}_ta".format(lang_code))
+        self.udb_dir = os.path.join(self.working_dir, "{0}_udb".format(lang_code))
+        self.ulb_dir = os.path.join(self.working_dir, "{0}_ulb".format(lang_code))
 
         self.manifest = None
 
