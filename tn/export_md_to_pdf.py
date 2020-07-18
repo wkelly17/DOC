@@ -151,23 +151,23 @@ class TnConverter(object):
         return 'https://git.door43.org/Door43/{0}_{1}/archive/{2}.zip'.format(self.lang_code, resource, tag)
 
     def setup_resource_files(self):
-        if not os.path.isdir(os.path.join(self.working_dir, 'en_tn')):
-            tn_url = self.get_resource_url('tn', self.tn_tag)
+        if not self.tn_dir:
+            tn_url = self.get_resource_url("tn", self.tn_tag)
             self.extract_files_from_url(tn_url)
-        if not os.path.isdir(os.path.join(self.working_dir, 'en_tw')):
-            tw_url = self.get_resource_url('tw', self.tw_tag)
+        if not self.tw_dir:
+            tw_url = self.get_resource_url("tw", self.tw_tag)
             self.extract_files_from_url(tw_url)
-        if not os.path.isdir(os.path.join(self.working_dir, 'en_tq')):
-            tq_url = self.get_resource_url('tq', self.tq_tag)
+        if not self.tq_dir:
+            tq_url = self.get_resource_url("tq", self.tq_tag)
             self.extract_files_from_url(tq_url)
-        if not os.path.isdir(os.path.join(self.working_dir, 'en_ta')):
-            ta_url = self.get_resource_url('ta', self.ta_tag)
+        if not self.ta_dir:
+            ta_url = self.get_resource_url("ta", self.ta_tag)
             self.extract_files_from_url(ta_url)
-        if not os.path.isdir(os.path.join(self.working_dir, 'en_udb')):
-            udb_url = self.get_resource_url('udb', self.udb_tag)
+        if not self.udb_dir:
+            udb_url = self.get_resource_url("udb", self.udb_tag)
             self.extract_files_from_url(udb_url)
-        if not os.path.isdir(os.path.join(self.working_dir, 'en_ulb')):
-            ulb_url = self.get_resource_url('ulb', self.ulb_tag)
+        if not self.ulb_dir:
+            ulb_url = self.get_resource_url("ulb", self.ulb_tag)
             self.extract_files_from_url(ulb_url)
         if not os.path.isfile(os.path.join(self.working_dir, 'icon-tn.png')):
             command = 'curl -o {0}/icon-tn.png https://unfoldingword.org/assets/img/icon-tn.png'.format(self.working_dir)
