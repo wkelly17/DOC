@@ -34,9 +34,19 @@ from ..general_tools.bible_books import BOOK_NUMBERS
 
 
 class TnConverter(object):
-
-    def __init__(self, ta_tag=None, tn_tag=None, tq_tag=None, tw_tag=None, udb_tag=None, ulb_tag=None, working_dir=None, 
-                 output_dir=None, lang_code='en', books=None):
+    def __init__(
+        self,
+        ta_tag=None,
+        tn_tag=None,
+        tq_tag=None,
+        tw_tag=None,
+        udb_tag=None,
+        ulb_tag=None,
+        working_dir=None,
+        output_dir=None,
+        lang_code=None,
+        books=None,
+    ):
         """
         :param ta_tag:
         :param tn_tag:
@@ -840,7 +850,19 @@ def get_tw_refs(tw_refs_by_verse, book, chapter, verse):
         return []
     return tw_refs_by_verse[book][chapter][verse]
 
-def main(ta_tag, tn_tag, tq_tag, tw_tag, udb_tag, ulb_tag, lang_code, books, working_dir, output_dir):
+
+def main(
+    ta_tag,
+    tn_tag,
+    tq_tag,
+    tw_tag,
+    udb_tag,
+    ulb_tag,
+    working_dir,
+    output_dir,
+    lang_code,
+    books,
+):
     """
     :param ta_tag:
     :param tn_tag:
@@ -854,8 +876,18 @@ def main(ta_tag, tn_tag, tq_tag, tw_tag, udb_tag, ulb_tag, lang_code, books, wor
     :param output_dir:
     :return:
     """
-    tn_converter = TnConverter(ta_tag, tn_tag, tq_tag, tw_tag, udb_tag, ulb_tag, working_dir, output_dir, 
-                               lang_code, books)
+    tn_converter = TnConverter(
+        ta_tag,
+        tn_tag,
+        tq_tag,
+        tw_tag,
+        udb_tag,
+        ulb_tag,
+        working_dir,
+        output_dir,
+        lang_code,
+        books,
+    )
     tn_converter.run()
 
 if __name__ == '__main__':
@@ -872,5 +904,15 @@ if __name__ == '__main__':
     parser.add_argument('--udb-tag', dest='udb', default='v12', required=False, help="UDB Tag")
     parser.add_argument('--ulb-tag', dest='ulb', default='v12', required=False, help="ULB Tag")
     args = parser.parse_args(sys.argv[1:])
-    main(args.ta, args.tn, args.tq, args.tw, args.udb, args.ulb, args.lang_code, args.books, args.working_dir,
-         args.output_dir)
+    main(
+        args.ta,
+        args.tn,
+        args.tq,
+        args.tw,
+        args.udb,
+        args.ulb,
+        args.working_dir,
+        args.output_dir,
+        args.lang_code,
+        args.books,
+    )
