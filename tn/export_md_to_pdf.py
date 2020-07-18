@@ -1,5 +1,4 @@
 #!/usr/bin/env python2
-# -*- coding: utf8 -*-
 #
 #  Copyright (c) 2017 unfoldingWord
 #  http://creativecommons.org/licenses/MIT/
