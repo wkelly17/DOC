@@ -86,7 +86,6 @@ class TnConverter(object):
             self.output_dir = self.working_dir
 
         self.logger.debug("TEMP DIR IS {0}".format(self.working_dir))
-        self.logger.debug("A DEBUG message")
         self.tn_dir = os.path.join(self.working_dir, "{0}_tn".format(lang_code))
         self.tw_dir = os.path.join(self.working_dir, "{0}_tw".format(lang_code))
         self.tq_dir = os.path.join(self.working_dir, "{0}_tq".format(lang_code))
