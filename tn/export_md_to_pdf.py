@@ -28,9 +28,9 @@ import markdown
 from bs4 import BeautifulSoup
 from usfm_tools.transform import UsfmTransform
 
-from general_tools.file_utils import write_file, read_file, unzip, load_yaml_object
-from general_tools.url_utils import download_file
-from general_tools.bible_books import BOOK_NUMBERS
+from ..general_tools.file_utils import write_file, read_file, unzip, load_yaml_object
+from ..general_tools.url_utils import download_file
+from ..general_tools.bible_books import BOOK_NUMBERS
 
 
 class TnConverter(object):
