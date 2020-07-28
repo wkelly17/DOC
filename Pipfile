@@ -1,0 +1,22 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+pyparsing = "==2.4.5"
+uw-tools = {git = "git://github.com/unfoldingWord-dev/uw_tools.git"}
+usfm-tools = {git = "git://github.com/unfoldingWord-dev/USFM-Tools.git"}
+gogs-client = "*"
+pyyaml = "*"
+markdown = "*"
+markdown2 = "*"
+bs4 = "*"
+jsonpath-rw = "*"
+jsonpath-rw-ext = "*"
+mypy = "*"
+
+[requires]
+python_version = "3.7"
