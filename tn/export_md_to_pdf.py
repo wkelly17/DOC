@@ -24,13 +24,13 @@ import subprocess
 import csv
 from glob import glob
 
-import markdown
-from bs4 import BeautifulSoup
-from usfm_tools.transform import UsfmTransform
+import markdown  # type: ignore
+from bs4 import BeautifulSoup  # type: ignore
+from usfm_tools.transform import UsfmTransform  # type: ignore
 
-from ..general_tools.file_utils import write_file, read_file, unzip, load_yaml_object
-from ..general_tools.url_utils import download_file
-from ..general_tools.bible_books import BOOK_NUMBERS
+from ..general_tools.file_utils import write_file, read_file, unzip, load_yaml_object  # type: ignore
+from ..general_tools.url_utils import download_file  # type: ignore
+from ..general_tools.bible_books import BOOK_NUMBERS  # type: ignore
 from resource_json_lookup import ResourceJsonLookup
 
 
@@ -715,24 +715,34 @@ class TnConverter(object):
 -V classoption="oneside" \
 -V geometry='hmargin=2cm' \
 -V geometry='vmargin=3cm' \
--V title="{2}" \
+-V title="{0}" \
 -V subtitle="Translation Notes" \
--V logo="{6}/icon-tn.png" \
--V date="{3}" \
--V revision_date="{8}" \
--V version="{4}" \
+-V logo="{4}/icon-tn.png" \
+-V date="{1}" \
+-V revision_date="{6}" \
+-V version="{2}" \
 -V mainfont="Raleway" \
 -V sansfont="Raleway" \
 -V fontsize="13pt" \
 -V urlcolor="Bittersweet" \
 -V linkcolor="Bittersweet" \
 -H "tools/tn/tex/format.tex" \
--o "{5}/{7}.pdf" \
-"{5}/{7}.html"
-""".format(BOOK_NUMBERS[self.book_id], self.book_id.upper(), self.book_title, self.issued, self.version, self.output_dir,
-           self.working_dir, self.filename_base, revision_date)
+-o "{3}/{5}.pdf" \
+"{3}/{5}.html"
+""".format(
+            # BOOK_NUMBERS[self.book_id],  # FIXME This arg is not used
+            # self.book_id.upper(),  # FIXME This arg is not used
+            self.book_title,
+            self.issued,
+            self.version,
+            self.output_dir,
+            self.working_dir,
+            self.filename_base,
+            revision_date,
+        )
         print(command)
         subprocess.call(command, shell=True)
+
 
 def fix_links(text):
     rep = {}
@@ -877,23 +887,24 @@ def main(
     :return:
     """
 
-    lookup_svc = ResourceJsonLookup(working_dir=None)
-    lang = "Abadi"
-    print("Language download URL {}".format(lang, lookup_svc.lookup_download_url(lang)))
-    # tn_converter = TnConverter(
-    #     ta_tag,
-    #     tn_tag,
-    #     tq_tag,
-    #     tw_tag,
-    #     udb_tag,
-    #     ulb_tag,
-    #     working_dir,
-    #     output_dir,
-    #     lang_code,
-    #     books,
-    # )
-    # tn_converter.run()
-
+    lookup_svc: ResourceJsonLookup = ResourceJsonLookup()
+    lang: str = "Abadi"
+    print(
+        "Language {0} download URL {1}".format(
+            lang, lookup_svc.lookup_download_url(lang)
+        )
+    )
+    tn_converter = TnConverter(
+        ta_tag,
+        tn_tag,
+        tq_tag,
+        tw_tag,
+        udb_tag,
+        ulb_tag,
+        working_dir,
+        output_dir,
+        lang_code,
+        books,
     )
     tn_converter.run()
 

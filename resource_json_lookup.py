@@ -1,30 +1,31 @@
+from typing import Optional
 from general_tools.file_utils import load_json_object
 from general_tools.url_utils import download_file
 import logging
 import os
 import pprint
 import tempfile
-from jsonpath_rw import jsonpath
-from jsonpath_rw_ext import parse
+from jsonpath_rw import jsonpath  # type: ignore
+from jsonpath_rw_ext import parse  # type: ignore
 
 # for calling extended methods
 import jsonpath_rw_ext as jp
 
 
-class ResourceJsonLookup():
+class ResourceJsonLookup:
     """ A class that let's you get the translations.json file and retrieve
 values from it using jsonpath. """
-    def __init__(self, working_dir):
-        self.logger = logging.getLogger()
+
+    def __init__(self, working_dir: Optional[str] = None) -> None:
+        self.logger: logging.Logger = logging.getLogger()
         self.logger.setLevel(logging.DEBUG)
-        ch = logging.StreamHandler()
+        ch: logging.StreamHandler = logging.StreamHandler()
         ch.setLevel(logging.DEBUG)
-        formatter = logging.Formatter("%(levelname)s - %(message)s")
+        formatter: logging.Formatter = logging.Formatter("%(levelname)s - %(message)s")
         ch.setFormatter(formatter)
         self.logger.addHandler(ch)
-        self.pp = pprint.PrettyPrinter(indent=4)
+        self.pp: pprint.PrettyPrinter = pprint.PrettyPrinter(indent=4)
         self.working_dir = working_dir
-        self.json_file = None
 
         if not self.working_dir:
             self.working_dir = tempfile.mkdtemp(prefix="json_")
@@ -43,7 +44,7 @@ values from it using jsonpath. """
 
         self.json_file_url = "http://bibleineverylanguage.org/wp-content/themes/bb-theme-child/data/translations.json"
 
-        self.json_file = os.path.join(
+        self.json_file: str = os.path.join(
             self.working_dir, self.json_file_url.rpartition(os.path.sep)[2]
         )
 
@@ -61,7 +62,7 @@ values from it using jsonpath. """
         finally:
             self.logger.debug("finished.")
 
-    def lookup_download_url(self, lang):
+    def lookup_download_url(self, lang: str = "English"):
         """ Return json dict object for download url for lang. """
         return jp.match1(
             "$[?name='"
@@ -75,12 +76,16 @@ values from it using jsonpath. """
 # this lookup service.
 
 
-def main():
+def main() -> None:
     """ Test driver. """
 
-    lookup_svc = ResourceJsonLookup(working_dir=None)
-    lang = "Abadi"
-    print("Language download url: {}".format(lookup_svc.lookup_download_url(lang)))
+    lookup_svc: ResourceJsonLookup = ResourceJsonLookup()
+    lang: str = "Abadi"
+    print(
+        "Language {0} download url: {1}".format(
+            lang, lookup_svc.lookup_download_url(lang)
+        )
+    )
 
 
 if __name__ == "__main__":

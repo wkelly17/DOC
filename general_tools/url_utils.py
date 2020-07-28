@@ -5,9 +5,9 @@ import shutil
 import sys
 
 try:
-    import urllib.request as urllib2
+    import urllib.request as urllib2  # type: ignore
 except ImportError:
-    import urllib2
+    import urllib2  # type: ignore
 
 
 def get_url(url, catch_exception=False):
