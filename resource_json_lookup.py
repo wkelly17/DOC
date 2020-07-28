@@ -1,8 +1,8 @@
-from ..general_tools.file_utils import load_json_object
-from ..general_tools.url_utils import download_file
+from general_tools.file_utils import load_json_object
+from general_tools.url_utils import download_file
 import logging
 import os
-from pprint import pprint
+import pprint
 import tempfile
 from jsonpath_rw import jsonpath
 from jsonpath_rw_ext import parse
@@ -11,7 +11,9 @@ from jsonpath_rw_ext import parse
 import jsonpath_rw_ext as jp
 
 
-class ResourceJsonLookup(object):
+class ResourceJsonLookup():
+    """ A class that let's you get the translations.json file and retrieve
+values from it using jsonpath. """
     def __init__(self, working_dir):
         self.logger = logging.getLogger()
         self.logger.setLevel(logging.DEBUG)
@@ -21,6 +23,8 @@ class ResourceJsonLookup(object):
         ch.setFormatter(formatter)
         self.logger.addHandler(ch)
         self.pp = pprint.PrettyPrinter(indent=4)
+        self.working_dir = working_dir
+        self.json_file = None
 
         if not self.working_dir:
             self.working_dir = tempfile.mkdtemp(prefix="json_")
@@ -40,12 +44,12 @@ class ResourceJsonLookup(object):
         self.json_file_url = "http://bibleineverylanguage.org/wp-content/themes/bb-theme-child/data/translations.json"
 
         self.json_file = os.path.join(
-            self.working_dir, json_file_url.rpartition(os.path.sep)[2]
+            self.working_dir, self.json_file_url.rpartition(os.path.sep)[2]
         )
 
         # Download json file
         try:
-            self.logger.debug("Downloading {}...".format(json_file_url))
+            self.logger.debug("Downloading {}...".format(self.json_file_url))
             download_file(self.json_file_url, self.json_file)
         finally:
             self.logger.debug("finished.")
@@ -63,7 +67,7 @@ class ResourceJsonLookup(object):
             "$[?name='"
             + lang
             + "'].contents[*].subcontents[*].links[?format='Download'].url",
-            json_data,
+            self.json_data,
         )
 
 
@@ -71,18 +75,18 @@ class ResourceJsonLookup(object):
 # this lookup service.
 
 
-# def main():
-#     """ Test driver. """
+def main():
+    """ Test driver. """
 
-#     lookup_svc = ResourceJsonLookup(working_dir=None)
-#     lang = "Abadi"
-#     print("Language data {}".format(lookup_svc.lookup_download_url(lang)))
+    lookup_svc = ResourceJsonLookup(working_dir=None)
+    lang = "Abadi"
+    print("Language download url: {}".format(lookup_svc.lookup_download_url(lang)))
 
 
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()
 
-# Phrases from repl:
+# Phrases from repl that work:
 
 # >>> json_data[0]["contents"][0]["subcontents"][0]["links"][1]["url"]
 

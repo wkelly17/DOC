@@ -31,7 +31,7 @@ from usfm_tools.transform import UsfmTransform
 from ..general_tools.file_utils import write_file, read_file, unzip, load_yaml_object
 from ..general_tools.url_utils import download_file
 from ..general_tools.bible_books import BOOK_NUMBERS
-from ..general_tools.resource_json_lookup import ResourceJsonLookup, lookup_download_url
+from resource_json_lookup import ResourceJsonLookup
 
 
 class TnConverter(object):
@@ -879,7 +879,7 @@ def main(
 
     lookup_svc = ResourceJsonLookup(working_dir=None)
     lang = "Abadi"
-    print("Language () download URL {}".format(lang, lookup_svc.lookup_download_url(lang)))
+    print("Language download URL {}".format(lang, lookup_svc.lookup_download_url(lang)))
     # tn_converter = TnConverter(
     #     ta_tag,
     #     tn_tag,
