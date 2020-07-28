@@ -1,4 +1,8 @@
 from ..general_tools.file_utils import load_json_object
+from ..general_tools.url_utils import download_file
+import logging
+import os
+from pprint import pprint
 import tempfile
 from jsonpath_rw import jsonpath
 from jsonpath_rw_ext import parse
@@ -48,7 +52,7 @@ class ResourceJsonLookup(object):
 
         # Load json file
         try:
-            self.logger.debug("Loading json file {}...".format(filename))
+            self.logger.debug("Loading json file {}...".format(self.json_file))
             self.json_data = load_json_object(self.json_file)
         finally:
             self.logger.debug("finished.")
