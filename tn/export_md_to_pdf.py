@@ -31,7 +31,7 @@ from usfm_tools.transform import UsfmTransform  # type: ignore
 from ..general_tools.file_utils import write_file, read_file, unzip, load_yaml_object  # type: ignore
 from ..general_tools.url_utils import download_file  # type: ignore
 from ..general_tools.bible_books import BOOK_NUMBERS  # type: ignore
-from ..resource_json_lookup import ResourceJsonLookup
+from ..general_tools.resource_json_lookup import ResourceJsonLookup
 
 
 class TnConverter(object):
