@@ -13,7 +13,7 @@ import jsonpath_rw_ext as jp
 
 
 class ResourceJsonLookup:
-    """ A class that let's you get the translations.json file and retrieve
+    """ A class that let's you download the translations.json file and retrieve
 values from it using jsonpath. """
 
     def __init__(self, working_dir: Optional[str] = None) -> None:
