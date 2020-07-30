@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "90cc52d8dcd658a71df82121fc60b70a66de977df2a28363d70af0bb6d04bd4b"
+            "sha256": "0180475b1df93fc9c522f00f741798e79aee96593e624d86fe343ca97bc2211e"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -255,8 +255,8 @@
             "version": "==1.25.10"
         },
         "usfm-tools": {
-            "git": "git://github.com/unfoldingWord-dev/USFM-Tools.git",
-            "ref": "244a083476a05ddc2a710f1a690eec1fdd8abd13"
+            "git": "git://github.com/linearcombination/USFM-Tools.git",
+            "ref": "9f55c7cefa73e201114be6b5641d18259fa4aafe"
         },
         "uw-tools": {
             "git": "git://github.com/unfoldingWord-dev/uw_tools.git",

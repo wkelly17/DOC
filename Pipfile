@@ -6,17 +6,17 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-pyparsing = "==2.4.5"
+pyparsing = "*"
 uw-tools = {git = "git://github.com/unfoldingWord-dev/uw_tools.git"}
-usfm-tools = {git = "git://github.com/unfoldingWord-dev/USFM-Tools.git"}
+usfm-tools = {git = "git://github.com/linearcombination/USFM-Tools.git"}
 gogs-client = "*"
-pyyaml = "*"
-markdown = "*"
 markdown2 = "*"
 bs4 = "*"
 jsonpath-rw = "*"
 jsonpath-rw-ext = "*"
 mypy = "*"
+PyYAML = "*"
+Markdown = "*"
 
 [requires]
 python_version = "3.7"
