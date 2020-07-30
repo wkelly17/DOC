@@ -886,13 +886,6 @@ def main(
     :return:
     """
 
-    lookup_svc: ResourceJsonLookup = ResourceJsonLookup()
-    lang: str = "Abadi"
-    print(
-        "Language {0} download URL {1}".format(
-            lang, lookup_svc.lookup_download_url(lang)
-        )
-    )
     tn_converter = TnConverter(
         ta_tag,
         tn_tag,
@@ -920,6 +913,14 @@ if __name__ == '__main__':
     parser.add_argument('--tw-tag', dest='tw', default='v8', required=False, help="tW Tag")
     parser.add_argument('--udb-tag', dest='udb', default='v12', required=False, help="UDB Tag")
     parser.add_argument('--ulb-tag', dest='ulb', default='v12', required=False, help="ULB Tag")
+    # Let's test our json lookup service on something
+    lookup_svc: ResourceJsonLookup = ResourceJsonLookup()
+    lang: str = "Abadi"
+    print(
+        "Language {0} download URL {1}".format(
+            lang, lookup_svc.lookup_download_url(lang)
+        )
+    )
     args = parser.parse_args(sys.argv[1:])
     main(
         args.ta,
