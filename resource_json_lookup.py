@@ -1,22 +1,31 @@
 from typing import Optional
-from ..general_tools.file_utils import load_json_object
-from ..general_tools.url_utils import download_file
+from file_utils import load_json_object
+from url_utils import download_file
 import logging
 import os
 import pprint
 import tempfile
 from jsonpath_rw import jsonpath  # type: ignore
 from jsonpath_rw_ext import parse  # type: ignore
+import urllib
 
 # for calling extended methods
 import jsonpath_rw_ext as jp
 
 
+# TODO Make this class use a Configuration class of its own similar
+# perhaps to pysystemtrade
 class ResourceJsonLookup:
     """ A class that let's you download the translations.json file and retrieve
 values from it using jsonpath. """
 
-    def __init__(self, working_dir: Optional[str] = None) -> None:
+    def __init__(
+        self,
+        working_dir: Optional[str] = None,
+        json_file_url: Optional[
+            str
+        ] = "http://bibleineverylanguage.org/wp-content/themes/bb-theme-child/data/translations.json",
+    ) -> None:
         self.logger: logging.Logger = logging.getLogger()
         self.logger.setLevel(logging.DEBUG)
         ch: logging.StreamHandler = logging.StreamHandler()
@@ -26,6 +35,8 @@ values from it using jsonpath. """
         self.logger.addHandler(ch)
         self.pp: pprint.PrettyPrinter = pprint.PrettyPrinter(indent=4)
         self.working_dir = working_dir
+        self.json_file_url = json_file_url
+        self.repo_url_dict_key: str = "../download-scripture?repo_url"  # XXX
 
         if not self.working_dir:
             self.working_dir = tempfile.mkdtemp(prefix="json_")
@@ -41,8 +52,6 @@ values from it using jsonpath. """
         # self.ta_dir = os.path.join(self.working_dir, "{0}_ta".format(lang_code))
         # self.udb_dir = os.path.join(self.working_dir, "{0}_udb".format(lang_code))
         # self.ulb_dir = os.path.join(self.working_dir, "{0}_ulb".format(lang_code))
-
-        self.json_file_url = "http://bibleineverylanguage.org/wp-content/themes/bb-theme-child/data/translations.json"
 
         self.json_file: str = os.path.join(
             self.working_dir, self.json_file_url.rpartition(os.path.sep)[2]
@@ -62,7 +71,11 @@ values from it using jsonpath. """
         finally:
             self.logger.debug("finished.")
 
-    def lookup_download_url(self, lang: str = "English"):
+    def lookup_download_url(
+        self, lang: str = "English"
+    ) -> Optional[
+        str
+    ]:  # XXX Get the types right - does jsonpath return an empty list if it finds nothing?
         """ Return json dict object for download url for lang. """
         return jp.match1(
             "$[?name='"
@@ -71,21 +84,28 @@ values from it using jsonpath. """
             self.json_data,
         )
 
-
-# TODO Maybe we should create a class for the web service that will front
-# this lookup service.
+    def parse_repo_url_from_json_url(self, url: str) -> Optional[str]:
+        """ Given a URL, url, of the form
+        ../download-scripture?repo_url=https%3A%2F%2Fgit.door43.org%2Fburje_duro%2Fam_gen_text_udb&book_name=Genesis,
+        return the repo_url query parameter. """
+        result: dict = urllib.parse.parse_qs(url)
+        result_lst: List = result[self.repo_url_dict_key]
+        if result_lst is not None:
+            return result_lst[0]
+        else:
+            return None
 
 
 def main() -> None:
     """ Test driver. """
-
     lookup_svc: ResourceJsonLookup = ResourceJsonLookup()
     lang: str = "Abadi"
-    print(
-        "Language {0} download url: {1}".format(
-            lang, lookup_svc.lookup_download_url(lang)
-        )
-    )
+    download_url: Optional[str] = lookup_svc.lookup_download_url(lang)
+    if download_url is not None:
+        print("Language {0} download url: {1}".format(lang, download_url))
+    repo_url: Optional[str] = lookup_svc.parse_repo_url_from_json_url(download_url)
+    if repo_url is not None:
+        print("Language {0} repo_url: {1}".format(lang, repo_url))
 
 
 if __name__ == "__main__":

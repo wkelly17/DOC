@@ -1,9 +1,0 @@
-*.py[cod]
-local_settings.py
-/nbproject/private/
-/.idea/
-*.iml
-/bin
-/tex
-/status-of-update.lua
-/gogs/config.py

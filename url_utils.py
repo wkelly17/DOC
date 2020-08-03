@@ -4,10 +4,7 @@ import json
 import shutil
 import sys
 
-try:
-    import urllib.request as urllib2  # type: ignore
-except ImportError:
-    import urllib2  # type: ignore
+from urllib.request import urlopen  # type: ignore
 
 
 def get_url(url, catch_exception=False):
@@ -15,10 +12,10 @@ def get_url(url, catch_exception=False):
     :param str|unicode url: URL to open
     :param bool catch_exception: If <True> catches all exceptions and returns <False>
     """
-    return _get_url(url, catch_exception, urlopen=urllib2.urlopen)
+    return _get_url(url, catch_exception)
 
 
-def _get_url(url, catch_exception, urlopen):
+def _get_url(url, catch_exception):
     if catch_exception:
         # noinspection PyBroadException
         try:
@@ -32,23 +29,23 @@ def _get_url(url, catch_exception, urlopen):
 
     # convert bytes to str (Python 3.5)
     if type(response) is bytes:
-        return response.decode('utf-8')
+        return response.decode("utf-8")
     else:
         return response
 
 
 def download_file(url, outfile):
     """Downloads a file and saves it."""
-    _download_file(url, outfile, urlopen=urllib2.urlopen)
+    _download_file(url, outfile)
 
 
-def _download_file(url, outfile, urlopen):
+def _download_file(url, outfile):
     try:
         with closing(urlopen(url)) as request:
-            with open(outfile, 'wb') as fp:
+            with open(outfile, "wb") as fp:
                 shutil.copyfileobj(request, fp)
     except IOError as err:
-        print('ERROR retrieving %s' % url)
+        print("ERROR retrieving %s" % url)
         print(err)
         sys.exit(1)
 
@@ -73,7 +70,7 @@ def get_languages():
       ...
     ]
     """
-    url = 'http://td.unfoldingword.org/exports/langnames.json'
+    url = "http://td.unfoldingword.org/exports/langnames.json"
     return json.loads(get_url(url))
 
 
@@ -94,17 +91,17 @@ def join_url_parts(*args):
 
         if i == len(args) - 1:
             # no need to remove a trailing slash if this is the last segment
-            return_val += '/' + arg
+            return_val += "/" + arg
         else:
             # remove a trailing slash so it won't be duplicated
-            return_val += '/' + clean_url_segment(arg)
+            return_val += "/" + clean_url_segment(arg)
 
     return return_val
 
 
 def clean_url_segment(segment):
 
-    if segment[-1:] == '/':
+    if segment[-1:] == "/":
         return segment[:-1]
 
     return segment
