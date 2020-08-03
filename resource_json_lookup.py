@@ -7,7 +7,7 @@ import pprint
 import tempfile
 from jsonpath_rw import jsonpath  # type: ignore
 from jsonpath_rw_ext import parse  # type: ignore
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 # for calling extended methods
 import jsonpath_rw_ext as jp
@@ -102,10 +102,10 @@ def main() -> None:
     lang: str = "Abadi"
     download_url: Optional[str] = lookup_svc.lookup_download_url(lang)
     if download_url is not None:
-        print("Language {0} download url: {1}".format(lang, download_url))
+        print(("Language {0} download url: {1}".format(lang, download_url)))
     repo_url: Optional[str] = lookup_svc.parse_repo_url_from_json_url(download_url)
     if repo_url is not None:
-        print("Language {0} repo_url: {1}".format(lang, repo_url))
+        print(("Language {0} repo_url: {1}".format(lang, repo_url)))
 
 
 if __name__ == "__main__":
