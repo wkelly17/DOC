@@ -78,9 +78,9 @@ values from it using jsonpath. """
     ]:  # XXX Get the types right - does jsonpath return an empty list if it finds nothing?
         """ Return json dict object for download url for lang. """
         return jp.match1(
-            "$[?name='"
-            + lang
-            + "'].contents[*].subcontents[*].links[?format='Download'].url",
+            "$[?name='{0}'].contents[*].subcontents[*].links[?format='Download'].url".format(
+                lang
+            ),
             self.json_data,
         )
 
