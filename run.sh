@@ -7,5 +7,5 @@
 #  Contributors:
 #  Richard Mahn <richard_mahn@wyciffeassociates.org>
 
-# cd $(dirname "$0")/../..
-python -m export_md_to_pdf $@
+cd $(dirname "$0")/..
+python -m tools.export_md_to_pdf $@
