@@ -928,7 +928,7 @@ class TnConverter(object):
 -V fontsize="13pt" \
 -V urlcolor="Bittersweet" \
 -V linkcolor="Bittersweet" \
--H "tex/format.tex" \
+-H "tools/tex/format.tex" \
 -o "{3}/{5}.pdf" \
 "{3}/{5}.html"
 """.format(
