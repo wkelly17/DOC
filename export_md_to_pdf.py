@@ -1120,13 +1120,16 @@ def main(
     tn_converter.run()
 
     # Let's test our json lookup service on something
-    lookup_svc: ResourceJsonLookup = ResourceJsonLookup()
-    lang: str = "Abadi"
-    print(
-        "Language {0} download URL {1}".format(
-            lang, lookup_svc.lookup_download_url(lang)
-        )
+    lookup_svc: ResourceJsonLookup = ResourceJsonLookup(
+        logger=tn_converter.logger, pp=tn_converter.pp
     )
+    lang: str = "Abadi"
+    download_url: Optional[str] = lookup_svc.lookup_download_url(lang)
+    if download_url is not None:
+        print(("Language {0} download url: {1}".format(lang, download_url)))
+    repo_url: Optional[str] = lookup_svc.parse_repo_url_from_json_url(download_url)
+    if repo_url is not None:
+        print(("Language {0} repo_url: {1}".format(lang, repo_url)))
 
 
 if __name__ == "__main__":

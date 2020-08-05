@@ -25,23 +25,35 @@ values from it using jsonpath. """
         json_file_url: Optional[
             str
         ] = "http://bibleineverylanguage.org/wp-content/themes/bb-theme-child/data/translations.json",
+        logger: logging.Logger = None,
+        pp: pprint.PrettyPrinter = None,
     ) -> None:
-        self.logger: logging.Logger = logging.getLogger()
-        self.logger.setLevel(logging.DEBUG)
-        ch: logging.StreamHandler = logging.StreamHandler()
-        ch.setLevel(logging.DEBUG)
-        formatter: logging.Formatter = logging.Formatter("%(levelname)s - %(message)s")
-        ch.setFormatter(formatter)
-        self.logger.addHandler(ch)
-        self.pp: pprint.PrettyPrinter = pprint.PrettyPrinter(indent=4)
+        # Set up logger
+        if logger:
+            self.logger = logger
+        else:
+            self.logger: logging.Logger = logging.getLogger()
+            self.logger.setLevel(logging.DEBUG)
+            ch: logging.StreamHandler = logging.StreamHandler()
+            ch.setLevel(logging.DEBUG)
+            formatter: logging.Formatter = logging.Formatter(
+                "%(levelname)s - %(message)s"
+            )
+            ch.setFormatter(formatter)
+            self.logger.addHandler(ch)
+
+        # Set up the pretty printer
+        if pp:
+            self.pp: pprint.PrettyPrinter = pp
+        else:
+            self.pp: pprint.PrettyPrinter = pprint.PrettyPrinter(indent=4)
+
         self.working_dir = working_dir
         self.json_file_url = json_file_url
         self.repo_url_dict_key: str = "../download-scripture?repo_url"  # XXX
 
         if not self.working_dir:
             self.working_dir = tempfile.mkdtemp(prefix="json_")
-        # if not self.output_dir:
-        #     self.output_dir = self.working_dir
 
         self.logger.debug("TEMP JSON DIR IS {0}".format(self.working_dir))
 
@@ -87,7 +99,7 @@ values from it using jsonpath. """
     def parse_repo_url_from_json_url(self, url: str) -> Optional[str]:
         """ Given a URL, url, of the form
         ../download-scripture?repo_url=https%3A%2F%2Fgit.door43.org%2Fburje_duro%2Fam_gen_text_udb&book_name=Genesis,
-        return the repo_url query parameter. """
+        return the repo_url query parameter value. """
         result: dict = urllib.parse.parse_qs(url)
         result_lst: List = result[self.repo_url_dict_key]
         if result_lst is not None:
