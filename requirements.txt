@@ -6,5 +6,7 @@ PyYAML
 markdown
 markdown2
 bs4
-jsonpath-rw
-jsonpath-rw-ext
+jsonpath-ng
+# jsonpath-rw
+# jsonpath-rw-ext
+yamlpath

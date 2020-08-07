@@ -5,12 +5,13 @@ import logging
 import os
 import pprint
 import tempfile
-from jsonpath_rw import jsonpath  # type: ignore
-from jsonpath_rw_ext import parse  # type: ignore
-import urllib.request, urllib.parse, urllib.error
+from jsonpath_ng import jsonpath, parse  # type: ignore
+import jsonpath_ng as jp  # for calling extended methods
 
-# for calling extended methods
-import jsonpath_rw_ext as jp
+# from jsonpath_rw import jsonpath  # type: ignore
+# from jsonpath_rw_ext import parse  # type: ignore
+# import jsonpath_rw_ext as jp  # for calling extended methods
+import urllib.request, urllib.parse, urllib.error
 
 
 # TODO Make this class use a Configuration class of its own similar
