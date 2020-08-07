@@ -909,7 +909,7 @@ class TnConverter(object):
         now = datetime.datetime.now()
         revision_date = "{}-{}-{}".format(now.year, now.month, now.day)
         command = """pandoc \
---latex-engine="xelatex" \
+--pdf-engine="xelatex" \
 --template="tools/tex/template.tex" \
 --toc \
 --toc-depth=2 \
