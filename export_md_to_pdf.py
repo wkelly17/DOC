@@ -25,7 +25,8 @@ import csv
 from glob import glob
 
 import markdown  # type: ignore
-from bs4 import BeautifulSoup  # type: ignore
+
+import bs4  # type: ignore
 from usfm_tools.transform import UsfmTransform  # type: ignore
 
 from .file_utils import write_file, read_file, unzip, load_yaml_object  # type: ignore
@@ -895,7 +896,7 @@ class TnConverter(object):
         UsfmTransform.buildSingleHtml(path, path, filename_base)
         html = read_file(os.path.join(path, filename_base + ".html"))
         shutil.rmtree(path, ignore_errors=True)
-        soup = BeautifulSoup(html, "html.parser")
+        soup = bs4.BeautifulSoup(html, "html.parser")
         header = soup.find("h1")
         if header:
             header.decompose()
