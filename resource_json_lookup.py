@@ -1,6 +1,6 @@
 from typing import Optional
-from .file_utils import load_json_object
-from .url_utils import download_file
+from file_utils import load_json_object
+from url_utils import download_file
 import logging
 import os
 import pprint
