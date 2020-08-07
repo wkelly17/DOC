@@ -75,14 +75,14 @@ values from it using jsonpath. """
             self.logger.debug("Downloading {}...".format(self.json_file_url))
             download_file(self.json_file_url, self.json_file)
         finally:
-            self.logger.debug("finished.")
+            self.logger.debug("finished downloading json file.")
 
         # Load json file
         try:
             self.logger.debug("Loading json file {}...".format(self.json_file))
             self.json_data = load_json_object(self.json_file)
         finally:
-            self.logger.debug("finished.")
+            self.logger.debug("finished loading json file.")
 
     def lookup_download_url(
         self, lang: str = "English"
