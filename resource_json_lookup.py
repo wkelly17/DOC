@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from file_utils import load_json_object
 from url_utils import download_file
 import logging
@@ -24,15 +24,13 @@ values from it using jsonpath. """
     def __init__(
         self,
         working_dir: Optional[str] = None,
-        json_file_url: Optional[
-            str
-        ] = "http://bibleineverylanguage.org/wp-content/themes/bb-theme-child/data/translations.json",
+        json_file_url: str = "http://bibleineverylanguage.org/wp-content/themes/bb-theme-child/data/translations.json",
         logger: logging.Logger = None,
         pp: pprint.PrettyPrinter = None,
     ) -> None:
         # Set up logger
         if logger:
-            self.logger = logger
+            self.logger: logging.Logger = logger
         else:
             self.logger: logging.Logger = logging.getLogger()
             self.logger.setLevel(logging.DEBUG)
@@ -52,7 +50,6 @@ values from it using jsonpath. """
 
         self.working_dir = working_dir
         self.json_file_url = json_file_url
-        self.repo_url_dict_key: str = "../download-scripture?repo_url"  # XXX
 
         if not self.working_dir:
             self.working_dir = tempfile.mkdtemp(prefix="json_")
@@ -98,12 +95,14 @@ values from it using jsonpath. """
             self.json_data,
         )
 
-    def parse_repo_url_from_json_url(self, url: str) -> Optional[str]:
+    def parse_repo_url_from_json_url(
+        self, url: str, repo_url_dict_key: str = "../download-scripture?repo_url"
+    ) -> Optional[str]:
         """ Given a URL, url, of the form
         ../download-scripture?repo_url=https%3A%2F%2Fgit.door43.org%2Fburje_duro%2Fam_gen_text_udb&book_name=Genesis,
         return the repo_url query parameter value. """
         result: dict = urllib.parse.parse_qs(url)
-        result_lst: List = result[self.repo_url_dict_key]
+        result_lst: List = result[repo_url_dict_key]
         if result_lst is not None:
             return result_lst[0]
         else:
