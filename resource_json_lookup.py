@@ -83,17 +83,30 @@ values from it using jsonpath. """
             self.logger.debug("finished loading json file.")
 
     def lookup_download_url(
-        self, lang: str = "English"
+        self,
+        jsonpath: Optional[
+            str
+        ] = "$[?name='English'].contents[*].subcontents[*].links[?format='Download'].url",
     ) -> Optional[
         str
     ]:  # XXX Get the types right - does jsonpath return an empty list if it finds nothing?
         """ Return json dict object for download url for lang. """
-        return jp.match1(
-            "$[?name='{0}'].contents[*].subcontents[*].links[?format='Download'].url".format(
-                lang
-            ),
-            self.json_data,
-        )
+        download_url = jp.match1(jsonpath, self.json_data,)
+
+        return download_url
+
+    def lookup_download_urls(
+        self,
+        jsonpath: Optional[
+            str
+        ] = "$[?name='English'].contents[*].subcontents[*].links[?format='Download'].url",
+    ) -> List[
+        str
+    ]:  # XXX Get the types right - does jsonpath return an empty list if it finds nothing?
+        """ Return json dict object for download url for lang. """
+        download_urls = jp.match(jsonpath, self.json_data,)
+
+        return download_urls
 
     def parse_repo_url_from_json_url(
         self, url: str, repo_url_dict_key: str = "../download-scripture?repo_url"
@@ -112,13 +125,81 @@ values from it using jsonpath. """
 def main() -> None:
     """ Test driver. """
     lookup_svc: ResourceJsonLookup = ResourceJsonLookup()
+
+    # Test Abadi language
     lang: str = "Abadi"
-    download_url: Optional[str] = lookup_svc.lookup_download_url(lang)
+    jsonpath: str = "$[?name='{0}'].contents[*].subcontents[*].links[?format='Download'].url".format(
+        lang
+    )
+    download_url: Optional[str] = lookup_svc.lookup_download_url(jsonpath)
     if download_url is not None:
         print(("Language {0} download url: {1}".format(lang, download_url)))
     repo_url: Optional[str] = lookup_svc.parse_repo_url_from_json_url(download_url)
     if repo_url is not None:
         print(("Language {0} repo_url: {1}".format(lang, repo_url)))
+
+    # Vumbvu lang
+    lang = "Wumbvu"
+    jsonpath = "$[?name='{0}'].contents[*].subcontents[*].links[?format='Download'].url".format(
+        lang
+    )
+    download_url = lookup_svc.lookup_download_url(jsonpath)
+    if download_url is not None:
+        print(("Language {0} download url: {1}".format(lang, download_url)))
+    repo_url: Optional[str] = lookup_svc.parse_repo_url_from_json_url(download_url)
+    if repo_url is not None:
+        print(("Language {0} repo_url: {1}".format(lang, repo_url)))
+
+    # Another lanugage
+    lang = "አማርኛ"
+    jsonpath = "$[?name='{0}'].contents[*].subcontents[*].links[?format='Download'].url".format(
+        lang
+    )
+    download_urls: List[str] = lookup_svc.lookup_download_urls(jsonpath)
+    if download_urls is not None:
+        print("Language {0} download_urls: {1}".format(lang, download_urls))
+        print(("Language {0} first download url: {1}".format(lang, download_urls[0])))
+    repo_url: Optional[str] = lookup_svc.parse_repo_url_from_json_url(download_urls[0])
+    if repo_url is not None:
+        print(("Language {0} first repo repo_url: {1}".format(lang, repo_url)))
+
+    # Test English lang. Different structure for USFM files so
+    # requires different jsonaths.
+    lang = "English"
+    jsonpath = "$[?name='{0}'].contents[*].links[?format='Download'].url".format(lang)
+    download_urls: List[str] = lookup_svc.lookup_download_urls(jsonpath)
+    if download_urls is not None:
+        print("Language {0} download_urls: {1}".format(lang, download_urls))
+        print(("Language {0} first download url: {1}".format(lang, download_urls[0])))
+    repo_url: Optional[str] = lookup_svc.parse_repo_url_from_json_url(
+        download_urls[0], "/download-scripture?repo_url"
+    )
+    if repo_url is not None:
+        print(("Language {0} first repo repo_url: {1}".format(lang, repo_url)))
+
+    # Test getting all translation notes for more than one language
+    langs = ["English", "Abadi", "Assamese"]
+    for lang in langs:
+        download_urls: List[str] = lookup_svc.lookup_download_urls(
+            "$[?name='{0}'].contents[?code='tn'].links[?format='zip'].url".format(lang),
+        )
+        if download_urls is not None:
+            print("Language {0} download_urls: {1}".format(lang, download_urls))
+        else:
+            print("download_urls is None")
+
+    # For all languages
+    download_urls: List[str] = lookup_svc.lookup_download_urls(
+        "$[*].contents[?code='tn'].links[?format='zip'].url",
+    )
+    if download_urls is not None:
+        print(
+            "All language download_urls having jsonpath {0} : {1}".format(
+                "$[*].contents[?code='tn'].links[?format='zip'].url", download_urls
+            )
+        )
+    else:
+        print("download_urls is None")
 
 
 if __name__ == "__main__":
