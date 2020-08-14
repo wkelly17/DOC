@@ -82,6 +82,19 @@ values from it using jsonpath. """
         finally:
             self.logger.debug("finished loading json file.")
 
+    def lookup(
+        self,
+        jsonpath: Optional[
+            str
+        ] = "$[?name='English'].contents[*].subcontents[*].links[?format='Download'].url",
+    ) -> List[str]:
+        """ Return jsonpath value or empty list if node doesn't exist. """
+        value: List[str] = jp.match(
+            jsonpath, self.json_data,
+        )
+
+        return value
+
     def lookup_download_url(
         self,
         jsonpath: Optional[
@@ -189,7 +202,7 @@ def main() -> None:
             print("download_urls is None")
 
     # For all languages
-    download_urls: List[str] = lookup_svc.lookup_download_urls(
+    download_urls: List[str] = lookup_svc.lookup(
         "$[*].contents[?code='tn'].links[?format='zip'].url",
     )
     if download_urls is not None:
