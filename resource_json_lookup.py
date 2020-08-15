@@ -251,6 +251,9 @@ def main() -> None:
 
     test_lookup_obs_tq_zips_for_lang(lookup_svc, "मराठी")
 
+    # test_lookup_all_language_names(lookup_svc)
+
+
     # Test Abadi language
     lang: str = "Abadi"
     jsonpath: str = "$[?name='{0}'].contents[*].subcontents[*].links[?format='Download'].url".format(
@@ -374,6 +377,11 @@ def test_lookup_obs_tq_zips_for_lang(lookup_svc: ResourceJsonLookup, lang: str) 
             lang, values
         )
     )
+
+
+def test_lookup_all_language_names(lookup_svc: ResourceJsonLookup) -> None:
+    values: List[str] = lookup_svc.lookup("$[*].name")
+    print("Languages: {0}, # of languages: {1}".format(values, len(values)))
 
 
 if __name__ == "__main__":
