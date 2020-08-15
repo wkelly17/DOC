@@ -172,6 +172,19 @@ values from it using jsonpath. """
         )
         return zip_urls
 
+    def lookup_obs_tq_zips_for_lang(self, lang: str) -> List[str]:
+        """ Return zip file URLs for open bible stories translation
+        questions (code: 'obs-tq'). """
+        # Based on lang value you can use a lookup dictionary that
+        # returns the jsonpath to use. This is where we handle the
+        # unpredictable structure of translations.json.
+        zip_urls: List[str] = self.lookup(
+            "$[?name='{0}'].contents[?code='obs-tq'].links[?format='zip'].url".format(
+                lang
+            )
+        )
+        return zip_urls
+
     def lookup_download_url(
         self,
         jsonpath: Optional[
@@ -235,6 +248,8 @@ def main() -> None:
     test_lookup_obs_zips_for_lang(lookup_svc, "मराठी")
 
     test_lookup_obs_tn_zips_for_lang(lookup_svc, "मराठी")
+
+    test_lookup_obs_tq_zips_for_lang(lookup_svc, "मराठी")
 
     # Test Abadi language
     lang: str = "Abadi"
@@ -350,6 +365,15 @@ def test_lookup_obs_zips_for_lang(lookup_svc: ResourceJsonLookup, lang: str) -> 
 def test_lookup_obs_tn_zips_for_lang(lookup_svc: ResourceJsonLookup, lang: str) -> None:
     values: List[str] = lookup_svc.lookup_obs_tn_zips_for_lang(lang)
     print("Open bible stories translation notes for lang {0}: {1}".format(lang, values))
+
+
+def test_lookup_obs_tq_zips_for_lang(lookup_svc: ResourceJsonLookup, lang: str) -> None:
+    values: List[str] = lookup_svc.lookup_obs_tq_zips_for_lang(lang)
+    print(
+        "Open bible stories translation questions for lang {0}: {1}".format(
+            lang, values
+        )
+    )
 
 
 if __name__ == "__main__":
