@@ -89,6 +89,16 @@ values from it using jsonpath. """
         )
         return value
 
+    def lookup_tn_zips_for_lang(self, lang: str) -> List[str]:
+        """ Return zip file URLs for translation notes (code: 'tn'). """
+        # Based on lang value you can use a lookup dictionary that
+        # returns the jsonpath to use. This is where we handle the
+        # unpredictable structure of translations.json.
+        zip_urls: List[str] = self.lookup(
+            "$[?name='{0}'].contents[?code='tn'].links[?format='zip'].url".format(lang)
+        )
+        return zip_urls
+
     def lookup_download_url(
         self,
         jsonpath: Optional[
@@ -132,6 +142,12 @@ values from it using jsonpath. """
 def main() -> None:
     """ Test driver. """
     lookup_svc: ResourceJsonLookup = ResourceJsonLookup()
+
+    # test_lookup_tn_zips_for_lang(lookup_svc, "ಕನ್ನಡ (Kannada)")
+
+    # test_lookup_tn_zips_for_lang(lookup_svc, "Lao")
+
+    # test_lookup_tn_zips_for_lang(lookup_svc, "Assamese")
 
     # Test Abadi language
     lang: str = "Abadi"
@@ -207,6 +223,11 @@ def main() -> None:
         )
     else:
         print("download_urls is None")
+
+
+def test_lookup_tn_zips_for_lang(lookup_svc: ResourceJsonLookup, lang: str) -> None:
+    values: List[str] = lookup_svc.lookup_tn_zips_for_lang(lang)
+    print("Translation notes for lang {0}: {1}".format(lang, values))
 
 
 if __name__ == "__main__":
