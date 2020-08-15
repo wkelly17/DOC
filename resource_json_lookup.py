@@ -82,17 +82,11 @@ values from it using jsonpath. """
         finally:
             self.logger.debug("finished loading json file.")
 
-    def lookup(
-        self,
-        jsonpath: Optional[
-            str
-        ] = "$[?name='English'].contents[*].subcontents[*].links[?format='Download'].url",
-    ) -> List[str]:
+    def lookup(self, jsonpath: str,) -> List[str]:
         """ Return jsonpath value or empty list if node doesn't exist. """
         value: List[str] = jp.match(
             jsonpath, self.json_data,
         )
-
         return value
 
     def lookup_download_url(
