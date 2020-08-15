@@ -230,11 +230,25 @@ def main() -> None:
     """ Test driver. """
     lookup_svc: ResourceJsonLookup = ResourceJsonLookup()
 
+    # test_abadi_language_lookup(lookup_svc)
+
+    # test_wumbvu_language_lookup(lookup_svc)
+
+    # test_another_language_lookup(lookup_svc)
+
+    # test_english_language_lookup(lookup_svc)
+
+    # test_three_language_lookup(lookup_svc)
+
+    # test_all_tn_zip_urls_lookup(lookup_svc)
+
     # test_lookup_tn_zips_for_lang(lookup_svc, "ಕನ್ನಡ (Kannada)")
 
     # test_lookup_tn_zips_for_lang(lookup_svc, "Lao")
 
     # test_lookup_tn_zips_for_lang(lookup_svc, "Assamese")
+
+    test_lookup_tn_zips_for_lang(lookup_svc, "Emai-Iuleha-Ora")
 
     # test_lookup_tw_zips_for_lang(lookup_svc, "Plateau Malagasy")
 
@@ -254,7 +268,10 @@ def main() -> None:
 
     # test_lookup_all_language_names(lookup_svc)
 
+    test_lookup_all_codes(lookup_svc)
 
+
+def test_abadi_language_lookup(lookup_svc: ResourceJsonLookup) -> None:
     # Test Abadi language
     lang: str = "Abadi"
     jsonpath: str = "$[?name='{0}'].contents[*].subcontents[*].links[?format='Download'].url".format(
@@ -267,6 +284,8 @@ def main() -> None:
     if repo_url is not None:
         print(("Language {0} repo_url: {1}".format(lang, repo_url)))
 
+
+def test_wumbvu_language_lookup(lookup_svc: ResourceJsonLookup) -> None:
     # Vumbvu lang
     lang = "Wumbvu"
     jsonpath = "$[?name='{0}'].contents[*].subcontents[*].links[?format='Download'].url".format(
@@ -279,6 +298,8 @@ def main() -> None:
     if repo_url is not None:
         print(("Language {0} repo_url: {1}".format(lang, repo_url)))
 
+
+def test_another_language_lookup(lookup_svc: ResourceJsonLookup) -> None:
     # Another lanugage
     lang = "አማርኛ"
     jsonpath = "$[?name='{0}'].contents[*].subcontents[*].links[?format='Download'].url".format(
@@ -292,8 +313,9 @@ def main() -> None:
     if repo_url is not None:
         print(("Language {0} first repo repo_url: {1}".format(lang, repo_url)))
 
-    # Test English lang. Different structure for USFM files so
-    # requires different jsonaths.
+
+def test_english_language_lookup(lookup_svc: ResourceJsonLookup) -> None:
+    # Test English lang. Different jsonpath for English USFM files.
     lang = "English"
     jsonpath = "$[?name='{0}'].contents[*].links[?format='Download'].url".format(lang)
     download_urls: List[str] = lookup_svc.lookup_download_urls(jsonpath)
@@ -306,6 +328,8 @@ def main() -> None:
     if repo_url is not None:
         print(("Language {0} first repo repo_url: {1}".format(lang, repo_url)))
 
+
+def test_three_language_lookup(lookup_svc: ResourceJsonLookup) -> None:
     # Test getting all translation notes for more than one language
     langs = ["English", "Abadi", "Assamese"]
     for lang in langs:
@@ -317,6 +341,8 @@ def main() -> None:
         else:
             print("download_urls is None")
 
+
+def test_all_tn_zip_urls_lookup(lookup_svc: ResourceJsonLookup) -> None:
     # For all languages
     download_urls: List[str] = lookup_svc.lookup(
         "$[*].contents[?code='tn'].links[?format='zip'].url",
@@ -383,6 +409,11 @@ def test_lookup_obs_tq_zips_for_lang(lookup_svc: ResourceJsonLookup, lang: str) 
 def test_lookup_all_language_names(lookup_svc: ResourceJsonLookup) -> None:
     values: List[str] = lookup_svc.lookup("$[*].name")
     print("Languages: {0}, # of languages: {1}".format(values, len(values)))
+
+
+def test_lookup_all_codes(lookup_svc: ResourceJsonLookup) -> None:
+    values: List[str] = lookup_svc.lookup("$[*].contents[*].code")
+    print("Codes: {0}, # of codes: {1}".format(values, len(values)))
 
 
 if __name__ == "__main__":
