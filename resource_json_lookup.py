@@ -139,6 +139,16 @@ values from it using jsonpath. """
         )
         return zip_urls
 
+    def lookup_udb_zips_for_lang(self, lang: str) -> List[str]:
+        """ Return zip file URLs for unlocked dynamic bible USFM (code: 'udb'). """
+        # Based on lang value you can use a lookup dictionary that
+        # returns the jsonpath to use. This is where we handle the
+        # unpredictable structure of translations.json.
+        zip_urls: List[str] = self.lookup(
+            "$[?name='{0}'].contents[?code='udb'].links[?format='zip'].url".format(lang)
+        )
+        return zip_urls
+
     def lookup_download_url(
         self,
         jsonpath: Optional[
@@ -196,6 +206,8 @@ def main() -> None:
     test_lookup_ta_zips_for_lang(lookup_svc, "मराठी")
 
     # test_lookup_ulb_zips_for_lang(lookup_svc, "Lopit")
+
+    test_lookup_udb_zips_for_lang(lookup_svc, "मराठी")
 
     # Test Abadi language
     lang: str = "Abadi"
@@ -296,6 +308,11 @@ def test_lookup_ta_zips_for_lang(lookup_svc: ResourceJsonLookup, lang: str) -> N
 def test_lookup_ulb_zips_for_lang(lookup_svc: ResourceJsonLookup, lang: str) -> None:
     values: List[str] = lookup_svc.lookup_ulb_zips_for_lang(lang)
     print("Unlocked literal bible for lang {0}: {1}".format(lang, values))
+
+
+def test_lookup_udb_zips_for_lang(lookup_svc: ResourceJsonLookup, lang: str) -> None:
+    values: List[str] = lookup_svc.lookup_udb_zips_for_lang(lang)
+    print("Unlocked dynamic bible for lang {0}: {1}".format(lang, values))
 
 
 if __name__ == "__main__":
