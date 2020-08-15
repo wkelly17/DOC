@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Set
 from file_utils import load_json_object
 from url_utils import download_file
 import logging
@@ -87,7 +87,8 @@ values from it using jsonpath. """
         value: List[str] = jp.match(
             jsonpath, self.json_data,
         )
-        return value
+        value_set: Set = set(value)
+        return list(value_set)
 
     def lookup_tn_zips_for_lang(self, lang: str) -> List[str]:
         """ Return zip file URLs for translation notes (code: 'tn'). """
