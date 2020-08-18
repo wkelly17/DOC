@@ -3,6 +3,7 @@ from file_utils import load_json_object
 from url_utils import download_file
 import logging
 import os
+from datetime import datetime, timedelta
 import pprint
 import tempfile
 
@@ -23,7 +24,7 @@ values from it using jsonpath. """
 
     def __init__(
         self,
-        working_dir: Optional[str] = None,
+        working_dir: Optional[str] = "./",
         json_file_url: str = "http://bibleineverylanguage.org/wp-content/themes/bb-theme-child/data/translations.json",
         logger: logging.Logger = None,
         pp: pprint.PrettyPrinter = None,
@@ -52,28 +53,24 @@ values from it using jsonpath. """
         self.json_file_url = json_file_url
 
         if not self.working_dir:
+            self.logger.debug("Creating working dir")
             self.working_dir = tempfile.mkdtemp(prefix="json_")
 
-        self.logger.debug("TEMP JSON DIR IS {0}".format(self.working_dir))
-
-        # from TnConverter class - just duplicating here for now
-        # self.tn_dir = os.path.join(self.working_dir, "{0}_tn".format(lang_code))
-        # self.tw_dir = os.path.join(self.working_dir, "{0}_tw".format(lang_code))
-        # self.tq_dir = os.path.join(self.working_dir, "{0}_tq".format(lang_code))
-        # self.ta_dir = os.path.join(self.working_dir, "{0}_ta".format(lang_code))
-        # self.udb_dir = os.path.join(self.working_dir, "{0}_udb".format(lang_code))
-        # self.ulb_dir = os.path.join(self.working_dir, "{0}_ulb".format(lang_code))
+        self.logger.debug("WORKING DIR IS {0}".format(self.working_dir))
 
         self.json_file: str = os.path.join(
             self.working_dir, self.json_file_url.rpartition(os.path.sep)[2]
         )
 
-        # Download json file
-        try:
-            self.logger.debug("Downloading {}...".format(self.json_file_url))
-            download_file(self.json_file_url, self.json_file)
-        finally:
-            self.logger.debug("finished downloading json file.")
+        self.logger.debug("JSON FILE IS {0}".format(self.json_file))
+
+        if self.json_data_needs_update():
+            # Download json file
+            try:
+                self.logger.debug("Downloading {}...".format(self.json_file_url))
+                download_file(self.json_file_url, self.json_file)
+            finally:
+                self.logger.debug("finished downloading json file.")
 
         # Load json file
         try:
@@ -81,6 +78,20 @@ values from it using jsonpath. """
             self.json_data = load_json_object(self.json_file)
         finally:
             self.logger.debug("finished loading json file.")
+
+    def json_data_needs_update(self) -> bool:
+        """ Given translations.json file path, return true if it has
+        not been updated within 24 hours. """
+        # Does the translations file exist?
+        if not os.path.isfile(self.json_file):
+            return True
+        file_mod_time = datetime.fromtimestamp(
+            os.stat(self.json_file).st_mtime
+        )  # This is a datetime.datetime object!
+        now = datetime.today()
+        max_delay = timedelta(minutes=60 * 24)
+        # Has it been more than 24 hours since last modification time?
+        return now - file_mod_time > max_delay
 
     def lookup(self, jsonpath: str,) -> List[str]:
         """ Return jsonpath value or empty list if node doesn't exist. """
