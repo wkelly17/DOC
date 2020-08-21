@@ -91,13 +91,13 @@ values from it using jsonpath. """
             self.logger.debug("Creating working dir")
             self.working_dir = tempfile.mkdtemp(prefix="json_")
 
-        self.logger.debug("WORKING DIR IS {0}".format(self.working_dir))
+        self.logger.debug("WORKING DIR IS {}".format(self.working_dir))
 
         self.json_file: str = os.path.join(
             self.working_dir, self.json_file_url.rpartition(os.path.sep)[2]
         )
 
-        self.logger.debug("JSON FILE IS {0}".format(self.json_file))
+        self.logger.debug("JSON FILE IS {}".format(self.json_file))
 
         self.json_data: Optional[Dict] = None
 
@@ -148,7 +148,7 @@ values from it using jsonpath. """
         # returns the jsonpath to use. This is where we handle the
         # unpredictable structure of translations.json.
         zip_urls: List[str] = self.lookup(
-            "$[?name='{0}'].contents[?code='tn'].links[?format='zip'].url".format(lang)
+            "$[?name='{}'].contents[?code='tn'].links[?format='zip'].url".format(lang)
         )
         return zip_urls
 
@@ -158,7 +158,7 @@ values from it using jsonpath. """
         # returns the jsonpath to use. This is where we handle the
         # unpredictable structure of translations.json.
         zip_urls: List[str] = self.lookup(
-            "$[?name='{0}'].contents[?code='tw'].links[?format='zip'].url".format(lang)
+            "$[?name='{}'].contents[?code='tw'].links[?format='zip'].url".format(lang)
         )
         return zip_urls
 
@@ -168,7 +168,7 @@ values from it using jsonpath. """
         # returns the jsonpath to use. This is where we handle the
         # unpredictable structure of translations.json.
         zip_urls: List[str] = self.lookup(
-            "$[?name='{0}'].contents[?code='tq'].links[?format='zip'].url".format(lang)
+            "$[?name='{}'].contents[?code='tq'].links[?format='zip'].url".format(lang)
         )
         return zip_urls
 
@@ -178,7 +178,7 @@ values from it using jsonpath. """
         # returns the jsonpath to use. This is where we handle the
         # unpredictable structure of translations.json.
         zip_urls: List[str] = self.lookup(
-            "$[?name='{0}'].contents[?code='ta'].links[?format='zip'].url".format(lang)
+            "$[?name='{}'].contents[?code='ta'].links[?format='zip'].url".format(lang)
         )
         return zip_urls
 
@@ -188,7 +188,7 @@ values from it using jsonpath. """
         # returns the jsonpath to use. This is where we handle the
         # unpredictable structure of translations.json.
         zip_urls: List[str] = self.lookup(
-            "$[?name='{0}'].contents[?code='ulb'].links[?format='zip'].url".format(lang)
+            "$[?name='{}'].contents[?code='ulb'].links[?format='zip'].url".format(lang)
         )
         return zip_urls
 
@@ -198,7 +198,7 @@ values from it using jsonpath. """
         # returns the jsonpath to use. This is where we handle the
         # unpredictable structure of translations.json.
         zip_urls: List[str] = self.lookup(
-            "$[?name='{0}'].contents[?code='udb'].links[?format='zip'].url".format(lang)
+            "$[?name='{}'].contents[?code='udb'].links[?format='zip'].url".format(lang)
         )
         return zip_urls
 
@@ -208,7 +208,7 @@ values from it using jsonpath. """
         # returns the jsonpath to use. This is where we handle the
         # unpredictable structure of translations.json.
         zip_urls: List[str] = self.lookup(
-            "$[?name='{0}'].contents[?code='obs'].links[?format='zip'].url".format(lang)
+            "$[?name='{}'].contents[?code='obs'].links[?format='zip'].url".format(lang)
         )
         return zip_urls
 
@@ -219,7 +219,7 @@ values from it using jsonpath. """
         # returns the jsonpath to use. This is where we handle the
         # unpredictable structure of translations.json.
         zip_urls: List[str] = self.lookup(
-            "$[?name='{0}'].contents[?code='obs-tn'].links[?format='zip'].url".format(
+            "$[?name='{}'].contents[?code='obs-tn'].links[?format='zip'].url".format(
                 lang
             )
         )
@@ -232,7 +232,7 @@ values from it using jsonpath. """
         # returns the jsonpath to use. This is where we handle the
         # unpredictable structure of translations.json.
         zip_urls: List[str] = self.lookup(
-            "$[?name='{0}'].contents[?code='obs-tq'].links[?format='zip'].url".format(
+            "$[?name='{}'].contents[?code='obs-tq'].links[?format='zip'].url".format(
                 lang
             )
         )
@@ -326,59 +326,59 @@ def main() -> None:
 def test_abadi_language_lookup(lookup_svc: ResourceJsonLookup) -> None:
     # Test Abadi language
     lang: str = "Abadi"
-    jsonpath: str = "$[?name='{0}'].contents[*].subcontents[*].links[?format='Download'].url".format(
+    jsonpath: str = "$[?name='{}'].contents[*].subcontents[*].links[?format='Download'].url".format(
         lang
     )
     download_url: Optional[str] = lookup_svc.lookup_download_url(jsonpath)
     if download_url is not None:
-        print(("Language {0} download url: {1}".format(lang, download_url)))
+        print(("Language {} download url: {}".format(lang, download_url)))
     repo_url: Optional[str] = lookup_svc.parse_repo_url_from_json_url(download_url)
     if repo_url is not None:
-        print(("Language {0} repo_url: {1}".format(lang, repo_url)))
+        print(("Language {} repo_url: {}".format(lang, repo_url)))
 
 
 def test_wumbvu_language_lookup(lookup_svc: ResourceJsonLookup) -> None:
     # Vumbvu lang
     lang = "Wumbvu"
-    jsonpath = "$[?name='{0}'].contents[*].subcontents[*].links[?format='Download'].url".format(
+    jsonpath = "$[?name='{}'].contents[*].subcontents[*].links[?format='Download'].url".format(
         lang
     )
     download_url = lookup_svc.lookup_download_url(jsonpath)
     if download_url is not None:
-        print(("Language {0} download url: {1}".format(lang, download_url)))
+        print(("Language {} download url: {}".format(lang, download_url)))
     repo_url: Optional[str] = lookup_svc.parse_repo_url_from_json_url(download_url)
     if repo_url is not None:
-        print(("Language {0} repo_url: {1}".format(lang, repo_url)))
+        print(("Language {} repo_url: {}".format(lang, repo_url)))
 
 
 def test_another_language_lookup(lookup_svc: ResourceJsonLookup) -> None:
     # Another lanugage
     lang = "አማርኛ"
-    jsonpath = "$[?name='{0}'].contents[*].subcontents[*].links[?format='Download'].url".format(
+    jsonpath = "$[?name='{}'].contents[*].subcontents[*].links[?format='Download'].url".format(
         lang
     )
     download_urls: List[str] = lookup_svc.lookup_download_urls(jsonpath)
     if download_urls is not None:
-        print("Language {0} download_urls: {1}".format(lang, download_urls))
-        print(("Language {0} first download url: {1}".format(lang, download_urls[0])))
+        print("Language {} download_urls: {}".format(lang, download_urls))
+        print(("Language {} first download url: {}".format(lang, download_urls[0])))
     repo_url: Optional[str] = lookup_svc.parse_repo_url_from_json_url(download_urls[0])
     if repo_url is not None:
-        print(("Language {0} first repo repo_url: {1}".format(lang, repo_url)))
+        print(("Language {} first repo repo_url: {}".format(lang, repo_url)))
 
 
 def test_english_language_lookup(lookup_svc: ResourceJsonLookup) -> None:
     # Test English lang. Different jsonpath for English USFM files.
     lang = "English"
-    jsonpath = "$[?name='{0}'].contents[*].links[?format='Download'].url".format(lang)
+    jsonpath = "$[?name='{}'].contents[*].links[?format='Download'].url".format(lang)
     download_urls: List[str] = lookup_svc.lookup_download_urls(jsonpath)
     if download_urls is not None:
-        print("Language {0} download_urls: {1}".format(lang, download_urls))
-        print(("Language {0} first download url: {1}".format(lang, download_urls[0])))
+        print("Language {} download_urls: {}".format(lang, download_urls))
+        print(("Language {} first download url: {}".format(lang, download_urls[0])))
     repo_url: Optional[str] = lookup_svc.parse_repo_url_from_json_url(
         download_urls[0], "/download-scripture?repo_url"
     )
     if repo_url is not None:
-        print(("Language {0} first repo repo_url: {1}".format(lang, repo_url)))
+        print(("Language {} first repo repo_url: {}".format(lang, repo_url)))
 
 
 def test_three_language_lookup(lookup_svc: ResourceJsonLookup) -> None:
@@ -386,10 +386,10 @@ def test_three_language_lookup(lookup_svc: ResourceJsonLookup) -> None:
     langs = ["English", "Abadi", "Assamese"]
     for lang in langs:
         download_urls: List[str] = lookup_svc.lookup_download_urls(
-            "$[?name='{0}'].contents[?code='tn'].links[?format='zip'].url".format(lang),
+            "$[?name='{}'].contents[?code='tn'].links[?format='zip'].url".format(lang),
         )
         if download_urls is not None:
-            print("Language {0} download_urls: {1}".format(lang, download_urls))
+            print("Language {} download_urls: {}".format(lang, download_urls))
         else:
             print("download_urls is None")
 
@@ -401,7 +401,7 @@ def test_all_tn_zip_urls_lookup(lookup_svc: ResourceJsonLookup) -> None:
     )
     if download_urls is not None:
         print(
-            "All language download_urls having jsonpath {0} : {1}".format(
+            "All language download_urls having jsonpath {} : {}".format(
                 "$[*].contents[?code='tn'].links[?format='zip'].url", download_urls
             )
         )
@@ -458,12 +458,12 @@ def test_lookup_obs_tq_zips(lookup_svc: ResourceJsonLookup, lang: str) -> None:
 
 def test_lookup_all_language_names(lookup_svc: ResourceJsonLookup) -> None:
     values: List[str] = lookup_svc.lookup("$[*].name")
-    print("Languages: {0}, # of languages: {1}".format(values, len(values)))
+    print("Languages: {}, # of languages: {}".format(values, len(values)))
 
 
 def test_lookup_all_codes(lookup_svc: ResourceJsonLookup) -> None:
     values: List[str] = lookup_svc.lookup("$[*].contents[*].code")
-    print("Codes: {0}, # of codes: {1}".format(values, len(values)))
+    print("Codes: {}, # of codes: {}".format(values, len(values)))
 
 
 if __name__ == "__main__":
