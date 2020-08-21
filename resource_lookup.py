@@ -1,6 +1,4 @@
 from typing import Optional, List, Set, Dict
-from file_utils import load_json_object
-from url_utils import download_file
 import logging
 import os
 from datetime import datetime, timedelta
@@ -9,11 +7,13 @@ import tempfile
 
 # from jsonpath_ng import jsonpath, parse  # type: ignore
 # import jsonpath_ng as jp  # for calling extended methods
-
 from jsonpath_rw import jsonpath  # type: ignore
 from jsonpath_rw_ext import parse  # type: ignore
 import jsonpath_rw_ext as jp  # for calling extended methods
 import urllib.request, urllib.parse, urllib.error
+
+from .file_utils import load_json_object
+from .url_utils import download_file
 
 
 class ResourceLookup:
