@@ -65,7 +65,7 @@ values from it using jsonpath. """
         pp: pprint.PrettyPrinter = None,
     ) -> None:
         # Set up logger
-        if logger:
+        if logger is not None:
             self.logger: logging.Logger = logger
         else:
             self.logger: logging.Logger = logging.getLogger()
@@ -79,7 +79,7 @@ values from it using jsonpath. """
             self.logger.addHandler(ch)
 
         # Set up the pretty printer
-        if pp:
+        if pp is not None:
             self.pp: pprint.PrettyPrinter = pp
         else:
             self.pp: pprint.PrettyPrinter = pprint.PrettyPrinter(indent=4)
@@ -111,7 +111,7 @@ values from it using jsonpath. """
             finally:
                 self.logger.debug("finished downloading json file.")
 
-        if not self.json_data:
+        if self.json_data is None:
             # Load json file
             try:
                 self.logger.debug("Loading json file {}...".format(self.json_file))
