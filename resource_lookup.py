@@ -16,15 +16,50 @@ import jsonpath_rw_ext as jp  # for calling extended methods
 import urllib.request, urllib.parse, urllib.error
 
 
-# TODO Make this class use a Configuration class of its own similar
-# perhaps to pysystemtrade
-class ResourceJsonLookup:
+class ResourceLookup:
+    """ Abstract base class that formalizes resource lookup. Currently
+    we do lookup via JSON and translations.json, but later we may use
+    a GraphQL API. The interface (hopefully) doesn't have to change
+    and thus call sites in client code can remain largely unchanged. """
+
+    def data_needs_update(self) -> bool:
+        raise NotImplementedError
+
+    def lookup_tn_zips_for_lang(self, lang: str) -> List[str]:
+        raise NotImplementedError
+
+    def lookup_tw_zips_for_lang(self, lang: str) -> List[str]:
+        raise NotImplementedError
+
+    def lookup_tq_zips_for_lang(self, lang: str) -> List[str]:
+        raise NotImplementedError
+
+    def lookup_ta_zips_for_lang(self, lang: str) -> List[str]:
+        raise NotImplementedError
+
+    def lookup_ulb_zips_for_lang(self, lang: str) -> List[str]:
+        raise NotImplementedError
+
+    def lookup_udb_zips_for_lang(self, lang: str) -> List[str]:
+        raise NotImplementedError
+
+    def lookup_obs_zips_for_lang(self, lang: str) -> List[str]:
+        raise NotImplementedError
+
+    def lookup_obs_tn_zips_for_lang(self, lang: str) -> List[str]:
+        raise NotImplementedError
+
+    def lookup_obs_tq_zips_for_lang(self, lang: str) -> List[str]:
+        raise NotImplementedError
+
+
+class ResourceJsonLookup(ResourceLookup):
     """ A class that let's you download the translations.json file and retrieve
 values from it using jsonpath. """
 
     def __init__(
         self,
-        working_dir: Optional[str] = "./",
+        working_dir: Optional[str] = "./",  # This is in /tools in the Docker container
         json_file_url: str = "http://bibleineverylanguage.org/wp-content/themes/bb-theme-child/data/translations.json",
         logger: logging.Logger = None,
         pp: pprint.PrettyPrinter = None,
@@ -64,7 +99,9 @@ values from it using jsonpath. """
 
         self.logger.debug("JSON FILE IS {0}".format(self.json_file))
 
-        if self.json_data_needs_update():
+    def get_data(self) -> None:
+        """ Get json data. """
+        if self.data_needs_update():
             # Download json file
             try:
                 self.logger.debug("Downloading {}...".format(self.json_file_url))
@@ -79,7 +116,7 @@ values from it using jsonpath. """
         finally:
             self.logger.debug("finished loading json file.")
 
-    def json_data_needs_update(self) -> bool:
+    def data_needs_update(self) -> bool:
         """ Given translations.json file path, return true if it has
         not been updated within 24 hours. """
         # Does the translations file exist?
@@ -95,6 +132,7 @@ values from it using jsonpath. """
 
     def lookup(self, jsonpath: str,) -> List[str]:
         """ Return jsonpath value or empty list if node doesn't exist. """
+        self.get_data()
         value: List[str] = jp.match(
             jsonpath, self.json_data,
         )
@@ -197,14 +235,14 @@ values from it using jsonpath. """
         )
         return zip_urls
 
+    # THe functions below aren't part of the API, they are just
+    # experiments.
     def lookup_download_url(
         self,
         jsonpath: Optional[
             str
         ] = "$[?name='English'].contents[*].subcontents[*].links[?format='Download'].url",
-    ) -> Optional[
-        str
-    ]:  # XXX Get the types right - does jsonpath return an empty list if it finds nothing?
+    ) -> Optional[str]:
         """ Return json dict object for download url for lang. """
         download_url = jp.match1(jsonpath, self.json_data,)
 
@@ -215,9 +253,7 @@ values from it using jsonpath. """
         jsonpath: Optional[
             str
         ] = "$[?name='English'].contents[*].subcontents[*].links[?format='Download'].url",
-    ) -> List[
-        str
-    ]:  # XXX Get the types right - does jsonpath return an empty list if it finds nothing?
+    ) -> List[str]:
         """ Return json dict object for download url for lang. """
         download_urls = jp.match(jsonpath, self.json_data,)
 
