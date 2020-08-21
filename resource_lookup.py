@@ -101,9 +101,9 @@ values from it using jsonpath. """
 
         self.json_data: Optional[Dict] = None
 
-    def get_data(self) -> None:
+    def _get_data(self) -> None:
         """ Get json data. """
-        if self.data_needs_update():
+        if self._data_needs_update():
             # Download json file
             try:
                 self.logger.debug("Downloading {}...".format(self.json_file_url))
@@ -119,7 +119,7 @@ values from it using jsonpath. """
             finally:
                 self.logger.debug("finished loading json file.")
 
-    def data_needs_update(self) -> bool:
+    def _data_needs_update(self) -> bool:
         """ Given translations.json file path, return true if it has
         not been updated within 24 hours. """
         # Does the translations file exist?
@@ -133,9 +133,9 @@ values from it using jsonpath. """
         # Has it been more than 24 hours since last modification time?
         return now - file_mod_time > max_delay
 
-    def lookup(self, jsonpath: str,) -> List[str]:
+    def _lookup(self, jsonpath: str,) -> List[str]:
         """ Return jsonpath value or empty list if node doesn't exist. """
-        self.get_data()
+        self._get_data()
         value: List[str] = jp.match(
             jsonpath, self.json_data,
         )
@@ -416,7 +416,7 @@ def test_three_language_lookup(lookup_svc: ResourceJsonLookup) -> None:
 
 def test_all_tn_zip_urls_lookup(lookup_svc: ResourceJsonLookup) -> None:
     # For all languages
-    download_urls: List[str] = lookup_svc.lookup(
+    download_urls: List[str] = lookup_svc._lookup(
         "$[*].contents[?code='tn'].links[?format='zip'].url",
     )
     if download_urls is not None:
@@ -477,12 +477,12 @@ def test_lookup_obs_tq_zips(lookup_svc: ResourceJsonLookup, lang: str) -> None:
 
 
 def test_lookup_all_language_names(lookup_svc: ResourceJsonLookup) -> None:
-    values: List[str] = lookup_svc.lookup("$[*].name")
+    values: List[str] = lookup_svc._lookup("$[*].name")
     print("Languages: {}, # of languages: {}".format(values, len(values)))
 
 
 def test_lookup_all_codes(lookup_svc: ResourceJsonLookup) -> None:
-    values: List[str] = lookup_svc.lookup("$[*].contents[*].code")
+    values: List[str] = lookup_svc._lookup("$[*].contents[*].code")
     print("Codes: {}, # of codes: {}".format(values, len(values)))
 
 
