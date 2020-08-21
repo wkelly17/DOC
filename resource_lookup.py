@@ -99,6 +99,8 @@ values from it using jsonpath. """
 
         self.logger.debug("JSON FILE IS {0}".format(self.json_file))
 
+        self.json_data: Optional[Dict] = None
+
     def get_data(self) -> None:
         """ Get json data. """
         if self.data_needs_update():
@@ -109,12 +111,13 @@ values from it using jsonpath. """
             finally:
                 self.logger.debug("finished downloading json file.")
 
-        # Load json file
-        try:
-            self.logger.debug("Loading json file {}...".format(self.json_file))
-            self.json_data = load_json_object(self.json_file)
-        finally:
-            self.logger.debug("finished loading json file.")
+        if not self.json_data:
+            # Load json file
+            try:
+                self.logger.debug("Loading json file {}...".format(self.json_file))
+                self.json_data = load_json_object(self.json_file)
+            finally:
+                self.logger.debug("finished loading json file.")
 
     def data_needs_update(self) -> bool:
         """ Given translations.json file path, return true if it has
