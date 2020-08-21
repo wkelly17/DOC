@@ -30,7 +30,7 @@ import bs4  # type: ignore
 from usfm_tools.transform import UsfmTransform  # type: ignore
 
 from .file_utils import write_file, read_file, unzip, load_yaml_object  # type: ignore
-from url_utils import download_file  # type: ignore
+from .url_utils import download_file  # type: ignore
 from bible_books import BOOK_NUMBERS  # type: ignore
 from resource_lookup import ResourceJsonLookup
 
