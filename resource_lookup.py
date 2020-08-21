@@ -403,7 +403,7 @@ def test_english_language_lookup(lookup_svc: ResourceJsonLookup) -> None:
 
 def test_three_language_lookup(lookup_svc: ResourceJsonLookup) -> None:
     # Test getting all translation notes for more than one language
-    langs = ["English", "Abadi", "Assamese"]
+    langs: List[str] = ["English", "Abadi", "Assamese"]
     for lang in langs:
         download_urls: List[str] = lookup_svc.lookup_download_urls(
             "$[?name='{}'].contents[?code='tn'].links[?format='zip'].url".format(lang),
