@@ -1,4 +1,4 @@
-from typing import Optional, List, Set
+from typing import Optional, List, Set, Dict
 from file_utils import load_json_object
 from url_utils import download_file
 import logging
@@ -125,11 +125,11 @@ values from it using jsonpath. """
         # Does the translations file exist?
         if not os.path.isfile(self.json_file):
             return True
-        file_mod_time = datetime.fromtimestamp(
+        file_mod_time: datetime = datetime.fromtimestamp(
             os.stat(self.json_file).st_mtime
         )  # This is a datetime.datetime object!
-        now = datetime.today()
-        max_delay = timedelta(minutes=60 * 24)
+        now: datetime = datetime.today()
+        max_delay: timedelta = timedelta(minutes=60 * 24)
         # Has it been more than 24 hours since last modification time?
         return now - file_mod_time > max_delay
 
@@ -242,9 +242,7 @@ values from it using jsonpath. """
     # experiments.
     def lookup_download_url(
         self,
-        jsonpath: Optional[
-            str
-        ] = "$[?name='English'].contents[*].subcontents[*].links[?format='Download'].url",
+        jsonpath: str = "$[?name='English'].contents[*].subcontents[*].links[?format='Download'].url",
     ) -> Optional[str]:
         """ Return json dict object for download url for lang. """
         download_url = jp.match1(jsonpath, self.json_data,)
@@ -263,11 +261,15 @@ values from it using jsonpath. """
         return download_urls
 
     def parse_repo_url_from_json_url(
-        self, url: str, repo_url_dict_key: str = "../download-scripture?repo_url"
+        self,
+        url: Optional[str],
+        repo_url_dict_key: str = "../download-scripture?repo_url",
     ) -> Optional[str]:
         """ Given a URL, url, of the form
         ../download-scripture?repo_url=https%3A%2F%2Fgit.door43.org%2Fburje_duro%2Fam_gen_text_udb&book_name=Genesis,
         return the repo_url query parameter value. """
+        if url is None:
+            return None
         result: dict = urllib.parse.parse_qs(url)
         result_lst: List = result[repo_url_dict_key]
         if result_lst is not None:
