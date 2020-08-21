@@ -142,8 +142,8 @@ values from it using jsonpath. """
         value_set: Set = set(value)
         return list(value_set)
 
-        """ Return zip file URLs for translation notes (code: 'tn'). """
     def lookup_tn_zips(self, lang: str) -> List[str]:
+        """ Given a language name, return zip file URLs for translation notes (code: 'tn'). """
         # Based on lang value you can use a lookup dictionary that
         # returns the jsonpath to use. This is where we handle the
         # unpredictable structure of translations.json.
@@ -152,8 +152,8 @@ values from it using jsonpath. """
         )
         return zip_urls
 
-        """ Return zip file URLs for translation words (code: 'tw'). """
     def lookup_tw_zips(self, lang: str) -> List[str]:
+        """ Given a language name, return zip file URLs for translation words (code: 'tw'). """
         # Based on lang value you can use a lookup dictionary that
         # returns the jsonpath to use. This is where we handle the
         # unpredictable structure of translations.json.
@@ -162,8 +162,8 @@ values from it using jsonpath. """
         )
         return zip_urls
 
-        """ Return zip file URLs for translation questions (code: 'tq'). """
     def lookup_tq_zips(self, lang: str) -> List[str]:
+        """ Given a language name, return zip file URLs for translation questions (code: 'tq'). """
         # Based on lang value you can use a lookup dictionary that
         # returns the jsonpath to use. This is where we handle the
         # unpredictable structure of translations.json.
@@ -172,8 +172,8 @@ values from it using jsonpath. """
         )
         return zip_urls
 
-        """ Return zip file URLs for translation academy (code: 'ta'). """
     def lookup_ta_zips(self, lang: str) -> List[str]:
+        """ Given a language name, return zip file URLs for translation academy (code: 'ta'). """
         # Based on lang value you can use a lookup dictionary that
         # returns the jsonpath to use. This is where we handle the
         # unpredictable structure of translations.json.
@@ -182,8 +182,8 @@ values from it using jsonpath. """
         )
         return zip_urls
 
-        """ Return zip file URLs for unlocked literal bible USFM (code: 'ulb'). """
     def lookup_ulb_zips(self, lang: str) -> List[str]:
+        """ Given a language name, return zip file URLs for unlocked literal bible USFM (code: 'ulb'). """
         # Based on lang value you can use a lookup dictionary that
         # returns the jsonpath to use. This is where we handle the
         # unpredictable structure of translations.json.
@@ -192,8 +192,8 @@ values from it using jsonpath. """
         )
         return zip_urls
 
-        """ Return zip file URLs for unlocked dynamic bible USFM (code: 'udb'). """
     def lookup_udb_zips(self, lang: str) -> List[str]:
+        """ Given a language name, return zip file URLs for unlocked dynamic bible USFM (code: 'udb'). """
         # Based on lang value you can use a lookup dictionary that
         # returns the jsonpath to use. This is where we handle the
         # unpredictable structure of translations.json.
@@ -202,8 +202,8 @@ values from it using jsonpath. """
         )
         return zip_urls
 
-        """ Return zip file URLs for open bible stories (code: 'obs'). """
     def lookup_obs_zips(self, lang: str) -> List[str]:
+        """ Given a language name, return zip file URLs for open bible stories (code: 'obs'). """
         # Based on lang value you can use a lookup dictionary that
         # returns the jsonpath to use. This is where we handle the
         # unpredictable structure of translations.json.
@@ -212,8 +212,8 @@ values from it using jsonpath. """
         )
         return zip_urls
 
-        """ Return zip file URLs for open bible stories translation
     def lookup_obs_tn_zips(self, lang: str) -> List[str]:
+        """ Given a language name, return zip file URLs for open bible stories translation
         notes (code: 'obs-tn'). """
         # Based on lang value you can use a lookup dictionary that
         # returns the jsonpath to use. This is where we handle the
@@ -225,8 +225,8 @@ values from it using jsonpath. """
         )
         return zip_urls
 
-        """ Return zip file URLs for open bible stories translation
     def lookup_obs_tq_zips(self, lang: str) -> List[str]:
+        """ Given a language name, return zip file URLs for open bible stories translation
         questions (code: 'obs-tq'). """
         # Based on lang value you can use a lookup dictionary that
         # returns the jsonpath to use. This is where we handle the
@@ -244,7 +244,7 @@ values from it using jsonpath. """
         self,
         jsonpath: str = "$[?name='English'].contents[*].subcontents[*].links[?format='Download'].url",
     ) -> Optional[str]:
-        """ Return json dict object for download url for lang. """
+        """ Return json dict object for download url for jsonpath. """
         download_url = jp.match1(jsonpath, self.json_data,)
 
         return download_url
