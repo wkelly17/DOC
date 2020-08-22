@@ -112,9 +112,12 @@ class TnConverter(object):
         self.version = None
         self.issued = None
         self.filename_base = None
-        self.tw_refs_by_verse = index_tw_refs_by_verse(
-            read_csv_as_dicts(os.path.join(self.working_dir, "tw_refs.csv"))
-        )
+        ## FIXME Commnented out temporarily as we migrate to using
+        ## ResourceLookup instead of cloned git repos in
+        ## entrypoint.sh of IRG docker container.
+        # self.tw_refs_by_verse = index_tw_refs_by_verse(
+        #     read_csv_as_dicts(os.path.join(self.working_dir, "tw_refs.csv"))
+        # )
 
     def run(self) -> None:
         self.setup_resource_files()
