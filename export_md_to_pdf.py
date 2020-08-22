@@ -1139,7 +1139,8 @@ def main(
     # if repo_url is not None:
     #     print(("Language {} repo_url: {}".format(lang, repo_url)))
 
-    tn_converter.run()
+    ## FIXME Temporarily comment out run() invocation
+    # tn_converter.run()
 
 
 if __name__ == "__main__":
