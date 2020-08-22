@@ -22,9 +22,6 @@ class ResourceLookup:
     a GraphQL API. The interface (hopefully) doesn't have to change
     and thus call sites in client code can remain largely unchanged. """
 
-    def data_needs_update(self) -> bool:
-        raise NotImplementedError
-
     def lookup_tn_zips(self, lang: str) -> List[str]:
         raise NotImplementedError
 
@@ -101,6 +98,7 @@ values from it using jsonpath. """
 
         self.json_data: Optional[Dict] = None
 
+    # protected access level
     def _get_data(self) -> None:
         """ Get json data. """
         if self._data_needs_update():
@@ -119,6 +117,7 @@ values from it using jsonpath. """
             finally:
                 self.logger.debug("finished loading json file.")
 
+    # protected access level
     def _data_needs_update(self) -> bool:
         """ Given translations.json file path, return true if it has
         not been updated within 24 hours. """
@@ -133,6 +132,7 @@ values from it using jsonpath. """
         # Has it been more than 24 hours since last modification time?
         return now - file_mod_time > max_delay
 
+    # protected access level
     def _lookup(self, jsonpath: str,) -> List[str]:
         """ Return jsonpath value or empty list if node doesn't exist. """
         self._get_data()
