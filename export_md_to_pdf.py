@@ -1129,7 +1129,8 @@ def main(
     # Get the resources
     download_url: Optional[str] = lookup_svc.lookup_ulb_zips(lang_code)
     if download_url is not None:
-        print("Download url for ulb zip {}".format(download_url))
+        tn_converter.logger.debug("Download url for ulb zip {}".format(download_url))
+        tn_converter.extract_files_from_url(download_url[0])
 
     # lang: str = "Abadi"
     # download_url: Optional[str] = lookup_svc.lookup_download_url()
