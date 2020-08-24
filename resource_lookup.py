@@ -202,6 +202,19 @@ values from it using jsonpath. """
         )
         return zip_urls
 
+    def lookup_ulb_book(self, lang_code: str, book_id: str) -> List[str]:
+        """ Given a language code and book id, return file URL for unlocked literal bible USFM (code: 'ulb'). """
+        download_urls: List[str] = self._lookup(
+            "$[?code='{}'].contents[?code='ulb'].subcontents[?code='{}'].links[?format='usfm'].url".format(
+                lang_code, book_id
+            )
+        )
+        # if len(download_urls) > 0:
+        #     return download_urls
+        # else:
+        #     return []
+        return download_urls
+
     def lookup_udb_zips(self, lang_code: str) -> List[str]:
         """ Given a language code, return zip file URLs for unlocked dynamic bible USFM (code: 'udb'). """
         # Based on lang value you can use a lookup dictionary that

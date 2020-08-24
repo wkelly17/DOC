@@ -248,6 +248,25 @@ class TnConverter(object):
         finally:
             self.logger.debug("finished unzipping {}.".format(zip_file))
 
+    def file_from_url(self, lang_code: str, url: str) -> None:
+        """ Download file pointed to by url to a path composed of
+        working_dir, lang_code, and file name. """
+        # TODO Add caching of previously downloaded resources based on
+        # file path. Caching won't be testable until we have a web
+        # service in front of this subsystem handling requests.
+        dir: str = os.path.join(self.working_dir, lang_code)
+        filename: str = os.path.join(dir, url.rpartition(os.path.sep)[2])
+        if not os.path.isdir(dir):
+            os.mkdir(dir)
+        self.logger.debug(
+            "Location of file after subsequent download: {}".format(filename)
+        )
+        try:
+            self.logger.debug("Downloading {0}...".format(url))
+            download_file(url, filename)
+        finally:
+            self.logger.debug("finished downloading {}.".format(url))
+
     def get_usfm_chunks(self) -> Dict:
         book_chunks: dict = {}
         for resource in ["udb", "ulb"]:
@@ -1153,10 +1172,17 @@ def main(
         logger=tn_converter.logger, pp=tn_converter.pp
     )
     # Get the resources
-    download_url: Optional[str] = lookup_svc.lookup_ulb_zips(lang_code)
-    if download_url is not None:
-        tn_converter.logger.debug("URL for ulb zip {}".format(download_url))
-        tn_converter.extract_files_from_url2(lang_code, download_url[0])
+    # download_url: Optional[str] = lookup_svc.lookup_ulb_zips(lang_code)
+    for book in books:
+        download_url: Optional[str] = lookup_svc.lookup_ulb_book(lang_code, book)
+        if download_url is not None:
+            tn_converter.logger.debug("URL for ulb zip {}".format(download_url))
+            # tn_converter.extract_files_from_url2(lang_code, download_url[0])
+            tn_converter.file_from_url(lang_code, download_url[0])
+        else:
+            tn_converter.logger.debug(
+                "download_url {} is not available.".format(dowload_url)
+            )
 
     # lang: str = "Abadi"
     # download_url: Optional[str] = lookup_svc.lookup_download_url()
