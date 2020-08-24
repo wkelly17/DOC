@@ -209,11 +209,22 @@ values from it using jsonpath. """
                 lang_code, book_id
             )
         )
-        # if len(download_urls) > 0:
-        #     return download_urls
-        # else:
-        #     return []
         return download_urls
+        # NOTE If 'Download' format links can be manipulated to get a
+        # downloadable url then the following conditional code could
+        # be used to access it since some language book combinations
+        # provide this as an alternate location, e.g., lang_code: lpx,
+        # code: ulb, subcontents, links, format: Download.
+        # if len(download_urls) > 0:  # Success at first jsonpath.
+        #     return download_urls
+        # else:  # Check the other jsonpath where this resource can exist sometimes.
+        #     download_urls: List[str] = self._lookup(
+        #         "$[?code='{}'].contents[?code='ulb'].subcontents[?code='{}'].links[?format='Download'].url"
+        #     )
+        #     if download_urls is not None and len(download_urls) > 0:
+        #         # Example url: https://git.door43.org/ojasi/lpx_2th_text_ulb&book_name=2%20Thessalonians
+        #         download_urls = [self.parse_repo_url_from_json_url(download_urls[0])]
+        #     return download_urls
 
     def lookup_udb_zips(self, lang_code: str) -> List[str]:
         """ Given a language code, return zip file URLs for unlocked dynamic bible USFM (code: 'udb'). """
@@ -292,14 +303,14 @@ values from it using jsonpath. """
         url: Optional[str],
         repo_url_dict_key: str = "../download-scripture?repo_url",
     ) -> Optional[str]:
-        """ Given a URL, url, of the form
+        """ Given a URL of the form
         ../download-scripture?repo_url=https%3A%2F%2Fgit.door43.org%2Fburje_duro%2Fam_gen_text_udb&book_name=Genesis,
         return the repo_url query parameter value. """
         if url is None:
             return None
         result: dict = urllib.parse.parse_qs(url)
         result_lst: List = result[repo_url_dict_key]
-        if result_lst is not None:
+        if result_lst is not None and len(result_lst) > 0:
             return result_lst[0]
         else:
             return None

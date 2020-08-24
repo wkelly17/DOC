@@ -46,7 +46,7 @@ class TnConverter(object):
         ulb_tag=None,
         working_dir=None,
         output_dir=None,
-        lang_code=None,
+        lang_codes=None,
         books=None,
     ) -> None:
         """
@@ -58,7 +58,7 @@ class TnConverter(object):
         :param ulb_tag:
         :param working_dir:
         :param output_dir:
-        :param lang_code:
+        :param lang_codes:
         :param books:
         """
         self.ta_tag = ta_tag
@@ -69,7 +69,7 @@ class TnConverter(object):
         self.ulb_tag = ulb_tag
         self.working_dir = working_dir
         self.output_dir = output_dir
-        self.lang_code = lang_code
+        self.lang_codes = lang_codes
         self.books = books
 
         self.logger = logging.getLogger()
@@ -87,12 +87,6 @@ class TnConverter(object):
             self.output_dir = self.working_dir
 
         self.logger.debug("WORKING DIR IS {0}".format(self.working_dir))
-        self.tn_dir = os.path.join(self.working_dir, "{0}_tn".format(lang_code))
-        self.tw_dir = os.path.join(self.working_dir, "{0}_tw".format(lang_code))
-        self.tq_dir = os.path.join(self.working_dir, "{0}_tq".format(lang_code))
-        self.ta_dir = os.path.join(self.working_dir, "{0}_ta".format(lang_code))
-        self.udb_dir = os.path.join(self.working_dir, "{0}_udb".format(lang_code))
-        self.ulb_dir = os.path.join(self.working_dir, "{0}_ulb".format(lang_code))
 
         self.manifest = None
 
@@ -112,6 +106,12 @@ class TnConverter(object):
         self.version = None
         self.issued = None
         self.filename_base = None
+        self.tn_dir = os.path.join(self.working_dir, "{0}_tn".format(lang_codes[0]))
+        self.tw_dir = os.path.join(self.working_dir, "{0}_tw".format(lang_codes[0]))
+        self.tq_dir = os.path.join(self.working_dir, "{0}_tq".format(lang_codes[0]))
+        self.ta_dir = os.path.join(self.working_dir, "{0}_ta".format(lang_codes[0]))
+        self.udb_dir = os.path.join(self.working_dir, "{0}_udb".format(lang_codes[0]))
+        self.ulb_dir = os.path.join(self.working_dir, "{0}_ulb".format(lang_codes[0]))
         ## FIXME Commnented out temporarily as we migrate to using
         ## ResourceLookup instead of cloned git repos in
         ## entrypoint.sh of IRG docker container.
@@ -1137,8 +1137,8 @@ def main(
     ulb_tag: str,
     working_dir,
     output_dir,
-    lang_code: str,
-    books,
+    lang_codes: List[str],
+    books: List[str],
 ) -> None:
     """
     :param ta_tag:
@@ -1147,7 +1147,7 @@ def main(
     :param tw_tag:
     :param udb_tag:
     :param ulb_tag:
-    :param lang_code:
+    :param lang_codes:
     :param books:
     :param working_dir:
     :param output_dir:
@@ -1163,7 +1163,7 @@ def main(
         ulb_tag,
         working_dir,
         output_dir,
-        lang_code,
+        lang_codes,
         books,
     )
 
@@ -1173,16 +1173,17 @@ def main(
     )
     # Get the resources
     # download_url: Optional[str] = lookup_svc.lookup_ulb_zips(lang_code)
-    for book in books:
-        download_url: Optional[str] = lookup_svc.lookup_ulb_book(lang_code, book)
-        if download_url is not None:
-            tn_converter.logger.debug("URL for ulb zip {}".format(download_url))
-            # tn_converter.extract_files_from_url2(lang_code, download_url[0])
-            tn_converter.file_from_url(lang_code, download_url[0])
-        else:
-            tn_converter.logger.debug(
-                "download_url {} is not available.".format(dowload_url)
-            )
+    for lang_code in lang_codes:
+        for book in books:
+            download_url: Optional[str] = lookup_svc.lookup_ulb_book(lang_code, book)
+            if download_url is not None:
+                tn_converter.logger.debug("URL for ulb zip {}".format(download_url))
+                # tn_converter.extract_files_from_url2(lang_code, download_url[0])
+                tn_converter.file_from_url(lang_code, download_url[0])
+            else:
+                tn_converter.logger.debug(
+                    "download_url {} is not available.".format(dowload_url)
+                )
 
     # lang: str = "Abadi"
     # download_url: Optional[str] = lookup_svc.lookup_download_url()
@@ -1203,10 +1204,11 @@ if __name__ == "__main__":
     parser.add_argument(
         "-l",
         "--lang",
-        dest="lang_code",
+        dest="lang_codes",
+        nargs="+",
         default="en",
         required=False,
-        help="Language Code",
+        help="Language Codes",
     )
     parser.add_argument(
         "-b",
@@ -1261,6 +1263,6 @@ if __name__ == "__main__":
         args.ulb,
         args.working_dir,
         args.output_dir,
-        args.lang_code,
+        args.lang_codes,
         args.books,
     )
