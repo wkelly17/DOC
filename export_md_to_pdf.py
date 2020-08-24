@@ -10,7 +10,7 @@
 This script exports tN into HTML format from DCS and generates a PDF from the HTML
 """
 
-from typing import Optional, List
+from typing import Any, Dict, List, Optional, Union
 import os
 import sys
 import re
@@ -209,7 +209,9 @@ class TnConverter(object):
             )
             subprocess.call(command, shell=True)
 
-    def extract_files_from_url(self, url):
+    def extract_files_from_url(self, url: str) -> None:
+        """ Download and unzip the zip file pointed to by url to a
+        path composed of working_dir  and zip file name sans directory. """
         zip_file = os.path.join(self.working_dir, url.rpartition(os.path.sep)[2])
         try:
             self.logger.debug("Downloading {0}...".format(url))
@@ -222,8 +224,32 @@ class TnConverter(object):
         finally:
             self.logger.debug("finished.")
 
-    def get_usfm_chunks(self):
-        book_chunks = {}
+    def extract_files_from_url2(self, lang_code: str, url: str) -> None:
+        """ Download and unzip the zip file pointed to by url to a
+        path composed of working_dir, lang_code, and zip file name. """
+        # TODO Add caching of previously downloaded resources based on
+        # file path. Caching won't be testable until we have a web
+        # service in front of this subsystem handling requests.
+        dir: str = os.path.join(self.working_dir, lang_code)
+        zip_file: str = os.path.join(dir, url.rpartition(os.path.sep)[2])
+        if not os.path.isdir(dir):
+            os.mkdir(dir)
+        self.logger.debug(
+            "Location of zip_file after subsequent download: {}".format(zip_file)
+        )
+        try:
+            self.logger.debug("Downloading {0}...".format(url))
+            download_file(url, zip_file)
+        finally:
+            self.logger.debug("finished downloading {}.".format(url))
+        try:
+            self.logger.debug("Unzipping {0}...".format(zip_file))
+            unzip(zip_file, self.working_dir)
+        finally:
+            self.logger.debug("finished unzipping {}.".format(zip_file))
+
+    def get_usfm_chunks(self) -> Dict:
+        book_chunks: dict = {}
         for resource in ["udb", "ulb"]:
             book_chunks[resource] = {}
 
@@ -1129,8 +1155,8 @@ def main(
     # Get the resources
     download_url: Optional[str] = lookup_svc.lookup_ulb_zips(lang_code)
     if download_url is not None:
-        tn_converter.logger.debug("Download url for ulb zip {}".format(download_url))
-        tn_converter.extract_files_from_url(download_url[0])
+        tn_converter.logger.debug("URL for ulb zip {}".format(download_url))
+        tn_converter.extract_files_from_url2(lang_code, download_url[0])
 
     # lang: str = "Abadi"
     # download_url: Optional[str] = lookup_svc.lookup_download_url()
