@@ -100,10 +100,6 @@ class DocumentGenerator(object):
         self.book_title: Optional[str] = None
         self.book_number: Optional[str] = None
         # self.project: Optional[Dict[Any, Any]] = None
-        # self.tn_text: str = ""  # FIXME This doesn't seem to be used anywhere
-        # self.tw_text: str = ""  # FIXME This doesn't seem to be used anywhere
-        # self.tq_text: str = ""  # FIXME This doesn't seem to be used anywhere
-        # self.ta_text: str = ""  # FIXME This doesn't seem to be used anywhere
         self.my_rcs: List[str] = []
         self.rc_references: Dict[str, List] = {}
         self.resource_data: Dict[str, Dict[str, str]] = {}  # FIXME Use newtype or ?
