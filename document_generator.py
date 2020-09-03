@@ -1185,7 +1185,7 @@ def main(
     # download_url: Optional[str] = lookup_svc.lookup_ulb_zips(lang_code)
     for lang_code in lang_codes:
         for book in books:
-            download_url: Optional[str] = lookup_svc.lookup_ulb_book(lang_code, book)
+            download_url: Optional[str] = lookup_svc.lookup(lang_code, "ulb", book)
             if download_url is not None:
                 doc_generator.logger.debug("URL for ulb zip {}".format(download_url))
                 # doc_generator.extract_files_from_url2(lang_code, download_url[0])
