@@ -15,11 +15,21 @@ import urllib.request, urllib.parse, urllib.error
 try:
     from .file_utils import load_json_object
     from .url_utils import download_file
-    from .config import get_translations_json_location
+    from .config import (
+        get_translations_json_location,
+        get_individual_usfm_url_jsonpath,
+        get_resource_url_level_1_jsonpath,
+        get_resource_url_level_2_jsonpath,
+    )
 except:
     from file_utils import load_json_object
     from url_utils import download_file
-    from config import get_translations_json_location
+    from config import (
+        get_translations_json_location,
+        get_individual_usfm_url_jsonpath,
+        get_resource_url_level_1_jsonpath,
+        get_resource_url_level_2_jsonpath,
+    )
 
 
 class ResourceLookup(abc.ABC):
@@ -139,55 +149,24 @@ values from it using jsonpath. """
         assert lang_code is not None, "lang_code is required"
         assert resource_type is not None, "resource_type is required"
 
+        urls: List[str] = []
+
         if resource_code is not None:
-            jsonpath_str = "$[?code='{}'].contents[?code='{}'].subcontents[?code='{}'].links[?format='usfm'].url".format(
+            jsonpath_str = get_individual_usfm_url_jsonpath().format(
                 lang_code, resource_type, resource_code,
             )
+            urls = self._lookup(jsonpath_str)
         else:
-            # NOTE We take the union of jsonpaths, '|', one at the
-            # contents level and one at the subcontents level (because
-            # the location of the resource can vary depending on
-            # language).
-            jsonpath_str = "$[?code='{}'].contents[?code='{}'].links[?format='zip'].url".format(
+            jsonpath_str = get_resource_url_level_1_jsonpath().format(
                 lang_code, resource_type,
             )
-            # NOTE Using the | union join jsonpath operator below
-            # resulted in no results being returned, this seems to be
-            # a bug in jsonpath-rw lib.
-            # jsonpath_str += " | "
-            # jsonpath_str += "$[?code='{}'].contents[*].subcontents[?code='{}'].links[?format='zip'].url".format(
-            #     lang_code, resource_type
-            # )
-        urls: List[str] = self._lookup(jsonpath_str)
-        return urls
+            urls = self._lookup(jsonpath_str)
+            if urls is not None and len(urls) == 0:
+                jsonpath_str = get_resource_url_level_2_jsonpath().format(
+                    lang_code, resource_type,
+                )
 
-    # NOTE This method only still exists for the commented out code at
-    # the end that tries a different jsonpath if the first jsonpath
-    # tried yields no results (since jsonpaths unfortunately can vary
-    # based on language).
-    def lookup_ulb_book(self, lang_code: str, book_id: str) -> List[str]:
-        """ Given a language code and book id, return file URL for unlocked literal bible USFM (code: 'ulb'). """
-        download_urls: List[str] = self._lookup(
-            "$[?code='{}'].contents[?code='ulb'].subcontents[?code='{}'].links[?format='usfm'].url".format(
-                lang_code, book_id
-            )
-        )
-        return download_urls
-        # NOTE If 'Download' format links can be manipulated to get a
-        # downloadable url then the following conditional code could
-        # be used to access it since some language book combinations
-        # provide this as an alternate location, e.g., lang_code: lpx,
-        # code: ulb, subcontents, links, format: Download.
-        # if len(download_urls) > 0:  # Success at first jsonpath.
-        #     return download_urls
-        # else:  # Check the other jsonpath where this resource can exist sometimes.
-        #     download_urls: List[str] = self._lookup(
-        #         "$[?code='{}'].contents[?code='ulb'].subcontents[?code='{}'].links[?format='Download'].url"
-        #     )
-        #     if download_urls is not None and len(download_urls) > 0:
-        #         # Example url: https://git.door43.org/ojasi/lpx_2th_text_ulb&book_name=2%20Thessalonians
-        #         download_urls = [self.parse_repo_url_from_json_url(download_urls[0])]
-        #     return download_urls
+        return urls
 
     # The functions below aren't part of the API, they are just
     # experiments:
@@ -250,102 +229,59 @@ def main() -> None:
 
     test_english_language_lookup(lookup_svc)
 
-    test_three_language_lookup(lookup_svc)
+    test_three_language_tn_lookup(lookup_svc)
 
     test_all_tn_zip_urls_lookup(lookup_svc)
 
     ## Test the API:
 
-    test_lookup_tn_zips(lookup_svc, "kn")
+    test_lookup(lookup_svc, "kn", "tn", None)
 
-    test_lookup_tn_zips(lookup_svc, "lo")
+    test_lookup(lookup_svc, "lo", "tn", None)
 
-    test_lookup_tn_zips(lookup_svc, "as")
+    test_lookup(lookup_svc, "as", "tn", None)
 
-    test_lookup_tn_zips(lookup_svc, "ema")
+    test_lookup(lookup_svc, "ema", "tn", None)
 
-    test_lookup_tw_zips(lookup_svc, "plt")
+    test_lookup(lookup_svc, "plt", "tw", None)
 
-    test_lookup_tq_zips(lookup_svc, "ml")
+    test_lookup(lookup_svc, "ml", "tq", None)
 
-    test_lookup_ta_zips(lookup_svc, "mr")
+    test_lookup(lookup_svc, "mr", "ta", None)
 
-    test_lookup_ulb_zips(lookup_svc, "lpx")
+    test_lookup(lookup_svc, "lpx", "ulb", None)
 
-    test_lookup_ulb_book(lookup_svc, "mr")
+    test_lookup(lookup_svc, "mr", "ulb", "gen")
 
-    test_lookup_udb_zips(lookup_svc, "mr")
+    test_lookup(lookup_svc, "mr", "udb", None)
 
-    test_lookup_obs_zips(lookup_svc, "mr")
+    test_lookup(lookup_svc, "mr", "obs", None)
 
-    test_lookup_obs_tn_zips(lookup_svc, "mr")
+    test_lookup(lookup_svc, "mr", "obs-tn", None)
 
-    test_lookup_obs_tq_zips(lookup_svc, "mr")
+    test_lookup(lookup_svc, "mr", "obs-tq", None)
 
 
 ## Test the API:
 
 
-def test_lookup_tn_zips(lookup_svc: ResourceJsonLookup, lang_code: str) -> None:
-    values: List[str] = lookup_svc.lookup(lang_code, "tn", None)
-    print("Translation notes for lang_code {}: {}".format(lang_code, values))
-
-
-def test_lookup_tw_zips(lookup_svc: ResourceJsonLookup, lang_code: str) -> None:
-    values: List[str] = lookup_svc.lookup(lang_code, "tw", None)
-    print("Translation words for lang_code {}: {}".format(lang_code, values))
-
-
-def test_lookup_tq_zips(lookup_svc: ResourceJsonLookup, lang_code: str) -> None:
-    values: List[str] = lookup_svc.lookup(lang_code, "tq", None)
-    print("Translation questions for lang_code {}: {}".format(lang_code, values))
-
-
-def test_lookup_ta_zips(lookup_svc: ResourceJsonLookup, lang_code: str) -> None:
-    values: List[str] = lookup_svc.lookup(lang_code, "ta", None)
-    print("Translation academy for lang_code {}: {}".format(lang_code, values))
-
-
-def test_lookup_ulb_zips(lookup_svc: ResourceJsonLookup, lang_code: str) -> None:
-    values: List[str] = lookup_svc.lookup(lang_code, "ulb", None)
-    print("Unlocked literal bible for lang_code {}: {}".format(lang_code, values))
-
-
-def test_lookup_ulb_book(lookup_svc: ResourceJsonLookup, lang_code: str) -> None:
-    values: List[str] = lookup_svc.lookup(lang_code, "ulb", "gen")
+def test_lookup(
+    lookup_svc: ResourceJsonLookup,
+    lang_code: str,
+    resource_type: str,
+    resource_code: Optional[str],
+) -> None:
+    values: List[str] = lookup_svc.lookup(lang_code, resource_type, resource_code)
     print(
-        "Unlocked literal bible for lang_code {} and book {}: {}".format(
-            lang_code, "gen", values
+        "Language {}, resource_type: {}, resource_code: {}, values: {}".format(
+            lang_code, resource_type, resource_code, values
         )
     )
 
 
-def test_lookup_udb_zips(lookup_svc: ResourceJsonLookup, lang_code: str) -> None:
-    values: List[str] = lookup_svc.lookup(lang_code, "udb", None)
-    print("Unlocked dynamic bible for lang_code {}: {}".format(lang_code, values))
-
-
-def test_lookup_obs_zips(lookup_svc: ResourceJsonLookup, lang_code: str) -> None:
-    values: List[str] = lookup_svc.lookup(lang_code, "obs", None)
-    print("Open bible stories for lang_code {}: {}".format(lang_code, values))
-
-
-def test_lookup_obs_tn_zips(lookup_svc: ResourceJsonLookup, lang_code: str) -> None:
-    values: List[str] = lookup_svc.lookup(lang_code, "obs-tn", None)
-    print(
-        "Open bible stories translation notes for lang_code {}: {}".format(
-            lang_code, values
-        )
-    )
-
-
-def test_lookup_obs_tq_zips(lookup_svc: ResourceJsonLookup, lang_code: str) -> None:
-    values: List[str] = lookup_svc.lookup(lang_code, "obs-tq", None)
-    print(
-        "Open bible stories translation questions for lang_code {}: {}".format(
-            lang_code, values
-        )
-    )
+## A few non-API tests that demonstrate aspects of jsonpath
+## library or nature of data we are working with or other jsonpaths
+## that are not known to be needed yet:
 
 
 def test_lookup_all_language_names(lookup_svc: ResourceJsonLookup) -> None:
@@ -356,11 +292,6 @@ def test_lookup_all_language_names(lookup_svc: ResourceJsonLookup) -> None:
 def test_lookup_all_codes(lookup_svc: ResourceJsonLookup) -> None:
     values: List[str] = lookup_svc._lookup("$[*].contents[*].code")
     print("Codes: {}, # of codes: {}".format(values, len(values)))
-
-
-## A few non-API tests that demonstrate aspects of jsonpath
-## library or nature of data we are working with or other jsonpaths
-## that are not known to be needed yet:
 
 
 def test_abadi_language_lookup(lookup_svc: ResourceJsonLookup) -> None:
@@ -427,17 +358,21 @@ def test_english_language_lookup(lookup_svc: ResourceJsonLookup) -> None:
             print(("Language {} first repo repo_url: {}".format(lang, repo_url)))
 
 
-def test_three_language_lookup(lookup_svc: ResourceJsonLookup) -> None:
+def test_three_language_tn_lookup(lookup_svc: ResourceJsonLookup) -> None:
     # Test getting all translation notes for more than one language
     langs: List[str] = ["English", "Abadi", "Assamese"]
     for lang in langs:
         download_urls: List[str] = lookup_svc.lookup_download_urls(
             "$[?name='{}'].contents[?code='tn'].links[?format='zip'].url".format(lang),
         )
-        if download_urls is not None:
-            print("Language {} download_urls: {}".format(lang, download_urls))
-        else:
-            print("download_urls is None")
+        if download_urls is not None and len(download_urls) == 0:
+            download_urls = lookup_svc.lookup_download_urls(
+                "$[?name='{}'].contents[*].subcontents[?code='tn'].links[?format='zip'].url".format(
+                    lang
+                ),
+            )
+
+        print("Language {} translation notes : {}".format(lang, download_urls))
 
 
 def test_all_tn_zip_urls_lookup(lookup_svc: ResourceJsonLookup) -> None:

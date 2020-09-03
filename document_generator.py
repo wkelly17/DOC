@@ -7,7 +7,7 @@
 #  Richard Mahn <richard_mahn@wycliffeassociates.org>
 
 """
-This script exports tN into HTML format from DCS and generates a PDF from the HTML
+XFIXME This script exports tN into HTML format from DCS and generates a PDF from the HTML
 """
 
 from typing import Any, Dict, List, Optional, Union
@@ -35,7 +35,7 @@ from .bible_books import BOOK_NUMBERS  # type: ignore
 from .resource_lookup import ResourceJsonLookup
 
 
-class TnConverter(object):
+class DocumentGenerator(object):
     def __init__(
         self,
         ta_tag=None,
@@ -87,31 +87,31 @@ class TnConverter(object):
             self.output_dir = self.working_dir
 
         self.logger.debug("WORKING DIR IS {0}".format(self.working_dir))
-
-        self.manifest = None
-
-        self.book_id = None
-        self.book_title = None
-        self.book_number = None
-        self.project = None
-        self.tn_text = ""
-        self.tw_text = ""
-        self.tq_text = ""
-        self.ta_text = ""
-        self.my_rcs = []
-        self.rc_references = {}
-        self.resource_data = {}
-        self.bad_links = {}
-        self.usfm_chunks = {}
-        self.version = None
-        self.issued = None
-        self.filename_base = None
         self.tn_dir = os.path.join(self.working_dir, "{0}_tn".format(lang_codes[0]))
         self.tw_dir = os.path.join(self.working_dir, "{0}_tw".format(lang_codes[0]))
         self.tq_dir = os.path.join(self.working_dir, "{0}_tq".format(lang_codes[0]))
         self.ta_dir = os.path.join(self.working_dir, "{0}_ta".format(lang_codes[0]))
         self.udb_dir = os.path.join(self.working_dir, "{0}_udb".format(lang_codes[0]))
         self.ulb_dir = os.path.join(self.working_dir, "{0}_ulb".format(lang_codes[0]))
+
+        self.manifest: Optional[Dict] = None
+
+        self.book_id: Optional[str] = None
+        self.book_title: Optional[str] = None
+        self.book_number: Optional[str] = None
+        # self.project: Optional[Dict[Any, Any]] = None
+        # self.tn_text: str = ""  # FIXME This doesn't seem to be used anywhere
+        # self.tw_text: str = ""  # FIXME This doesn't seem to be used anywhere
+        # self.tq_text: str = ""  # FIXME This doesn't seem to be used anywhere
+        # self.ta_text: str = ""  # FIXME This doesn't seem to be used anywhere
+        self.my_rcs: List[str] = []
+        self.rc_references: Dict[str, List] = {}
+        self.resource_data: Dict[str, Dict[str, str]] = {}  # FIXME Use newtype or ?
+        self.bad_links: Dict = {}
+        self.usfm_chunks: Dict = {}
+        self.version: Optional[str] = None
+        self.issued: Optional[str] = None
+        self.filename_base: Optional[str] = None
         ## FIXME Commnented out temporarily as we migrate to using
         ## ResourceLookup instead of cloned git repos in
         ## entrypoint.sh of IRG docker container.
@@ -124,12 +124,17 @@ class TnConverter(object):
         self.manifest = load_yaml_object(os.path.join(self.tn_dir, "manifest.yaml"))
         self.version = self.manifest["dublin_core"]["version"]
         self.issued = self.manifest["dublin_core"]["issued"]
-        projects = self.get_book_projects()
+        projects: List[Dict[Any, Any]] = self.get_book_projects()
         for p in projects:
-            self.project = p
-            self.book_id = p["identifier"]
+            # self.project = p  # FIXME Won't this overwrite the instance variable(s) on each iteration?
+            project: Dict[
+                Any, Any
+            ] = p  # FIXME Won't this overwrite the instance variable(s) on each iteration?
+            # self.book_id = p["identifier"]
+            book_id: Any = p["identifier"]
             self.book_title = p["title"].replace(" translationNotes", "")
             self.book_number = BOOK_NUMBERS[self.book_id]
+            # book_number: str = BOOK_NUMBERS[self.book_id]
             self.filename_base = "{0}_tn_{1}-{2}_v{3}".format(
                 self.lang_code,
                 self.book_number.zfill(2),
@@ -163,8 +168,8 @@ class TnConverter(object):
                 self.convert_html2pdf()
         self.pp.pprint(self.bad_links)
 
-    def get_book_projects(self) -> List:
-        projects = []
+    def get_book_projects(self) -> List[Dict[Any, Any]]:
+        projects: List[Dict[Any, Any]] = []
         if (
             not self.manifest
             or "projects" not in self.manifest
@@ -184,7 +189,7 @@ class TnConverter(object):
             self.lang_code, resource, tag
         )
 
-    def setup_resource_files(self):
+    def setup_resource_files(self) -> None:
         if not self.tn_dir:
             tn_url = self.get_resource_url("tn", self.tn_tag)
             self.extract_files_from_url(tn_url)
@@ -328,7 +333,7 @@ class TnConverter(object):
                 book_chunks[resource][chapter]["chunks"].append(data)
         return book_chunks
 
-    def preprocess_markdown(self):
+    def preprocess_markdown(self) -> None:
         tn_md = self.get_tn_markdown()
         tq_md = self.get_tq_markdown()
         tw_md = self.get_tw_markdown()
@@ -340,12 +345,12 @@ class TnConverter(object):
             os.path.join(self.output_dir, "{0}.md".format(self.filename_base)), md
         )
 
-    def pad(self, num):
+    def pad(self, num) -> str:
         if self.book_id == "psa":
             return str(num).zfill(3)
         return str(num).zfill(2)
 
-    def get_tn_markdown(self):
+    def get_tn_markdown(self) -> str:
         book_dir = os.path.join(self.tn_dir, self.book_id)
 
         if not os.path.isdir(book_dir):
@@ -532,8 +537,8 @@ class TnConverter(object):
         self.logger.debug("tn_md is {0}".format(tn_md))
         return tn_md
 
-    # TODO This is quite a cluster
-    def get_tq_markdown(self):
+    # TODO XFIXME This is quite a cluster
+    def get_tq_markdown(self) -> str:
         """Build tq markdown"""
         # TODO localization
         tq_md = '# Translation Questions\n<a id="tq-{0}"/>\n\n'.format(self.book_id)
@@ -610,7 +615,7 @@ class TnConverter(object):
         self.logger.debug("tq_md is {0}".format(tq_md))
         return tq_md
 
-    def get_tw_markdown(self):
+    def get_tw_markdown(self) -> str:
         # TODO localization
         tw_md = '<a id="tw-{0}"/>\n# Translation Words\n\n'.format(self.book_id)
         sorted_rcs = sorted(
@@ -640,7 +645,7 @@ class TnConverter(object):
         self.logger.debug("tw_md is {0}".format(tw_md))
         return tw_md
 
-    def get_ta_markdown(self):
+    def get_ta_markdown(self) -> str:
         # TODO localization
         ta_md = '<a id="ta-{0}"/>\n# Translation Topics\n\n'.format(self.book_id)
         sorted_rcs = sorted(
@@ -662,7 +667,7 @@ class TnConverter(object):
         self.logger.debug("ta_md is {0}".format(ta_md))
         return ta_md
 
-    def get_uses(self, rc):
+    def get_uses(self, rc) -> str:
         md = ""
         if self.rc_references[rc]:
             references = []
@@ -676,7 +681,7 @@ class TnConverter(object):
                 md += "\n"
         return md
 
-    def get_resource_data_from_rc_links(self, text, source_rc):
+    def get_resource_data_from_rc_links(self, text, source_rc) -> None:
         for rc in re.findall(
             r"rc://[A-Z0-9/_-]+", text, flags=re.IGNORECASE | re.MULTILINE
         ):
@@ -773,7 +778,7 @@ class TnConverter(object):
                     self.get_resource_data_from_rc_links(t, rc)
 
     @staticmethod
-    def increase_headers(text, increase_depth=1):
+    def increase_headers(text: str, increase_depth: int = 1) -> str:
         if text:
             text = re.sub(
                 r"^(#+) +(.+?) *#*$",
@@ -784,7 +789,7 @@ class TnConverter(object):
         return text
 
     @staticmethod
-    def decrease_headers(text, minimum_header=1, decrease=1):
+    def decrease_headers(text: str, minimum_header: int = 1, decrease: int = 1) -> str:
         if text:
             text = re.sub(
                 r"^({0}#*){1} +(.+?) *#*$".format(
@@ -797,7 +802,7 @@ class TnConverter(object):
         return text
 
     @staticmethod
-    def get_first_header(text):
+    def get_first_header(text: str) -> str:
         lines = text.split("\n")
         if lines:
             for line in lines:
@@ -806,7 +811,7 @@ class TnConverter(object):
             return lines[0]
         return "NO TITLE"
 
-    def fix_tn_links(self, text, chapter):
+    def fix_tn_links(self, text: str, chapter: str) -> str:
         rep = {
             re.escape(
                 # TODO localization
@@ -828,7 +833,7 @@ class TnConverter(object):
             text = re.sub(pattern, repl, text, flags=re.IGNORECASE | re.MULTILINE)
         return text
 
-    def fix_tw_links(self, text, dictionary):
+    def fix_tw_links(self, text: str, dictionary) -> str:
         rep = {
             r"\]\(\.\./([^/)]+?)(\.md)*\)": r"](rc://{0}/tw/dict/bible/{1}/\1)".format(
                 self.lang_code, dictionary
@@ -841,7 +846,7 @@ class TnConverter(object):
             text = re.sub(pattern, repl, text, flags=re.IGNORECASE)
         return text
 
-    def fix_ta_links(self, text, manual):
+    def fix_ta_links(self, text: str, manual: str) -> str:
         rep = {
             r"\]\(\.\./([^/)]+)/01\.md\)": r"](rc://{0}/ta/man/{1}/\1)".format(
                 self.lang_code, manual
@@ -857,7 +862,7 @@ class TnConverter(object):
             text = re.sub(pattern, repl, text, flags=re.IGNORECASE)
         return text
 
-    def replace_rc_links(self, text):
+    def replace_rc_links(self, text: str) -> str:
         # Change [[rc://...]] rc links, e.g. [[rc://en/tw/help/bible/kt/word]] => [God's Word](#tw-kt-word)
         rep = dict(
             (
@@ -890,7 +895,7 @@ class TnConverter(object):
 
         return text
 
-    def convert_md2html(self):
+    def convert_md2html(self) -> None:
         html = markdown.markdown(
             read_file(
                 os.path.join(self.output_dir, "{0}.md".format(self.filename_base)),
@@ -902,7 +907,7 @@ class TnConverter(object):
             os.path.join(self.output_dir, "{0}.html".format(self.filename_base)), html
         )
 
-    def replace_bible_links(self, text):
+    def replace_bible_links(self, text: str) -> str:
         bible_links = re.findall(
             r"(?:udb|ulb)://[A-Z0-9/]+", text, flags=re.IGNORECASE | re.MULTILINE
         )
@@ -923,7 +928,7 @@ class TnConverter(object):
         text = pattern.sub(lambda m: rep[re.escape(m.group(0))], text)
         return text
 
-    def get_chunk_html(self, resource, chapter, verse):
+    def get_chunk_html(self, resource: str, chapter: str, verse: str) -> str:
         # print("html: {0}-{3}-{1}-{2}".format(resource, chapter, verse, self.book_id))
         path = tempfile.mkdtemp(
             dir=self.working_dir,
@@ -948,13 +953,15 @@ class TnConverter(object):
         header = soup.find("h1")
         if header:
             header.decompose()
-        chapter = soup.find("h2")
-        if chapter:
-            chapter.decompose()
+        chapter_element: Union[
+            bs4.element.Tag, bs4.element.NavigableString
+        ] = soup.find("h2")
+        if chapter_element:
+            chapter_element.decompose()
         html = "".join(["%s" % x for x in soup.body.contents])
         return html
 
-    def convert_html2pdf(self):
+    def convert_html2pdf(self) -> None:
         now = datetime.datetime.now()
         revision_date = "{}-{}-{}".format(now.year, now.month, now.day)
         command = """pandoc \
@@ -981,8 +988,8 @@ class TnConverter(object):
 -o "{3}/{5}.pdf" \
 "{3}/{5}.html"
 """.format(
-            # BOOK_NUMBERS[self.book_id],  # FIXME This arg is not used
-            # self.book_id.upper(),  # FIXME This arg is not used
+            # BOOK_NUMBERS[self.book_id],  # FIXME XFIXME This arg is not used
+            # self.book_id.upper(),  # FIXME XFIXME This arg is not used
             self.book_title,
             self.issued,
             self.version,
@@ -1052,7 +1059,7 @@ def fix_links(text):
     return text
 
 
-def remove_md_section(md, section_name):
+def remove_md_section(md: str, section_name: str) -> str:
     """ Given markdown and a section name, removes the section and the text contained in the section. """
     header_regex = re.compile("^#.*$")
     section_regex = re.compile("^#+ " + section_name)
@@ -1073,7 +1080,7 @@ def remove_md_section(md, section_name):
     return out_md
 
 
-def read_csv_as_dicts(filename):
+def read_csv_as_dicts(filename: str) -> List:
     """ Returns a list of dicts, each containing the contents of a row of
         the given csv file. The CSV file is assumed to have a header row with
         the field names. """
@@ -1085,10 +1092,10 @@ def read_csv_as_dicts(filename):
     return rows
 
 
-def index_tw_refs_by_verse(tw_refs):
+def index_tw_refs_by_verse(tw_refs: List) -> dict:
     """ Returns a dictionary of books -> chapters -> verses, where each
         verse is a list of rows for that verse. """
-    tw_refs_by_verse = {}
+    tw_refs_by_verse: dict = {}
     for tw_ref in tw_refs:
         book = tw_ref["Book"]
         chapter = tw_ref["Chapter"]
@@ -1116,7 +1123,7 @@ def index_tw_refs_by_verse(tw_refs):
     return tw_refs_by_verse
 
 
-def get_tw_refs(tw_refs_by_verse, book, chapter, verse):
+def get_tw_refs(tw_refs_by_verse: dict, book: str, chapter: str, verse: str) -> List:
     """ Returns a list of refs for the given book, chapter, verse, or
         empty list if no matches. """
     if book not in tw_refs_by_verse:
@@ -1154,7 +1161,7 @@ def main(
     :return:
     """
 
-    tn_converter = TnConverter(
+    doc_generator = DocumentGenerator(
         ta_tag,
         tn_tag,
         tq_tag,
@@ -1169,7 +1176,7 @@ def main(
 
     # Let's test our json lookup service on something
     lookup_svc: ResourceJsonLookup = ResourceJsonLookup(
-        logger=tn_converter.logger, pp=tn_converter.pp
+        logger=doc_generator.logger, pp=doc_generator.pp
     )
     # Get the resources
     # download_url: Optional[str] = lookup_svc.lookup_ulb_zips(lang_code)
@@ -1177,11 +1184,11 @@ def main(
         for book in books:
             download_url: Optional[str] = lookup_svc.lookup_ulb_book(lang_code, book)
             if download_url is not None:
-                tn_converter.logger.debug("URL for ulb zip {}".format(download_url))
-                # tn_converter.extract_files_from_url2(lang_code, download_url[0])
-                tn_converter.file_from_url(lang_code, download_url[0])
+                doc_generator.logger.debug("URL for ulb zip {}".format(download_url))
+                # doc_generator.extract_files_from_url2(lang_code, download_url[0])
+                doc_generator.file_from_url(lang_code, download_url[0])
             else:
-                tn_converter.logger.debug(
+                doc_generator.logger.debug(
                     "download_url {} is not available.".format(dowload_url)
                 )
 
@@ -1194,7 +1201,7 @@ def main(
     #     print(("Language {} repo_url: {}".format(lang, repo_url)))
 
     ## FIXME Temporarily comment out run() invocation
-    # tn_converter.run()
+    # doc_generator.run()
 
 
 if __name__ == "__main__":
