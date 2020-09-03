@@ -1192,7 +1192,7 @@ def main(
                 doc_generator.file_from_url(lang_code, download_url[0])
             else:
                 doc_generator.logger.debug(
-                    "download_url {} is not available.".format(dowload_url)
+                    "download_url {} is not available.".format(download_url)
                 )
 
     # lang: str = "Abadi"
