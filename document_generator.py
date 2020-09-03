@@ -29,10 +29,17 @@ import markdown  # type: ignore
 import bs4  # type: ignore
 from usfm_tools.transform import UsfmTransform  # type: ignore
 
-from .file_utils import write_file, read_file, unzip, load_yaml_object  # type: ignore
-from .url_utils import download_file  # type: ignore
-from .bible_books import BOOK_NUMBERS  # type: ignore
-from .resource_lookup import ResourceJsonLookup
+# Handle running in container or as standalone script
+try:
+    from .file_utils import write_file, read_file, unzip, load_yaml_object  # type: ignore
+    from .url_utils import download_file  # type: ignore
+    from .bible_books import BOOK_NUMBERS  # type: ignore
+    from .resource_lookup import ResourceJsonLookup
+except:
+    from file_utils import write_file, read_file, unzip, load_yaml_object  # type: ignore
+    from url_utils import download_file  # type: ignore
+    from bible_books import BOOK_NUMBERS  # type: ignore
+    from resource_lookup import ResourceJsonLookup
 
 
 class DocumentGenerator(object):
