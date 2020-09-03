@@ -9,3 +9,5 @@ bs4
 jsonpath-rw
 jsonpath-rw-ext
 # yamlpath
+flask
+requests
