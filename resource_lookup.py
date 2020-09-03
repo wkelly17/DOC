@@ -1,52 +1,37 @@
 from typing import Optional, List, Set, Dict
+import abc
 import logging
 import os
 from datetime import datetime, timedelta
 import pprint
 import tempfile
 
-# from jsonpath_ng import jsonpath, parse  # type: ignore
-# import jsonpath_ng as jp  # for calling extended methods
 from jsonpath_rw import jsonpath  # type: ignore
 from jsonpath_rw_ext import parse  # type: ignore
 import jsonpath_rw_ext as jp  # for calling extended methods
 import urllib.request, urllib.parse, urllib.error
 
-from .file_utils import load_json_object
-from .url_utils import download_file
+# Handle running in container or as standalone script
+try:
+    from .file_utils import load_json_object
+    from .url_utils import download_file
+    from .config import get_translations_json_location
+except:
+    from file_utils import load_json_object
+    from url_utils import download_file
+    from config import get_translations_json_location
 
 
-class ResourceLookup:
+class ResourceLookup(abc.ABC):
     """ Abstract base class that formalizes resource lookup. Currently
     we do lookup via JSON and translations.json, but later we may use
-    a GraphQL API. The interface (hopefully) doesn't have to change
+    a GraphQL API. The interface (hopefully) doesn't have to change (much)
     and thus call sites in client code can remain largely unchanged. """
 
-    def lookup_tn_zips(self, lang: str) -> List[str]:
-        raise NotImplementedError
-
-    def lookup_tw_zips(self, lang: str) -> List[str]:
-        raise NotImplementedError
-
-    def lookup_tq_zips(self, lang: str) -> List[str]:
-        raise NotImplementedError
-
-    def lookup_ta_zips(self, lang: str) -> List[str]:
-        raise NotImplementedError
-
-    def lookup_ulb_zips(self, lang: str) -> List[str]:
-        raise NotImplementedError
-
-    def lookup_udb_zips(self, lang: str) -> List[str]:
-        raise NotImplementedError
-
-    def lookup_obs_zips(self, lang: str) -> List[str]:
-        raise NotImplementedError
-
-    def lookup_obs_tn_zips(self, lang: str) -> List[str]:
-        raise NotImplementedError
-
-    def lookup_obs_tq_zips(self, lang: str) -> List[str]:
+    @abc.abstractmethod
+    def lookup(
+        self, lang_code: str, resource_type: str, resource_code: Optional[str]
+    ) -> List[str]:
         raise NotImplementedError
 
 
@@ -57,7 +42,7 @@ values from it using jsonpath. """
     def __init__(
         self,
         working_dir: Optional[str] = "./",  # This is in /tools in the Docker container
-        json_file_url: str = "http://bibleineverylanguage.org/wp-content/themes/bb-theme-child/data/translations.json",
+        json_file_url: str = get_translations_json_location(),
         logger: logging.Logger = None,
         pp: pprint.PrettyPrinter = None,
     ) -> None:
@@ -100,7 +85,7 @@ values from it using jsonpath. """
 
     # protected access level
     def _get_data(self) -> None:
-        """ Get json data. """
+        """ Download json data and parse it into equivalent python objects. """
         if self._data_needs_update():
             # Download json file
             try:
@@ -113,13 +98,15 @@ values from it using jsonpath. """
             # Load json file
             try:
                 self.logger.debug("Loading json file {}...".format(self.json_file))
-                self.json_data = load_json_object(self.json_file)
+                self.json_data = load_json_object(
+                    self.json_file
+                )  # json_data should possibly live on its own object
             finally:
                 self.logger.debug("finished loading json file.")
 
     # protected access level
     def _data_needs_update(self) -> bool:
-        """ Given translations.json file path, return true if it has
+        """ Given the json file path, return true if it has
         not been updated within 24 hours. """
         # Does the translations file exist?
         if not os.path.isfile(self.json_file):
@@ -142,66 +129,42 @@ values from it using jsonpath. """
         value_set: Set = set(value)
         return list(value_set)
 
-    def lookup_tn_zips(self, lang_code: str) -> List[str]:
-        """ Given a language code, e.g., 'wum', return zip file URLs for translation notes (code: 'tn'). """
-        # Based on lang value you can use a lookup dictionary that
-        # returns the jsonpath to use. This is where we handle the
-        # unpredictable structure of translations.json.
-        zip_urls: List[str] = self._lookup(
-            "$[?code='{}'].contents[?code='tn'].links[?format='zip'].url".format(
-                lang_code
-            )
-        )
-        return zip_urls
+    def lookup(
+        self, lang_code: str, resource_type: str, resource_code: Optional[str]
+    ) -> List[str]:
+        """ Given a language code, e.g., 'wum', a resource type, e.g.,
+        'tn', and an optional resource code, e.g., 'gen', return URLs
+        for resource. """
 
-    def lookup_tw_zips(self, lang_code: str) -> List[str]:
-        """ Given a language code, return zip file URLs for translation words (code: 'tw'). """
-        # Based on lang value you can use a lookup dictionary that
-        # returns the jsonpath to use. This is where we handle the
-        # unpredictable structure of translations.json.
-        zip_urls: List[str] = self._lookup(
-            "$[?code='{}'].contents[?code='tw'].links[?format='zip'].url".format(
-                lang_code
-            )
-        )
-        return zip_urls
+        assert lang_code is not None, "lang_code is required"
+        assert resource_type is not None, "resource_type is required"
 
-    def lookup_tq_zips(self, lang_code: str) -> List[str]:
-        """ Given a language code, return zip file URLs for translation questions (code: 'tq'). """
-        # Based on lang value you can use a lookup dictionary that
-        # returns the jsonpath to use. This is where we handle the
-        # unpredictable structure of translations.json.
-        zip_urls: List[str] = self._lookup(
-            "$[?code='{}'].contents[?code='tq'].links[?format='zip'].url".format(
-                lang_code
+        if resource_code is not None:
+            jsonpath_str = "$[?code='{}'].contents[?code='{}'].subcontents[?code='{}'].links[?format='usfm'].url".format(
+                lang_code, resource_type, resource_code,
             )
-        )
-        return zip_urls
-
-    def lookup_ta_zips(self, lang_code: str) -> List[str]:
-        """ Given a language code, return zip file URLs for translation academy (code: 'ta'). """
-        # Based on lang value you can use a lookup dictionary that
-        # returns the jsonpath to use. This is where we handle the
-        # unpredictable structure of translations.json.
-        zip_urls: List[str] = self._lookup(
-            "$[?code='{}'].contents[?code='ta'].links[?format='zip'].url".format(
-                lang_code
+        else:
+            # NOTE We take the union of jsonpaths, '|', one at the
+            # contents level and one at the subcontents level (because
+            # the location of the resource can vary depending on
+            # language).
+            jsonpath_str = "$[?code='{}'].contents[?code='{}'].links[?format='zip'].url".format(
+                lang_code, resource_type,
             )
-        )
-        return zip_urls
+            # NOTE Using the | union join jsonpath operator below
+            # resulted in no results being returned, this seems to be
+            # a bug in jsonpath-rw lib.
+            # jsonpath_str += " | "
+            # jsonpath_str += "$[?code='{}'].contents[*].subcontents[?code='{}'].links[?format='zip'].url".format(
+            #     lang_code, resource_type
+            # )
+        urls: List[str] = self._lookup(jsonpath_str)
+        return urls
 
-    def lookup_ulb_zips(self, lang_code: str) -> List[str]:
-        """ Given a language code, return zip file URLs for unlocked literal bible USFM (code: 'ulb'). """
-        # Based on lang value you can use a lookup dictionary that
-        # returns the jsonpath to use. This is where we handle the
-        # unpredictable structure of translations.json.
-        zip_urls: List[str] = self._lookup(
-            "$[?code='{}'].contents[?code='ulb'].links[?format='zip'].url".format(
-                lang_code
-            )
-        )
-        return zip_urls
-
+    # NOTE This method only still exists for the commented out code at
+    # the end that tries a different jsonpath if the first jsonpath
+    # tried yields no results (since jsonpaths unfortunately can vary
+    # based on language).
     def lookup_ulb_book(self, lang_code: str, book_id: str) -> List[str]:
         """ Given a language code and book id, return file URL for unlocked literal bible USFM (code: 'ulb'). """
         download_urls: List[str] = self._lookup(
@@ -226,58 +189,9 @@ values from it using jsonpath. """
         #         download_urls = [self.parse_repo_url_from_json_url(download_urls[0])]
         #     return download_urls
 
-    def lookup_udb_zips(self, lang_code: str) -> List[str]:
-        """ Given a language code, return zip file URLs for unlocked dynamic bible USFM (code: 'udb'). """
-        # Based on lang value you can use a lookup dictionary that
-        # returns the jsonpath to use. This is where we handle the
-        # unpredictable structure of translations.json.
-        zip_urls: List[str] = self._lookup(
-            "$[?code='{}'].contents[?code='udb'].links[?format='zip'].url".format(
-                lang_code
-            )
-        )
-        return zip_urls
+    # The functions below aren't part of the API, they are just
+    # experiments:
 
-    def lookup_obs_zips(self, lang_code: str) -> List[str]:
-        """ Given a language code, return zip file URLs for open bible stories (code: 'obs'). """
-        # Based on lang value you can use a lookup dictionary that
-        # returns the jsonpath to use. This is where we handle the
-        # unpredictable structure of translations.json.
-        zip_urls: List[str] = self._lookup(
-            "$[?code='{}'].contents[?code='obs'].links[?format='zip'].url".format(
-                lang_code
-            )
-        )
-        return zip_urls
-
-    def lookup_obs_tn_zips(self, lang_code: str) -> List[str]:
-        """ Given a language code, return zip file URLs for open bible stories translation
-        notes (code: 'obs-tn'). """
-        # Based on lang value you can use a lookup dictionary that
-        # returns the jsonpath to use. This is where we handle the
-        # unpredictable structure of translations.json.
-        zip_urls: List[str] = self._lookup(
-            "$[?code='{}'].contents[?code='obs-tn'].links[?format='zip'].url".format(
-                lang_code
-            )
-        )
-        return zip_urls
-
-    def lookup_obs_tq_zips(self, lang_code: str) -> List[str]:
-        """ Given a language code, return zip file URLs for open bible stories translation
-        questions (code: 'obs-tq'). """
-        # Based on lang value you can use a lookup dictionary that
-        # returns the jsonpath to use. This is where we handle the
-        # unpredictable structure of translations.json.
-        zip_urls: List[str] = self._lookup(
-            "$[?code='{}'].contents[?code='obs-tq'].links[?format='zip'].url".format(
-                lang_code
-            )
-        )
-        return zip_urls
-
-    # THe functions below aren't part of the API, they are just
-    # experiments.
     def lookup_download_url(
         self,
         jsonpath: str = "$[?name='English'].contents[*].subcontents[*].links[?format='Download'].url",
@@ -318,35 +232,47 @@ values from it using jsonpath. """
 
 def main() -> None:
     """ Test driver. """
+
     lookup_svc: ResourceJsonLookup = ResourceJsonLookup()
 
-    # test_abadi_language_lookup(lookup_svc)
+    ## A few non-API tests that demonstrate aspects of jsonpath
+    ## library or nature of data we are working with:
 
-    # test_wumbvu_language_lookup(lookup_svc)
+    test_lookup_all_language_names(lookup_svc)
 
-    # test_another_language_lookup(lookup_svc)
+    test_lookup_all_codes(lookup_svc)
 
-    # test_english_language_lookup(lookup_svc)
+    test_abadi_language_lookup(lookup_svc)
 
-    # test_three_language_lookup(lookup_svc)
+    test_wumbvu_language_lookup(lookup_svc)
 
-    # test_all_tn_zip_urls_lookup(lookup_svc)
+    test_another_language_lookup(lookup_svc)
 
-    # test_lookup_tn_zips(lookup_svc, "kn")
+    test_english_language_lookup(lookup_svc)
 
-    # test_lookup_tn_zips(lookup_svc, "lo")
+    test_three_language_lookup(lookup_svc)
 
-    # test_lookup_tn_zips(lookup_svc, "as")
+    test_all_tn_zip_urls_lookup(lookup_svc)
+
+    ## Test the API:
+
+    test_lookup_tn_zips(lookup_svc, "kn")
+
+    test_lookup_tn_zips(lookup_svc, "lo")
+
+    test_lookup_tn_zips(lookup_svc, "as")
 
     test_lookup_tn_zips(lookup_svc, "ema")
 
-    # test_lookup_tw_zips(lookup_svc, "plt")
+    test_lookup_tw_zips(lookup_svc, "plt")
 
-    # test_lookup_tq_zips(lookup_svc, "ml")
+    test_lookup_tq_zips(lookup_svc, "ml")
 
     test_lookup_ta_zips(lookup_svc, "mr")
 
-    # test_lookup_ulb_zips(lookup_svc, "lpx")
+    test_lookup_ulb_zips(lookup_svc, "lpx")
+
+    test_lookup_ulb_book(lookup_svc, "mr")
 
     test_lookup_udb_zips(lookup_svc, "mr")
 
@@ -356,9 +282,85 @@ def main() -> None:
 
     test_lookup_obs_tq_zips(lookup_svc, "mr")
 
-    # test_lookup_all_language_names(lookup_svc)
 
-    test_lookup_all_codes(lookup_svc)
+## Test the API:
+
+
+def test_lookup_tn_zips(lookup_svc: ResourceJsonLookup, lang_code: str) -> None:
+    values: List[str] = lookup_svc.lookup(lang_code, "tn", None)
+    print("Translation notes for lang_code {}: {}".format(lang_code, values))
+
+
+def test_lookup_tw_zips(lookup_svc: ResourceJsonLookup, lang_code: str) -> None:
+    values: List[str] = lookup_svc.lookup(lang_code, "tw", None)
+    print("Translation words for lang_code {}: {}".format(lang_code, values))
+
+
+def test_lookup_tq_zips(lookup_svc: ResourceJsonLookup, lang_code: str) -> None:
+    values: List[str] = lookup_svc.lookup(lang_code, "tq", None)
+    print("Translation questions for lang_code {}: {}".format(lang_code, values))
+
+
+def test_lookup_ta_zips(lookup_svc: ResourceJsonLookup, lang_code: str) -> None:
+    values: List[str] = lookup_svc.lookup(lang_code, "ta", None)
+    print("Translation academy for lang_code {}: {}".format(lang_code, values))
+
+
+def test_lookup_ulb_zips(lookup_svc: ResourceJsonLookup, lang_code: str) -> None:
+    values: List[str] = lookup_svc.lookup(lang_code, "ulb", None)
+    print("Unlocked literal bible for lang_code {}: {}".format(lang_code, values))
+
+
+def test_lookup_ulb_book(lookup_svc: ResourceJsonLookup, lang_code: str) -> None:
+    values: List[str] = lookup_svc.lookup(lang_code, "ulb", "gen")
+    print(
+        "Unlocked literal bible for lang_code {} and book {}: {}".format(
+            lang_code, "gen", values
+        )
+    )
+
+
+def test_lookup_udb_zips(lookup_svc: ResourceJsonLookup, lang_code: str) -> None:
+    values: List[str] = lookup_svc.lookup(lang_code, "udb", None)
+    print("Unlocked dynamic bible for lang_code {}: {}".format(lang_code, values))
+
+
+def test_lookup_obs_zips(lookup_svc: ResourceJsonLookup, lang_code: str) -> None:
+    values: List[str] = lookup_svc.lookup(lang_code, "obs", None)
+    print("Open bible stories for lang_code {}: {}".format(lang_code, values))
+
+
+def test_lookup_obs_tn_zips(lookup_svc: ResourceJsonLookup, lang_code: str) -> None:
+    values: List[str] = lookup_svc.lookup(lang_code, "obs-tn", None)
+    print(
+        "Open bible stories translation notes for lang_code {}: {}".format(
+            lang_code, values
+        )
+    )
+
+
+def test_lookup_obs_tq_zips(lookup_svc: ResourceJsonLookup, lang_code: str) -> None:
+    values: List[str] = lookup_svc.lookup(lang_code, "obs-tq", None)
+    print(
+        "Open bible stories translation questions for lang_code {}: {}".format(
+            lang_code, values
+        )
+    )
+
+
+def test_lookup_all_language_names(lookup_svc: ResourceJsonLookup) -> None:
+    values: List[str] = lookup_svc._lookup("$[*].name")
+    print("Languages: {}, # of languages: {}".format(values, len(values)))
+
+
+def test_lookup_all_codes(lookup_svc: ResourceJsonLookup) -> None:
+    values: List[str] = lookup_svc._lookup("$[*].contents[*].code")
+    print("Codes: {}, # of codes: {}".format(values, len(values)))
+
+
+## A few non-API tests that demonstrate aspects of jsonpath
+## library or nature of data we are working with or other jsonpaths
+## that are not known to be needed yet:
 
 
 def test_abadi_language_lookup(lookup_svc: ResourceJsonLookup) -> None:
@@ -412,17 +414,17 @@ def test_another_language_lookup(lookup_svc: ResourceJsonLookup) -> None:
 
 def test_english_language_lookup(lookup_svc: ResourceJsonLookup) -> None:
     # Test English lang. Different jsonpath for English USFM files.
-    lang: str = "English"
+    lang: str = "en"
     jsonpath = "$[?code='{}'].contents[*].links[?format='Download'].url".format(lang)
     download_urls: List[str] = lookup_svc.lookup_download_urls(jsonpath)
-    if download_urls is not None:
+    if download_urls is not None and len(download_urls) > 0:
         print("Language {} download_urls: {}".format(lang, download_urls))
         print(("Language {} first download url: {}".format(lang, download_urls[0])))
-    repo_url: Optional[str] = lookup_svc.parse_repo_url_from_json_url(
-        download_urls[0], "/download-scripture?repo_url"
-    )
-    if repo_url is not None:
-        print(("Language {} first repo repo_url: {}".format(lang, repo_url)))
+        repo_url: Optional[str] = lookup_svc.parse_repo_url_from_json_url(
+            download_urls[0], "/download-scripture?repo_url"
+        )
+        if repo_url is not None:
+            print(("Language {} first repo repo_url: {}".format(lang, repo_url)))
 
 
 def test_three_language_lookup(lookup_svc: ResourceJsonLookup) -> None:
@@ -445,69 +447,12 @@ def test_all_tn_zip_urls_lookup(lookup_svc: ResourceJsonLookup) -> None:
     )
     if download_urls is not None:
         print(
-            "All language download_urls having jsonpath {} : {}".format(
+            "All translation notes having jsonpath {} : {}".format(
                 "$[*].contents[?code='tn'].links[?format='zip'].url", download_urls
             )
         )
     else:
         print("download_urls is None")
-
-
-def test_lookup_tn_zips(lookup_svc: ResourceJsonLookup, lang: str) -> None:
-    values: List[str] = lookup_svc.lookup_tn_zips(lang)
-    print("Translation notes for lang {}: {}".format(lang, values))
-
-
-def test_lookup_tw_zips(lookup_svc: ResourceJsonLookup, lang: str) -> None:
-    values: List[str] = lookup_svc.lookup_tw_zips(lang)
-    print("Translation words for lang {}: {}".format(lang, values))
-
-
-def test_lookup_tq_zips(lookup_svc: ResourceJsonLookup, lang: str) -> None:
-    values: List[str] = lookup_svc.lookup_tq_zips(lang)
-    print("Translation questions for lang {}: {}".format(lang, values))
-
-
-def test_lookup_ta_zips(lookup_svc: ResourceJsonLookup, lang: str) -> None:
-    values: List[str] = lookup_svc.lookup_ta_zips(lang)
-    print("Translation acadmey for lang {}: {}".format(lang, values))
-
-
-def test_lookup_ulb_zips(lookup_svc: ResourceJsonLookup, lang: str) -> None:
-    values: List[str] = lookup_svc.lookup_ulb_zips(lang)
-    print("Unlocked literal bible for lang {}: {}".format(lang, values))
-
-
-def test_lookup_udb_zips(lookup_svc: ResourceJsonLookup, lang: str) -> None:
-    values: List[str] = lookup_svc.lookup_udb_zips(lang)
-    print("Unlocked dynamic bible for lang {}: {}".format(lang, values))
-
-
-def test_lookup_obs_zips(lookup_svc: ResourceJsonLookup, lang: str) -> None:
-    values: List[str] = lookup_svc.lookup_obs_zips(lang)
-    print("Open bible stories for lang {}: {}".format(lang, values))
-
-
-def test_lookup_obs_tn_zips(lookup_svc: ResourceJsonLookup, lang: str) -> None:
-    values: List[str] = lookup_svc.lookup_obs_tn_zips(lang)
-    print("Open bible stories translation notes for lang {}: {}".format(lang, values))
-
-
-def test_lookup_obs_tq_zips(lookup_svc: ResourceJsonLookup, lang: str) -> None:
-    values: List[str] = lookup_svc.lookup_obs_tq_zips(lang)
-    print(
-        "Open bible stories translation questions for lang {}: {}".format(lang, values)
-    )
-
-
-def test_lookup_all_language_names(lookup_svc: ResourceJsonLookup) -> None:
-    values: List[str] = lookup_svc._lookup("$[*].name")
-    print("Languages: {}, # of languages: {}".format(values, len(values)))
-
-
-def test_lookup_all_codes(lookup_svc: ResourceJsonLookup) -> None:
-    values: List[str] = lookup_svc._lookup("$[*].contents[*].code")
-    print("Codes: {}, # of codes: {}".format(values, len(values)))
 
 
 if __name__ == "__main__":
