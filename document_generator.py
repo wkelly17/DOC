@@ -134,7 +134,8 @@ class DocumentGenerator(object):
         self.resource_data: Dict[str, Dict[str, str]] = {}  # FIXME Use newtype or ?
         self.bad_links: Dict = {}
         self.usfm_chunks: Dict = {}
-        self.version: Optional[str] = None
+        # self.version: Optional[str] = None
+        self.version = None
         self.issued: Optional[str] = None
         self.filename_base: Optional[str] = None
         ## FIXME Commnented out temporarily as we migrate to using
