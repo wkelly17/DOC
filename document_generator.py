@@ -53,7 +53,7 @@ class DocumentGenerator(object):
         ulb_tag=None,
         working_dir=None,
         output_dir=None,
-        lang_codes=None,
+        lang_code=None,
         books=None,
     ) -> None:
         """
@@ -65,7 +65,7 @@ class DocumentGenerator(object):
         :param ulb_tag:
         :param working_dir:
         :param output_dir:
-        :param lang_codes:
+        :param lang_code:
         :param books:
         """
         self.ta_tag = ta_tag
@@ -76,7 +76,7 @@ class DocumentGenerator(object):
         self.ulb_tag = ulb_tag
         self.working_dir = working_dir
         self.output_dir = output_dir
-        self.lang_codes = lang_codes
+        self.lang_code = lang_code
         self.books = books
 
         self.logger = logging.getLogger()
@@ -94,12 +94,34 @@ class DocumentGenerator(object):
             self.output_dir = self.working_dir
 
         self.logger.debug("WORKING DIR IS {0}".format(self.working_dir))
-        self.tn_dir = os.path.join(self.working_dir, "{0}_tn".format(lang_codes[0]))
-        self.tw_dir = os.path.join(self.working_dir, "{0}_tw".format(lang_codes[0]))
-        self.tq_dir = os.path.join(self.working_dir, "{0}_tq".format(lang_codes[0]))
-        self.ta_dir = os.path.join(self.working_dir, "{0}_ta".format(lang_codes[0]))
-        self.udb_dir = os.path.join(self.working_dir, "{0}_udb".format(lang_codes[0]))
-        self.ulb_dir = os.path.join(self.working_dir, "{0}_ulb".format(lang_codes[0]))
+
+        # NOTE Currently, there is one tn_dir, tw_dir, tq_dir, ta_dir,
+        # udb_dir, ulb_dir per run, but there will need to be one set
+        # of these for every language per run. Additionally if other
+        # resources are to be folded into the document such as obs,
+        # obs-tn, etc., then those will also need to have their own
+        # directories.
+        # NOTE Per previous note, we could possibly just keep the
+        # collection of resources requested and infer from that the
+        # directories that will be created as a result of unzipping
+        # the resources we have looked up and downloaded rather than
+        # having instance variables for each of them. The JSON gets
+        # reified into a dictionary with nested objects and that is
+        # what would possibly be stored in an instance variable instead.
+        # for resource in resources:
+        #     resource.update(
+        #         {
+        #             "resource_urls": os.path.join(
+        #                 self.working_dir, "{0}_tn".format(resource["lang_code"])
+        #             )
+        #         }
+        #     )
+        self.tn_dir = os.path.join(self.working_dir, "{0}_tn".format(lang_code))
+        self.tw_dir = os.path.join(self.working_dir, "{0}_tw".format(lang_code))
+        self.tq_dir = os.path.join(self.working_dir, "{0}_tq".format(lang_code))
+        self.ta_dir = os.path.join(self.working_dir, "{0}_ta".format(lang_code))
+        self.udb_dir = os.path.join(self.working_dir, "{0}_udb".format(lang_code))
+        self.ulb_dir = os.path.join(self.working_dir, "{0}_ulb".format(lang_code))
 
         self.manifest: Optional[Dict] = None
 
@@ -186,7 +208,6 @@ class DocumentGenerator(object):
                 projects.append(p)
         return sorted(projects, key=lambda k: k["sort"])
 
-    # TODO Might consider reifying url into its own newtype
     def get_resource_url(self, resource: str, tag: str) -> str:
         return "https://git.door43.org/Door43/{0}_{1}/archive/{2}.zip".format(
             self.lang_code, resource, tag
@@ -1147,7 +1168,7 @@ def main(
     ulb_tag: str,
     working_dir,
     output_dir,
-    lang_codes: List[str],
+    lang_code: str,
     books: List[str],
 ) -> None:
     """
@@ -1157,7 +1178,7 @@ def main(
     :param tw_tag:
     :param udb_tag:
     :param ulb_tag:
-    :param lang_codes:
+    :param lang_code:
     :param books:
     :param working_dir:
     :param output_dir:
@@ -1173,7 +1194,7 @@ def main(
         ulb_tag,
         working_dir,
         output_dir,
-        lang_codes,
+        lang_code,
         books,
     )
 
@@ -1182,18 +1203,18 @@ def main(
         logger=doc_generator.logger, pp=doc_generator.pp
     )
     # Get the resources
-    # download_url: Optional[str] = lookup_svc.lookup_ulb_zips(lang_code)
-    for lang_code in lang_codes:
-        for book in books:
-            download_url: Optional[str] = lookup_svc.lookup(lang_code, "ulb", book)
-            if download_url is not None:
-                doc_generator.logger.debug("URL for ulb zip {}".format(download_url))
-                # doc_generator.extract_files_from_url2(lang_code, download_url[0])
-                doc_generator.file_from_url(lang_code, download_url[0])
-            else:
-                doc_generator.logger.debug(
-                    "download_url {} is not available.".format(download_url)
-                )
+    download_url: Optional[str] = lookup_svc.lookup(lang_code, "ulb", None)
+    # for lang_code in lang_codes:
+    #     for book in books:
+    #         download_url: Optional[str] = lookup_svc.lookup(lang_code, "ulb", book)
+    if download_url is not None:
+        doc_generator.logger.debug("URL for ulb zip {}".format(download_url))
+        # doc_generator.extract_files_from_url2(lang_code, download_url[0])
+        doc_generator.file_from_url(lang_code, download_url)
+    else:
+        doc_generator.logger.debug(
+            "download_url {} is not available.".format(download_url)
+        )
 
     # lang: str = "Abadi"
     # download_url: Optional[str] = lookup_svc.lookup_download_url()
@@ -1204,7 +1225,7 @@ def main(
     #     print(("Language {} repo_url: {}".format(lang, repo_url)))
 
     ## FIXME Temporarily comment out run() invocation
-    # doc_generator.run()
+    doc_generator.run()
 
 
 if __name__ == "__main__":
@@ -1214,8 +1235,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "-l",
         "--lang",
-        dest="lang_codes",
-        nargs="+",
+        dest="lang_code",
+        # nargs="+",
         default="en",
         required=False,
         help="Language Codes",
@@ -1273,6 +1294,6 @@ if __name__ == "__main__":
         args.ulb,
         args.working_dir,
         args.output_dir,
-        args.lang_codes,
+        args.lang_code,
         args.books,
     )
