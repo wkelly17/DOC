@@ -52,5 +52,5 @@ def generate_document():
 
     print("resource_urls: {}".format(resource_urls))
 
-    # return jsonify({"response": "OK"})
-    return "OK", 201
+    return jsonify({"resources": resources})
+    # return "OK", 201

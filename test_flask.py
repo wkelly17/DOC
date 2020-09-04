@@ -15,5 +15,5 @@ res = requests.post(
     "http://localhost:5000/api/v1/generate_document", json=json.dumps(payload)
 )
 if res.ok:
-    print(res)
-    # print(res.json())
+    # print(res)
+    print(res.json())
