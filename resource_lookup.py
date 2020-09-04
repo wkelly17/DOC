@@ -161,7 +161,9 @@ values from it using jsonpath. """
                 lang_code, resource_type,
             )
             urls = self._lookup(jsonpath_str)
-            if urls is not None and len(urls) == 0:
+            if (
+                urls is not None and len(urls) == 0
+            ):  # For the language in question, the resource is apparently at a different location which we try next.
                 jsonpath_str = get_resource_url_level_2_jsonpath().format(
                     lang_code, resource_type,
                 )
