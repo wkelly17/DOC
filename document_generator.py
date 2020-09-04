@@ -283,8 +283,11 @@ class DocumentGenerator(object):
         # TODO Add caching of previously downloaded resources based on
         # file path. Caching won't be testable until we have a web
         # service in front of this subsystem handling requests.
-        dir: str = os.path.join(self.working_dir, lang_code)
-        filename: str = os.path.join(dir, url.rpartition(os.path.sep)[2])
+        dir = os.path.join(self.working_dir, lang_code)
+        self.logger.debug(
+            "in file_from_url, url: {}, type(url): {}".format(url, type(url))
+        )
+        filename = os.path.join(dir, url.rpartition(os.path.sep)[2])
         if not os.path.isdir(dir):
             os.mkdir(dir)
         self.logger.debug(
@@ -1204,13 +1207,9 @@ def main(
     )
     # Get the resources
     download_url: Optional[str] = lookup_svc.lookup(lang_code, "ulb", None)
-    # for lang_code in lang_codes:
-    #     for book in books:
-    #         download_url: Optional[str] = lookup_svc.lookup(lang_code, "ulb", book)
     if download_url is not None:
         doc_generator.logger.debug("URL for ulb zip {}".format(download_url))
-        # doc_generator.extract_files_from_url2(lang_code, download_url[0])
-        doc_generator.file_from_url(lang_code, download_url)
+        doc_generator.file_from_url(lang_code, download_url[0])
     else:
         doc_generator.logger.debug(
             "download_url {} is not available.".format(download_url)
