@@ -19,8 +19,8 @@ app = Flask(__name__)
 # "resource_code": "tit"}, {"lang_code": "ml", "resource_type": "obs-tq",
 # "resource_code": ""}, {"lang_code": "mr", "resource_type": "udb",
 # "resource_code": "mrk"}]}
-@app.route("/api/v1/generate_document", methods=["POST"])
-def generate_document():
+@app.route("/api/v1/document", methods=["POST"])
+def document_endpoint():
     """ Get the JSON POSTed data, create document batch job consisting
     of the requested resources and hand it off to the message bus for handling
     asynchronously. Return OK to the requesting HTTP client along with

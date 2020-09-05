@@ -11,9 +11,7 @@ payload["resources"] = [
 
 
 print("payload: {}".format(payload))
-res = requests.post(
-    "http://localhost:5000/api/v1/generate_document", json=json.dumps(payload)
-)
+res = requests.post("http://localhost:5000/api/v1/document", json=json.dumps(payload))
 if res.ok:
     # print(res)
     print(res.json())
