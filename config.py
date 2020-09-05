@@ -2,7 +2,21 @@ import typing
 import os
 
 
+def get_working_dir() -> str:
+    """ The directory where the resources are downloaded to. """
+    dir = os.environ.get("IRG_WORKING_DIR", "/working/tn-temp")
+    return dir
+
+
+def get_output_dir() -> str:
+    """ The directory where the generated documents are placed. """
+    dir = os.environ.get("IRG_OUTPUT_DIR", get_working_dir())
+    return dir
+
+
 def get_translations_json_location() -> str:
+    """ The location where the JSON data file that we use to lookup
+    location of resources is located. """
     loc = os.environ.get(
         "TRANSLATIONS_JSON_LOCATION",
         "http://bibleineverylanguage.org/wp-content/themes/bb-theme-child/data/translations.json",

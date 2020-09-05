@@ -4,8 +4,10 @@ import json
 
 # Handle running in container or as standalone script
 try:
+    from .document_generator import DocumentGenerator
     from .resource_lookup import ResourceJsonLookup
 except:
+    from document_generator import DocumentGenerator
     from resource_lookup import ResourceJsonLookup
 
 
@@ -50,5 +52,9 @@ def document_endpoint():
 
     print("resource_urls: {}".format(resource_urls))
 
-    return jsonify({"resources": resources})
+    # Hand off resource object to service layer
+    document_generator = DocumentGenerator(resources)
+    document_generator.run()
+
+    return jsonify({"resources": resources}), 200
     # return "OK", 201
