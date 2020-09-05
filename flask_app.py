@@ -40,9 +40,7 @@ def document_endpoint():
     resources = payload["resources"]
     resource_urls = []
     for resource in resources:
-        print("lang_code: {}".format(resource["lang_code"]))
-        print("resource_type: {}".format(resource["resource_type"]))
-        print("resource_code: {}".format(resource["resource_code"]))
+        print("resource: {}".format(resource))
         resource_code = (
             None if not resource["resource_code"] else resource["resource_code"]
         )
