@@ -214,15 +214,31 @@ class DocumentGenerator(object):
             # English resource only app). But now a user by way of a
             # request for resources can combine independently any
             # resources. So, this will change a lot of the code below
-            # and throughout this system.
-            resource.update(
-                {
-                    "manifest": load_yaml_object(
-                        os.path.join(resource["resource_dir"], "manifest.yaml")
-                        # os.path.join(self.tn_dir, "manifest.yaml")
-                    )
-                }
-            )
+            # and throughout this system. Further retrieving the
+            # resource, even if it is a zip file, does not necessarily
+            # contain a manifest.yaml file if it is fetched from the
+            # location provided in translations.json which is
+            # different than the git repo for same.
+
+            if os.path.isfile(os.path.join(resource["resource_dir"], "manifest.yaml")):
+                resource.update(
+                    {
+                        "manifest": load_yaml_object(
+                            os.path.join(resource["resource_dir"], "manifest.yaml")
+                            # os.path.join(self.tn_dir, "manifest.yaml")
+                        )
+                    }
+                )
+            elif os.path.isfile(os.path.join(resource["resource_dir"], "manifest.txt")):
+                resource.update(
+                    {
+                        "manifest": load_yaml_object(
+                            os.path.join(resource["resource_dir"], "manifest.txt")
+                            # os.path.join(self.tn_dir, "manifest.yaml")
+                        )
+                    }
+                )
+
             # self.manifest = load_yaml_object(os.path.join(self.tn_dir, "manifest.yaml"))
             self.logger.debug('resource["manifest"]: {}'.format(resource["manifest"]))
             resource.update({"version": resource["manifest"]["dublin_core"]["version"]})
