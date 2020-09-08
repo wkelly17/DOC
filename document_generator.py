@@ -55,10 +55,10 @@ class DocumentGenerator(object):
         # udb_tag=None,  # TODO This will likely go away
         # ulb_tag=None,  # TODO This will likely go away
         resources: Dict,
-        working_dir: str = get_working_dir(),  # NOTE This stays or comes from config.py
-        output_dir: str = get_output_dir(),  # NOTE This stays or comes from config.py
         # lang_code=None,  # TODO This goes away. resources object is used instead
         # books=None,  # TODO This goes away. resources object is used instead
+        working_dir: str = get_working_dir(),
+        output_dir: str = get_output_dir(),
     ) -> None:
         """
         # :param ta_tag:
