@@ -361,7 +361,7 @@ class DocumentGenerator(object):
             if urls and len(urls) > 0:
                 resource_url: str = urls[0]
                 resource.update({"resource_url": resource_url})
-                self.extract_files_from_url2(resource_url, resource["resource_dir"])
+                self.extract_files_from_url2(resource_url, resource)
 
         # if not self.tn_dir:
         #     tn_url = self.get_resource_url("tn", self.tn_tag)
@@ -402,28 +402,29 @@ class DocumentGenerator(object):
         finally:
             self.logger.debug("finished.")
 
-    def extract_files_from_url2(self, url: str, resource_dir: str) -> None:
+    def extract_files_from_url2(self, url: str, resource: Dict) -> None:
         """ Download and unzip the zip file pointed to by url to a
-        directory located at resource_dir. """
-        if not os.path.isdir(resource_dir):
+        directory located at resource[\"resource["resource_dir"]\"]. """
+        if not os.path.isdir(resource["resource["resource_dir"]"]):
             try:
-                self.logger.debug("About to create directory {}".format(resource_dir))
-                os.mkdir(resource_dir)
-                self.logger.debug("Created directory {}".format(resource_dir))
+                self.logger.debug("About to create directory {}".format(resource["resource_dir"]))
+                os.mkdir(resource["resource_dir"])
+                self.logger.debug("Created directory {}".format(resource["resource_dir"]))
             except:
-                self.logger.debug("Failed to create directory {}".format(resource_dir))
-        zip_file = os.path.join(resource_dir, url.rpartition(os.path.sep)[2])
+                self.logger.debug("Failed to create directory {}".format(resource["resource_dir"]))
+        zip_file = os.path.join(resource["resource_dir"], url.rpartition(os.path.sep)[2])
         self.logger.debug("Using zip file location: {}".format(zip_file))
         try:
             self.logger.debug("Downloading {0}...".format(url))
             download_file(url, zip_file)
         finally:
             self.logger.debug("finished.")
-        try:
-            self.logger.debug("Unzipping {} into {}...".format(zip_file, resource_dir))
-            unzip(zip_file, resource_dir)
-        finally:
-            self.logger.debug("finished.")
+        if not resource["resource_code"]:
+            try:
+                self.logger.debug("Unzipping {} into {}...".format(zip_file, resource["resource_dir"]))
+                unzip(zip_file, resource["resource_dir"])
+            finally:
+                self.logger.debug("finished.")
 
     def file_from_url(self, lang_code: str, url: str) -> None:
         """ Download file pointed to by url to a path composed of
