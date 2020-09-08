@@ -198,10 +198,13 @@ class DocumentGenerator(object):
             resource.update({"bad_links": {}})
             resource.update({"usfm_chunks": {}})
             self.logger.debug(
-                'resource["resource_dir"]: {}, manifest.yaml exists: {}'.format(
+                'resource["resource_dir"]: {}, manifest.yaml exists: {}, manifest.txt exists: {}'.format(
                     resource["resource_dir"],
                     os.path.isfile(
                         os.path.join(resource["resource_dir"], "manifest.yaml")
+                    ),
+                    os.path.isfile(
+                        os.path.join(resource["resource_dir"], "manifest.txt")
                     ),
                 )
             )
