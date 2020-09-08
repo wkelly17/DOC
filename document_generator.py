@@ -199,7 +199,8 @@ class DocumentGenerator(object):
             resource.update(
                 {
                     "manifest": load_yaml_object(
-                        os.path.join(self.tn_dir, "manifest.yaml")
+                        os.path.join(resource["resource_dir"], "manifest.yaml")
+                        # os.path.join(self.tn_dir, "manifest.yaml")
                     )
                 }
             )
