@@ -205,6 +205,16 @@ class DocumentGenerator(object):
                     ),
                 )
             )
+            # NOTE If resource["resource_code"] is None then we should
+            # not try for manifest.yaml. Previously, resources only
+            # came from git repos for English which always included
+            # the manifest.yaml file. The previous assumption was that
+            # tn, tw, tq, ta, etc. resources would always be wanted
+            # (because they were available for English and this was an
+            # English resource only app). But now a user by way of a
+            # request for resources can combine independently any
+            # resources. So, this will change a lot of the code below
+            # and throughout this system.
             resource.update(
                 {
                     "manifest": load_yaml_object(
