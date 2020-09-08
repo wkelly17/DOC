@@ -196,6 +196,7 @@ class DocumentGenerator(object):
         self.setup_resource_files()
         for resource in self.resources:
             resource.update({"bad_links": {}})
+            resource.update({"usfm_chunks": {}})
             self.logger.debug(
                 'resource["resource_dir"]: {}, manifest.yaml exists: {}'.format(
                     resource["resource_dir"],
@@ -290,7 +291,6 @@ class DocumentGenerator(object):
                         #     )
                         # ):
                         self.logger.debug("Processing Markdown...")
-                        # TODO
                         self.preprocess_markdown()
                     print("Converting MD to HTML...")
                     self.convert_md2html(resource)
@@ -305,20 +305,20 @@ class DocumentGenerator(object):
             self.pp.pprint(resource["bad_links"])
             # self.pp.pprint(self.bad_links)
 
-    def get_book_projects(self) -> List[Dict[Any, Any]]:
-        projects: List[Dict[Any, Any]] = []
-        if (
-            not self.manifest
-            or "projects" not in self.manifest
-            or not self.manifest["projects"]
-        ):
-            return projects
-        for p in self.manifest["projects"]:
-            if not self.books or p["identifier"] in self.books:
-                if not p["sort"]:
-                    p["sort"] = BOOK_NUMBERS[p["identifier"]]
-                projects.append(p)
-        return sorted(projects, key=lambda k: k["sort"])
+    # def get_book_projects(self) -> List[Dict[Any, Any]]:
+    #     projects: List[Dict[Any, Any]] = []
+    #     if (
+    #         not self.manifest
+    #         or "projects" not in self.manifest
+    #         or not self.manifest["projects"]
+    #     ):
+    #         return projects
+    #     for p in self.manifest["projects"]:
+    #         if not self.books or p["identifier"] in self.books:
+    #             if not p["sort"]:
+    #                 p["sort"] = BOOK_NUMBERS[p["identifier"]]
+    #             projects.append(p)
+    #     return sorted(projects, key=lambda k: k["sort"])
 
     def get_book_projects2(self, resource: Dict) -> List[Dict[Any, Any]]:
         projects: List[Dict[Any, Any]] = []
@@ -340,10 +340,10 @@ class DocumentGenerator(object):
                 projects.append(p)
         return sorted(projects, key=lambda k: k["sort"])
 
-    def get_resource_url(self, resource: str, tag: str) -> str:
-        return "https://git.door43.org/Door43/{0}_{1}/archive/{2}.zip".format(
-            self.lang_code, resource, tag
-        )
+    # def get_resource_url(self, resource: str, tag: str) -> str:
+    #     return "https://git.door43.org/Door43/{0}_{1}/archive/{2}.zip".format(
+    #         self.lang_code, resource, tag
+    #     )
 
     def setup_resource_files(self) -> None:
         """ Lookup each resource's URL, download it, and extract it
@@ -536,7 +536,10 @@ class DocumentGenerator(object):
         # FIXME We'll want get_tn_markdown to do the special things it
         # needs to do, but we'll want to use a resource in
         # resources loop in which to dispatch.
-        tn_md, tq_md, tw_md, ta_md = ""
+        tn_md = ""
+        tq_md = ""
+        tw_md = ""
+        ta_md = ""
         for resource in self.resources:
             # NOTE This is possible approach, but we might get sent a
             # resource_type that is not one of tn, tq, tw, ta, e.g.,
@@ -547,7 +550,7 @@ class DocumentGenerator(object):
                 tn_md = self.get_tn_markdown(resource)
             elif resource["resource_type"] == "tq":
                 # TODO
-                tq_md = self.get_tq_markdown()
+                tq_md = self.get_tq_markdown(resource)
             elif resource["resource_type"] == "tw":
                 # TODO
                 tw_md = self.get_tw_markdown(resource)
@@ -637,25 +640,29 @@ class DocumentGenerator(object):
                         md, 5, 2
                     )  # bring headers of 5 or more #'s down 2
                     id_tag = '<a id="tn-{0}-{1}-intro"/>'.format(
-                        resource["book_id"], self.pad(chapter)
+                        resource["book_id"], self.pad(chapter, resource)
                     )
                     md = re.compile(r"# ([^\n]+)\n").sub(
                         r"# \1\n{0}\n".format(id_tag), md, 1
                     )
                     rc = "rc://{0}/tn/help/{1}/{2}/intro".format(
-                        resource["lang_code"], resource["book_id"], self.pad(chapter)
+                        resource["lang_code"],
+                        resource["book_id"],
+                        self.pad(chapter, resource),
                     )
                     anchor_id = "tn-{0}-{1}-intro".format(
-                        resource["book_id"], self.pad(chapter)
+                        resource["book_id"], self.pad(chapter, resource)
                     )
-                    self.resource_data[rc] = {
+                    resource["resource_data"][rc] = {
+                        # self.resource_data[rc] = {
                         "rc": rc,
                         "id": anchor_id,
-                        "link": "#{0}".format(anchor_id),
+                        "link": "#{}".format(anchor_id),
                         "title": title,
                     }
-                    self.my_rcs.append(rc)
-                    self.get_resource_data_from_rc_links(md, rc)
+                    resource["my_rcs"].append(rc)
+                    # self.my_rcs.append(rc)
+                    self.get_resource_data_from_rc_links(md, rc, resource)
                     md += "\n\n"
                     tn_md += md
                 chunk_files = sorted(glob(os.path.join(chapter_dir, "[0-9]*.md")))
@@ -663,16 +670,24 @@ class DocumentGenerator(object):
                     first_verse = os.path.splitext(os.path.basename(chunk_file))[
                         0
                     ].lstrip("0")
-                    last_verse = self.usfm_chunks["ulb"][chapter][first_verse][
+                    last_verse = resource["usfm_chunks"]["ulb"][chapter][first_verse][
+                        # last_verse = self.usfm_chunks["ulb"][chapter][first_verse][
                         "last_verse"
                     ]
                     if first_verse != last_verse:
-                        title = "{0} {1}:{2}-{3}".format(
-                            self.book_title, chapter, first_verse, last_verse
+                        title = "{} {}:{}-{}".format(
+                            resource["book_title"],
+                            chapter,
+                            first_verse,
+                            last_verse
+                            # self.book_title, chapter, first_verse, last_verse
                         )
                     else:
-                        title = "{0} {1}:{2}".format(
-                            self.book_title, chapter, first_verse
+                        title = "{} {}:{}".format(
+                            resource["book_title"],
+                            chapter,
+                            first_verse
+                            # self.book_title, chapter, first_verse
                         )
                     md = self.increase_headers(read_file(chunk_file), 3)
                     md = self.decrease_headers(
@@ -682,20 +697,23 @@ class DocumentGenerator(object):
                     # TODO localization
                     md = md.replace("#### Translation Words", "### Translation Words")
                     anchors = ""
-                    for verse in self.usfm_chunks["ulb"][chapter][first_verse][
+                    for verse in resource["usfm_chunks"]["ulb"][chapter][first_verse][
+                        # for verse in self.usfm_chunks["ulb"][chapter][first_verse][
                         "verses"
                     ]:
                         anchors += '<a id="tn-{0}-{1}-{2}"/>'.format(
-                            resource["book_id"], self.pad(chapter), self.pad(verse)
+                            resource["book_id"],
+                            self.pad(chapter, resource),
+                            self.pad(verse, resource),
                         )
                     pre_md = "\n## {0}\n{1}\n\n".format(title, anchors)
                     # TODO localization
                     pre_md += "### Unlocked Literal Bible\n\n[[ulb://{0}/{1}/{2}/{3}/{4}]]\n\n".format(
                         resource["lang_code"],
                         resource["book_id"],
-                        self.pad(chapter),
-                        self.pad(first_verse),
-                        self.pad(last_verse),
+                        self.pad(chapter, resource),
+                        self.pad(first_verse, resource),
+                        self.pad(last_verse, resource),
                     )
                     # TODO localization
                     pre_md += "### Translation Notes\n"
@@ -703,7 +721,12 @@ class DocumentGenerator(object):
 
                     # Add Translation Words for passage
                     tw_refs = get_tw_refs(
-                        self.tw_refs_by_verse, self.book_title, chapter, first_verse
+                        # TODO
+                        self.tw_refs_by_verse,
+                        resource["book_title"],
+                        chapter,
+                        first_verse
+                        # self.tw_refs_by_verse, self.book_title, chapter, first_verse
                     )
                     if tw_refs:
                         # TODO localization
@@ -720,7 +743,10 @@ class DocumentGenerator(object):
                     udb_first_verse_ok = False
                     while not udb_first_verse_ok:
                         try:
-                            _ = self.usfm_chunks["udb"][chapter][udb_first_verse][
+                            _ = resource["usfm_chunks"]["udb"][chapter][
+                                udb_first_verse
+                            ][
+                                # _ = self.usfm_chunks["udb"][chapter][udb_first_verse][
                                 "usfm"
                             ]
                             udb_first_verse_ok = True
@@ -731,47 +757,53 @@ class DocumentGenerator(object):
                             udb_first_verse = str(udb_first_verse_int)
 
                     # TODO localization
-                    md += "### Unlocked Dynamic Bible\n\n[[udb://{0}/{1}/{2}/{3}/{4}]]\n\n".format(
+                    md += "### Unlocked Dynamic Bible\n\n[[udb://{}/{}/{}/{}/{}]]\n\n".format(
                         resource["lang_code"],
                         resource["book_id"],
-                        self.pad(chapter),
-                        self.pad(udb_first_verse),
-                        self.pad(last_verse),
+                        self.pad(chapter, resource),
+                        self.pad(udb_first_verse, resource),
+                        self.pad(last_verse, resource),
                     )
-                    rc = "rc://{0}/tn/help/{1}/{2}/{3}".format(
+                    rc = "rc://{}/tn/help/{}/{}/{}".format(
                         resource["lang_code"],
                         resource["book_id"],
-                        self.pad(chapter),
-                        self.pad(first_verse),
+                        self.pad(chapter, resource),
+                        self.pad(first_verse, resource),
                     )
-                    anchor_id = "tn-{0}-{1}-{2}".format(
-                        resource["book_id"], self.pad(chapter), self.pad(first_verse)
+                    anchor_id = "tn-{}-{}-{}".format(
+                        resource["book_id"],
+                        self.pad(chapter, resource),
+                        self.pad(first_verse, resource),
                     )
-                    self.resource_data[rc] = {
+                    resource["resource_data"][rc] = {
+                        # self.resource_data[rc] = {
                         "rc": rc,
                         "id": anchor_id,
-                        "link": "#{0}".format(anchor_id),
+                        "link": "#{}".format(anchor_id),
                         "title": title,
                     }
-                    self.my_rcs.append(rc)
-                    self.get_resource_data_from_rc_links(md, rc)
+                    resource["my_rcs"].append(rc)
+                    # self.my_rcs.append(rc)
+                    self.get_resource_data_from_rc_links(md, rc, resource)
                     md += "\n\n"
                     tn_md += md
 
                     # TODO localization
                     links = "### Links:\n\n"
                     if book_has_intro:
-                        links += "* [[rc://{0}/tn/help/{1}/front/intro]]\n".format(
+                        links += "* [[rc://{}/tn/help/{}/front/intro]]\n".format(
                             resource["lang_code"], resource["book_id"]
                         )
                     if chapter_has_intro:
                         links += "* [[rc://{0}/tn/help/{1}/{2}/intro]]\n".format(
                             resource["lang_code"],
                             resource["book_id"],
-                            self.pad(chapter),
+                            self.pad(chapter, resource),
                         )
                     links += "* [[rc://{0}/tq/help/{1}/{2}]]\n".format(
-                        resource["lang_code"], resource["book_id"], self.pad(chapter)
+                        resource["lang_code"],
+                        resource["book_id"],
+                        self.pad(chapter, resource),
                     )
                     tn_md += links + "\n\n"
 
@@ -779,41 +811,67 @@ class DocumentGenerator(object):
         return tn_md
 
     # TODO XFIXME This is quite a cluster
-    def get_tq_markdown(self) -> str:
+    def get_tq_markdown(self, resource: Dict) -> str:
         """Build tq markdown"""
         # TODO localization
-        tq_md = '# Translation Questions\n<a id="tq-{0}"/>\n\n'.format(self.book_id)
+        tq_md = '# Translation Questions\n<a id="tq-{}"/>\n\n'.format(
+            resource["book_id"]
+        )
+        # tq_md = '# Translation Questions\n<a id="tq-{0}"/>\n\n'.format(self.book_id)
         # TODO localization
-        title = "{0} Translation Questions".format(self.book_title)
-        rc = "rc://{0}/tq/help/{1}".format(self.lang_code, self.book_id)
-        anchor_id = "tq-{0}".format(self.book_id)
-        self.resource_data[rc] = {
+        title = "{} Translation Questions".format(resource["book_title"])
+        # title = "{0} Translation Questions".format(self.book_title)
+        rc = "rc://{}/tq/help/{}".format(resource["lang_code"], resource["book_id"])
+        # rc = "rc://{0}/tq/help/{1}".format(self.lang_code, self.book_id)
+        anchor_id = "tq-{}".format(resource["book_id"])
+        # anchor_id = "tq-{}".format(self.book_id)
+        resource["resource_data"][rc] = {
+            # self.resource_data[rc] = {
             "rc": rc,
             "id": anchor_id,
-            "link": "#{0}".format(anchor_id),
+            "link": "#{}".format(anchor_id),
             "title": title,
         }
-        self.my_rcs.append(rc)
-        tq_book_dir = os.path.join(self.tq_dir, self.book_id)
+        resource["my_rcs"].append(rc)
+        # self.my_rcs.append(rc)
+        tq_book_dir = os.path.join(resource["resource_dir"], resource["book_id"])
+        # tq_book_dir = os.path.join(self.tq_dir, self.book_id)
         for chapter in sorted(os.listdir(tq_book_dir)):
             chapter_dir = os.path.join(tq_book_dir, chapter)
             chapter = chapter.lstrip("0")
             if os.path.isdir(chapter_dir) and re.match(r"^\d+$", chapter):
-                id_tag = '<a id="tq-{0}-{1}"/>'.format(self.book_id, self.pad(chapter))
-                tq_md += "## {0} {1}\n{2}\n\n".format(self.book_title, chapter, id_tag)
-                # TODO localization
-                title = "{0} {1} Translation Questions".format(self.book_title, chapter)
-                rc = "rc://{0}/tq/help/{1}/{2}".format(
-                    self.lang_code, self.book_id, self.pad(chapter)
+                id_tag = '<a id="tq-{}-{}"/>'.format(
+                    resource["book_id"], self.pad(chapter, resource)
                 )
-                anchor_id = "tq-{0}-{1}".format(self.book_id, self.pad(chapter))
-                self.resource_data[rc] = {
+                # id_tag = '<a id="tq-{0}-{1}"/>'.format(self.book_id, self.pad(chapter))
+                tq_md += "## {} {}\n{}\n\n".format(
+                    resource["book_title"], chapter, id_tag
+                )
+                # tq_md += "## {0} {1}\n{2}\n\n".format(self.book_title, chapter, id_tag)
+                # TODO localization
+                title = "{} {} Translation Questions".format(
+                    resource["book_title"], chapter
+                )
+                # title = "{0} {1} Translation Questions".format(self.book_title, chapter)
+                rc = "rc://{}/tq/help/{}/{}".format(
+                    resource["lang_code"],
+                    resource["book_id"],
+                    self.pad(chapter, resource)
+                    # self.lang_code, self.book_id, self.pad(chapter)
+                )
+                anchor_id = "tq-{}-{}".format(
+                    resource["book_id"], self.pad(chapter, resource)
+                )
+                # anchor_id = "tq-{}-{}".format(self.book_id, self.pad(chapter))
+                resource["resource_data"][rc] = {
+                    # self.resource_data[rc] = {
                     "rc": rc,
                     "id": anchor_id,
                     "link": "#{0}".format(anchor_id),
                     "title": title,
                 }
-                self.my_rcs.append(rc)
+                resource["my_rcs"].append(rc)
+                # self.my_rcs.append(rc)
                 for chunk in sorted(os.listdir(chapter_dir)):
                     chunk_file = os.path.join(chapter_dir, chunk)
                     first_verse = os.path.splitext(chunk)[0].lstrip("0")
@@ -821,58 +879,75 @@ class DocumentGenerator(object):
                         md = read_file(chunk_file)
                         md = self.increase_headers(md, 2)
                         md = re.compile("^([^#\n].+)$", flags=re.M).sub(
-                            r'\1 [<a href="#tn-{0}-{1}-{2}">{3}:{4}</a>]'.format(
-                                self.book_id,
-                                self.pad(chapter),
-                                self.pad(first_verse),
+                            r'\1 [<a href="#tn-{}-{}-{}">{}:{}</a>]'.format(
+                                resource["book_id"],
+                                # self.book_id,
+                                self.pad(chapter, resource),
+                                self.pad(first_verse, resource),
                                 chapter,
                                 first_verse,
                             ),
                             md,
                         )
                         # TODO localization
-                        title = "{0} {1}:{2} Translation Questions".format(
-                            self.book_title, chapter, first_verse
+                        title = "{} {}:{} Translation Questions".format(
+                            resource["book_title"],
+                            chapter,
+                            first_verse
+                            # self.book_title, chapter, first_verse
                         )
-                        rc = "rc://{0}/tq/help/{1}/{2}/{3}".format(
-                            self.lang_code,
-                            self.book_id,
-                            self.pad(chapter),
-                            self.pad(first_verse),
+                        rc = "rc://{}/tq/help/{}/{}/{}".format(
+                            resource["lang_code"],
+                            # self.lang_code,
+                            resource["book_id"],
+                            # self.book_id,
+                            self.pad(chapter, resource),
+                            self.pad(first_verse, resource),
                         )
-                        anchor_id = "tq-{0}-{1}-{2}".format(
-                            self.book_id, self.pad(chapter), self.pad(first_verse)
+                        anchor_id = "tq-{}-{}-{}".format(
+                            resource["book_id"],
+                            self.pad(chapter, resource),
+                            self.pad(first_verse, resource)
+                            # self.book_id, self.pad(chapter), self.pad(first_verse)
                         )
-                        self.resource_data[rc] = {
+                        resource["resource_data"][rc] = {
+                            # self.resource_data[rc] = {
                             "rc": rc,
                             "id": anchor_id,
-                            "link": "#{0}".format(anchor_id),
+                            "link": "#{}".format(anchor_id),
                             "title": title,
                         }
-                        self.my_rcs.append(rc)
-                        self.get_resource_data_from_rc_links(md, rc)
+                        resource["my_rcs"].append(rc)
+                        # self.my_rcs.append(rc)
+                        self.get_resource_data_from_rc_links(md, rc, resource)
                         md += "\n\n"
                         tq_md += md
         self.logger.debug("tq_md is {0}".format(tq_md))
         return tq_md
 
-    def get_tw_markdown(self) -> str:
+    def get_tw_markdown(self, resource) -> str:
         # TODO localization
-        tw_md = '<a id="tw-{0}"/>\n# Translation Words\n\n'.format(self.book_id)
+        tw_md = '<a id="tw-{}"/>\n# Translation Words\n\n'.format(resource["book_id"])
+        # tw_md = '<a id="tw-{0}"/>\n# Translation Words\n\n'.format(self.book_id)
         sorted_rcs = sorted(
-            self.my_rcs, key=lambda k: self.resource_data[k]["title"].lower()
+            resource["my_rcs"],
+            key=lambda k: resource["resource_data"][k]["title"].lower()
+            # self.my_rcs, key=lambda k: self.resource_data[k]["title"].lower()
         )
         for rc in sorted_rcs:
             if "/tw/" not in rc:
                 continue
-            if self.resource_data[rc]["text"]:
-                md = self.resource_data[rc]["text"]
+            if resource["resource_data"][rc]["text"]:
+                # if self.resource_data[rc]["text"]:
+                md = resource["resource_data"][rc]["text"]
+                # md = self.resource_data[rc]["text"]
             else:
                 md = ""
-            id_tag = '<a id="{0}"/>'.format(self.resource_data[rc]["id"])
-            md = re.compile(r"# ([^\n]+)\n").sub(r"# \1\n{0}\n".format(id_tag), md, 1)
+            id_tag = '<a id="{}"/>'.format(resource["resource_data"][rc]["id"])
+            # id_tag = '<a id="{0}"/>'.format(self.resource_data[rc]["id"])
+            md = re.compile(r"# ([^\n]+)\n").sub(r"# \1\n{}\n".format(id_tag), md, 1)
             md = self.increase_headers(md)
-            uses = self.get_uses(rc)
+            uses = self.get_uses(rc, resource)
             if uses == "":
                 continue
             md += uses
@@ -883,38 +958,46 @@ class DocumentGenerator(object):
         # TODO localization
         tw_md = remove_md_section(tw_md, "Examples from the Bible stories")
 
-        self.logger.debug("tw_md is {0}".format(tw_md))
+        self.logger.debug("tw_md is {}".format(tw_md))
         return tw_md
 
-    def get_ta_markdown(self) -> str:
+    def get_ta_markdown(self, resource) -> str:
         # TODO localization
-        ta_md = '<a id="ta-{0}"/>\n# Translation Topics\n\n'.format(self.book_id)
+        ta_md = '<a id="ta-{}"/>\n# Translation Topics\n\n'.format(resource["book_id"])
+        # ta_md = '<a id="ta-{0}"/>\n# Translation Topics\n\n'.format(self.book_id)
         sorted_rcs = sorted(
-            self.my_rcs, key=lambda k: self.resource_data[k]["title"].lower()
+            resource["my_rcs"],
+            key=lambda k: resource["resource_data"][k]["title"].lower()
+            # self.my_rcs, key=lambda k: self.resource_data[k]["title"].lower()
         )
         for rc in sorted_rcs:
             if "/ta/" not in rc:
                 continue
-            if self.resource_data[rc]["text"]:
-                md = self.resource_data[rc]["text"]
+            if resource["resource_data"][rc]["text"]:
+                # if self.resource_data[rc]["text"]:
+                md = resource["resource_data"][rc]["text"]
+                # md = self.resource_data[rc]["text"]
             else:
                 md = ""
-            id_tag = '<a id="{0}"/>'.format(self.resource_data[rc]["id"])
-            md = re.compile(r"# ([^\n]+)\n").sub(r"# \1\n{0}\n".format(id_tag), md, 1)
+            id_tag = '<a id="{}"/>'.format(resource["resource_data"][rc]["id"])
+            # id_tag = '<a id="{0}"/>'.format(self.resource_data[rc]["id"])
+            md = re.compile(r"# ([^\n]+)\n").sub(r"# \1\n{}\n".format(id_tag), md, 1)
             md = self.increase_headers(md)
-            md += self.get_uses(rc)
+            md += self.get_uses(rc, resource)
             md += "\n\n"
             ta_md += md
         self.logger.debug("ta_md is {0}".format(ta_md))
         return ta_md
 
-    def get_uses(self, rc) -> str:
+    def get_uses(self, rc, resource) -> str:
         md = ""
-        if self.rc_references[rc]:
+        if resource["rc_references"][rc]:
+            # if self.rc_references[rc]:
             references = []
-            for reference in self.rc_references[rc]:
+            for reference in resource["rc_references"][rc]:
+                # for reference in self.rc_references[rc]:
                 if "/tn/" in reference:
-                    references.append("* [[{0}]]".format(reference))
+                    references.append("* [[{}]]".format(reference))
             if references:
                 # TODO localization
                 md += "### Uses:\n\n"
@@ -1188,14 +1271,14 @@ class DocumentGenerator(object):
                 "utf-8",
             )
         )
-        html = self.replace_bible_links(html)
+        html = self.replace_bible_links(html, resource)
         write_file(
             os.path.join(self.output_dir, "{}.html".format(resource["filename_base"])),
             html
             # os.path.join(self.output_dir, "{0}.html".format(self.filename_base)), html
         )
 
-    def replace_bible_links(self, text: str) -> str:
+    def replace_bible_links(self, text: str, resource: Dict) -> str:
         bible_links = re.findall(
             r"(?:udb|ulb)://[A-Z0-9/]+", text, flags=re.IGNORECASE | re.MULTILINE
         )
@@ -1207,7 +1290,7 @@ class DocumentGenerator(object):
             chapter = parts[4].lstrip("0")
             first_verse = parts[5].lstrip("0")
             rep[link] = "<div>{0}</div>".format(
-                self.get_chunk_html(resource_str, chapter, first_verse)
+                self.get_chunk_html(resource_str, chapter, first_verse, resource)
             )
         rep = dict(
             (re.escape("[[{0}]]".format(link)), html) for link, html in rep.items()
@@ -1236,10 +1319,12 @@ class DocumentGenerator(object):
         )
         # filename_base = "{0}-{1}-{2}-{3}".format(resource, self.book_id, chapter, verse)
         try:
-            chunk = self.usfm_chunks[resource_str][chapter][verse]["usfm"]
+            chunk = resource["usfm_chunks"][resource_str][chapter][verse]["usfm"]
+            # chunk = self.usfm_chunks[resource_str][chapter][verse]["usfm"]
         except KeyError:
             chunk = ""
-        usfm = self.usfm_chunks[resource_str]["header"]
+        usfm = resource["usfm_chunks"][resource_str]["header"]
+        # usfm = self.usfm_chunks[resource_str]["header"]
         if "\\c" not in chunk:
             usfm += "\n\n\\c {0}\n".format(chapter)
         usfm += chunk
