@@ -403,8 +403,9 @@ class DocumentGenerator(object):
             self.logger.debug("finished.")
 
     def extract_files_from_url2(self, url: str, resource: Dict) -> None:
-        """ Download and unzip the zip file pointed to by url to a
-        directory located at resource_dir. """
+        """ Download and unzip the zip file (if the file is a zipped
+        resource) pointed to by url to a directory located at
+        resource_dir. """
         if not os.path.isdir(resource["resource_dir"]):
             try:
                 self.logger.debug(
