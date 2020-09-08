@@ -196,6 +196,14 @@ class DocumentGenerator(object):
         self.setup_resource_files()
         for resource in self.resources:
             resource.update({"bad_links": {}})
+            self.logger.debug(
+                'resource["resource_dir"]: {}, manifest.yaml exists: {}'.format(
+                    resource["resource_dir"],
+                    os.path.isfile(
+                        os.path.join(resource["resource_dir"], "manifest.yaml")
+                    ),
+                )
+            )
             resource.update(
                 {
                     "manifest": load_yaml_object(
@@ -205,6 +213,7 @@ class DocumentGenerator(object):
                 }
             )
             # self.manifest = load_yaml_object(os.path.join(self.tn_dir, "manifest.yaml"))
+            self.logger.debug('resource["manifest"]: {}'.format(resource["manifest"]))
             resource.update({"version": resource["manifest"]["dublin_core"]["version"]})
             # self.version = self.manifest["dublin_core"]["version"]
             resource.update({"issued": resource["manifest"]["dublin_core"]["issued"]})
