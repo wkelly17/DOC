@@ -404,15 +404,23 @@ class DocumentGenerator(object):
 
     def extract_files_from_url2(self, url: str, resource: Dict) -> None:
         """ Download and unzip the zip file pointed to by url to a
-        directory located at resource[\"resource["resource_dir"]\"]. """
-        if not os.path.isdir(resource["resource["resource_dir"]"]):
+        directory located at resource_dir. """
+        if not os.path.isdir(resource["resource_dir"]):
             try:
-                self.logger.debug("About to create directory {}".format(resource["resource_dir"]))
+                self.logger.debug(
+                    "About to create directory {}".format(resource["resource_dir"])
+                )
                 os.mkdir(resource["resource_dir"])
-                self.logger.debug("Created directory {}".format(resource["resource_dir"]))
+                self.logger.debug(
+                    "Created directory {}".format(resource["resource_dir"])
+                )
             except:
-                self.logger.debug("Failed to create directory {}".format(resource["resource_dir"]))
-        zip_file = os.path.join(resource["resource_dir"], url.rpartition(os.path.sep)[2])
+                self.logger.debug(
+                    "Failed to create directory {}".format(resource["resource_dir"])
+                )
+        zip_file = os.path.join(
+            resource["resource_dir"], url.rpartition(os.path.sep)[2]
+        )
         self.logger.debug("Using zip file location: {}".format(zip_file))
         try:
             self.logger.debug("Downloading {0}...".format(url))
@@ -421,7 +429,9 @@ class DocumentGenerator(object):
             self.logger.debug("finished.")
         if not resource["resource_code"]:
             try:
-                self.logger.debug("Unzipping {} into {}...".format(zip_file, resource["resource_dir"]))
+                self.logger.debug(
+                    "Unzipping {} into {}...".format(zip_file, resource["resource_dir"])
+                )
                 unzip(zip_file, resource["resource_dir"])
             finally:
                 self.logger.debug("finished.")
