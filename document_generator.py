@@ -533,6 +533,7 @@ class DocumentGenerator(object):
             # resource_type that is not one of tn, tq, tw, ta, e.g.,
             # obs_tn (unless of course we decide not to support).
             # getattr(self, "get_{}_markdown".format(resource["resource_type"]))(resource)
+            # NOTE This is a yuck bit of conditional for now. WIP.
             if resource["resource_type"] == "tn":
                 tn_md = self.get_tn_markdown(resource)
             elif resource["resource_type"] == "tq":
