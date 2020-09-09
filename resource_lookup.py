@@ -166,24 +166,25 @@ values from it using jsonpath. """
 
         if (
             resource["resource_code"] is not None
-        ):  # User has likely specified a book of the bible
-            jsonpath_str = get_individual_usfm_url_jsonpath().format(
-                resource["lang_code"],
-                resource["resource_type"],
-                resource["resource_code"],
+        ):  # User has likely specified a book of the bible, try first
+            # to get the resource from a git repo.
+            jsonpath_str = get_resource_download_format_jsonpath().format(
+                resource["lang_code"], "reg", resource["resource_code"]
             )
             urls = self._lookup(jsonpath_str)
+            if urls is not None and len(urls) > 0:
+                # Get the portion of the query string that gives
+                # the repo URL
+                urls = [self.parse_repo_url_from_json_url(urls[0])]
             if (
                 urls is not None and len(urls) == 0
-            ):  # Resource not found, get the git repo instead
-                jsonpath_str = get_resource_download_format_jsonpath().format(
-                    resource["lang_code"], "reg", resource["resource_code"]
+            ):  # Resource not found, next try to get from download URL.
+                jsonpath_str = get_individual_usfm_url_jsonpath().format(
+                    resource["lang_code"],
+                    resource["resource_type"],
+                    resource["resource_code"],
                 )
                 urls = self._lookup(jsonpath_str)
-                if urls is not None and len(urls) > 0:
-                    # Get the portion of the query string that gives
-                    # the repo URL
-                    urls = self.parse_repo_url_from_json_url(urls[0])
         else:  # User has not specified a particular book of the bible
             jsonpath_str = get_resource_url_level_1_jsonpath().format(
                 resource["lang_code"], resource["resource_type"],
