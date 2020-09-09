@@ -197,6 +197,16 @@ values from it using jsonpath. """
                     resource["lang_code"], resource["resource_type"],
                 )
                 urls = self._lookup(jsonpath_str)
+        # Store the jsonpath that was used as it will be used to
+        # determine how to acquire the resource, e.g., if a jsonpath
+        # was used that points to a git repo then the git client will
+        # be used otherwise we download from a CDN.
+        # NOTE I am not fond of giving the dictionary key
+        # resource_jsonpath since it is implementation specific and
+        # in the future we will be using GraphQL, I'd prefer something
+        # like resource_location perhaps, but for now I am just going
+        # with this.
+        resource.update({"resource_jsonpath": jsonpath_str})
         # NOTE Some resources will be fetched via gitea and others by
         # downloading the URL. How do we specify this to the code
         # responsible for downloading or cloning if the lookup is
@@ -308,10 +318,11 @@ def main() -> None:
 def test_lookup(lookup_svc: ResourceJsonLookup, resource) -> None:
     values: List[Optional[str]] = lookup_svc.lookup(resource)
     print(
-        "Language {}, resource_type: {}, resource_code: {}, values: {}".format(
+        "Language {}, resource_type: {}, resource_code: {}, resource_jsonpath: {}, values: {}".format(
             resource["lang_code"],
             resource["resource_type"],
             resource["resource_code"],
+            resource["resource_jsonpath"],
             values,
         )
     )
