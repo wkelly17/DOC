@@ -43,9 +43,7 @@ class ResourceLookup(abc.ABC):
     and thus call sites in client code can remain largely unchanged. """
 
     @abc.abstractmethod
-    def lookup(
-        self, lang_code: str, resource_type: str, resource_code: Optional[str]
-    ) -> List[str]:
+    def lookup(self, resource: Dict) -> List[Optional[str]]:
         raise NotImplementedError
 
 
@@ -134,7 +132,7 @@ values from it using jsonpath. """
         return now - file_mod_time > max_delay
 
     # protected access level
-    def _lookup(self, jsonpath: str,) -> List[str]:
+    def _lookup(self, jsonpath: str,) -> List[Optional[str]]:
         """ Return jsonpath value or empty list if node doesn't exist. """
         self._get_data()
         value: List[str] = jp.match(
@@ -156,7 +154,7 @@ values from it using jsonpath. """
     # 'Read on Web' and 'Download' format URLs seems to vary by
     # language.
     #
-    def lookup(self, resource: Dict,) -> List[str]:
+    def lookup(self, resource: Dict,) -> List[Optional[str]]:
         """ Given a resource, comprised of language code, e.g., 'wum',
         a resource type, e.g., 'tn', and an optional resource code,
         e.g., 'gen', return URLs for resource. """
@@ -164,7 +162,7 @@ values from it using jsonpath. """
         assert resource["lang_code"] is not None, "lang_code is required"
         assert resource["resource_type"] is not None, "resource_type is required"
 
-        urls: List[str] = []
+        urls: List[Optional[str]] = []
 
         if (
             resource["resource_code"] is not None
@@ -302,7 +300,7 @@ def main() -> None:
 
 
 def test_lookup(lookup_svc: ResourceJsonLookup, resource) -> None:
-    values: List[str] = lookup_svc.lookup(resource)
+    values: List[Optional[str]] = lookup_svc.lookup(resource)
     print(
         "Language {}, resource_type: {}, resource_code: {}, values: {}".format(
             resource["lang_code"],
@@ -319,12 +317,12 @@ def test_lookup(lookup_svc: ResourceJsonLookup, resource) -> None:
 
 
 def test_lookup_all_language_names(lookup_svc: ResourceJsonLookup) -> None:
-    values: List[str] = lookup_svc._lookup("$[*].name")
+    values: List[Optional[str]] = lookup_svc._lookup("$[*].name")
     print("Languages: {}, # of languages: {}".format(values, len(values)))
 
 
 def test_lookup_all_codes(lookup_svc: ResourceJsonLookup) -> None:
-    values: List[str] = lookup_svc._lookup("$[*].contents[*].code")
+    values: List[Optional[str]] = lookup_svc._lookup("$[*].contents[*].code")
     print("Codes: {}, # of codes: {}".format(values, len(values)))
 
 
@@ -411,7 +409,7 @@ def test_three_language_tn_lookup(lookup_svc: ResourceJsonLookup) -> None:
 
 def test_all_tn_zip_urls_lookup(lookup_svc: ResourceJsonLookup) -> None:
     # For all languages
-    download_urls: List[str] = lookup_svc._lookup(
+    download_urls: List[Optional[str]] = lookup_svc._lookup(
         "$[*].contents[?code='tn'].links[?format='zip'].url",
     )
     if download_urls is not None:
