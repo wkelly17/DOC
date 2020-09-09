@@ -275,26 +275,31 @@ def main() -> None:
 
     ## Test the API:
 
-    fixtures = {}
-    fixtures["resources"] = [
-        {"lang_code": "kn", "resource_type": "tn", "resource_code": None},
-        {"lang_code": "lo", "resource_type": "tn", "resource_code": None},
-        {"lang_code": "as", "resource_type": "tn", "resource_code": None},
-        {"lang_code": "ema", "resource_type": "tn", "resource_code": None},
-        {"lang_code": "plt", "resource_type": "tw", "resource_code": None},
-        {"lang_code": "ml", "resource_type": "tq", "resource_code": None},
-        {"lang_code": "mr", "resource_type": "ta", "resource_code": None},
-        {"lang_code": "lpx", "resource_type": "ulb", "resource_code": None},
-        {"lang_code": "mr", "resource_type": "ulb", "resource_code": "gen"},
-        {"lang_code": "mr", "resource_type": "udb", "resource_code": None},
-        {"lang_code": "mr", "resource_type": "obs", "resource_code": None},
-        {"lang_code": "mr", "resource_type": "obs-tn", "resource_code": None},
-        {"lang_code": "mr", "resource_type": "obs-tq", "resource_code": None},
-        {"lang_code": "erk-x-erakor", "resource_type": "reg", "resource_code": "eph",},
-    ]
+    if True:
+        fixtures = {}
+        fixtures["resources"] = [
+            {"lang_code": "kn", "resource_type": "tn", "resource_code": None},
+            {"lang_code": "lo", "resource_type": "tn", "resource_code": None},
+            {"lang_code": "as", "resource_type": "tn", "resource_code": None},
+            {"lang_code": "ema", "resource_type": "tn", "resource_code": None},
+            {"lang_code": "plt", "resource_type": "tw", "resource_code": None},
+            {"lang_code": "ml", "resource_type": "tq", "resource_code": None},
+            {"lang_code": "mr", "resource_type": "ta", "resource_code": None},
+            {"lang_code": "lpx", "resource_type": "ulb", "resource_code": None},
+            {"lang_code": "mr", "resource_type": "ulb", "resource_code": "gen"},
+            {"lang_code": "mr", "resource_type": "udb", "resource_code": None},
+            {"lang_code": "mr", "resource_type": "obs", "resource_code": None},
+            {"lang_code": "mr", "resource_type": "obs-tn", "resource_code": None},
+            {"lang_code": "mr", "resource_type": "obs-tq", "resource_code": None},
+            {
+                "lang_code": "erk-x-erakor",
+                "resource_type": "reg",
+                "resource_code": "eph",
+            },
+        ]
 
-    for resource in fixtures["resources"]:
-        test_lookup(lookup_svc, resource)
+        for resource in fixtures["resources"]:
+            test_lookup(lookup_svc, resource)
 
 
 ## Test the API:
