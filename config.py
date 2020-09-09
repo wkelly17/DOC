@@ -41,3 +41,9 @@ def get_resource_url_level_2_jsonpath() -> str:
     resource URL, e.g., tn, tq, ta, obs, ulb, udb, etc., may
     additionally/alternatively be found. """
     return "$[?code='{}'].contents[*].subcontents[?code='{}'].links[?format='zip'].url"
+
+
+def get_resource_download_format_jsonpath() -> str:
+    """ The jsonpath location in TRANSLATIONS_JSON_LOCATION file where
+    resource git repo may be found. """
+    return "$[?code='{}'].contents[?code='{}'].subcontents[?code={}].links[?format='Download'].url"

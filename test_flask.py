@@ -5,9 +5,10 @@ import requests
 payload = {}
 payload["resources"] = [
     {"lang_code": "am", "resource_type": "ulb", "resource_code": ""},
-    {"lang_code": "ml", "resource_type": "ulb", "resource_code": "tit"},
-    {"lang_code": "ml", "resource_type": "obs-tq", "resource_code": ""},
-    {"lang_code": "mr", "resource_type": "udb", "resource_code": "mrk"},
+    {"lang_code": "erk-x-erakor", "resource_type": "reg", "resource_code": "eph"},
+    # {"lang_code": "ml", "resource_type": "ulb", "resource_code": "tit"},
+    # {"lang_code": "ml", "resource_type": "obs-tq", "resource_code": ""},
+    # {"lang_code": "mr", "resource_type": "udb", "resource_code": "mrk"},
 ]
 
 

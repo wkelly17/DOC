@@ -6,6 +6,8 @@ from datetime import datetime, timedelta
 import pprint
 import tempfile
 
+import json  # Just for test debug output
+
 from jsonpath_rw import jsonpath  # type: ignore
 from jsonpath_rw_ext import parse  # type: ignore
 import jsonpath_rw_ext as jp  # for calling extended methods
@@ -20,6 +22,7 @@ try:
         get_individual_usfm_url_jsonpath,
         get_resource_url_level_1_jsonpath,
         get_resource_url_level_2_jsonpath,
+        get_resource_download_format_jsonpath,
     )
 except:
     from file_utils import load_json_object
@@ -29,6 +32,7 @@ except:
         get_individual_usfm_url_jsonpath,
         get_resource_url_level_1_jsonpath,
         get_resource_url_level_2_jsonpath,
+        get_resource_download_format_jsonpath,
     )
 
 
@@ -139,34 +143,66 @@ values from it using jsonpath. """
         value_set: Set = set(value)
         return list(value_set)
 
-    def lookup(
-        self, lang_code: str, resource_type: str, resource_code: Optional[str]
-    ) -> List[str]:
-        """ Given a language code, e.g., 'wum', a resource type, e.g.,
-        'tn', and an optional resource code, e.g., 'gen', return URLs
-        for resource. """
+    # NOTE Some target languages only provide a resource at
+    # $[*].contents[?name='reg'].links[?format='Download']. In that
+    # case, grab the repo url from repo_url part of query string. Then
+    # perhaps you'd want to use gitea to get the repo.
+    # TODO Research: Do 'Read on Web' format resources have an associated git
+    # repo if they don't have a sibling 'Download' format URL? I
+    # looked at "erk-x-erakor" for intance and there one can see there
+    # is no symmetry between the 'Read on Web' and 'Download' format
+    # URLs that can be extrapolated to other language resources;
+    # perhaps it can to a subset, but the relationship between the
+    # 'Read on Web' and 'Download' format URLs seems to vary by
+    # language.
+    #
+    def lookup(self, resource: Dict,) -> List[str]:
+        """ Given a resource, comprised of language code, e.g., 'wum',
+        a resource type, e.g., 'tn', and an optional resource code,
+        e.g., 'gen', return URLs for resource. """
 
-        assert lang_code is not None, "lang_code is required"
-        assert resource_type is not None, "resource_type is required"
+        assert resource["lang_code"] is not None, "lang_code is required"
+        assert resource["resource_type"] is not None, "resource_type is required"
 
         urls: List[str] = []
 
-        if resource_code is not None:
+        if (
+            resource["resource_code"] is not None
+        ):  # User has likely specified a book of the bible
             jsonpath_str = get_individual_usfm_url_jsonpath().format(
-                lang_code, resource_type, resource_code,
+                resource["lang_code"],
+                resource["resource_type"],
+                resource["resource_code"],
             )
             urls = self._lookup(jsonpath_str)
-        else:
+            if (
+                urls is not None and len(urls) == 0
+            ):  # Resource not found, get the git repo instead
+                jsonpath_str = get_resource_download_format_jsonpath().format(
+                    resource["lang_code"], "reg", resource["resource_code"]
+                )
+                urls = self._lookup(jsonpath_str)
+                if urls is not None and len(urls) > 0:
+                    # Get the portion of the query string that gives
+                    # the repo URL
+                    urls = self.parse_repo_url_from_json_url(urls[0])
+        else:  # User has not specified a particular book of the bible
             jsonpath_str = get_resource_url_level_1_jsonpath().format(
-                lang_code, resource_type,
+                resource["lang_code"], resource["resource_type"],
             )
             urls = self._lookup(jsonpath_str)
             if (
                 urls is not None and len(urls) == 0
             ):  # For the language in question, the resource is apparently at a different location which we try next.
                 jsonpath_str = get_resource_url_level_2_jsonpath().format(
-                    lang_code, resource_type,
+                    resource["lang_code"], resource["resource_type"],
                 )
+                urls = self._lookup(jsonpath_str)
+        # NOTE Some resources will be fetched via gitea and others by
+        # downloading the URL. How do we specify this to the code
+        # responsible for downloading or cloning if the lookup is
+        # separate. Perhaps this class should be renamed and manage
+        # both lookup and acquisition.
 
         return urls
 
@@ -201,6 +237,8 @@ values from it using jsonpath. """
         """ Given a URL of the form
         ../download-scripture?repo_url=https%3A%2F%2Fgit.door43.org%2Fburje_duro%2Fam_gen_text_udb&book_name=Genesis,
         return the repo_url query parameter value. """
+        # TODO Try ./download-scripture?repo_url if the default
+        # doesn't work since some languages use the latter query key.
         if url is None:
             return None
         result: dict = urllib.parse.parse_qs(url)
@@ -219,64 +257,58 @@ def main() -> None:
     ## A few non-API tests that demonstrate aspects of jsonpath
     ## library or nature of data we are working with:
 
-    test_lookup_all_language_names(lookup_svc)
+    if False:
+        test_lookup_all_language_names(lookup_svc)
 
-    test_lookup_all_codes(lookup_svc)
+        test_lookup_all_codes(lookup_svc)
 
-    test_abadi_language_lookup(lookup_svc)
+        test_abadi_language_lookup(lookup_svc)
 
-    test_wumbvu_language_lookup(lookup_svc)
+        test_wumbvu_language_lookup(lookup_svc)
 
-    test_another_language_lookup(lookup_svc)
+        test_another_language_lookup(lookup_svc)
 
-    test_english_language_lookup(lookup_svc)
+        test_english_language_lookup(lookup_svc)
 
-    test_three_language_tn_lookup(lookup_svc)
+        test_three_language_tn_lookup(lookup_svc)
 
-    test_all_tn_zip_urls_lookup(lookup_svc)
+        test_all_tn_zip_urls_lookup(lookup_svc)
 
     ## Test the API:
 
-    test_lookup(lookup_svc, "kn", "tn", None)
+    fixtures = {}
+    fixtures["resources"] = [
+        {"lang_code": "kn", "resource_type": "tn", "resource_code": None},
+        {"lang_code": "lo", "resource_type": "tn", "resource_code": None},
+        {"lang_code": "as", "resource_type": "tn", "resource_code": None},
+        {"lang_code": "ema", "resource_type": "tn", "resource_code": None},
+        {"lang_code": "plt", "resource_type": "tw", "resource_code": None},
+        {"lang_code": "ml", "resource_type": "tq", "resource_code": None},
+        {"lang_code": "mr", "resource_type": "ta", "resource_code": None},
+        {"lang_code": "lpx", "resource_type": "ulb", "resource_code": None},
+        {"lang_code": "mr", "resource_type": "ulb", "resource_code": "gen"},
+        {"lang_code": "mr", "resource_type": "udb", "resource_code": None},
+        {"lang_code": "mr", "resource_type": "obs", "resource_code": None},
+        {"lang_code": "mr", "resource_type": "obs-tn", "resource_code": None},
+        {"lang_code": "mr", "resource_type": "obs-tq", "resource_code": None},
+        {"lang_code": "erk-x-erakor", "resource_type": "reg", "resource_code": "eph",},
+    ]
 
-    test_lookup(lookup_svc, "lo", "tn", None)
-
-    test_lookup(lookup_svc, "as", "tn", None)
-
-    test_lookup(lookup_svc, "ema", "tn", None)
-
-    test_lookup(lookup_svc, "plt", "tw", None)
-
-    test_lookup(lookup_svc, "ml", "tq", None)
-
-    test_lookup(lookup_svc, "mr", "ta", None)
-
-    test_lookup(lookup_svc, "lpx", "ulb", None)
-
-    test_lookup(lookup_svc, "mr", "ulb", "gen")
-
-    test_lookup(lookup_svc, "mr", "udb", None)
-
-    test_lookup(lookup_svc, "mr", "obs", None)
-
-    test_lookup(lookup_svc, "mr", "obs-tn", None)
-
-    test_lookup(lookup_svc, "mr", "obs-tq", None)
+    for resource in fixtures["resources"]:
+        test_lookup(lookup_svc, resource)
 
 
 ## Test the API:
 
 
-def test_lookup(
-    lookup_svc: ResourceJsonLookup,
-    lang_code: str,
-    resource_type: str,
-    resource_code: Optional[str],
-) -> None:
-    values: List[str] = lookup_svc.lookup(lang_code, resource_type, resource_code)
+def test_lookup(lookup_svc: ResourceJsonLookup, resource) -> None:
+    values: List[str] = lookup_svc.lookup(resource)
     print(
         "Language {}, resource_type: {}, resource_code: {}, values: {}".format(
-            lang_code, resource_type, resource_code, values
+            resource["lang_code"],
+            resource["resource_type"],
+            resource["resource_code"],
+            values,
         )
     )
 

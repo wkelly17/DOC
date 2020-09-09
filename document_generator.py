@@ -394,9 +394,7 @@ class DocumentGenerator(object):
             resource_code: Optional[str] = None if not resource[
                 "resource_code"
             ] else resource["resource_code"]
-            urls: List[str] = lookup_svc.lookup(
-                resource["lang_code"], resource["resource_type"], resource_code
-            )
+            urls: List[str] = lookup_svc.lookup(resource)
             if urls and len(urls) > 0:
                 resource_url: str = urls[0]
                 resource.update({"resource_url": resource_url})
@@ -458,6 +456,7 @@ class DocumentGenerator(object):
                 self.logger.debug(
                     "Failed to create directory {}".format(resource["resource_dir"])
                 )
+        # TODO This mIght not be a zip file, so could be just file.
         zip_file = os.path.join(
             resource["resource_dir"], url.rpartition(os.path.sep)[2]
         )
