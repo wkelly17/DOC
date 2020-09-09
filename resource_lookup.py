@@ -283,6 +283,8 @@ def main() -> None:
 
         test_all_tn_zip_urls_lookup(lookup_svc)
 
+        test_lookup_downloads(lookup_svc)
+
     ## Test the API:
 
     if True:
@@ -336,6 +338,22 @@ def test_lookup(lookup_svc: ResourceJsonLookup, resource) -> None:
 def test_lookup_all_language_names(lookup_svc: ResourceJsonLookup) -> None:
     values: List[Optional[str]] = lookup_svc._lookup("$[*].name")
     print("Languages: {}, # of languages: {}".format(values, len(values)))
+
+
+def test_lookup_downloads(lookup_svc: ResourceJsonLookup) -> None:
+    """ Find all the git repos to determine all the locations they can
+    be found in translations.json. """
+    jsonpath_str = "$[*].contents[*].subcontents[*].links[?format='Download'].url"
+    values: List[Optional[str]] = lookup_svc._lookup(jsonpath_str)
+    # if values is not None and len(values) == 0:
+    #     jsonpath_str = "$[?code='{}'].contents[*].links[?format='Download'].url"
+    #     values = lookup_svc._lookup(jsonpath_str)
+
+    print(
+        "All git repos having jsonpath {} : {}, # of repos: {}".format(
+            jsonpath_str, values, len(values)
+        )
+    )
 
 
 def test_lookup_all_codes(lookup_svc: ResourceJsonLookup) -> None:
