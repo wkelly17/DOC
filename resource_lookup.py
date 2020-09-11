@@ -1,4 +1,4 @@
-from typing import Optional, List, Set, Dict
+from typing import Dict, List, Optional, Set, Tuple
 import abc
 import logging
 import os
@@ -35,6 +35,15 @@ except:
         get_resource_download_format_jsonpath,
     )
 
+import yaml
+
+with open("logging_config.yaml", "r") as f:
+    config = yaml.safe_load(f.read())
+    logging.config.dictConfig(config)
+
+
+logger = logging.getLogger(__name__)
+
 
 class ResourceLookup(abc.ABC):
     """ Abstract base class that formalizes resource lookup. Currently
@@ -55,43 +64,22 @@ values from it using jsonpath. """
         self,
         working_dir: Optional[str] = "./",  # This is in /tools in the Docker container
         json_file_url: str = get_translations_json_location(),
-        logger: logging.Logger = None,
-        pp: pprint.PrettyPrinter = None,
     ) -> None:
-        # Set up logger
-        if logger is not None:
-            self.logger: logging.Logger = logger
-        else:
-            self.logger: logging.Logger = logging.getLogger()
-            self.logger.setLevel(logging.DEBUG)
-            ch: logging.StreamHandler = logging.StreamHandler()
-            ch.setLevel(logging.DEBUG)
-            formatter: logging.Formatter = logging.Formatter(
-                "%(levelname)s - %(message)s"
-            )
-            ch.setFormatter(formatter)
-            self.logger.addHandler(ch)
-
-        # Set up the pretty printer
-        if pp is not None:
-            self.pp: pprint.PrettyPrinter = pp
-        else:
-            self.pp: pprint.PrettyPrinter = pprint.PrettyPrinter(indent=4)
 
         self.working_dir = working_dir
         self.json_file_url = json_file_url
 
         if not self.working_dir:
-            self.logger.debug("Creating working dir")
+            logger.info("Creating working dir")
             self.working_dir = tempfile.mkdtemp(prefix="json_")
 
-        self.logger.debug("WORKING DIR IS {}".format(self.working_dir))
+        logger.info("WORKING DIR IS {}".format(self.working_dir))
 
         self.json_file: str = os.path.join(
             self.working_dir, self.json_file_url.rpartition(os.path.sep)[2]
         )
 
-        self.logger.debug("JSON FILE IS {}".format(self.json_file))
+        logger.info("JSON FILE IS {}".format(self.json_file))
 
         self.json_data: Optional[Dict] = None
 
@@ -101,20 +89,20 @@ values from it using jsonpath. """
         if self._data_needs_update():
             # Download json file
             try:
-                self.logger.debug("Downloading {}...".format(self.json_file_url))
+                logger.info("Downloading {}...".format(self.json_file_url))
                 download_file(self.json_file_url, self.json_file)
             finally:
-                self.logger.debug("finished downloading json file.")
+                logger.info("finished downloading json file.")
 
         if self.json_data is None:
             # Load json file
             try:
-                self.logger.debug("Loading json file {}...".format(self.json_file))
+                logger.info("Loading json file {}...".format(self.json_file))
                 self.json_data = load_json_object(
                     self.json_file
                 )  # json_data should possibly live on its own object
             finally:
-                self.logger.debug("finished loading json file.")
+                logger.info("finished loading json file.")
 
     # protected access level
     def _data_needs_update(self) -> bool:
@@ -135,110 +123,15 @@ values from it using jsonpath. """
     def _lookup(self, jsonpath: str,) -> List[Optional[str]]:
         """ Return jsonpath value or empty list if node doesn't exist. """
         self._get_data()
+        logger.info("jsonpath: {}".format(jsonpath))
         value: List[str] = jp.match(
             jsonpath, self.json_data,
         )
         value_set: Set = set(value)
         return list(value_set)
 
-    # NOTE Some target languages only provide a resource at
-    # $[*].contents[?name='reg'].links[?format='Download']. In that
-    # case, grab the repo url from repo_url part of query string. Then
-    # perhaps you'd want to use gitea to get the repo.
-    # TODO Research: Do 'Read on Web' format resources have an associated git
-    # repo if they don't have a sibling 'Download' format URL? I
-    # looked at "erk-x-erakor" for intance and there one can see there
-    # is no symmetry between the 'Read on Web' and 'Download' format
-    # URLs that can be extrapolated to other language resources;
-    # perhaps it can to a subset, but the relationship between the
-    # 'Read on Web' and 'Download' format URLs seems to vary by
-    # language.
-    #
-    def lookup(self, resource: Dict,) -> List[Optional[str]]:
-        """ Given a resource, comprised of language code, e.g., 'wum',
-        a resource type, e.g., 'tn', and an optional resource code,
-        e.g., 'gen', return URLs for resource. """
-
-        assert resource["lang_code"] is not None, "lang_code is required"
-        assert resource["resource_type"] is not None, "resource_type is required"
-
-        urls: List[Optional[str]] = []
-
-        if (
-            resource["resource_code"] is not None
-        ):  # User has likely specified a book of the bible, try first
-            # to get the resource from a git repo.
-            jsonpath_str = get_resource_download_format_jsonpath().format(
-                resource["lang_code"], "reg", resource["resource_code"]
-            )
-            urls = self._lookup(jsonpath_str)
-            if urls is not None and len(urls) > 0:
-                # Get the portion of the query string that gives
-                # the repo URL
-                urls = [self.parse_repo_url_from_json_url(urls[0])]
-            if (
-                urls is not None and len(urls) == 0
-            ):  # Resource not found, next try to get from download URL.
-                jsonpath_str = get_individual_usfm_url_jsonpath().format(
-                    resource["lang_code"],
-                    resource["resource_type"],
-                    resource["resource_code"],
-                )
-                urls = self._lookup(jsonpath_str)
-        else:  # User has not specified a particular book of the bible
-            jsonpath_str = get_resource_url_level_1_jsonpath().format(
-                resource["lang_code"], resource["resource_type"],
-            )
-            urls = self._lookup(jsonpath_str)
-            if (
-                urls is not None and len(urls) == 0
-            ):  # For the language in question, the resource is apparently at a different location which we try next.
-                jsonpath_str = get_resource_url_level_2_jsonpath().format(
-                    resource["lang_code"], resource["resource_type"],
-                )
-                urls = self._lookup(jsonpath_str)
-        # Store the jsonpath that was used as it will be used to
-        # determine how to acquire the resource, e.g., if a jsonpath
-        # was used that points to a git repo then the git client will
-        # be used otherwise we download from a CDN.
-        # NOTE I am not fond of giving the dictionary key
-        # resource_jsonpath since it is implementation specific and
-        # in the future we will be using GraphQL, I'd prefer something
-        # like resource_location perhaps, but for now I am just going
-        # with this.
-        resource.update({"resource_jsonpath": jsonpath_str})
-        # NOTE Some resources will be fetched via gitea and others by
-        # downloading the URL. How do we specify this to the code
-        # responsible for downloading or cloning if the lookup is
-        # separate. Perhaps this class should be renamed and manage
-        # both lookup and acquisition.
-
-        return urls
-
-    # The functions below aren't part of the API, they are just
-    # experiments:
-
-    def lookup_download_url(
-        self,
-        jsonpath: str = "$[?name='English'].contents[*].subcontents[*].links[?format='Download'].url",
-    ) -> Optional[str]:
-        """ Return json dict object for download url for jsonpath. """
-        download_url = jp.match1(jsonpath, self.json_data,)
-
-        return download_url
-
-    def lookup_download_urls(
-        self,
-        jsonpath: Optional[
-            str
-        ] = "$[?name='English'].contents[*].subcontents[*].links[?format='Download'].url",
-    ) -> List[str]:
-        """ Return json dict object for download url for lang. """
-        download_urls = jp.match(jsonpath, self.json_data,)
-
-        return download_urls
-
-    def parse_repo_url_from_json_url(
+    # protected access level
+    def _parse_repo_url_from_json_url(
         self,
         url: Optional[str],
         repo_url_dict_key: str = "../download-scripture?repo_url",
@@ -257,6 +150,186 @@ values from it using jsonpath. """
         else:
             return None
 
+    # NOTE Some target languages only provide a resource at
+    # $[*].contents[?name='reg'].links[?format='Download']. In that
+    # case, grab the repo url from repo_url part of query string. Then
+    # perhaps you'd want to use gitea to get the repo or git clone
+    # directly with depth 1.
+    # TODO Research: Do 'Read on Web' format resources have an associated git
+    # repo if they don't have a sibling 'Download' format URL? I
+    # looked at "erk-x-erakor" for intance and there one can see there
+    # is no symmetry between the 'Read on Web' and 'Download' format
+    # URLs that can be extrapolated to other language resources;
+    # perhaps it can to a subset, but the relationship between the
+    # 'Read on Web' and 'Download' format URLs seems to vary by
+    # language.
+    def lookup(self, resource: Dict) -> List[Optional[str]]:
+        """ Given a resource, comprised of language code, e.g., 'wum',
+        a resource type, e.g., 'tn', and an optional resource code,
+        e.g., 'gen', return URLs for resource. """
+
+        logger.info('resource["resource_code"]: {}'.format(resource["resource_code"]))
+
+        assert resource["lang_code"] is not None, "lang_code is required"
+        assert resource["resource_type"] is not None, "resource_type is required"
+        # assert resource["resource_code"] is None or (
+        #     resource["resource_code"] is not None
+        #     and not resource["resource_code"].strip()
+        # ), "resource_code can't be an empty string"
+
+        urls: List[Optional[str]] = []
+
+        # NOTE format='Download' can point to reg, ulb, udb git repos.
+        # format='usfm' points to single USFM files.
+        if (
+            resource["resource_code"] is not None
+        ):  # User has likely specified a book of the bible, try first to get the resource from a git repo.
+            if resource["resource_type"] in ["reg", "ulb", "udb"]:
+                jsonpath_str = get_resource_download_format_jsonpath().format(
+                    resource["lang_code"],
+                    resource["resource_type"],
+                    resource["resource_code"],
+                )
+                urls = self._lookup(jsonpath_str)
+                if urls is not None and len(urls) > 0:
+                    # Get the portion of the query string that gives
+                    # the repo URL
+                    urls = [self._parse_repo_url_from_json_url(urls[0])]
+
+            if (urls is not None and len(urls) == 0) or resource[
+                "resource_type"
+            ] not in [
+                "reg",
+                "ulb",
+                "udb",
+            ]:  # Resource not found, next try to get from download CDN/URL.
+                # NOTE Many languages have a git repo found by
+                # format='Download' that is parallel to the
+                # individual, per book, USFM files and in that case
+                # the git repo should be preferred. But there is at
+                # least one language, code='ar', that has only single
+                # USFM files. In that particular language all the
+                # individual USFM files per book can also be found in
+                # a zip file,
+                # $[?coee='ar'].contents[?code='nav'].links[format='zip'],
+                # which also contains the manifest.yaml file.
+                # That language is the only one with a
+                # contents[?code='nav'].
+                # Another, yet different, example is the case of
+                # $[?code="avd"] which has format="usfm" without
+                # having a zip containing USFM files at the same level.
+                jsonpath_str = get_individual_usfm_url_jsonpath().format(
+                    resource["lang_code"],
+                    resource["resource_type"],
+                    resource["resource_code"],
+                )
+                urls = self._lookup(jsonpath_str)
+        else:  # User has not specified a resource_code and thus has
+            # not specified a particular book of the bible.
+            jsonpath_str = get_resource_url_level_1_jsonpath().format(
+                resource["lang_code"], resource["resource_type"],
+            )
+            urls = self._lookup(jsonpath_str)
+            if (
+                urls is not None and len(urls) == 0
+            ):  # For the language in question, the resource is apparently at a different location which we try next.
+                jsonpath_str = get_resource_url_level_2_jsonpath().format(
+                    resource["lang_code"], resource["resource_type"],
+                )
+                urls = self._lookup(jsonpath_str)
+        # Store the jsonpath that was used as it will be used to
+        # determine how to acquire the resource, e.g., if a jsonpath
+        # was used that points to a git repo then the git client will
+        # be used otherwise we download from a CDN.
+        resource.update({"resource_jsonpath": jsonpath_str})
+
+        return urls
+
+    def lang_codes(self) -> List[Optional[str]]:
+        """ Convenience method that can be called from UI to get the
+        set of all language codes available through API. Presumably
+        this could be called to populate a dropdown menu. """
+        # return list(sorted(set(self._lookup("$[*].code"))))
+        self._get_data()
+        codes: List[str] = []
+        for lang in self.json_data:
+            codes.append(lang["code"])
+        # return self._lookup("$[*].code")
+        return codes
+
+    # NOTE We really would only need lang_codes and
+    # lang_codes_and_names, especially since there are a different
+    # number of codes than names, so they should not be decoupled when
+    # names are desired. Thus, commented out for now.
+    # def lang_names(self) -> List[Optional[str]]:
+    #     # FIXME This method is SLOW. Language codes and names are
+    #     # not in a one to one relationship and so we have to
+    #     # specifically lookup the name for the code which means we
+    #     # have to do a jsonpath lookup for every language code.
+    #     # Massive use of the heap plus jsonpath processing time.
+    #     """ Convenience method that can be called from UI to get the
+    #     set of all language names available through API. Presumably
+    #     this could be called to populate a dropdown menu. """
+    #     codes: List[Optional[str]] = self.lang_codes()
+    #     names: List[str] = []
+    #     for code in codes:
+    #         name_arr = self._lookup("$[?code='{}'].name".format(code))
+    #         if name_arr is not None and len(name_arr):
+    #             names.append(name_arr[0])
+    #         else:
+    #             names.append("Name not provided")
+    #     return names
+
+    def lang_codes_and_names(self) -> List[Tuple[str, str]]:
+        """ Convenience method that can be called from UI to get the
+        set of all language code, name tuples available through API.
+        Presumably this could be called to populate a dropdown menu.
+        """
+        self._get_data()
+        codes_and_names: List[Tuple[str, str]] = []
+        # Using jsonpath in a loop here was prohibitively slow so we
+        # use the dictionary in this case.
+        for d in self.json_data:
+            codes_and_names.append((d["code"], d["name"]))
+        return codes_and_names
+
+    def resource_types(self) -> List[Optional[str]]:
+        """ Convenience method that can be called, e.g., from the UI,
+        to get the set of all resource types. """
+        return self._lookup("$[*].contents[*].code")
+
+    def resource_codes(self) -> List[Optional[str]]:
+        """ Convenience method that can be called, e.g., from the UI,
+        to get the set of all resource codes. """
+        return self._lookup("$[*].contents[*].subcontents[*].code")
+
+
+# class ResourceAcquirer():
+#     """ A class that let's you download the resource. """
+#     # """ Abstract base class that formalizes resource acquisition. Currently
+#     # resources have URLs that point to either a git repository or to a
+#     # CDN location. """
+
+#     # @abc.abstractmethod
+#     def acquire(self, resource: Dict) -> List[Optional[str]]:
+
+
+class ResourceAcquirer(object):
+    def __init__(
+        self,
+        resource: Dict,
+        working_dir: Optional[str] = "./",  # This is in /tools in the Docker container
+        logger: logging.Logger = None,
+        pp: pprint.PrettyPrinter = None,
+    ) -> None:
+        self.working_dir = working_dir
+        self.resource = resource
+        self.logger = logger
+        self.pp = pp
+
+    def acquire(self) -> None:
+        pass
+
 
 def main() -> None:
     """ Test driver. """
@@ -266,24 +339,31 @@ def main() -> None:
     ## A few non-API tests that demonstrate aspects of jsonpath
     ## library or nature of data we are working with:
 
+    if True:
+        test_lookup_all_language_codes(lookup_svc)
+
+        # test_lookup_all_language_names(lookup_svc)
+
+        test_lookup_all_language_codes_and_names(lookup_svc)
+
+        test_lookup_all_resource_types(lookup_svc)
+
+        test_lookup_all_resource_codes(lookup_svc)
+
     if False:
-        test_lookup_all_language_names(lookup_svc)
-
-        test_lookup_all_codes(lookup_svc)
-
-        test_abadi_language_lookup(lookup_svc)
-
-        test_wumbvu_language_lookup(lookup_svc)
-
-        test_another_language_lookup(lookup_svc)
-
-        test_english_language_lookup(lookup_svc)
-
-        test_three_language_tn_lookup(lookup_svc)
 
         test_all_tn_zip_urls_lookup(lookup_svc)
 
+        test_lookup_downloads_at_reg(lookup_svc)
+
         test_lookup_downloads(lookup_svc)
+
+        test_lookup_downloads_not_at_reg(lookup_svc)
+
+        test_lookup_downloads_not_at_reg2(lookup_svc)
+
+    if True:
+        test_lookup_downloads_not_at_reg3(lookup_svc)
 
     ## Test the API:
 
@@ -335,19 +415,42 @@ def test_lookup(lookup_svc: ResourceJsonLookup, resource) -> None:
 ## that are not known to be needed yet:
 
 
-def test_lookup_all_language_names(lookup_svc: ResourceJsonLookup) -> None:
-    values: List[Optional[str]] = lookup_svc._lookup("$[*].name")
-    print("Languages: {}, # of languages: {}".format(values, len(values)))
+def test_lookup_all_language_codes(lookup_svc: ResourceJsonLookup) -> None:
+    values: List[Optional[str]] = lookup_svc.lang_codes()
+    print("Language codes: {}, # of language codes: {}".format(values, len(values)))
 
 
-def test_lookup_downloads(lookup_svc: ResourceJsonLookup) -> None:
-    """ Find all the git repos to determine all the locations they can
-    be found in translations.json. """
-    jsonpath_str = "$[*].contents[*].subcontents[*].links[?format='Download'].url"
+# def test_lookup_all_language_names(lookup_svc: ResourceJsonLookup) -> None:
+#     values: List[Optional[str]] = lookup_svc.lang_names()
+#     print("Language names: {}, # of language names: {}".format(values, len(values)))
+
+
+def test_lookup_all_language_codes_and_names(lookup_svc: ResourceJsonLookup) -> None:
+    values: List[
+        Tuple[Optional[str], Optional[str]]
+    ] = lookup_svc.lang_codes_and_names()
+    print(
+        "Language code, name tuples: {}, # of language code, name tuples: {}".format(
+            values, len(values)
+        )
+    )
+
+
+def test_lookup_all_resource_types(lookup_svc: ResourceJsonLookup) -> None:
+    values: List[Optional[str]] = lookup_svc.resource_types()
+    print("Resource types: {}, # of resource types: {}".format(values, len(values)))
+
+
+def test_lookup_all_resource_codes(lookup_svc: ResourceJsonLookup) -> None:
+    values: List[Optional[str]] = lookup_svc.resource_codes()
+    print("Resource codes: {}, # of resource codes: {}".format(values, len(values)))
+
+
+def test_lookup_downloads_at_reg(lookup_svc: ResourceJsonLookup) -> None:
+    jsonpath_str = (
+        "$[*].contents[?code='reg'].subcontents[*].links[?format='Download'].url"
+    )
     values: List[Optional[str]] = lookup_svc._lookup(jsonpath_str)
-    # if values is not None and len(values) == 0:
-    #     jsonpath_str = "$[?code='{}'].contents[*].links[?format='Download'].url"
-    #     values = lookup_svc._lookup(jsonpath_str)
 
     print(
         "All git repos having jsonpath {} : {}, # of repos: {}".format(
@@ -356,90 +459,83 @@ def test_lookup_downloads(lookup_svc: ResourceJsonLookup) -> None:
     )
 
 
-def test_lookup_all_codes(lookup_svc: ResourceJsonLookup) -> None:
-    values: List[Optional[str]] = lookup_svc._lookup("$[*].contents[*].code")
-    print("Codes: {}, # of codes: {}".format(values, len(values)))
+def test_lookup_downloads(lookup_svc: ResourceJsonLookup) -> None:
+    """ Find all the git repos to determine all the locations they can
+    be found in translations.json. """
+    jsonpath_str = "$[*].contents[*].subcontents[*].links[?format='Download'].url"
+    values: List[Optional[str]] = lookup_svc._lookup(jsonpath_str)
 
-
-def test_abadi_language_lookup(lookup_svc: ResourceJsonLookup) -> None:
-    # Test Abadi language
-    lang_code: str = "kbt"
-    jsonpath: str = "$[?code='{}'].contents[*].subcontents[*].links[?format='Download'].url".format(
-        lang_code
-    )
-    download_url: Optional[str] = lookup_svc.lookup_download_url(jsonpath)
-    if download_url is not None:
-        print(("Language code {} download url: {}".format(lang_code, download_url)))
-    repo_url: Optional[str] = lookup_svc.parse_repo_url_from_json_url(download_url)
-    if repo_url is not None:
-        print(("Language code {} repo_url: {}".format(lang_code, repo_url)))
-
-
-def test_wumbvu_language_lookup(lookup_svc: ResourceJsonLookup) -> None:
-    # Vumbvu lang
-    lang_code: str = "wum"
-    jsonpath = "$[?code='{}'].contents[*].subcontents[*].links[?format='Download'].url".format(
-        lang_code
-    )
-    download_url = lookup_svc.lookup_download_url(jsonpath)
-    if download_url is not None:
-        print(("Language code {} download url: {}".format(lang_code, download_url)))
-    repo_url: Optional[str] = lookup_svc.parse_repo_url_from_json_url(download_url)
-    if repo_url is not None:
-        print(("Language code {} repo_url: {}".format(lang_code, repo_url)))
-
-
-def test_another_language_lookup(lookup_svc: ResourceJsonLookup) -> None:
-    # Another lanugage
-    lang_code: str = "am"
-    jsonpath = "$[?code='{}'].contents[*].subcontents[*].links[?format='Download'].url".format(
-        lang_code
-    )
-    download_urls: List[str] = lookup_svc.lookup_download_urls(jsonpath)
-    if download_urls is not None:
-        print("Language code {} download_urls: {}".format(lang_code, download_urls))
-        print(
-            (
-                "Language code {} first download url: {}".format(
-                    lang_code, download_urls[0]
-                )
-            )
+    print(
+        "All git repos having jsonpath {} : {}, # of repos: {}".format(
+            jsonpath_str, values, len(values)
         )
-    repo_url: Optional[str] = lookup_svc.parse_repo_url_from_json_url(download_urls[0])
-    if repo_url is not None:
-        print(("Language code {} first repo repo_url: {}".format(lang_code, repo_url)))
+    )
 
 
-def test_english_language_lookup(lookup_svc: ResourceJsonLookup) -> None:
-    # Test English lang. Different jsonpath for English USFM files.
-    lang: str = "en"
-    jsonpath = "$[?code='{}'].contents[*].links[?format='Download'].url".format(lang)
-    download_urls: List[str] = lookup_svc.lookup_download_urls(jsonpath)
-    if download_urls is not None and len(download_urls) > 0:
-        print("Language {} download_urls: {}".format(lang, download_urls))
-        print(("Language {} first download url: {}".format(lang, download_urls[0])))
-        repo_url: Optional[str] = lookup_svc.parse_repo_url_from_json_url(
-            download_urls[0], "/download-scripture?repo_url"
+def test_lookup_downloads_not_at_reg(lookup_svc: ResourceJsonLookup) -> None:
+    jsonpath_str = "$[*].contents[*].subcontents[*].links[?format='Download'].url"
+    values: List[Optional[str]] = lookup_svc._lookup(jsonpath_str)
+
+    jsonpath_str2 = (
+        "$[*].contents[?code='reg'].subcontents[*].links[?format='Download'].url"
+    )
+    values2: List[Optional[str]] = lookup_svc._lookup(jsonpath_str2)
+
+    result = list(filter(lambda x: x not in values, values2))
+    print(
+        "All git repos not found at countents[?code='reg'] having jsonpath {} : {}, # of repos: {}".format(
+            jsonpath_str, result, len(result)
         )
-        if repo_url is not None:
-            print(("Language {} first repo repo_url: {}".format(lang, repo_url)))
+    )
 
 
-def test_three_language_tn_lookup(lookup_svc: ResourceJsonLookup) -> None:
-    # Test getting all translation notes for more than one language
-    langs: List[str] = ["English", "Abadi", "Assamese"]
-    for lang in langs:
-        download_urls: List[str] = lookup_svc.lookup_download_urls(
-            "$[?name='{}'].contents[?code='tn'].links[?format='zip'].url".format(lang),
+def test_lookup_downloads_not_at_reg2(lookup_svc: ResourceJsonLookup) -> None:
+    jsonpath_str = "$[*].contents[*].subcontents[*].links[?format='Download'].url"
+    values: List[Optional[str]] = lookup_svc._lookup(jsonpath_str)
+
+    jsonpath_str2 = (
+        "$[*].contents[?code='reg'].subcontents[*].links[?format='Download'].url"
+    )
+    values2: List[Optional[str]] = lookup_svc._lookup(jsonpath_str2)
+
+    result = list(filter(lambda x: x not in values, values2))
+    for x, y in zip(values, values2):
+        print("x: {}\n y: {}".format(x, y))
+    # print(
+    #     "# of values: {}, # of values2: {}, All git repos not found at countents[?code='reg'] having jsonpath {} : {}, # of repos: {}".format(
+    #         len(values), len(values2), jsonpath_str, result, len(result)
+    #     )
+    # )
+
+
+def test_lookup_downloads_not_at_reg3(lookup_svc: ResourceJsonLookup) -> None:
+    jsonpath_str = "$[*].contents[*].subcontents[*].links[?format='Download'].url"
+    values: List[Optional[str]] = lookup_svc._lookup(jsonpath_str)
+
+    jsonpath_str2 = (
+        "$[*].contents[?code='reg'].subcontents[*].links[?format='Download'].url"
+    )
+    values2: List[Optional[str]] = lookup_svc._lookup(jsonpath_str2)
+
+    jsonpath_str3 = (
+        "$[*].contents[?code='ulb'].subcontents[*].links[?format='Download'].url"
+    )
+    values3: List[Optional[str]] = lookup_svc._lookup(jsonpath_str3)
+
+    jsonpath_str4 = (
+        "$[*].contents[?code='udb'].subcontents[*].links[?format='Download'].url"
+    )
+    values4: List[Optional[str]] = lookup_svc._lookup(jsonpath_str4)
+
+    print(
+        "len(values): {}, len(values2): {}, len(values3): {}, len(values4): {}, sum(values,values2,values3,values4): {}".format(
+            len(values),
+            len(values2),
+            len(values3),
+            len(values4),
+            len(values2) + len(values3) + len(values4),
         )
-        if download_urls is not None and len(download_urls) == 0:
-            download_urls = lookup_svc.lookup_download_urls(
-                "$[?name='{}'].contents[*].subcontents[?code='tn'].links[?format='zip'].url".format(
-                    lang
-                ),
-            )
-
-        print("Language {} translation notes : {}".format(lang, download_urls))
+    )
 
 
 def test_all_tn_zip_urls_lookup(lookup_svc: ResourceJsonLookup) -> None:

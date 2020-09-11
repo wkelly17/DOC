@@ -23,6 +23,7 @@ import datetime
 import subprocess
 import csv
 from glob import glob
+import yaml
 
 
 import markdown  # type: ignore
@@ -43,6 +44,13 @@ except:
     from bible_books import BOOK_NUMBERS  # type: ignore
     from resource_lookup import ResourceJsonLookup
     from config import get_working_dir, get_output_dir
+
+
+with open("logging_config.yaml", "r") as f:
+    config = yaml.safe_load(f.read())
+    logging.config.dictConfig(config)
+
+logger = logging.getLogger(__name__)
 
 
 class DocumentGenerator(object):
@@ -86,21 +94,21 @@ class DocumentGenerator(object):
         # self.lang_code = lang_code
         # self.books = books
 
-        self.logger = logging.getLogger()
-        self.logger.setLevel(logging.DEBUG)
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.DEBUG)
-        formatter = logging.Formatter("%(levelname)s - %(message)s")
-        ch.setFormatter(formatter)
-        self.logger.addHandler(ch)
-        self.pp = pprint.PrettyPrinter(indent=4)
+        # self.logger = logging.getLogger()
+        # self.logger.setLevel(logging.DEBUG)
+        # ch = logging.StreamHandler()
+        # ch.setLevel(logging.DEBUG)
+        # formatter = logging.Formatter("%(levelname)s - %(message)s")
+        # ch.setFormatter(formatter)
+        # self.logger.addHandler(ch)
+        # self.pp = pprint.PrettyPrinter(indent=4)
 
         if not self.working_dir:
             self.working_dir = tempfile.mkdtemp(prefix="tn-")
         if not self.output_dir:
             self.output_dir = self.working_dir
 
-        self.logger.debug("WORKING DIR IS {0}".format(self.working_dir))
+        logger.info("WORKING DIR IS {0}".format(self.working_dir))
 
         # TODO All remaining instance variables below can be replaced by
         # updating the resources dict with entries for them per
@@ -197,7 +205,7 @@ class DocumentGenerator(object):
         for resource in self.resources:
             resource.update({"bad_links": {}})
             resource.update({"usfm_chunks": {}})
-            self.logger.debug(
+            logger.info(
                 'resource["resource_dir"]: {}, manifest.yaml exists: {}, manifest.txt exists: {}'.format(
                     resource["resource_dir"],
                     os.path.isfile(
@@ -243,7 +251,7 @@ class DocumentGenerator(object):
                 )
 
             # self.manifest = load_yaml_object(os.path.join(self.tn_dir, "manifest.yaml"))
-            self.logger.debug('resource["manifest"]: {}'.format(resource["manifest"]))
+            logger.info('resource["manifest"]: {}'.format(resource["manifest"]))
             resource.update({"version": resource["manifest"]["dublin_core"]["version"]})
             # self.version = self.manifest["dublin_core"]["version"]
             resource.update({"issued": resource["manifest"]["dublin_core"]["issued"]})
@@ -305,7 +313,7 @@ class DocumentGenerator(object):
                     # if not os.path.isfile(
                     #     os.path.join(self.output_dir, "{0}.html".format(self.filename_base))
                     # ):
-                    self.logger.debug("Getting USFM chunks...")
+                    logger.info("Getting USFM chunks...")
                     resource.update({"usfm_chunks": self.get_usfm_chunks(resource)})
                     # self.usfm_chunks = self.get_usfm_chunks()
 
@@ -319,7 +327,7 @@ class DocumentGenerator(object):
                         #         self.output_dir, "{0}.md".format(self.filename_base)
                         #     )
                         # ):
-                        self.logger.debug("Processing Markdown...")
+                        logger.info("Processing Markdown...")
                         self.preprocess_markdown()
                     print("Converting MD to HTML...")
                     self.convert_md2html(resource)
@@ -398,7 +406,7 @@ class DocumentGenerator(object):
             if urls and len(urls) > 0:
                 resource_url: str = urls[0]
                 resource.update({"resource_url": resource_url})
-                self.extract_files_from_url2(resource_url, resource)
+                self.files_from_url(resource_url, resource)
 
         # if not self.tn_dir:
         #     tn_url = self.get_resource_url("tn", self.tn_tag)
@@ -429,73 +437,51 @@ class DocumentGenerator(object):
         path composed of working_dir  and zip file name sans directory. """
         zip_file = os.path.join(self.working_dir, url.rpartition(os.path.sep)[2])
         try:
-            self.logger.debug("Downloading {0}...".format(url))
+            logger.info("Downloading {0}...".format(url))
             download_file(url, zip_file)
         finally:
-            self.logger.debug("finished.")
+            logger.info("finished.")
         try:
-            self.logger.debug("Unzipping {0}...".format(zip_file))
+            logger.info("Unzipping {0}...".format(zip_file))
             unzip(zip_file, self.working_dir)
         finally:
-            self.logger.debug("finished.")
+            logger.info("finished.")
 
-    def extract_files_from_url2(self, url: str, resource: Dict) -> None:
+    def files_from_url(self, url: str, resource: Dict) -> None:
         """ Download and unzip the zip file (if the file is a zipped
         resource) pointed to by url to a directory located at
         resource_dir. """
-        if not os.path.isdir(resource["resource_dir"]):
+
+        logger.info("os.getcwd(): {}".format(os.getcwd()))
+        if not os.path.exists(resource["resource_dir"]):
+            logger.info("About to create directory {}".format(resource["resource_dir"]))
             try:
-                self.logger.debug(
-                    "About to create directory {}".format(resource["resource_dir"])
-                )
                 os.mkdir(resource["resource_dir"])
-                self.logger.debug(
-                    "Created directory {}".format(resource["resource_dir"])
-                )
-            except:
-                self.logger.debug(
+            except Exception:
+                logger.exception(
                     "Failed to create directory {}".format(resource["resource_dir"])
                 )
+                # raise  # reraise the error
+            finally:
+                logger.info("Created directory {}".format(resource["resource_dir"]))
         # TODO This mIght not be a zip file, so could be just file.
         zip_file = os.path.join(
             resource["resource_dir"], url.rpartition(os.path.sep)[2]
         )
-        self.logger.debug("Using zip file location: {}".format(zip_file))
+        logger.info("Using zip file location: {}".format(zip_file))
         try:
-            self.logger.debug("Downloading {0}...".format(url))
+            logger.info("Downloading {0}...".format(url))
             download_file(url, zip_file)
         finally:
-            self.logger.debug("finished.")
+            logger.info("finished.")
         if not resource["resource_code"]:
             try:
-                self.logger.debug(
+                logger.info(
                     "Unzipping {} into {}...".format(zip_file, resource["resource_dir"])
                 )
                 unzip(zip_file, resource["resource_dir"])
             finally:
-                self.logger.debug("finished.")
-
-    def file_from_url(self, lang_code: str, url: str) -> None:
-        """ Download file pointed to by url to a path composed of
-        working_dir, lang_code, and file name. """
-        # TODO Add caching of previously downloaded resources based on
-        # file path. Caching won't be testable until we have a web
-        # service in front of this subsystem handling requests.
-        dir = os.path.join(self.working_dir, lang_code)
-        self.logger.debug(
-            "in file_from_url, url: {}, type(url): {}".format(url, type(url))
-        )
-        filename = os.path.join(dir, url.rpartition(os.path.sep)[2])
-        if not os.path.isdir(dir):
-            os.mkdir(dir)
-        self.logger.debug(
-            "Location of file after subsequent download: {}".format(filename)
-        )
-        try:
-            self.logger.debug("Downloading {0}...".format(url))
-            download_file(url, filename)
-        finally:
-            self.logger.debug("finished downloading {}.".format(url))
+                logger.info("finished.")
 
     def get_usfm_chunks(self, resource: Dict) -> Dict:
         book_chunks: dict = {}
@@ -835,7 +821,7 @@ class DocumentGenerator(object):
                     )
                     tn_md += links + "\n\n"
 
-        self.logger.debug("tn_md is {0}".format(tn_md))
+        logger.info("tn_md is {0}".format(tn_md))
         return tn_md
 
     # TODO XFIXME This is quite a cluster
@@ -950,7 +936,7 @@ class DocumentGenerator(object):
                         self.get_resource_data_from_rc_links(md, rc, resource)
                         md += "\n\n"
                         tq_md += md
-        self.logger.debug("tq_md is {0}".format(tq_md))
+        logger.info("tq_md is {0}".format(tq_md))
         return tq_md
 
     def get_tw_markdown(self, resource) -> str:
@@ -986,7 +972,7 @@ class DocumentGenerator(object):
         # TODO localization
         tw_md = remove_md_section(tw_md, "Examples from the Bible stories")
 
-        self.logger.debug("tw_md is {}".format(tw_md))
+        logger.info("tw_md is {}".format(tw_md))
         return tw_md
 
     def get_ta_markdown(self, resource) -> str:
@@ -1014,7 +1000,7 @@ class DocumentGenerator(object):
             md += self.get_uses(rc, resource)
             md += "\n\n"
             ta_md += md
-        self.logger.debug("ta_md is {0}".format(ta_md))
+        logger.info("ta_md is {0}".format(ta_md))
         return ta_md
 
     def get_uses(self, rc, resource) -> str:

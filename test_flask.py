@@ -12,6 +12,16 @@ payload["resources"] = [
 ]
 
 
+print("Request language codes...")
+res = requests.get("http://localhost:5005/api/v1/language_codes")
+if res.ok:
+    print(res.json())
+
+print("Request language code, name tuples...")
+res = requests.get("http://localhost:5005/api/v1/language_codes_and_names")
+if res.ok:
+    print(res.json())
+
 print("payload: {}".format(payload))
 res = requests.post("http://localhost:5005/api/v1/document", json=json.dumps(payload))
 if res.ok:
