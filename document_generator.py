@@ -37,13 +37,21 @@ try:
     from url_utils import download_file  # type: ignore
     from bible_books import BOOK_NUMBERS  # type: ignore
     from resource_lookup import ResourceJsonLookup
-    from config import get_working_dir, get_output_dir, get_logging_config_file_path
+    from config import (
+        get_working_dir,
+        get_output_dir,
+        get_logging_config_file_path,
+    )
 except:
     from .file_utils import write_file, read_file, unzip, load_yaml_object  # type: ignore
     from .url_utils import download_file  # type: ignore
     from .bible_books import BOOK_NUMBERS  # type: ignore
     from .resource_lookup import ResourceJsonLookup
-    from .config import get_working_dir, get_output_dir, get_logging_config_file_path
+    from .config import (
+        get_working_dir,
+        get_output_dir,
+        get_logging_config_file_path,
+    )
 
 
 with open(get_logging_config_file_path(), "r") as f:
@@ -202,7 +210,7 @@ class DocumentGenerator(object):
 
     def run(self) -> None:
         self.setup_resource_files()
-        for resource in self.resources:
+        for resource in self.resources["resources"]:
             resource.update({"bad_links": {}})
             resource.update({"usfm_chunks": {}})
             logger.info(
@@ -252,6 +260,7 @@ class DocumentGenerator(object):
 
             # self.manifest = load_yaml_object(os.path.join(self.tn_dir, "manifest.yaml"))
             logger.info('resource["manifest"]: {}'.format(resource["manifest"]))
+            # TODO This won't work:
             resource.update({"version": resource["manifest"]["dublin_core"]["version"]})
             # self.version = self.manifest["dublin_core"]["version"]
             resource.update({"issued": resource["manifest"]["dublin_core"]["issued"]})
@@ -388,7 +397,9 @@ class DocumentGenerator(object):
 
         lookup_svc: ResourceJsonLookup = ResourceJsonLookup()
 
-        for resource in self.resources:
+        logger.debug("resources: {}".format(self.resources["resources"]))
+
+        for resource in self.resources["resources"]:
             resource.update(
                 {
                     "resource_dir": os.path.join(
@@ -447,16 +458,11 @@ class DocumentGenerator(object):
         finally:
             logger.info("finished.")
 
-    # TODO Handle getting git repos too
-    def files_from_url(self, url: str, resource: Dict) -> None:
-        """ Download and unzip the zip file (if the file is a zipped
-        resource) pointed to by url to a directory located at
-        resource_dir. """
+    def prepare_download_directory(self, resource: Dict) -> None:
+        """ If it doesn't exist yet, create the directory for the
+        resource where it will be downloaded to. """
 
         logger.info("os.getcwd(): {}".format(os.getcwd()))
-        # TODO Detect (at some point prior or here) what env this code
-        # is running on and if local machine and if not in container
-        # then choose a suitable directory path to create.
         if not os.path.exists(resource["resource_dir"]):
             logger.info("About to create directory {}".format(resource["resource_dir"]))
             try:
@@ -467,10 +473,18 @@ class DocumentGenerator(object):
                     "Failed to create directory {}".format(resource["resource_dir"])
                 )
                 # raise  # reraise the error
+
+    def files_from_url(self, url: str, resource: Dict) -> None:
+        """ Download and unzip the zip file (if the file is a zipped
+        resource) pointed to by url to a directory located at
+        resource_dir. """
+
+        self.prepare_download_directory(resource)
         filepath = os.path.join(
             resource["resource_dir"], url.rpartition(os.path.sep)[2]
         )
-        logger.info("Using zip file location: {}".format(filepath))
+        logger.info("Using file location: {}".format(filepath))
+
         try:
             logger.info("Downloading {0}...".format(url))
             download_file(url, filepath)
@@ -479,9 +493,9 @@ class DocumentGenerator(object):
         if not resource["resource_code"]:
             try:
                 logger.info(
-                    "Unzipping {} into {}...".format(zip_file, resource["resource_dir"])
+                    "Unzipping {} into {}...".format(filepath, resource["resource_dir"])
                 )
-                unzip(zip_file, resource["resource_dir"])
+                unzip(filepath, resource["resource_dir"])
             finally:
                 logger.info("finished.")
 

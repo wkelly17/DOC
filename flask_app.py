@@ -73,6 +73,8 @@ def document_endpoint():
     # app.logger.info("resource_urls: {}".format(resource_urls))
     logger.info("resource_urls: {}".format(resource_urls))
 
+    # logger.info("resources: {}".format(resources))
+
     # NOTE I may interject a service layer here for one layer of
     # indirection. That layer of indirection will come in handy for
     # testing and provide more flexibility to API changes.

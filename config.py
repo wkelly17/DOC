@@ -3,14 +3,17 @@ import os
 
 
 def get_working_dir() -> str:
-    """ The directory where the resources are downloaded to. """
-    dir = os.environ.get("IRG_WORKING_DIR", "/working/tn-temp")
+    """ The directory where the resources will be placed once
+    acquired. IRG_WORKING_DIR is provided when running in a docker
+    environment. Otherwise a suitable temporary local directory is
+    generated automatically. """
+    dir = os.environ.get("IRG_WORKING_DIR")
     return dir
 
 
 def get_output_dir() -> str:
     """ The directory where the generated documents are placed. """
-    dir = os.environ.get("IRG_OUTPUT_DIR", get_working_dir())
+    dir = os.environ.get("IRG_OUTPUT_DIR")
     return dir
 
 

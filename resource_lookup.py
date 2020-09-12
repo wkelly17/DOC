@@ -172,6 +172,10 @@ values from it using jsonpath. """
         e.g., 'gen', return URLs for resource. """
 
         logger.info('resource["resource_code"]: {}'.format(resource["resource_code"]))
+        resource["resource_code"] = (
+            None if not resource["resource_code"] else resource["resource_code"]
+        )
+        logger.info('resource["resource_code"]: {}'.format(resource["resource_code"]))
 
         assert resource["lang_code"] is not None, "lang_code is required"
         assert resource["resource_type"] is not None, "resource_type is required"
@@ -187,6 +191,9 @@ values from it using jsonpath. """
         if (
             resource["resource_code"] is not None
         ):  # User has likely specified a book of the bible, try first to get the resource from a git repo.
+            logger.debug(
+                "resource[resource_code]: {}".format(resource["resource_code"])
+            )
             if resource["resource_type"] in ["reg", "ulb", "udb"]:
                 jsonpath_str = get_resource_download_format_jsonpath().format(
                     resource["lang_code"],
