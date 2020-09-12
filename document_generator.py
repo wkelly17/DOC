@@ -467,14 +467,13 @@ class DocumentGenerator(object):
                     "Failed to create directory {}".format(resource["resource_dir"])
                 )
                 # raise  # reraise the error
-        # TODO This mIght not be a zip file → better naming
-        zip_file = os.path.join(
+        filepath = os.path.join(
             resource["resource_dir"], url.rpartition(os.path.sep)[2]
         )
-        logger.info("Using zip file location: {}".format(zip_file))
+        logger.info("Using zip file location: {}".format(filepath))
         try:
             logger.info("Downloading {0}...".format(url))
-            download_file(url, zip_file)
+            download_file(url, filepath)
         finally:
             logger.info("finished.")
         if not resource["resource_code"]:
