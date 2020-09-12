@@ -468,20 +468,20 @@ class DocumentGenerator(object):
             )
             subprocess.call(command, shell=True)
 
-    def extract_files_from_url(self, url: str) -> None:
-        """ Download and unzip the zip file pointed to by url to a
-        path composed of working_dir  and zip file name sans directory. """
-        zip_file = os.path.join(self.working_dir, url.rpartition(os.path.sep)[2])
-        try:
-            logger.debug("Downloading {0}...".format(url))
-            download_file(url, zip_file)
-        finally:
-            logger.debug("finished.")
-        try:
-            logger.debug("Unzipping {0}...".format(zip_file))
-            unzip(zip_file, self.working_dir)
-        finally:
-            logger.debug("finished.")
+    # def extract_files_from_url(self, url: str) -> None:
+    #     """ Download and unzip the zip file pointed to by url to a
+    #     path composed of working_dir  and zip file name sans directory. """
+    #     zip_file = os.path.join(self.working_dir, url.rpartition(os.path.sep)[2])
+    #     try:
+    #         logger.debug("Downloading {0}...".format(url))
+    #         download_file(url, zip_file)
+    #     finally:
+    #         logger.debug("finished.")
+    #     try:
+    #         logger.debug("Unzipping {0}...".format(zip_file))
+    #         unzip(zip_file, self.working_dir)
+    #     finally:
+    #         logger.debug("finished.")
 
     def prepare_resource_directory(self, resource: Dict) -> None:
         """ If it doesn't exist yet, create the directory for the
