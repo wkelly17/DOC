@@ -33,20 +33,20 @@ from usfm_tools.transform import UsfmTransform  # type: ignore
 
 # Handle running in container or as standalone script
 try:
-    from .file_utils import write_file, read_file, unzip, load_yaml_object  # type: ignore
-    from .url_utils import download_file  # type: ignore
-    from .bible_books import BOOK_NUMBERS  # type: ignore
-    from .resource_lookup import ResourceJsonLookup
-    from .config import get_working_dir, get_output_dir
-except:
     from file_utils import write_file, read_file, unzip, load_yaml_object  # type: ignore
     from url_utils import download_file  # type: ignore
     from bible_books import BOOK_NUMBERS  # type: ignore
     from resource_lookup import ResourceJsonLookup
-    from config import get_working_dir, get_output_dir
+    from config import get_working_dir, get_output_dir, get_logging_config_file_path
+except:
+    from .file_utils import write_file, read_file, unzip, load_yaml_object  # type: ignore
+    from .url_utils import download_file  # type: ignore
+    from .bible_books import BOOK_NUMBERS  # type: ignore
+    from .resource_lookup import ResourceJsonLookup
+    from .config import get_working_dir, get_output_dir, get_logging_config_file_path
 
 
-with open("logging_config.yaml", "r") as f:
+with open(get_logging_config_file_path(), "r") as f:
     config = yaml.safe_load(f.read())
     logging.config.dictConfig(config)
 

@@ -1,6 +1,5 @@
 from typing import Dict, List, Optional, Set, Tuple
 import abc
-import logging
 import os
 from datetime import datetime, timedelta
 import pprint
@@ -15,16 +14,6 @@ import urllib.request, urllib.parse, urllib.error
 
 # Handle running in container or as standalone script
 try:
-    from .file_utils import load_json_object
-    from .url_utils import download_file
-    from .config import (
-        get_translations_json_location,
-        get_individual_usfm_url_jsonpath,
-        get_resource_url_level_1_jsonpath,
-        get_resource_url_level_2_jsonpath,
-        get_resource_download_format_jsonpath,
-    )
-except:
     from file_utils import load_json_object
     from url_utils import download_file
     from config import (
@@ -33,11 +22,25 @@ except:
         get_resource_url_level_1_jsonpath,
         get_resource_url_level_2_jsonpath,
         get_resource_download_format_jsonpath,
+        get_logging_config_file_path,
+    )
+except:
+    from .file_utils import load_json_object
+    from .url_utils import download_file
+    from .config import (
+        get_translations_json_location,
+        get_individual_usfm_url_jsonpath,
+        get_resource_url_level_1_jsonpath,
+        get_resource_url_level_2_jsonpath,
+        get_resource_download_format_jsonpath,
+        get_logging_config_file_path,
     )
 
 import yaml
+import logging
+import logging.config
 
-with open("logging_config.yaml", "r") as f:
+with open(get_logging_config_file_path(), "r") as f:
     config = yaml.safe_load(f.read())
     logging.config.dictConfig(config)
 

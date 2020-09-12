@@ -1,33 +1,29 @@
 from flask import Flask, jsonify, request
 import json
+import os
+
+# Handle running in container or as standalone script
+try:
+    from document_generator import DocumentGenerator
+    from resource_lookup import ResourceJsonLookup
+    from config import get_logging_config_file_path
+except:
+    from .document_generator import DocumentGenerator
+    from .resource_lookup import ResourceJsonLookup
+    from .config import get_logging_config_file_path
+
+import logging
+import logging.config
+import yaml
 
 # import logging
 # logging.basicConfig(
 #     format="[%(asctime)s] %(levelname)s in %(module)s: %(message)s", level=logging.DEBUG
 # )
 
-import logging
-import logging.config
-import yaml
-
-
-# from logging.config import dictConfig
-import os
-
-# Handle running in container or as standalone script
-try:
-    from .document_generator import DocumentGenerator
-    from .resource_lookup import ResourceJsonLookup
-except:
-    from document_generator import DocumentGenerator
-    from resource_lookup import ResourceJsonLookup
-
-
 app = Flask(__name__)
 
-# print("__name__: {}".format(__name__))
-
-with open("logging_config.yaml", "r") as f:
+with open(get_logging_config_file_path(), "r") as f:
     config = yaml.safe_load(f.read())
     logging.config.dictConfig(config)
 

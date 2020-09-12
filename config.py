@@ -47,3 +47,9 @@ def get_resource_download_format_jsonpath() -> str:
     """ The jsonpath location in TRANSLATIONS_JSON_LOCATION file where
     resource git repo may be found. """
     return "$[?code='{}'].contents[?code='{}'].subcontents[?code={}].links[?format='Download'].url"
+
+
+def get_logging_config_file_path() -> str:
+    """ The file path location where the dictConfig-style yaml
+    formatted config file for logging is located. """
+    return "./logging_config.yaml"
