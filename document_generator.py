@@ -447,24 +447,27 @@ class DocumentGenerator(object):
         finally:
             logger.info("finished.")
 
+    # TODO Handle getting git repos too
     def files_from_url(self, url: str, resource: Dict) -> None:
         """ Download and unzip the zip file (if the file is a zipped
         resource) pointed to by url to a directory located at
         resource_dir. """
 
         logger.info("os.getcwd(): {}".format(os.getcwd()))
+        # TODO Detect (at some point prior or here) what env this code
+        # is running on and if local machine and if not in container
+        # then choose a suitable directory path to create.
         if not os.path.exists(resource["resource_dir"]):
             logger.info("About to create directory {}".format(resource["resource_dir"]))
             try:
                 os.mkdir(resource["resource_dir"])
+                logger.info("Created directory {}".format(resource["resource_dir"]))
             except Exception:
                 logger.exception(
                     "Failed to create directory {}".format(resource["resource_dir"])
                 )
                 # raise  # reraise the error
-            finally:
-                logger.info("Created directory {}".format(resource["resource_dir"]))
-        # TODO This mIght not be a zip file, so could be just file.
+        # TODO This mIght not be a zip file → better naming
         zip_file = os.path.join(
             resource["resource_dir"], url.rpartition(os.path.sep)[2]
         )
