@@ -52,4 +52,4 @@ def get_resource_download_format_jsonpath() -> str:
 def get_logging_config_file_path() -> str:
     """ The file path location where the dictConfig-style yaml
     formatted config file for logging is located. """
-    return "./logging_config.yaml"
+    return "/tools/logging_config.yaml"
