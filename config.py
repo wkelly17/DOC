@@ -55,8 +55,7 @@ def get_resource_download_format_jsonpath() -> str:
 def get_logging_config_file_path() -> str:
     """ The file path location where the dictConfig-style yaml
     formatted config file for logging is located. """
-    return (
-        "/tools/logging_config.yaml"
-        if os.environ.get("IN_CONTAINER", False)
-        else "logging_config.yaml"
-    )
+    if os.environ.get("IN_CONTAINER"):
+        return "/tools/logging_config.yaml"
+    else:
+        return "logging_config.yaml"
