@@ -287,7 +287,7 @@ class DocumentGenerator(object):
                 )
                 # self.issued = self.manifest["dublin_core"]["issued"]
 
-            projects: List[Dict[Any, Any]] = self.get_book_projects2(resource)
+            projects: List[Dict[Any, Any]] = self.get_book_projects(resource)
             for p in projects:
                 project: Dict[
                     Any, Any
@@ -387,7 +387,7 @@ class DocumentGenerator(object):
     #             projects.append(p)
     #     return sorted(projects, key=lambda k: k["sort"])
 
-    def get_book_projects2(self, resource: Dict) -> List[Dict[Any, Any]]:
+    def get_book_projects(self, resource: Dict) -> List[Dict[Any, Any]]:
         projects: List[Dict[Any, Any]] = []
         if (
             "manifest" not in resource  # and not resource["manifest"]
