@@ -211,7 +211,7 @@ class DocumentGenerator(object):
 
     def run(self) -> None:
         self.setup_resource_files()
-        for resource in self.resources["resources"]:
+        for resource in self.resources:
             resource.update({"bad_links": {}})
             resource.update({"usfm_chunks": {}})
             logger.debug(
@@ -369,7 +369,7 @@ class DocumentGenerator(object):
                 ):
                     logger.debug("Generating PDF...")
                     self.convert_html2pdf(resource)
-            logger.debug(resource["bad_links"])
+            logger.debug("resource[bad_links]: {}".format(resource["bad_links"]))
             # self.pp.plogger.debug(self.bad_links)
 
     # def get_book_projects(self) -> List[Dict[Any, Any]]:
@@ -420,9 +420,9 @@ class DocumentGenerator(object):
 
         lookup_svc: ResourceJsonLookup = ResourceJsonLookup()
 
-        logger.debug("resources: {}".format(self.resources["resources"]))
+        logger.debug("resources: {}".format(self.resources))
 
-        for resource in self.resources["resources"]:
+        for resource in self.resources:
             resource.update(
                 {
                     "resource_dir": os.path.join(
