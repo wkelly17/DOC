@@ -80,13 +80,13 @@ values from it using jsonpath. """
             logger.info("Creating working dir")
             self.working_dir = tempfile.mkdtemp(prefix="json_")
 
-        logger.info("WORKING DIR IS {}".format(self.working_dir))
+        logger.info("Working dir is {}".format(self.working_dir))
 
         self.json_file: str = os.path.join(
             self.working_dir, self.json_file_url.rpartition(os.path.sep)[2]
         )
 
-        logger.info("JSON FILE IS {}".format(self.json_file))
+        logger.info("JSON file is {}".format(self.json_file))
 
         self.json_data: Optional[Dict] = None
 
@@ -175,11 +175,11 @@ values from it using jsonpath. """
         a resource type, e.g., 'tn', and an optional resource code,
         e.g., 'gen', return URLs for resource. """
 
-        logger.info('resource["resource_code"]: {}'.format(resource["resource_code"]))
+        # logger.info('resource["resource_code"]: {}'.format(resource["resource_code"]))
         resource["resource_code"] = (
             None if not resource["resource_code"] else resource["resource_code"]
         )
-        logger.info('resource["resource_code"]: {}'.format(resource["resource_code"]))
+        # logger.info('resource["resource_code"]: {}'.format(resource["resource_code"]))
 
         assert resource["lang_code"] is not None, "lang_code is required"
         assert resource["resource_type"] is not None, "resource_type is required"
@@ -195,9 +195,9 @@ values from it using jsonpath. """
         if (
             resource["resource_code"] is not None
         ):  # User has likely specified a book of the bible, try first to get the resource from a git repo.
-            logger.debug(
-                "resource[resource_code]: {}".format(resource["resource_code"])
-            )
+            # logger.debug(
+            #     "resource[resource_code]: {}".format(resource["resource_code"])
+            # )
             if resource["resource_type"] in ["reg", "ulb", "udb"]:
                 jsonpath_str = get_resource_download_format_jsonpath().format(
                     resource["lang_code"],

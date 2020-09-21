@@ -120,7 +120,7 @@ class DocumentGenerator(object):
         if not self.output_dir:
             self.output_dir = self.working_dir
 
-        logger.debug("WORKING DIR IS {0}".format(self.working_dir))
+        logger.debug("Working dir is {0}".format(self.working_dir))
 
         # TODO All remaining instance variables below can be replaced by
         # updating the resources dict with entries for them per
@@ -395,7 +395,7 @@ class DocumentGenerator(object):
                 ):
                     logger.debug("Generating PDF...")
                     self.convert_html2pdf(resource)
-            logger.debug("resource[bad_links]: {}".format(resource["bad_links"]))
+            logger.debug("resource['bad_links']: {}".format(resource["bad_links"]))
             # self.pp.plogger.debug(self.bad_links)
 
     # def get_book_projects(self) -> List[Dict[Any, Any]]:
@@ -473,6 +473,7 @@ class DocumentGenerator(object):
             urls: List[Optional[str]] = self.lookup_svc.lookup(resource)
             if urls and len(urls) > 0:
                 resource_url: Optional[str] = urls[0]
+                logger.debug("resource['resource_url']: {}".format(resource_url))
                 resource.update({"resource_url": resource_url})
                 self.files_from_url(resource_url, resource)
 
