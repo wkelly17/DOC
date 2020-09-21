@@ -1666,22 +1666,6 @@ def get_tw_refs(tw_refs_by_verse: dict, book: str, chapter: str, verse: str) -> 
     return tw_refs_by_verse[book][chapter][verse]
 
 
-def main():
-    payload = {}
-    payload["resources"] = [
-        {"lang_code": "am", "resource_type": "ulb", "resource_code": ""},
-        {"lang_code": "erk-x-erakor", "resource_type": "reg", "resource_code": "eph"},
-        # {"lang_code": "ml", "resource_type": "ulb", "resource_code": "tit"},
-        # {"lang_code": "ml", "resource_type": "obs-tq", "resource_code": ""},
-        # {"lang_code": "mr", "resource_type": "udb", "resource_code": "mrk"},
-    ]
-    document_generator = DocumentGenerator(payload)
-    document_generator.run()
-
-
-if __name__ == "__main__":
-    main()
-
 # def main(
 #     # ta_tag: str,
 #     # tn_tag: str,
