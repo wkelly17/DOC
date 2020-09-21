@@ -101,6 +101,7 @@ class DocumentGenerator(object):
         self.resources = resources
         self.working_dir = working_dir
         self.output_dir = output_dir
+        self.lookup_svc: ResourceJsonLookup = ResourceJsonLookup(self.working_dir)
 
         # self.lang_code = lang_code
         # self.books = books
@@ -420,8 +421,6 @@ class DocumentGenerator(object):
         necessary, into the appropriate directory for later
         processing. """
 
-        lookup_svc: ResourceJsonLookup = ResourceJsonLookup()
-
         logger.debug("resources: {}".format(self.resources))
 
         for resource in self.resources:
@@ -440,7 +439,7 @@ class DocumentGenerator(object):
             ] else resource["resource_code"]
             # TODO Fix return type of lookup. I don't think it needs
             # to have Optional in it.
-            urls: List[Optional[str]] = lookup_svc.lookup(resource)
+            urls: List[Optional[str]] = self.lookup_svc.lookup(resource)
             if urls and len(urls) > 0:
                 resource_url: Optional[str] = urls[0]
                 resource.update({"resource_url": resource_url})
