@@ -34,7 +34,7 @@ from usfm_tools.transform import UsfmTransform  # type: ignore
 
 # Handle running in container or as standalone script
 try:
-    from file_utils import write_file, read_file, unzip, load_yaml_object  # type: ignore
+    from file_utils import write_file, read_file, unzip, load_yaml_object, load_json_object  # type: ignore
     from url_utils import download_file  # type: ignore
     from bible_books import BOOK_NUMBERS  # type: ignore
     from resource_lookup import ResourceJsonLookup
@@ -45,7 +45,7 @@ try:
         get_icon_url,
     )
 except:
-    from .file_utils import write_file, read_file, unzip, load_yaml_object  # type: ignore
+    from .file_utils import write_file, read_file, unzip, load_yaml_object, load_json_object  # type: ignore
     from .url_utils import download_file  # type: ignore
     from .bible_books import BOOK_NUMBERS  # type: ignore
     from .resource_lookup import ResourceJsonLookup
@@ -217,17 +217,7 @@ class DocumentGenerator(object):
         for resource in self.resources:
             resource.update({"bad_links": {}})
             resource.update({"usfm_chunks": {}})
-            logger.debug(
-                'resource["resource_dir"]: {}, manifest.yaml exists: {}, manifest.txt exists: {}'.format(
-                    resource["resource_dir"],
-                    os.path.isfile(
-                        os.path.join(resource["resource_dir"], "manifest.yaml")
-                    ),
-                    os.path.isfile(
-                        os.path.join(resource["resource_dir"], "manifest.txt")
-                    ),
-                )
-            )
+
             # NOTE If resource["resource_code"] is None then we should
             # not try for manifest.yaml. Previously, resources only
             # came from git repos for English which always included
@@ -243,6 +233,24 @@ class DocumentGenerator(object):
             # location provided in translations.json which is
             # different than the git repo for same.
 
+            logger.debug(
+                "os.getcwd(): {}, {} exists: {}, {} exists: {}, {} exists: {}".format(
+                    os.getcwd(),
+                    os.path.join(resource["resource_dir"], "manifest.yaml"),
+                    os.path.isfile(
+                        os.path.join(resource["resource_dir"], "manifest.yaml")
+                    ),
+                    os.path.join(resource["resource_dir"], "manifest.txt"),
+                    os.path.isfile(
+                        os.path.join(resource["resource_dir"], "manifest.txt")
+                    ),
+                    os.path.join(resource["resource_dir"], "manifest.json"),
+                    os.path.isfile(
+                        os.path.join(resource["resource_dir"], "manifest.json")
+                    ),
+                    resource["resource_dir"],
+                )
+            )
             if os.path.isfile(os.path.join(resource["resource_dir"], "manifest.yaml")):
                 resource.update(
                     {
@@ -263,20 +271,35 @@ class DocumentGenerator(object):
                     }
                 )
                 resource.update({"resource_manifest_type": "txt"})
+            elif os.path.isfile(
+                os.path.join(resource["resource_dir"], "manifest.json")
+            ):
+                resource.update(
+                    {
+                        "manifest": load_json_object(
+                            os.path.join(resource["resource_dir"], "manifest.json")
+                            # os.path.join(self.tn_dir, "manifest.yaml")
+                        )
+                    }
+                )
+                resource.update({"resource_manifest_type": "json"})
+            else:
+                logger.debug("manifest file does not exist for this resource.")
 
             # self.manifest = load_yaml_object(os.path.join(self.tn_dir, "manifest.yaml"))
 
             if "manifest" in resource:
                 logger.debug('resource["manifest"]: {}'.format(resource["manifest"]))
-                logger.debug(
-                    "resource[manifest]: {}".format(type(resource["manifest"]))
-                )
-                logger.debug(
-                    "resource[manifest][0]: {}".format(type(resource["manifest"][0]))
-                )
+                # logger.debug(
+                #     "resource[manifest]: {}".format(type(resource["manifest"]))
+                # )
+                # logger.debug(
+                #     "resource[manifest][0]: {}".format(type(resource["manifest"][0]))
+                # )
 
             # NOTE manifest.txt files do not have 'dublin_core' or
             # 'version' keys.
+            # TODO Handle manifest.json which has different fields.
             if (
                 "resource_manifest_type" in resource
                 and resource["resource_manifest_type"] == "yaml"
@@ -390,8 +413,16 @@ class DocumentGenerator(object):
     #             projects.append(p)
     #     return sorted(projects, key=lambda k: k["sort"])
 
+    # TODO Handle manifest.yaml, manifest.txt, and manifest.json
+    # formats - they each have different structure and keys.
     def get_book_projects(self, resource: Dict) -> List[Dict[Any, Any]]:
         projects: List[Dict[Any, Any]] = []
+        # TODO
+        # if resource["resource_manifest_type"] == "yaml" and (
+        #     "manifest" not in resource or "projects" not in resouce["manifest"]
+        # ):
+        #     return projects
+        # if resource["resource_manifest_type"] == "txt" and ("manifest" not in resource or "projects" not in resouce["manifest"]):
         if (
             "manifest" not in resource  # and not resource["manifest"]
             # not self.manifest
