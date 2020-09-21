@@ -56,11 +56,10 @@ def document_endpoint():
     finally:
         app.logger.info("Successfully reified json")
 
-    lookup_svc = ResourceJsonLookup()
+    # lookup_svc = ResourceJsonLookup()
 
-    resources = payload["resources"]
-    resource_urls = []
-    for resource in resources:
+    # resource_urls = []
+    for resource in payload["resources"]:
         if (
             resource["resource_code"] is not None
             and not resource["resource_code"].strip()
@@ -68,10 +67,10 @@ def document_endpoint():
             resource["resource_code"] = None
         # app.logger.info("in document_endpoint, resource: {}".format(resource))
         logger.info("resource: {}".format(resource))
-        resource_urls.append(lookup_svc.lookup(resource))
+        # resource_urls.append(lookup_svc.lookup(resource))
 
     # app.logger.info("resource_urls: {}".format(resource_urls))
-    logger.info("resource_urls: {}".format(resource_urls))
+    # logger.info("resource_urls: {}".format(resource_urls))
 
     # logger.info("resources: {}".format(resources))
 
@@ -79,10 +78,11 @@ def document_endpoint():
     # indirection. That layer of indirection will come in handy for
     # testing and provide more flexibility to API changes.
     # Hand off resource object to domain layer
-    document_generator = DocumentGenerator(resources)
+    document_generator = DocumentGenerator(payload["resources"])
     document_generator.run()  # eventually this will return path to finished PDF
 
-    return jsonify({"resource_urls": resource_urls}), 200
+    # return jsonify({"resource_urls": resource_urls}), 200
+    return jsonify({"finished_document_url": "yet to be done"}), 200
     # return "OK", 201
 
 
