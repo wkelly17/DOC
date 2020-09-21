@@ -244,6 +244,117 @@ answer]]
 I am not bothering myself with this at all right now, just
 mentioning it. There are plenty of other architectures that could be
 used when we get there.
+** How to run a demo for yourself
+*** Set up for demos
+1. Get the tools repo:
+
+#+begin_src shell
+git clone "https://github.com/linearcombination/tools.git" -b develop --single-branch
+#+end_src
+
+2. Install the required python packages. I use pipenv, but you can do it however you prefer:
+
+I do:
+
+#+begin_src shell
+pipenv --python /path/to/python/3.8.5 # I think this will work if you point it at any python3 though.
+#+end_src
+
+then
+
+#+begin_src shell
+pipenv shell # get in the pipenv, virtualenv, conda, whatever shell
+#+end_src
+
+then
+
+#+begin_src shell
+# You can do just this one if you don't want to bother with virtual
+# envs. With pipenv as you probably know, this will make a virtual env
+# only install of the requirements only accessible after: pipenv
+# shell.
+pip install -r requirements.txt
+#+end_src
+
+*** Run demo outside docker container (faster)
+
+**** For resource_lookup.py:
+In pipenv or virtualenv shell:
+
+#+begin_src shell
+python -m test_resource_lookup
+#+end_src
+
+You should see a lot of output resulting from the tests doing various
+lookups into the translations.json file after first acquiring it if
+needed. At the moment this runs fine without known error. But since
+this system is in flux there is always a chance I'll have accidentally
+left the develop branch (the main branch) in a state that is not
+optimal for demoing.
+
+**** For document_generator.py (used to be named export_md_to_pdf.py):
+
+#+begin_src shell
+python -m test_document_generator
+#+end_src
+
+This will go a long ways, but eventually die before generating a
+document.
+
+**** For testing the web service front end do:
+
+    1. First, run the web server
+
+#+begin_src shell
+./run_flask.sh
+#+end_src
+
+    2. In a pipenv or virtualenv shell do:
+
+#+begin_src shell
+python -m test_flask
+#+end_src
+
+This will run HTTP web client tests that exercise the web service.
+
+*** For demo inside the docker container:
+
+1a. Get the docker container source:
+
+#+begin_src shell
+git clone https://github.com/linearcombination/Interleaved_Resources_Generator
+#+end_src
+
+
+1b. cd into the container repo root dir from step 1a above.
+
+2. Symbolically link the tools directory from earlier into the root of the container repo you cloned earlier:
+
+#+begin_src shell
+ln -s /path/to/tools .
+#+end_src
+
+3. Build the container:
+
+#+begin_src shell
+./build.sh # This will take a little while to build the container. When it completes building it will automatically start the web server front end.
+#+end_src
+
+If you want to rebuild the container after a git pull do:
+
+#+begin_src shell
+docker ps -a # This will get the ID, first column, that you need to be able to remove the container for a rebuild
+docker rm ID # ID here is the ID from the previous step
+#+end_src
+
+then repeat 3 again.
+
+4. Submit client requests as before (you need to be in the tools repo root directory as before):
+
+#+begin_src shell
+python -m test_flask
+#+end_src
+
 ** (Bonus/optional material) Convenience web service endpoints for BIEL UI to call (if desired)
 A nice property for a system like this to have is a ground truth data
 source so that front end (BIEL) and back end are on same page about
