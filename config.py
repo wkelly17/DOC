@@ -49,7 +49,7 @@ def get_resource_url_level_2_jsonpath() -> str:
 def get_resource_download_format_jsonpath() -> str:
     """ The jsonpath location in TRANSLATIONS_JSON_LOCATION file where
     resource git repo may be found. """
-    return "$[?code='{}'].contents[?code='{}'].subcontents[?code={}].links[?format='Download'].url"
+    return "$[?code='{}'].contents[?code='{}'].subcontents[?code='{}'].links[?format='Download'].url"
 
 
 def get_logging_config_file_path() -> str:
