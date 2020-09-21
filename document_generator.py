@@ -539,10 +539,6 @@ class DocumentGenerator(object):
         not apparent then we are update resource as pointing to a git
         repo. """
 
-        # TODO Rewrite, this is just a first pass
-
-        # NOTE Could we just use pathlib insted of bothering with
-        # rpartition at all?
         filename: Optional[str] = url.rpartition(os.path.sep)[2]
         logger.debug("filename: {}".format(filename))
         if filename:
@@ -680,7 +676,7 @@ class DocumentGenerator(object):
         return book_chunks
 
     def preprocess_markdown(self) -> None:
-        # FIXME We'll want get_tn_markdown to do the special things it
+        # FIXME We'll want get_t*_markdown to do the special things it
         # needs to do, but we'll want to use a resource in
         # resources loop in which to dispatch.
         tn_md = ""
