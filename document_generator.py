@@ -428,7 +428,7 @@ class DocumentGenerator(object):
             # not self.manifest
             or "projects" not in resource["manifest"]
             # or "projects" not in self.manifest
-            or not resource["manifest"]["projects"]
+            # or not resource["manifest"]["projects"]
             # or not self.manifest["projects"]
         ):
             return projects
