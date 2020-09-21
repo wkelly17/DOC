@@ -552,6 +552,10 @@ class DocumentGenerator(object):
                 resource.update({"resource_file_format": "git"})
         else:
             resource.update({"resource_file_format": "git"})
+            # Git repo has an extra layer of depth directory
+            resource.update(
+                {"resource_dir": os.path.join(resource["resource_dir"], filename)}
+            )
         logger.debug(
             "resource_file_format: {}".format(resource["resource_file_format"])
         )
@@ -569,12 +573,18 @@ class DocumentGenerator(object):
 
         if resource["resource_file_format"] == "git":
             try:
-                os.chdir(resource["resource_dir"])
-                command: str = "git clone --depth=1 {}".format(url)
+                # os.chdir(resource["resource_dir"])
+                # os.chdir(filepath)
+                command: str = "git clone --depth=1 '{}' '{}'".format(url, filepath)
+                logger.debug("os.getcwd(): {}".format(os.getcwd()))
                 logger.debug("git command: {}".format(command))
                 subprocess.call(command, shell=True)
                 logger.debug("git clone succeeded.")
+                # Git repos get stored on directory deeper
+                resource.update({"resource_dir": filepath})
             except:
+                logger.debug("os.getcwd(): {}".format(os.getcwd()))
+                logger.debug("git command: {}".format(command))
                 logger.debug("git clone failed!")
         else:
             try:
