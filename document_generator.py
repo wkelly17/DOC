@@ -42,6 +42,7 @@ try:
         get_working_dir,
         get_output_dir,
         get_logging_config_file_path,
+        get_icon_url,
     )
 except:
     from .file_utils import write_file, read_file, unzip, load_yaml_object  # type: ignore
@@ -52,6 +53,7 @@ except:
         get_working_dir,
         get_output_dir,
         get_logging_config_file_path,
+        get_icon_url,
     )
 
 
@@ -463,8 +465,8 @@ class DocumentGenerator(object):
         #     ulb_url = self.get_resource_url("ulb", self.ulb_tag)
         #     self.extract_files_from_url(ulb_url)
         if not os.path.isfile(os.path.join(self.working_dir, "icon-tn.png")):
-            command = "curl -o {0}/icon-tn.png https://unfoldingword.org/assets/img/icon-tn.png".format(
-                self.working_dir
+            command = "curl -o {}/icon-tn.png {}".format(
+                self.working_dir, get_icon_url()
             )
             subprocess.call(command, shell=True)
 

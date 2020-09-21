@@ -59,3 +59,9 @@ def get_logging_config_file_path() -> str:
         return "/tools/logging_config.yaml"
     else:
         return "logging_config.yaml"
+
+
+def get_icon_url() -> str:
+    """ Get the tn-icon.png from unfolding word. """
+    return "https://unfoldingword.org/assets/img/icon-tn.png"
+    # return "https://static1.squarespace.com/static/591e003db8a79bd6e6c9ffae/t/5e306da5898d7b14b76889dd/1600444722464/?format=1500w"
