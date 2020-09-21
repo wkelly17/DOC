@@ -23,6 +23,7 @@ try:
         get_resource_url_level_2_jsonpath,
         get_resource_download_format_jsonpath,
         get_logging_config_file_path,
+        get_working_dir,
     )
 except:
     from .file_utils import load_json_object
@@ -34,6 +35,7 @@ except:
         get_resource_url_level_2_jsonpath,
         get_resource_download_format_jsonpath,
         get_logging_config_file_path,
+        get_working_dir,
     )
 
 import yaml
@@ -65,7 +67,9 @@ values from it using jsonpath. """
 
     def __init__(
         self,
-        working_dir: Optional[str] = "./",  # This is in /tools in the Docker container
+        working_dir: Optional[
+            str
+        ] = get_working_dir(),  # This is in /tools in the Docker container
         json_file_url: str = get_translations_json_location(),
     ) -> None:
 

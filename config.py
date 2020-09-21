@@ -7,7 +7,7 @@ def get_working_dir() -> str:
     acquired. IRG_WORKING_DIR is provided when running in a docker
     environment. Otherwise a suitable temporary local directory is
     generated automatically. """
-    dir = os.environ.get("IRG_WORKING_DIR")
+    dir = os.environ.get("IRG_WORKING_DIR", "./working/temp")
     return dir
 
 
