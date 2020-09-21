@@ -212,107 +212,106 @@ class DocumentGenerator(object):
         #     read_csv_as_dicts(os.path.join(self.working_dir, "tw_refs.csv"))
         # )  # FIXME Per resource, not per DocumentGenerator instance.
 
+    # NOTE If resource["resource_code"] is None then we should not try
+    # for manifest.yaml. Previously, resources only came from git
+    # repos for English which always included the manifest.yaml file.
+    # The previous assumption was that tn, tw, tq, ta, etc. resources
+    # would always be wanted (because they were available for English
+    # and this was an English resource only app). But now a user by
+    # way of a request for resources can combine independently any
+    # resources. So, this will change a lot of the code below and
+    # throughout this system. Further retrieving the resource, even if
+    # it is a zip file, does not necessarily contain a manifest.yaml
+    # file if it is fetched from the location provided in
+    # translations.json which is different than the git repo for same.
+    def initialize_manifest(self, resource: Dict) -> None:
+        """ Discover the manifest in the resource's files and load it
+        into a dictionary stored in the resource. """
+
+        logger.debug(
+            "os.getcwd(): {}, {} exists: {}, {} exists: {}, {} exists: {}".format(
+                os.getcwd(),
+                os.path.join(resource["resource_dir"], "manifest.yaml"),
+                os.path.isfile(os.path.join(resource["resource_dir"], "manifest.yaml")),
+                os.path.join(resource["resource_dir"], "manifest.txt"),
+                os.path.isfile(os.path.join(resource["resource_dir"], "manifest.txt")),
+                os.path.join(resource["resource_dir"], "manifest.json"),
+                os.path.isfile(os.path.join(resource["resource_dir"], "manifest.json")),
+                resource["resource_dir"],
+            )
+        )
+        if os.path.isfile(os.path.join(resource["resource_dir"], "manifest.yaml")):
+            resource.update(
+                {
+                    "manifest": load_yaml_object(
+                        os.path.join(resource["resource_dir"], "manifest.yaml")
+                        # os.path.join(self.tn_dir, "manifest.yaml")
+                    )
+                }
+            )
+            resource.update({"resource_manifest_type": "yaml"})
+        elif os.path.isfile(os.path.join(resource["resource_dir"], "manifest.txt")):
+            resource.update(
+                {
+                    "manifest": load_yaml_object(
+                        os.path.join(resource["resource_dir"], "manifest.txt")
+                        # os.path.join(self.tn_dir, "manifest.yaml")
+                    )
+                }
+            )
+            resource.update({"resource_manifest_type": "txt"})
+        elif os.path.isfile(os.path.join(resource["resource_dir"], "manifest.json")):
+            resource.update(
+                {
+                    "manifest": load_json_object(
+                        os.path.join(resource["resource_dir"], "manifest.json")
+                        # os.path.join(self.tn_dir, "manifest.yaml")
+                    )
+                }
+            )
+            resource.update({"resource_manifest_type": "json"})
+        else:
+            logger.debug("manifest file does not exist for this resource.")
+
+        # self.manifest = load_yaml_object(os.path.join(self.tn_dir, "manifest.yaml"))
+
+        if "manifest" in resource:
+            logger.debug('resource["manifest"]: {}'.format(resource["manifest"]))
+            # logger.debug(
+            #     "resource[manifest]: {}".format(type(resource["manifest"]))
+            # )
+            # logger.debug(
+            #     "resource[manifest][0]: {}".format(type(resource["manifest"][0]))
+            # )
+
+        # NOTE manifest.txt files do not have 'dublin_core' or
+        # 'version' keys.
+        # TODO Handle manifest.json which has different fields.
+        if (
+            "resource_manifest_type" in resource
+            and resource["resource_manifest_type"] == "yaml"
+        ):
+            resource.update(
+                {"version": resource["manifest"][0]["dublin_core"]["version"]}
+            )
+            # self.version = self.manifest["dublin_core"]["version"]
+            resource.update({"issued": resource["manifest"]["dublin_core"]["issued"]})
+            # self.issued = self.manifest["dublin_core"]["issued"]
+
     def run(self) -> None:
-        self.setup_resource_files()
+        self.get_resource_files()
         for resource in self.resources:
             resource.update({"bad_links": {}})
             resource.update({"usfm_chunks": {}})
 
-            # NOTE If resource["resource_code"] is None then we should
-            # not try for manifest.yaml. Previously, resources only
-            # came from git repos for English which always included
-            # the manifest.yaml file. The previous assumption was that
-            # tn, tw, tq, ta, etc. resources would always be wanted
-            # (because they were available for English and this was an
-            # English resource only app). But now a user by way of a
-            # request for resources can combine independently any
-            # resources. So, this will change a lot of the code below
-            # and throughout this system. Further retrieving the
-            # resource, even if it is a zip file, does not necessarily
-            # contain a manifest.yaml file if it is fetched from the
-            # location provided in translations.json which is
-            # different than the git repo for same.
+            self.initialize_manifest(resource)
 
-            logger.debug(
-                "os.getcwd(): {}, {} exists: {}, {} exists: {}, {} exists: {}".format(
-                    os.getcwd(),
-                    os.path.join(resource["resource_dir"], "manifest.yaml"),
-                    os.path.isfile(
-                        os.path.join(resource["resource_dir"], "manifest.yaml")
-                    ),
-                    os.path.join(resource["resource_dir"], "manifest.txt"),
-                    os.path.isfile(
-                        os.path.join(resource["resource_dir"], "manifest.txt")
-                    ),
-                    os.path.join(resource["resource_dir"], "manifest.json"),
-                    os.path.isfile(
-                        os.path.join(resource["resource_dir"], "manifest.json")
-                    ),
-                    resource["resource_dir"],
-                )
-            )
-            if os.path.isfile(os.path.join(resource["resource_dir"], "manifest.yaml")):
-                resource.update(
-                    {
-                        "manifest": load_yaml_object(
-                            os.path.join(resource["resource_dir"], "manifest.yaml")
-                            # os.path.join(self.tn_dir, "manifest.yaml")
-                        )
-                    }
-                )
-                resource.update({"resource_manifest_type": "yaml"})
-            elif os.path.isfile(os.path.join(resource["resource_dir"], "manifest.txt")):
-                resource.update(
-                    {
-                        "manifest": load_yaml_object(
-                            os.path.join(resource["resource_dir"], "manifest.txt")
-                            # os.path.join(self.tn_dir, "manifest.yaml")
-                        )
-                    }
-                )
-                resource.update({"resource_manifest_type": "txt"})
-            elif os.path.isfile(
-                os.path.join(resource["resource_dir"], "manifest.json")
-            ):
-                resource.update(
-                    {
-                        "manifest": load_json_object(
-                            os.path.join(resource["resource_dir"], "manifest.json")
-                            # os.path.join(self.tn_dir, "manifest.yaml")
-                        )
-                    }
-                )
-                resource.update({"resource_manifest_type": "json"})
-            else:
-                logger.debug("manifest file does not exist for this resource.")
-
-            # self.manifest = load_yaml_object(os.path.join(self.tn_dir, "manifest.yaml"))
-
-            if "manifest" in resource:
-                logger.debug('resource["manifest"]: {}'.format(resource["manifest"]))
-                # logger.debug(
-                #     "resource[manifest]: {}".format(type(resource["manifest"]))
-                # )
-                # logger.debug(
-                #     "resource[manifest][0]: {}".format(type(resource["manifest"][0]))
-                # )
-
-            # NOTE manifest.txt files do not have 'dublin_core' or
-            # 'version' keys.
-            # TODO Handle manifest.json which has different fields.
-            if (
-                "resource_manifest_type" in resource
-                and resource["resource_manifest_type"] == "yaml"
-            ):
-                resource.update(
-                    {"version": resource["manifest"][0]["dublin_core"]["version"]}
-                )
-                # self.version = self.manifest["dublin_core"]["version"]
-                resource.update(
-                    {"issued": resource["manifest"]["dublin_core"]["issued"]}
-                )
-                # self.issued = self.manifest["dublin_core"]["issued"]
-
+            # TODO When we acquire resources that are single USFM
+            # files, they do not have an associated manifest file and
+            # therefore do not have associated projects in the sense
+            # expected below. Thus, we need to detect the case when
+            # the resource_file_format is USFM and handle it
+            # differently than below.
             projects: List[Dict[Any, Any]] = self.get_book_projects(resource)
             for p in projects:
                 project: Dict[
@@ -416,6 +415,9 @@ class DocumentGenerator(object):
     # TODO Handle manifest.yaml, manifest.txt, and manifest.json
     # formats - they each have different structure and keys.
     def get_book_projects(self, resource: Dict) -> List[Dict[Any, Any]]:
+        """ Return the sorted list of projects that are found in the
+        manifest file for the resource. """
+        logger.info("start...")
         projects: List[Dict[Any, Any]] = []
         # TODO
         # if resource["resource_manifest_type"] == "yaml" and (
@@ -431,6 +433,8 @@ class DocumentGenerator(object):
             # or not resource["manifest"]["projects"]
             # or not self.manifest["projects"]
         ):
+
+            logger.info("empty projects check is true...")
             return projects
         for p in resource["manifest"]["projects"]:
             # for p in self.manifest["projects"]:
@@ -446,7 +450,7 @@ class DocumentGenerator(object):
     #         self.lang_code, resource, tag
     #     )
 
-    def setup_resource_files(self) -> None:
+    def get_resource_files(self) -> None:
         """ Lookup each resource's URL, download or clone the
         resource, postprocess the downloaded resource by unzipping if
         necessary, into the appropriate directory for later

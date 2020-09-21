@@ -57,9 +57,11 @@ def main():
     payload["resources"] = [
         {"lang_code": "am", "resource_type": "ulb", "resource_code": ""},
         {"lang_code": "erk-x-erakor", "resource_type": "reg", "resource_code": "eph"},
-        # {"lang_code": "ml", "resource_type": "ulb", "resource_code": "tit"},
+        {"lang_code": "en", "resource_type": "ulb-wa", "resource_code": "gen"},
+        {"lang_code": "en", "resource_type": "tn-wa", "resource_code": "gen"},
+        {"lang_code": "ml", "resource_type": "ulb", "resource_code": "tit"},
         # {"lang_code": "ml", "resource_type": "obs-tq", "resource_code": ""},
-        # {"lang_code": "mr", "resource_type": "udb", "resource_code": "mrk"},
+        {"lang_code": "mr", "resource_type": "udb", "resource_code": "mrk"},
     ]
 
     document_generator = DocumentGenerator(payload["resources"])
