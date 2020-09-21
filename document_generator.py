@@ -528,7 +528,7 @@ class DocumentGenerator(object):
             try:
                 os.mkdir(resource["resource_dir"])
                 logger.debug("Created directory {}".format(resource["resource_dir"]))
-            except Exception:
+            except:
                 logger.exception(
                     "Failed to create directory {}".format(resource["resource_dir"])
                 )
