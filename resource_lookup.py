@@ -25,6 +25,7 @@ try:
         get_logging_config_file_path,
         get_working_dir,
     )
+    from resource_utils import resource_has_markdown_files
 except:
     from .file_utils import load_json_object
     from .url_utils import download_file
@@ -37,6 +38,7 @@ except:
         get_logging_config_file_path,
         get_working_dir,
     )
+    from .resource_utils import resource_has_markdown_files
 
 import yaml
 import logging
@@ -210,13 +212,12 @@ values from it using jsonpath. """
                     # the repo URL
                     urls = [self._parse_repo_url_from_json_url(urls[0])]
 
+            # NOTE A defining property of the next conditional is that
+            # the resource_type is 'usfm', not that it is not in
+            # 'reg', 'ulb', 'udb'.
             if (urls is not None and len(urls) == 0) or resource[
                 "resource_type"
-            ] not in [
-                "reg",
-                "ulb",
-                "udb",
-            ]:  # Resource not found, next try to get from download CDN/URL.
+            ] == "usfm":  # Resource not found, next try to get from download CDN/URL.
                 # NOTE Many languages have a git repo found by
                 # format='Download' that is parallel to the
                 # individual, per book, USFM files and in that case
@@ -238,8 +239,28 @@ values from it using jsonpath. """
                     resource["resource_code"],
                 )
                 urls = self._lookup(jsonpath_str)
+            # FIXME THIS IS WHERE WE ARE
+            if (
+                (urls is not None and len(urls) == 0)
+                or resource["resource_type"]
+                and resource_has_markdown_files(resource)
+            ):
+                jsonpath_str = get_resource_url_level_1_jsonpath().format(
+                    resource["lang_code"], resource["resource_type"],
+                )
+                urls = self._lookup(jsonpath_str)
+                if (
+                    urls is not None and len(urls) == 0
+                ):  # For the language in question, the resource is apparently at a different location which we try next.
+                    jsonpath_str = get_resource_url_level_2_jsonpath().format(
+                        resource["lang_code"], resource["resource_type"],
+                    )
+                    urls = self._lookup(jsonpath_str)
         else:  # User has not specified a resource_code and thus has
-            # not specified a particular book of the bible.
+            # not specified a particular book of the bible. Some
+            # languages, e.g., code='as', have all of their
+            # translation notes, 'tn', for all chapters in all books
+            # in one zip file.
             jsonpath_str = get_resource_url_level_1_jsonpath().format(
                 resource["lang_code"], resource["resource_type"],
             )

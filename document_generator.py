@@ -24,7 +24,6 @@ import subprocess
 import csv
 from glob import glob
 import yaml
-import pathlib
 
 
 import markdown  # type: ignore
@@ -35,25 +34,37 @@ from usfm_tools.transform import UsfmTransform  # type: ignore
 # Handle running in container or as standalone script
 try:
     from file_utils import write_file, read_file, unzip, load_yaml_object, load_json_object  # type: ignore
-    from url_utils import download_file  # type: ignore
-    from bible_books import BOOK_NUMBERS  # type: ignore
+    from bible_books import BOOK_NUMBERS, BOOK_NAMES  # type: ignore
     from resource_lookup import ResourceJsonLookup
     from config import (
         get_working_dir,
         get_output_dir,
         get_logging_config_file_path,
         get_icon_url,
+        get_markdown_resource_types,
+        get_tex_format_location,
+        get_tex_template_location,
+    )
+    from resource_utils import (
+        resource_has_markdown_files,
+        files_from_url,
     )
 except:
     from .file_utils import write_file, read_file, unzip, load_yaml_object, load_json_object  # type: ignore
-    from .url_utils import download_file  # type: ignore
-    from .bible_books import BOOK_NUMBERS  # type: ignore
+    from .bible_books import BOOK_NUMBERS, BOOK_NAMES  # type: ignore
     from .resource_lookup import ResourceJsonLookup
     from .config import (
         get_working_dir,
         get_output_dir,
         get_logging_config_file_path,
         get_icon_url,
+        get_markdown_resource_types,
+        get_tex_format_location,
+        get_tex_template_location,
+    )
+    from .resource_utils import (
+        resource_has_markdown_files,
+        files_from_url,
     )
 
 
@@ -227,25 +238,55 @@ class DocumentGenerator(object):
     def initialize_manifest(self, resource: Dict) -> None:
         """ Discover the manifest in the resource's files and load it
         into a dictionary stored in the resource. """
-
-        logger.debug(
-            "os.getcwd(): {}, {} exists: {}, {} exists: {}, {} exists: {}".format(
-                os.getcwd(),
-                os.path.join(resource["resource_dir"], "manifest.yaml"),
-                os.path.isfile(os.path.join(resource["resource_dir"], "manifest.yaml")),
-                os.path.join(resource["resource_dir"], "manifest.txt"),
-                os.path.isfile(os.path.join(resource["resource_dir"], "manifest.txt")),
-                os.path.join(resource["resource_dir"], "manifest.json"),
-                os.path.isfile(os.path.join(resource["resource_dir"], "manifest.json")),
-                resource["resource_dir"],
+        if "resource_filename" in resource:
+            logger.debug(
+                "resource['resource_filename']: {}".format(
+                    resource["resource_filename"]
+                )
             )
-        )
+        # logger.debug(
+        #     "os.getcwd(): {}, {} at normal location exists: {}, {} at alternative location exists: {}, {} exists: {}, {} exists: {}".format(
+        #         os.getcwd(),
+        #         os.path.join(resource["resource_dir"], "manifest.yaml"),
+        #         os.path.isfile(os.path.join(resource["resource_dir"], "manifest.yaml")),
+        #         os.path.join(resource["resource_dir"], "manifest.yaml"),
+        #         os.path.isfile(os.path.join(resource["resource_dir"], "manifest.yaml")),
+        #         os.path.join(resource["resource_dir"], "manifest.txt"),
+        #         os.path.isfile(os.path.join(resource["resource_dir"], "manifest.txt")),
+        #         os.path.join(resource["resource_dir"], "manifest.json"),
+        #         os.path.isfile(os.path.join(resource["resource_dir"], "manifest.json")),
+        #         resource["resource_dir"],
+        #     )
+        # )
         if os.path.isfile(os.path.join(resource["resource_dir"], "manifest.yaml")):
             resource.update(
                 {
                     "manifest": load_yaml_object(
                         os.path.join(resource["resource_dir"], "manifest.yaml")
                         # os.path.join(self.tn_dir, "manifest.yaml")
+                    )
+                }
+            )
+            resource.update({"resource_manifest_type": "yaml"})
+        # Handle alternative location for manifest.yaml: nested
+        # one more directory deep
+        elif os.path.isfile(
+            os.path.join(
+                resource["resource_dir"],
+                "{}_{}".format(resource["lang_code"], resource["resource_type"]),
+                "manifest.yaml",
+            )
+        ):
+            resource.update(
+                {
+                    "manifest": load_yaml_object(
+                        os.path.join(
+                            resource["resource_dir"],
+                            "{}_{}".format(
+                                resource["lang_code"], resource["resource_type"]
+                            ),
+                            "manifest.yaml",
+                        )  # os.path.join(self.tn_dir, "manifest.yaml")
                     )
                 }
             )
@@ -291,9 +332,20 @@ class DocumentGenerator(object):
             "resource_manifest_type" in resource
             and resource["resource_manifest_type"] == "yaml"
         ):
-            resource.update(
-                {"version": resource["manifest"][0]["dublin_core"]["version"]}
-            )
+            if (
+                0 in resource["manifest"]
+                and resource["manifest"][0]["dublin_core"]["version"] is not None
+            ):
+                resource.update(
+                    {"version": resource["manifest"][0]["dublin_core"]["version"]}
+                )
+            elif (
+                0 not in resource["manifest"]
+                and resource["manifest"]["dublin_core"]["version"] is not None
+            ):
+                resource.update(
+                    {"version": resource["manifest"]["dublin_core"]["version"]}
+                )
             # self.version = self.manifest["dublin_core"]["version"]
             resource.update({"issued": resource["manifest"]["dublin_core"]["issued"]})
             # self.issued = self.manifest["dublin_core"]["issued"]
@@ -306,6 +358,98 @@ class DocumentGenerator(object):
 
             self.initialize_manifest(resource)
 
+            if (
+                "resource_file_format" in resource
+                and resource["resource_file_format"] == "usfm"
+            ):
+                logger.debug(
+                    "resource['resource_file_format']: {}".format(
+                        resource["resource_file_format"]
+                    )
+                )
+                # USFM book files have form 01-GEN or GEN. So we lowercase
+                # then split on hyphen and get second component to get
+                # the book id.
+                if "-" in resource["resource_filename"]:
+                    book_id = resource["resource_filename"].split("-")[1]
+                else:
+                    book_id = resource["resource_filename"]
+                resource.update({"book_id": book_id.lower()})
+                logger.debug("book_id for usfm file: {}".format(resource["book_id"]))
+                # Update book title
+                resource.update({"book_title": BOOK_NAMES[resource["resource_code"]]})
+                resource.update({"book_number": BOOK_NUMBERS[resource["book_id"]]})
+                logger.debug(
+                    "book_number for usfm file: {}".format(resource["book_number"])
+                )
+                # Update filename_base
+                resource.update(
+                    {
+                        "filename_base": "{}_{}_{}-{}".format(
+                            resource["lang_code"],
+                            resource["resource_type"],
+                            resource["book_number"].zfill(2),
+                            resource["book_id"].upper(),
+                        )
+                    }
+                )
+                # FIXME Should we be using resource["filename_base"]
+                # or resource["resource_dir"] combined with
+                # resource["resource_filename"]?
+                logger.debug("filename_base: {}".format(resource["filename_base"]))
+                # Get USFM chunks
+                # Create HTML from Markdown
+                # Convert HTML to PDF
+                if not os.path.isfile(
+                    os.path.join(
+                        self.output_dir, "{}.html".format(resource["filename_base"])
+                    )
+                ):
+
+                    # if not os.path.isfile(
+                    #     os.path.join(self.output_dir, "{0}.html".format(self.filename_base))
+                    # ):
+                    # FIXME Only get USFM if we've resource has
+                    #     resource_type of USFM or if
+                    #     resource_file_format is git.
+                    if resource["resource_file_format"] in ["git", "usfm"]:
+                        logger.info("Getting USFM chunks...")
+                        resource.update({"usfm_chunks": self.get_usfm_chunks(resource)})
+                        # self.usfm_chunks = self.get_usfm_chunks()
+
+                    # FIXME This assumes that there will be a markdown
+                    # resource. Under the new document request system
+                    # it is possible that a user will not request any
+                    # resources that have markdown files, e.g., if the
+                    # user only requests USFM.
+                    logger.debug(
+                        "resource has markdown files: {}".format(
+                            resource_has_markdown_files(resource)
+                        )
+                    )
+                    if resource_has_markdown_files(resource) and not os.path.isfile(
+                        os.path.join(
+                            self.output_dir, "{}.md".format(resource["filename_base"])
+                        )
+                    ):
+                        # if not os.path.isfile(
+                        #     os.path.join(
+                        #         self.output_dir, "{0}.md".format(self.filename_base)
+                        #     )
+                        # ):
+                        logger.info("Processing Markdown...")
+                        self.preprocess_markdown()
+                        logger.info("Converting MD to HTML...")
+                        self.convert_md2html(resource)
+                if not os.path.isfile(
+                    os.path.join(
+                        self.output_dir, "{}.pdf".format(resource["filename_base"])
+                    )
+                    # os.path.join(self.output_dir, "{}.pdf".format(self.filename_base))
+                ):
+                    logger.info("Generating PDF...")
+                    self.convert_html2pdf(resource)
+
             # TODO When we acquire resources that are single USFM
             # files, they do not have an associated manifest file and
             # therefore do not have associated projects in the sense
@@ -313,6 +457,7 @@ class DocumentGenerator(object):
             # the resource_file_format is USFM and handle it
             # differently than below.
             projects: List[Dict[Any, Any]] = self.get_book_projects(resource)
+            logger.debug("book projects: {}".format(projects))
             for p in projects:
                 project: Dict[
                     Any, Any
@@ -325,6 +470,8 @@ class DocumentGenerator(object):
                 # self.book_title = p["title"].replace(" translationNotes", "")
                 resource.update({"book_number": BOOK_NUMBERS[resource["book_id"]]})
                 # self.book_number = BOOK_NUMBERS[self.book_id]
+                # TODO This likely needs to change because of how we
+                # build resource_dir
                 resource.update(
                     {
                         "filename_base": "{}_{}_{}-{}_v{}".format(
@@ -368,9 +515,11 @@ class DocumentGenerator(object):
                     # if not os.path.isfile(
                     #     os.path.join(self.output_dir, "{0}.html".format(self.filename_base))
                     # ):
-                    logger.debug("Getting USFM chunks...")
-                    resource.update({"usfm_chunks": self.get_usfm_chunks(resource)})
-                    # self.usfm_chunks = self.get_usfm_chunks()
+
+                    if resource["resource_file_format"] in ["git", "usfm"]:
+                        logger.debug("Getting USFM chunks...")
+                        resource.update({"usfm_chunks": self.get_usfm_chunks(resource)})
+                        # self.usfm_chunks = self.get_usfm_chunks()
 
                     if not os.path.isfile(
                         os.path.join(
@@ -384,8 +533,8 @@ class DocumentGenerator(object):
                         # ):
                         logger.debug("Processing Markdown...")
                         self.preprocess_markdown()
-                    logger.debug("Converting MD to HTML...")
-                    self.convert_md2html(resource)
+                        logger.debug("Converting MD to HTML...")
+                        self.convert_md2html(resource)
                 if not os.path.isfile(
                     os.path.join(
                         self.output_dir, "{}.pdf".format(resource["filename_base"])
@@ -417,6 +566,7 @@ class DocumentGenerator(object):
     def get_book_projects(self, resource: Dict) -> List[Dict[Any, Any]]:
         """ Return the sorted list of projects that are found in the
         manifest file for the resource. """
+
         logger.info("start...")
         projects: List[Dict[Any, Any]] = []
         # TODO
@@ -438,7 +588,13 @@ class DocumentGenerator(object):
             return projects
         for p in resource["manifest"]["projects"]:
             # for p in self.manifest["projects"]:
-            if not resource["books"] or p["identifier"] in resource["books"]:
+            # NOTE You can have a manifest.yaml file and not have a
+            # resource_code specified, e.g., lang_code='as',
+            # resource_type='tn', resource_code=''
+            if (
+                resource["resource_code"] is not None
+                and p["identifier"] in resource["resource_code"]
+            ):
                 # if not self.books or p["identifier"] in self.books:
                 if not p["sort"]:
                     p["sort"] = BOOK_NUMBERS[p["identifier"]]
@@ -475,11 +631,12 @@ class DocumentGenerator(object):
             # TODO Fix return type of lookup. I don't think it needs
             # to have Optional in it.
             urls: List[Optional[str]] = self.lookup_svc.lookup(resource)
+            logger.debug("urls: {}".format(urls))
             if urls and len(urls) > 0:
                 resource_url: Optional[str] = urls[0]
                 logger.debug("resource['resource_url']: {}".format(resource_url))
                 resource.update({"resource_url": resource_url})
-                self.files_from_url(resource_url, resource)
+                files_from_url(resource_url, resource)
 
         # if not self.tn_dir:
         #     tn_url = self.get_resource_url("tn", self.tn_tag)
@@ -520,163 +677,73 @@ class DocumentGenerator(object):
     #     finally:
     #         logger.debug("finished.")
 
-    def prepare_resource_directory(self, resource: Dict) -> None:
-        """ If it doesn't exist yet, create the directory for the
-        resource where it will be downloaded to. """
-
-        logger.debug("os.getcwd(): {}".format(os.getcwd()))
-        if not os.path.exists(resource["resource_dir"]):
-            logger.debug(
-                "About to create directory {}".format(resource["resource_dir"])
-            )
-            try:
-                os.mkdir(resource["resource_dir"])
-                logger.debug("Created directory {}".format(resource["resource_dir"]))
-            except:
-                logger.exception(
-                    "Failed to create directory {}".format(resource["resource_dir"])
-                )
-                # raise  # reraise the error
-
-    def resource_file_format(self, url: str, resource: Dict) -> None:
-        """ Determine the type of file being acquired. If a type is
-        not apparent then we are update resource as pointing to a git
-        repo. """
-
-        filename: Optional[str] = url.rpartition(os.path.sep)[2]
-        logger.debug("filename: {}".format(filename))
-        if filename:
-            suffix: Optional[str] = pathlib.Path(filename).suffix
-            if suffix:
-                resource.update({"resource_file_format": suffix.lower().split(".")[1]})
-            else:
-                resource.update({"resource_file_format": "git"})
-        else:
-            resource.update({"resource_file_format": "git"})
-            # Git repo has an extra layer of depth directory
-            resource.update(
-                {"resource_dir": os.path.join(resource["resource_dir"], filename)}
-            )
-        logger.debug(
-            "resource_file_format: {}".format(resource["resource_file_format"])
-        )
-
-    def acquire_resource(self, url: str, resource: Dict) -> None:
-        """ Download or git clone resource and unzip resulting file if it
-        is a zip file. """
-
-        logger.debug("url: {}".format(url))
-
-        filepath = os.path.join(
-            resource["resource_dir"], url.rpartition(os.path.sep)[2]
-        )
-        logger.debug("Using file location: {}".format(filepath))
-
-        if resource["resource_file_format"] == "git":
-            try:
-                # os.chdir(resource["resource_dir"])
-                # os.chdir(filepath)
-                command: str = "git clone --depth=1 '{}' '{}'".format(url, filepath)
-                logger.debug("os.getcwd(): {}".format(os.getcwd()))
-                logger.debug("git command: {}".format(command))
-                subprocess.call(command, shell=True)
-                logger.debug("git clone succeeded.")
-                # Git repos get stored on directory deeper
-                resource.update({"resource_dir": filepath})
-            except:
-                logger.debug("os.getcwd(): {}".format(os.getcwd()))
-                logger.debug("git command: {}".format(command))
-                logger.debug("git clone failed!")
-        else:
-            try:
-                logger.debug("Downloading {0}...".format(url))
-                download_file(url, filepath)
-            finally:
-                logger.debug("downloading finished.")
-
-        if resource["resource_file_format"] == "zip":
-            try:
-                logger.debug(
-                    "Unzipping {} into {}...".format(filepath, resource["resource_dir"])
-                )
-                unzip(filepath, resource["resource_dir"])
-            finally:
-                logger.debug("unzipping finished.")
-
-    def files_from_url(self, url: str, resource: Dict) -> None:
-        """ Download and unzip the zip file (if the file is a zipped
-        resource) pointed to by url to a directory located at
-        resource['resource_dir']. """
-
-        self.prepare_resource_directory(resource)
-
-        # TODO Better naming or even more likely: move this method to
-        # a dedicated class for resource acquisition in
-        # resource_lookup.py file.
-        self.resource_file_format(url, resource)
-        self.acquire_resource(url, resource)
-
+    # FIXME Make this work for new multiple resources system.
     def get_usfm_chunks(self, resource: Dict) -> Dict:
         book_chunks: dict = {}
-        for resource_tmp in ["udb", "ulb"]:
-            book_chunks[resource_tmp] = {}
+        # for resource_tmp in ["udb", "ulb"]:
+        #     book_chunks[resource_tmp] = {}
 
-            bible_dir = getattr(self, "{}_dir".format(resource_tmp))
-            usfm = read_file(
-                os.path.join(
-                    bible_dir,
-                    "{}-{}.usfm".format(
-                        BOOK_NUMBERS[resource["book_id"]],
-                        resource["book_id"].upper()
-                        # BOOK_NUMBERS[self.book_id], self.book_id.upper()
-                    ),
-                ),
-                "utf-8",
-            )
+        bible_dir = resource["resource_dir"]
+        # bible_dir = getattr(self, "{}_dir".format(resource_tmp))
+        usfm = read_file(
+            os.path.join("{}/{}.usfm".format(bible_dir, resource["resource_filename"])),
+            "utf-8",
+        )
+        # usfm = read_file(
+        #     os.path.join(
+        #         bible_dir,
+        #         "{}-{}.usfm".format(
+        #             BOOK_NUMBERS[resource["book_id"]],
+        #             resource["book_id"].upper()
+        #             # BOOK_NUMBERS[self.book_id], self.book_id.upper()
+        #         ),
+        #     ),
+        #     "utf-8",
+        # )
 
-            chunks = re.compile(r"\\s5\s*\n*").split(usfm)
+        chunks = re.compile(r"\\s5\s*\n*").split(usfm)
 
-            # Break chunks into verses
-            chunks_per_verse = []
-            for chunk in chunks:
-                pending_chunk = None
-                for line in chunk.splitlines(True):
-                    # If this is a new verse and there's a pending chunk,
-                    # finish it and start a new one.
-                    if re.search(r"\\v", line) and pending_chunk:
-                        chunks_per_verse.append(pending_chunk)
-                        pending_chunk = None
-                    pending_chunk = pending_chunk + line if pending_chunk else line
-                # If there's a pending chunk, finish it.
-                if pending_chunk:
+        # Break chunks into verses
+        chunks_per_verse = []
+        for chunk in chunks:
+            pending_chunk = None
+            for line in chunk.splitlines(True):
+                # If this is a new verse and there's a pending chunk,
+                # finish it and start a new one.
+                if re.search(r"\\v", line) and pending_chunk:
                     chunks_per_verse.append(pending_chunk)
-            chunks = chunks_per_verse
+                    pending_chunk = None
+                pending_chunk = pending_chunk + line if pending_chunk else line
+            # If there's a pending chunk, finish it.
+            if pending_chunk:
+                chunks_per_verse.append(pending_chunk)
+        chunks = chunks_per_verse
 
-            header = chunks[0]
-            book_chunks[resource_tmp]["header"] = header
-            for chunk in chunks[1:]:
-                if not chunk.strip():
-                    continue
-                c_search = re.search(
-                    r"\\c[\u00A0\s](\d+)", chunk
-                )  # \u00A0 no break space
-                if c_search:
-                    chapter = c_search.group(1)
-                verses = re.findall(r"\\v[\u00A0\s](\d+)", chunk)
-                if not verses:
-                    continue
-                first_verse = verses[0]
-                last_verse = verses[-1]
-                if chapter not in book_chunks[resource_tmp]:
-                    book_chunks[resource_tmp][chapter] = {"chunks": []}
-                data = {
-                    "usfm": chunk,
-                    "first_verse": first_verse,
-                    "last_verse": last_verse,
-                    "verses": verses,
-                }
-                book_chunks[resource_tmp][chapter][first_verse] = data
-                book_chunks[resource_tmp][chapter]["chunks"].append(data)
+        header = chunks[0]
+        book_chunks["header"] = header
+        for chunk in chunks[1:]:
+            if not chunk.strip():
+                continue
+            c_search = re.search(r"\\c[\u00A0\s](\d+)", chunk)  # \u00A0 no break space
+            if c_search:
+                chapter = c_search.group(1)
+            verses = re.findall(r"\\v[\u00A0\s](\d+)", chunk)
+            if not verses:
+                continue
+            first_verse = verses[0]
+            last_verse = verses[-1]
+            if chapter not in book_chunks:
+                book_chunks[chapter] = {"chunks": []}
+            data = {
+                "usfm": chunk,
+                "first_verse": first_verse,
+                "last_verse": last_verse,
+                "verses": verses,
+            }
+            book_chunks[chapter][first_verse] = data
+            book_chunks[chapter]["chunks"].append(data)
+            # book_chunks[resource_tmp][chapter][first_verse] = data
+            # book_chunks[resource_tmp][chapter]["chunks"].append(data)
         return book_chunks
 
     def preprocess_markdown(self) -> None:
@@ -690,26 +757,28 @@ class DocumentGenerator(object):
         for resource in self.resources:
             # NOTE This is possible approach, but we might get sent a
             # resource_type that is not one of tn, tq, tw, ta, e.g.,
-            # obs_tn (unless of course we decide not to support).
-            # getattr(self, "get_{}_markdown".format(resource["resource_type"]))(resource)
+            # obs_tn (unless of course we decide not to support
+            # resources like obs which are usually PDF).
             # NOTE This is a yuck bit of conditional for now. WIP.
-            if resource["resource_type"] == "tn":
+            if resource["resource_type"] in ["tn", "tn-wa"]:
                 tn_md = self.get_tn_markdown(resource)
-            elif resource["resource_type"] == "tq":
-                # TODO
+            elif resource["resource_type"] in ["tq", "tq-wa"]:
                 tq_md = self.get_tq_markdown(resource)
-            elif resource["resource_type"] == "tw":
-                # TODO
+            elif resource["resource_type"] in ["tw", "tw-wa"]:
                 tw_md = self.get_tw_markdown(resource)
-            elif resource["resource_type"] == "ta":
-                # TODO
+            elif resource["resource_type"] in ["ta", "ta-wa"]:
                 ta_md = self.get_ta_markdown(resource)
             md = "\n\n".join([tn_md, tq_md, tw_md, ta_md])
             md = self.replace_rc_links(md, resource)
             md = fix_links(md)
+            logger.debug(
+                "About to write markdown to {}/{}".format(
+                    self.output_dir, resource["filename_base"]
+                )
+            )
             write_file(
                 os.path.join(
-                    self.output_dir, "{}.md".format(resource["filename_base"])
+                    self.output_dir, "{}.md".format(resource["filename_base"]),
                 ),
                 md
                 # os.path.join(self.output_dir, "{}.md".format(self.filename_base)), md
@@ -723,7 +792,22 @@ class DocumentGenerator(object):
 
     def get_tn_markdown(self, resource: Dict) -> str:
         # book_dir = os.path.join(self.tn_dir, resource["book_id"])
-        book_dir = os.path.join(resource["resource_dir"], resource["book_id"])
+        # TODO Is this the correct path?
+        if os.path.isdir(
+            os.path.join(
+                resource["resource_dir"],
+                "{}_{}".format(resource["lang_code"], resource["resource_type"]),
+            )
+        ):
+            book_dir = os.path.join(
+                resource["resource_dir"],
+                "{}_{}".format(resource["lang_code"], resource["resource_type"]),
+                resource["book_id"],
+            )
+        else:
+            book_dir = os.path.join(resource["resource_dir"], resource["book_id"])
+
+        logger.debug("book_dir: {}".format(book_dir))
 
         if not os.path.isdir(book_dir):
             return ""
@@ -786,18 +870,18 @@ class DocumentGenerator(object):
                     md = self.decrease_headers(
                         md, 5, 2
                     )  # bring headers of 5 or more #'s down 2
-                    id_tag = '<a id="tn-{0}-{1}-intro"/>'.format(
+                    id_tag = '<a id="tn-{}-{}-intro"/>'.format(
                         resource["book_id"], self.pad(chapter, resource)
                     )
                     md = re.compile(r"# ([^\n]+)\n").sub(
-                        r"# \1\n{0}\n".format(id_tag), md, 1
+                        r"# \1\n{}\n".format(id_tag), md, 1
                     )
-                    rc = "rc://{0}/tn/help/{1}/{2}/intro".format(
+                    rc = "rc://{}/tn/help/{}/{}/intro".format(
                         resource["lang_code"],
                         resource["book_id"],
                         self.pad(chapter, resource),
                     )
-                    anchor_id = "tn-{0}-{1}-intro".format(
+                    anchor_id = "tn-{}-{}-intro".format(
                         resource["book_id"], self.pad(chapter, resource)
                     )
                     resource["resource_data"][rc] = {
@@ -848,14 +932,14 @@ class DocumentGenerator(object):
                         # for verse in self.usfm_chunks["ulb"][chapter][first_verse][
                         "verses"
                     ]:
-                        anchors += '<a id="tn-{0}-{1}-{2}"/>'.format(
+                        anchors += '<a id="tn-{}-{}-{}"/>'.format(
                             resource["book_id"],
                             self.pad(chapter, resource),
                             self.pad(verse, resource),
                         )
-                    pre_md = "\n## {0}\n{1}\n\n".format(title, anchors)
+                    pre_md = "\n## {}\n{}\n\n".format(title, anchors)
                     # TODO localization
-                    pre_md += "### Unlocked Literal Bible\n\n[[ulb://{0}/{1}/{2}/{3}/{4}]]\n\n".format(
+                    pre_md += "### Unlocked Literal Bible\n\n[[ulb://{}/{}/{}/{}/{}]]\n\n".format(
                         resource["lang_code"],
                         resource["book_id"],
                         self.pad(chapter, resource),
@@ -864,7 +948,7 @@ class DocumentGenerator(object):
                     )
                     # TODO localization
                     pre_md += "### Translation Notes\n"
-                    md = "{0}\n{1}\n\n".format(pre_md, md)
+                    md = "{}\n{}\n\n".format(pre_md, md)
 
                     # Add Translation Words for passage
                     tw_refs = get_tw_refs(
@@ -879,11 +963,11 @@ class DocumentGenerator(object):
                         # TODO localization
                         tw_md = "### Translation Words\n\n"
                         for tw_ref in tw_refs:
-                            file_ref_md = "* [{0}](rc://en/tw/dict/bible/{1}/{2})\n".format(
+                            file_ref_md = "* [{}](rc://en/tw/dict/bible/{}/{})\n".format(
                                 tw_ref["Term"], tw_ref["Dir"], tw_ref["Ref"]
                             )
                             tw_md += file_ref_md
-                        md = "{0}\n{1}\n\n".format(md, tw_md)
+                        md = "{}\n{}\n\n".format(md, tw_md)
 
                     # If we're inside a UDB bridge, roll back to the beginning of it
                     udb_first_verse = first_verse
@@ -1408,11 +1492,24 @@ class DocumentGenerator(object):
 
         return text
 
+    # FIXME I think this needs to happen per document not per resource.
     def convert_md2html(self, resource: Dict) -> None:
+        logger.debug(
+            "About to call markdown.markdown, resource['resource_dir']: {}, resource['filename_base']: {}, resource['resource_filename']: {}".format(
+                resource["resource_dir"],
+                resource["filename_base"],
+                resource["resource_filename"],
+            )
+        )
         html = markdown.markdown(
             read_file(
-                os.path.join(
-                    self.output_dir, "{}.md".format(resource["filename_base"])
+                # os.path.join(
+                #     self.output_dir,
+                "{}/{}.md".format(
+                    resource["resource_dir"],
+                    resource["resource_filename"],
+                    # resource["resource_dir"], resource["filename_base"]
+                    #     ),
                 ),
                 # os.path.join(self.output_dir, "{}.md".format(self.filename_base)),
                 "utf-8",
@@ -1496,7 +1593,7 @@ class DocumentGenerator(object):
         revision_date = "{}-{}-{}".format(now.year, now.month, now.day)
         command = """pandoc \
 --pdf-engine="xelatex" \
---template="tools/tex/template.tex" \
+--template={8} \
 --toc \
 --toc-depth=2 \
 -V documentclass="scrartcl" \
@@ -1514,7 +1611,7 @@ class DocumentGenerator(object):
 -V fontsize="13pt" \
 -V urlcolor="Bittersweet" \
 -V linkcolor="Bittersweet" \
--H "tools/tex/format.tex" \
+-H {7} \
 -o "{3}/{5}.pdf" \
 "{3}/{5}.html"
 """.format(
@@ -1522,16 +1619,18 @@ class DocumentGenerator(object):
             # self.book_id.upper(),  # FIXME XFIXME This arg is not used
             resource["book_title"],
             # self.book_title,
-            resource["issued"],
+            resource["issued"] if "issued" in resource else "",
             # self.issued,
-            resource["version"],
+            resource["version"] if "version" in resource else "",
             # self.version,
-            resource["output_dir"],
-            # self.output_dir,
+            self.output_dir,
             self.working_dir,
+            # resource["resource_filepath"],
             resource["filename_base"],
             # self.filename_base,
             revision_date,
+            get_tex_format_location(),
+            get_tex_template_location(),
         )
         logger.debug(command)
         subprocess.call(command, shell=True)

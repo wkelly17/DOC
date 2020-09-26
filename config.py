@@ -1,4 +1,4 @@
-import typing
+from typing import List
 import os
 
 
@@ -65,3 +65,24 @@ def get_icon_url() -> str:
     """ Get the tn-icon.png from unfolding word. """
     return "https://unfoldingword.org/assets/img/icon-tn.png"
     # return "https://static1.squarespace.com/static/591e003db8a79bd6e6c9ffae/t/5e306da5898d7b14b76889dd/1600444722464/?format=1500w"
+
+
+def get_markdown_resource_types() -> List[str]:
+    """ Get the resource types that can have a Markdown file. """
+    return ["tn", "tq", "tw", "ta", "tn-wa", "tq-wa", "tw-wa", "ta-wa"]
+
+
+def get_tex_format_location() -> str:
+    """ Return the location of where the format.tex file is located
+    that is used in converting the HTML to PDF using pandoc. """
+    return "tools/tex/format.tex" if os.getenv("IN_CONTAINER") else "./tex/format.tex"
+    # return "tools/tex/format.tex"
+
+
+def get_tex_template_location() -> str:
+    """ Return the location of where the template.tex file is located
+    that is used in converting the HTML to PDF using pandoc. """
+    return (
+        "tools/tex/template.tex" if os.getenv("IN_CONTAINER") else "./tex/template.tex"
+    )
+    # return "tools/tex/format.tex"
