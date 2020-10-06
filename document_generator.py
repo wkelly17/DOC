@@ -47,7 +47,16 @@ try:
     )
     from resource_utils import (
         resource_has_markdown_files,
-        files_from_url,
+        # files_from_url,
+    )
+    from resource import (
+        Resource,
+        USFMResource,
+        TNResource,
+        TQResource,
+        TAResource,
+        TWResource,
+        ResourceFactory,
     )
 except:
     from .file_utils import write_file, read_file, unzip, load_yaml_object, load_json_object  # type: ignore
@@ -64,7 +73,16 @@ except:
     )
     from .resource_utils import (
         resource_has_markdown_files,
-        files_from_url,
+        # files_from_url,
+    )
+    from .resource import (
+        Resource,
+        USFMResource,
+        TNResource,
+        TQResource,
+        TAResource,
+        TWResource,
+        ResourceFactory,
     )
 
 
@@ -78,54 +96,37 @@ logger = logging.getLogger(__name__)
 class DocumentGenerator(object):
     def __init__(
         self,
-        # ta_tag=None,  # TODO This will likely go away
-        # tn_tag=None,  # TODO This will likely go away
-        # tq_tag=None,  # TODO This will likely go away
-        # tw_tag=None,  # TODO This will likely go away
-        # udb_tag=None,  # TODO This will likely go away
-        # ulb_tag=None,  # TODO This will likely go away
         resources: Dict,
-        # lang_code=None,  # TODO This goes away. resources object is used instead
-        # books=None,  # TODO This goes away. resources object is used instead
         working_dir: str = get_working_dir(),
         output_dir: str = get_output_dir(),
     ) -> None:
         """
-        # :param ta_tag:
-        # :param tn_tag:
-        # :param tq_tag:
-        # :param tw_tag:
-        # :param udb_tag:
-        # :param ulb_tag:
         :param resources:
         :param working_dir:
         :param output_dir:
-        # :param lang_code:
-        # :param books:
         """
-        # self.ta_tag = ta_tag
-        # self.tn_tag = tn_tag
-        # self.tq_tag = tq_tag
-        # self.tw_tag = tw_tag
-        # self.udb_tag = udb_tag
-        # self.ulb_tag = ulb_tag
-        self.resources = resources
         self.working_dir = working_dir
         self.output_dir = output_dir
+        # FIXME This next instance var may go away. Resource subclass
+        # instances keep a reference to a ResourceJsonLookup instance.
+        # Guiding principle: we don't want a bunch of these on the
+        # heap unnecessarily so we'll either make ResourceJsonLookup
+        # implement the singleton pattern or else we will pass in the
+        # same instance reference to each resource object that is
+        # created.
+        # NOTE The lookup service could be (re)-implemented as a
+        # singleton (or Global Object at module level for
+        # Pythonicness) if desired. For now, just passing it to each
+        # Resource instance at object creation.
+        # FIXME self.lookup_svc will become a local var lookup_svc
         self.lookup_svc: ResourceJsonLookup = ResourceJsonLookup(self.working_dir)
 
-        # self.lang_code = lang_code
-        # self.books = books
+        # Let's see the dictionary that was passed in for
+        # informational purposes.
+        logger.debug("resources: {}".format(resources))
 
-        # self.logger = logging.getLogger()
-        # self.logger.setLevel(logging.DEBUG)
-        # ch = logging.StreamHandler()
-        # ch.setLevel(logging.DEBUG)
-        # formatter = logging.Formatter("%(levelname)s - %(message)s")
-        # ch.setFormatter(formatter)
-        # self.logger.addHandler(ch)
-        # self.pp = pprint.PrettyPrinter(indent=4)
-
+        # FIXME Is this even necessary? I don't think that we will
+        # design this to not provide a working_dir.
         if not self.working_dir:
             self.working_dir = tempfile.mkdtemp(prefix="tn-")
         if not self.output_dir:
@@ -133,35 +134,41 @@ class DocumentGenerator(object):
 
         logger.debug("Working dir is {0}".format(self.working_dir))
 
-        # TODO All remaining instance variables below can be replaced by
-        # updating the resources dict with entries for them per
-        # resource when the said instance variables are initialized
-        # and not here.
+        # NOTE Uniquely identifies a document request that has this
+        # order of resource requests where a resource request is
+        # identified by lang_code, resource_type, and resource_code
+        # concatenated by hyphens. This serves as a cache lookup key
+        # also so that document requests having the same key can skip
+        # processing and simply return the end result document if it
+        # still exists.
+        self._document_request_key: str = ""
 
-        # NOTE Currently, there is one tn_dir, tw_dir, tq_dir, ta_dir,
-        # udb_dir, ulb_dir per run, but there will need to be one set
-        # of these for every language per run. Additionally if other
-        # resources are to be folded into the document such as obs,
-        # obs-tn, etc., then those will also need to have their own
-        # directories.
-        # NOTE Per previous note, we could possibly just keep the
-        # collection of resources requested and infer from that the
-        # directories that will be created as a result of unzipping
-        # the resources we have looked up and downloaded rather than
-        # having instance variables for each of them. The JSON gets
-        # reified into a dictionary with nested objects and that is
-        # what would possibly be stored in an instance variable instead.
-        # NOTE Also remember that not all languages have tn, tw, tq,
-        # tq, udb, ulb. Some have only a subset of those resources.
-        # Presumably the web UI will present only valid choices per
-        # language.
-        # self.tn_dir = os.path.join(self.working_dir, "{0}_tn".format(lang_code))
-        # self.tw_dir = os.path.join(self.working_dir, "{0}_tw".format(lang_code))
-        # self.tq_dir = os.path.join(self.working_dir, "{0}_tq".format(lang_code))
-        # self.ta_dir = os.path.join(self.working_dir, "{0}_ta".format(lang_code))
-        # self.udb_dir = os.path.join(self.working_dir, "{0}_udb".format(lang_code))
-        # self.ulb_dir = os.path.join(self.working_dir, "{0}_ulb".format(lang_code))
-        # NOTE resources could serve as a cache as well. Perhaps the
+        # TODO To be production worthy, we need to make this resilient
+        # to errors when creating Resource instances.
+        self._resources: List[Resource] = []
+        for resource in resources:
+            # FIXME self.lookup_svc will become a local var: lookup_svc
+            self._resources.append(
+                ResourceFactory(
+                    self.working_dir, self.output_dir, self.lookup_svc, resource
+                )
+            )
+            self._document_request_key += "-".join(
+                [
+                    resource["lang_code"],
+                    resource["resource_type"],
+                    resource["resource_code"],
+                ]
+            )
+
+        logger.debug(
+            "self._document_request_key: {}".format(self._document_request_key)
+        )
+
+        # NOTE Not all languages have tn, tw, tq, tq, udb, ulb. Some
+        # have only a subset of those resources. Presumably the web UI
+        # will present only valid choices per language.
+        # FIXME resources could serve as a cache as well. Perhaps the
         # cache key could be an md5 hash of the resource's key/value
         # pairs. Subsequent lookups would compare a hash of an
         # incoming resource request's key/value pairs and if it was
@@ -170,581 +177,247 @@ class DocumentGenerator(object):
         # final document result was still available - container
         # redeploys could destroy cache) and return the URL to the
         # previously generated document right away.
-        # NOTE resources is the incoming resource request dictionary
+        # FIXME resources is the incoming resource request dictionary
         # and so is per request, per instance. The cache, however,
         # would need to persist beyond each request. Perhaps it should
-        # be a maintained as a class variable?
-        # for resource in self.resources:
-        #     resource.update(
-        #         {
-        #             "resource_dir": os.path.join(
-        #                 self.working_dir,
-        #                 "{}_{}".format(
-        #                     resource["lang_code"], resource["resource_type"]
-        #                 ),
-        #             )
-        #         }
-        #     )
+        # be maintained as a class variable?
 
-        # self.manifest: Optional[
-        #     Dict
-        # ] = None  # FIXME Per resource, not per DocumentGenerator instance.
+    def run(self) -> None:
+        self._get_unfoldingword_icon()
 
-        # self.book_id: Optional[
-        #     str
-        # ] = None  # FIXME This is resource["resource_code"] instead.
-        # self.book_title: Optional[
-        #     str
-        # ] = None  # FIXME We could update resource["book_title"]
-        # self.book_number: Optional[
-        #     str
-        # ] = None  # FIXME We could update resource["book_number"]
-        # # self.project: Optional[Dict[Any, Any]] = None
-        # self.my_rcs: List[str] = []
-        # self.rc_references: Dict[
-        #     str, List
-        # ] = {}  # FIXME Per resource, not per DocumentGenerator instance.
-        # self.resource_data: Dict[
-        #     str, Dict[str, str]
-        # ] = {}  # FIXME Per resource, not per DocumentGenerator instance.
-        # self.bad_links: Dict = {}  # FIXME Per resource, not per DocumentGenerator instance.
-        # self.usfm_chunks: Dict = {}  # FIXME Per USFM resource, not per DocumentGenerator instance.
-        # self.version: Optional[
-        #     str
-        # ] = None  # FIXME Per manifest.yaml, i.e., per resource having a manifest file, not per DocumentGenerator instance.
-        # self.issued: Optional[
-        #     str
-        # ] = None  # FIXME Per resource, not per DocumentGenerator instance.
-        # self.filename_base: Optional[
-        #     str
-        # ] = None  # FIXME Per resource, not per DocumentGenerator instance.
-        # TODO Move this into run method?
+        # Get the resources files
+        for resource in self._resources:
+            resource.find_location()
+            resource.get_files()
+
+        # Initialize the resources and generate their content
+        for resource in self._resources:
+            resource.initialize_properties()
+            resource.get_content()
+
+        # FIXME
+        if not os.path.isfile(
+            os.path.join(self.output_dir, "{}.pdf".format(self._document_request_key))
+            # os.path.join(self.output_dir, "{}.pdf".format(self.filename_base))
+        ):
+            logger.info("Generating PDF...")
+            # FIXME Assemble all the HTML into one HTML and then
+            # convert that HTML into a PDF.
+            logger.info(
+                "Yet to be done: concatenate all the HTML files that were generated into one HTML and then convert it to PDF."
+            )
+            # self.convert_html2pdf(resource)
+
         # self.tw_refs_by_verse = index_tw_refs_by_verse(
         #     read_csv_as_dicts(os.path.join(self.working_dir, "tw_refs.csv"))
         # )  # FIXME Per resource, not per DocumentGenerator instance.
 
-    # NOTE If resource["resource_code"] is None then we should not try
-    # for manifest.yaml. Previously, resources only came from git
-    # repos for English which always included the manifest.yaml file.
-    # The previous assumption was that tn, tw, tq, ta, etc. resources
-    # would always be wanted (because they were available for English
-    # and this was an English resource only app). But now a user by
-    # way of a request for resources can combine independently any
-    # resources. So, this will change a lot of the code below and
-    # throughout this system. Further retrieving the resource, even if
-    # it is a zip file, does not necessarily contain a manifest.yaml
-    # file if it is fetched from the location provided in
-    # translations.json which is different than the git repo for same.
-    def initialize_manifest(self, resource: Dict) -> None:
-        """ Discover the manifest in the resource's files and load it
-        into a dictionary stored in the resource. """
-        if "resource_filename" in resource:
-            logger.debug(
-                "resource['resource_filename']: {}".format(
-                    resource["resource_filename"]
-                )
-            )
-        # logger.debug(
-        #     "os.getcwd(): {}, {} at normal location exists: {}, {} at alternative location exists: {}, {} exists: {}, {} exists: {}".format(
-        #         os.getcwd(),
-        #         os.path.join(resource["resource_dir"], "manifest.yaml"),
-        #         os.path.isfile(os.path.join(resource["resource_dir"], "manifest.yaml")),
-        #         os.path.join(resource["resource_dir"], "manifest.yaml"),
-        #         os.path.isfile(os.path.join(resource["resource_dir"], "manifest.yaml")),
-        #         os.path.join(resource["resource_dir"], "manifest.txt"),
-        #         os.path.isfile(os.path.join(resource["resource_dir"], "manifest.txt")),
-        #         os.path.join(resource["resource_dir"], "manifest.json"),
-        #         os.path.isfile(os.path.join(resource["resource_dir"], "manifest.json")),
-        #         resource["resource_dir"],
+        # FIXME This might have to be subsumed into resource.get_contents()
+        # USFM stuff
+        # if (
+        #     resource._resource_file_format
+        #     # "resource_file_format" in resource
+        #     and resource._resource_file_format == "usfm"
+        # ):
+        #     # Create HTML from Markdown
+        #     # Convert HTML to PDF
+        #     if not os.path.isfile(
+        #         os.path.join(
+        #             self.output_dir, "{}.html".format(resource._filename_base)
+        #         )
+        #     ):
+
+        #         # if not os.path.isfile(
+        #         #     os.path.join(self.output_dir, "{0}.html".format(self.filename_base))
+        #         # ):
+        #         # FIXME Only get USFM if we've resource has
+        #         # resource_type of USFM or if resource_file_format
+        #         # is git.
+        #         # FIXME We will have to decide how to handle git
+        #         # containing USFM vs USFM file only in a Resource
+        #         # subclass instance.
+        #         # Get USFM chunks
+        #         # if resource._resource_file_format in ["git", "usfm"]:
+        #         #     logger.info("Getting USFM chunks...")
+        #         #     # resource.update({"usfm_chunks": self.get_usfm_chunks(resource)})
+        #         #     resource._usfm_chunks = resource._get_usfm_chunks()
+
+        #         # FIXME This assumes that there will be a markdown
+        #         # resource. Under the new document request system
+        #         # it is possible that a user will not request any
+        #         # resources that have markdown files, e.g., if the
+        #         # user only requests USFM.
+        #         # logger.debug(
+        #         #     "resource has markdown files: {}".format(
+        #         #         resource_has_markdown_files(resource)
+        #         #     )
+        #         # )
+        #         if resource_has_markdown_files(resource) and not os.path.isfile(
+        #             os.path.join(
+        #                 self.output_dir, "{}.md".format(resource._filename_base)
+        #             )
+        #         ):
+        #             # if not os.path.isfile(
+        #             #     os.path.join(
+        #             #         self.output_dir, "{0}.md".format(self.filename_base)
+        #             #     )
+        #             # ):
+        #             logger.info("Processing Markdown...")
+        #             self.preprocess_markdown()
+        #             logger.info("Converting MD to HTML...")
+        #             self.convert_md2html(resource)
+        #     if not os.path.isfile(
+        #         os.path.join(
+        #             self.output_dir, "{}.pdf".format(resource._filename_base)
+        #         )
+        #         # os.path.join(self.output_dir, "{}.pdf".format(self.filename_base))
+        #     ):
+        #         logger.info("Generating PDF...")
+        #         self.convert_html2pdf(resource)
+
+        # # TODO When we acquire resources that are single USFM
+        # # files, they do not have an associated manifest file and
+        # # therefore do not have associated projects in the sense
+        # # expected below. Thus, we need to detect the case when
+        # # the resource_file_format is USFM and handle it
+        # # differently than below.
+        # projects: List[Dict[Any, Any]] = self.get_book_projects(resource)
+        # logger.debug("book projects: {}".format(projects))
+        # for p in projects:
+        #     project: Dict[Any, Any] = p
+        #     resource.update({"book_id": p["identifier"]})
+        #     # self.book_id = p["identifier"]
+        #     resource.update(
+        #         {"book_title": p["title"].replace(" translationNotes", "")}
         #     )
-        # )
-        if os.path.isfile(os.path.join(resource["resource_dir"], "manifest.yaml")):
-            resource.update(
-                {
-                    "manifest": load_yaml_object(
-                        os.path.join(resource["resource_dir"], "manifest.yaml")
-                        # os.path.join(self.tn_dir, "manifest.yaml")
-                    )
-                }
-            )
-            resource.update({"resource_manifest_type": "yaml"})
-        # Handle alternative location for manifest.yaml: nested
-        # one more directory deep
-        elif os.path.isfile(
-            os.path.join(
-                resource["resource_dir"],
-                "{}_{}".format(resource["lang_code"], resource["resource_type"]),
-                "manifest.yaml",
-            )
-        ):
-            resource.update(
-                {
-                    "manifest": load_yaml_object(
-                        os.path.join(
-                            resource["resource_dir"],
-                            "{}_{}".format(
-                                resource["lang_code"], resource["resource_type"]
-                            ),
-                            "manifest.yaml",
-                        )  # os.path.join(self.tn_dir, "manifest.yaml")
-                    )
-                }
-            )
-            resource.update({"resource_manifest_type": "yaml"})
-        elif os.path.isfile(os.path.join(resource["resource_dir"], "manifest.txt")):
-            resource.update(
-                {
-                    "manifest": load_yaml_object(
-                        os.path.join(resource["resource_dir"], "manifest.txt")
-                        # os.path.join(self.tn_dir, "manifest.yaml")
-                    )
-                }
-            )
-            resource.update({"resource_manifest_type": "txt"})
-        elif os.path.isfile(os.path.join(resource["resource_dir"], "manifest.json")):
-            resource.update(
-                {
-                    "manifest": load_json_object(
-                        os.path.join(resource["resource_dir"], "manifest.json")
-                        # os.path.join(self.tn_dir, "manifest.yaml")
-                    )
-                }
-            )
-            resource.update({"resource_manifest_type": "json"})
-        else:
-            logger.debug("manifest file does not exist for this resource.")
+        #     # self.book_title = p["title"].replace(" translationNotes", "")
+        #     resource.update({"book_number": BOOK_NUMBERS[resource["book_id"]]})
+        #     # self.book_number = BOOK_NUMBERS[self.book_id]
+        #     # TODO This likely needs to change because of how we
+        #     # build resource_dir
+        #     resource.update(
+        #         {
+        #             "filename_base": "{}_{}_{}-{}_v{}".format(
+        #                 resource["lang_code"],
+        #                 resource["resource_type"],
+        #                 resource["book_number"].zfill(2),
+        #                 resource["book_id"].upper(),
+        #                 resource["version"],
+        #             )
+        #         }
+        #     )
+        #     # self.filename_base = "{0}_tn_{1}-{2}_v{3}".format(
+        #     #     self.lang_code,
+        #     #     self.book_number.zfill(2),
+        #     #     self.book_id.upper(),
+        #     #     self.version,
+        #     # )
+        #     resource.update({"rc_references": {}})
+        #     # self.rc_references = {}
+        #     resource.update({"my_rcs": []})
+        #     # self.my_rcs = []
+        #     logger.debug(
+        #         "Creating {} for {} ({}-{})...".format(
+        #             resource["resource_type"],
+        #             resource["book_title"],
+        #             resource["book_number"],
+        #             resource["book_id"].upper(),
+        #         )
+        #     )
+        #     # self.logger.debug(
+        #     #     "Creating tN for {0} ({1}-{2})...".format(
+        #     #         self.book_title, self.book_number, self.book_id.upper()
+        #     #     )
+        #     # )
+        #     if not os.path.isfile(
+        #         os.path.join(
+        #             self.output_dir, "{}.html".format(resource["filename_base"])
+        #         )
+        #     ):
 
-        # self.manifest = load_yaml_object(os.path.join(self.tn_dir, "manifest.yaml"))
+        #         # if not os.path.isfile(
+        #         #     os.path.join(self.output_dir, "{0}.html".format(self.filename_base))
+        #         # ):
 
-        if "manifest" in resource:
-            logger.debug('resource["manifest"]: {}'.format(resource["manifest"]))
-            # logger.debug(
-            #     "resource[manifest]: {}".format(type(resource["manifest"]))
-            # )
-            # logger.debug(
-            #     "resource[manifest][0]: {}".format(type(resource["manifest"][0]))
-            # )
+        #         if resource["resource_file_format"] in ["git", "usfm"]:
+        #             logger.debug("Getting USFM chunks 2...")
+        #             resource.update({"usfm_chunks": self.get_usfm_chunks(resource)})
+        #             # self.usfm_chunks = self.get_usfm_chunks()
 
-        # NOTE manifest.txt files do not have 'dublin_core' or
-        # 'version' keys.
-        # TODO Handle manifest.json which has different fields.
-        if (
-            "resource_manifest_type" in resource
-            and resource["resource_manifest_type"] == "yaml"
-        ):
-            if (
-                0 in resource["manifest"]
-                and resource["manifest"][0]["dublin_core"]["version"] is not None
-            ):
-                resource.update(
-                    {"version": resource["manifest"][0]["dublin_core"]["version"]}
-                )
-            elif (
-                0 not in resource["manifest"]
-                and resource["manifest"]["dublin_core"]["version"] is not None
-            ):
-                resource.update(
-                    {"version": resource["manifest"]["dublin_core"]["version"]}
-                )
-            # self.version = self.manifest["dublin_core"]["version"]
-            resource.update({"issued": resource["manifest"]["dublin_core"]["issued"]})
-            # self.issued = self.manifest["dublin_core"]["issued"]
+        #         if not os.path.isfile(
+        #             os.path.join(
+        #                 self.output_dir, "{}.md".format(resource["filename_base"])
+        #             )
+        #         ):
+        #             # if not os.path.isfile(
+        #             #     os.path.join(
+        #             #         self.output_dir, "{0}.md".format(self.filename_base)
+        #             #     )
+        #             # ):
+        #             logger.debug("Processing Markdown...")
+        #             self.preprocess_markdown()
+        #             logger.debug("Converting MD to HTML...")
+        #             self.convert_md2html(resource)
+        #     if not os.path.isfile(
+        #         os.path.join(
+        #             self.output_dir, "{}.pdf".format(resource["filename_base"])
+        #         )
+        #         # os.path.join(self.output_dir, "{}.pdf".format(self.filename_base))
+        #     ):
+        #         logger.debug("Generating PDF...")
+        #         self.convert_html2pdf(resource)
+        # logger.debug("self._bad_links: {}".format(self._bad_links))
+        # self.pp.plogger.debug(self.bad_links)
 
-    def run(self) -> None:
-        self.get_resource_files()
-        for resource in self.resources:
-            resource.update({"bad_links": {}})
-            resource.update({"usfm_chunks": {}})
+    # # FIXME Move to the appropriate place in resource.py
+    # # TODO Handle manifest.yaml, manifest.txt, and manifest.json
+    # # formats - they each have different structure and keys.
+    # def get_book_projects(self, resource: Dict) -> List[Dict[Any, Any]]:
+    #     """ Return the sorted list of projects that are found in the
+    #     manifest file for the resource. """
 
-            self.initialize_manifest(resource)
-
-            if (
-                "resource_file_format" in resource
-                and resource["resource_file_format"] == "usfm"
-            ):
-                logger.debug(
-                    "resource['resource_file_format']: {}".format(
-                        resource["resource_file_format"]
-                    )
-                )
-                # USFM book files have form 01-GEN or GEN. So we lowercase
-                # then split on hyphen and get second component to get
-                # the book id.
-                if "-" in resource["resource_filename"]:
-                    book_id = resource["resource_filename"].split("-")[1]
-                else:
-                    book_id = resource["resource_filename"]
-                resource.update({"book_id": book_id.lower()})
-                logger.debug("book_id for usfm file: {}".format(resource["book_id"]))
-                # Update book title
-                resource.update({"book_title": BOOK_NAMES[resource["resource_code"]]})
-                resource.update({"book_number": BOOK_NUMBERS[resource["book_id"]]})
-                logger.debug(
-                    "book_number for usfm file: {}".format(resource["book_number"])
-                )
-                # Update filename_base
-                resource.update(
-                    {
-                        "filename_base": "{}_{}_{}-{}".format(
-                            resource["lang_code"],
-                            resource["resource_type"],
-                            resource["book_number"].zfill(2),
-                            resource["book_id"].upper(),
-                        )
-                    }
-                )
-                # FIXME Should we be using resource["filename_base"]
-                # or resource["resource_dir"] combined with
-                # resource["resource_filename"]?
-                logger.debug("filename_base: {}".format(resource["filename_base"]))
-                # Get USFM chunks
-                # Create HTML from Markdown
-                # Convert HTML to PDF
-                if not os.path.isfile(
-                    os.path.join(
-                        self.output_dir, "{}.html".format(resource["filename_base"])
-                    )
-                ):
-
-                    # if not os.path.isfile(
-                    #     os.path.join(self.output_dir, "{0}.html".format(self.filename_base))
-                    # ):
-                    # FIXME Only get USFM if we've resource has
-                    #     resource_type of USFM or if
-                    #     resource_file_format is git.
-                    if resource["resource_file_format"] in ["git", "usfm"]:
-                        logger.info("Getting USFM chunks...")
-                        resource.update({"usfm_chunks": self.get_usfm_chunks(resource)})
-                        # self.usfm_chunks = self.get_usfm_chunks()
-
-                    # FIXME This assumes that there will be a markdown
-                    # resource. Under the new document request system
-                    # it is possible that a user will not request any
-                    # resources that have markdown files, e.g., if the
-                    # user only requests USFM.
-                    logger.debug(
-                        "resource has markdown files: {}".format(
-                            resource_has_markdown_files(resource)
-                        )
-                    )
-                    if resource_has_markdown_files(resource) and not os.path.isfile(
-                        os.path.join(
-                            self.output_dir, "{}.md".format(resource["filename_base"])
-                        )
-                    ):
-                        # if not os.path.isfile(
-                        #     os.path.join(
-                        #         self.output_dir, "{0}.md".format(self.filename_base)
-                        #     )
-                        # ):
-                        logger.info("Processing Markdown...")
-                        self.preprocess_markdown()
-                        logger.info("Converting MD to HTML...")
-                        self.convert_md2html(resource)
-                if not os.path.isfile(
-                    os.path.join(
-                        self.output_dir, "{}.pdf".format(resource["filename_base"])
-                    )
-                    # os.path.join(self.output_dir, "{}.pdf".format(self.filename_base))
-                ):
-                    logger.info("Generating PDF...")
-                    self.convert_html2pdf(resource)
-
-            # TODO When we acquire resources that are single USFM
-            # files, they do not have an associated manifest file and
-            # therefore do not have associated projects in the sense
-            # expected below. Thus, we need to detect the case when
-            # the resource_file_format is USFM and handle it
-            # differently than below.
-            projects: List[Dict[Any, Any]] = self.get_book_projects(resource)
-            logger.debug("book projects: {}".format(projects))
-            for p in projects:
-                project: Dict[
-                    Any, Any
-                ] = p  # FIXME Won't this overwrite the instance variable(s) on each iteration?
-                resource.update({"book_id": p["identifier"]})
-                # self.book_id = p["identifier"]
-                resource.update(
-                    {"book_title": p["title"].replace(" translationNotes", "")}
-                )
-                # self.book_title = p["title"].replace(" translationNotes", "")
-                resource.update({"book_number": BOOK_NUMBERS[resource["book_id"]]})
-                # self.book_number = BOOK_NUMBERS[self.book_id]
-                # TODO This likely needs to change because of how we
-                # build resource_dir
-                resource.update(
-                    {
-                        "filename_base": "{}_{}_{}-{}_v{}".format(
-                            resource["lang_code"],
-                            resource["resource_type"],
-                            resource["book_number"].zfill(2),
-                            resource["book_id"].upper(),
-                            resource["version"],
-                        )
-                    }
-                )
-                # self.filename_base = "{0}_tn_{1}-{2}_v{3}".format(
-                #     self.lang_code,
-                #     self.book_number.zfill(2),
-                #     self.book_id.upper(),
-                #     self.version,
-                # )
-                resource.update({"rc_references": {}})
-                # self.rc_references = {}
-                resource.update({"my_rcs": []})
-                # self.my_rcs = []
-                logger.debug(
-                    "Creating {} for {} ({}-{})...".format(
-                        resource["resource_type"],
-                        resource["book_title"],
-                        resource["book_number"],
-                        resource["book_id"].upper(),
-                    )
-                )
-                # self.logger.debug(
-                #     "Creating tN for {0} ({1}-{2})...".format(
-                #         self.book_title, self.book_number, self.book_id.upper()
-                #     )
-                # )
-                if not os.path.isfile(
-                    os.path.join(
-                        self.output_dir, "{}.html".format(resource["filename_base"])
-                    )
-                ):
-
-                    # if not os.path.isfile(
-                    #     os.path.join(self.output_dir, "{0}.html".format(self.filename_base))
-                    # ):
-
-                    if resource["resource_file_format"] in ["git", "usfm"]:
-                        logger.debug("Getting USFM chunks...")
-                        resource.update({"usfm_chunks": self.get_usfm_chunks(resource)})
-                        # self.usfm_chunks = self.get_usfm_chunks()
-
-                    if not os.path.isfile(
-                        os.path.join(
-                            self.output_dir, "{}.md".format(resource["filename_base"])
-                        )
-                    ):
-                        # if not os.path.isfile(
-                        #     os.path.join(
-                        #         self.output_dir, "{0}.md".format(self.filename_base)
-                        #     )
-                        # ):
-                        logger.debug("Processing Markdown...")
-                        self.preprocess_markdown()
-                        logger.debug("Converting MD to HTML...")
-                        self.convert_md2html(resource)
-                if not os.path.isfile(
-                    os.path.join(
-                        self.output_dir, "{}.pdf".format(resource["filename_base"])
-                    )
-                    # os.path.join(self.output_dir, "{}.pdf".format(self.filename_base))
-                ):
-                    logger.debug("Generating PDF...")
-                    self.convert_html2pdf(resource)
-            logger.debug("resource['bad_links']: {}".format(resource["bad_links"]))
-            # self.pp.plogger.debug(self.bad_links)
-
-    # def get_book_projects(self) -> List[Dict[Any, Any]]:
+    #     logger.info("start...")
     #     projects: List[Dict[Any, Any]] = []
+    #     # TODO
+    #     # if resource["resource_manifest_type"] == "yaml" and (
+    #     #     "manifest" not in resource or "projects" not in resouce["manifest"]
+    #     # ):
+    #     #     return projects
+    #     # if resource["resource_manifest_type"] == "txt" and ("manifest" not in resource or "projects" not in resouce["manifest"]):
     #     if (
-    #         not self.manifest
-    #         or "projects" not in self.manifest
-    #         or not self.manifest["projects"]
+    #         "manifest" not in resource  # and not resource["manifest"]
+    #         # not self.manifest
+    #         or "projects" not in resource["manifest"]
+    #         # or "projects" not in self.manifest
+    #         # or not resource["manifest"]["projects"]
+    #         # or not self.manifest["projects"]
     #     ):
+
+    #         logger.info("empty projects check is true...")
     #         return projects
-    #     for p in self.manifest["projects"]:
-    #         if not self.books or p["identifier"] in self.books:
+    #     for p in resource["manifest"]["projects"]:
+    #         # for p in self.manifest["projects"]:
+    #         # NOTE You can have a manifest.yaml file and not have a
+    #         # resource_code specified, e.g., lang_code='as',
+    #         # resource_type='tn', resource_code=''
+    #         if (
+    #             resource["resource_code"] is not None
+    #             and p["identifier"] in resource["resource_code"]
+    #         ):
+    #             # if not self.books or p["identifier"] in self.books:
     #             if not p["sort"]:
     #                 p["sort"] = BOOK_NUMBERS[p["identifier"]]
     #             projects.append(p)
     #     return sorted(projects, key=lambda k: k["sort"])
 
-    # TODO Handle manifest.yaml, manifest.txt, and manifest.json
-    # formats - they each have different structure and keys.
-    def get_book_projects(self, resource: Dict) -> List[Dict[Any, Any]]:
-        """ Return the sorted list of projects that are found in the
-        manifest file for the resource. """
+    def _get_unfoldingword_icon(self) -> None:
+        """ Get Unfolding Word's icon for display in generated PDF. """
 
-        logger.info("start...")
-        projects: List[Dict[Any, Any]] = []
-        # TODO
-        # if resource["resource_manifest_type"] == "yaml" and (
-        #     "manifest" not in resource or "projects" not in resouce["manifest"]
-        # ):
-        #     return projects
-        # if resource["resource_manifest_type"] == "txt" and ("manifest" not in resource or "projects" not in resouce["manifest"]):
-        if (
-            "manifest" not in resource  # and not resource["manifest"]
-            # not self.manifest
-            or "projects" not in resource["manifest"]
-            # or "projects" not in self.manifest
-            # or not resource["manifest"]["projects"]
-            # or not self.manifest["projects"]
-        ):
-
-            logger.info("empty projects check is true...")
-            return projects
-        for p in resource["manifest"]["projects"]:
-            # for p in self.manifest["projects"]:
-            # NOTE You can have a manifest.yaml file and not have a
-            # resource_code specified, e.g., lang_code='as',
-            # resource_type='tn', resource_code=''
-            if (
-                resource["resource_code"] is not None
-                and p["identifier"] in resource["resource_code"]
-            ):
-                # if not self.books or p["identifier"] in self.books:
-                if not p["sort"]:
-                    p["sort"] = BOOK_NUMBERS[p["identifier"]]
-                projects.append(p)
-        return sorted(projects, key=lambda k: k["sort"])
-
-    # def get_resource_url(self, resource: str, tag: str) -> str:
-    #     return "https://git.door43.org/Door43/{0}_{1}/archive/{2}.zip".format(
-    #         self.lang_code, resource, tag
-    #     )
-
-    def get_resource_files(self) -> None:
-        """ Lookup each resource's URL, download or clone the
-        resource, postprocess the downloaded resource by unzipping if
-        necessary, into the appropriate directory for later
-        processing. """
-
-        logger.debug("resources: {}".format(self.resources))
-
-        for resource in self.resources:
-            resource.update(
-                {
-                    "resource_dir": os.path.join(
-                        self.working_dir,
-                        "{}_{}".format(
-                            resource["lang_code"], resource["resource_type"]
-                        ),
-                    )
-                }
-            )
-            resource_code: Optional[str] = None if not resource[
-                "resource_code"
-            ] else resource["resource_code"]
-            # TODO Fix return type of lookup. I don't think it needs
-            # to have Optional in it.
-            urls: List[Optional[str]] = self.lookup_svc.lookup(resource)
-            logger.debug("urls: {}".format(urls))
-            if urls and len(urls) > 0:
-                resource_url: Optional[str] = urls[0]
-                logger.debug("resource['resource_url']: {}".format(resource_url))
-                resource.update({"resource_url": resource_url})
-                files_from_url(resource_url, resource)
-
-        # if not self.tn_dir:
-        #     tn_url = self.get_resource_url("tn", self.tn_tag)
-        #     self.extract_files_from_url(tn_url)
-        # if not self.tw_dir:
-        #     tw_url = self.get_resource_url("tw", self.tw_tag)
-        #     self.extract_files_from_url(tw_url)
-        # if not self.tq_dir:
-        #     tq_url = self.get_resource_url("tq", self.tq_tag)
-        #     self.extract_files_from_url(tq_url)
-        # if not self.ta_dir:
-        #     ta_url = self.get_resource_url("ta", self.ta_tag)
-        #     self.extract_files_from_url(ta_url)
-        # if not self.udb_dir:
-        #     udb_url = self.get_resource_url("udb", self.udb_tag)
-        #     self.extract_files_from_url(udb_url)
-        # if not self.ulb_dir:
-        #     ulb_url = self.get_resource_url("ulb", self.ulb_tag)
-        #     self.extract_files_from_url(ulb_url)
         if not os.path.isfile(os.path.join(self.working_dir, "icon-tn.png")):
             command = "curl -o {}/icon-tn.png {}".format(
                 self.working_dir, get_icon_url()
             )
             subprocess.call(command, shell=True)
-
-    # def extract_files_from_url(self, url: str) -> None:
-    #     """ Download and unzip the zip file pointed to by url to a
-    #     path composed of working_dir  and zip file name sans directory. """
-    #     zip_file = os.path.join(self.working_dir, url.rpartition(os.path.sep)[2])
-    #     try:
-    #         logger.debug("Downloading {0}...".format(url))
-    #         download_file(url, zip_file)
-    #     finally:
-    #         logger.debug("finished.")
-    #     try:
-    #         logger.debug("Unzipping {0}...".format(zip_file))
-    #         unzip(zip_file, self.working_dir)
-    #     finally:
-    #         logger.debug("finished.")
-
-    # FIXME Make this work for new multiple resources system.
-    def get_usfm_chunks(self, resource: Dict) -> Dict:
-        book_chunks: dict = {}
-        # for resource_tmp in ["udb", "ulb"]:
-        #     book_chunks[resource_tmp] = {}
-
-        bible_dir = resource["resource_dir"]
-        # bible_dir = getattr(self, "{}_dir".format(resource_tmp))
-        usfm = read_file(
-            os.path.join("{}/{}.usfm".format(bible_dir, resource["resource_filename"])),
-            "utf-8",
-        )
-        # usfm = read_file(
-        #     os.path.join(
-        #         bible_dir,
-        #         "{}-{}.usfm".format(
-        #             BOOK_NUMBERS[resource["book_id"]],
-        #             resource["book_id"].upper()
-        #             # BOOK_NUMBERS[self.book_id], self.book_id.upper()
-        #         ),
-        #     ),
-        #     "utf-8",
-        # )
-
-        chunks = re.compile(r"\\s5\s*\n*").split(usfm)
-
-        # Break chunks into verses
-        chunks_per_verse = []
-        for chunk in chunks:
-            pending_chunk = None
-            for line in chunk.splitlines(True):
-                # If this is a new verse and there's a pending chunk,
-                # finish it and start a new one.
-                if re.search(r"\\v", line) and pending_chunk:
-                    chunks_per_verse.append(pending_chunk)
-                    pending_chunk = None
-                pending_chunk = pending_chunk + line if pending_chunk else line
-            # If there's a pending chunk, finish it.
-            if pending_chunk:
-                chunks_per_verse.append(pending_chunk)
-        chunks = chunks_per_verse
-
-        header = chunks[0]
-        book_chunks["header"] = header
-        for chunk in chunks[1:]:
-            if not chunk.strip():
-                continue
-            c_search = re.search(r"\\c[\u00A0\s](\d+)", chunk)  # \u00A0 no break space
-            if c_search:
-                chapter = c_search.group(1)
-            verses = re.findall(r"\\v[\u00A0\s](\d+)", chunk)
-            if not verses:
-                continue
-            first_verse = verses[0]
-            last_verse = verses[-1]
-            if chapter not in book_chunks:
-                book_chunks[chapter] = {"chunks": []}
-            data = {
-                "usfm": chunk,
-                "first_verse": first_verse,
-                "last_verse": last_verse,
-                "verses": verses,
-            }
-            book_chunks[chapter][first_verse] = data
-            book_chunks[chapter]["chunks"].append(data)
-            # book_chunks[resource_tmp][chapter][first_verse] = data
-            # book_chunks[resource_tmp][chapter]["chunks"].append(data)
-        return book_chunks
 
     def preprocess_markdown(self) -> None:
         # FIXME We'll want get_t*_markdown to do the special things it
@@ -754,7 +427,7 @@ class DocumentGenerator(object):
         tq_md = ""
         tw_md = ""
         ta_md = ""
-        for resource in self.resources:
+        for resource in self._resources:
             # NOTE This is possible approach, but we might get sent a
             # resource_type that is not one of tn, tq, tw, ta, e.g.,
             # obs_tn (unless of course we decide not to support
@@ -768,6 +441,9 @@ class DocumentGenerator(object):
                 tw_md = self.get_tw_markdown(resource)
             elif resource["resource_type"] in ["ta", "ta-wa"]:
                 ta_md = self.get_ta_markdown(resource)
+            # FIXME The following happens not per resource, but per
+            # document after all the documents resources have been
+            # initialized fully, i.e., after resource.get_content()
             md = "\n\n".join([tn_md, tq_md, tw_md, ta_md])
             md = self.replace_rc_links(md, resource)
             md = fix_links(md)
@@ -784,673 +460,7 @@ class DocumentGenerator(object):
                 # os.path.join(self.output_dir, "{}.md".format(self.filename_base)), md
             )
 
-    def pad(self, num, resource: Dict) -> str:
-        if resource["book_id"] == "psa":
-            # if self.book_id == "psa":
-            return str(num).zfill(3)
-        return str(num).zfill(2)
-
-    def get_tn_markdown(self, resource: Dict) -> str:
-        # book_dir = os.path.join(self.tn_dir, resource["book_id"])
-        # TODO Is this the correct path?
-        if os.path.isdir(
-            os.path.join(
-                resource["resource_dir"],
-                "{}_{}".format(resource["lang_code"], resource["resource_type"]),
-            )
-        ):
-            book_dir = os.path.join(
-                resource["resource_dir"],
-                "{}_{}".format(resource["lang_code"], resource["resource_type"]),
-                resource["book_id"],
-            )
-        else:
-            book_dir = os.path.join(resource["resource_dir"], resource["book_id"])
-
-        logger.debug("book_dir: {}".format(book_dir))
-
-        if not os.path.isdir(book_dir):
-            return ""
-
-        # TODO Might need localization
-        tn_md = '# Translation Notes\n<a id="tn-{0}"/>\n\n'.format(resource["book_id"])
-
-        intro_file = os.path.join(book_dir, "front", "intro.md")
-        book_has_intro = os.path.isfile(intro_file)
-        if book_has_intro:
-            md = read_file(intro_file)
-            title = self.get_first_header(md)
-            md = self.fix_tn_links(md, "intro", resource)
-            md = self.increase_headers(md)
-            md = self.decrease_headers(md, 5)  # bring headers of 5 or more #'s down 1
-            id_tag = '<a id="tn-{0}-front-intro"/>'.format(resource["book_id"])
-            md = re.compile(r"# ([^\n]+)\n").sub(r"# \1\n{0}\n".format(id_tag), md, 1)
-            rc = "rc://{0}/tn/help/{1}/front/intro".format(
-                resource["lang_code"], resource["book_id"]
-            )
-            # anchor_id = "tn-{1}-front-intro".format(resource["lang_code"], resource["book_id"])
-            anchor_id = "tn-{}-front-intro".format(
-                resource["book_id"]
-            )  # resource["lang_code"],
-            # FIXME I need to update the resource dict with
-            # resource_data. The problem is that this resource won't
-            # point to the resource in self.resources .
-            resource.update({"resource_data": {}})
-            # FIXME This proaably will blow up.
-            resource["resource_data"][rc] = {
-                "rc": rc,
-                "id": anchor_id,
-                "link": "#{0}".format(anchor_id),
-                "title": title,
-            }
-            # self.resource_data[rc] = {
-            #     "rc": rc,
-            #     "id": anchor_id,
-            #     "link": "#{0}".format(anchor_id),
-            #     "title": title,
-            # }
-            resource["my_rcs"].append(rc)
-            # self.my_rcs.append(rc)
-            # TODO
-            self.get_resource_data_from_rc_links(md, rc, resource)
-            md += "\n\n"
-            tn_md += md
-
-        for chapter in sorted(os.listdir(book_dir)):
-            chapter_dir = os.path.join(book_dir, chapter)
-            chapter = chapter.lstrip("0")
-            if os.path.isdir(chapter_dir) and re.match(r"^\d+$", chapter):
-                intro_file = os.path.join(chapter_dir, "intro.md")
-                chapter_has_intro = os.path.isfile(intro_file)
-                if chapter_has_intro:
-                    md = read_file(intro_file)
-                    title = self.get_first_header(md)
-                    md = self.fix_tn_links(md, chapter, resource)
-                    md = self.increase_headers(md)
-                    md = self.decrease_headers(
-                        md, 5, 2
-                    )  # bring headers of 5 or more #'s down 2
-                    id_tag = '<a id="tn-{}-{}-intro"/>'.format(
-                        resource["book_id"], self.pad(chapter, resource)
-                    )
-                    md = re.compile(r"# ([^\n]+)\n").sub(
-                        r"# \1\n{}\n".format(id_tag), md, 1
-                    )
-                    rc = "rc://{}/tn/help/{}/{}/intro".format(
-                        resource["lang_code"],
-                        resource["book_id"],
-                        self.pad(chapter, resource),
-                    )
-                    anchor_id = "tn-{}-{}-intro".format(
-                        resource["book_id"], self.pad(chapter, resource)
-                    )
-                    resource["resource_data"][rc] = {
-                        # self.resource_data[rc] = {
-                        "rc": rc,
-                        "id": anchor_id,
-                        "link": "#{}".format(anchor_id),
-                        "title": title,
-                    }
-                    resource["my_rcs"].append(rc)
-                    # self.my_rcs.append(rc)
-                    self.get_resource_data_from_rc_links(md, rc, resource)
-                    md += "\n\n"
-                    tn_md += md
-                chunk_files = sorted(glob(os.path.join(chapter_dir, "[0-9]*.md")))
-                for _, chunk_file in enumerate(chunk_files):
-                    first_verse = os.path.splitext(os.path.basename(chunk_file))[
-                        0
-                    ].lstrip("0")
-                    last_verse = resource["usfm_chunks"]["ulb"][chapter][first_verse][
-                        # last_verse = self.usfm_chunks["ulb"][chapter][first_verse][
-                        "last_verse"
-                    ]
-                    if first_verse != last_verse:
-                        title = "{} {}:{}-{}".format(
-                            resource["book_title"],
-                            chapter,
-                            first_verse,
-                            last_verse
-                            # self.book_title, chapter, first_verse, last_verse
-                        )
-                    else:
-                        title = "{} {}:{}".format(
-                            resource["book_title"],
-                            chapter,
-                            first_verse
-                            # self.book_title, chapter, first_verse
-                        )
-                    md = self.increase_headers(read_file(chunk_file), 3)
-                    md = self.decrease_headers(
-                        md, 5
-                    )  # bring headers of 5 or more #'s down 1
-                    md = self.fix_tn_links(md, chapter, resource)
-                    # TODO localization
-                    md = md.replace("#### Translation Words", "### Translation Words")
-                    anchors = ""
-                    for verse in resource["usfm_chunks"]["ulb"][chapter][first_verse][
-                        # for verse in self.usfm_chunks["ulb"][chapter][first_verse][
-                        "verses"
-                    ]:
-                        anchors += '<a id="tn-{}-{}-{}"/>'.format(
-                            resource["book_id"],
-                            self.pad(chapter, resource),
-                            self.pad(verse, resource),
-                        )
-                    pre_md = "\n## {}\n{}\n\n".format(title, anchors)
-                    # TODO localization
-                    pre_md += "### Unlocked Literal Bible\n\n[[ulb://{}/{}/{}/{}/{}]]\n\n".format(
-                        resource["lang_code"],
-                        resource["book_id"],
-                        self.pad(chapter, resource),
-                        self.pad(first_verse, resource),
-                        self.pad(last_verse, resource),
-                    )
-                    # TODO localization
-                    pre_md += "### Translation Notes\n"
-                    md = "{}\n{}\n\n".format(pre_md, md)
-
-                    # Add Translation Words for passage
-                    tw_refs = get_tw_refs(
-                        # TODO
-                        self.tw_refs_by_verse,
-                        resource["book_title"],
-                        chapter,
-                        first_verse
-                        # self.tw_refs_by_verse, self.book_title, chapter, first_verse
-                    )
-                    if tw_refs:
-                        # TODO localization
-                        tw_md = "### Translation Words\n\n"
-                        for tw_ref in tw_refs:
-                            file_ref_md = "* [{}](rc://en/tw/dict/bible/{}/{})\n".format(
-                                tw_ref["Term"], tw_ref["Dir"], tw_ref["Ref"]
-                            )
-                            tw_md += file_ref_md
-                        md = "{}\n{}\n\n".format(md, tw_md)
-
-                    # If we're inside a UDB bridge, roll back to the beginning of it
-                    udb_first_verse = first_verse
-                    udb_first_verse_ok = False
-                    while not udb_first_verse_ok:
-                        try:
-                            _ = resource["usfm_chunks"]["udb"][chapter][
-                                udb_first_verse
-                            ][
-                                # _ = self.usfm_chunks["udb"][chapter][udb_first_verse][
-                                "usfm"
-                            ]
-                            udb_first_verse_ok = True
-                        except KeyError:
-                            udb_first_verse_int = int(udb_first_verse) - 1
-                            if udb_first_verse_int <= 0:
-                                break
-                            udb_first_verse = str(udb_first_verse_int)
-
-                    # TODO localization
-                    md += "### Unlocked Dynamic Bible\n\n[[udb://{}/{}/{}/{}/{}]]\n\n".format(
-                        resource["lang_code"],
-                        resource["book_id"],
-                        self.pad(chapter, resource),
-                        self.pad(udb_first_verse, resource),
-                        self.pad(last_verse, resource),
-                    )
-                    rc = "rc://{}/tn/help/{}/{}/{}".format(
-                        resource["lang_code"],
-                        resource["book_id"],
-                        self.pad(chapter, resource),
-                        self.pad(first_verse, resource),
-                    )
-                    anchor_id = "tn-{}-{}-{}".format(
-                        resource["book_id"],
-                        self.pad(chapter, resource),
-                        self.pad(first_verse, resource),
-                    )
-                    resource["resource_data"][rc] = {
-                        # self.resource_data[rc] = {
-                        "rc": rc,
-                        "id": anchor_id,
-                        "link": "#{}".format(anchor_id),
-                        "title": title,
-                    }
-                    resource["my_rcs"].append(rc)
-                    # self.my_rcs.append(rc)
-                    self.get_resource_data_from_rc_links(md, rc, resource)
-                    md += "\n\n"
-                    tn_md += md
-
-                    # TODO localization
-                    links = "### Links:\n\n"
-                    if book_has_intro:
-                        links += "* [[rc://{}/tn/help/{}/front/intro]]\n".format(
-                            resource["lang_code"], resource["book_id"]
-                        )
-                    if chapter_has_intro:
-                        links += "* [[rc://{0}/tn/help/{1}/{2}/intro]]\n".format(
-                            resource["lang_code"],
-                            resource["book_id"],
-                            self.pad(chapter, resource),
-                        )
-                    links += "* [[rc://{0}/tq/help/{1}/{2}]]\n".format(
-                        resource["lang_code"],
-                        resource["book_id"],
-                        self.pad(chapter, resource),
-                    )
-                    tn_md += links + "\n\n"
-
-        logger.debug("tn_md is {0}".format(tn_md))
-        return tn_md
-
-    # TODO XFIXME This is quite a cluster
-    def get_tq_markdown(self, resource: Dict) -> str:
-        """Build tq markdown"""
-        # TODO localization
-        tq_md = '# Translation Questions\n<a id="tq-{}"/>\n\n'.format(
-            resource["book_id"]
-        )
-        # tq_md = '# Translation Questions\n<a id="tq-{0}"/>\n\n'.format(self.book_id)
-        # TODO localization
-        title = "{} Translation Questions".format(resource["book_title"])
-        # title = "{0} Translation Questions".format(self.book_title)
-        rc = "rc://{}/tq/help/{}".format(resource["lang_code"], resource["book_id"])
-        # rc = "rc://{0}/tq/help/{1}".format(self.lang_code, self.book_id)
-        anchor_id = "tq-{}".format(resource["book_id"])
-        # anchor_id = "tq-{}".format(self.book_id)
-        resource["resource_data"][rc] = {
-            # self.resource_data[rc] = {
-            "rc": rc,
-            "id": anchor_id,
-            "link": "#{}".format(anchor_id),
-            "title": title,
-        }
-        resource["my_rcs"].append(rc)
-        # self.my_rcs.append(rc)
-        tq_book_dir = os.path.join(resource["resource_dir"], resource["book_id"])
-        # tq_book_dir = os.path.join(self.tq_dir, self.book_id)
-        for chapter in sorted(os.listdir(tq_book_dir)):
-            chapter_dir = os.path.join(tq_book_dir, chapter)
-            chapter = chapter.lstrip("0")
-            if os.path.isdir(chapter_dir) and re.match(r"^\d+$", chapter):
-                id_tag = '<a id="tq-{}-{}"/>'.format(
-                    resource["book_id"], self.pad(chapter, resource)
-                )
-                # id_tag = '<a id="tq-{0}-{1}"/>'.format(self.book_id, self.pad(chapter))
-                tq_md += "## {} {}\n{}\n\n".format(
-                    resource["book_title"], chapter, id_tag
-                )
-                # tq_md += "## {0} {1}\n{2}\n\n".format(self.book_title, chapter, id_tag)
-                # TODO localization
-                title = "{} {} Translation Questions".format(
-                    resource["book_title"], chapter
-                )
-                # title = "{0} {1} Translation Questions".format(self.book_title, chapter)
-                rc = "rc://{}/tq/help/{}/{}".format(
-                    resource["lang_code"],
-                    resource["book_id"],
-                    self.pad(chapter, resource)
-                    # self.lang_code, self.book_id, self.pad(chapter)
-                )
-                anchor_id = "tq-{}-{}".format(
-                    resource["book_id"], self.pad(chapter, resource)
-                )
-                # anchor_id = "tq-{}-{}".format(self.book_id, self.pad(chapter))
-                resource["resource_data"][rc] = {
-                    # self.resource_data[rc] = {
-                    "rc": rc,
-                    "id": anchor_id,
-                    "link": "#{0}".format(anchor_id),
-                    "title": title,
-                }
-                resource["my_rcs"].append(rc)
-                # self.my_rcs.append(rc)
-                for chunk in sorted(os.listdir(chapter_dir)):
-                    chunk_file = os.path.join(chapter_dir, chunk)
-                    first_verse = os.path.splitext(chunk)[0].lstrip("0")
-                    if os.path.isfile(chunk_file) and re.match(r"^\d+$", first_verse):
-                        md = read_file(chunk_file)
-                        md = self.increase_headers(md, 2)
-                        md = re.compile("^([^#\n].+)$", flags=re.M).sub(
-                            r'\1 [<a href="#tn-{}-{}-{}">{}:{}</a>]'.format(
-                                resource["book_id"],
-                                # self.book_id,
-                                self.pad(chapter, resource),
-                                self.pad(first_verse, resource),
-                                chapter,
-                                first_verse,
-                            ),
-                            md,
-                        )
-                        # TODO localization
-                        title = "{} {}:{} Translation Questions".format(
-                            resource["book_title"],
-                            chapter,
-                            first_verse
-                            # self.book_title, chapter, first_verse
-                        )
-                        rc = "rc://{}/tq/help/{}/{}/{}".format(
-                            resource["lang_code"],
-                            # self.lang_code,
-                            resource["book_id"],
-                            # self.book_id,
-                            self.pad(chapter, resource),
-                            self.pad(first_verse, resource),
-                        )
-                        anchor_id = "tq-{}-{}-{}".format(
-                            resource["book_id"],
-                            self.pad(chapter, resource),
-                            self.pad(first_verse, resource)
-                            # self.book_id, self.pad(chapter), self.pad(first_verse)
-                        )
-                        resource["resource_data"][rc] = {
-                            # self.resource_data[rc] = {
-                            "rc": rc,
-                            "id": anchor_id,
-                            "link": "#{}".format(anchor_id),
-                            "title": title,
-                        }
-                        resource["my_rcs"].append(rc)
-                        # self.my_rcs.append(rc)
-                        self.get_resource_data_from_rc_links(md, rc, resource)
-                        md += "\n\n"
-                        tq_md += md
-        logger.debug("tq_md is {0}".format(tq_md))
-        return tq_md
-
-    def get_tw_markdown(self, resource) -> str:
-        # TODO localization
-        tw_md = '<a id="tw-{}"/>\n# Translation Words\n\n'.format(resource["book_id"])
-        # tw_md = '<a id="tw-{0}"/>\n# Translation Words\n\n'.format(self.book_id)
-        sorted_rcs = sorted(
-            resource["my_rcs"],
-            key=lambda k: resource["resource_data"][k]["title"].lower()
-            # self.my_rcs, key=lambda k: self.resource_data[k]["title"].lower()
-        )
-        for rc in sorted_rcs:
-            if "/tw/" not in rc:
-                continue
-            if resource["resource_data"][rc]["text"]:
-                # if self.resource_data[rc]["text"]:
-                md = resource["resource_data"][rc]["text"]
-                # md = self.resource_data[rc]["text"]
-            else:
-                md = ""
-            id_tag = '<a id="{}"/>'.format(resource["resource_data"][rc]["id"])
-            # id_tag = '<a id="{0}"/>'.format(self.resource_data[rc]["id"])
-            md = re.compile(r"# ([^\n]+)\n").sub(r"# \1\n{}\n".format(id_tag), md, 1)
-            md = self.increase_headers(md)
-            uses = self.get_uses(rc, resource)
-            if uses == "":
-                continue
-            md += uses
-            md += "\n\n"
-            tw_md += md
-        # TODO localization
-        tw_md = remove_md_section(tw_md, "Bible References")
-        # TODO localization
-        tw_md = remove_md_section(tw_md, "Examples from the Bible stories")
-
-        logger.debug("tw_md is {}".format(tw_md))
-        return tw_md
-
-    def get_ta_markdown(self, resource) -> str:
-        # TODO localization
-        ta_md = '<a id="ta-{}"/>\n# Translation Topics\n\n'.format(resource["book_id"])
-        # ta_md = '<a id="ta-{0}"/>\n# Translation Topics\n\n'.format(self.book_id)
-        sorted_rcs = sorted(
-            resource["my_rcs"],
-            key=lambda k: resource["resource_data"][k]["title"].lower()
-            # self.my_rcs, key=lambda k: self.resource_data[k]["title"].lower()
-        )
-        for rc in sorted_rcs:
-            if "/ta/" not in rc:
-                continue
-            if resource["resource_data"][rc]["text"]:
-                # if self.resource_data[rc]["text"]:
-                md = resource["resource_data"][rc]["text"]
-                # md = self.resource_data[rc]["text"]
-            else:
-                md = ""
-            id_tag = '<a id="{}"/>'.format(resource["resource_data"][rc]["id"])
-            # id_tag = '<a id="{0}"/>'.format(self.resource_data[rc]["id"])
-            md = re.compile(r"# ([^\n]+)\n").sub(r"# \1\n{}\n".format(id_tag), md, 1)
-            md = self.increase_headers(md)
-            md += self.get_uses(rc, resource)
-            md += "\n\n"
-            ta_md += md
-        logger.debug("ta_md is {0}".format(ta_md))
-        return ta_md
-
-    def get_uses(self, rc, resource) -> str:
-        md = ""
-        if resource["rc_references"][rc]:
-            # if self.rc_references[rc]:
-            references = []
-            for reference in resource["rc_references"][rc]:
-                # for reference in self.rc_references[rc]:
-                if "/tn/" in reference:
-                    references.append("* [[{}]]".format(reference))
-            if references:
-                # TODO localization
-                md += "### Uses:\n\n"
-                md += "\n".join(references)
-                md += "\n"
-        return md
-
-    def get_resource_data_from_rc_links(self, text, source_rc, resource) -> None:
-        for rc in re.findall(
-            r"rc://[A-Z0-9/_-]+", text, flags=re.IGNORECASE | re.MULTILINE
-        ):
-            parts = rc[5:].split("/")
-            resource_tmp = parts[1]
-            path = "/".join(parts[3:])
-
-            # FIXME
-            if resource_tmp not in ["ta", "tw"]:
-                continue
-
-            if rc not in resource["my_rcs"]:
-                # if rc not in self.my_rcs:
-                resource["my_rcs"].append(rc)
-                # self.my_rcs.append(rc)
-            if rc not in resource["rc_references"]:
-                # if rc not in self.rc_references:
-                resource["rc_references"][rc] = []
-                # self.rc_references[rc] = []
-            resource["rc_references"][rc].append(source_rc)
-            # self.rc_references[rc].append(source_rc)
-
-            if rc not in resource["resource_data"]:
-                # if rc not in self.resource_data:
-                title = ""
-                t = ""
-                anchor_id = "{}-{}".format(resource_tmp, path.replace("/", "-"))
-                link = "#{}".format(anchor_id)
-                try:
-                    file_path = os.path.join(
-                        self.working_dir,
-                        "{}_{}".format(resource["lang_code"], resource_tmp),
-                        # "{0}_{1}".format(self.lang_code, resource),
-                        "{}.md".format(path),
-                    )
-                    if not os.path.isfile(file_path):
-                        file_path = os.path.join(
-                            self.working_dir,
-                            "{}_{}".format(resource["lang_code"], resource_tmp),
-                            # "{0}_{1}".format(self.lang_code, resource),
-                            "{}/01.md".format(path),
-                        )
-                    if not os.path.isfile(file_path):
-                        if resource_tmp == "tw":
-                            # TODO localization?
-                            if path.startswith("bible/other/"):
-                                # TODO localization?
-                                path2 = re.sub(r"^bible/other/", r"bible/kt/", path)
-                            else:
-                                # TODO localization?
-                                path2 = re.sub(r"^bible/kt/", r"bible/other/", path)
-                            anchor_id = "{}-{}".format(
-                                resource_tmp, path2.replace("/", "-")
-                            )
-                            link = "#{}".format(anchor_id)
-                            file_path = os.path.join(
-                                self.working_dir,
-                                "{}_{}".format(resource["lang_code"], resource_tmp),
-                                # "{0}_{1}".format(self.lang_code, resource),
-                                "{}.md".format(path2),
-                            )
-                    if os.path.isfile(file_path):
-                        t = read_file(file_path)
-                        if resource_tmp == "ta":
-                            title_file = os.path.join(
-                                os.path.dirname(file_path), "title.md"
-                            )
-                            question_file = os.path.join(
-                                os.path.dirname(file_path), "sub-title.md"
-                            )
-                            if os.path.isfile(title_file):
-                                title = read_file(title_file)
-                            else:
-                                title = self.get_first_header(t)
-                            if os.path.isfile(question_file):
-                                question = read_file(question_file)
-                                # TODO localization?
-                                question = "This page answers the question: *{}*\n\n".format(
-                                    question
-                                )
-                            else:
-                                question = ""
-                            t = "# {}\n\n{}{}".format(title, question, t)
-                            t = self.fix_ta_links(t, path.split("/")[0], resource)
-                        elif resource_tmp == "tw":
-                            title = self.get_first_header(t)
-                            t = self.fix_tw_links(t, path.split("/")[1], resource)
-                    else:
-                        # TODO bad_links doesn't exist yet, but should
-                        # be on resources dict.
-                        if rc not in resource["bad_links"]:
-                            # if rc not in self.bad_links:
-                            resource["bad_links"][rc] = []
-                            # self.bad_links[rc] = []
-                        resource["bad_links"][rc].append(source_rc)
-                        # self.bad_links[rc].append(source_rc)
-                except:
-                    # TODO
-                    if rc not in resource["bad_links"]:
-                        # if rc not in self.bad_links:
-                        resource["bad_links"][rc] = []
-                        # self.bad_links[rc] = []
-                    resource["bad_links"][rc].append(source_rc)
-                    # self.bad_links[rc].append(source_rc)
-                resource["resource_data"][rc] = {
-                    # self.resource_data[rc] = {
-                    "rc": rc,
-                    "link": link,
-                    "id": anchor_id,
-                    "title": title,
-                    "text": t,
-                }
-                if t:
-                    self.get_resource_data_from_rc_links(t, rc, resource)
-
-    @staticmethod
-    def increase_headers(text: str, increase_depth: int = 1) -> str:
-        if text:
-            text = re.sub(
-                r"^(#+) +(.+?) *#*$",
-                r"\1{0} \2".format("#" * increase_depth),
-                text,
-                flags=re.MULTILINE,
-            )
-        return text
-
-    @staticmethod
-    def decrease_headers(text: str, minimum_header: int = 1, decrease: int = 1) -> str:
-        if text:
-            text = re.sub(
-                r"^({0}#*){1} +(.+?) *#*$".format(
-                    "#" * (minimum_header - decrease), "#" * decrease
-                ),
-                r"\1 \2",
-                text,
-                flags=re.MULTILINE,
-            )
-        return text
-
-    @staticmethod
-    def get_first_header(text: str) -> str:
-        lines = text.split("\n")
-        if lines:
-            for line in lines:
-                if re.match(r"^ *#+ ", line):
-                    return re.sub(r"^ *#+ (.*?) *#*$", r"\1", line)
-            return lines[0]
-        return "NO TITLE"
-
-    def fix_tn_links(self, text: str, chapter: str, resource: Dict) -> str:
-        rep = {
-            re.escape(
-                # TODO localization
-                "**[2 Thessalonians intro](../front/intro.md)"
-                # TODO localization
-            ): "**[2 Thessalonians intro](../front/intro.md)**",
-            r"\]\(\.\./\.\./([^)]+?)(\.md)*\)": r"](rc://{}/tn/help/\1)".format(
-                resource["lang_code"]
-                # self.lang_code
-            ),
-            r"\]\(\.\./([^)]+?)(\.md)*\)": r"](rc://{}/tn/help/{}/\1)".format(
-                resource["lang_code"],
-                resource["book_id"]
-                # self.lang_code, self.book_id
-            ),
-            r"\]\(\./([^)]+?)(\.md)*\)": r"](rc://{}/tn/help/{}/{}/\1)".format(
-                resource["lang_code"],
-                resource["book_id"],
-                self.pad(chapter, resource)
-                # self.lang_code, self.book_id, self.pad(chapter)
-            ),
-            r"\n__.*\|.*": r"",
-        }
-        for pattern, repl in rep.items():
-            text = re.sub(pattern, repl, text, flags=re.IGNORECASE | re.MULTILINE)
-        return text
-
-    def fix_tw_links(self, text: str, dictionary, resource: Dict) -> str:
-        rep = {
-            r"\]\(\.\./([^/)]+?)(\.md)*\)": r"](rc://{}/tw/dict/bible/{}/\1)".format(
-                resource["lang_code"],
-                dictionary
-                # self.lang_code, dictionary
-            ),
-            r"\]\(\.\./([^)]+?)(\.md)*\)": r"](rc://{}/tw/dict/bible/\1)".format(
-                resource["lang_code"]
-                # self.lang_code
-            ),
-        }
-        for pattern, repl in rep.items():
-            text = re.sub(pattern, repl, text, flags=re.IGNORECASE)
-        return text
-
-    def fix_ta_links(self, text: str, manual: str, resource: Dict) -> str:
-        rep = {
-            r"\]\(\.\./([^/)]+)/01\.md\)": r"](rc://{0}/ta/man/{1}/\1)".format(
-                resource["lang_code"],
-                manual
-                # self.lang_code, manual
-            ),
-            r"\]\(\.\./\.\./([^/)]+)/([^/)]+)/01\.md\)": r"](rc://{}/ta/man/\1/\2)".format(
-                resource["lang_code"]
-                # self.lang_code
-            ),
-            r"\]\(([^# :/)]+)\)": r"](rc://{}/ta/man/{}/\1)".format(
-                resource["lang_code"],
-                manual
-                # self.lang_code, manual
-            ),
-        }
-        for pattern, repl in rep.items():
-            text = re.sub(pattern, repl, text, flags=re.IGNORECASE)
-        return text
-
+    # FIXME Should this live elsewhere?
     def replace_rc_links(self, text: str, resource: Dict) -> str:
         # Change [[rc://...]] rc links, e.g. [[rc://en/tw/help/bible/kt/word]] => [God's Word](#tw-kt-word)
         rep = dict(
@@ -1492,103 +502,82 @@ class DocumentGenerator(object):
 
         return text
 
-    # FIXME I think this needs to happen per document not per resource.
-    def convert_md2html(self, resource: Dict) -> None:
-        logger.debug(
-            "About to call markdown.markdown, resource['resource_dir']: {}, resource['filename_base']: {}, resource['resource_filename']: {}".format(
-                resource["resource_dir"],
-                resource["filename_base"],
-                resource["resource_filename"],
-            )
-        )
-        html = markdown.markdown(
-            read_file(
-                # os.path.join(
-                #     self.output_dir,
-                "{}/{}.md".format(
-                    resource["resource_dir"],
-                    resource["resource_filename"],
-                    # resource["resource_dir"], resource["filename_base"]
-                    #     ),
-                ),
-                # os.path.join(self.output_dir, "{}.md".format(self.filename_base)),
-                "utf-8",
-            )
-        )
-        html = self.replace_bible_links(html, resource)
-        write_file(
-            os.path.join(self.output_dir, "{}.html".format(resource["filename_base"])),
-            html
-            # os.path.join(self.output_dir, "{0}.html".format(self.filename_base)), html
-        )
+    # # FIXME I think this needs to happen per document not per resource.
+    # def convert_md2html(self, resource: Dict) -> None:
+    #     # logger.debug(
+    #     #     "About to call markdown.markdown, resource['resource_dir']: {}, resource['filename_base']: {}, resource['resource_filename']: {}".format(
+    #     #         resource["resource_dir"],
+    #     #         resource["filename_base"],
+    #     #         resource["resource_filename"],
+    #     #     )
+    #     # )
+    #     html = markdown.markdown(
+    #         read_file(
+    #             # os.path.join(
+    #             #     self.output_dir,
+    #             "{}/{}.md".format(
+    #                 resource["resource_dir"],
+    #                 resource["resource_filename"],
+    #                 # resource["resource_dir"], resource["filename_base"]
+    #                 #     ),
+    #             ),
+    #             # os.path.join(self.output_dir, "{}.md".format(self.filename_base)),
+    #             "utf-8",
+    #         )
+    #     )
+    #     html = self.replace_bible_links(html, resource)
+    #     write_file(
+    #         os.path.join(self.output_dir, "{}.html".format(resource["filename_base"])),
+    #         html
+    #         # os.path.join(self.output_dir, "{0}.html".format(self.filename_base)), html
+    #     )
 
-    def replace_bible_links(self, text: str, resource: Dict) -> str:
-        bible_links = re.findall(
-            r"(?:udb|ulb)://[A-Z0-9/]+", text, flags=re.IGNORECASE | re.MULTILINE
-        )
-        bible_links = list(set(bible_links))
-        rep = {}
-        for link in sorted(bible_links):
-            parts = link.split("/")
-            resource_str = parts[0][0:3]
-            chapter = parts[4].lstrip("0")
-            first_verse = parts[5].lstrip("0")
-            rep[link] = "<div>{0}</div>".format(
-                self.get_chunk_html(resource_str, chapter, first_verse, resource)
-            )
-        rep = dict(
-            (re.escape("[[{0}]]".format(link)), html) for link, html in rep.items()
-        )
-        pattern = re.compile("|".join(list(rep.keys())))
-        text = pattern.sub(lambda m: rep[re.escape(m.group(0))], text)
-        return text
+    # def get_chunk_html(
+    #     self, resource_str: str, chapter: str, verse: str, resource: Dict
+    # ) -> str:
+    #     # logger.debug("html: {0}-{3}-{1}-{2}".format(resource, chapter, verse, self.book_id))
+    #     path = tempfile.mkdtemp(
+    #         dir=self.working_dir,
+    #         prefix="usfm-{}-{}-{}-{}-{}_".format(
+    #             resource["lang_code"],
+    #             resource_str,
+    #             resource["book_id"],
+    #             chapter,
+    #             verse
+    #             # self.lang_code, resource, self.book_id, chapter, verse
+    #         ),
+    #     )
+    #     filename_base = "{}-{}-{}-{}".format(
+    #         resource_str, resource["book_id"], chapter, verse
+    #     )
+    #     # filename_base = "{0}-{1}-{2}-{3}".format(resource, self.book_id, chapter, verse)
+    #     try:
+    #         chunk = resource["usfm_chunks"][resource_str][chapter][verse]["usfm"]
+    #         # chunk = self.usfm_chunks[resource_str][chapter][verse]["usfm"]
+    #     except KeyError:
+    #         chunk = ""
+    #     usfm = resource["usfm_chunks"][resource_str]["header"]
+    #     # usfm = self.usfm_chunks[resource_str]["header"]
+    #     if "\\c" not in chunk:
+    #         usfm += "\n\n\\c {0}\n".format(chapter)
+    #     usfm += chunk
+    #     write_file(os.path.join(path, filename_base + ".usfm"), usfm)
+    #     UsfmTransform.buildSingleHtml(path, path, filename_base)
+    #     html = read_file(os.path.join(path, filename_base + ".html"))
+    #     shutil.rmtree(path, ignore_errors=True)
+    #     soup = bs4.BeautifulSoup(html, "html.parser")
+    #     header = soup.find("h1")
+    #     if header:
+    #         header.decompose()
+    #     chapter_element: Union[
+    #         bs4.element.Tag, bs4.element.NavigableString
+    #     ] = soup.find("h2")
+    #     if chapter_element:
+    #         chapter_element.decompose()
+    #     html = "".join(["%s" % x for x in soup.body.contents])
+    #     return html
 
-    def get_chunk_html(
-        self, resource_str: str, chapter: str, verse: str, resource: Dict
-    ) -> str:
-        # logger.debug("html: {0}-{3}-{1}-{2}".format(resource, chapter, verse, self.book_id))
-        path = tempfile.mkdtemp(
-            dir=self.working_dir,
-            prefix="usfm-{}-{}-{}-{}-{}_".format(
-                resource["lang_code"],
-                resource_str,
-                resource["book_id"],
-                chapter,
-                verse
-                # self.lang_code, resource, self.book_id, chapter, verse
-            ),
-        )
-        filename_base = "{}-{}-{}-{}".format(
-            resource_str, resource["book_id"], chapter, verse
-        )
-        # filename_base = "{0}-{1}-{2}-{3}".format(resource, self.book_id, chapter, verse)
-        try:
-            chunk = resource["usfm_chunks"][resource_str][chapter][verse]["usfm"]
-            # chunk = self.usfm_chunks[resource_str][chapter][verse]["usfm"]
-        except KeyError:
-            chunk = ""
-        usfm = resource["usfm_chunks"][resource_str]["header"]
-        # usfm = self.usfm_chunks[resource_str]["header"]
-        if "\\c" not in chunk:
-            usfm += "\n\n\\c {0}\n".format(chapter)
-        usfm += chunk
-        write_file(os.path.join(path, filename_base + ".usfm"), usfm)
-        UsfmTransform.buildSingleHtml(path, path, filename_base)
-        html = read_file(os.path.join(path, filename_base + ".html"))
-        shutil.rmtree(path, ignore_errors=True)
-        soup = bs4.BeautifulSoup(html, "html.parser")
-        header = soup.find("h1")
-        if header:
-            header.decompose()
-        chapter_element: Union[
-            bs4.element.Tag, bs4.element.NavigableString
-        ] = soup.find("h2")
-        if chapter_element:
-            chapter_element.decompose()
-        html = "".join(["%s" % x for x in soup.body.contents])
-        return html
-
-    def convert_html2pdf(self, resource: Dict) -> None:
+    def convert_html2pdf(self, resource) -> None:
         now = datetime.datetime.now()
         revision_date = "{}-{}-{}".format(now.year, now.month, now.day)
         command = """pandoc \
@@ -1615,19 +604,17 @@ class DocumentGenerator(object):
 -o "{3}/{5}.pdf" \
 "{3}/{5}.html"
 """.format(
-            # BOOK_NUMBERS[self.book_id],  # FIXME XFIXME This arg is not used
-            # self.book_id.upper(),  # FIXME XFIXME This arg is not used
-            resource["book_title"],
+            resource._book_title,
             # self.book_title,
-            resource["issued"] if "issued" in resource else "",
-            # self.issued,
-            resource["version"] if "version" in resource else "",
-            # self.version,
+            # resource["issued"] if "issued" in resource else "",
+            resource._issued if resource._issued else "",
+            # resource["version"] if "version" in resource else "",
+            resource._version if resource._version else "",
             self.output_dir,
             self.working_dir,
             # resource["resource_filepath"],
-            resource["filename_base"],
-            # self.filename_base,
+            # resource["filename_base"],
+            resource._filename_base,
             revision_date,
             get_tex_format_location(),
             get_tex_template_location(),
@@ -1693,27 +680,6 @@ def fix_links(text):
     return text
 
 
-def remove_md_section(md: str, section_name: str) -> str:
-    """ Given markdown and a section name, removes the section and the text contained in the section. """
-    header_regex = re.compile("^#.*$")
-    section_regex = re.compile("^#+ " + section_name)
-    out_md = ""
-    in_section = False
-    for line in md.splitlines():
-        if in_section:
-            if header_regex.match(line):
-                # We found a header.  The section is over.
-                out_md += line + "\n"
-                in_section = False
-        else:
-            if section_regex.match(line):
-                # We found the section header.
-                in_section = True
-            else:
-                out_md += line + "\n"
-    return out_md
-
-
 def read_csv_as_dicts(filename: str) -> List:
     """ Returns a list of dicts, each containing the contents of a row of
         the given csv file. The CSV file is assumed to have a header row with
@@ -1755,155 +721,3 @@ def index_tw_refs_by_verse(tw_refs: List) -> dict:
 
         tw_refs_by_verse[book][chapter][verse].append(tw_ref)
     return tw_refs_by_verse
-
-
-def get_tw_refs(tw_refs_by_verse: dict, book: str, chapter: str, verse: str) -> List:
-    """ Returns a list of refs for the given book, chapter, verse, or
-        empty list if no matches. """
-    if book not in tw_refs_by_verse:
-        return []
-    if chapter not in tw_refs_by_verse[book]:
-        return []
-    if verse not in tw_refs_by_verse[book][chapter]:
-        return []
-    return tw_refs_by_verse[book][chapter][verse]
-
-
-# def main(
-#     # ta_tag: str,
-#     # tn_tag: str,
-#     # tq_tag: str,
-#     # tw_tag: str,
-#     # udb_tag: str,
-#     # ulb_tag: str,
-#     resources,
-#     working_dir,
-#     output_dir,
-#     # lang_code: str,
-#     # books: List[str],
-# ) -> None:
-#     """
-#     # :param ta_tag:
-#     # :param tn_tag:
-#     # :param tq_tag:
-#     # :param tw_tag:
-#     # :param udb_tag:
-#     # :param ulb_tag:
-#     # :param lang_code:
-#     # :param books:
-#     :param resources:
-#     :param working_dir:
-#     :param output_dir:
-#     :return:
-#     """
-
-
-#     doc_generator = DocumentGenerator(
-#         # ta_tag,
-#         # tn_tag,
-#         # tq_tag,
-#         # tw_tag,
-#         # udb_tag,
-#         # ulb_tag,
-#         resources,
-#         working_dir,
-#         output_dir,
-#         # lang_code,
-#         # books,
-#     )
-
-#     # Let's test our json lookup service on something
-#     lookup_svc: ResourceJsonLookup = ResourceJsonLookup(
-#         logger=doc_generator.logger, pp=doc_generator.pp
-#     )
-#     # Get the resources
-#     download_url: Optional[str] = lookup_svc.lookup(lang_code, "ulb", None)
-#     if download_url is not None:
-#         doc_generator.logger.debug("URL for ulb zip {}".format(download_url))
-#         doc_generator.file_from_url(lang_code, download_url[0])
-#     else:
-#         doc_generator.logger.debug(
-#             "download_url {} is not available.".format(download_url)
-#         )
-
-#     # lang: str = "Abadi"
-#     # download_url: Optional[str] = lookup_svc.lookup_download_url()
-#     # if download_url is not None:
-#     #     logger.debug(("Language {} download url: {}".format(lang, download_url)))
-#     # repo_url: Optional[str] = lookup_svc.parse_repo_url_from_json_url(download_url)
-#     # if repo_url is not None:
-#     #     logger.debug(("Language {} repo_url: {}".format(lang, repo_url)))
-
-#     ## FIXME Temporarily comment out run() invocation
-#     # doc_generator.run()
-
-
-# if __name__ == "__main__":
-#     parser = argparse.ArgumentParser(
-#         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
-#     )
-#     parser.add_argument(
-#         "-l",
-#         "--lang",
-#         dest="lang_code",
-#         # nargs="+",
-#         default="en",
-#         required=False,
-#         help="Language Codes",
-#     )
-#     parser.add_argument(
-#         "-b",
-#         "--book_id",
-#         dest="books",
-#         nargs="+",
-#         default=None,
-#         required=False,
-#         help="Bible Book(s)",
-#     )
-#     parser.add_argument(
-#         "-w",
-#         "--working",
-#         dest="working_dir",
-#         default=False,
-#         required=False,
-#         help="Working Directory",
-#     )
-#     parser.add_argument(
-#         "-o",
-#         "--output",
-#         dest="output_dir",
-#         default=False,
-#         required=False,
-#         help="Output Directory",
-#     )
-#     parser.add_argument(
-#         "--ta-tag", dest="ta", default="v9", required=False, help="tA Tag"
-#     )
-#     parser.add_argument(
-#         "--tn-tag", dest="tn", default="v11", required=False, help="tN Tag"
-#     )
-#     parser.add_argument(
-#         "--tq-tag", dest="tq", default="v9", required=False, help="tQ Tag"
-#     )
-#     parser.add_argument(
-#         "--tw-tag", dest="tw", default="v8", required=False, help="tW Tag"
-#     )
-#     parser.add_argument(
-#         "--udb-tag", dest="udb", default="v12", required=False, help="UDB Tag"
-#     )
-#     parser.add_argument(
-#         "--ulb-tag", dest="ulb", default="v12", required=False, help="ULB Tag"
-#     )
-#     args = parser.parse_args(sys.argv[1:])
-#     main(
-#         args.ta,
-#         args.tn,
-#         args.tq,
-#         args.tw,
-#         args.udb,
-#         args.ulb,
-#         args.working_dir,
-#         args.output_dir,
-#         args.lang_code,
-#         args.books,
-#     )

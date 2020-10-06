@@ -26,6 +26,15 @@ try:
         get_working_dir,
     )
     from resource_lookup import ResourceJsonLookup
+    from resource import (
+        # Resource,
+        USFMResource,
+        TNResource,
+        TAResource,
+        TQResource,
+        TWResource,
+        ResourceFactory,
+    )
 except:
     from .file_utils import load_json_object
     from .url_utils import download_file
@@ -39,6 +48,15 @@ except:
         get_working_dir,
     )
     from .resource_lookup import ResourceJsonLookup
+    from .resource import (
+        # Resource,
+        USFMResource,
+        TNResource,
+        TAResource,
+        TQResource,
+        TWResource,
+        ResourceFactory,
+    )
 
 import yaml
 import logging
@@ -91,6 +109,7 @@ def main() -> None:
     if True:
         fixtures = {}
         fixtures["resources"] = [
+            {"lang_code": "en", "resource_type": "tn-wa", "resource_code": "lev"},
             {"lang_code": "kn", "resource_type": "tn", "resource_code": None},
             {"lang_code": "lo", "resource_type": "tn", "resource_code": None},
             {"lang_code": "as", "resource_type": "tn", "resource_code": None},
@@ -100,10 +119,10 @@ def main() -> None:
             {"lang_code": "mr", "resource_type": "ta", "resource_code": None},
             {"lang_code": "lpx", "resource_type": "ulb", "resource_code": None},
             {"lang_code": "mr", "resource_type": "ulb", "resource_code": "gen"},
-            {"lang_code": "mr", "resource_type": "udb", "resource_code": None},
-            {"lang_code": "mr", "resource_type": "obs", "resource_code": None},
-            {"lang_code": "mr", "resource_type": "obs-tn", "resource_code": None},
-            {"lang_code": "mr", "resource_type": "obs-tq", "resource_code": None},
+            # {"lang_code": "mr", "resource_type": "udb", "resource_code": None},
+            # {"lang_code": "mr", "resource_type": "obs", "resource_code": None},
+            # {"lang_code": "mr", "resource_type": "obs-tn", "resource_code": None},
+            # {"lang_code": "mr", "resource_type": "obs-tq", "resource_code": None},
             {
                 "lang_code": "erk-x-erakor",
                 "resource_type": "reg",
@@ -112,21 +131,33 @@ def main() -> None:
         ]
 
         for resource in fixtures["resources"]:
-            test_lookup(lookup_svc, resource)
+            # FIXME Instantiate a resource object for each resource dictionary
+            # using ResourceFactory factory method/function. See
+            # document_generator.py line 151 for example.
+            r = ResourceFactory(
+                get_working_dir(), get_working_dir(), lookup_svc, resource
+            )
+            test_lookup(r)
 
 
 ## Test the API:
 
 
-def test_lookup(lookup_svc: ResourceJsonLookup, resource) -> None:
-    values: List[Optional[str]] = lookup_svc.lookup(resource)
+def test_lookup(resource) -> None:
+    resource.find_location()
+    # values: List[Optional[str]] = lookup_svc.lookup(resource)
     print(
-        "Language {}, resource_type: {}, resource_code: {}, resource_jsonpath: {}, values: {}".format(
-            resource["lang_code"],
-            resource["resource_type"],
-            resource["resource_code"],
-            resource["resource_jsonpath"],
-            values,
+        "Language {}, resource_type: {}, resource_code: {}, resource_jsonpath: {}, URL: {}".format(
+            # resource["lang_code"],
+            resource._lang_code,
+            # resource["resource_type"],
+            resource._resource_type,
+            # resource["resource_code"],
+            resource._resource_code,
+            # resource["resource_jsonpath"],
+            resource._resource_jsonpath,
+            resource._resource_url
+            # values,
         )
     )
 

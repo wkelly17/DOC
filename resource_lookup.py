@@ -128,6 +128,141 @@ values from it using jsonpath. """
         # Has it been more than 24 hours since last modification time?
         return now - file_mod_time > max_delay
 
+    # NOTE Some target languages only provide a resource at
+    # $[*].contents[?name='reg'].links[?format='Download']. In that
+    # case, grab the repo url from repo_url part of query string. Then
+    # perhaps you'd want to use gitea to get the repo or git clone
+    # directly with depth 1.
+    # TODO Research: Do 'Read on Web' format resources have an associated git
+    # repo if they don't have a sibling 'Download' format URL? I
+    # looked at "erk-x-erakor" for intance and there one can see there
+    # is no symmetry between the 'Read on Web' and 'Download' format
+    # URLs that can be extrapolated to other language resources;
+    # perhaps it can to a subset, but the relationship between the
+    # 'Read on Web' and 'Download' format URLs seems to vary by
+    # language and resource type.
+    # NOTE ulb can be a zip or a git repo. Prefer the git repo.
+    def lookup(self, resource) -> List[Optional[str]]:
+        """ Given a resource, comprised of language code, e.g., 'wum',
+        a resource type, e.g., 'tn', and an optional resource code,
+        e.g., 'gen', return URLs for resource. """
+
+        # logger.info('resource["resource_code"]: {}'.format(resource["resource_code"]))
+        resource._resource_code = (
+            None if not resource._resource_code else resource._resource_code
+        )
+        # logger.info('resource["resource_code"]: {}'.format(resource["resource_code"]))
+
+        assert resource._lang_code is not None, "lang_code is required"
+        assert resource._resource_type is not None, "resource_type is required"
+        # assert resource["resource_code"] is None or (
+        #     resource["resource_code"] is not None
+        #     and not resource["resource_code"].strip()
+        # ), "resource_code can't be an empty string"
+
+        urls: List[Optional[str]] = []
+
+        # NOTE format='Download' can point to reg, ulb, udb git repos.
+        # format='usfm' points to single USFM files.
+        if (
+            resource._resource_code is not None
+        ):  # User has likely specified a book of the bible, try first to get the resource from a git repo.
+            # logger.debug(
+            #     "resource[resource_code]: {}".format(resource["resource_code"])
+            # )
+            # FIXME To simplify this method, we could break reg, ulb,
+            # udb off into a different lookup function for USFM only.
+            if resource._resource_type in ["reg", "ulb", "udb"]:
+                jsonpath_str = get_resource_download_format_jsonpath().format(
+                    resource._lang_code,
+                    resource._resource_type,
+                    resource._resource_code,
+                )
+                urls = self._lookup(jsonpath_str)
+                # FIXME Not sure this next block is needed. _lookup
+                # always returns at least an empty list. When
+                # resource_code is specified (assuming that is
+                # required) there is never more than one URL returned.
+                if urls is not None and len(urls) > 0:
+                    # TODO Test whether this block ever triggers.
+                    logger.info(
+                        "ResourceJsonLookup.lookup triggered for having more than one url"
+                    )
+                    # Get the portion of the query string that gives
+                    # the repo URL
+                    urls = [self._parse_repo_url_from_json_url(urls[0])]
+
+            # NOTE A defining property of the next conditional is that
+            # the resource_type is 'usfm', not that it is not in
+            # 'reg', 'ulb', 'udb'.
+            if (
+                urls is not None and len(urls) == 0
+            ) or resource._resource_type == "usfm":  # Resource not found, next try to get from download CDN/URL.
+                # NOTE Many languages have a git repo found by
+                # format='Download' that is parallel to the
+                # individual, per book, USFM files and in that case
+                # the git repo should be preferred. But there is at
+                # least one language, code='ar', that has only single
+                # USFM files. In that particular language all the
+                # individual USFM files per book can also be found in
+                # a zip file,
+                # $[?code='ar'].contents[?code='nav'].links[format='zip'],
+                # which also contains the manifest.yaml file.
+                # That language is the only one with a
+                # contents[?code='nav'].
+                # Another, yet different, example is the case of
+                # $[?code="avd"] which has format="usfm" without
+                # having a zip containing USFM files at the same level.
+                jsonpath_str = get_individual_usfm_url_jsonpath().format(
+                    resource._lang_code,
+                    resource._resource_type,
+                    resource._resource_code,
+                )
+                urls = self._lookup(jsonpath_str)
+            if (
+                (urls is not None and len(urls) == 0)
+                or resource._resource_type
+                and resource_has_markdown_files(resource)  # FIXME
+            ):
+                jsonpath_str = get_resource_url_level_1_jsonpath().format(
+                    resource._lang_code, resource._resource_type,
+                )
+                urls = self._lookup(jsonpath_str)
+                if (
+                    urls is not None and len(urls) == 0
+                ):  # For the language in question, the resource is
+                    # apparently at its alternative location which we try next.
+                    jsonpath_str = get_resource_url_level_2_jsonpath().format(
+                        resource._lang_code, resource._resource_type,
+                    )
+                    urls = self._lookup(jsonpath_str)
+        else:  # User has not specified a resource_code and thus has
+            # not specified a particular book of the bible. Some
+            # languages, e.g., code='as', have all of their
+            # translation notes, 'tn', for all chapters in all books
+            # in one zip file which is found at the book level, but
+            # not at the chapter level.
+            jsonpath_str = get_resource_url_level_1_jsonpath().format(
+                resource._lang_code, resource._resource_type,
+            )
+            urls = self._lookup(jsonpath_str)
+            if (
+                urls is not None and len(urls) == 0
+            ):  # For the language in question, the resource is
+                # apparently at its alternative location which we try next.
+                jsonpath_str = get_resource_url_level_2_jsonpath().format(
+                    resource._lang_code, resource._resource_type,
+                )
+                urls = self._lookup(jsonpath_str)
+        # FIXME This comment may be incorrect now.
+        # Store the jsonpath that was used as it will be used to
+        # determine how to acquire the resource, e.g., if a jsonpath
+        # was used that points to a git repo then the git client will
+        # be used otherwise we download from a CDN.
+        resource._resource_jsonpath = jsonpath_str
+
+        return urls
+
     # protected access level
     def _lookup(self, jsonpath: str,) -> List[Optional[str]]:
         """ Return jsonpath value or empty list if node doesn't exist. """
@@ -158,127 +293,6 @@ values from it using jsonpath. """
             return result_lst[0]
         else:
             return None
-
-    # NOTE Some target languages only provide a resource at
-    # $[*].contents[?name='reg'].links[?format='Download']. In that
-    # case, grab the repo url from repo_url part of query string. Then
-    # perhaps you'd want to use gitea to get the repo or git clone
-    # directly with depth 1.
-    # TODO Research: Do 'Read on Web' format resources have an associated git
-    # repo if they don't have a sibling 'Download' format URL? I
-    # looked at "erk-x-erakor" for intance and there one can see there
-    # is no symmetry between the 'Read on Web' and 'Download' format
-    # URLs that can be extrapolated to other language resources;
-    # perhaps it can to a subset, but the relationship between the
-    # 'Read on Web' and 'Download' format URLs seems to vary by
-    # language.
-    def lookup(self, resource: Dict) -> List[Optional[str]]:
-        """ Given a resource, comprised of language code, e.g., 'wum',
-        a resource type, e.g., 'tn', and an optional resource code,
-        e.g., 'gen', return URLs for resource. """
-
-        # logger.info('resource["resource_code"]: {}'.format(resource["resource_code"]))
-        resource["resource_code"] = (
-            None if not resource["resource_code"] else resource["resource_code"]
-        )
-        # logger.info('resource["resource_code"]: {}'.format(resource["resource_code"]))
-
-        assert resource["lang_code"] is not None, "lang_code is required"
-        assert resource["resource_type"] is not None, "resource_type is required"
-        # assert resource["resource_code"] is None or (
-        #     resource["resource_code"] is not None
-        #     and not resource["resource_code"].strip()
-        # ), "resource_code can't be an empty string"
-
-        urls: List[Optional[str]] = []
-
-        # NOTE format='Download' can point to reg, ulb, udb git repos.
-        # format='usfm' points to single USFM files.
-        if (
-            resource["resource_code"] is not None
-        ):  # User has likely specified a book of the bible, try first to get the resource from a git repo.
-            # logger.debug(
-            #     "resource[resource_code]: {}".format(resource["resource_code"])
-            # )
-            if resource["resource_type"] in ["reg", "ulb", "udb"]:
-                jsonpath_str = get_resource_download_format_jsonpath().format(
-                    resource["lang_code"],
-                    resource["resource_type"],
-                    resource["resource_code"],
-                )
-                urls = self._lookup(jsonpath_str)
-                if urls is not None and len(urls) > 0:
-                    # Get the portion of the query string that gives
-                    # the repo URL
-                    urls = [self._parse_repo_url_from_json_url(urls[0])]
-
-            # NOTE A defining property of the next conditional is that
-            # the resource_type is 'usfm', not that it is not in
-            # 'reg', 'ulb', 'udb'.
-            if (urls is not None and len(urls) == 0) or resource[
-                "resource_type"
-            ] == "usfm":  # Resource not found, next try to get from download CDN/URL.
-                # NOTE Many languages have a git repo found by
-                # format='Download' that is parallel to the
-                # individual, per book, USFM files and in that case
-                # the git repo should be preferred. But there is at
-                # least one language, code='ar', that has only single
-                # USFM files. In that particular language all the
-                # individual USFM files per book can also be found in
-                # a zip file,
-                # $[?coee='ar'].contents[?code='nav'].links[format='zip'],
-                # which also contains the manifest.yaml file.
-                # That language is the only one with a
-                # contents[?code='nav'].
-                # Another, yet different, example is the case of
-                # $[?code="avd"] which has format="usfm" without
-                # having a zip containing USFM files at the same level.
-                jsonpath_str = get_individual_usfm_url_jsonpath().format(
-                    resource["lang_code"],
-                    resource["resource_type"],
-                    resource["resource_code"],
-                )
-                urls = self._lookup(jsonpath_str)
-            # FIXME THIS IS WHERE WE ARE
-            if (
-                (urls is not None and len(urls) == 0)
-                or resource["resource_type"]
-                and resource_has_markdown_files(resource)
-            ):
-                jsonpath_str = get_resource_url_level_1_jsonpath().format(
-                    resource["lang_code"], resource["resource_type"],
-                )
-                urls = self._lookup(jsonpath_str)
-                if (
-                    urls is not None and len(urls) == 0
-                ):  # For the language in question, the resource is apparently at a different location which we try next.
-                    jsonpath_str = get_resource_url_level_2_jsonpath().format(
-                        resource["lang_code"], resource["resource_type"],
-                    )
-                    urls = self._lookup(jsonpath_str)
-        else:  # User has not specified a resource_code and thus has
-            # not specified a particular book of the bible. Some
-            # languages, e.g., code='as', have all of their
-            # translation notes, 'tn', for all chapters in all books
-            # in one zip file.
-            jsonpath_str = get_resource_url_level_1_jsonpath().format(
-                resource["lang_code"], resource["resource_type"],
-            )
-            urls = self._lookup(jsonpath_str)
-            if (
-                urls is not None and len(urls) == 0
-            ):  # For the language in question, the resource is apparently at a different location which we try next.
-                jsonpath_str = get_resource_url_level_2_jsonpath().format(
-                    resource["lang_code"], resource["resource_type"],
-                )
-                urls = self._lookup(jsonpath_str)
-        # Store the jsonpath that was used as it will be used to
-        # determine how to acquire the resource, e.g., if a jsonpath
-        # was used that points to a git repo then the git client will
-        # be used otherwise we download from a CDN.
-        resource.update({"resource_jsonpath": jsonpath_str})
-
-        return urls
 
     def lang_codes(self) -> List[Optional[str]]:
         """ Convenience method that can be called from UI to get the
@@ -349,18 +363,18 @@ values from it using jsonpath. """
 #     def acquire(self, resource: Dict) -> List[Optional[str]]:
 
 
-class ResourceAcquirer(object):
-    def __init__(
-        self,
-        resource: Dict,
-        working_dir: Optional[str] = "./",  # This is in /tools in the Docker container
-        logger: logging.Logger = None,
-        pp: pprint.PrettyPrinter = None,
-    ) -> None:
-        self.working_dir = working_dir
-        self.resource = resource
-        self.logger = logger
-        self.pp = pp
+# class ResourceAcquirer(object):
+#     def __init__(
+#         self,
+#         resource: Dict,
+#         working_dir: Optional[str] = "./",  # This is in /tools in the Docker container
+#         logger: logging.Logger = None,
+#         pp: pprint.PrettyPrinter = None,
+#     ) -> None:
+#         self.working_dir = working_dir
+#         self.resource = resource
+#         self.logger = logger
+#         self.pp = pp
 
-    def acquire(self) -> None:
-        pass
+#     def acquire(self) -> None:
+#         pass
