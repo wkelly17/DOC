@@ -868,6 +868,8 @@ class USFMResource(Resource):
         self._get_usfm_chunks()
         logger.info("We still need to implement USFM conversion to HTML")
         logger.debug("self._bad_links: {}".format(self._bad_links))
+        # FIXME We now call _convert_md2html here if applicable for
+        # this resource type
 
     # protected
     # FIXME Handle git based usfm with resources.json file and .txt usfm
@@ -976,16 +978,18 @@ class TResource(Resource):
     # or else we can concatenate the Markdown and then convert that to
     # HTML once for all resources and then convert that to PDF.
     #
+    # Would there be a similar problem if we concatenated all the
+    # Markdowns together and then converted them?
+    #
     # Performance wise there may be some difference.
     #
-    # We probably wouldn't want to concatenate all the HTMLs together
-    # because they would each have a doc element.
+    # If we concatenate all the HTMLs together
+    # we need to make sure that only their HTML bodies are being used
+    # and not their enclosing HTML element.
+    #
     # TODO We need to research USFMTools.transform... to see how it
     # does the conversion of USFM. And we need to do the same research
     # for the Markdown to HTML conversion.
-    #
-    # Would there be a similar problem if we concatenated all the
-    # Markdowns together and then converted them?
     def _convert_md2html(self) -> None:
         # logger.debug(
         #     "About to call markdown.markdown, resource['resource_dir']: {}, resource['filename_base']: {}, resource['resource_filename']: {}".format(
