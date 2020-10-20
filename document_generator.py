@@ -423,84 +423,81 @@ class DocumentGenerator(object):
         # FIXME We'll want get_t*_markdown to do the special things it
         # needs to do, but we'll want to use a resource in
         # resources loop in which to dispatch.
-        tn_md = ""
-        tq_md = ""
-        tw_md = ""
-        ta_md = ""
+        # tn_md = ""
+        # tq_md = ""
+        # tw_md = ""
+        # ta_md = ""
+        md: str = ""
         for resource in self._resources:
             # NOTE This is possible approach, but we might get sent a
             # resource_type that is not one of tn, tq, tw, ta, e.g.,
             # obs_tn (unless of course we decide not to support
             # resources like obs which are usually PDF).
             # NOTE This is a yuck bit of conditional for now. WIP.
-            if resource["resource_type"] in ["tn", "tn-wa"]:
-                tn_md = self.get_tn_markdown(resource)
-            elif resource["resource_type"] in ["tq", "tq-wa"]:
-                tq_md = self.get_tq_markdown(resource)
-            elif resource["resource_type"] in ["tw", "tw-wa"]:
-                tw_md = self.get_tw_markdown(resource)
-            elif resource["resource_type"] in ["ta", "ta-wa"]:
-                ta_md = self.get_ta_markdown(resource)
+            # if resource["resource_type"] in ["tn", "tn-wa"]:
+            #     tn_md = self.get_tn_markdown(resource)
+            # elif resource["resource_type"] in ["tq", "tq-wa"]:
+            #     tq_md = self.get_tq_markdown(resource)
+            # elif resource["resource_type"] in ["tw", "tw-wa"]:
+            #     tw_md = self.get_tw_markdown(resource)
+            # elif resource["resource_type"] in ["ta", "ta-wa"]:
+            #     ta_md = self.get_ta_markdown(resource)
             # FIXME The following happens not per resource, but per
             # document after all the documents resources have been
             # initialized fully, i.e., after resource.get_content()
-            md = "\n\n".join([tn_md, tq_md, tw_md, ta_md])
-            md = self.replace_rc_links(md, resource)
-            md = fix_links(md)
+            # md = "\n\n".join([tn_md, tq_md, tw_md, ta_md])
+            # md = "\n\n".join(resource._content)
+            # md = resource.replace_rc_links(md)
+            # md = fix_links(md)
+            md += "\n\n{}".format(resource._content)
             logger.debug(
                 "About to write markdown to {}/{}".format(
-                    self.output_dir, resource["filename_base"]
+                    self.output_dir, resource._filename_base
                 )
             )
             write_file(
-                os.path.join(
-                    self.output_dir, "{}.md".format(resource["filename_base"]),
-                ),
+                os.path.join(self.output_dir, "{}.md".format(resource._filename_base)),
                 md
                 # os.path.join(self.output_dir, "{}.md".format(self.filename_base)), md
             )
 
     # FIXME Should this live elsewhere?
-    def replace_rc_links(self, text: str, resource: Dict) -> str:
-        # Change [[rc://...]] rc links, e.g. [[rc://en/tw/help/bible/kt/word]] => [God's Word](#tw-kt-word)
-        rep = dict(
-            (
-                re.escape("[[{0}]]".format(rc)),
-                "[{0}]({1})".format(
-                    # TODO update the dict mayube with this:
-                    # resource.update({"resource_data":
-                    # resource["resource_data"][rc]["title"].strip()})
-                    resource["resource_data"][rc]["title"].strip(),
-                    # self.resource_data[rc]["title"].strip(),
-                    resource["resource_data"][rc]["link"],
-                    # self.resource_data[rc]["link"],
-                ),
-            )
-            for rc in resource["my_rcs"]
-            # for rc in self.my_rcs
-        )
-        pattern = re.compile("|".join(list(rep.keys())))
-        text = pattern.sub(lambda m: rep[re.escape(m.group(0))], text)
+    # def replace_rc_links(self, text: str, resource) -> str:
+    #     # Change [[rc://...]] rc links, e.g. [[rc://en/tw/help/bible/kt/word]] => [God's Word](#tw-kt-word)
+    #     rep = dict(
+    #         (
+    #             re.escape("[[{0}]]".format(rc)),
+    #             "[{0}]({1})".format(
+    #                 # TODO update the dict mayube with this:
+    #                 # resource.update({"resource_data":
+    #                 # resource["resource_data"][rc]["title"].strip()})
+    #                 resource._resource_data[rc]["title"].strip(),
+    #                 resource._resource_data[rc]["link"],
+    #             ),
+    #         )
+    #         for rc in self._my_rcs
+    #     )
+    #     pattern = re.compile("|".join(list(rep.keys())))
+    #     text = pattern.sub(lambda m: rep[re.escape(m.group(0))], text)
 
-        # Change ].(rc://...) rc links, e.g. [Click here](rc://en/tw/help/bible/kt/word) => [Click here](#tw-kt-word)
-        rep = dict(
-            (re.escape("]({0})".format(rc)), "]({0})".format(info["link"]))
-            for rc, info in resource["resource_data"].items()
-            # for rc, info in self.resource_data.items()
-        )
-        pattern = re.compile("|".join(list(rep.keys())))
-        text = pattern.sub(lambda m: rep[re.escape(m.group(0))], text)
+    #     # Change ].(rc://...) rc links, e.g. [Click here](rc://en/tw/help/bible/kt/word) => [Click here](#tw-kt-word)
+    #     rep = dict(
+    #         (re.escape("]({0})".format(rc)), "]({0})".format(info["link"]))
+    #         for rc, info in self._resource_data.items()
+    #     )
+    #     pattern = re.compile("|".join(list(rep.keys())))
+    #     text = pattern.sub(lambda m: rep[re.escape(m.group(0))], text)
 
-        # Change rc://... rc links, e.g. rc://en/tw/help/bible/kt/word => [God's](#tw-kt-word)
-        rep = dict(
-            (re.escape(rc), "[{0}]({1})".format(info["title"], info["link"]))
-            for rc, info in resource["resource_data"].items()
-            # for rc, info in self.resource_data.items()
-        )
-        pattern = re.compile("|".join(list(rep.keys())))
-        text = pattern.sub(lambda m: rep[re.escape(m.group(0))], text)
+    #     # Change rc://... rc links, e.g. rc://en/tw/help/bible/kt/word => [God's](#tw-kt-word)
+    #     rep = dict(
+    #         (re.escape(rc), "[{0}]({1})".format(info["title"], info["link"]))
+    #         # for rc, info in resource["resource_data"].items()
+    #         for rc, info in self._resource_data.items()
+    #     )
+    #     pattern = re.compile("|".join(list(rep.keys())))
+    #     text = pattern.sub(lambda m: rep[re.escape(m.group(0))], text)
 
-        return text
+    #     return text
 
     # # FIXME I think this needs to happen per document not per resource.
     # def convert_md2html(self, resource: Dict) -> None:
@@ -623,61 +620,62 @@ class DocumentGenerator(object):
         subprocess.call(command, shell=True)
 
 
-def fix_links(text):
-    rep = {}
+# # FIXME Such a cluster
+# def fix_links(text):
+#     rep = {}
 
-    def replace_tn_with_door43_link(match):
-        book = match.group(1)
-        chapter = match.group(2)
-        verse = match.group(3)
-        if book in BOOK_NUMBERS:
-            book_num = BOOK_NUMBERS[book]
-        else:
-            return None
-        if int(book_num) > 40:
-            anchor_book_num = str(int(book_num) - 1)
-        else:
-            anchor_book_num = book_num
-        url = "https://live.door43.org/u/Door43/en_ulb/c0bd11bad0/{}-{}.html#{}-ch-{}-v-{}".format(
-            book_num.zfill(2),
-            book.upper(),
-            anchor_book_num.zfill(3),
-            chapter.zfill(3),
-            verse.zfill(3),
-        )
-        return url
+#     def replace_tn_with_door43_link(match):
+#         book = match.group(1)
+#         chapter = match.group(2)
+#         verse = match.group(3)
+#         if book in BOOK_NUMBERS:
+#             book_num = BOOK_NUMBERS[book]
+#         else:
+#             return None
+#         if int(book_num) > 40:
+#             anchor_book_num = str(int(book_num) - 1)
+#         else:
+#             anchor_book_num = book_num
+#         url = "https://live.door43.org/u/Door43/en_ulb/c0bd11bad0/{}-{}.html#{}-ch-{}-v-{}".format(
+#             book_num.zfill(2),
+#             book.upper(),
+#             anchor_book_num.zfill(3),
+#             chapter.zfill(3),
+#             verse.zfill(3),
+#         )
+#         return url
 
-    def replace_obs_with_door43_link(match):
-        url = "https://live.door43.org/u/Door43/en_obs/b9c4f076ff/{}.html".format(
-            match.group(1)
-        )
-        return url
+#     def replace_obs_with_door43_link(match):
+#         url = "https://live.door43.org/u/Door43/en_obs/b9c4f076ff/{}.html".format(
+#             match.group(1)
+#         )
+#         return url
 
-    # convert OBS links: rc://en/tn/help/obs/15/07 => https://live.door43.org/u/Door43/en_obs/b9c4f076ff/15.html
-    rep[r"rc://[^/]+/tn/help/obs/(\d+)/(\d+)"] = replace_obs_with_door43_link
+#     # convert OBS links: rc://en/tn/help/obs/15/07 => https://live.door43.org/u/Door43/en_obs/b9c4f076ff/15.html
+#     rep[r"rc://[^/]+/tn/help/obs/(\d+)/(\d+)"] = replace_obs_with_door43_link
 
-    # convert tN links (NT books use USFM numbering in HTML file name, but standard book numbering in the anchor):
-    # rc://en/tn/help/rev/15/07 => https://live.door43.org/u/Door43/en_ulb/c0bd11bad0/67-REV.html#066-ch-015-v-007
-    rep[r"rc://[^/]+/tn/help/(?!obs)([^/]+)/(\d+)/(\d+)"] = replace_tn_with_door43_link
+#     # convert tN links (NT books use USFM numbering in HTML file name, but standard book numbering in the anchor):
+#     # rc://en/tn/help/rev/15/07 => https://live.door43.org/u/Door43/en_ulb/c0bd11bad0/67-REV.html#066-ch-015-v-007
+#     rep[r"rc://[^/]+/tn/help/(?!obs)([^/]+)/(\d+)/(\d+)"] = replace_tn_with_door43_link
 
-    # convert RC links, e.g. rc://en/tn/help/1sa/16/02 => https://git.door43.org/Door43/en_tn/1sa/16/02.md
-    rep[
-        r"rc://([^/]+)/(?!tn)([^/]+)/([^/]+)/([^\s\)\]\n$]+)"
-    ] = r"https://git.door43.org/Door43/\1_\2/src/master/\4.md"
+#     # convert RC links, e.g. rc://en/tn/help/1sa/16/02 => https://git.door43.org/Door43/en_tn/1sa/16/02.md
+#     rep[
+#         r"rc://([^/]+)/(?!tn)([^/]+)/([^/]+)/([^\s\)\]\n$]+)"
+#     ] = r"https://git.door43.org/Door43/\1_\2/src/master/\4.md"
 
-    # convert URLs to links if not already
-    rep[
-        r'([^"\(])((http|https|ftp)://[A-Za-z0-9\/\?&_\.:=#-]+[A-Za-z0-9\/\?&_:=#-])'
-    ] = r"\1[\2](\2)"
+#     # convert URLs to links if not already
+#     rep[
+#         r'([^"\(])((http|https|ftp)://[A-Za-z0-9\/\?&_\.:=#-]+[A-Za-z0-9\/\?&_:=#-])'
+#     ] = r"\1[\2](\2)"
 
-    # URLS wth just www at the start, no http
-    rep[
-        r'([^A-Za-z0-9"\(\/])(www\.[A-Za-z0-9\/\?&_\.:=#-]+[A-Za-z0-9\/\?&_:=#-])'
-    ] = r"\1[\2](http://\2.md)"
+#     # URLS wth just www at the start, no http
+#     rep[
+#         r'([^A-Za-z0-9"\(\/])(www\.[A-Za-z0-9\/\?&_\.:=#-]+[A-Za-z0-9\/\?&_:=#-])'
+#     ] = r"\1[\2](http://\2.md)"
 
-    for pattern, repl in rep.items():
-        text = re.sub(pattern, repl, text, flags=re.IGNORECASE)
-    return text
+#     for pattern, repl in rep.items():
+#         text = re.sub(pattern, repl, text, flags=re.IGNORECASE)
+#     return text
 
 
 def read_csv_as_dicts(filename: str) -> List:
