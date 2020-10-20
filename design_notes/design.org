@@ -470,3 +470,15 @@ experience perspective, =BIEL= would need to know what chapters or
 verses are available so as not to disappoint the user. Nevertheless,
 the system is being designed to gracefully handle such disappointments
 as I know this is a requirement.
+
+** Differences from the norm in resources I've found
+These are oddities that are not currently handled either by the
+original system or the current system.
+
+Examples:
+
+| Language code | Resource type | Resource code | Comments                                                    |
+|---------------+---------------+---------------+-------------------------------------------------------------|
+| ml            | tn            | any           | zip contains a manifest.yaml per usual, but the translation |
+|               |               |               | notes are not in markdown they are tsv files.               |
+|               |               |               |                                                             |
