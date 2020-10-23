@@ -72,6 +72,7 @@ class Resource(abc.ABC):
         self._resource_dir: str = os.path.join(
             self._working_dir, "{}_{}".format(self._lang_code, self._resource_type)
         )
+        self._p: pathlib.Path = pathlib.Path(self._resource_dir)
         self._resource_filename: Optional[str] = None
         self._resource_file_format: Optional[str] = None
         self._resource_filepath: Optional[str] = None
@@ -84,7 +85,7 @@ class Resource(abc.ABC):
         self._manifest_file_path: Optional[pathlib.PurePath] = None
         self._manifest_file_dir: Optional[str] = None
         self._content_files: Optional[List[str]] = None
-        self._resource_manifest_type: Optional[str] = None
+        self._manifest_type: Optional[str] = None
         self._version: Optional[str] = None
         self._issued: Optional[str] = None
         # NOTE We actually want to pass in the lookup_svc, not create
@@ -281,14 +282,13 @@ class Resource(abc.ABC):
     def _is_yaml(self) -> bool:
         """ Return true if the resource's manifest file has suffix
         yaml. """
-        return self._resource_manifest_type == "yaml"
+        return self._manifest_type == "yaml"
 
     # protected
     def _is_json(self) -> bool:
         """ Return true if the resource's manifest file has suffix
         json. """
-        return self._resource_manifest_type == "json"
-
+        return self._manifest_type == "json"
 
     # NOTE Not sure about this one. Some instance variables are
     # settable in the constructor and some only after their associated
@@ -300,15 +300,17 @@ class Resource(abc.ABC):
         raise NotImplementedError
 
     # protected
-    def _discover_layout(self) -> None:
+    def _discover_manifest(self) -> None:
         """ All subclasses need to at least find their manifest file,
-        if it exists. Subclasses specialize this method to initialize
-        other disk layout related properties. """
-        p = pathlib.Path(self._resource_dir)
-        manifest_file_list = list(q.glob("**/manifest.*"))
+        if it exists. Subclasses specialize this method to
+        additionally initialize other disk layout related properties.
+        """
+        logger.debug("self._p: {}".format(self._p))
+        manifest_file_list = list(self._p.glob("**/manifest.*"))
         self._manifest_file_path = (
             None if len(manifest_file_list) == 0 else list(manifest_file_list)[0]
         )
+        logger.debug("self._manifest_file_path: {}".format(self._manifest_file_path))
         # Find directory where the manifest file is located
         if (
             self._manifest_file_path is not None
@@ -317,6 +319,45 @@ class Resource(abc.ABC):
             self._manifest_file_dir = self._manifest_file_path.parents[0]
 
         logger.debug("self._manifest_file_dir: {}".format(self._manifest_file_dir))
+
+        if self._manifest_file_path is not None:
+            if self._manifest_file_path.suffix == "yaml":
+                self._manifest = load_yaml_object(self._manifest_file_path)
+                self._manifest_type = "yaml"
+            elif self._manifest_file_path.suffix == "txt":
+                self._manifest = load_yaml_object(self._manifest_file_path)
+                self._manifest_type = "txt"
+            elif self._manifest_file_path.suffix == "json":
+                self._manifest = load_json_object(self._manifest_file_path)
+                self._manifest_type = "json"
+        else:
+            logger.debug(
+                "manifest file does not exist for resource {}.".format(
+                    self._resource_type
+                )
+            )
+
+        if self._manifest_type:
+            logger.debug("self._manifest_type: {}".format(self._manifest_type))
+        if self._manifest:
+            logger.debug("self._manifest: {}".format(self._manifest))
+
+        # NOTE manifest.txt files do not have 'dublin_core' or
+        # 'version' keys.
+        # TODO Handle manifest.json which has different fields.
+        if self._manifest_type and self._is_yaml():
+            if (
+                # FIXME This next line doesn't type check with mypy
+                0 in self._manifest
+                and self._manifest[0]["dublin_core"]["version"] is not None
+            ):
+                self._version = self._manifest[0]["dublin_core"]["version"]
+            elif (
+                0 not in self._manifest
+                and self._manifest["dublin_core"]["version"] is not None
+            ):
+                self._version = self._manifest["dublin_core"]["version"]
+            self._issued = self._manifest["dublin_core"]["issued"]
 
     @abc.abstractmethod
     def get_content(self) -> None:
@@ -610,85 +651,6 @@ class USFMResource(Resource):
     # public
     def get_files(self) -> None:
         super().get_files()
-        self._initialize_manifest()
-
-    # NOTE If resource["resource_code"] is None then we should not try
-    # for manifest.yaml. Previously, resources only came from git
-    # repos for English which always included the manifest.yaml file.
-    # The previous assumption was that tn, tw, tq, ta, etc. resources
-    # would always be wanted (because they were available for English
-    # and this was an English resource only app). But now a user by
-    # way of a request for resources can combine independently any
-    # resources. So, this will change a lot of the code below and
-    # throughout this system. Further retrieving the resource, even if
-    # it is a zip file, does not necessarily contain a manifest.yaml
-    # file if it is fetched from the location provided in
-    # translations.json which is different than the git repo for same.
-    # protected
-    def _initialize_manifest(self) -> None:
-        """ Discover the manifest in the resource's files and load it
-        into a dictionary stored in the resource. """
-        if self._resource_filename:
-            logger.debug("self._resource_filename: {}".format(self._resource_filename))
-        if os.path.isfile(os.path.join(self._resource_dir, "manifest.yaml")):
-            self._manifest = load_yaml_object(
-                os.path.join(self._resource_dir, "manifest.yaml")
-            )
-            self._resource_manifest_type = "yaml"
-        # Handle alternative location for manifest.yaml: nested
-        # one more directory deep
-        elif os.path.isfile(
-            os.path.join(
-                self._resource_dir,
-                "{}_{}".format(self._lang_code, self._resource_type),
-                "manifest.yaml",
-            )
-        ):
-            self._manifest = load_yaml_object(
-                os.path.join(
-                    self._resource_dir,
-                    "{}_{}".format(self._lang_code, self._resource_type,),
-                    "manifest.yaml",
-                )
-            )
-            self._resource_manifest_type = "yaml"
-        elif os.path.isfile(os.path.join(self._resource_dir, "manifest.txt")):
-            self._manifest = load_yaml_object(
-                os.path.join(self._resource_dir, "manifest.txt")
-            )
-            self._resource_manifest_type = "txt"
-        elif os.path.isfile(os.path.join(self._resource_dir, "manifest.json")):
-            self._manifest = load_json_object(
-                os.path.join(self._resource_dir, "manifest.json")
-            )
-            self._resource_manifest_type = "json"
-        else:
-            logger.debug("manifest file does not exist for this resource.")
-
-        if self._manifest:
-            logger.debug("self._manifest: {}".format(self._manifest))
-
-        # NOTE manifest.txt files do not have 'dublin_core' or
-        # 'version' keys.
-        # TODO Handle manifest.json which has different fields.
-        if (
-            self._resource_manifest_type
-            # "resource_manifest_type" in resource
-            and self._is_yaml()
-            # and resource["resource_manifest_type"] == "yaml"
-        ):
-            if (
-                # FIXME This next line doesn't type check with mypy
-                0 in self._manifest
-                and self._manifest[0]["dublin_core"]["version"] is not None
-            ):
-                self._version = self._manifest[0]["dublin_core"]["version"]
-            elif (
-                0 not in self._manifest
-                and self._manifest["dublin_core"]["version"] is not None
-            ):
-                self._version = self._manifest["dublin_core"]["version"]
-            self._issued = self._manifest["dublin_core"]["issued"]
 
     # public
     def initialize_properties(self) -> None:
@@ -712,12 +674,12 @@ class USFMResource(Resource):
         """ Explore the resource's downloaded files to initialize file
         structure related properties. """
 
-        super()._discover_layout()
+        super()._discover_manifest()
 
-        usfm_content_files = list(p.glob("**/*.usfm"))
+        usfm_content_files = list(self._p.glob("**/*.usfm"))
         # markdown_files = list(q.glob("**/*.md"))
         # USFM files sometimes have txt suffix
-        txt_content_files = list(q.glob("**/*.txt"))
+        txt_content_files = list(self._p.glob("**/*.txt"))
         # Find the manifest file, if any
 
         if len(usfm_content_files) > 0:  # This resource does have USFM files
@@ -745,6 +707,8 @@ class USFMResource(Resource):
         )
 
     # protected
+    # FIXME This is game for rewrite or removal considering new
+    # approach in _discover_layout using pathlib.
     def _initialize_book_properties_when_no_manifest(self) -> None:
         # NOTE USFM book files have form 01-GEN or GEN. So we lowercase
         # then split on hyphen and get second component to get
@@ -764,6 +728,8 @@ class USFMResource(Resource):
         logger.debug("book_number for usfm file: {}".format(self._book_number))
 
     # protected
+    # FIXME This is game for rewrite or removal considering new
+    # approach in _discover_layout using pathlib.
     def _initialize_book_properties_from_manifest_yaml(self) -> None:
         # NOTE USFM book files have form 01-GEN or GEN. So we lowercase
         # then split on hyphen and get second component to get
@@ -807,6 +773,8 @@ class USFMResource(Resource):
             )
 
     # protected
+    # FIXME This is game for rewrite or removal considering new
+    # approach in _discover_layout using pathlib.
     def _initialize_book_properties_from_manifest_json(self) -> None:
         # NOTE USFM book files have form 01-GEN or GEN. So we lowercase
         # then split on hyphen and get second component to get
@@ -853,6 +821,9 @@ class USFMResource(Resource):
                 )
             )
 
+    # protected
+    # FIXME This is game for rewrite or removal considering new
+    # approach in _discover_layout using pathlib.
     def _get_book_projects_from_yaml(self) -> List[Dict[Any, Any]]:
         """ Return the sorted list of projects that are found in the
         manifest file for the resource. """
@@ -881,9 +852,9 @@ class USFMResource(Resource):
             logger.info("empty projects check is true...")
             return projects
 
-    # FIXME Move to the appropriate place in resource.py
-    # TODO Handle manifest.yaml, manifest.txt, and manifest.json
-    # formats - they each have different structure and keys.
+    # protected
+    # FIXME This is game for rewrite or removal considering new
+    # approach in _discover_layout using pathlib.
     def _get_book_projects_from_json(self) -> List:
         """ Return the sorted list of projects that are found in the
         manifest file for the resource. """
@@ -908,6 +879,8 @@ class USFMResource(Resource):
             return projects
 
     # protected
+    # FIXME This is game for rewrite or removal considering new
+    # approach in _discover_layout using pathlib.
     def _initialize_filename_base(self) -> None:
         assert (
             self._book_id
@@ -940,6 +913,8 @@ class USFMResource(Resource):
     # protected
     # FIXME Handle git based usfm with resources.json file and .txt usfm
     # file suffixes.
+    # FIXME This is game for rewrite or removal considering new
+    # approach in _discover_layout using pathlib.
     def _get_usfm_chunks(self) -> None:
         book_chunks: dict = {}
 
@@ -1188,7 +1163,7 @@ class TResource(Resource):
 
     def _discover_layout(self):
         # Execute logic common to all resources
-        super()._discover_layout()
+        super()._discover_manifest()
 
         # Get the content files
         markdown_files = list(p.glob("**/*.md"))
