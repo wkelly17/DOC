@@ -16,13 +16,13 @@ try:
     from file_utils import load_json_object, load_yaml_object, read_file, unzip  # type: ignore
     from resource_lookup import ResourceJsonLookup
     from bible_books import BOOK_NUMBERS, BOOK_NAMES  # type: ignore
-    from config import get_logging_config_file_path
+    from config import get_logging_config_file_path, get_markdown_doc_file_names
 except:
     from .url_utils import download_file  # type: ignore
     from .file_utils import load_json_object, load_yaml_object, read_file, unzip  # type: ignore
     from .resource_lookup import ResourceJsonLookup
     from .bible_books import BOOK_NUMBERS, BOOK_NAMES  # type: ignore
-    from .config import get_logging_config_file_path
+    from .config import get_logging_config_file_path, get_markdown_doc_file_names
 
 import logging
 import logging.config
@@ -81,6 +81,9 @@ class Resource(abc.ABC):
         self._book_number: Optional[str] = None
         self._filename_base: Optional[str] = None
         self._manifest: Optional[Dict] = None
+        self._manifest_file_path: Optional[pathlib.PurePath] = None
+        self._manifest_file_dir: Optional[str] = None
+        self._content_files: Optional[List[str]] = None
         self._resource_manifest_type: Optional[str] = None
         self._version: Optional[str] = None
         self._issued: Optional[str] = None
@@ -209,7 +212,7 @@ class Resource(abc.ABC):
 
         logger.debug("self._resource_url: {}".format(self._resource_url))
 
-        # TODO To ensure consistent directory naming for later
+        # FIXME To ensure consistent directory naming for later
         # discovery, let's not use the url.rpartition(os.path.sep)[2].
         # Instead let's use a directory built from the parameters of
         # the (updated) resource:
@@ -219,14 +222,12 @@ class Resource(abc.ABC):
                 os.path.join(self._resource_dir, self._resource_type)
             )
         )
-        filepath = os.path.join(
+        self._resource_filepath = os.path.join(
             self._resource_dir, self._resource_url.rpartition(os.path.sep)[2]
         )
-        # self._resource.update({"resource_filepath": filepath})
-        self._resource_filepath = filepath
         logger.debug("Using file location: {}".format(self._resource_filepath))
 
-        if self._is_git():
+        if self._is_git():  # Is a git repo, so clone it.
             try:
                 command: str = "git clone --depth=1 '{}' '{}'".format(
                     self._resource_url, filepath
@@ -237,28 +238,30 @@ class Resource(abc.ABC):
                 logger.debug("git clone succeeded.")
                 # Git repos get stored on directory deeper
                 # self._resource.update({"resource_dir": filepath})
-                self._resource_dir = filepath
+                self._resource_dir = self._resource_filepath
             except:
                 logger.debug("os.getcwd(): {}".format(os.getcwd()))
                 logger.debug("git command: {}".format(command))
                 logger.debug("git clone failed!")
-        else:
+        else:  # Is not a git repo, so just download it.
             try:
                 logger.debug(
                     "Downloading {} into {}".format(
                         self._resource_url, self._resource_filepath
                     )
                 )
-                download_file(self._resource_url, filepath)
+                download_file(self._resource_url, self._resource_filepath)
             finally:
                 logger.debug("downloading finished.")
 
-        if self._is_zip():
+        if self._is_zip():  # Downloaded file was a zip, so unzip it.
             try:
                 logger.debug(
-                    "Unzipping {} into {}".format(filepath, self._resource_dir)
+                    "Unzipping {} into {}".format(
+                        self._resource_filepath, self._resource_dir
+                    )
                 )
-                unzip(filepath, self._resource_dir)
+                unzip(self._resource_filepath, self._resource_dir)
             finally:
                 logger.debug("unzipping finished.")
 
@@ -276,11 +279,16 @@ class Resource(abc.ABC):
 
     # protected
     def _is_yaml(self) -> bool:
+        """ Return true if the resource's manifest file has suffix
+        yaml. """
         return self._resource_manifest_type == "yaml"
 
     # protected
     def _is_json(self) -> bool:
+        """ Return true if the resource's manifest file has suffix
+        json. """
         return self._resource_manifest_type == "json"
+
 
     # NOTE Not sure about this one. Some instance variables are
     # settable in the constructor and some only after their associated
@@ -290,6 +298,25 @@ class Resource(abc.ABC):
     @abc.abstractmethod
     def initialize_properties(self) -> None:
         raise NotImplementedError
+
+    # protected
+    def _discover_layout(self) -> None:
+        """ All subclasses need to at least find their manifest file,
+        if it exists. Subclasses specialize this method to initialize
+        other disk layout related properties. """
+        p = pathlib.Path(self._resource_dir)
+        manifest_file_list = list(q.glob("**/manifest.*"))
+        self._manifest_file_path = (
+            None if len(manifest_file_list) == 0 else list(manifest_file_list)[0]
+        )
+        # Find directory where the manifest file is located
+        if (
+            self._manifest_file_path is not None
+            and len(self._manifest_file_path.parents) > 0
+        ):
+            self._manifest_file_dir = self._manifest_file_path.parents[0]
+
+        logger.debug("self._manifest_file_dir: {}".format(self._manifest_file_dir))
 
     @abc.abstractmethod
     def get_content(self) -> None:
@@ -665,6 +692,9 @@ class USFMResource(Resource):
 
     # public
     def initialize_properties(self) -> None:
+        self._discover_layout()
+
+        # FIXME This likely can be better envisioned and implemented.
         if self._is_usfm():
             self._initialize_book_properties_when_no_manifest()
         elif self._is_git() and self._is_yaml():
@@ -677,6 +707,42 @@ class USFMResource(Resource):
         # elif not self._is_git() and self._is_txt():
 
         self._initialize_filename_base()
+
+    def _discover_layout(self):
+        """ Explore the resource's downloaded files to initialize file
+        structure related properties. """
+
+        super()._discover_layout()
+
+        usfm_content_files = list(p.glob("**/*.usfm"))
+        # markdown_files = list(q.glob("**/*.md"))
+        # USFM files sometimes have txt suffix
+        txt_content_files = list(q.glob("**/*.txt"))
+        # Find the manifest file, if any
+
+        if len(usfm_content_files) > 0:  # This resource does have USFM files
+            # Only use the content files that match the resource_code
+            # in the resource request.
+            self._content_files = list(
+                filter(
+                    lambda x: self._resource_code.lower() in str(x).lower(),
+                    usfm_content_files,
+                )
+            )
+        elif len(txt_content_files) > 0:
+            # Only use the content files that match the resource_code
+            # in the resource request.
+            self._content_files = list(
+                filter(
+                    lambda x: self._resource_code.lower() in str(x).lower(), txt_files,
+                )
+            )
+
+        logger.debug(
+            "self._content_files for {}: {}".format(
+                self._resource_code, self._content_files,
+            )
+        )
 
     # protected
     def _initialize_book_properties_when_no_manifest(self) -> None:
@@ -991,19 +1057,19 @@ class TResource(Resource):
     # does the conversion of USFM. And we need to do the same research
     # for the Markdown to HTML conversion.
     def _convert_md2html(self) -> None:
-        # logger.debug(
-        #     "About to call markdown.markdown, resource['resource_dir']: {}, resource['filename_base']: {}, resource['resource_filename']: {}".format(
-        #         resource["resource_dir"],
-        #         resource["filename_base"],
-        #         resource["resource_filename"],
-        #     )
-        # )
+        path = "{}/{}_{}/{}.md".format(
+            self._resource_dir,
+            self._lang_code,
+            self._resource_type,
+            self._resource_filename,
+        )
+        logger.debug("About to read file: {}".format(path))
         html = markdown.markdown(
             # FIXME This path likely needs to be fixed
             read_file(
                 # os.path.join(
                 #     self.output_dir,
-                "{}/{}.md".format(self._resource_dir, self._resource_filename),
+                path,
                 # os.path.join(self.output_dir, "{}.md".format(self.filename_base)),
                 "utf-8",
             )
@@ -1022,8 +1088,9 @@ class TResource(Resource):
 
     # protected
     def _replace_rc_links(self) -> None:
-        """ Given a resource's markdown text """
-        # Change [[rc://...]] rc links, e.g. [[rc://en/tw/help/bible/kt/word]] => [God's Word](#tw-kt-word)
+        """ Given a resource's markdown text, replace links of the form [[rc://en/tw/help/bible/kt/word]] with links of the form [God's Word](#tw-kt-word). """
+        logger.debug("self._content: {}".format(self._content))
+        logger.debug("self._my_rcs: {}".format(self._my_rcs))
         rep = dict(
             (
                 re.escape("[[{0}]]".format(rc)),
@@ -1034,6 +1101,7 @@ class TResource(Resource):
             )
             for rc in self._my_rcs
         )
+        logger.debug("rep: {}".format(rep))
         pattern = re.compile("|".join(list(rep.keys())))
         text = pattern.sub(lambda m: rep[re.escape(m.group(0))], self._content)
 
@@ -1058,7 +1126,7 @@ class TResource(Resource):
     # FIXME Bit of a legacy cluster. This used to be a function and
     # maybe still should be, but for now I've made it an instance
     # method.
-    def _fix_links(self, text: str) -> None:
+    def _fix_links(self) -> None:
         rep = {}
 
         def replace_tn_with_door43_link(match):
@@ -1115,6 +1183,47 @@ class TResource(Resource):
         for pattern, repl in rep.items():
             self._content = re.sub(pattern, repl, self._content, flags=re.IGNORECASE)
 
+    def initialize_properties(self) -> None:
+        self._discover_layout()
+
+    def _discover_layout(self):
+        # Execute logic common to all resources
+        super()._discover_layout()
+
+        # Get the content files
+        markdown_files = list(p.glob("**/*.md"))
+        markdown_content_files = filter(
+            lambda x: str(x.stem).lower() not in get_markdown_doc_file_names(),
+            markdown_files,
+        )
+        txt_files = list(q.glob("**/*.txt"))
+        txt_content_files = filter(
+            lambda x: str(x.stem).lower() not in get_markdown_doc_file_names(),
+            txt_files,
+        )
+
+        if len(markdown_content_files) > 0:
+            self._content_files = list(
+                filter(
+                    lambda x: self._resource_code.lower() in str(x).lower(),
+                    markdown_files,
+                )
+            )
+        if len(txt_content_files) > 0:
+            self._content_files = list(
+                filter(
+                    lambda x: self._resource_code.lower() in str(x).lower(), txt_files,
+                )
+            )
+
+        logger.debug(
+            "self._content_files for {}: {}".format(
+                # .parents gives parent path components
+                self._resource_code,
+                self._content_files,
+            )
+        )
+
 
 class TNResource(TResource):
     def __init__(
@@ -1133,7 +1242,8 @@ class TNResource(TResource):
         super().get_files()
 
     def initialize_properties(self) -> None:
-        pass
+        # FIXME Assess the file type being used, e.g., txt, tsv, md
+        super().initialize_properties()
 
     def get_content(self) -> None:
         if not os.path.isfile(
@@ -1182,9 +1292,7 @@ class TNResource(TResource):
                 logger.info("Processing Translation Notes Markdown...")
                 # self.preprocess_markdown()
                 self._content = self._get_tn_markdown()
-                # FIXME Can't this next call to super be just a call
-                # to self, python should handle finding the method
-                # in the superclass.
+                # FIXME Comment out for now since it blows up
                 self._replace_rc_links()
                 self._fix_links()
                 # FIXME Write self._content into Markdown file
@@ -1203,55 +1311,39 @@ class TNResource(TResource):
 
     # protected
     def _get_tn_markdown(self) -> str:
-        # TODO Is this the correct path?
-        if os.path.isdir(
-            os.path.join(
-                self._resource_dir,
-                "{}_{}".format(self._lang_code, self._resource_type),
-            )
-        ):
-            # logger.info("here we are")
-            # logger.debug(
-            #     "self._resource_dir: {}, self._lang_code: {}, self._resource_type: {}, self._book_id: {}, self._resource_code: {}".format(
-            #         self._resource_dir,
-            #         self._lang_code,
-            #         self._resource_type,
-            #         self._book_id,
-            #         self._resource_code,
-            #     )
-            # )
-            # FIXME self._book_id can be None here
-            book_dir = os.path.join(
-                self._resource_dir,
-                "{}_{}".format(self._lang_code, self._resource_type),
-                # self._book_id,
-                self._resource_code,
-            )
-        else:
-            # book_dir = os.path.join(self._resource_dir, self._book_id)
-            book_dir = os.path.join(self._resource_dir, self._resource_code)
-
+        book_dir: str = self._get_book_dir()
         logger.debug("book_dir: {}".format(book_dir))
 
         if not os.path.isdir(book_dir):
             return ""
 
         # TODO Might need localization
-        tn_md = '# Translation Notes\n<a id="tn-{}"/>\n\n'.format(self._book_id)
+        # tn_md = '# Translation Notes\n<a id="tn-{}"/>\n\n'.format(self._book_id)
+        tn_md = '# Translation Notes\n<a id="tn-{}"/>\n\n'.format(self._resource_code)
 
-        book_has_intro, tn_md_temp = self._initialize_tn_book_intro(book_dir)
-        tn_md += tn_md_temp
+        book_has_intro, tn_md_intro = self._initialize_tn_book_intro(book_dir)
+        tn_md += tn_md_intro
 
+        # FIXME Use os.listdir(book_dir) to programmatically discover
+        # all files. Then after lower-casing each filename, match the
+        # filename in the list that contains the resource_code.
         for chapter in sorted(os.listdir(book_dir)):
             chapter_dir = os.path.join(book_dir, chapter)
+            logger.debug("chapter_dir: {}".format(chapter_dir))
+            # FIXME lang_code ml, for instance, doesn't lead with a digit, but
+            # with ml_tn_*, e.g., ml_tn_57-TIT.tsv
             chapter = chapter.lstrip("0")
             if os.path.isdir(chapter_dir) and re.match(r"^\d+$", chapter):
+                logger.debug("chapter_dir, {}, exists".format(chapter_dir))
                 chapter_has_intro, tn_md_temp = self._initialize_tn_chapter_intro(
                     chapter_dir, chapter
                 )
+                # Get all the Markdown files that start with a digit
+                # and end with suffix md.
                 chunk_files = sorted(glob(os.path.join(chapter_dir, "[0-9]*.md")))
                 logger.debug("chunk_files: {}".format(chunk_files))
                 for _, chunk_file in enumerate(chunk_files):
+                    logger.info("in loop through chunk files")
                     (
                         first_verse,
                         last_verse,
@@ -1300,9 +1392,13 @@ class TNResource(TResource):
 
                     # FIXME This belongs in USFMResource or in a new
                     # UDBResource.
-                    # md += self._initialize_tn_udb(
-                    #     chapter, title, first_verse, last_verse
-                    # )
+                    # NOTE For now, I could guard this with a
+                    # conditional that checks if UDB exists.
+                    # NOTE The idea of this function assumes that UDB
+                    # exists every time.
+                    md += self._initialize_tn_udb(
+                        chapter, title, first_verse, last_verse
+                    )
 
                     tn_md += md
 
@@ -1311,8 +1407,45 @@ class TNResource(TResource):
                     )
                     tn_md += links + "\n\n"
 
-        logger.debug("tn_md is {0}".format(tn_md))
+        logger.debug("tn_md is {}".format(tn_md))
         return tn_md
+
+    def _get_book_dir(self) -> str:
+        if os.path.isdir(
+            os.path.join(
+                self._resource_dir,
+                "{}_{}".format(self._lang_code, self._resource_type),
+            )
+        ):
+            # logger.info("here we are")
+            logger.debug(
+                "Here is the directory we expect: {}".format(
+                    os.path.join(
+                        self._resource_dir,
+                        "{}_{}".format(self._lang_code, self._resource_type),
+                    )
+                )
+            )
+            # logger.debug(
+            #     "self._resource_dir: {}, self._lang_code: {}, self._resource_type: {}, self._book_id: {}, self._resource_code: {}".format(
+            #         self._resource_dir,
+            #         self._lang_code,
+            #         self._resource_type,
+            #         self._book_id,
+            #         self._resource_code,
+            #     )
+            # )
+            # FIXME self._book_id can be None here
+            book_dir = os.path.join(
+                self._resource_dir,
+                "{}_{}".format(self._lang_code, self._resource_type),
+                # # self._book_id,
+                # self._resource_code,
+            )
+        else:
+            # book_dir = os.path.join(self._resource_dir, self._book_id)
+            book_dir = os.path.join(self._resource_dir, self._resource_code)
+        return book_dir
 
     def _initialize_tn_book_intro(self, book_dir: str) -> Tuple[bool, str]:
         intro_file = os.path.join(book_dir, "front", "intro.md")
@@ -1352,6 +1485,7 @@ class TNResource(TResource):
         intro_file = os.path.join(chapter_dir, "intro.md")
         chapter_has_intro = os.path.isfile(intro_file)
         if chapter_has_intro:
+            logger.info("chapter has intro")
             md = read_file(intro_file)
             title = get_first_header(md)
             md = self._fix_tn_links(md, chapter)
@@ -1380,6 +1514,7 @@ class TNResource(TResource):
             md += "\n\n"
             return (chapter_has_intro, md)
         else:
+            logger.info("chapter has no intro")
             return (chapter_has_intro, "")
 
     def _fix_tn_links(self, text: str, chapter: str) -> str:
@@ -1474,13 +1609,15 @@ class TNResource(TResource):
                     tw_md += file_ref_md
         return tw_md
 
-    # FIXME This doesn't belong on TNResource. There are two types of
-    # USFM: ULB and UDB. Currently we only have USFMResource for both.
-    # Should we have ULBResource, UDBResource, and maybe USFMResource
-    # also? I need to think about this.
+    # FIXME This doesn't belong on TNResource. It should be in
+    # USFMResource. There are two types of USFM: ULB and UDB.
+    # Currently we only have USFMResource for both. Should we have
+    # ULBResource, UDBResource, and maybe USFMResource also? I need to
+    # think about this.
     def _initialize_tn_udb(
         self, chapter: str, title: str, first_verse: str, last_verse: str
     ) -> str:
+        logger.info("here we are")
         # TODO Handle when there is no USFM requested.
         # If we're inside a UDB bridge, roll back to the beginning of it
         udb_first_verse = first_verse
@@ -1557,7 +1694,7 @@ class TWResource(TResource):
         super().get_files()
 
     def initialize_properties(self) -> None:
-        pass
+        super().initialize_properties()
 
     def get_content(self) -> None:
         if not os.path.isfile(
@@ -1680,7 +1817,7 @@ class TQResource(TResource):
         super().get_files()
 
     def initialize_properties(self) -> None:
-        pass
+        super().initialize_properties()
 
     def get_content(self) -> None:
         if not os.path.isfile(
@@ -1838,7 +1975,7 @@ class TAResource(TResource):
         super().get_files()
 
     def initialize_properties(self) -> None:
-        pass
+        super().initialize_properties()
 
     def get_content(self) -> None:
         if not os.path.isfile(
