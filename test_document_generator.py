@@ -57,15 +57,16 @@ def main():
     payload["resources"] = [
         # {"lang_code": "am", "resource_type": "ulb", "resource_code": ""},
         # {"lang_code": "erk-x-erakor", "resource_type": "reg", "resource_code": "eph"},
-        {"lang_code": "en", "resource_type": "ulb-wa", "resource_code": "eph"},
-        {"lang_code": "en", "resource_type": "ulb-wa", "resource_code": "lev"},
-        {"lang_code": "en", "resource_type": "tn-wa", "resource_code": "lev"},
+        # {"lang_code": "en", "resource_type": "ulb-wa", "resource_code": "eph"},
+        # {"lang_code": "en", "resource_type": "ulb-wa", "resource_code": "lev"},
+        # {"lang_code": "en", "resource_type": "tn-wa", "resource_code": "lev"},
         # {"lang_code": "en", "resource_type": "ulb-wa", "resource_code": "gen"},
         # {"lang_code": "en", "resource_type": "tn-wa", "resource_code": "gen"},
         {"lang_code": "ml", "resource_type": "ulb", "resource_code": "tit"},
+        # {"lang_code": "ml", "resource_type": "tn", "resource_code": "tit"},
+        # {"lang_code": "as", "resource_type": "tn", "resource_code": "rev"},
         # # {"lang_code": "ml", "resource_type": "obs-tq", "resource_code": ""},
         # {"lang_code": "mr", "resource_type": "udb", "resource_code": "mrk"},
-        # {"lang_code": "as", "resource_type": "tn", "resource_code": "rev"},
     ]
 
     document_generator = DocumentGenerator(payload["resources"])
