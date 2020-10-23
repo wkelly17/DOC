@@ -477,8 +477,9 @@ original system or the current system.
 
 Examples:
 
-| Language code | Resource type | Resource code | Comments                                                    |
+| Language code | Resource type | Resource code | Oddity                                                      |
 |---------------+---------------+---------------+-------------------------------------------------------------|
 | ml            | tn            | any           | zip contains a manifest.yaml per usual, but the translation |
 |               |               |               | notes are not in markdown they are tsv files.               |
-|               |               |               |                                                             |
+| erk-x-erakor  | reg           | any           | manifest.json rather than manifest.txt or manifest.yaml.    |
+|               |               |               | manifest.json has different structure and keys.             |
