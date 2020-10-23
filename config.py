@@ -86,3 +86,10 @@ def get_tex_template_location() -> str:
         "tools/tex/template.tex" if os.getenv("IN_CONTAINER") else "./tex/template.tex"
     )
     # return "tools/tex/format.tex"
+
+
+def get_markdown_doc_file_names() -> List[str]:
+    """ Return the file names, excluding suffix, of files that do not
+    contain content but which may be in the same directory or
+    subdirectories of a resource's acquired files. """
+    return ["readme", "license"]
