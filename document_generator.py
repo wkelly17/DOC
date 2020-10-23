@@ -272,40 +272,42 @@ class DocumentGenerator(object):
 -o "{3}/{5}.pdf" \
 "{3}/{5}.html"
 """.format(
-    # First hack at a title. Used to be just self.book_title which
-    # doesn't make sense anymore.
-    ",".join([for resource._book_title in self._resources]),
-    # FIXME This should probably be today's date since not all
-    # resources have a manifest file from which issued may be
-    # initialized. And since we are dealing with multiple resources
-    # per document, which issued date would we use? It doesn't really
-    # make sense to use it anymore so I am substituting revision_date
-    # instead for now.
-    # resource._issued if resource._issued else "",
-    revision_date,
-    # FIXME Not all resources have a manifest file from which version
-    # may be initialized. Further, a document request can include
-    # multiple resources each of which can have a manifest file,
-    # depending on what is requested, and thus a _version, which one
-    # would we use? It doesn't make sense to use this anymore. For now
-    # I am just going to use some meaningless literal instead of the
-    # next commented out line.
-    # resource._version if resource._version else ""
-    "v0",
-    self.output_dir,
-    self.working_dir,
-    # FIXME A document generation request is composed of theoretically
-    # an infinite number of arbitrarily ordered resources. In this new
-    # context using the file location for one resource doesn't make
-    # sense as in the next commented out line of code. Instead we use
-    # the filename unique to the document generation request itself.
-    # resource._filename_base,
-    self._document_request_key,
-    # NOTE Having revision_date likely obviates _issued above.
-    revision_date,
-    get_tex_format_location(),
-    get_tex_template_location(),
-)
+            # First hack at a title. Used to be just self.book_title which
+            # doesn't make sense anymore. Here is a possible hack for a title
+            # (which most likely will not be used in the end)
+            # ",".join([for resource._book_title in self._resources]),
+            "Arbitrary title for now",
+            # FIXME This should probably be today's date since not all
+            # resources have a manifest file from which issued may be
+            # initialized. And since we are dealing with multiple resources
+            # per document, which issued date would we use? It doesn't really
+            # make sense to use it anymore so I am substituting revision_date
+            # instead for now.
+            # resource._issued if resource._issued else "",
+            revision_date,
+            # FIXME Not all resources have a manifest file from which version
+            # may be initialized. Further, a document request can include
+            # multiple resources each of which can have a manifest file,
+            # depending on what is requested, and thus a _version, which one
+            # would we use? It doesn't make sense to use this anymore. For now
+            # I am just going to use some meaningless literal instead of the
+            # next commented out line.
+            # resource._version if resource._version else ""
+            "v0",
+            self.output_dir,
+            self.working_dir,
+            # FIXME A document generation request is composed of theoretically
+            # an infinite number of arbitrarily ordered resources. In this new
+            # context using the file location for one resource doesn't make
+            # sense as in the next commented out line of code. Instead we use
+            # the filename unique to the document generation request itself.
+            # resource._filename_base,
+            self._document_request_key,
+            # NOTE Having revision_date likely obviates _issued above.
+            revision_date,
+            get_tex_format_location(),
+            get_tex_template_location(),
+        )
         logger.debug(command)
         subprocess.call(command, shell=True)
 
