@@ -61,6 +61,9 @@ def get_logging_config_file_path() -> str:
         return "logging_config.yaml"
 
 
+# FIXME Icon no longer lives at this location since they redesigned
+# their website. For now I just copy over an old version of the icon
+# into ./working/temp/.
 def get_icon_url() -> str:
     """ Get the tn-icon.png from unfolding word. """
     return "https://unfoldingword.org/assets/img/icon-tn.png"
@@ -93,3 +96,66 @@ def get_markdown_doc_file_names() -> List[str]:
     contain content but which may be in the same directory or
     subdirectories of a resource's acquired files. """
     return ["readme", "license"]
+
+
+def get_document_html_header() -> str:
+    """ Return the enclosing HTML and body element format string used
+    to enclose the document's HTML content which was aggregated from
+    all the resources in the document request. """
+    return """
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"></meta>
+    <title>Bible</title>
+    <style media="all" type="text/css">
+        .indent-0 {
+            margin-left:0em;
+            margin-bottom:0em;
+            margin-top:0em;
+        }
+        .indent-1 {
+            margin-left:0em;
+            margin-bottom:0em;
+            margin-top:0em;
+        }
+        .indent-2 {
+            margin-left:1em;
+            margin-bottom:0em;
+            margin-top:0em;
+        }
+        .indent-3 {
+            margin-left:2em;
+            margin-bottom:0em;
+            margin-top:0em;
+        }
+        .c-num {
+            color:gray;
+        }
+        .v-num {
+            color:gray;
+        }
+        .tetragrammaton {
+            font-variant: small-caps;
+        }
+        .footnotes {
+            font-size: 0.8em;
+        }
+        .footnotes-hr {
+            width: 90%;
+        }
+    </style>
+</head>
+<body>
+"""
+
+
+def get_document_html_footer() -> str:
+    """ Return the enclosing HTML and body element format string used
+    to enclose the document's HTML content which was aggregated from
+    all the resources in the document request. """
+    return """
+        </div>
+    </body>
+</html>
+"""

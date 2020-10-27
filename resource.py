@@ -905,10 +905,22 @@ class USFMResource(Resource):
     # public
     def get_content(self) -> None:
         self._get_usfm_chunks()
-        logger.info("We still need to implement USFM conversion to HTML")
+        # logger.debug("self._resource_filename: {}".format(self._resource_filename))
+
+        filename = "{}_{}_{}".format(
+            self._lang_code, self._resource_type, self._resource_filename,
+        )
+        # Create the USFM to HTML and store in file.
+        UsfmTransform.buildSingleHtml(
+            # UsfmTransform.buildMarkdown(
+            self._resource_dir,
+            self._output_dir,
+            filename,
+        )
+        # Read the HTML file into _content.
+        self._content = read_file("{}/{}.html".format(self._output_dir, filename))
+        # self._content = read_file("{}/{}.md".format(self._output_dir, filename))
         logger.debug("self._bad_links: {}".format(self._bad_links))
-        # FIXME We now call _convert_md2html here if applicable for
-        # this resource type
 
     # protected
     # FIXME Handle git based usfm with resources.json file and .txt usfm
@@ -1014,52 +1026,20 @@ class TResource(Resource):
     ) -> None:
         super().__init__(working_dir, output_dir, lookup_svc, resource)
 
-    # NOTE FIXME: We can either convert the Markdown for each resource
-    # to HTML and then concatenate them and then convert that to PDF
-    # or else we can concatenate the Markdown and then convert that to
-    # HTML once for all resources and then convert that to PDF.
-    #
-    # Would there be a similar problem if we concatenated all the
-    # Markdowns together and then converted them?
-    #
-    # Performance wise there may be some difference.
-    #
-    # If we concatenate all the HTMLs together
-    # we need to make sure that only their HTML bodies are being used
-    # and not their enclosing HTML element.
-    #
-    # TODO We need to research USFMTools.transform... to see how it
-    # does the conversion of USFM. And we need to do the same research
-    # for the Markdown to HTML conversion.
     def _convert_md2html(self) -> None:
-        path = "{}/{}_{}/{}.md".format(
-            self._resource_dir,
-            self._lang_code,
-            self._resource_type,
-            self._resource_filename,
-        )
-        logger.debug("About to read file: {}".format(path))
-        html = markdown.markdown(
-            # FIXME This path likely needs to be fixed
-            read_file(
-                # os.path.join(
-                #     self.output_dir,
-                path,
-                # os.path.join(self.output_dir, "{}.md".format(self.filename_base)),
-                "utf-8",
-            )
-        )
-        # FIXME The next method is for USFM files, but we are inside a
-        # path that is working on TResource subclasses. This is
-        # because _convert_md2html is still unchanged from the old
-        # logic path which always presupposed that USFM and TN would
-        # always be included in a document request.
-        html = super()._replace_bible_links(html)
-        write_file(
-            os.path.join(self.output_dir, "{}.html".format(self._filename_base)),
-            html
-            # os.path.join(self.output_dir, "{0}.html".format(self.filename_base)), html
-        )
+        """ Convert a resource's Markdown to HTML. """
+        # path = "{}/{}_{}/{}.md".format(
+        #     self._resource_dir,
+        #     self._lang_code,
+        #     self._resource_type,
+        #     self._resource_filename,
+        # )
+        # logger.debug("About to read file: {}".format(path))
+        # html = markdown.markdown(read_file(path, "utf-8",))
+        self._content = markdown.markdown(self._content)
+        # write_file(
+        #     os.path.join(self.output_dir, "{}.html".format(self._filename_base)), html
+        # )
 
     # protected
     def _replace_rc_links(self) -> None:
@@ -1221,71 +1201,18 @@ class TNResource(TResource):
         super().initialize_properties()
 
     def get_content(self) -> None:
-        if not os.path.isfile(
-            os.path.join(self._output_dir, "{}.html".format(self._filename_base))
-        ):
-            # if not os.path.isfile(
-            #     os.path.join(self.output_dir, "{0}.html".format(self.filename_base))
-            # ):
-            # FIXME Only get USFM if resource has resource_type of
-            # USFM or if resource_file_format is git.
-            # FIXME We will have to decide how to handle git
-            # containing USFM vs USFM file only in a Resource
-            # subclass instance.
-            # if resource["resource_file_format"] in ["git", "usfm"]:
-            #     logger.info("Getting USFM chunks...")
-            #     resource.update({"usfm_chunks": self.get_usfm_chunks(resource)})
-            # self.usfm_chunks = self.get_usfm_chunks()
-
-            # FIXME This assumes that there will be a markdown
-            # resource. Under the new document request system
-            # it is possible that a user will not request any
-            # resources that have markdown files, e.g., if the
-            # user only requests USFM.
-            # logger.debug(
-            #     "resource has markdown files: {}".format(
-            #         resource_has_markdown_files(resource)
-            #     )
-            # )
-            if not os.path.isfile(
-                # FIXME We wait to assemble/concatenate each Resource
-                # instance's content until the end so that we create
-                # one *.md file consisting of TN, TW, TQ, TA, etc..
-                # content. Because of that _filename_base value may
-                # not be the name for the file that will be the
-                # concatenation of all the markdown for one document.
-                # The name itself may need to be a concatenation or
-                # hash of all the resources separated by hyphens. That
-                # would also be useful for later lookup in a cache.
-                os.path.join(self._output_dir, "{}.md".format(self._filename_base))
-            ):
-                # if not os.path.isfile(
-                #     os.path.join(
-                #         self.output_dir, "{0}.md".format(self.filename_base)
-                #     )
-                # ):
-                logger.info("Processing Translation Notes Markdown...")
-                # self.preprocess_markdown()
-                self._content = self._get_tn_markdown()
-                # FIXME Comment out for now since it blows up
-                self._replace_rc_links()
-                self._fix_links()
-                # FIXME Write self._content into Markdown file
-                logger.info("Converting MD to HTML...")
-                # FIXME Can't this next call to super be just a call
-                # to self, python should handle finding the method
-                # in the superclass.
-                self._convert_md2html()
+        logger.info("Processing Translation Notes Markdown...")
+        self._get_tn_markdown()
+        # FIXME
+        # self._replace_rc_links()
+        # self._fix_links()
+        logger.info("Converting MD to HTML...")
+        self._convert_md2html()
         logger.debug("self._bad_links: {}".format(self._bad_links))
-        # if not os.path.isfile(
-        #     os.path.join(self.output_dir, "{}.pdf".format(resource["filename_base"]))
-        #     # os.path.join(self.output_dir, "{}.pdf".format(self.filename_base))
-        # ):
-        #     logger.info("Generating PDF...")
-        #     self.convert_html2pdf(resource)
 
     # protected
-    def _get_tn_markdown(self) -> str:
+    # def _get_tn_markdown(self) -> str:
+    def _get_tn_markdown(self) -> None:
         book_dir: str = self._get_book_dir()
         logger.debug("book_dir: {}".format(book_dir))
 
@@ -1383,7 +1310,8 @@ class TNResource(TResource):
                     tn_md += links + "\n\n"
 
         logger.debug("tn_md is {}".format(tn_md))
-        return tn_md
+        self._content = tn_md
+        # return tn_md
 
     def _get_book_dir(self) -> str:
         if os.path.isdir(
@@ -1672,69 +1600,17 @@ class TWResource(TResource):
         super().initialize_properties()
 
     def get_content(self) -> None:
-        if not os.path.isfile(
-            os.path.join(self._output_dir, "{}.html".format(self._filename_base))
-        ):
-            # if not os.path.isfile(
-            #     os.path.join(self.output_dir, "{0}.html".format(self.filename_base))
-            # ):
-            # FIXME Only get USFM if we've resource has
-            # resource_type of USFM or if resource_file_format
-            # is git.
-            # FIXME We will have to decide how to handle git
-            # containing USFM vs USFM file only in a Resource
-            # subclass instance.
-            # if resource["resource_file_format"] in ["git", "usfm"]:
-            #     logger.info("Getting USFM chunks...")
-            #     resource.update({"usfm_chunks": self.get_usfm_chunks(resource)})
-            # self.usfm_chunks = self.get_usfm_chunks()
-
-            # FIXME This assumes that there will be a markdown
-            # resource. Under the new document request system
-            # it is possible that a user will not request any
-            # resources that have markdown files, e.g., if the
-            # user only requests USFM.
-            # logger.debug(
-            #     "resource has markdown files: {}".format(
-            #         resource_has_markdown_files(resource)
-            #     )
-            # )
-            if not os.path.isfile(
-                # NOTE We wait to assemble/concatenate each
-                # Resource instance's content until the end so
-                # that we create one *.md file consisting of tn,
-                # tw, tq, ta, etc.. content. Because of that
-                # _filename_base may not be the name for the file that
-                # will be the concatenation of all the markdown for
-                # one document. The name itself may need to be a
-                # concatentation or hash of all the resources
-                # separated by hyphens or something. That would also
-                # be useful for later lookup in a cache.
-                os.path.join(self._output_dir, "{}.md".format(self._filename_base))
-            ):
-                # if not os.path.isfile(
-                #     os.path.join(
-                #         self.output_dir, "{0}.md".format(self.filename_base)
-                #     )
-                # ):
-                logger.info("Processing Translation Words Markdown...")
-                # self.preprocess_markdown()
-                # TODO Don't pass self._resource
-                self._content = self._get_tw_markdown()
-                # FIXME Can't this next call to super be just a call
-                # to self, python should handle finding the method
-                # in the superclass.
-                self._replace_rc_links()
-                self._fix_links()
-                # FIXME Write self._content into Markdown file
-                logger.info("Converting MD to HTML...")
-                # FIXME Can't this next call to super be just a call
-                # to self, python should handle finding the method
-                # in the superclass.
-                self._convert_md2html()
+        logger.info("Processing Translation Words Markdown...")
+        self._get_tw_markdown()
+        # FIXME
+        # self._replace_rc_links()
+        # self._fix_links()
+        logger.info("Converting MD to HTML...")
+        self._convert_md2html()
         logger.debug("self._bad_links: {}".format(self._bad_links))
 
-    def _get_tw_markdown(self) -> str:
+    # def _get_tw_markdown(self) -> str:
+    def _get_tw_markdown(self) -> None:
 
         # From entrypoint.sh in Interleaved_Resource_Generator, i.e.,
         # container.
@@ -1772,7 +1648,8 @@ class TWResource(TResource):
         tw_md = remove_md_section(tw_md, "Examples from the Bible stories")
 
         logger.debug("tw_md is {}".format(tw_md))
-        return tw_md
+        self._content = tw_md
+        # return tw_md
 
 
 class TQResource(TResource):
@@ -1795,67 +1672,17 @@ class TQResource(TResource):
         super().initialize_properties()
 
     def get_content(self) -> None:
-        if not os.path.isfile(
-            os.path.join(self._output_dir, "{}.html".format(self._filename_base))
-        ):
-            # if not os.path.isfile(
-            #     os.path.join(self.output_dir, "{0}.html".format(self.filename_base))
-            # ):
-            # FIXME Only get USFM if we've resource has
-            # resource_type of USFM or if resource_file_format
-            # is git.
-            # FIXME We will have to decide how to handle git
-            # containing USFM vs USFM file only in a Resource
-            # subclass instance.
-            # if resource["resource_file_format"] in ["git", "usfm"]:
-            #     logger.info("Getting USFM chunks...")
-            #     resource.update({"usfm_chunks": self.get_usfm_chunks(resource)})
-            # self.usfm_chunks = self.get_usfm_chunks()
-
-            # FIXME This assumes that there will be a markdown
-            # resource. Under the new document request system
-            # it is possible that a user will not request any
-            # resources that have markdown files, e.g., if the
-            # user only requests USFM.
-            # logger.debug(
-            #     "resource has markdown files: {}".format(
-            #         resource_has_markdown_files(resource)
-            #     )
-            # )
-            if not os.path.isfile(
-                # NOTE We wait to assemble/concatenate each
-                # Resource instance's content until the end so
-                # that we create one *.md file consisting of tn,
-                # tw, tq, ta, etc.. content. Because of that
-                # _filename_base may not be the name for the file that
-                # will be the concatenation of all the markdown for
-                # one document. The name itself may need to be a
-                # concatentation or hash of all the resources
-                # separated by hyphens or something. That would also
-                # be useful for later lookup in a cache.
-                os.path.join(self._output_dir, "{}.md".format(self._filename_base))
-            ):
-                # if not os.path.isfile(
-                #     os.path.join(
-                #         self.output_dir, "{0}.md".format(self.filename_base)
-                #     )
-                # ):
-                logger.info("Processing Translation Questions Markdown...")
-                self._content = self._get_tq_markdown()
-                # FIXME Can't this next call to super be just a call
-                # to self, python should handle finding the method
-                # in the superclass.
-                self._replace_rc_links()
-                self._fix_links()
-                # FIXME Write self._content into Markdown file
-                logger.info("Converting MD to HTML...")
-                # FIXME Can't this next call to super be just a call
-                # to self, python should handle finding the method
-                # in the superclass.
-                self._convert_md2html()
+        logger.info("Processing Translation Questions Markdown...")
+        self._content = self._get_tq_markdown()
+        # FIXME
+        # self._replace_rc_links()
+        # self._fix_links()
+        logger.info("Converting MD to HTML...")
+        self._convert_md2html()
         logger.debug("self._bad_links: {}".format(self._bad_links))
 
-    def _get_tq_markdown(self) -> str:
+    # def _get_tq_markdown(self) -> str:
+    def _get_tq_markdown(self) -> None:
         """Build tq markdown"""
         # TODO localization
         tq_md = '# Translation Questions\n<a id="tq-{}"/>\n\n'.format(self._book_id)
@@ -1930,7 +1757,8 @@ class TQResource(TResource):
                         md += "\n\n"
                         tq_md += md
         logger.debug("tq_md is {0}".format(tq_md))
-        return tq_md
+        self._content = tq_md
+        # return tq_md
 
 
 class TAResource(TResource):
@@ -1953,68 +1781,17 @@ class TAResource(TResource):
         super().initialize_properties()
 
     def get_content(self) -> None:
-        if not os.path.isfile(
-            os.path.join(self._output_dir, "{}.html".format(self._filename_base))
-        ):
-            # if not os.path.isfile(
-            #     os.path.join(self.output_dir, "{0}.html".format(self.filename_base))
-            # ):
-            # FIXME Only get USFM if we've resource has
-            # resource_type of USFM or if resource_file_format
-            # is git.
-            # FIXME We will have to decide how to handle git
-            # containing USFM vs USFM file only in a Resource
-            # subclass instance.
-            # if resource["resource_file_format"] in ["git", "usfm"]:
-            #     logger.info("Getting USFM chunks...")
-            #     resource.update({"usfm_chunks": self.get_usfm_chunks(resource)})
-            # self.usfm_chunks = self.get_usfm_chunks()
-
-            # FIXME This assumes that there will be a markdown
-            # resource. Under the new document request system
-            # it is possible that a user will not request any
-            # resources that have markdown files, e.g., if the
-            # user only requests USFM.
-            # logger.debug(
-            #     "resource has markdown files: {}".format(
-            #         resource_has_markdown_files(resource)
-            #     )
-            # )
-            if not os.path.isfile(
-                # NOTE We wait to assemble/concatenate each
-                # Resource instance's content until the end so
-                # that we create one *.md file consisting of tn,
-                # tw, tq, ta, etc.. content. Because of that
-                # _filename_base may not be the name for the file that
-                # will be the concatenation of all the markdown for
-                # one document. The name itself may need to be a
-                # concatentation or hash of all the resources
-                # separated by hyphens or something. That would also
-                # be useful for later lookup in a cache.
-                os.path.join(self._output_dir, "{}.md".format(self._filename_base))
-            ):
-                # if not os.path.isfile(
-                #     os.path.join(
-                #         self.output_dir, "{0}.md".format(self.filename_base)
-                #     )
-                # ):
-                logger.info("Processing Translation Academy Markdown...")
-                self._content = self._get_ta_markdown()
-                # FIXME Write self._content into Markdown file
-                # FIXME Can't this next call to super be just a call
-                # to self, python should handle finding the method
-                # in the superclass.
-                self._replace_rc_links()
-                self._fix_links()
-                # FIXME Write self._content into Markdown file
-                logger.info("Converting MD to HTML...")
-                # FIXME Can't this next call to super be just a call
-                # to self, python should handle finding the method
-                # in the superclass.
-                self._convert_md2html()
+        logger.info("Processing Translation Academy Markdown...")
+        self._get_ta_markdown()
+        # FIXME
+        # self._replace_rc_links()
+        # self._fix_links()
+        logger.info("Converting MD to HTML...")
+        self._convert_md2html()
         logger.debug("self._bad_links: {}".format(self._bad_links))
 
-    def _get_ta_markdown(self) -> str:
+    # def _get_ta_markdown(self) -> str:
+    def _get_ta_markdown(self) -> None:
         # TODO localization
         ta_md = '<a id="ta-{}"/>\n# Translation Topics\n\n'.format(self._book_id)
         sorted_rcs = sorted(
@@ -2040,7 +1817,8 @@ class TAResource(TResource):
             md += "\n\n"
             ta_md += md
         logger.debug("ta_md is {0}".format(ta_md))
-        return ta_md
+        self._content = ta_md
+        # return ta_md
 
     # FIXME This legacy code is a mess of mixed up concerns. This
     # method is called from tn and tq concerned code so when we move

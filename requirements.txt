@@ -12,5 +12,5 @@ markdown
 markdown2
 parse
 pathlib
-pyparsing
+pyparsing==2.4.5
 requests

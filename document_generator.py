@@ -44,6 +44,8 @@ try:
         get_markdown_resource_types,
         get_tex_format_location,
         get_tex_template_location,
+        get_document_html_header,
+        get_document_html_footer,
     )
     from resource_utils import (
         resource_has_markdown_files,
@@ -70,6 +72,8 @@ except:
         get_markdown_resource_types,
         get_tex_format_location,
         get_tex_template_location,
+        get_document_html_header,
+        get_document_html_footer,
     )
     from .resource_utils import (
         resource_has_markdown_files,
@@ -127,6 +131,8 @@ class DocumentGenerator(object):
         """
         self.working_dir = working_dir
         self.output_dir = output_dir
+        # The Markdown and later HTML for the document which is composed of the Markdown and later HTML for each resource.
+        self.content: str = ""
         # NOTE The lookup service could be (re)-implemented as a
         # singleton (or Global Object at module level for
         # Pythonicness) if desired. For now, just passing it to each
@@ -194,14 +200,9 @@ class DocumentGenerator(object):
             os.path.join(self.output_dir, "{}.pdf".format(self._document_request_key))
             # os.path.join(self.output_dir, "{}.pdf".format(self.filename_base))
         ):
-            logger.info("Generating PDF...")
-            # FIXME Assemble all the HTML into one HTML and then
-            # convert that HTML into a PDF.
-            logger.info(
-                "Yet to be done: concatenate all the HTML files that were generated into one HTML and then convert it to PDF."
-            )
             self.assemble_content()
-            self.convert_html2pdf(resource)
+            logger.info("Generating PDF...")
+            self.convert_html2pdf()
 
     def _get_unfoldingword_icon(self) -> None:
         """ Get Unfolding Word's icon for display in generated PDF. """
@@ -214,31 +215,33 @@ class DocumentGenerator(object):
 
     def assemble_content(self) -> None:
         """ Concatenate all the content from all requested resources
-        in the order they were requested and write out to a Markdown
-        file which can subsequently be used to generate a single HTML
-        file. Precondition: each resource has already generated
-        markdown of its content and stored it in its _content instance
-        variable. """
-        content: str = ""
+        in the order they were requested and write out to a single
+        HTML file excluding a wrapping HTML and BODY element.
+        Precondition: each resource has already generated HTML of its
+        body content (sans enclosing HTML and body elements) and
+        stored it in its _content instance variable. """
         for resource in self._resources:
-            # NOTE The following happens not per resource, but per
-            # document after all the documents resources have been
-            # initialized fully, i.e., after resource.get_content()
-            # md = "\n\n".join([tn_md, tq_md, tw_md, ta_md])
-            content += "\n\n{}".format(resource._content)
-            logger.debug(
-                "About to write markdown to {}".format(
-                    os.path.join(
-                        sself.output_dir, "{}.md".format(self._document_request_key)
-                    )
+            self.content += "\n\n{}".format(resource._content)
+        self.enclose_html_content()
+        logger.debug(
+            "About to write HTML to {}".format(
+                os.path.join(
+                    self.output_dir, "{}.html".format(self._document_request_key)
                 )
             )
-            write_file(
-                os.path.join(
-                    self.output_dir, "{}.md".format(self._document_request_key)
-                ),
-                content,
-            )
+        )
+        write_file(
+            os.path.join(self.output_dir, "{}.html".format(self._document_request_key)),
+            self.content,
+        )
+
+    def enclose_html_content(self):
+        """ Write the enclosing HTML and body elements around the HTML
+        body content for the document. """
+        html = get_document_html_header()
+        html += self.content
+        html += get_document_html_footer()
+        self.content = html
 
     # FIXME This needs to be rewritten to generate PDF from HTML of
     # all requested resources which could include any combination of
