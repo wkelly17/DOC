@@ -13,13 +13,13 @@ import yaml
 
 try:
     from url_utils import download_file  # type: ignore
-    from file_utils import load_json_object, load_yaml_object, read_file, unzip  # type: ignore
+    from file_utils import load_json_object, load_yaml_object, read_file, write_file, unzip  # type: ignore
     from resource_lookup import ResourceJsonLookup
     from bible_books import BOOK_NUMBERS, BOOK_NAMES  # type: ignore
     from config import get_logging_config_file_path, get_markdown_doc_file_names
 except:
     from .url_utils import download_file  # type: ignore
-    from .file_utils import load_json_object, load_yaml_object, read_file, unzip  # type: ignore
+    from .file_utils import load_json_object, load_yaml_object, read_file, write_file, unzip  # type: ignore
     from .resource_lookup import ResourceJsonLookup
     from .bible_books import BOOK_NUMBERS, BOOK_NAMES  # type: ignore
     from .config import get_logging_config_file_path, get_markdown_doc_file_names
@@ -231,7 +231,9 @@ class Resource(abc.ABC):
         if self._is_git():  # Is a git repo, so clone it.
             try:
                 command: str = "git clone --depth=1 '{}' '{}'".format(
-                    self._resource_url, filepath
+                    # FIXME self._resource_filepath used to be filepath
+                    self._resource_url,
+                    self._resource_filepath,
                 )
                 logger.debug("os.getcwd(): {}".format(os.getcwd()))
                 logger.debug("git command: {}".format(command))
@@ -507,102 +509,102 @@ class Resource(abc.ABC):
             )
         return text
 
-    def _replace_bible_links(self, text: str) -> str:
-        bible_links = re.findall(
-            r"(?:udb|ulb)://[A-Z0-9/]+", text, flags=re.IGNORECASE | re.MULTILINE
-        )
-        bible_links = list(set(bible_links))
-        logger.debug("bible_links: {}".format(bible_links))
-        rep = {}
-        for link in sorted(bible_links):
-            parts = link.split("/")
-            logger.debug("parts: {}".format(parts))
-            resource_str = parts[0][0:3]
-            logger.debug("resource_str: {}".format(resource_str))
-            chapter = parts[4].lstrip("0")
-            logger.debug("chapter: {}".format(chapter))
-            first_verse = parts[5].lstrip("0")
-            logger.debug("first_verse: {}".format(first_verse))
-            rep[link] = "<div>{0}</div>".format(
-                # FIXME It looks like this presupposes that, as per
-                # the old logic path, we build links to USFM files and
-                # then later, i.e., here, actually produce the HTML
-                # from the USFM. Such presuppositions are
-                # inappropriate now.
-                self._get_chunk_html(resource_str, chapter, first_verse)
-            )
-        rep = dict(
-            (re.escape("[[{0}]]".format(link)), html) for link, html in rep.items()
-        )
-        pattern = re.compile("|".join(list(rep.keys())))
-        text = pattern.sub(lambda m: rep[re.escape(m.group(0))], text)
-        return text
+    # def _replace_bible_links(self, text: str) -> str:
+    #     bible_links = re.findall(
+    #         r"(?:udb|ulb)://[A-Z0-9/]+", text, flags=re.IGNORECASE | re.MULTILINE
+    #     )
+    #     bible_links = list(set(bible_links))
+    #     logger.debug("bible_links: {}".format(bible_links))
+    #     rep = {}
+    #     for link in sorted(bible_links):
+    #         parts = link.split("/")
+    #         logger.debug("parts: {}".format(parts))
+    #         resource_str = parts[0][0:3]
+    #         logger.debug("resource_str: {}".format(resource_str))
+    #         chapter = parts[4].lstrip("0")
+    #         logger.debug("chapter: {}".format(chapter))
+    #         first_verse = parts[5].lstrip("0")
+    #         logger.debug("first_verse: {}".format(first_verse))
+    #         rep[link] = "<div>{0}</div>".format(
+    #             # FIXME It looks like this presupposes that, as per
+    #             # the old logic path, we build links to USFM files and
+    #             # then later, i.e., here, actually produce the HTML
+    #             # from the USFM. Such presuppositions are
+    #             # inappropriate now.
+    #             self._get_chunk_html(resource_str, chapter, first_verse)
+    #         )
+    #     rep = dict(
+    #         (re.escape("[[{0}]]".format(link)), html) for link, html in rep.items()
+    #     )
+    #     pattern = re.compile("|".join(list(rep.keys())))
+    #     text = pattern.sub(lambda m: rep[re.escape(m.group(0))], text)
+    #     return text
 
-    def _get_chunk_html(self, resource_str: str, chapter: str, verse: str) -> str:
-        # FIXME Do we want a temp dir here? This is where the USFM
-        # file chunk requested, by chapter and verse, will be written
-        # and subsequently read from.
-        # Build a path where we'll write the USFM chunk into a file
-        path = tempfile.mkdtemp(
-            dir=self._working_dir,
-            prefix="usfm-{}-{}-{}-{}-{}_".format(
-                self._lang_code,
-                resource_str,
-                self._book_id,
-                chapter,
-                verse
-                # self.lang_code, resource, self.book_id, chapter, verse
-            ),
-        )
-        logger.debug(
-            "path, i.e., location of USFM chunk file to write: {}".format(path)
-        )
-        filename_base = "{}-{}-{}-{}".format(
-            resource_str, self._book_id, chapter, verse
-        )
-        # filename_base = "{0}-{1}-{2}-{3}".format(resource, self.book_id, chapter, verse)
-        # Get the chunk for chapter and verse
-        try:
-            chunk = self._usfm_chunks[resource_str][chapter][verse]["usfm"]
-            # chunk = self.usfm_chunks[resource_str][chapter][verse]["usfm"]
-        except KeyError:
-            chunk = ""
-        # Get the USFM header portion
-        usfm = self._usfm_chunks[resource_str]["header"]
-        # If a chapter markder is not present in the chunk, then add one
-        if "\\c" not in chunk:
-            usfm += "\n\n\\c {0}\n".format(chapter)
-        # Add the chapter chunk to the header
-        usfm += chunk
-        # FIXME Use instance vars instead?
-        # FIXME Do we want to use filename_base?
-        # Write the chapter USFM chunk to file
-        write_file(os.path.join(path, filename_base + ".usfm"), usfm)
-        # FIXME Is this what we'll use to build the USFM resource
-        # content?
-        # Convert the USFM to HTML
-        UsfmTransform.buildSingleHtml(path, path, filename_base)
-        # Read the HTML
-        html = read_file(os.path.join(path, filename_base + ".html"))
-        # Get rid of the temp directory
-        shutil.rmtree(path, ignore_errors=True)
-        # Get a parser on the HTML
-        soup = bs4.BeautifulSoup(html, "html.parser")
-        # Find the h1 element
-        header = soup.find("h1")
-        if header:  # h1 element exists
-            # Delete the h1 element
-            header.decompose()
-        # Find the h2 element
-        chapter_element: Union[
-            bs4.element.Tag, bs4.element.NavigableString
-        ] = soup.find("h2")
-        if chapter_element:  # h2 element exists
-            # Delete the h2 element
-            chapter_element.decompose()
-        # Get the HTML body
-        html = "".join(["%s" % x for x in soup.body.contents])
-        return html
+    # def _get_chunk_html(self, resource_str: str, chapter: str, verse: str) -> str:
+    #     # FIXME Do we want a temp dir here? This is where the USFM
+    #     # file chunk requested, by chapter and verse, will be written
+    #     # and subsequently read from.
+    #     # Build a path where we'll write the USFM chunk into a file
+    #     path = tempfile.mkdtemp(
+    #         dir=self._working_dir,
+    #         prefix="usfm-{}-{}-{}-{}-{}_".format(
+    #             self._lang_code,
+    #             resource_str,
+    #             self._book_id,
+    #             chapter,
+    #             verse
+    #             # self.lang_code, resource, self.book_id, chapter, verse
+    #         ),
+    #     )
+    #     logger.debug(
+    #         "path, i.e., location of USFM chunk file to write: {}".format(path)
+    #     )
+    #     filename_base = "{}-{}-{}-{}".format(
+    #         resource_str, self._book_id, chapter, verse
+    #     )
+    #     # filename_base = "{0}-{1}-{2}-{3}".format(resource, self.book_id, chapter, verse)
+    #     # Get the chunk for chapter and verse
+    #     try:
+    #         chunk = self._usfm_chunks[resource_str][chapter][verse]["usfm"]
+    #         # chunk = self.usfm_chunks[resource_str][chapter][verse]["usfm"]
+    #     except KeyError:
+    #         chunk = ""
+    #     # Get the USFM header portion
+    #     usfm = self._usfm_chunks[resource_str]["header"]
+    #     # If a chapter markder is not present in the chunk, then add one
+    #     if "\\c" not in chunk:
+    #         usfm += "\n\n\\c {0}\n".format(chapter)
+    #     # Add the chapter chunk to the header
+    #     usfm += chunk
+    #     # FIXME Use instance vars instead?
+    #     # FIXME Do we want to use filename_base?
+    #     # Write the chapter USFM chunk to file
+    #     write_file(os.path.join(path, filename_base + ".usfm"), usfm)
+    #     # FIXME Is this what we'll use to build the USFM resource
+    #     # content?
+    #     # Convert the USFM to HTML
+    #     UsfmTransform.buildSingleHtml(path, path, filename_base)
+    #     # Read the HTML
+    #     html = read_file(os.path.join(path, filename_base + ".html"))
+    #     # Get rid of the temp directory
+    #     shutil.rmtree(path, ignore_errors=True)
+    #     # Get a parser on the HTML
+    #     soup = bs4.BeautifulSoup(html, "html.parser")
+    #     # Find the h1 element
+    #     header = soup.find("h1")
+    #     if header:  # h1 element exists
+    #         # Delete the h1 element
+    #         header.decompose()
+    #     # Find the h2 element
+    #     chapter_element: Union[
+    #         bs4.element.Tag, bs4.element.NavigableString
+    #     ] = soup.find("h2")
+    #     if chapter_element:  # h2 element exists
+    #         # Delete the h2 element
+    #         chapter_element.decompose()
+    #     # Get the HTML body
+    #     html = "".join(["%s" % x for x in soup.body.contents])
+    #     return html
 
 
 class USFMResource(Resource):
@@ -696,7 +698,8 @@ class USFMResource(Resource):
             # in the resource request.
             self._content_files = list(
                 filter(
-                    lambda x: self._resource_code.lower() in str(x).lower(), txt_files,
+                    lambda x: self._resource_code.lower() in str(x).lower(),
+                    txt_content_files,
                 )
             )
 
@@ -747,7 +750,7 @@ class USFMResource(Resource):
             project: Dict[Any, Any] = p
             self._book_id = p["identifier"]
             self._book_title = p["title"].replace(" translationNotes", "")
-            self._book_number = BOOK_NUMBERS[self.book_id]
+            self._book_number = BOOK_NUMBERS[self._book_id]
             # TODO This likely needs to change because of how we
             # build resource_dir
             self._filename_base = "{}_tn_{}-{}_v{}".format(
@@ -1146,25 +1149,25 @@ class TResource(Resource):
         super()._discover_manifest()
 
         # Get the content files
-        markdown_files = list(p.glob("**/*.md"))
+        markdown_files = list(self._p.glob("**/*.md"))
         markdown_content_files = filter(
             lambda x: str(x.stem).lower() not in get_markdown_doc_file_names(),
             markdown_files,
         )
-        txt_files = list(q.glob("**/*.txt"))
+        txt_files = list(self._p.glob("**/*.txt"))
         txt_content_files = filter(
             lambda x: str(x.stem).lower() not in get_markdown_doc_file_names(),
             txt_files,
         )
 
-        if len(markdown_content_files) > 0:
+        if len(list(markdown_content_files)) > 0:
             self._content_files = list(
                 filter(
                     lambda x: self._resource_code.lower() in str(x).lower(),
                     markdown_files,
                 )
             )
-        if len(txt_content_files) > 0:
+        if len(list(txt_content_files)) > 0:
             self._content_files = list(
                 filter(
                     lambda x: self._resource_code.lower() in str(x).lower(), txt_files,
@@ -1217,7 +1220,7 @@ class TNResource(TResource):
         logger.debug("book_dir: {}".format(book_dir))
 
         if not os.path.isdir(book_dir):
-            return ""
+            return
 
         # TODO Might need localization
         # tn_md = '# Translation Notes\n<a id="tn-{}"/>\n\n'.format(self._book_id)
@@ -1673,7 +1676,7 @@ class TQResource(TResource):
 
     def get_content(self) -> None:
         logger.info("Processing Translation Questions Markdown...")
-        self._content = self._get_tq_markdown()
+        self._get_tq_markdown()
         # FIXME
         # self._replace_rc_links()
         # self._fix_links()
