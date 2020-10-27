@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2020-10-20 Tue 12:46 -->
+<!-- 2020-10-27 Tue 15:10 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>&lrm;</title>
@@ -221,45 +221,47 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#org92fdee7">1. Design notes</a>
+<li><a href="#org64802d1">1. Design notes</a>
 <ul>
-<li><a href="#orgc06f992">1.1. JSON document generation request design for web client (BIEL)</a>
+<li><a href="#org77b311f">1.1. JSON document generation request design for web client (BIEL)</a>
 <ul>
-<li><a href="#org4e9d0c9">1.1.1. <span class="todo TODO">TODO</span> for Craig: a license for the <code>Interleaved_Resources_Generator</code> project</a></li>
-<li><a href="#org03fd6ba">1.1.2. Example request from <code>test_flask.py</code></a></li>
+<li><a href="#orgc62e102">1.1.1. Example request from <code>test_flask.py</code></a></li>
 </ul>
 </li>
-<li><a href="#orgb062ed2">1.2. Interactions at a high level</a></li>
-<li><a href="#orgeb8a163">1.3. What works currently</a></li>
-<li><a href="#org5bf14d5">1.4. Docker container</a></li>
-<li><a href="#org9c63ce1">1.5. How to run a demo for yourself</a>
+<li><a href="#org5ab3c4f">1.2. Interactions at a high level</a></li>
+<li><a href="#org17d5c04">1.3. What works currently</a></li>
+<li><a href="#orga062d36">1.4. Docker container</a></li>
+<li><a href="#org78dc401">1.5. How to run a demo for yourself</a>
 <ul>
-<li><a href="#org3653e46">1.5.1. Set up for demos</a></li>
-<li><a href="#org2ac62cd">1.5.2. Run demo outside docker container (faster)</a>
+<li><a href="#org00c0aba">1.5.1. Set up for demos</a></li>
+<li><a href="#org141e9b0">1.5.2. Run demo outside docker container (faster)</a>
 <ul>
-<li><a href="#org1b1f03f">1.5.2.1. For resource<sub>lookup.py</sub>:</a></li>
-<li><a href="#org6a3f138">1.5.2.2. For <code>document_generator.py</code> (used to be named <code>export_md_to_pdf.py</code>):</a></li>
-<li><a href="#org55619a3">1.5.2.3. For testing the web service front end do:</a></li>
+<li><a href="#orga68f7c7">1.5.2.1. For <code>resource_lookup.py</code>:</a></li>
+<li><a href="#org35b6f14">1.5.2.2. For <code>document_generator.py</code> (used to be named <code>export_md_to_pdf.py</code>):</a></li>
+<li><a href="#orgf6c3eed">1.5.2.3. For testing the web service front end do:</a></li>
 </ul>
 </li>
-<li><a href="#org68fef24">1.5.3. For demo inside the docker container:</a></li>
+<li><a href="#org30cede1">1.5.3. For demo inside the docker container (slower):</a></li>
 </ul>
 </li>
-<li><a href="#org2229324">1.6. (Bonus/optional material) Convenience web service endpoints for BIEL UI to call (if desired)</a>
+<li><a href="#org6c8ca6f">1.6. (Bonus/optional material) Convenience web service endpoints for BIEL UI to call (if desired)</a>
 <ul>
-<li><a href="#org1ba3f14">1.6.1. Example client call to get all language codes by themselves</a></li>
-<li><a href="#orgbc15672">1.6.2. Get all language code, language name pairs</a></li>
+<li><a href="#orgafe0469">1.6.1. Example client call to get all language codes (sans language name)</a></li>
+<li><a href="#orga666e13">1.6.2. Get all language code, language name pairs</a></li>
 </ul>
 </li>
-<li><a href="#org4041719">1.7. (Optional to read - just saving here) What is the smallest level of resource request granularity we want: book, chapter, or verse?</a></li>
-<li><a href="#org41e43e2">1.8. Differences from the norm in resources I've found</a></li>
+<li><a href="#org28abef1">1.7. Oddities - differences from the norm in resources I've found</a>
+<ul>
+<li><a href="#org15bcb05">1.7.1. <span class="todo TODO">TODO</span> for Craig: a license for the <code>Interleaved_Resources_Generator</code> project</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div id="outline-container-org92fdee7" class="outline-2">
-<h2 id="org92fdee7"><span class="section-number-2">1</span> Design notes</h2>
+<div id="outline-container-org64802d1" class="outline-2">
+<h2 id="org64802d1"><span class="section-number-2">1</span> Design notes</h2>
 <div class="outline-text-2" id="text-1">
 <p>
 Let's start off with how <code>BIEL</code> sends a document generation request that
@@ -267,8 +269,8 @@ specifies what (arbitrary) combination of resources a user would like
 included in the final PDF document.
 </p>
 </div>
-<div id="outline-container-orgc06f992" class="outline-3">
-<h3 id="orgc06f992"><span class="section-number-3">1.1</span> JSON document generation request design for web client (BIEL)</h3>
+<div id="outline-container-org77b311f" class="outline-3">
+<h3 id="org77b311f"><span class="section-number-3">1.1</span> JSON document generation request design for web client (BIEL)</h3>
 <div class="outline-text-3" id="text-1-1">
 <p>
 Requirement: Allow creating a document out of any combination of
@@ -305,21 +307,13 @@ having resources in the order the user requested the document's
 resources to be represented.
 </p>
 </div>
-<div id="outline-container-org4e9d0c9" class="outline-4">
-<h4 id="org4e9d0c9"><span class="section-number-4">1.1.1</span> <span class="todo TODO">TODO</span> for Craig: a license for the <code>Interleaved_Resources_Generator</code> project</h4>
+<div id="outline-container-orgc62e102" class="outline-4">
+<h4 id="orgc62e102"><span class="section-number-4">1.1.1</span> Example request from <code>test_flask.py</code></h4>
 <div class="outline-text-4" id="text-1-1-1">
 <p>
-I need a license emailed to me that I can check in to the repo. Or you
-can send me a link to the license and I'll get it there. Thanks!
-</p>
-</div>
-</div>
-<div id="outline-container-org03fd6ba" class="outline-4">
-<h4 id="org03fd6ba"><span class="section-number-4">1.1.2</span> Example request from <code>test_flask.py</code></h4>
-<div class="outline-text-4" id="text-1-1-2">
-<p>
 Example python client request using resources JSON dictionary to submit an
-API call to generate a document composed of resources.
+API call to generate a document composed of resources. I imagine <code>BIEL</code>
+would make this client request, instead, in Javascript.
 </p>
 
 <div class="org-src-container">
@@ -330,16 +324,13 @@ payload = {}
 payload["resources"] = [
     {"lang_code": "am",
      "resource_type": "ulb",
-     "resource_code": ""},
+     "resource_code": "gen"},
     {"lang_code": "erk-x-erakor",
      "resource_type": "reg",
      "resource_code": "eph"},
     {"lang_code": "ml",
      "resource_type": "ulb",
      "resource_code": "tit"},
-    {"lang_code": "ml",
-     "resource_type": "obs-tq",
-     "resource_code": ""},
     {"lang_code": "mr",
      "resource_type": "udb",
      "resource_code": "mrk"},
@@ -355,11 +346,11 @@ if res.ok:
 </div>
 </div>
 
-<div id="outline-container-orgb062ed2" class="outline-3">
-<h3 id="orgb062ed2"><span class="section-number-3">1.2</span> Interactions at a high level</h3>
+<div id="outline-container-org5ab3c4f" class="outline-3">
+<h3 id="org5ab3c4f"><span class="section-number-3">1.2</span> Interactions at a high level</h3>
 <div class="outline-text-3" id="text-1-2">
 
-<div id="orgeb57c0a" class="figure">
+<div id="orgd83feac" class="figure">
 <p><img src="wa_design_sequence_diagram1.png" alt="wa_design_sequence_diagram1.png" />
 </p>
 </div>
@@ -368,11 +359,12 @@ if res.ok:
 <p>
 <code>DocumentGenerator</code> passes back a JSON dict containing any messaging and
 the eventual location of the generated document for display to the
-requesting user (by <code>BIEL</code>).
+requesting user (by <code>BIEL</code>), or the document itself (depending on how
+long it takes to generate).
 </p>
 
 
-<div id="orgbd8320a" class="figure">
+<div id="org697fb5a" class="figure">
 <p><img src="wa_design_sequence_diagram2.png" alt="wa_design_sequence_diagram2.png" />
 </p>
 </div>
@@ -391,20 +383,16 @@ each resource type and relocated them into Resource subclasses,
 created via a factory method (<code>ResourceFactory</code>). These subclasses share
 a clean interface: <code>find_location</code>, <code>get_files</code>, <code>initialize_properties</code>,
 <code>get_content</code>. The work of <code>find_location</code> is delegated to
-<code>ResourceJsonLookup</code> for all instances (this can/may change in a later
-design since it pushes all resource type code paths for finding a
-resources URLs into one class when such code paths could be moved into
-the Resource subclasses themselves. It is a design tradeoff at the
-moment for managing complexity and testability.). <code>get_files</code> is also
-common to all subclasses and not specialized from the <code>Resource</code>
-superclass. Specialization in each subclass happens in the
-<code>initialize_properties</code> and <code>get_content</code> methods.
+<code>ResourceJsonLookup</code> for all instances. <code>get_files</code> is also common to all
+subclasses and not specialized from the <code>Resource</code> superclass.
+Specialization in each subclass happens in the <code>initialize_properties</code>
+and <code>get_content</code> methods.
 </p>
 
 <p>
-This new design has replaced the design of passing around a dictionary
-within <code>DocumentGenerator</code>. Each resource that is part of a single
-document request is now fully reified into its own object and
+This new design has also replaced the design of passing around a
+dictionary within <code>DocumentGenerator</code>. Each resource that is part of a
+single document request is now fully reified into its own object and
 <code>DocumentGenerator</code> maintains a collection of these Resource instances.
 </p>
 
@@ -419,7 +407,7 @@ generation processing time.
 </p>
 
 
-<div id="org90c5960" class="figure">
+<div id="org380449c" class="figure">
 <p><img src="wa_design_class_diagram_resources.png" alt="wa_design_class_diagram_resources.png" />
 </p>
 </div>
@@ -432,45 +420,47 @@ are not relevant to this design document.
 </p>
 
 
-<div id="orgd5ea3d3" class="figure">
+<div id="orgdb15cc8" class="figure">
 <p><img src="wa_design_class_diagram.png" alt="wa_design_class_diagram.png" />
 </p>
 </div>
 
 
 <p>
-A mentioned above a <code>DocumentGenerator</code> accepts a document generation
+As mentioned above a <code>DocumentGenerator</code> accepts a document generation
 request composed of resources. <code>DocumentGenerator</code> instantiates the
 appropriate <code>Resource</code> subclass based on the resource type. Each
-<code>Resource</code> instance composes one <code>ResourceJsonLookup</code> which it delegates
-lookup to.
+<code>Resource</code> instance composes one <code>ResourceJsonLookup</code> to which it delegates
+lookup tasks.
 </p>
 
 
-<div id="orgdfa82ec" class="figure">
+<div id="org6aae9cd" class="figure">
 <p><img src="wa_design_class_diagram2.png" alt="wa_design_class_diagram2.png" />
 </p>
 </div>
 </div>
 </div>
 
-<div id="outline-container-orgeb8a163" class="outline-3">
-<h3 id="orgeb8a163"><span class="section-number-3">1.3</span> What works currently</h3>
+<div id="outline-container-org17d5c04" class="outline-3">
+<h3 id="org17d5c04"><span class="section-number-3">1.3</span> What works currently</h3>
 <div class="outline-text-3" id="text-1-3">
 <ol class="org-ol">
 <li>Making a request for document generation to the web service (flask) running.</li>
 <li>The resources that comprise the document generation request can handle a book-level of request granularity at present.</li>
-<li>Resources are found and provisioned to disk (but not yet typeset into a final document).</li>
+<li>Resources are found and provisioned to disk (but not yet typeset
+into a final document &#x2013; this is mainly where my efforts are focused
+currently).</li>
 </ol>
 <p>
 Files involved: <code>flask_app.py</code>, <code>resource_lookup.py</code>,
 <code>document_generator.py</code>, <code>resource.py</code> (and <code>config.py</code>, <code>file_utils.py</code>,
-<code>url_utils.py</code>).
+<code>url_utils.py</code>, and my clone of <code>USFM-Tools</code> repo).
 </p>
 </div>
 </div>
-<div id="outline-container-org5bf14d5" class="outline-3">
-<h3 id="org5bf14d5"><span class="section-number-3">1.4</span> Docker container</h3>
+<div id="outline-container-orga062d36" class="outline-3">
+<h3 id="orga062d36"><span class="section-number-3">1.4</span> Docker container</h3>
 <div class="outline-text-3" id="text-1-4">
 <p>
 There isn't much to say about the docker container except that it
@@ -495,25 +485,25 @@ answer</a>
 </p>
 
 <p>
-I am not bothering myself with this at all right now, just
-mentioning it. There are plenty of other architectures that could be
-used when we get there.
+I am not bothering myself with this at all right now, just mentioning
+it. There are other architectures that could be used when we get
+there.
 </p>
 </div>
 </div>
-<div id="outline-container-org9c63ce1" class="outline-3">
-<h3 id="org9c63ce1"><span class="section-number-3">1.5</span> How to run a demo for yourself</h3>
+<div id="outline-container-org78dc401" class="outline-3">
+<h3 id="org78dc401"><span class="section-number-3">1.5</span> How to run a demo for yourself</h3>
 <div class="outline-text-3" id="text-1-5">
 </div>
-<div id="outline-container-org3653e46" class="outline-4">
-<h4 id="org3653e46"><span class="section-number-4">1.5.1</span> Set up for demos</h4>
+<div id="outline-container-org00c0aba" class="outline-4">
+<h4 id="org00c0aba"><span class="section-number-4">1.5.1</span> Set up for demos</h4>
 <div class="outline-text-4" id="text-1-5-1">
 <ol class="org-ol">
 <li>Get the tools repo:</li>
 </ol>
 
 <div class="org-src-container">
-<pre class="src src-shell">git clone "https://github.com/linearcombination/tools.git" -b develop --single-branch
+<pre class="src src-shell">git clone https://github.com/linearcombination/tools.git
 </pre>
 </div>
 
@@ -554,12 +544,12 @@ pip install -r requirements.txt
 </div>
 </div>
 
-<div id="outline-container-org2ac62cd" class="outline-4">
-<h4 id="org2ac62cd"><span class="section-number-4">1.5.2</span> Run demo outside docker container (faster)</h4>
+<div id="outline-container-org141e9b0" class="outline-4">
+<h4 id="org141e9b0"><span class="section-number-4">1.5.2</span> Run demo outside docker container (faster)</h4>
 <div class="outline-text-4" id="text-1-5-2">
 </div>
-<div id="outline-container-org1b1f03f" class="outline-5">
-<h5 id="org1b1f03f"><span class="section-number-5">1.5.2.1</span> For resource<sub>lookup.py</sub>:</h5>
+<div id="outline-container-orga68f7c7" class="outline-5">
+<h5 id="orga68f7c7"><span class="section-number-5">1.5.2.1</span> For <code>resource_lookup.py</code>:</h5>
 <div class="outline-text-5" id="text-1-5-2-1">
 <p>
 In pipenv or virtualenv shell:
@@ -573,16 +563,12 @@ In pipenv or virtualenv shell:
 <p>
 You should see a lot of output resulting from the tests doing various
 lookups into the translations.json file after first acquiring it if
-needed. At the moment this runs fine without known error. But since
-this system is in flux there is always a chance I'll have accidentally
-left the develop branch (the main branch) in a state that is not
-optimal for demoing.
+needed.
 </p>
 </div>
 </div>
-
-<div id="outline-container-org6a3f138" class="outline-5">
-<h5 id="org6a3f138"><span class="section-number-5">1.5.2.2</span> For <code>document_generator.py</code> (used to be named <code>export_md_to_pdf.py</code>):</h5>
+<div id="outline-container-org35b6f14" class="outline-5">
+<h5 id="org35b6f14"><span class="section-number-5">1.5.2.2</span> For <code>document_generator.py</code> (used to be named <code>export_md_to_pdf.py</code>):</h5>
 <div class="outline-text-5" id="text-1-5-2-2">
 <div class="org-src-container">
 <pre class="src src-shell">python -m test_document_generator
@@ -590,14 +576,14 @@ optimal for demoing.
 </div>
 
 <p>
-This will go a long ways, but eventually die before generating a
+This will go a long ways, but eventually die before generating a final
 document.
 </p>
 </div>
 </div>
 
-<div id="outline-container-org55619a3" class="outline-5">
-<h5 id="org55619a3"><span class="section-number-5">1.5.2.3</span> For testing the web service front end do:</h5>
+<div id="outline-container-orgf6c3eed" class="outline-5">
+<h5 id="orgf6c3eed"><span class="section-number-5">1.5.2.3</span> For testing the web service front end do:</h5>
 <div class="outline-text-5" id="text-1-5-2-3">
 <ol class="org-ol">
 <li>First, run the web server</li>
@@ -624,35 +610,32 @@ This will run HTTP web client tests that exercise the web service.
 </div>
 </div>
 
-<div id="outline-container-org68fef24" class="outline-4">
-<h4 id="org68fef24"><span class="section-number-4">1.5.3</span> For demo inside the docker container:</h4>
+<div id="outline-container-org30cede1" class="outline-4">
+<h4 id="org30cede1"><span class="section-number-4">1.5.3</span> For demo inside the docker container (slower):</h4>
 <div class="outline-text-4" id="text-1-5-3">
-<p>
-1a. Get the docker container source:
-</p>
+<ul class="org-ul">
+<li>Get the docker container source:</li>
+</ul>
 
 <div class="org-src-container">
 <pre class="src src-shell">git clone https://github.com/linearcombination/Interleaved_Resources_Generator
 </pre>
 </div>
 
+<ul class="org-ul">
+<li>cd into the container repo root dir from step 1a above.</li>
 
-<p>
-1b. cd into the container repo root dir from step 1a above.
-</p>
-
-<ol class="org-ol">
 <li>Symbolically link the tools directory from earlier into the root of the container repo you cloned earlier:</li>
-</ol>
+</ul>
 
 <div class="org-src-container">
 <pre class="src src-shell">ln -s /path/to/tools .
 </pre>
 </div>
 
-<ol class="org-ol">
+<ul class="org-ul">
 <li>Build the container:</li>
-</ol>
+</ul>
 
 <div class="org-src-container">
 <pre class="src src-shell">./build.sh # This will take a little while to build the container. When it completes building it will automatically start the web server front end.
@@ -673,9 +656,9 @@ docker rm ID # ID here is the ID from the previous step
 then repeat 3 again.
 </p>
 
-<ol class="org-ol">
-<li>Submit client requests as before (you need to be in the tools repo root directory as before):</li>
-</ol>
+<ul class="org-ul">
+<li>Submit client requests (you need to be in the tools repo root directory as before):</li>
+</ul>
 
 <div class="org-src-container">
 <pre class="src src-shell">python -m test_flask
@@ -685,59 +668,24 @@ then repeat 3 again.
 </div>
 </div>
 
-<div id="outline-container-org2229324" class="outline-3">
-<h3 id="org2229324"><span class="section-number-3">1.6</span> (Bonus/optional material) Convenience web service endpoints for BIEL UI to call (if desired)</h3>
+<div id="outline-container-org6c8ca6f" class="outline-3">
+<h3 id="org6c8ca6f"><span class="section-number-3">1.6</span> (Bonus/optional material) Convenience web service endpoints for BIEL UI to call (if desired)</h3>
 <div class="outline-text-3" id="text-1-6">
 <p>
-A nice property for a system like this to have is a ground truth data
-source so that front end (<code>BIEL</code>) and back end are on same page about
-what resources are available.
+In the interest of good user experience, it will be important that
+<code>BIEL</code> only request resources that actually exist (as defined by
+<code>translations.json</code>).
 </p>
 
 <p>
-For now, that ground truth data source is the latest copy of
-<code>translations.json</code> that <code>ResourceJsonLookup</code> obtains and keeps fresh to
-within each 24 hour window. (This works fine, but I may make this more
-sophisticated later).
-</p>
-
-<p>
-Toward that goal of one ground truth data source for <code>BIEL</code> and this
-system to coincide with this system provides to <code>BIEL</code> a couple of web
-app endpoints that it can request data from to populate its dropdown
-menu's in <code>BIEL</code>'s document request wizard. These endpoints were easy to
-make, so I am providing them.
-</p>
-
-<p>
-It would be a bad user experience for <code>BIEL</code> users to be able to request
-a resource which does not exist (but that is outside my scope per
-requirements). For now, if these endpoints are used, we at least make
-sure only languages that are provided in (the same version of)
-translations.json are available for selection. Maybe later we'll go
-further and actually provide endpoints that return the resources
-available per language also. If those endpoints were built, they could
-also be used by <code>BIEL</code> to populate resource type and book dropdown
-menus. Just putting it out there though we haven't talked about it.
-</p>
-
-<p>
-The system is being designed to gracefully handle non-existent
-requested resources per requirements, but naturally you'd want to
-avoid this if possible.
-</p>
-
-<p>
-These endpoints were quick to create and were used in part to test
-flask and jsonpath performance (you'll note that it is one place I
-don't use jsonpath since performance in this one case was
-unacceptable). So consider these endpoints a happy byproduct of
-development, but that could be expanded to provide a better overall
-user expeience if desired.
+I've provided a couple of web app endpoints from which <code>BIEL</code> can
+request data in order to populate its dropdown menu's in <code>BIEL</code>'s
+document request wizard.
 </p>
 </div>
-<div id="outline-container-org1ba3f14" class="outline-4">
-<h4 id="org1ba3f14"><span class="section-number-4">1.6.1</span> Example client call to get all language codes by themselves</h4>
+
+<div id="outline-container-orgafe0469" class="outline-4">
+<h4 id="orgafe0469"><span class="section-number-4">1.6.1</span> Example client call to get all language codes (sans language name)</h4>
 <div class="outline-text-4" id="text-1-6-1">
 <p>
 Example client call from <code>test_flask.py</code>:
@@ -754,8 +702,8 @@ print(res.json()) # Presumably, BIEL'll display it in a drop down menu or simila
 </div>
 </div>
 </div>
-<div id="outline-container-orgbc15672" class="outline-4">
-<h4 id="orgbc15672"><span class="section-number-4">1.6.2</span> Get all language code, language name pairs</h4>
+<div id="outline-container-orga666e13" class="outline-4">
+<h4 id="orga666e13"><span class="section-number-4">1.6.2</span> Get all language code, language name pairs</h4>
 <div class="outline-text-4" id="text-1-6-2">
 <p>
 Example client call from <code>test_flask.py</code>.
@@ -774,100 +722,12 @@ if res.ok:
 </div>
 </div>
 
-<div id="outline-container-org4041719" class="outline-3">
-<h3 id="org4041719"><span class="section-number-3">1.7</span> (Optional to read - just saving here) What is the smallest level of resource request granularity we want: book, chapter, or verse?</h3>
+<div id="outline-container-org28abef1" class="outline-3">
+<h3 id="org28abef1"><span class="section-number-3">1.7</span> Oddities - differences from the norm in resources I've found</h3>
 <div class="outline-text-3" id="text-1-7">
 <p>
-In the resource entries below, note that I've changed <code>resource_code</code> to
-<code>book_code</code> just because it might be a better name than <code>resource_code</code>.
-</p>
-
-<p>
-Perhaps book level granularity is sufficient, but just covering it
-here in case. More granular than book level would require a design
-that I can envision but would require interrogating the resource
-itself rather than just the <code>translations.json</code> API.
-</p>
-
-<p>
-So, the following rest of this headline is probably a diversion, but
-here it is just in case you want finer than book granularity.
-</p>
-
-<p>
-If chapter is the finest granularity of a resource request, the JSON could be:
-</p>
-<div class="org-src-container">
-<pre class="src src-js">{ "resources":
-  { "lang_code": "am",
-    "resource_type": "ulb",
-    "book_code": "gen",
-    "book_chapter": "1" }, // Get just chapter 1
-  { "lang_code": "lpx",
-    "resource_type": "tn",
-    "book_code": "exo",
-    "book_chapter": "" }, // Get the whole book
-  ...
-}
-</pre>
-</div>
-
-
-<p>
-If verse is the finest granularity of a resource request, the JSON could be:
-</p>
-<div class="org-src-container">
-<pre class="src src-js">{ "resources":
-  { "lang_code": "am",
-    "resource_type": "ulb",
-    "book_code": "gen",
-    "book_chapter": "1",
-    "verse_start": "1",
-    "verse_end": "3" }, // Get chapter 1, verse 1-3
-  { "lang_code": "am",
-    "resource_type": "ulb",
-    "book_code": "gen",
-    "book_chapter": "1",
-    "verse_ranget": "1-1" }, // Or, Get chapter 1, verse 1
-  { "lang_code": "am",
-    "resource_type": "ulb",
-    "book_code": "gen",
-    "book_chapter": "1",
-    "verse_ranget": "1-3" }, // Or, Get chapter 1, verse 1-3
-  { "lang_code": "am",
-    "resource_type": "ulb",
-    "book_code": "gen",
-    "book_chapter": "1",
-    "verse_ranget": "1-3,5" }, // Or, Get chapter 1, verse 1-3 and verse 5
-  { "lang_code": "lpx",
-    "resource_type": "tn",
-    "book_code": "exo",
-    "book_chapter": "2" }, // Get chapter 2
-  { "lang_code": "lpx",
-    "resource_type": "tn",
-    "book_code": "exo",
-    "book_chapter": "" }, // Get the whole book
-  ...
-}
-</pre>
-</div>
-
-<p>
-As said before in a slightly different context, ideally from a user
-experience perspective, <code>BIEL</code> would need to know what chapters or
-verses are available so as not to disappoint the user. Nevertheless,
-the system is being designed to gracefully handle such disappointments
-as I know this is a requirement.
-</p>
-</div>
-</div>
-
-<div id="outline-container-org41e43e2" class="outline-3">
-<h3 id="org41e43e2"><span class="section-number-3">1.8</span> Differences from the norm in resources I've found</h3>
-<div class="outline-text-3" id="text-1-8">
-<p>
-These are oddities that are not currently handled either by the
-original system or the current system.
+These are oddities that are not currently handled, either at all or
+totally, either by the original system or the current system.
 </p>
 
 <p>
@@ -891,7 +751,7 @@ Examples:
 <th scope="col" class="org-left">Language code</th>
 <th scope="col" class="org-left">Resource type</th>
 <th scope="col" class="org-left">Resource code</th>
-<th scope="col" class="org-left">Comments</th>
+<th scope="col" class="org-left">Oddity</th>
 </tr>
 </thead>
 <tbody>
@@ -910,19 +770,36 @@ Examples:
 </tr>
 
 <tr>
+<td class="org-left">erk-x-erakor</td>
+<td class="org-left">reg</td>
+<td class="org-left">any</td>
+<td class="org-left">manifest.json rather than manifest.txt or manifest.yaml.</td>
+</tr>
+
+<tr>
 <td class="org-left">&#xa0;</td>
 <td class="org-left">&#xa0;</td>
 <td class="org-left">&#xa0;</td>
-<td class="org-left">&#xa0;</td>
+<td class="org-left">manifest.json has different structure and keys.</td>
 </tr>
 </tbody>
 </table>
+</div>
+
+<div id="outline-container-org15bcb05" class="outline-4">
+<h4 id="org15bcb05"><span class="section-number-4">1.7.1</span> <span class="todo TODO">TODO</span> for Craig: a license for the <code>Interleaved_Resources_Generator</code> project</h4>
+<div class="outline-text-4" id="text-1-7-1">
+<p>
+I need a license emailed to me that I can check in to the repo. Or you
+can send me a link to the license and I'll get it there. Thanks!
+</p>
+</div>
 </div>
 </div>
 </div>
 </div>
 <div id="postamble" class="status">
-<p class="date">Created: 2020-10-20 Tue 12:46</p>
+<p class="date">Created: 2020-10-27 Tue 15:10</p>
 <p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
