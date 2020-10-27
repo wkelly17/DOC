@@ -59,15 +59,15 @@ def document_endpoint():
     # lookup_svc = ResourceJsonLookup()
 
     # resource_urls = []
-    for resource in payload["resources"]:
-        if (
-            resource["resource_code"] is not None
-            and not resource["resource_code"].strip()
-        ):
-            resource["resource_code"] = None
-        # app.logger.info("in document_endpoint, resource: {}".format(resource))
-        logger.info("resource: {}".format(resource))
-        # resource_urls.append(lookup_svc.lookup(resource))
+    # for resource in payload["resources"]:
+    #     if (
+    #         resource["resource_code"] is not None
+    #         and not resource["resource_code"].strip()
+    #     ):
+    #         resource["resource_code"] = None
+    #     # app.logger.info("in document_endpoint, resource: {}".format(resource))
+    #     logger.info("resource: {}".format(resource))
+    # resource_urls.append(lookup_svc.lookup(resource))
 
     # app.logger.info("resource_urls: {}".format(resource_urls))
     # logger.info("resource_urls: {}".format(resource_urls))
