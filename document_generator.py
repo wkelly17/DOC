@@ -186,7 +186,10 @@ class DocumentGenerator(object):
         )
 
     def run(self) -> None:
-        self._get_unfoldingword_icon()
+        # FIXME icon no longer exists where it used to. I've saved the
+        # icon to ./working/temp for now until we find a different
+        # location for the icon that is to be used.
+        # self._get_unfoldingword_icon()
 
         # Get the resources files
         for resource in self._resources:
