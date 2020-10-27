@@ -159,3 +159,32 @@ def get_document_html_footer() -> str:
     </body>
 </html>
 """
+
+
+def get_pandoc_command() -> str:
+    """ Return the pandoc command format string. """
+    return """pandoc \
+--verbose \
+--pdf-engine="xelatex" \
+--template={8} \
+--toc \
+--toc-depth=2 \
+-V documentclass="scrartcl" \
+-V classoption="oneside" \
+-V geometry='hmargin=2cm' \
+-V geometry='vmargin=3cm' \
+-V title="{0}" \
+-V subtitle="Translation Notes" \
+-V logo="{4}/icon-tn.png" \
+-V date="{1}" \
+-V revision_date="{6}" \
+-V version="{2}" \
+-V mainfont="Raleway" \
+-V sansfont="Raleway" \
+-V fontsize="13pt" \
+-V urlcolor="Bittersweet" \
+-V linkcolor="Bittersweet" \
+-H {7} \
+-o "{3}/{5}.pdf" \
+"{3}/{5}.html"
+"""

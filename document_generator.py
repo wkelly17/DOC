@@ -46,6 +46,7 @@ try:
         get_tex_template_location,
         get_document_html_header,
         get_document_html_footer,
+        get_pandoc_command,
     )
     from resource_utils import (
         resource_has_markdown_files,
@@ -74,6 +75,7 @@ except:
         get_tex_template_location,
         get_document_html_header,
         get_document_html_footer,
+        get_pandoc_command,
     )
     from .resource_utils import (
         resource_has_markdown_files,
@@ -243,43 +245,18 @@ class DocumentGenerator(object):
         html += get_document_html_footer()
         self.content = html
 
-    # FIXME This needs to be rewritten to generate PDF from HTML of
-    # all requested resources which could include any combination of
-    # USFM, translation notes, translation questions, translation
-    # words, translation academy notes, etc.. for any books and in any
-    # arbitrary order.
     def convert_html2pdf(self) -> None:
+        """ Generate PDF from HTML contained in self.content. """
         now = datetime.datetime.now()
         revision_date = "{}-{}-{}".format(now.year, now.month, now.day)
-        command = """pandoc \
---pdf-engine="xelatex" \
---template={8} \
---toc \
---toc-depth=2 \
--V documentclass="scrartcl" \
--V classoption="oneside" \
--V geometry='hmargin=2cm' \
--V geometry='vmargin=3cm' \
--V title="{0}" \
--V subtitle="Translation Notes" \
--V logo="{4}/icon-tn.png" \
--V date="{1}" \
--V revision_date="{6}" \
--V version="{2}" \
--V mainfont="Raleway" \
--V sansfont="Raleway" \
--V fontsize="13pt" \
--V urlcolor="Bittersweet" \
--V linkcolor="Bittersweet" \
--H {7} \
--o "{3}/{5}.pdf" \
-"{3}/{5}.html"
-""".format(
+        # FIXME This should probably be something else, but this will
+        # do for now.
+        title = "Resources: "
+        title += ",".join(set([r._resource_code for r in self._resources]))
+        command = get_pandoc_command().format(
             # First hack at a title. Used to be just self.book_title which
-            # doesn't make sense anymore. Here is a possible hack for a title
-            # (which most likely will not be used in the end)
-            # ",".join([for resource._book_title in self._resources]),
-            "Arbitrary title for now",
+            # doesn't make sense anymore.
+            title,
             # FIXME This should probably be today's date since not all
             # resources have a manifest file from which issued may be
             # initialized. And since we are dealing with multiple resources
@@ -315,6 +292,7 @@ class DocumentGenerator(object):
         subprocess.call(command, shell=True)
 
 
+# FIXME Old legacy code
 def read_csv_as_dicts(filename: str) -> List:
     """ Returns a list of dicts, each containing the contents of a row of
         the given csv file. The CSV file is assumed to have a header row with
@@ -327,6 +305,7 @@ def read_csv_as_dicts(filename: str) -> List:
     return rows
 
 
+# FIXME Old legacy code
 def index_tw_refs_by_verse(tw_refs: List) -> dict:
     """ Returns a dictionary of books -> chapters -> verses, where each
         verse is a list of rows for that verse. """
