@@ -191,7 +191,7 @@ class DocumentGenerator(object):
         # location for the icon that is to be used.
         # self._get_unfoldingword_icon()
 
-        # Get the resources files
+        # Get the resources files (do all the networking first)
         for resource in self._resources:
             resource.find_location()
             resource.get_files()
@@ -203,7 +203,6 @@ class DocumentGenerator(object):
 
         if not os.path.isfile(
             os.path.join(self.output_dir, "{}.pdf".format(self._document_request_key))
-            # os.path.join(self.output_dir, "{}.pdf".format(self.filename_base))
         ):
             self.assemble_content()
             logger.info("Generating PDF...")

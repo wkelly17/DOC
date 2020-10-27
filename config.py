@@ -161,6 +161,9 @@ def get_document_html_footer() -> str:
 """
 
 
+# FIXME There is some issue with the HTML to LaTeX generation or from
+# the LaTeX to PDF generation. It may be wise to tell pandoc to
+# generate LaTeX from HTML also so that we can debug the LaTeX.
 def get_pandoc_command() -> str:
     """ Return the pandoc command format string. """
     return """pandoc \
