@@ -161,12 +161,8 @@ def get_document_html_footer() -> str:
 """
 
 
-# FIXME There is some issue with the HTML to LaTeX generation or from
-# the LaTeX to PDF generation. It may be wise to tell pandoc to
-# generate LaTeX from HTML also so that we can debug the LaTeX.
-def get_pandoc_command() -> str:
-    """ Return the pandoc command format string. """
-    return """pandoc \
+# Generate PDF from HTML
+PANDOC_COMMAND = """pandoc \
 --verbose \
 --pdf-engine="xelatex" \
 --template={8} \
@@ -191,3 +187,37 @@ def get_pandoc_command() -> str:
 -o "{3}/{5}.pdf" \
 "{3}/{5}.html"
 """
+
+# Generate just LaTeX output so that we can debug LaTeX issues.
+PANDOC_COMMAND2 = """pandoc -f html -t latex \
+--verbose \
+--template={8} \
+--toc \
+--toc-depth=2 \
+-V documentclass="scrartcl" \
+-V classoption="oneside" \
+-V geometry='hmargin=2cm' \
+-V geometry='vmargin=3cm' \
+-V title="{0}" \
+-V subtitle="Translation Notes" \
+-V logo="{4}/icon-tn.png" \
+-V date="{1}" \
+-V revision_date="{6}" \
+-V version="{2}" \
+-V mainfont="Raleway" \
+-V sansfont="Raleway" \
+-V fontsize="13pt" \
+-V urlcolor="Bittersweet" \
+-V linkcolor="Bittersweet" \
+-H {7} \
+-o "{3}/{5}.latex" \
+"{3}/{5}.html"
+"""
+
+
+# FIXME There is some issue with the HTML to LaTeX generation or from
+# the LaTeX to PDF generation. It may be wise to tell pandoc to
+# generate LaTeX from HTML also so that we can debug the LaTeX.
+def get_pandoc_command() -> str:
+    """ Return the pandoc command format string. """
+    return PANDOC_COMMAND
