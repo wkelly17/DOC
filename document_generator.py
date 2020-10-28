@@ -251,8 +251,12 @@ class DocumentGenerator(object):
         """ Generate PDF from HTML contained in self.content. """
         now = datetime.datetime.now()
         revision_date = "{}-{}-{}".format(now.year, now.month, now.day)
+        # working_dir: str = self.working_dir if not os.environ.get("IN_CONTAINER") else "/working/temp"
+        # output_dir: str = self.output_dir if not os.environ.get("IN_CONTAINER") else "/output",
         logger.debug(
-            "working_dir: {}, output_dir: {}".format(self.working_dir, self.output_dir)
+            "self.working_dir: {}, self.output_dir: {}".format(
+                self.working_dir, self.output_dir
+            )
         )
         logger.debug("pdf to be written to: {}".format(self.output_dir))
         # FIXME This should probably be something else, but this will
@@ -280,6 +284,7 @@ class DocumentGenerator(object):
             # next commented out line.
             # resource._version if resource._version else ""
             "v0",
+            # Outside vs. inside Docker container
             self.output_dir,
             self.working_dir,
             # FIXME A document generation request is composed of theoretically

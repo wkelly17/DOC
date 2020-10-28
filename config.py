@@ -2,6 +2,13 @@ from typing import List
 import os
 
 
+# FIXME Proper setting of working_dir is currently being handled by
+# convert_html2pdf method of document_generator instance.
+# NOTE This should be using IRG_WORKING_DIR if it is set in the shell,
+# but this presupposes that the call to python -m test_flask on the
+# tools repo is being called on the same shell as Docker container is
+# being run in. But until now, I've been running tools in a fish shell
+# and Docker container in a zshell.
 def get_working_dir() -> str:
     """ The directory where the resources will be placed once
     acquired. IRG_WORKING_DIR is provided when running in a docker
@@ -13,7 +20,7 @@ def get_working_dir() -> str:
 
 def get_output_dir() -> str:
     """ The directory where the generated documents are placed. """
-    dir = os.environ.get("IRG_OUTPUT_DIR")
+    dir = os.environ.get("IRG_OUTPUT_DIR", "/working/temp")
     return dir
 
 
@@ -185,7 +192,7 @@ PANDOC_COMMAND = """pandoc \
 -V linkcolor="Bittersweet" \
 -H {7} \
 -o "{3}/{5}.pdf" \
-"{3}/{5}.html"
+"{4}/{5}.html"
 """
 
 # Generate just LaTeX output so that we can debug LaTeX issues.
