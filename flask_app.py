@@ -33,8 +33,8 @@ logger = logging.getLogger(__name__)
 # resource_code. Example: {'lang_code': 'ml', 'resource_type': 'ulb',
 # 'resource_code': 'tit'}. There can be multiple resources in one request to this API
 # endpoint. Example: {"resources": [{"lang_code": "ml", "resource_type": "ulb",
-# "resource_code": "tit"}, {"lang_code": "ml", "resource_type": "obs-tq",
-# "resource_code": ""}, {"lang_code": "mr", "resource_type": "udb",
+# "resource_code": "tit"}, {"lang_code": "en", "resource_type": "ulb-wa",
+# "resource_code": "gen"}, {"lang_code": "mr", "resource_type": "udb",
 # "resource_code": "mrk"}]}
 @app.route("/api/v1/document", methods=["POST"])
 def document_endpoint():
