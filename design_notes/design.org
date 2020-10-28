@@ -266,8 +266,7 @@ then
 pip install -r requirements.txt
 #+end_src
 
-*** Run demo outside docker container (faster)
-
+*** Run demo outside Docker container (faster)
 **** For =resource_lookup.py=:
 In pipenv or virtualenv shell:
 
@@ -303,7 +302,7 @@ python -m test_flask
 
 This will run HTTP web client tests that exercise the web service.
 
-*** For demo inside the docker container (slower):
+*** For demo inside the Docker container (slower):
 
 - Get the docker container source:
 
@@ -321,6 +320,8 @@ ln -s /path/to/tools .
 
 - Build the container:
 
+Special note: don't run the ./build.sh script in a =fish= shell as
+=fish= doesn't understand use of dollar sign to reference shell vars.
 #+begin_src shell
 ./build.sh # This will take a little while to build the container. When it completes building it will automatically start the web server front end.
 #+end_src
