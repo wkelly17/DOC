@@ -251,6 +251,10 @@ class DocumentGenerator(object):
         """ Generate PDF from HTML contained in self.content. """
         now = datetime.datetime.now()
         revision_date = "{}-{}-{}".format(now.year, now.month, now.day)
+        logger.debug(
+            "working_dir: {}, output_dir: {}".format(self.working_dir, self.output_dir)
+        )
+        logger.debug("pdf to be written to: {}".format(self.output_dir))
         # FIXME This should probably be something else, but this will
         # do for now.
         title = "Resources: "
