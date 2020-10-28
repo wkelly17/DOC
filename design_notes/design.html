@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2020-10-27 Tue 15:10 -->
+<!-- 2020-10-28 Wed 12:57 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>&lrm;</title>
@@ -221,38 +221,46 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#org64802d1">1. Design notes</a>
+<li><a href="#org2666a2f">1. Design notes</a>
 <ul>
-<li><a href="#org77b311f">1.1. JSON document generation request design for web client (BIEL)</a>
+<li><a href="#org841afb5">1.1. Requirements</a>
 <ul>
-<li><a href="#orgc62e102">1.1.1. Example request from <code>test_flask.py</code></a></li>
+<li><a href="#org60b980a">1.1.1. Requirement</a></li>
+<li><a href="#org226d11f">1.1.2. Requirement</a></li>
+<li><a href="#org0657c8a">1.1.3. Requirement</a></li>
+<li><a href="#orgf92fcc0">1.1.4. Requirement</a></li>
 </ul>
 </li>
-<li><a href="#org5ab3c4f">1.2. Interactions at a high level</a></li>
-<li><a href="#org17d5c04">1.3. What works currently</a></li>
-<li><a href="#orga062d36">1.4. Docker container</a></li>
-<li><a href="#org78dc401">1.5. How to run a demo for yourself</a>
+<li><a href="#org20bbf1d">1.2. JSON document generation request design for web client (BIEL)</a>
 <ul>
-<li><a href="#org00c0aba">1.5.1. Set up for demos</a></li>
-<li><a href="#org141e9b0">1.5.2. Run demo outside docker container (faster)</a>
-<ul>
-<li><a href="#orga68f7c7">1.5.2.1. For <code>resource_lookup.py</code>:</a></li>
-<li><a href="#org35b6f14">1.5.2.2. For <code>document_generator.py</code> (used to be named <code>export_md_to_pdf.py</code>):</a></li>
-<li><a href="#orgf6c3eed">1.5.2.3. For testing the web service front end do:</a></li>
+<li><a href="#org2a7f0e6">1.2.1. Example request from <code>test_flask.py</code></a></li>
 </ul>
 </li>
-<li><a href="#org30cede1">1.5.3. For demo inside the docker container (slower):</a></li>
+<li><a href="#org9990e0c">1.3. Interactions at a high level</a></li>
+<li><a href="#org4bb15b2">1.4. What works currently</a></li>
+<li><a href="#org30a0e1f">1.5. Docker container</a></li>
+<li><a href="#org59526fb">1.6. How to run a demo for yourself</a>
+<ul>
+<li><a href="#org89cffa5">1.6.1. Set up for demos</a></li>
+<li><a href="#org8066339">1.6.2. Run demo outside docker container (faster)</a>
+<ul>
+<li><a href="#org0211bfd">1.6.2.1. For <code>resource_lookup.py</code>:</a></li>
+<li><a href="#orgeb1c632">1.6.2.2. For <code>document_generator.py</code> (used to be named <code>export_md_to_pdf.py</code>):</a></li>
+<li><a href="#org51e28d4">1.6.2.3. For testing the web service front end do:</a></li>
 </ul>
 </li>
-<li><a href="#org6c8ca6f">1.6. (Bonus/optional material) Convenience web service endpoints for BIEL UI to call (if desired)</a>
-<ul>
-<li><a href="#orgafe0469">1.6.1. Example client call to get all language codes (sans language name)</a></li>
-<li><a href="#orga666e13">1.6.2. Get all language code, language name pairs</a></li>
+<li><a href="#orgc5fdd25">1.6.3. For demo inside the docker container (slower):</a></li>
 </ul>
 </li>
-<li><a href="#org28abef1">1.7. Oddities - differences from the norm in resources I've found</a>
+<li><a href="#org3141133">1.7. (Bonus/optional material) Convenience web service endpoints for BIEL UI to call (if desired)</a>
 <ul>
-<li><a href="#org15bcb05">1.7.1. <span class="todo TODO">TODO</span> for Craig: a license for the <code>Interleaved_Resources_Generator</code> project</a></li>
+<li><a href="#orgfa9871c">1.7.1. Example client call to get all language codes (sans language name)</a></li>
+<li><a href="#org8cb8eb7">1.7.2. Get all language code, language name pairs</a></li>
+</ul>
+</li>
+<li><a href="#org1854081">1.8. Oddities - differences from the norm in resources I've found</a>
+<ul>
+<li><a href="#orgc8523c4">1.8.1. <span class="todo TODO">TODO</span> for Craig: a license for the <code>Interleaved_Resources_Generator</code> project</a></li>
 </ul>
 </li>
 </ul>
@@ -260,30 +268,56 @@
 </ul>
 </div>
 </div>
-<div id="outline-container-org64802d1" class="outline-2">
-<h2 id="org64802d1"><span class="section-number-2">1</span> Design notes</h2>
+<div id="outline-container-org2666a2f" class="outline-2">
+<h2 id="org2666a2f"><span class="section-number-2">1</span> Design notes</h2>
 <div class="outline-text-2" id="text-1">
+</div>
+<div id="outline-container-org841afb5" class="outline-3">
+<h3 id="org841afb5"><span class="section-number-3">1.1</span> Requirements</h3>
+<div class="outline-text-3" id="text-1-1">
+</div>
+<div id="outline-container-org60b980a" class="outline-4">
+<h4 id="org60b980a"><span class="section-number-4">1.1.1</span> Requirement</h4>
+<div class="outline-text-4" id="text-1-1-1">
 <p>
-Let's start off with how <code>BIEL</code> sends a document generation request that
-specifies what (arbitrary) combination of resources a user would like
-included in the final PDF document.
+Allow creating a document out of any combination of resources from any
+supported (in translations.json) language in any order.
 </p>
 </div>
-<div id="outline-container-org77b311f" class="outline-3">
-<h3 id="org77b311f"><span class="section-number-3">1.1</span> JSON document generation request design for web client (BIEL)</h3>
-<div class="outline-text-3" id="text-1-1">
+</div>
+<div id="outline-container-org226d11f" class="outline-4">
+<h4 id="org226d11f"><span class="section-number-4">1.1.2</span> Requirement</h4>
+<div class="outline-text-4" id="text-1-1-2">
 <p>
-Requirement: Allow creating a document out of any combination of
-resources from any supported (in translations.json) language in any
-order.
+Produce PDF final document.
 </p>
-
+</div>
+</div>
+<div id="outline-container-org0657c8a" class="outline-4">
+<h4 id="org0657c8a"><span class="section-number-4">1.1.3</span> Requirement</h4>
+<div class="outline-text-4" id="text-1-1-3">
 <p>
-At present we are at the stage of matching the functionality of the
-prior system with respect to granularity of selection of bible
-material, i.e., book-level granularity.
+If generation of PDF document takes longer than X threshold of time,
+then return a message to the user giving link where document will
+eventually be found. E.g., display message to user in interface, say
+after a cache miss on document request, or, via email. Details to be
+determined.
 </p>
-
+</div>
+</div>
+<div id="outline-container-orgf92fcc0" class="outline-4">
+<h4 id="orgf92fcc0"><span class="section-number-4">1.1.4</span> Requirement</h4>
+<div class="outline-text-4" id="text-1-1-4">
+<p>
+Handle TN, TA, TW, TQ, ULB, UDB resource requests. Later perhaps also
+OBS, etc..
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-org20bbf1d" class="outline-3">
+<h3 id="org20bbf1d"><span class="section-number-3">1.2</span> JSON document generation request design for web client (BIEL)</h3>
+<div class="outline-text-3" id="text-1-2">
 <p>
 Currently the JSON looks like this, for example:
 </p>
@@ -307,9 +341,9 @@ having resources in the order the user requested the document's
 resources to be represented.
 </p>
 </div>
-<div id="outline-container-orgc62e102" class="outline-4">
-<h4 id="orgc62e102"><span class="section-number-4">1.1.1</span> Example request from <code>test_flask.py</code></h4>
-<div class="outline-text-4" id="text-1-1-1">
+<div id="outline-container-org2a7f0e6" class="outline-4">
+<h4 id="org2a7f0e6"><span class="section-number-4">1.2.1</span> Example request from <code>test_flask.py</code></h4>
+<div class="outline-text-4" id="text-1-2-1">
 <p>
 Example python client request using resources JSON dictionary to submit an
 API call to generate a document composed of resources. I imagine <code>BIEL</code>
@@ -346,11 +380,11 @@ if res.ok:
 </div>
 </div>
 
-<div id="outline-container-org5ab3c4f" class="outline-3">
-<h3 id="org5ab3c4f"><span class="section-number-3">1.2</span> Interactions at a high level</h3>
-<div class="outline-text-3" id="text-1-2">
+<div id="outline-container-org9990e0c" class="outline-3">
+<h3 id="org9990e0c"><span class="section-number-3">1.3</span> Interactions at a high level</h3>
+<div class="outline-text-3" id="text-1-3">
 
-<div id="orgd83feac" class="figure">
+<div id="orgdf4a5f1" class="figure">
 <p><img src="wa_design_sequence_diagram1.png" alt="wa_design_sequence_diagram1.png" />
 </p>
 </div>
@@ -364,7 +398,7 @@ long it takes to generate).
 </p>
 
 
-<div id="org697fb5a" class="figure">
+<div id="org844a0d3" class="figure">
 <p><img src="wa_design_sequence_diagram2.png" alt="wa_design_sequence_diagram2.png" />
 </p>
 </div>
@@ -407,7 +441,7 @@ generation processing time.
 </p>
 
 
-<div id="org380449c" class="figure">
+<div id="org61ce648" class="figure">
 <p><img src="wa_design_class_diagram_resources.png" alt="wa_design_class_diagram_resources.png" />
 </p>
 </div>
@@ -420,7 +454,7 @@ are not relevant to this design document.
 </p>
 
 
-<div id="orgdb15cc8" class="figure">
+<div id="org156e2f2" class="figure">
 <p><img src="wa_design_class_diagram.png" alt="wa_design_class_diagram.png" />
 </p>
 </div>
@@ -435,16 +469,16 @@ lookup tasks.
 </p>
 
 
-<div id="org6aae9cd" class="figure">
+<div id="org3d9ea76" class="figure">
 <p><img src="wa_design_class_diagram2.png" alt="wa_design_class_diagram2.png" />
 </p>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org17d5c04" class="outline-3">
-<h3 id="org17d5c04"><span class="section-number-3">1.3</span> What works currently</h3>
-<div class="outline-text-3" id="text-1-3">
+<div id="outline-container-org4bb15b2" class="outline-3">
+<h3 id="org4bb15b2"><span class="section-number-3">1.4</span> What works currently</h3>
+<div class="outline-text-3" id="text-1-4">
 <ol class="org-ol">
 <li>Making a request for document generation to the web service (flask) running.</li>
 <li>The resources that comprise the document generation request can handle a book-level of request granularity at present.</li>
@@ -459,9 +493,9 @@ Files involved: <code>flask_app.py</code>, <code>resource_lookup.py</code>,
 </p>
 </div>
 </div>
-<div id="outline-container-orga062d36" class="outline-3">
-<h3 id="orga062d36"><span class="section-number-3">1.4</span> Docker container</h3>
-<div class="outline-text-3" id="text-1-4">
+<div id="outline-container-org30a0e1f" class="outline-3">
+<h3 id="org30a0e1f"><span class="section-number-3">1.5</span> Docker container</h3>
+<div class="outline-text-3" id="text-1-5">
 <p>
 There isn't much to say about the docker container except that it
 provides the runtime environment, obviously. The only significant new
@@ -491,13 +525,13 @@ there.
 </p>
 </div>
 </div>
-<div id="outline-container-org78dc401" class="outline-3">
-<h3 id="org78dc401"><span class="section-number-3">1.5</span> How to run a demo for yourself</h3>
-<div class="outline-text-3" id="text-1-5">
+<div id="outline-container-org59526fb" class="outline-3">
+<h3 id="org59526fb"><span class="section-number-3">1.6</span> How to run a demo for yourself</h3>
+<div class="outline-text-3" id="text-1-6">
 </div>
-<div id="outline-container-org00c0aba" class="outline-4">
-<h4 id="org00c0aba"><span class="section-number-4">1.5.1</span> Set up for demos</h4>
-<div class="outline-text-4" id="text-1-5-1">
+<div id="outline-container-org89cffa5" class="outline-4">
+<h4 id="org89cffa5"><span class="section-number-4">1.6.1</span> Set up for demos</h4>
+<div class="outline-text-4" id="text-1-6-1">
 <ol class="org-ol">
 <li>Get the tools repo:</li>
 </ol>
@@ -544,13 +578,13 @@ pip install -r requirements.txt
 </div>
 </div>
 
-<div id="outline-container-org141e9b0" class="outline-4">
-<h4 id="org141e9b0"><span class="section-number-4">1.5.2</span> Run demo outside docker container (faster)</h4>
-<div class="outline-text-4" id="text-1-5-2">
+<div id="outline-container-org8066339" class="outline-4">
+<h4 id="org8066339"><span class="section-number-4">1.6.2</span> Run demo outside docker container (faster)</h4>
+<div class="outline-text-4" id="text-1-6-2">
 </div>
-<div id="outline-container-orga68f7c7" class="outline-5">
-<h5 id="orga68f7c7"><span class="section-number-5">1.5.2.1</span> For <code>resource_lookup.py</code>:</h5>
-<div class="outline-text-5" id="text-1-5-2-1">
+<div id="outline-container-org0211bfd" class="outline-5">
+<h5 id="org0211bfd"><span class="section-number-5">1.6.2.1</span> For <code>resource_lookup.py</code>:</h5>
+<div class="outline-text-5" id="text-1-6-2-1">
 <p>
 In pipenv or virtualenv shell:
 </p>
@@ -567,9 +601,9 @@ needed.
 </p>
 </div>
 </div>
-<div id="outline-container-org35b6f14" class="outline-5">
-<h5 id="org35b6f14"><span class="section-number-5">1.5.2.2</span> For <code>document_generator.py</code> (used to be named <code>export_md_to_pdf.py</code>):</h5>
-<div class="outline-text-5" id="text-1-5-2-2">
+<div id="outline-container-orgeb1c632" class="outline-5">
+<h5 id="orgeb1c632"><span class="section-number-5">1.6.2.2</span> For <code>document_generator.py</code> (used to be named <code>export_md_to_pdf.py</code>):</h5>
+<div class="outline-text-5" id="text-1-6-2-2">
 <div class="org-src-container">
 <pre class="src src-shell">python -m test_document_generator
 </pre>
@@ -582,9 +616,9 @@ document.
 </div>
 </div>
 
-<div id="outline-container-orgf6c3eed" class="outline-5">
-<h5 id="orgf6c3eed"><span class="section-number-5">1.5.2.3</span> For testing the web service front end do:</h5>
-<div class="outline-text-5" id="text-1-5-2-3">
+<div id="outline-container-org51e28d4" class="outline-5">
+<h5 id="org51e28d4"><span class="section-number-5">1.6.2.3</span> For testing the web service front end do:</h5>
+<div class="outline-text-5" id="text-1-6-2-3">
 <ol class="org-ol">
 <li>First, run the web server</li>
 </ol>
@@ -610,9 +644,9 @@ This will run HTTP web client tests that exercise the web service.
 </div>
 </div>
 
-<div id="outline-container-org30cede1" class="outline-4">
-<h4 id="org30cede1"><span class="section-number-4">1.5.3</span> For demo inside the docker container (slower):</h4>
-<div class="outline-text-4" id="text-1-5-3">
+<div id="outline-container-orgc5fdd25" class="outline-4">
+<h4 id="orgc5fdd25"><span class="section-number-4">1.6.3</span> For demo inside the docker container (slower):</h4>
+<div class="outline-text-4" id="text-1-6-3">
 <ul class="org-ul">
 <li>Get the docker container source:</li>
 </ul>
@@ -668,9 +702,9 @@ then repeat 3 again.
 </div>
 </div>
 
-<div id="outline-container-org6c8ca6f" class="outline-3">
-<h3 id="org6c8ca6f"><span class="section-number-3">1.6</span> (Bonus/optional material) Convenience web service endpoints for BIEL UI to call (if desired)</h3>
-<div class="outline-text-3" id="text-1-6">
+<div id="outline-container-org3141133" class="outline-3">
+<h3 id="org3141133"><span class="section-number-3">1.7</span> (Bonus/optional material) Convenience web service endpoints for BIEL UI to call (if desired)</h3>
+<div class="outline-text-3" id="text-1-7">
 <p>
 In the interest of good user experience, it will be important that
 <code>BIEL</code> only request resources that actually exist (as defined by
@@ -684,9 +718,9 @@ document request wizard.
 </p>
 </div>
 
-<div id="outline-container-orgafe0469" class="outline-4">
-<h4 id="orgafe0469"><span class="section-number-4">1.6.1</span> Example client call to get all language codes (sans language name)</h4>
-<div class="outline-text-4" id="text-1-6-1">
+<div id="outline-container-orgfa9871c" class="outline-4">
+<h4 id="orgfa9871c"><span class="section-number-4">1.7.1</span> Example client call to get all language codes (sans language name)</h4>
+<div class="outline-text-4" id="text-1-7-1">
 <p>
 Example client call from <code>test_flask.py</code>:
 </p>
@@ -702,9 +736,9 @@ print(res.json()) # Presumably, BIEL'll display it in a drop down menu or simila
 </div>
 </div>
 </div>
-<div id="outline-container-orga666e13" class="outline-4">
-<h4 id="orga666e13"><span class="section-number-4">1.6.2</span> Get all language code, language name pairs</h4>
-<div class="outline-text-4" id="text-1-6-2">
+<div id="outline-container-org8cb8eb7" class="outline-4">
+<h4 id="org8cb8eb7"><span class="section-number-4">1.7.2</span> Get all language code, language name pairs</h4>
+<div class="outline-text-4" id="text-1-7-2">
 <p>
 Example client call from <code>test_flask.py</code>.
 </p>
@@ -722,9 +756,9 @@ if res.ok:
 </div>
 </div>
 
-<div id="outline-container-org28abef1" class="outline-3">
-<h3 id="org28abef1"><span class="section-number-3">1.7</span> Oddities - differences from the norm in resources I've found</h3>
-<div class="outline-text-3" id="text-1-7">
+<div id="outline-container-org1854081" class="outline-3">
+<h3 id="org1854081"><span class="section-number-3">1.8</span> Oddities - differences from the norm in resources I've found</h3>
+<div class="outline-text-3" id="text-1-8">
 <p>
 These are oddities that are not currently handled, either at all or
 totally, either by the original system or the current system.
@@ -786,9 +820,9 @@ Examples:
 </table>
 </div>
 
-<div id="outline-container-org15bcb05" class="outline-4">
-<h4 id="org15bcb05"><span class="section-number-4">1.7.1</span> <span class="todo TODO">TODO</span> for Craig: a license for the <code>Interleaved_Resources_Generator</code> project</h4>
-<div class="outline-text-4" id="text-1-7-1">
+<div id="outline-container-orgc8523c4" class="outline-4">
+<h4 id="orgc8523c4"><span class="section-number-4">1.8.1</span> <span class="todo TODO">TODO</span> for Craig: a license for the <code>Interleaved_Resources_Generator</code> project</h4>
+<div class="outline-text-4" id="text-1-8-1">
 <p>
 I need a license emailed to me that I can check in to the repo. Or you
 can send me a link to the license and I'll get it there. Thanks!
@@ -799,7 +833,7 @@ can send me a link to the license and I'll get it there. Thanks!
 </div>
 </div>
 <div id="postamble" class="status">
-<p class="date">Created: 2020-10-27 Tue 15:10</p>
+<p class="date">Created: 2020-10-28 Wed 12:57</p>
 <p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
