@@ -300,6 +300,12 @@ class DocumentGenerator(object):
             get_tex_template_location(),
         )
         logger.debug(command)
+        logger.debug(
+            "os.listdir(self.working_dir): {}".format(os.listdir(self.working_dir))
+        )
+        logger.debug(
+            "os.listdir(self.output_dir): {}".format(os.listdir(self.output_dir))
+        )
         logger.debug("TEXMFOUTPUT: {}".format(os.environ.get("TEXMFOUTPUT")))
         subprocess.call(command, shell=True)
 
