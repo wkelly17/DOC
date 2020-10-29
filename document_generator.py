@@ -300,6 +300,7 @@ class DocumentGenerator(object):
             get_tex_template_location(),
         )
         logger.debug(command)
+        logger.debug("TEXMFOUTPUT: {}".format(os.environ.get("TEXMFOUTPUT")))
         subprocess.call(command, shell=True)
 
 
