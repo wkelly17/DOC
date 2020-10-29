@@ -283,7 +283,7 @@ class DocumentGenerator(object):
             # I am just going to use some meaningless literal instead of the
             # next commented out line.
             # resource._version if resource._version else ""
-            "v0",
+            "TBD",
             # Outside vs. inside Docker container
             self.output_dir,
             self.working_dir,
