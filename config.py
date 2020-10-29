@@ -20,7 +20,7 @@ def get_working_dir() -> str:
 
 def get_output_dir() -> str:
     """ The directory where the generated documents are placed. """
-    dir = os.environ.get("IRG_OUTPUT_DIR", "/working/temp")
+    dir = os.environ.get("IRG_OUTPUT_DIR", "./working/temp")
     return dir
 
 
