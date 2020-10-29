@@ -258,7 +258,7 @@ class DocumentGenerator(object):
                 self.working_dir, self.output_dir
             )
         )
-        logger.debug("pdf to be written to: {}".format(self.output_dir))
+        logger.debug("PDF to be written to: {}".format(self.output_dir))
         # FIXME This should probably be something else, but this will
         # do for now.
         title = "Resources: "
@@ -299,15 +299,24 @@ class DocumentGenerator(object):
             get_tex_format_location(),
             get_tex_template_location(),
         )
-        logger.debug(command)
+        logger.debug("pandoc command: {}".format(command))
+        # Next command replaces cp /working/tn-temp/*.pdf /output in
+        # old system
+        copy_command: str = "cp {}/{}.pdf {}".format(
+            self.output_dir, self._document_request_key, "/output"
+        )
+        logger.debug("Copy PDF command: {}".format(copy_command))
         logger.debug(
             "os.listdir(self.working_dir): {}".format(os.listdir(self.working_dir))
         )
         logger.debug(
             "os.listdir(self.output_dir): {}".format(os.listdir(self.output_dir))
         )
-        logger.debug("TEXMFOUTPUT: {}".format(os.environ.get("TEXMFOUTPUT")))
         subprocess.call(command, shell=True)
+        logger.debug("IN_CONTAINER: {}".format(os.environ.get("IN_CONTAINER")))
+        if os.environ.get("IN_CONTAINER"):
+            logger.info("About to cp PDF to /output")
+            subprocess.call(copy_command, shell=True)
 
 
 # FIXME Old legacy code
