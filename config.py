@@ -192,7 +192,7 @@ PANDOC_COMMAND = """pandoc \
 -V linkcolor="Bittersweet" \
 -H {7} \
 -o "{3}/{5}.pdf" \
-"{4}/{5}.html"
+"{3}/{5}.html"
 """
 
 # Generate just LaTeX output so that we can debug LaTeX issues.
