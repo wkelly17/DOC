@@ -2,6 +2,7 @@ from typing import Optional, Dict  # , List
 import codecs
 import json
 import os
+import pathlib
 import zipfile
 import sys
 import shutil
@@ -73,7 +74,7 @@ def make_dir(dir_name, linux_mode=0o755, error_if_not_writable=False):
             raise IOError("Directory {0} is not writable.".format(dir_name))
 
 
-def load_json_object(file_name: str) -> Optional[Dict]:
+def load_json_object(file_name: pathlib.Path) -> Optional[Dict]:
     """
     Deserialized JSON file <file_name> into a Python dict.
     :param str|unicode file_name: The name of the file to read
@@ -85,7 +86,7 @@ def load_json_object(file_name: str) -> Optional[Dict]:
     return json.loads(read_file(file_name))
 
 
-def load_yaml_object(file_name: str) -> Optional[Dict]:
+def load_yaml_object(file_name: pathlib.Path) -> Optional[Dict]:
     """
     Deserialized YAML file <file_name> into a Python dict.
     :param str|unicode file_name: The name of the file to read
