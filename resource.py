@@ -1030,115 +1030,108 @@ class TResource(Resource):
 
     def _convert_md2html(self) -> None:
         """ Convert a resource's Markdown to HTML. """
-        # path = "{}/{}_{}/{}.md".format(
-        #     self._resource_dir,
-        #     self._lang_code,
-        #     self._resource_type,
-        #     self._resource_filename,
-        # )
-        # logger.debug("About to read file: {}".format(path))
-        # html = markdown.markdown(read_file(path, "utf-8",))
         self._content = markdown.markdown(self._content)
-        # write_file(
-        #     os.path.join(self.output_dir, "{}.html".format(self._filename_base)), html
-        # )
 
     # protected
-    # def _replace_rc_links(self) -> None:
-    #     """ Given a resource's markdown text, replace links of the form [[rc://en/tw/help/bible/kt/word]] with links of the form [God's Word](#tw-kt-word). """
-    #     logger.debug("self._content: {}".format(self._content))
-    #     logger.debug("self._my_rcs: {}".format(self._my_rcs))
-    #     rep = dict(
-    #         (
-    #             re.escape("[[{0}]]".format(rc)),
-    #             "[{0}]({1})".format(
-    #                 self._resource_data[rc]["title"].strip(),
-    #                 self._resource_data[rc]["link"],
-    #             ),
-    #         )
-    #         for rc in self._my_rcs
-    #     )
-    #     logger.debug("rep: {}".format(rep))
-    #     pattern = re.compile("|".join(list(rep.keys())))
-    #     text = pattern.sub(lambda m: rep[re.escape(m.group(0))], self._content)
-
-    #     # Change ].(rc://...) rc links, e.g. [Click here](rc://en/tw/help/bible/kt/word) => [Click here](#tw-kt-word)
-    #     rep = dict(
-    #         (re.escape("]({0})".format(rc)), "]({0})".format(info["link"]))
-    #         for rc, info in self._resource_data.items()
-    #     )
-    #     pattern = re.compile("|".join(list(rep.keys())))
-    #     text = pattern.sub(lambda m: rep[re.escape(m.group(0))], text)
-
-    #     # Change rc://... rc links, e.g. rc://en/tw/help/bible/kt/word => [God's](#tw-kt-word)
-    #     rep = dict(
-    #         (re.escape(rc), "[{0}]({1})".format(info["title"], info["link"]))
-    #         for rc, info in self._resource_data.items()
-    #     )
-    #     pattern = re.compile("|".join(list(rep.keys())))
-    #     text = pattern.sub(lambda m: rep[re.escape(m.group(0))], text)
-
-    #     self._content = text
-
     # FIXME Bit of a legacy cluster. This used to be a function and
     # maybe still should be, but for now I've made it an instance
     # method.
-    # def _fix_links(self) -> None:
-    #     rep = {}
+    def _replace_rc_links(self) -> None:
+        """ Given a resource's markdown text, replace links of the form [[rc://en/tw/help/bible/kt/word]] with links of the form [God's Word](#tw-kt-word). """
+        logger.debug("self._content: {}".format(self._content))
+        logger.debug("self._my_rcs: {}".format(self._my_rcs))
+        rep = dict(
+            (
+                re.escape("[[{0}]]".format(rc)),
+                "[{0}]({1})".format(
+                    self._resource_data[rc]["title"].strip(),
+                    self._resource_data[rc]["link"],
+                ),
+            )
+            for rc in self._my_rcs
+        )
+        logger.debug("rep: {}".format(rep))
+        pattern = re.compile("|".join(list(rep.keys())))
+        text = pattern.sub(lambda m: rep[re.escape(m.group(0))], self._content)
 
-    #     def replace_tn_with_door43_link(match):
-    #         book = match.group(1)
-    #         chapter = match.group(2)
-    #         verse = match.group(3)
-    #         if book in BOOK_NUMBERS:
-    #             book_num = BOOK_NUMBERS[book]
-    #         else:
-    #             return None
-    #         if int(book_num) > 40:
-    #             anchor_book_num = str(int(book_num) - 1)
-    #         else:
-    #             anchor_book_num = book_num
-    #         url = "https://live.door43.org/u/Door43/en_ulb/c0bd11bad0/{}-{}.html#{}-ch-{}-v-{}".format(
-    #             book_num.zfill(2),
-    #             book.upper(),
-    #             anchor_book_num.zfill(3),
-    #             chapter.zfill(3),
-    #             verse.zfill(3),
-    #         )
-    #         return url
+        # Change ].(rc://...) rc links, e.g. [Click here](rc://en/tw/help/bible/kt/word) => [Click here](#tw-kt-word)
+        rep = dict(
+            (re.escape("]({0})".format(rc)), "]({0})".format(info["link"]))
+            for rc, info in self._resource_data.items()
+        )
+        pattern = re.compile("|".join(list(rep.keys())))
+        text = pattern.sub(lambda m: rep[re.escape(m.group(0))], text)
 
-    #     def replace_obs_with_door43_link(match):
-    #         url = "https://live.door43.org/u/Door43/en_obs/b9c4f076ff/{}.html".format(
-    #             match.group(1)
-    #         )
-    #         return url
+        # Change rc://... rc links, e.g. rc://en/tw/help/bible/kt/word => [God's](#tw-kt-word)
+        rep = dict(
+            (re.escape(rc), "[{0}]({1})".format(info["title"], info["link"]))
+            for rc, info in self._resource_data.items()
+        )
+        pattern = re.compile("|".join(list(rep.keys())))
+        text = pattern.sub(lambda m: rep[re.escape(m.group(0))], text)
 
-    #     # convert OBS links: rc://en/tn/help/obs/15/07 => https://live.door43.org/u/Door43/en_obs/b9c4f076ff/15.html
-    #     rep[r"rc://[^/]+/tn/help/obs/(\d+)/(\d+)"] = replace_obs_with_door43_link
+        self._content = text
 
-    #     # convert tN links (NT books use USFM numbering in HTML file name, but standard book numbering in the anchor):
-    #     # rc://en/tn/help/rev/15/07 => https://live.door43.org/u/Door43/en_ulb/c0bd11bad0/67-REV.html#066-ch-015-v-007
-    #     rep[
-    #         r"rc://[^/]+/tn/help/(?!obs)([^/]+)/(\d+)/(\d+)"
-    #     ] = replace_tn_with_door43_link
+    # protected
+    # FIXME Bit of a legacy cluster. This used to be a function and
+    # maybe still should be, but for now I've made it an instance
+    # method.
+    def _fix_links(self) -> None:
+        rep = {}
 
-    #     # convert RC links, e.g. rc://en/tn/help/1sa/16/02 => https://git.door43.org/Door43/en_tn/1sa/16/02.md
-    #     rep[
-    #         r"rc://([^/]+)/(?!tn)([^/]+)/([^/]+)/([^\s\)\]\n$]+)"
-    #     ] = r"https://git.door43.org/Door43/\1_\2/src/master/\4.md"
+        def replace_tn_with_door43_link(match):
+            book = match.group(1)
+            chapter = match.group(2)
+            verse = match.group(3)
+            if book in BOOK_NUMBERS:
+                book_num = BOOK_NUMBERS[book]
+            else:
+                return None
+            if int(book_num) > 40:
+                anchor_book_num = str(int(book_num) - 1)
+            else:
+                anchor_book_num = book_num
+            url = "https://live.door43.org/u/Door43/en_ulb/c0bd11bad0/{}-{}.html#{}-ch-{}-v-{}".format(
+                book_num.zfill(2),
+                book.upper(),
+                anchor_book_num.zfill(3),
+                chapter.zfill(3),
+                verse.zfill(3),
+            )
+            return url
 
-    #     # convert URLs to links if not already
-    #     rep[
-    #         r'([^"\(])((http|https|ftp)://[A-Za-z0-9\/\?&_\.:=#-]+[A-Za-z0-9\/\?&_:=#-])'
-    #     ] = r"\1[\2](\2)"
+        def replace_obs_with_door43_link(match):
+            url = "https://live.door43.org/u/Door43/en_obs/b9c4f076ff/{}.html".format(
+                match.group(1)
+            )
+            return url
 
-    #     # URLS wth just www at the start, no http
-    #     rep[
-    #         r'([^A-Za-z0-9"\(\/])(www\.[A-Za-z0-9\/\?&_\.:=#-]+[A-Za-z0-9\/\?&_:=#-])'
-    #     ] = r"\1[\2](http://\2.md)"
+        # convert OBS links: rc://en/tn/help/obs/15/07 => https://live.door43.org/u/Door43/en_obs/b9c4f076ff/15.html
+        rep[r"rc://[^/]+/tn/help/obs/(\d+)/(\d+)"] = replace_obs_with_door43_link
 
-    #     for pattern, repl in rep.items():
-    #         self._content = re.sub(pattern, repl, self._content, flags=re.IGNORECASE)
+        # convert tN links (NT books use USFM numbering in HTML file name, but standard book numbering in the anchor):
+        # rc://en/tn/help/rev/15/07 => https://live.door43.org/u/Door43/en_ulb/c0bd11bad0/67-REV.html#066-ch-015-v-007
+        rep[
+            r"rc://[^/]+/tn/help/(?!obs)([^/]+)/(\d+)/(\d+)"
+        ] = replace_tn_with_door43_link
+
+        # convert RC links, e.g. rc://en/tn/help/1sa/16/02 => https://git.door43.org/Door43/en_tn/1sa/16/02.md
+        rep[
+            r"rc://([^/]+)/(?!tn)([^/]+)/([^/]+)/([^\s\)\]\n$]+)"
+        ] = r"https://git.door43.org/Door43/\1_\2/src/master/\4.md"
+
+        # convert URLs to links if not already
+        rep[
+            r'([^"\(])((http|https|ftp)://[A-Za-z0-9\/\?&_\.:=#-]+[A-Za-z0-9\/\?&_:=#-])'
+        ] = r"\1[\2](\2)"
+
+        # URLS wth just www at the start, no http
+        rep[
+            r'([^A-Za-z0-9"\(\/])(www\.[A-Za-z0-9\/\?&_\.:=#-]+[A-Za-z0-9\/\?&_:=#-])'
+        ] = r"\1[\2](http://\2.md)"
+
+        for pattern, repl in rep.items():
+            self._content = re.sub(pattern, repl, self._content, flags=re.IGNORECASE)
 
     def initialize_properties(self) -> None:
         self._discover_layout()
@@ -1204,8 +1197,8 @@ class TNResource(TResource):
         logger.info("Processing Translation Notes Markdown...")
         self._get_tn_markdown()
         # FIXME
-        # self._replace_rc_links()
-        # self._fix_links()
+        self._replace_rc_links()
+        self._fix_links()
         logger.info("Converting MD to HTML...")
         self._convert_md2html()
         logger.debug("self._bad_links: {}".format(self._bad_links))
