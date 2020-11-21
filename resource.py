@@ -67,7 +67,6 @@ class Resource(abc.ABC):
         self._resource_code = (
             resource["resource_code"] if resource["resource_code"] else None
         )
-        self._urls: List[str] = None
         self._resource_url: Optional[str] = None
         self._resource_dir: str = os.path.join(
             self._working_dir, "{}_{}".format(self._lang_code, self._resource_type)
@@ -101,19 +100,11 @@ class Resource(abc.ABC):
         self._rc_references: Dict = {}
         self._resource_jsonpath: Optional[str] = None
 
-    def __repr__(self) -> Dict:
-        return {
-            "working_dir": self._working_dir,
-            "lang_code": self._lang_code,
-            "resource_type": self._resource_type,
-            "resource_code": self._resource_code,
-            "resource_url": self._resource_url,
-            "resource_dir": self._resource_dir,
-            "resource_filename": self._resource_filename,
-            "resource_file_format": self._resource_file_format,
-            "resource_filepath": self._resource_filepath,
-            "bad_links": self._bad_links,
-        }
+    def __str__(self) -> Dict:
+        # return vars(self)
+        return "Resource(lang_code: {}, resource_type: {}, resource_code: {})".format(
+            self._lang_code, self._resource_type, self._resource_code
+        )
 
     # def __str__(self) -> None:
     #     return (
@@ -145,17 +136,21 @@ class Resource(abc.ABC):
     # public
     def find_location(self) -> None:
         """ Find the URL where the resource's assets are located. """
-        self._urls = self._lookup_svc.lookup(self)
-        logger.debug("urls: {}".format(self._urls))
-        if self._urls and len(self._urls) > 0:
-            self._resource_url = self._urls[0]
-            logger.debug("self._resource_url: {}".format(self._resource_url))
+        self._resource_url = self._lookup_svc.lookup(self)
+        logger.debug("self._resource_url: {}".format(self._resource_url))
+
+    # public
+    def is_found(self) -> bool:
+        "Return true if resource's URL location was found."
+        return self._resource_url is not None
 
     # public
     def get_files(self) -> None:
         """ Using the resource's location"""
         self._prepare_resource_directory()
-        self._initialize_resource_file_format()
+        # NOTE The initialization of resource file format is done in
+        # resource_lookup module now in lookup method.
+        self._initialize_resource_dir_for_git_repos()
         self._acquire_resource()
 
     # protected
@@ -174,37 +169,13 @@ class Resource(abc.ABC):
                     "Failed to create directory {}".format(self._resource_dir)
                 )
 
-    # protected
-    def _initialize_resource_file_format(self) -> None:
-        """ Determine the type of file being acquired. If a type is
-        not apparent then update resource as pointing to a git repo. """
-
-        filename: Optional[str] = self._resource_url.rpartition(os.path.sep)[2]
-        logger.debug("filename: {}".format(filename))
-        if filename:
-            # self._resource.update({"resource_filename": pathlib.Path(filename).stem})
-            self._resource_filename = pathlib.Path(filename).stem
-            logger.debug("self._resource_filename: {}".format(self._resource_filename))
-            suffix: Optional[str] = pathlib.Path(filename).suffix
-            if suffix:
-                # self._resource.update(
-                #     {"resource_file_format": suffix.lower().split(".")[1]}
-                # )
-                self._resource_file_format = suffix.lower().split(".")[1]
-            else:
-                # resource.update({"resource_file_format": "git"})
-                self._resource_file_format = "git"
-        else:
-            # resource.update({"resource_file_format": "git"})
-            self._resource_file_format = "git"
+    def _initialize_resource_dir_for_git_repos(self) -> None:
+        """ Git repos have a difference _resource_dir location and so
+        must be handled differently. """
+        if self._is_git():
+            filename: str = self._resource_url.rpartition(os.path.sep)[2]
             # Git repo has an extra layer of depth directory
-            # resource.update(
-            #     {"resource_dir": os.path.join(self._resource["resource_dir"], filename)}
-            # )
             self._resource_dir = os.path.join(self._resource_dir, filename)
-        logger.debug(
-            "self._resource_file_format: {}".format(self._resource_file_format)
-        )
 
     # protected
     def _acquire_resource(self) -> None:
@@ -226,7 +197,11 @@ class Resource(abc.ABC):
         self._resource_filepath = os.path.join(
             self._resource_dir, self._resource_url.rpartition(os.path.sep)[2]
         )
-        logger.debug("Using file location: {}".format(self._resource_filepath))
+        logger.debug(
+            "Using file location, _resource_filepath: {}".format(
+                self._resource_filepath
+            )
+        )
 
         if self._is_git():  # Is a git repo, so clone it.
             try:
@@ -240,7 +215,6 @@ class Resource(abc.ABC):
                 subprocess.call(command, shell=True)
                 logger.debug("git clone succeeded.")
                 # Git repos get stored on directory deeper
-                # self._resource.update({"resource_dir": filepath})
                 self._resource_dir = self._resource_filepath
             except:
                 logger.debug("os.getcwd(): {}".format(os.getcwd()))
@@ -270,14 +244,17 @@ class Resource(abc.ABC):
 
     # protected
     def _is_git(self) -> bool:
+        """ Return true if _resource_file_format is equal to 'git'. """
         return self._resource_file_format == "git"
 
     # protected
     def _is_zip(self) -> bool:
+        """ Return true if _resource_file_format is equal to 'zip'. """
         return self._resource_file_format == "zip"
 
     # protected
     def _is_usfm(self) -> bool:
+        """ Return true if _resource_file_format is equal to 'usfm'. """
         return self._resource_file_format == "usfm"
 
     # protected
@@ -323,13 +300,13 @@ class Resource(abc.ABC):
         logger.debug("self._manifest_file_dir: {}".format(self._manifest_file_dir))
 
         if self._manifest_file_path is not None:
-            if self._manifest_file_path.suffix == "yaml":
+            if self._manifest_file_path.suffix == ".yaml":
                 self._manifest = load_yaml_object(self._manifest_file_path)
                 self._manifest_type = "yaml"
-            elif self._manifest_file_path.suffix == "txt":
+            elif self._manifest_file_path.suffix == ".txt":
                 self._manifest = load_yaml_object(self._manifest_file_path)
                 self._manifest_type = "txt"
-            elif self._manifest_file_path.suffix == "json":
+            elif self._manifest_file_path.suffix == ".json":
                 self._manifest = load_json_object(self._manifest_file_path)
                 self._manifest_type = "json"
         else:
@@ -360,6 +337,9 @@ class Resource(abc.ABC):
             ):
                 self._version = self._manifest["dublin_core"]["version"]
             self._issued = self._manifest["dublin_core"]["issued"]
+            logger.debug(
+                "_version: {}, _issued: {}".format(self._version, self._issued)
+            )
 
     @abc.abstractmethod
     def get_content(self) -> None:
@@ -630,19 +610,19 @@ class USFMResource(Resource):
     # FIXME This is probably too tricky for others to read and it
     # doesn't type check with mypy. If I rewrite this then I'll have
     # to add __repr__ and __str__ methods to other subclasses too.
-    def __repr__(self) -> Dict:
-        return (
-            super(USFMResource, self)
-            .__repr__()
-            .update({"usfm_chunks": self._usfm_chunks})
-        )
+    # def __repr__(self) -> Dict:
+    #     return (
+    #         super(USFMResource, self)
+    #         .__repr__()
+    #         .update({"usfm_chunks": self._usfm_chunks})
+    #     )
 
-    def __str__(self) -> str:
-        s = "USFMResource" + "("
-        for k, v in self.__repr__().items():
-            s += k + "=" + v
-        s += ")"
-        return s
+    # def __str__(self) -> str:
+    #     s = "USFMResource" + "("
+    #     for k, v in self.__repr__().items():
+    #         s += k + "=" + v
+    #     s += ")"
+    #     return s
 
     # NOTE Maybe we'll do inversion of control by passing in a
     # ResourceJsonLookup instance and call its lookup method passing
@@ -670,7 +650,10 @@ class USFMResource(Resource):
         # formats - they each have different structure and keys.
         # elif not self._is_git() and self._is_txt():
 
-        self._initialize_filename_base()
+        # FIXME This may still be needed for non manifest.yaml cases,
+        # but for manifest.yaml case it is initialized elsewhere.
+        # NOTE Without this, things blow up on line 973.
+        # self._initialize_filename_base()
 
     def _discover_layout(self):
         """ Explore the resource's downloaded files to initialize file
@@ -683,6 +666,8 @@ class USFMResource(Resource):
         # USFM files sometimes have txt suffix
         txt_content_files = list(self._p.glob("**/*.txt"))
         # Find the manifest file, if any
+
+        # logger.debug("usfm_content_files: {}".format(usfm_content_files))
 
         if len(usfm_content_files) > 0:  # This resource does have USFM files
             # Only use the content files that match the resource_code
@@ -743,7 +728,6 @@ class USFMResource(Resource):
         assert (
             self._is_yaml()
         ), "Calling _initialize_book_properties_from_manifest_yaml requires a manifest.yaml"
-        logger.info("is yaml")
         projects: List[Dict[Any, Any]] = self._get_book_projects_from_yaml()
         logger.debug("book projects: {}".format(projects))
         for p in projects:
@@ -913,10 +897,16 @@ class USFMResource(Resource):
         filename = "{}_{}_{}".format(
             self._lang_code, self._resource_type, self._resource_filename,
         )
+        logger.debug(
+            "About to suck up files from {} and output the result to {}".format(
+                self._resource_dir, self._output_dir
+            )
+        )
         # Create the USFM to HTML and store in file.
-        UsfmTransform.buildSingleHtml(
+        UsfmTransform.buildSingleHtmlFromFiles(
             # UsfmTransform.buildMarkdown(
-            self._resource_dir,
+            # self._resource_dir,
+            self._content_files,
             self._output_dir,
             filename,
         )
@@ -933,6 +923,10 @@ class USFMResource(Resource):
     def _get_usfm_chunks(self) -> None:
         book_chunks: dict = {}
 
+        # logger.debug(
+        #     "is_yaml: {}, is_json: {}".format(self._is_yaml(), self._is_json())
+        # )
+
         # FIXME Not sure I ever needed this conditional
         if self._is_yaml():  # Layout of resource having manifest.yaml
             logger.debug(
@@ -940,10 +934,15 @@ class USFMResource(Resource):
                     "{}/{}.usfm".format(self._resource_dir, self._resource_filename)
                 )
             )
+            # FIXME Consider: self._content_files gives the correct path instead
+            # of this. Whether or not it is wise to use
+            # self._content_files instead of the next line is yet to
+            # be analyzed.
             usfm = read_file(
-                os.path.join(
-                    "{}/{}.usfm".format(self._resource_dir, self._resource_filename)
-                ),
+                self._content_files[0],
+                # os.path.join(
+                #     "{}/{}.usfm".format(self._resource_dir, self._resource_filename)
+                # ),
                 "utf-8",
             )
         elif self._is_json():  # Layout of resource having manifest.json
@@ -1176,9 +1175,7 @@ class TResource(Resource):
 
         logger.debug(
             "self._content_files for {}: {}".format(
-                # .parents gives parent path components
-                self._resource_code,
-                self._content_files,
+                self._resource_code, self._content_files,
             )
         )
 
@@ -1214,7 +1211,6 @@ class TNResource(TResource):
         logger.debug("self._bad_links: {}".format(self._bad_links))
 
     # protected
-    # def _get_tn_markdown(self) -> str:
     def _get_tn_markdown(self) -> None:
         book_dir: str = self._get_book_dir()
         logger.debug("book_dir: {}".format(book_dir))
@@ -1238,8 +1234,9 @@ class TNResource(TResource):
             # FIXME lang_code ml, for instance, doesn't lead with a digit, but
             # with ml_tn_*, e.g., ml_tn_57-TIT.tsv
             chapter = chapter.lstrip("0")
+            # logger.debug("chapter: {}".format(chapter))
             if os.path.isdir(chapter_dir) and re.match(r"^\d+$", chapter):
-                logger.debug("chapter_dir, {}, exists".format(chapter_dir))
+                # logger.debug("chapter_dir, {}, exists".format(chapter_dir))
                 chapter_has_intro, tn_md_temp = self._initialize_tn_chapter_intro(
                     chapter_dir, chapter
                 )
@@ -1301,9 +1298,12 @@ class TNResource(TResource):
                     # conditional that checks if UDB exists.
                     # NOTE The idea of this function assumes that UDB
                     # exists every time.
-                    md += self._initialize_tn_udb(
-                        chapter, title, first_verse, last_verse
-                    )
+                    # NOTE For now commenting this out to see how far
+                    # we get without it.
+
+                    # md += self._initialize_tn_udb(
+                    #     chapter, title, first_verse, last_verse
+                    # )
 
                     tn_md += md
 
@@ -1311,8 +1311,13 @@ class TNResource(TResource):
                         book_has_intro, chapter_has_intro, chapter
                     )
                     tn_md += links + "\n\n"
+            else:
+                logger.info("Next log call is in else clause")
+                logger.debug(
+                    "chapter_dir: {}, chapter: {}".format(chapter_dir, chapter)
+                )
 
-        logger.debug("tn_md is {}".format(tn_md))
+        # logger.debug("tn_md is {}".format(tn_md))
         self._content = tn_md
         # return tn_md
 
@@ -1523,7 +1528,6 @@ class TNResource(TResource):
     def _initialize_tn_udb(
         self, chapter: str, title: str, first_verse: str, last_verse: str
     ) -> str:
-        logger.info("here we are")
         # TODO Handle when there is no USFM requested.
         # If we're inside a UDB bridge, roll back to the beginning of it
         udb_first_verse = first_verse

@@ -135,6 +135,10 @@ class DocumentGenerator(object):
         self.output_dir = output_dir
         # The Markdown and later HTML for the document which is composed of the Markdown and later HTML for each resource.
         self.content: str = ""
+        # Store resource requests that were requested, but do not
+        # exist.
+        self.unfound_resources: List[Any] = []
+        self.found_resources: List[Any] = []
         # NOTE The lookup service could be (re)-implemented as a
         # singleton (or Global Object at module level for
         # Pythonicness) if desired. For now, just passing it to each
@@ -194,10 +198,20 @@ class DocumentGenerator(object):
         # Get the resources files (do all the networking first)
         for resource in self._resources:
             resource.find_location()
-            resource.get_files()
+            if resource.is_found():
+                # Keep a list of resources that were found, we'll use
+                # it soon.
+                self.found_resources.append(resource)
+                resource.get_files()
+            else:
+                logger.info("{} was not found".format(resource))
+                # Keep a list of unfound resources so that we can use
+                # it for reporting.
+                self.unfound_resources.append(resource)
 
-        # Initialize the resources and generate their content
-        for resource in self._resources:
+        # Initialize the resources from their found assets and
+        # generate their content.
+        for resource in self.found_resources:
             resource.initialize_properties()
             resource.get_content()
 
@@ -207,6 +221,14 @@ class DocumentGenerator(object):
             self.assemble_content()
             logger.info("Generating PDF...")
             self.convert_html2pdf()
+            # TODO Return json message containing any resources that
+            # we failed to find so that the front end can let the user
+            # know.
+            logger.debug(
+                "Unfound resource requests: {}".format(
+                    "; ".join(str(r) for r in self.unfound_resources)
+                )
+            )
 
     def _get_unfoldingword_icon(self) -> None:
         """ Get Unfolding Word's icon for display in generated PDF. """
@@ -224,7 +246,7 @@ class DocumentGenerator(object):
         Precondition: each resource has already generated HTML of its
         body content (sans enclosing HTML and body elements) and
         stored it in its _content instance variable. """
-        for resource in self._resources:
+        for resource in self.found_resources:
             self.content += "\n\n{}".format(resource._content)
         self.enclose_html_content()
         logger.debug(
@@ -305,7 +327,6 @@ class DocumentGenerator(object):
         copy_command: str = "cp {}/{}.pdf {}".format(
             self.output_dir, self._document_request_key, "/output"
         )
-        logger.debug("Copy PDF command: {}".format(copy_command))
         logger.debug(
             "os.listdir(self.working_dir): {}".format(os.listdir(self.working_dir))
         )
@@ -316,6 +337,7 @@ class DocumentGenerator(object):
         logger.debug("IN_CONTAINER: {}".format(os.environ.get("IN_CONTAINER")))
         if os.environ.get("IN_CONTAINER"):
             logger.info("About to cp PDF to /output")
+            logger.debug("Copy PDF command: {}".format(copy_command))
             subprocess.call(copy_command, shell=True)
 
 

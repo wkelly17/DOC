@@ -221,10 +221,22 @@ PANDOC_COMMAND2 = """pandoc -f html -t latex \
 "{3}/{5}.html"
 """
 
-
 # FIXME There is some issue with the HTML to LaTeX generation or from
 # the LaTeX to PDF generation. It may be wise to tell pandoc to
 # generate LaTeX from HTML also so that we can debug the LaTeX.
 def get_pandoc_command() -> str:
     """ Return the pandoc command format string. """
-    return PANDOC_COMMAND
+    return PANDOC_COMMAND2
+
+
+def get_english_repos_dict() -> dict:
+    """ This is a hack to compensate for translations.json which only
+    provides URLs for PDF assets in the English language. We need USFM
+    and Markdown. """
+    return {
+        "ulb-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_ulb",
+        "udb-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_udb",
+        "tn-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_tn",
+        "tw-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_tw",
+        "tq-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_tq",
+    }
