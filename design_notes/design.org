@@ -385,10 +385,9 @@ Examples:
 |               |               |               | notes are not in markdown they are tsv files.               |
 | erk-x-erakor  | reg           | any           | manifest.json rather than manifest.txt or manifest.yaml.    |
 |               |               |               | manifest.json has different structure and keys.             |
+| en            | tn-wa         | any           | translations.json only lists links to PDFs                  |
 
-*** TODO for Craig: a license for the =Interleaved_Resources_Generator= project
-I need a license emailed to me that I can check in to the repo. Or you
-can send me a link to the license and I'll get it there. Thanks!
+
 # ** (Optional to read) Some rough ideas about how to request smaller granularity than book
 # If chapter is the finest granularity of a resource request, the JSON
 # could be:
@@ -447,3 +446,20 @@ can send me a link to the license and I'll get it there. Thanks!
 # know what chapters or verses are available so as not to disappoint the
 # user. Nevertheless, the system is being designed to gracefully handle
 # such disappointments.
+
+** Handling different manifests
+Lang,
+
+In our previous meeting, I mentioned how different repos and projects
+had different manifests, and that they have evolved since the
+beginning of the project.
+
+Here is an example of some code that is version-aware and migrates
+older versions of manifests to the most recent one. I hope it may be
+of some use to you, even if only to highlight what some of the
+differences between the versions are:
+
+https://github.com/Bible-Translation-Tools/BTT-Writer-Desktop/blob/master/src/js/migrator.js
+
+
+Craig Oliver
