@@ -904,7 +904,6 @@ class USFMResource(Resource):
         )
         # Create the USFM to HTML and store in file.
         UsfmTransform.buildSingleHtmlFromFiles(
-            # UsfmTransform.buildMarkdown(
             # self._resource_dir,
             self._content_files,
             self._output_dir,
