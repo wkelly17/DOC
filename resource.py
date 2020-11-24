@@ -745,11 +745,11 @@ class USFMResource(Resource):
             )
             # FIXME Is it necessary to reset _rc_references since
             # it is a per resource instance variable now?
-            self._rc_references = {}
+            # self._rc_references = {}
             # resource.update({"my_rcs": []})
             # FIXME Is it necessary to reset _my_rcs since
             # it is a per resource instance variable now?
-            self._my_rcs = []
+            # self._my_rcs = []
             logger.debug(
                 "Creating {} for {} ({}-{})...".format(
                     self._resource_type,
