@@ -69,7 +69,11 @@ def main():
         # {"lang_code": "mr", "resource_type": "udb", "resource_code": "mrk"},
     ]
 
-    document_generator = DocumentGenerator(payload["resources"])
+    payload["assembly_strategy"] = "book"  # verse, chapter, book
+
+    document_generator = DocumentGenerator(
+        payload["assembly_strategy"], payload["resources"]
+    )
     document_generator.run()
 
 

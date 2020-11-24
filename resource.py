@@ -1929,7 +1929,6 @@ class TAResource(TResource):
 # nice to have special subclasses that use the resource_code to know
 # how to retrieve a value differently based on its value. I think,
 # however, that this will not be needed.
-# def ResourceFactory(resource_type: str, resource_code: Optional[str]) -> Resource:
 def ResourceFactory(
     working_dir: str, output_dir: str, lookup_svc: ResourceJsonLookup, resource: Dict
 ) -> Resource:

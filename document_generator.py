@@ -33,6 +33,12 @@ from usfm_tools.transform import UsfmTransform  # type: ignore
 
 # Handle running in container or as standalone script
 try:
+    from document_assembler import (
+        AssemblyStrategy,
+        VerseAssemblyStrategy,
+        ChapterAssemblyStrategy,
+        BookAssemblyStrategy,
+    )
     from file_utils import write_file, read_file, unzip, load_yaml_object, load_json_object  # type: ignore
     from bible_books import BOOK_NUMBERS, BOOK_NAMES  # type: ignore
     from resource_lookup import ResourceJsonLookup
@@ -62,6 +68,12 @@ try:
         ResourceFactory,
     )
 except:
+    from .document_assembler import (
+        AssemblyStrategy,
+        VerseAssemblyStrategy,
+        ChapterAssemblyStrategy,
+        BookAssemblyStrategy,
+    )
     from .file_utils import write_file, read_file, unzip, load_yaml_object, load_json_object  # type: ignore
     from .bible_books import BOOK_NUMBERS, BOOK_NAMES  # type: ignore
     from .resource_lookup import ResourceJsonLookup
@@ -122,15 +134,20 @@ logger = logging.getLogger(__name__)
 class DocumentGenerator(object):
     def __init__(
         self,
+        assembly_strategy: str,
         resources: Dict,
         working_dir: str = get_working_dir(),
         output_dir: str = get_output_dir(),
     ) -> None:
         """
+        :param assembly_strategy:
         :param resources:
         :param working_dir:
         :param output_dir:
         """
+        # Get the concrete Strategy pattern subclass based on the
+        # assembly_strategy key passed in from BIEL's UI
+        self.assembly_strategy = AssemblyStrategyFactory(assembly_strategy)
         self.working_dir = working_dir
         self.output_dir = output_dir
         # The Markdown and later HTML for the document which is composed of the Markdown and later HTML for each resource.
@@ -246,8 +263,7 @@ class DocumentGenerator(object):
         Precondition: each resource has already generated HTML of its
         body content (sans enclosing HTML and body elements) and
         stored it in its _content instance variable. """
-        for resource in self.found_resources:
-            self.content += "\n\n{}".format(resource._content)
+        self.assembly_strategy.assemble_content(self)
         self.enclose_html_content()
         logger.debug(
             "About to write HTML to {}".format(
@@ -384,3 +400,13 @@ def index_tw_refs_by_verse(tw_refs: List) -> dict:
 
         tw_refs_by_verse[book][chapter][verse].append(tw_ref)
     return tw_refs_by_verse
+
+
+def AssemblyStrategyFactory(assembly_strategy: str) -> AssemblyStrategy:
+    """ Strategy pattern. """
+    strategies = {
+        "verse": VerseAssemblyStrategy,
+        "chapter": ChapterAssemblyStrategy,
+        "book": BookAssemblyStrategy,
+    }
+    return strategies[assembly_strategy]()

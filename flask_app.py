@@ -78,7 +78,9 @@ def document_endpoint():
     # indirection. That layer of indirection will come in handy for
     # testing and provide more flexibility to API changes.
     # Hand off resource object to domain layer
-    document_generator = DocumentGenerator(payload["resources"])
+    document_generator = DocumentGenerator(
+        payload["assembly_strategy"], payload["resources"]
+    )
     document_generator.run()  # eventually this will return path to finished PDF
 
     # return jsonify({"resource_urls": resource_urls}), 200
