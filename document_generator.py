@@ -191,16 +191,21 @@ class DocumentGenerator(object):
             self._resources.append(
                 ResourceFactory(self.working_dir, self.output_dir, lookup_svc, resource)
             )
+
             # NOTE Alternatively, could create a (md5?) hash of th
             # concatenation of lang_code, resource_type,
             # resource_code.
-            self._document_request_key += "-".join(
-                [
-                    resource["lang_code"],
-                    resource["resource_type"],
-                    resource["resource_code"],
-                ]
+            self._document_request_key += (
+                "-".join(
+                    [
+                        resource["lang_code"],
+                        resource["resource_type"],
+                        resource["resource_code"],
+                    ]
+                )
+                + "_"
             )
+        self._document_request_key = self._document_request_key[:-1]
 
         logger.debug(
             "self._document_request_key: {}".format(self._document_request_key)
