@@ -172,7 +172,7 @@ class DocumentGenerator(object):
         if not self.output_dir:
             self.output_dir = self.working_dir
 
-        logger.debug("Working dir is {}".format(self.working_dir))
+        # logger.debug("Working dir is {}".format(self.working_dir))
 
         # Uniquely identifies a document request that has this order
         # of resource requests where a resource request is identified
