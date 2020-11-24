@@ -729,7 +729,7 @@ class USFMResource(Resource):
             self._is_yaml()
         ), "Calling _initialize_book_properties_from_manifest_yaml requires a manifest.yaml"
         projects: List[Dict[Any, Any]] = self._get_book_projects_from_yaml()
-        logger.debug("book projects: {}".format(projects))
+        # logger.debug("book projects: {}".format(projects))
         for p in projects:
             project: Dict[Any, Any] = p
             self._book_id = p["identifier"]
@@ -1037,7 +1037,7 @@ class TResource(Resource):
     # method.
     def _replace_rc_links(self) -> None:
         """ Given a resource's markdown text, replace links of the form [[rc://en/tw/help/bible/kt/word]] with links of the form [God's Word](#tw-kt-word). """
-        logger.debug("self._content: {}".format(self._content))
+        # logger.debug("self._content: {}".format(self._content))
         logger.debug("self._my_rcs: {}".format(self._my_rcs))
         rep = dict(
             (
@@ -1237,7 +1237,7 @@ class TNResource(TResource):
                 chunk_files = sorted(glob(os.path.join(chapter_dir, "[0-9]*.md")))
                 logger.debug("chunk_files: {}".format(chunk_files))
                 for _, chunk_file in enumerate(chunk_files):
-                    logger.info("in loop through chunk files")
+                    # logger.info("in loop through chunk files")
                     (
                         first_verse,
                         last_verse,
