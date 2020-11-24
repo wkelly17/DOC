@@ -348,12 +348,12 @@ class DocumentGenerator(object):
         copy_command: str = "cp {}/{}.pdf {}".format(
             self.output_dir, self._document_request_key, "/output"
         )
-        logger.debug(
-            "os.listdir(self.working_dir): {}".format(os.listdir(self.working_dir))
-        )
-        logger.debug(
-            "os.listdir(self.output_dir): {}".format(os.listdir(self.output_dir))
-        )
+        # logger.debug(
+        #     "os.listdir(self.working_dir): {}".format(os.listdir(self.working_dir))
+        # )
+        # logger.debug(
+        #     "os.listdir(self.output_dir): {}".format(os.listdir(self.output_dir))
+        # )
         subprocess.call(command, shell=True)
         logger.debug("IN_CONTAINER: {}".format(os.environ.get("IN_CONTAINER")))
         if os.environ.get("IN_CONTAINER"):
