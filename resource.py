@@ -746,7 +746,6 @@ class USFMResource(Resource):
             # FIXME Is it necessary to reset _rc_references since
             # it is a per resource instance variable now?
             # self._rc_references = {}
-            # resource.update({"my_rcs": []})
             # FIXME Is it necessary to reset _my_rcs since
             # it is a per resource instance variable now?
             # self._my_rcs = []
@@ -773,10 +772,8 @@ class USFMResource(Resource):
             self._is_json()
         ), "Calling _initialize_book_properties_from_manifest_json requires manifest.json"
         logger.info("is json")
-        # FIXME
         projects: List = self._get_book_projects_from_json()
         logger.debug("book projects: {}".format(projects))
-        logger.debug("type of projects: {}".format(type(projects)))
         for p in projects:
             project: Dict[Any, Any] = p  # FIXME This is not used
             self._book_id = self._resource_code
@@ -794,11 +791,11 @@ class USFMResource(Resource):
             )
             # FIXME Is it necessary to reset _rc_references since
             # it is a per resource instance variable now?
-            self._rc_references = {}
+            # self._rc_references = {}
             # resource.update({"my_rcs": []})
             # FIXME Is it necessary to reset _my_rcs since
             # it is a per resource instance variable now?
-            self._my_rcs = []
+            # self._my_rcs = []
             logger.debug(
                 "Creating {} for {} ({}-{})...".format(
                     self._resource_type,
@@ -819,18 +816,16 @@ class USFMResource(Resource):
         if (
             self._manifest and "projects" in self._manifest
         ):  # This is the manifest.yaml case.
-            logger.info("about to get projects")
+            # logger.info("about to get projects")
+            # NOTE The old code would return the list of book projects
+            # that either contained: 1) all books if no books were
+            # specified by the user, or, 2) only those books that
+            # matched the books requested from the command line.
             for p in self._manifest["projects"]:
-                # for p in self.manifest["projects"]:
-                # NOTE You can have a manifest.yaml file and not have a
-                # resource_code specified, e.g., lang_code='as',
-                # resource_type='tn', resource_code=''
-                # FIXME Is this correct?
                 if (
-                    self._resource_code is not None
+                    self._resource_code is not None  # _resource_code is never none
                     and p["identifier"] in self._resource_code
                 ):
-                    # if not self.books or p["identifier"] in self.books:
                     if not p["sort"]:
                         p["sort"] = BOOK_NUMBERS[p["identifier"]]
                     projects.append(p)
