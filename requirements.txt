@@ -7,6 +7,7 @@ git+git://github.com/linearcombination/USFM-Tools.git@develop#egg=usfm_tools
 ## For local dev, install via: pip install /path/to/USFM-Tools
 git+git://github.com/unfoldingWord-dev/uw_tools.git#egg=uw_tools
 gogs-client
+icontract
 jsonpath-rw
 jsonpath-rw-ext
 markdown

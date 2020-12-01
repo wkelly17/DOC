@@ -1,5 +1,6 @@
 from typing import Optional, Dict  # , List
 import codecs
+import icontract
 import json
 import os
 import pathlib
@@ -74,28 +75,34 @@ def make_dir(dir_name, linux_mode=0o755, error_if_not_writable=False):
             raise IOError("Directory {0} is not writable.".format(dir_name))
 
 
-def load_json_object(file_name: pathlib.Path) -> Optional[Dict]:
+@icontract.require(lambda file_name: file_name is not None)
+@icontract.require(lambda file_name: os.path.exists(file_name))
+# def load_json_object(file_name: pathlib.Path) -> Optional[Dict]:
+def load_json_object(file_name: pathlib.Path) -> Dict:
     """
     Deserialized JSON file <file_name> into a Python dict.
     :param str|unicode file_name: The name of the file to read
     :param default: The value to return if the file is not found
     """
-    if not os.path.isfile(file_name):
-        return None
+    # if not os.path.isfile(file_name):
+    #     return None
     # return a deserialized object
-    return json.loads(read_file(file_name))
+    return json.loads(read_file(str(file_name.resolve())))
 
 
-def load_yaml_object(file_name: pathlib.Path) -> Optional[Dict]:
+@icontract.require(lambda file_name: file_name is not None)
+@icontract.require(lambda file_name: os.path.exists(file_name))
+# def load_yaml_object(file_name: pathlib.Path) -> Optional[Dict]:
+def load_yaml_object(file_name: pathlib.Path) -> Dict:
     """
     Deserialized YAML file <file_name> into a Python dict.
     :param str|unicode file_name: The name of the file to read
     :param default: The value to return if the file is not found
     """
-    if not os.path.isfile(file_name):
-        return None
+    # if not os.path.isfile(file_name):
+    #     return None
     # return a deserialized object
-    return yaml.load(read_file(file_name), Loader=yaml.FullLoader)
+    return yaml.load(read_file(str(file_name.resolve())), Loader=yaml.FullLoader)
 
 
 def read_file(file_name: str, encoding: str = "utf-8-sig"):

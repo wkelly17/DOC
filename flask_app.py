@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 import json
 import os
+from typing import List, Tuple
 
 # Handle running in container or as standalone script
 try:
@@ -36,6 +37,7 @@ logger = logging.getLogger(__name__)
 # "resource_code": "tit"}, {"lang_code": "en", "resource_type": "ulb-wa",
 # "resource_code": "gen"}, {"lang_code": "mr", "resource_type": "udb",
 # "resource_code": "mrk"}]}
+# FIXME Add type declarations
 @app.route("/api/v1/document", methods=["POST"])
 def document_endpoint():
     # TODO Fix comment which is out of sync with code. Code needs to
@@ -88,14 +90,16 @@ def document_endpoint():
     # return "OK", 201
 
 
+# FIXME Add type declarations
 @app.route("/api/v1/language_codes", methods=["GET"])
 def lang_codes():
     """ Return list of all available language codes. """
     lookup_svc = ResourceJsonLookup()
-    lang_codes: List[Optional[str]] = lookup_svc.lang_codes()
+    lang_codes: List[str] = lookup_svc.lang_codes()
     return jsonify({"lang_codes": lang_codes}), 200
 
 
+# FIXME Add type declarations
 @app.route("/api/v1/language_codes_and_names", methods=["GET"])
 def lang_codes_and_names():
     """ Return list of all available language code, name tuples. """
@@ -104,17 +108,19 @@ def lang_codes_and_names():
     return jsonify({"lang_codes_and_names": lang_codes_and_names}), 200
 
 
+# FIXME Add type declarations
 @app.route("/api/v1/resource_types", methods=["GET"])
 def resource_types():
     """ Return list of all available resource types. """
     lookup_svc = ResourceJsonLookup()
-    resource_types: List[Optional[str]] = lookup_svc.resource_types()
+    resource_types: List[str] = lookup_svc.resource_types()
     return jsonify({"resource_types": resource_types}), 200
 
 
+# FIXME Add type declarations
 @app.route("/api/v1/resource_codes", methods=["GET"])
 def resource_codes():
     """ Return list of all available resource codes. """
     lookup_svc = ResourceJsonLookup()
-    resource_codes: List[Optional[str]] = lookup_svc.resource_codes()
+    resource_codes: List[str] = lookup_svc.resource_codes()
     return jsonify({"resource_codes": resource_codes}), 200

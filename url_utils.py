@@ -1,4 +1,3 @@
-
 from contextlib import closing
 import json
 import shutil
@@ -34,12 +33,12 @@ def _get_url(url, catch_exception):
         return response
 
 
-def download_file(url, outfile):
+def download_file(url: str, outfile: str) -> None:
     """Downloads a file and saves it."""
     _download_file(url, outfile)
 
 
-def _download_file(url, outfile):
+def _download_file(url: str, outfile: str) -> None:
     try:
         with closing(urlopen(url)) as request:
             with open(outfile, "wb") as fp:

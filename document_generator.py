@@ -110,6 +110,7 @@ with open(get_logging_config_file_path(), "r") as f:
 
 logger = logging.getLogger(__name__)
 
+AResource = Union[USFMResource, TAResource, TNResource, TQResource, TWResource]
 
 # NOTE Not all languages have tn, tw, tq, tq, udb, ulb. Some
 # have only a subset of those resources. Presumably the web UI
@@ -185,7 +186,7 @@ class DocumentGenerator(object):
 
         # TODO To be production worthy, we need to make this resilient
         # to errors when creating Resource instances.
-        self._resources: List[Resource] = []
+        self._resources: List[AResource] = []
         for resource in resources:
             # FIXME self.lookup_svc will become a local var: lookup_svc
             self._resources.append(
@@ -235,6 +236,12 @@ class DocumentGenerator(object):
         # generate their content.
         for resource in self.found_resources:
             resource.initialize_properties()
+            # NOTE You could pass a USFM resource if it exists to get_content
+            # for TResource subclasses. This would presuppose that we initialize
+            # USFM resources first in this loop or break out into multiple
+            # loops: one for USFM, one for TResource subclasses. Perhaps you
+            # would sort the resources by lang_code so that they are interleaved
+            # such that their expected language relationship is retained.
             resource.get_content()
 
         if not os.path.isfile(
