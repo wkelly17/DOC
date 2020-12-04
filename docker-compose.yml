@@ -1,0 +1,31 @@
+version: "2"
+services:
+  api:
+    image: document-image
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      # FIXME Next three have no values
+      - IRG_WORKING_DIR=/working/temp
+      - IRG_OUTPUT_DIR=/working/temp
+      - IRG_CS_USER_URL=https://content.bibletranslationtools.org/WycliffeAssociates
+      - TRANSLATIONS_JSON_LOCATION=http://bibleineverylanguage.org/wp-content/themes/bb-theme-child/data/translations.json
+      - LOGGING_CONFIG=document/logging_config.yaml
+      # - TN_ADDITIONAL_PARMS
+      - PYTHONDONTWRITEBYTECODE=1
+      - FLASK_APP=document/entrypoints/flask_app.py
+      - FLASK_DEBUG=1
+      - PYTHONUNBUFFERED=1
+      - IN_CONTAINER=1
+    volumes:
+      - ./src:/src
+      - ./tests:/tests
+      # - "${IRG_OUTPUT_DIR}:/output"
+    entrypoint:
+      - flask
+      - run
+      - --host=0.0.0.0
+      - --port=80
+    ports:
+      - "5005:80"

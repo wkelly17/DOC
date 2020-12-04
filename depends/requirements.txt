@@ -1,0 +1,27 @@
+# app
+PyYAML
+bs4
+flask
+# git+git://github.com/arount/pytea#egg=pytea
+git+git://github.com/linearcombination/USFM-Tools.git@develop#egg=usfm_tools
+## For local dev, install via: pip install /path/to/USFM-Tools
+git+git://github.com/unfoldingWord-dev/uw_tools.git#egg=uw_tools
+gogs-client
+icontract
+jsonpath-rw
+jsonpath-rw-ext
+Markdown
+# markdown
+# markdown2
+openpyxl
+parse
+pathlib
+pyparsing==2.4.5
+requests
+
+# tests
+pytest
+pytest-icdiff
+mypy
+pylint
+tenacity
