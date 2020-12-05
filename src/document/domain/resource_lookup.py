@@ -64,7 +64,7 @@ with open(config.get_logging_config_file_path(), "r") as f:
 
 logger = logging.getLogger(__name__)
 
-AResource = Union[USFMResource, TAResource, TNResource, TQResource, TWResource]
+# AResource = Union[USFMResource, TAResource, TNResource, TQResource, TWResource]
 
 
 class ResourceLookup(abc.ABC):
@@ -74,7 +74,8 @@ class ResourceLookup(abc.ABC):
     and thus call sites in client code can remain largely unchanged. """
 
     @abc.abstractmethod
-    def lookup(self, resource: AResource) -> Optional[str]:
+    # def lookup(self, resource: AResource) -> Optional[str]:
+    def lookup(self, resource) -> Optional[str]:
         raise NotImplementedError
 
 
@@ -172,7 +173,8 @@ class ResourceJsonLookup(ResourceLookup):
     @icontract.require(lambda resource: resource.resource_type is not None)
     @icontract.require(lambda resource: resource.resource_code is not None)
     @icontract.ensure(lambda result: result is not None)
-    def lookup(self, resource: AResource) -> Optional[str]:
+    # def lookup(self, resource: AResource) -> Optional[str]:
+    def lookup(self, resource) -> Optional[str]:
         """ Given a resource, comprised of language code, e.g., 'wum',
         a resource type, e.g., 'tn', and an optional resource code,
         e.g., 'gen', return URL for resource. """
@@ -231,7 +233,8 @@ class ResourceJsonLookup(ResourceLookup):
     @icontract.require(lambda resource: resource.resource_type is not None)
     @icontract.ensure(lambda resource: resource._resource_file_format == "git")
     @icontract.ensure(lambda resource: resource._resource_url is not None)
-    def _try_english_git_repo_location(self, resource: AResource) -> Optional[str]:
+    # def _try_english_git_repo_location(self, resource: AResource) -> Optional[str]:
+    def _try_english_git_repo_location(self, resource) -> Optional[str]:
         """ If successful, return a string containing the URL of repo,
         otherwise return None. """
         url: Optional[str] = None
@@ -249,7 +252,8 @@ class ResourceJsonLookup(ResourceLookup):
     @icontract.require(lambda resource: resource.resource_code is not None)
     @icontract.ensure(lambda resource: resource._resource_file_format == "git")
     @icontract.ensure(lambda resource: resource._resource_jsonpath is not None)
-    def _try_git_repo_location(self, resource: AResource) -> Optional[str]:
+    # def _try_git_repo_location(self, resource: AResource) -> Optional[str]:
+    def _try_git_repo_location(self, resource) -> Optional[str]:
         """ If successful, return a string containing the URL of USFM
         repo, otherwise return None. """
         jsonpath_str = config.get_resource_download_format_jsonpath().format(
@@ -274,7 +278,8 @@ class ResourceJsonLookup(ResourceLookup):
     @icontract.require(lambda resource: resource.resource_code is not None)
     @icontract.ensure(lambda resource: resource._resource_file_format == "usfm")
     @icontract.ensure(lambda resource: resource._resource_jsonpath is not None)
-    def _try_individual_usfm_location(self, resource: AResource) -> Optional[str]:
+    # def _try_individual_usfm_location(self, resource: AResource) -> Optional[str]:
+    def _try_individual_usfm_location(self, resource) -> Optional[str]:
         """ If successful, return a string containing the URL of USFM
         file, otherwise None. """
         # Many languages have a git repo found by
@@ -309,7 +314,8 @@ class ResourceJsonLookup(ResourceLookup):
     @icontract.require(lambda resource: resource.resource_type is not None)
     @icontract.ensure(lambda resource: resource._resource_file_format == "zip")
     @icontract.ensure(lambda resource: resource._resource_jsonpath is not None)
-    def _try_markdown_files_level1_location(self, resource: AResource) -> Optional[str]:
+    # def _try_markdown_files_level1_location(self, resource: AResource) -> Optional[str]:
+    def _try_markdown_files_level1_location(self, resource) -> Optional[str]:
         """ If successful, return a string containing the URL of
         Markdown zip file, otherwise return None. """
         jsonpath_str = config.get_resource_url_level_1_jsonpath().format(
@@ -328,7 +334,8 @@ class ResourceJsonLookup(ResourceLookup):
     @icontract.require(lambda resource: resource.resource_type is not None)
     @icontract.ensure(lambda resource: resource._resource_file_format == "zip")
     @icontract.ensure(lambda resource: resource._resource_jsonpath is not None)
-    def _try_markdown_files_level2_location(self, resource: AResource) -> Optional[str]:
+    # def _try_markdown_files_level2_location(self, resource: AResource) -> Optional[str]:
+    def _try_markdown_files_level2_location(self, resource) -> Optional[str]:
         """ If successful, return a string containing the URL of
         Markdown zip file, otherwise return None. """
         jsonpath_str = config.get_resource_url_level_2_jsonpath().format(
@@ -348,7 +355,9 @@ class ResourceJsonLookup(ResourceLookup):
     @icontract.ensure(lambda resource: resource._resource_file_format == "zip")
     @icontract.ensure(lambda resource: resource._resource_jsonpath is not None)
     def _try_markdown_files_level1_sans_resource_code_location(
-        self, resource: AResource
+        # self, resource: AResource
+        self,
+        resource,
     ) -> Optional[str]:
         """ If successful, return a string containing the URL of the
         Markdown zip file, otherwise return None. """
@@ -373,7 +382,9 @@ class ResourceJsonLookup(ResourceLookup):
     @icontract.ensure(lambda resource: resource._resource_file_format == "zip")
     @icontract.ensure(lambda resource: resource._resource_jsonpath is not None)
     def _try_markdown_files_level2_sans_resource_code_location(
-        self, resource: AResource
+        # self, resource: AResource
+        self,
+        resource,
     ) -> Optional[str]:
         """ For the language in question, the resource is apparently
         at its alternative location which we try next. If successful,
