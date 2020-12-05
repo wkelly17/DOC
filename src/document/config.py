@@ -2,10 +2,15 @@ from typing import List
 import os
 
 
+def get_api_root() -> str:
+    return os.environ.get("API_ROOT", "/api/v1")
+
+
 def get_api_url() -> str:
     host = os.environ.get("API_HOST", "localhost")
     port = 5005 if host == "localhost" else 80
-    return f"http://{host}:{port}"
+    root = get_api_root()
+    return f"http://{host}:{port}{root}"
 
 
 # FIXME Proper setting of working_dir is currently being handled by
@@ -20,13 +25,21 @@ def get_working_dir() -> str:
     acquired. IRG_WORKING_DIR is provided when running in a docker
     environment. Otherwise a suitable temporary local directory is
     generated automatically. """
-    dir = os.environ.get("IRG_WORKING_DIR", "./working/temp")
+    dir: str = ""
+    if os.environ.get("IN_CONTAINER"):
+        dir = os.environ.get("IRG_WORKING_DIR", "working/temp")
+    else:
+        dir = os.environ.get("IRG_WORKING_DIR", "../working/temp")
     return dir
 
 
 def get_output_dir() -> str:
     """ The directory where the generated documents are placed. """
-    dir = os.environ.get("IRG_OUTPUT_DIR", "./working/temp")
+    dir: str = ""
+    if os.environ.get("IN_CONTAINER"):
+        dir = os.environ.get("IRG_OUTPUT_DIR", "working/temp")
+    else:
+        dir = os.environ.get("IRG_OUTPUT_DIR", "../working/temp")
     return dir
 
 
@@ -68,11 +81,12 @@ def get_resource_download_format_jsonpath() -> str:
 def get_logging_config_file_path() -> str:
     """ The file path location where the dictConfig-style yaml
     formatted config file for logging is located. """
+    filepath: str = ""
     if os.environ.get("IN_CONTAINER"):
-        return os.environ.get("LOGGING_CONFIG", "document/logging_config.yaml")
-        # return "/tools/logging_config.yaml"
+        filepath = os.environ.get("LOGGING_CONFIG", "document/logging_config.yaml")
     else:
-        return "./src/document/logging_config.yaml"
+        filepath = "document/logging_config.yaml"
+    return filepath
 
 
 # FIXME Icon no longer lives at this location since they redesigned
@@ -84,25 +98,33 @@ def get_icon_url() -> str:
     # return "https://static1.squarespace.com/static/591e003db8a79bd6e6c9ffae/t/5e306da5898d7b14b76889dd/1600444722464/?format=1500w"
 
 
-def get_markdown_resource_types() -> List[str]:
-    """ Get the resource types that can have a Markdown file. """
-    return ["tn", "tq", "tw", "ta", "tn-wa", "tq-wa", "tw-wa", "ta-wa"]
+# def get_markdown_resource_types() -> List[str]:
+#     """ Get the resource types that can have a Markdown file. """
+#     return ["tn", "tq", "tw", "ta", "tn-wa", "tq-wa", "tw-wa", "ta-wa"]
 
 
+# FIXME Fix literal paths now that directory organization has changed
 def get_tex_format_location() -> str:
     """ Return the location of where the format.tex file is located
     that is used in converting the HTML to PDF using pandoc. """
-    return "tools/tex/format.tex" if os.getenv("IN_CONTAINER") else "./tex/format.tex"
-    # return "tools/tex/format.tex"
+    filepath: str = ""
+    if os.getenv("IN_CONTAINER"):
+        filepath = os.environ.get("TEX_FORMAT_FILEPATH", "../tex/format.tex")
+    else:
+        filepath = "../tex/format.tex"
+    return filepath
 
 
+# FIXME Fix literal paths now that directory organization has changed
 def get_tex_template_location() -> str:
     """ Return the location of where the template.tex file is located
     that is used in converting the HTML to PDF using pandoc. """
-    return (
-        "tools/tex/template.tex" if os.getenv("IN_CONTAINER") else "./tex/template.tex"
-    )
-    # return "tools/tex/format.tex"
+    filepath: str = ""
+    if os.getenv("IN_CONTAINER"):
+        filepath = os.environ.get("TEX_TEMPLATE_FILEPATH", "../tex/template.tex")
+    else:
+        filepath = "../tex/template.tex"
+    return filepath
 
 
 def get_markdown_doc_file_names() -> List[str]:
