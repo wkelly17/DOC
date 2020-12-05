@@ -6,9 +6,10 @@ from document import config
 def get_language_codes():
     # print("Request language codes...")
     url = config.get_api_url()
-    res = requests.get(f"{url}/api/v1/language_codes")
-    assert res.ok
-    assert res.json()
+    res = requests.get(f"{url}/language_codes")
+    return res
+    # assert res.ok
+    # assert res.json()
     # if res.ok:
     #     print(res.json())
 
@@ -16,9 +17,10 @@ def get_language_codes():
 def get_language_codes_and_names():
     # print("Request language code, name tuples...")
     url = config.get_api_url()
-    res = requests.get("{url}/api/v1/language_codes_and_names")
-    assert res.ok
-    assert res.json()
+    res = requests.get("{url}/language_codes_and_names")
+    return res
+    # assert res.ok
+    # assert res.json()
     # if res.ok:
     #     print(res.json())
 
@@ -38,7 +40,7 @@ def post_document(payload: dict, expect_success=True):
     # payload["assembly_strategy"] = "book"  # verse, chapter, book
     # print("payload: {}".format(payload))
     url: str = config.get_api_url()
-    res = requests.post(f"{url}/api/v1/document", json=json.dumps(payload))
+    res = requests.post(f"{url}/document", json=json.dumps(payload))
     if expect_success:
         assert res.ok
     return res

@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 # "resource_code": "gen"}, {"lang_code": "mr", "resource_type": "udb",
 # "resource_code": "mrk"}]}
 # FIXME Add type declarations
-@app.route("/api/v1/document", methods=["POST"])
+@app.route(f"{config.get_api_root()}/document", methods=["POST"])
 def document_endpoint():
     # TODO Fix comment which is out of sync with code. Code needs to
     # change until this comment is true.
@@ -92,7 +92,7 @@ def document_endpoint():
 
 
 # FIXME Add type declarations
-@app.route("/api/v1/language_codes", methods=["GET"])
+@app.route(f"{config.get_api_root()}/language_codes", methods=["GET"])
 def lang_codes():
     """ Return list of all available language codes. """
     lookup_svc = ResourceJsonLookup()
@@ -101,7 +101,7 @@ def lang_codes():
 
 
 # FIXME Add type declarations
-@app.route("/api/v1/language_codes_and_names", methods=["GET"])
+@app.route(f"{config.get_api_root()}/language_codes_and_names", methods=["GET"])
 def lang_codes_and_names():
     """ Return list of all available language code, name tuples. """
     lookup_svc = ResourceJsonLookup()
@@ -110,7 +110,7 @@ def lang_codes_and_names():
 
 
 # FIXME Add type declarations
-@app.route("/api/v1/resource_types", methods=["GET"])
+@app.route(f"{config.get_api_root()}/resource_types", methods=["GET"])
 def resource_types():
     """ Return list of all available resource types. """
     lookup_svc = ResourceJsonLookup()
@@ -119,7 +119,7 @@ def resource_types():
 
 
 # FIXME Add type declarations
-@app.route("/api/v1/resource_codes", methods=["GET"])
+@app.route(f"{config.get_api_root()}/resource_codes", methods=["GET"])
 def resource_codes():
     """ Return list of all available resource codes. """
     lookup_svc = ResourceJsonLookup()
