@@ -73,16 +73,28 @@ class Resource(abc.ABC):
         self._working_dir: str = working_dir
         self._output_dir: str = output_dir
         self._resource: dict = resource
-        self._lang_code: str = resource["lang_code"]
-        self._resource_type: str = resource["resource_type"]
-        self._resource_code: str = (
-            resource["resource_code"] if resource["resource_code"] else None
-        )
+
+        # self._lang_code: str = resource["lang_code"]
+        # self._resource_type: str = resource["resource_type"]
+        # self._resource_code: str = resource["resource_code"]
+
+        # self._resource_dir: str = os.path.join(
+        #     self.working_dir, "{}_{}".format(self.lang_code, self.resource_type)
+        # )
+        # self._p: pathlib.Path = pathlib.Path(self._resource_dir)
+
+        # NOTE We actually want to pass in the lookup_svc, not create
+        # another one here - we don't want to load up the heap with
+        # unnecessary ResourceJsonLookup objects. This assumes that
+        # flask will handle each request in its own process. I.e., we
+        # need to consider contention over Resources using the same
+        # ResourceJsonLookup instance.
+        self._lookup_svc: ResourceJsonLookup = lookup_svc
+
+        # FIXME As of Python 3.7 we don't have to initialize the
+        # instance variables at declaration time.
+        # Created later:
         self._resource_url: Optional[str] = None
-        self._resource_dir: str = os.path.join(
-            self._working_dir, "{}_{}".format(self._lang_code, self._resource_type)
-        )
-        self._p: pathlib.Path = pathlib.Path(self._resource_dir)
         self._resource_filename: Optional[str] = None
         self._resource_file_format: Optional[str] = None
         self._resource_filepath: Optional[str] = None
@@ -98,13 +110,6 @@ class Resource(abc.ABC):
         self._manifest_type: Optional[str] = None
         self._version: Optional[str] = None
         self._issued: Optional[str] = None
-        # NOTE We actually want to pass in the lookup_svc, not create
-        # another one here - we don't want to load up the heap with
-        # unnecessary ResourceJsonLookup objects. This assumes that
-        # flask will handle each request in its own process. I.e., we
-        # need to consider contention over Resources using the same
-        # ResourceJsonLookup instance.
-        self._lookup_svc: ResourceJsonLookup = lookup_svc
         self._content: str
         self._resource_data: Dict = {}
         self._my_rcs: List = []
@@ -113,7 +118,7 @@ class Resource(abc.ABC):
 
     def __str__(self) -> str:
         return "Resource(lang_code: {}, resource_type: {}, resource_code: {})".format(
-            self._lang_code, self._resource_type, self._resource_code
+            self.lang_code, self.resource_type, self.resource_code
         )
 
     def __repr__(self) -> str:
@@ -122,39 +127,39 @@ class Resource(abc.ABC):
             self._lang_code, self._resource_type, self._resource_code
         )
 
-    # FIXME Not sure I really want to use a property on _content, but
-    # _content is accessed as part of the strategy pattern
-    # (AssemblyStrategy).
     @property
-    def content(self):
-        return self._content
+    def working_dir(self) -> str:
+        return self._working_dir
 
-    # def __str__(self) -> None:
-    #     return (
-    #         self.__class__.__name__
-    #         + "("
-    #         + "working_dir="
-    #         + self._working_dir
-    #         + ", lang_code="
-    #         + self._lang_code
-    #         + ", resource_type="
-    #         + self._resource_type
-    #         + ", resource_code="
-    #         + self._resource_code
-    #         + ", resource_url="
-    #         + self._resource_url
-    #         + ", resource_dir="
-    #         + self._resource_dir
-    #         + ", resource_filename="
-    #         + self._resource_filename
-    #         + ", resource_file_format="
-    #         + self._resource_file_format
-    #         + ", resource_filepath="
-    #         + self._resource_filepath
-    #         + ", bad_links="
-    #         + self._bad_links
-    #         + ")"
-    #     )
+    @property
+    def output_dir(self) -> str:
+        return self._output_dir
+
+    @property
+    def lang_code(self) -> str:
+        return self._resource["lang_code"]
+
+    @property
+    def resource_type(self) -> str:
+        return self._resource["resource_type"]
+
+    @property
+    def resource_code(self) -> str:
+        return self._resource["resource_code"]
+
+    @property
+    def resource_dir(self) -> str:
+        return os.path.join(
+            self.working_dir, "{}_{}".format(self.lang_code, self.resource_type)
+        )
+
+    @property
+    def resource_dir_path(self) -> pathlib.Path:
+        return pathlib.Path(self.resource_dir)
+
+    @property
+    def content(self) -> str:
+        return self._content
 
     # public
     @icontract.require(lambda self: self._lookup_svc is not None)
