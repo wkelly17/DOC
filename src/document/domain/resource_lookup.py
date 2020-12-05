@@ -9,33 +9,25 @@ import tempfile
 
 import json  # Just for test debug output
 
-from jsonpath_rw import jsonpath  # type: ignore
-from jsonpath_rw_ext import parse  # type: ignore
-import jsonpath_rw_ext as jp  # for calling extended methods
+from jsonpath_rw import jsonpath
+from jsonpath_rw_ext import parse
+import jsonpath_rw_ext as jp
 import urllib.request, urllib.parse, urllib.error
 
 # Handle running in container or as standalone script
 # try:
-from document.utils.file_utils import load_json_object  # type: ignore
-from document.utils.url_utils import download_file  # type: ignore
-from document.config import (  # type: ignore
-    get_translations_json_location,
-    get_individual_usfm_url_jsonpath,
-    get_resource_url_level_1_jsonpath,
-    get_resource_url_level_2_jsonpath,
-    get_resource_download_format_jsonpath,
-    get_logging_config_file_path,
-    get_working_dir,
-    get_english_repos_dict,
-)
-from document.domain.resource import (
-    Resource,
-    USFMResource,
-    TNResource,
-    TWResource,
-    TQResource,
-    TAResource,
-)
+from document.utils import file_utils
+from document.utils import url_utils
+from document import config
+
+# from document.domain.resource import (
+#     Resource,
+#     USFMResource,
+#     TNResource,
+#     TWResource,
+#     TQResource,
+#     TAResource,
+# )
 
 # except:
 #     from .document.utils.file_utils import load_json_object  # type: ignore
@@ -65,9 +57,9 @@ import yaml
 import logging
 import logging.config
 
-with open(get_logging_config_file_path(), "r") as f:
-    config = yaml.safe_load(f.read())
-    logging.config.dictConfig(config)
+with open(config.get_logging_config_file_path(), "r") as f:
+    logging_config = yaml.safe_load(f.read())
+    logging.config.dictConfig(logging_config)
 
 
 logger = logging.getLogger(__name__)
@@ -92,10 +84,8 @@ class ResourceJsonLookup(ResourceLookup):
 
     def __init__(
         self,
-        working_dir: Optional[
-            str
-        ] = get_working_dir(),  # This is in /tools in the Docker container
-        json_file_url: str = get_translations_json_location(),
+        working_dir: str = config.get_working_dir(),
+        json_file_url: str = config.get_translations_json_location(),
     ) -> None:
 
         self._working_dir = working_dir
@@ -130,7 +120,9 @@ class ResourceJsonLookup(ResourceLookup):
             # Download json file
             try:
                 logger.info("Downloading {}...".format(self._json_file_url))
-                download_file(self._json_file_url, str(self._json_file.resolve()))
+                url_utils.download_file(
+                    self._json_file_url, str(self._json_file.resolve())
+                )
             finally:
                 logger.info("finished downloading json file.")
 
@@ -138,7 +130,7 @@ class ResourceJsonLookup(ResourceLookup):
             # Load json file
             try:
                 logger.info("Loading json file {}...".format(self._json_file))
-                self._json_data = load_json_object(
+                self._json_data = file_utils.load_json_object(
                     self._json_file
                 )  # json_data should possibly live on its own object
             finally:
@@ -243,7 +235,7 @@ class ResourceJsonLookup(ResourceLookup):
         """ If successful, return a string containing the URL of repo,
         otherwise return None. """
         url: Optional[str] = None
-        url = get_english_repos_dict()[resource._resource_type]
+        url = config.get_english_repos_dict()[resource.resource_type]
         resource._resource_file_format = "git"
         # resource._resource_jsonpath is None for English git
         # repos because they can't be found in translations.json.

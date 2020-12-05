@@ -1,5 +1,6 @@
 import json
 import requests
+from document import config
 
 
 def get_language_codes():

@@ -10,7 +10,7 @@
 XFIXME This script exports tN into HTML format from DCS and generates a PDF from the HTML
 """
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 import os
 import sys
 import re
@@ -34,27 +34,10 @@ from usfm_tools.transform import UsfmTransform  # type: ignore
 
 # Handle running in container or as standalone script
 # try:
-from document.domain.document_assembler import (
-    AssemblyStrategy,
-    VerseAssemblyStrategy,
-    ChapterAssemblyStrategy,
-    BookAssemblyStrategy,
-)
-from document.utils.file_utils import write_file, read_file, unzip, load_yaml_object, load_json_object  # type: ignore
-from document.domain.bible_books import BOOK_NUMBERS, BOOK_NAMES  # type: ignore
+from document.utils import file_utils
 from document.domain.resource_lookup import ResourceJsonLookup
-from document.config import (
-    get_working_dir,
-    get_output_dir,
-    get_logging_config_file_path,
-    get_icon_url,
-    get_markdown_resource_types,
-    get_tex_format_location,
-    get_tex_template_location,
-    get_document_html_header,
-    get_document_html_footer,
-    get_pandoc_command,
-)
+from document import config
+
 from document.domain.resource import (
     Resource,
     USFMResource,
@@ -103,9 +86,9 @@ from document.domain.resource import (
 #     )
 
 
-with open(get_logging_config_file_path(), "r") as f:
-    config = yaml.safe_load(f.read())
-    logging.config.dictConfig(config)
+with open(config.get_logging_config_file_path(), "r") as f:
+    logging_config = yaml.safe_load(f.read())
+    logging.config.dictConfig(logging_config)
 
 logger = logging.getLogger(__name__)
 
@@ -136,8 +119,8 @@ class DocumentGenerator(object):
         self,
         assembly_strategy_key: str,
         resources: dict,
-        working_dir: str = get_working_dir(),
-        output_dir: str = get_output_dir(),
+        working_dir: str = config.get_working_dir(),
+        output_dir: str = config.get_output_dir(),
     ) -> None:
         """
         :param assembly_strategy_key:
@@ -221,6 +204,9 @@ class DocumentGenerator(object):
 
         # Get the resources files (do all the networking first)
         for resource in self._resources:
+            # FIXME We could accomplish dependency injection by
+            # passing a lookup_function or class instance into
+            # find_location and then ask it to do the lookup.
             resource.find_location()
             if resource.is_found():
                 # Keep a list of resources that were found, we'll use
@@ -265,7 +251,7 @@ class DocumentGenerator(object):
 
         if not os.path.isfile(os.path.join(self.working_dir, "icon-tn.png")):
             command = "curl -o {}/icon-tn.png {}".format(
-                self.working_dir, get_icon_url()
+                self.working_dir, config.get_icon_url()
             )
             subprocess.call(command, shell=True)
 
@@ -285,7 +271,7 @@ class DocumentGenerator(object):
                 )
             )
         )
-        write_file(
+        file_utils.write_file(
             os.path.join(self.output_dir, "{}.html".format(self._document_request_key)),
             self.content,
         )
@@ -293,9 +279,9 @@ class DocumentGenerator(object):
     def enclose_html_content(self) -> None:
         """ Write the enclosing HTML and body elements around the HTML
         body content for the document. """
-        html = get_document_html_header()
+        html = config.get_document_html_header()
         html += self.content
-        html += get_document_html_footer()
+        html += config.get_document_html_footer()
         self.content = html
 
     def convert_html2pdf(self) -> None:
@@ -314,7 +300,7 @@ class DocumentGenerator(object):
         # do for now.
         title = "Resources: "
         title += ",".join(set([r._resource_code for r in self._resources]))
-        command = get_pandoc_command().format(
+        command = config.get_pandoc_command().format(
             # First hack at a title. Used to be just self.book_title which
             # doesn't make sense anymore.
             title,
@@ -347,8 +333,8 @@ class DocumentGenerator(object):
             self._document_request_key,
             # NOTE Having revision_date likely obviates _issued above.
             revision_date,
-            get_tex_format_location(),
-            get_tex_template_location(),
+            config.get_tex_format_location(),
+            config.get_tex_template_location(),
         )
         logger.debug("pandoc command: {}".format(command))
         # Next command replaces cp /working/tn-temp/*.pdf /output in

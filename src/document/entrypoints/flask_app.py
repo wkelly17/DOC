@@ -6,8 +6,8 @@ from typing import List, Tuple
 # Handle running in container or as standalone script
 # try:
 from document.domain.document_generator import DocumentGenerator
-from document.service_layer.resource_lookup import ResourceJsonLookup
-from document.config import get_logging_config_file_path
+from document.domain.resource_lookup import ResourceJsonLookup
+from document import config
 
 # except:
 #     from .document.domain.document_generator import DocumentGenerator
@@ -25,9 +25,9 @@ import yaml
 
 app = Flask(__name__)
 
-with open(get_logging_config_file_path(), "r") as f:
-    config = yaml.safe_load(f.read())
-    logging.config.dictConfig(config)
+with open(config.get_logging_config_file_path(), "r") as f:
+    logging_config = yaml.safe_load(f.read())
+    logging.config.dictConfig(logging_config)
 
 logger = logging.getLogger(__name__)
 

@@ -14,6 +14,7 @@ import requests
 from tenacity import retry, stop_after_delay
 
 # from document.adapters.orm import metadata, start_mappers
+
 from document import config
 
 pytest.register_assert_rewrite("tests.e2e.api_client")
