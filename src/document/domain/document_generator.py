@@ -32,20 +32,10 @@ import markdown  # type: ignore
 import bs4  # type: ignore
 from usfm_tools.transform import UsfmTransform  # type: ignore
 
-from document.utils import file_utils
-from document.domain.resource_lookup import ResourceJsonLookup
 from document import config
-
-from document.domain.resource import (
-    Resource,
-    USFMResource,
-    TNResource,
-    TQResource,
-    TAResource,
-    TWResource,
-    resource_factory,
-)
-
+from document.utils import file_utils
+from document.domain import resource
+from document.domain import resource_lookup
 
 with open(config.get_logging_config_file_path(), "r") as f:
     logging_config = yaml.safe_load(f.read())
@@ -53,7 +43,14 @@ with open(config.get_logging_config_file_path(), "r") as f:
 
 logger = logging.getLogger(__name__)
 
-AResource = Union[USFMResource, TAResource, TNResource, TQResource, TWResource]
+# type alias
+AResource = Union[
+    resource.USFMResource,
+    resource.TAResource,
+    resource.TNResource,
+    resource.TQResource,
+    resource.TWResource,
+]
 
 # NOTE Not all languages have tn, tw, tq, tq, udb, ulb. Some
 # have only a subset of those resources. Presumably the web UI
@@ -104,7 +101,9 @@ class DocumentGenerator(object):
         # singleton (or Global Object at module level for
         # Pythonicness) if desired. For now, just passing it to each
         # Resource instance at object creation.
-        lookup_svc: ResourceJsonLookup = ResourceJsonLookup(self.working_dir)
+        lookup_svc: ResourceJsonLookup = resource_lookup.ResourceJsonLookup(
+            self.working_dir
+        )
 
         # Show the dictionary that was passed in.
         logger.debug("resources: {}".format(resources))
@@ -133,7 +132,7 @@ class DocumentGenerator(object):
         for resource in resources:
             # FIXME self.lookup_svc will become a local var: lookup_svc
             self._resources.append(
-                resource_factory(
+                resource.resource_factory(
                     self.working_dir, self.output_dir, lookup_svc, resource
                 )
             )
