@@ -212,8 +212,8 @@ class DocumentGenerator(object):
             subprocess.call(command, shell=True)
 
     def assemble_content(self) -> None:
-        """ Concatenate all the content from all requested resources
-        in the order they were requested and write out to a single
+        """ Concatenate/interleave the content from all requested resources
+        according to the assembly_strategy requested and write out to a single
         HTML file excluding a wrapping HTML and BODY element.
         Precondition: each resource has already generated HTML of its
         body content (sans enclosing HTML and body elements) and
