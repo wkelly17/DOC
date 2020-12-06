@@ -108,10 +108,6 @@ class DocumentGenerator(object):
         # Show the dictionary that was passed in.
         logger.debug("resources: {}".format(resources))
 
-        # FIXME Is this even necessary? I don't think that we will
-        # design this to not provide a working_dir.
-        if not self.working_dir:
-            self.working_dir = tempfile.mkdtemp(prefix="tn-")
         if not self.output_dir:
             self.output_dir = self.working_dir
 
