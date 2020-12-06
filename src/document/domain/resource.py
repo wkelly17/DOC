@@ -108,7 +108,7 @@ class Resource(abc.ABC):
     def __repr__(self) -> str:
         # return vars(self)
         return "Resource(lang_code: {}, resource_type: {}, resource_code: {})".format(
-            self._lang_code, self._resource_type, self._resource_code
+            self.lang_code, self.resource_type, self.resource_code
         )
 
     @property
