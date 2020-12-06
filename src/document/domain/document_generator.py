@@ -32,8 +32,6 @@ import markdown  # type: ignore
 import bs4  # type: ignore
 from usfm_tools.transform import UsfmTransform  # type: ignore
 
-# Handle running in container or as standalone script
-# try:
 from document.utils import file_utils
 from document.domain.resource_lookup import ResourceJsonLookup
 from document import config
@@ -47,43 +45,6 @@ from document.domain.resource import (
     TWResource,
     resource_factory,
 )
-
-# except:
-#     from .document.domain.document_assembler import (
-#         AssemblyStrategy,
-#         VerseAssemblyStrategy,
-#         ChapterAssemblyStrategy,
-#         BookAssemblyStrategy,
-#     )
-#     from .document.utils.file_utils import write_file, read_file, unzip, load_yaml_object, load_json_object  # type: ignore
-#     from .document.domain.bible_books import BOOK_NUMBERS, BOOK_NAMES  # type: ignore
-#     from .document.service_layer.resource_lookup import ResourceJsonLookup
-#     from .document.config import (
-#         get_working_dir,
-#         get_output_dir,
-#         get_logging_config_file_path,
-#         get_icon_url,
-#         get_markdown_resource_types,
-#         get_tex_format_location,
-#         get_tex_template_location,
-#         get_document_html_header,
-#         get_document_html_footer,
-#         get_pandoc_command,
-#     )
-
-#     # from .resource_utils import (
-#     #     resource_has_markdown_files,
-#     #     # files_from_url,
-#     # )
-#     from .document.domain.resource import (
-#         Resource,
-#         USFMResource,
-#         TNResource,
-#         TQResource,
-#         TAResource,
-#         TWResource,
-#         ResourceFactory,
-#     )
 
 
 with open(config.get_logging_config_file_path(), "r") as f:

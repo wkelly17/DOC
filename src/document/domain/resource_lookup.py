@@ -14,8 +14,6 @@ from jsonpath_rw_ext import parse
 import jsonpath_rw_ext as jp
 import urllib.request, urllib.parse, urllib.error
 
-# Handle running in container or as standalone script
-# try:
 from document.utils import file_utils
 from document.utils import url_utils
 from document import config
@@ -29,29 +27,6 @@ from document import config
 #     TAResource,
 # )
 
-# except:
-#     from .document.utils.file_utils import load_json_object  # type: ignore
-#     from .document.utils.url_utils import download_file  # type: ignore
-#     from .document.config import (  # type: ignore
-#         get_translations_json_location,
-#         get_individual_usfm_url_jsonpath,
-#         get_resource_url_level_1_jsonpath,
-#         get_resource_url_level_2_jsonpath,
-#         get_resource_download_format_jsonpath,
-#         get_logging_config_file_path,
-#         get_working_dir,
-#         get_english_repos_dict,
-#     )
-#     from .document.domain.resource import (
-#         Resource,
-#         USFMResource,
-#         TNResource,
-#         TWResource,
-#         TQResource,
-#         TAResource,
-#     )
-
-# from .resource_utils import resource_has_markdown_files
 
 import yaml
 import logging
