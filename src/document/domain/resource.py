@@ -73,7 +73,7 @@ class Resource(abc.ABC):
         # flask will handle each request in its own process. I.e., we
         # need to consider contention over Resources using the same
         # ResourceJsonLookup instance.
-        self._lookup_svc: ResourceJsonLookup = lookup_svc
+        self._lookup_svc = lookup_svc
 
         # FIXME As of Python 3.7 we don't have to initialize the
         # instance variables at declaration time.
