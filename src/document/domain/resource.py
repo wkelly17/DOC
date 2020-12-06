@@ -12,33 +12,17 @@ import tempfile
 from usfm_tools.transform import UsfmTransform  # type: ignore
 import yaml
 
-# Handle running in container or as standalone script
-# try:
-from document.utils.url_utils import download_file  # type: ignore
-from document.utils.file_utils import load_json_object, load_yaml_object, read_file, write_file, unzip  # type: ignore
-from document.domain.bible_books import BOOK_NUMBERS, BOOK_NAMES  # type: ignore
-from document.config import (
-    get_logging_config_file_path,
-    get_markdown_doc_file_names,
-)
+from document.utils import url_utils
+from document.utils import file_utils
+from document.domain import bible_books
+from document import config
 from document.domain.resource_lookup import ResourceJsonLookup
-
-# except:
-#     from .document.utils.url_utils import download_file  # type: ignore
-#     from .document.utils.file_utils import load_json_object, load_yaml_object, read_file, write_file, unzip  # type: ignore
-#     from .document.domain.bible_books import BOOK_NUMBERS, BOOK_NAMES  # type: ignore
-#     from .document.config import (
-#         get_logging_config_file_path,
-#         get_markdown_doc_file_names,
-#     )
-#     from .document.service_layer.resource_lookup import ResourceJsonLookup
-
 import logging
 import logging.config
 
-with open(get_logging_config_file_path(), "r") as f:
-    config = yaml.safe_load(f.read())
-    logging.config.dictConfig(config)
+with open(config.get_logging_config_file_path(), "r") as f:
+    logging_config = yaml.safe_load(f.read())
+    logging.config.dictConfig(logging_config)
 
 logger = logging.getLogger(__name__)
 
@@ -267,7 +251,7 @@ class Resource(abc.ABC):
                         self._resource_url, self._resource_filepath
                     )
                 )
-                download_file(self._resource_url, self._resource_filepath)
+                url_utils.download_file(self._resource_url, self._resource_filepath)
             finally:
                 logger.debug("downloading finished.")
 
@@ -278,7 +262,7 @@ class Resource(abc.ABC):
                         self._resource_filepath, self._resource_dir
                     )
                 )
-                unzip(self._resource_filepath, self._resource_dir)
+                file_utils.unzip(self._resource_filepath, self._resource_dir)
             finally:
                 logger.debug("unzipping finished.")
 
@@ -347,13 +331,13 @@ class Resource(abc.ABC):
 
         if self._manifest_file_path is not None:
             if self._manifest_file_path.suffix == ".yaml":
-                self._manifest = load_yaml_object(self._manifest_file_path)
+                self._manifest = file_utils.load_yaml_object(self._manifest_file_path)
                 self._manifest_type = "yaml"
             elif self._manifest_file_path.suffix == ".txt":
-                self._manifest = load_yaml_object(self._manifest_file_path)
+                self._manifest = file_utils.load_yaml_object(self._manifest_file_path)
                 self._manifest_type = "txt"
             elif self._manifest_file_path.suffix == ".json":
-                self._manifest = load_json_object(self._manifest_file_path)
+                self._manifest = file_utils.load_json_object(self._manifest_file_path)
                 self._manifest_type = "json"
         else:
             logger.debug(
@@ -475,7 +459,7 @@ class Resource(abc.ABC):
                             "{}.md".format(path2),
                         )
                     if os.path.isfile(file_path):
-                        t = read_file(file_path)
+                        t = file_utils.read_file(file_path)
                         title = get_first_header(t)
                         t = self._fix_tw_links(t, path.split("/")[1])
                     else:
@@ -782,8 +766,8 @@ class USFMResource(Resource):
             book_id = self._resource_filename
         self._book_id = book_id.lower()
         logger.debug("book_id for usfm file: {}".format(self._book_id))
-        self._book_title = BOOK_NAMES[self._resource_code]
-        self._book_number = BOOK_NUMBERS[self._book_id]
+        self._book_title = bible_books.BOOK_NAMES[self._resource_code]
+        self._book_number = bible_books.BOOK_NUMBERS[self._book_id]
         logger.debug("book_number for usfm file: {}".format(self._book_number))
 
     # protected
@@ -811,7 +795,7 @@ class USFMResource(Resource):
         #     project: Dict[Any, Any] = p
         #     self._book_id = p["identifier"]
         #     self._book_title = p["title"].replace(" translationNotes", "")
-        #     self._book_number = BOOK_NUMBERS[self._book_id]
+        #     self._book_number = bible_books.BOOK_NUMBERS[self._book_id]
         #     # TODO This likely needs to change because of how we
         #     # build resource_dir
         #     self._filename_base = "{}_tn_{}-{}_v{}".format(
@@ -836,7 +820,7 @@ class USFMResource(Resource):
         #     )
         self._book_id = project["identifier"]
         self._book_title = project["title"].replace(" translationNotes", "")
-        self._book_number = BOOK_NUMBERS[self._book_id]
+        self._book_number = bible_books.BOOK_NUMBERS[self._book_id]
         # TODO This likely needs to change because of how we
         # build resource_dir
         self._filename_base = "{}_tn_{}-{}_v{}".format(
@@ -883,9 +867,9 @@ class USFMResource(Resource):
             project: Dict[Any, Any] = p  # FIXME This is not used
             self._book_id = self._resource_code
             # self._book_id = p["identifier"]
-            self._book_title = BOOK_NAMES[self._resource_code]
+            self._book_title = bible_books.BOOK_NAMES[self._resource_code]
             # self._book_title = p["title"].replace(" translationNotes", "")
-            self._book_number = BOOK_NUMBERS[self._book_id]
+            self._book_number = bible_books.BOOK_NUMBERS[self._book_id]
             # TODO This likely needs to change because of how we
             # build resource_dir
             self._filename_base = "{}_tn_{}-{}_v{}".format(
@@ -928,7 +912,7 @@ class USFMResource(Resource):
                 if p["identifier"] in self._resource_code:
                     return p
                     # if not p["sort"]:
-                    #     p["sort"] = BOOK_NUMBERS[p["identifier"]]
+                    #     p["sort"] = bible_books.BOOK_NUMBERS[p["identifier"]]
                     # projects.append(p)
             # return sorted(projects, key=lambda k: k["sort"])
         else:
@@ -960,7 +944,7 @@ class USFMResource(Resource):
                     and p["identifier"] in self._resource_code
                 ):
                     if not p["sort"]:
-                        p["sort"] = BOOK_NUMBERS[p["identifier"]]
+                        p["sort"] = bible_books.BOOK_NUMBERS[p["identifier"]]
                     projects.append(p)
             return sorted(projects, key=lambda k: k["sort"])
         else:
@@ -986,7 +970,7 @@ class USFMResource(Resource):
             #         and p["identifier"] in self._resource_code
             #     ):
             #         if not p["sort"]:
-            #             p["sort"] = BOOK_NUMBERS[p["identifier"]]
+            #             p["sort"] = bible_books.BOOK_NUMBERS[p["identifier"]]
             #         projects.append(p)
             # return sorted(projects, key=lambda k: k["sort"])
 
@@ -1021,7 +1005,7 @@ class USFMResource(Resource):
             #         and p["identifier"] in self._resource_code
             #     ):
             #         if not p["sort"]:
-            #             p["sort"] = BOOK_NUMBERS[p["identifier"]]
+            #             p["sort"] = bible_books.BOOK_NUMBERS[p["identifier"]]
             #         projects.append(p)
             # return sorted(projects, key=lambda k: k["sort"])
 
@@ -1080,8 +1064,10 @@ class USFMResource(Resource):
             filename,
         )
         # Read the HTML file into _content.
-        self._content = read_file("{}/{}.html".format(self._output_dir, filename))
-        # self._content = read_file("{}/{}.md".format(self._output_dir, filename))
+        self._content = file_utils.read_file(
+            "{}/{}.html".format(self._output_dir, filename)
+        )
+        # self._content = file_utils.read_file("{}/{}.md".format(self._output_dir, filename))
         logger.debug("self._bad_links: {}".format(self._bad_links))
 
     # protected
@@ -1110,7 +1096,7 @@ class USFMResource(Resource):
         #     # of this. Whether or not it is wise to use
         #     # self._content_files instead of the next line is yet to
         #     # be analyzed.
-        #     usfm = read_file(
+        #     usfm = file_utils.read_file(
         #         # self._content_files[0],
         #         os.path.join(
         #             "{}/{}.usfm".format(self._resource_dir, self._resource_filename)
@@ -1125,7 +1111,7 @@ class USFMResource(Resource):
         #             "{}/{}.usfm".format(self._resource_dir, self._resource_filename)
         #         )
         #     )
-        #     usfm = read_file(
+        #     usfm = file_utils.read_file(
         #         os.path.join(
         #             "{}/{}.usfm".format(self._resource_dir, self._resource_filename)
         #         ),
@@ -1137,7 +1123,7 @@ class USFMResource(Resource):
                 "{}/{}.usfm".format(self._resource_dir, self._resource_filename)
             )
         )
-        usfm = read_file(
+        usfm = file_utils.read_file(
             os.path.join(
                 "{}/{}.usfm".format(self._resource_dir, self._resource_filename)
             ),
@@ -1270,8 +1256,8 @@ class TResource(Resource):
             book = match.group(1)
             chapter = match.group(2)
             verse = match.group(3)
-            if book in BOOK_NUMBERS:
-                book_num = BOOK_NUMBERS[book]
+            if book in bible_books.BOOK_NUMBERS:
+                book_num = bible_books.BOOK_NUMBERS[book]
             else:
                 return None
             if int(book_num) > 40:
@@ -1330,12 +1316,12 @@ class TResource(Resource):
         # Get the content files
         markdown_files = list(self._p.glob("**/*.md"))
         markdown_content_files = filter(
-            lambda x: str(x.stem).lower() not in get_markdown_doc_file_names(),
+            lambda x: str(x.stem).lower() not in config.get_markdown_doc_file_names(),
             markdown_files,
         )
         txt_files = list(self._p.glob("**/*.txt"))
         txt_content_files = filter(
-            lambda x: str(x.stem).lower() not in get_markdown_doc_file_names(),
+            lambda x: str(x.stem).lower() not in config.get_markdown_doc_file_names(),
             txt_files,
         )
 
@@ -1551,7 +1537,7 @@ class TNResource(TResource):
         book_has_intro = os.path.isfile(intro_file)
         md = ""
         if book_has_intro:
-            md = read_file(intro_file)
+            md = file_utils.read_file(intro_file)
             title = get_first_header(md)
             # FIXME
             md = self._fix_tn_links(md, "intro")
@@ -1585,7 +1571,7 @@ class TNResource(TResource):
         chapter_has_intro = os.path.isfile(intro_file)
         if chapter_has_intro:
             logger.info("chapter has intro")
-            md = read_file(intro_file)
+            md = file_utils.read_file(intro_file)
             title = get_first_header(md)
             md = self._fix_tn_links(md, chapter)
             md = self._increase_headers(md)
@@ -1665,7 +1651,7 @@ class TNResource(TResource):
                 first_verse
                 # self.book_title, chapter, first_verse
             )
-        md = self._increase_headers(read_file(chunk_file), 3)
+        md = self._increase_headers(file_utils.read_file(chunk_file), 3)
         md = self._decrease_headers(md, 5)  # bring headers of 5 or more #'s down 1
         md = self._fix_tn_links(md, chapter)
         # TODO localization
@@ -1928,7 +1914,7 @@ class TQResource(TResource):
                     chunk_file = os.path.join(chapter_dir, chunk)
                     first_verse = os.path.splitext(chunk)[0].lstrip("0")
                     if os.path.isfile(chunk_file) and re.match(r"^\d+$", first_verse):
-                        md = read_file(chunk_file)
+                        md = file_utils.read_file(chunk_file)
                         md = self._increase_headers(md, 2)
                         md = re.compile("^([^#\n].+)$", flags=re.M).sub(
                             r'\1 [<a href="#tn-{}-{}-{}">{}:{}</a>]'.format(
@@ -2077,7 +2063,7 @@ class TAResource(TResource):
                             "{}/01.md".format(path),
                         )
                     if os.path.isfile(file_path):
-                        t = read_file(file_path)
+                        t = file_utils.read_file(file_path)
                         title_file = os.path.join(
                             os.path.dirname(file_path), "title.md"
                         )
@@ -2085,11 +2071,11 @@ class TAResource(TResource):
                             os.path.dirname(file_path), "sub-title.md"
                         )
                         if os.path.isfile(title_file):
-                            title = read_file(title_file)
+                            title = file_utils.read_file(title_file)
                         else:
                             title = get_first_header(t)
                         if os.path.isfile(question_file):
-                            question = read_file(question_file)
+                            question = file_utils.read_file(question_file)
                             # TODO localization?
                             question = "This page answers the question: *{}*\n\n".format(
                                 question
