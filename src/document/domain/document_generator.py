@@ -90,12 +90,6 @@ class DocumentGenerator(object):
         working_dir: str = config.get_working_dir(),
         output_dir: str = config.get_output_dir(),
     ) -> None:
-        """
-        :param assembly_strategy_key:
-        :param resources:
-        :param working_dir:
-        :param output_dir:
-        """
         # Get the concrete Strategy pattern subclass based on the
         # assembly_strategy key passed in from BIEL's UI
         self.assembly_strategy = assembly_strategy_factory(assembly_strategy_key)

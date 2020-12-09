@@ -96,7 +96,6 @@ class ResourceJsonLookup(ResourceLookup):
         logger.info("JSON file is {}".format(self._json_file))
 
         self._json_data: Dict = {}
-        # NOTE Test running it here instead of in _lookup
         self._get_data()
 
     # protected access level
@@ -233,7 +232,7 @@ class ResourceJsonLookup(ResourceLookup):
         resource._resource_url = url
         return url
 
-    # FIXME This probably should live in a USFMResourceJsonLookup # class.
+    # FIXME This could live in a USFMResourceJsonLookup class.
     @icontract.require(lambda resource: resource.lang_code is not None)
     @icontract.require(lambda resource: resource.resource_type is not None)
     @icontract.require(lambda resource: resource.resource_code is not None)
