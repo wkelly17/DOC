@@ -17,7 +17,7 @@ def get_language_codes():
 def get_language_codes_and_names():
     # print("Request language code, name tuples...")
     url = config.get_api_url()
-    res = requests.get("{url}/language_codes_and_names")
+    res = requests.get(f"{url}/language_codes_and_names")
     return res
     # assert res.ok
     # assert res.json()
