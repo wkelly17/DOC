@@ -20,34 +20,13 @@ import markdown  # type: ignore
 import bs4  # type: ignore
 from usfm_tools.transform import UsfmTransform  # type: ignore
 
-# Handle running in container or as standalone script
-try:
-    from document.utils.file_utils import write_file, read_file, unzip, load_yaml_object  # type: ignore
-    from document.utils.url_utils import download_file  # type: ignore
-    from document.domain.bible_books import BOOK_NUMBERS  # type: ignore
-    from document.domain.resource_lookup import ResourceJsonLookup
-    from document.config import (
-        get_working_dir,
-        get_output_dir,
-        get_logging_config_file_path,
-    )
-    from document.domain.document_generator import DocumentGenerator
-except:
-    from .document.utils.file_utils import write_file, read_file, unzip, load_yaml_object  # type: ignore
-    from .document.utils.url_utils import download_file  # type: ignore
-    from .document.domain.bible_books import BOOK_NUMBERS  # type: ignore
-    from .document.domain.resource_lookup import ResourceJsonLookup
-    from .document.config import (
-        get_working_dir,
-        get_output_dir,
-        get_logging_config_file_path,
-    )
-    from .document.domain.document_generator import DocumentGenerator
+from document import config
+from document.domain import document_generator
 
 
-with open(get_logging_config_file_path(), "r") as f:
-    config = yaml.safe_load(f.read())
-    logging.config.dictConfig(config)
+with open(config.get_logging_config_file_path(), "r") as f:
+    logging_config = yaml.safe_load(f.read())
+    logging.config.dictConfig(logging_config)
 
 logger = logging.getLogger(__name__)
 
@@ -73,10 +52,10 @@ def main():
 
     payload["assembly_strategy"] = "book"  # verse, chapter, book
 
-    document_generator = DocumentGenerator(
+    doc_gen = document_generator.DocumentGenerator(
         payload["assembly_strategy"], payload["resources"]
     )
-    document_generator.run()
+    doc_gen.run()
 
 
 if __name__ == "__main__":

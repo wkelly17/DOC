@@ -34,7 +34,14 @@ from usfm_tools.transform import UsfmTransform  # type: ignore
 
 from document import config
 from document.utils import file_utils
-from document.domain import resource
+from document.domain.resource import (
+    USFMResource,
+    TNResource,
+    TQResource,
+    TAResource,
+    TWResource,
+    resource_factory,
+)
 from document.domain import resource_lookup
 
 with open(config.get_logging_config_file_path(), "r") as f:
@@ -44,13 +51,7 @@ with open(config.get_logging_config_file_path(), "r") as f:
 logger = logging.getLogger(__name__)
 
 # type alias
-AResource = Union[
-    resource.USFMResource,
-    resource.TAResource,
-    resource.TNResource,
-    resource.TQResource,
-    resource.TWResource,
-]
+AResource = Union[USFMResource, TAResource, TNResource, TQResource, TWResource]
 
 # NOTE Not all languages have tn, tw, tq, tq, udb, ulb. Some
 # have only a subset of those resources. Presumably the web UI

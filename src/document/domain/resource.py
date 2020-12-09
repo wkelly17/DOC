@@ -16,7 +16,7 @@ from document.utils import url_utils
 from document.utils import file_utils
 from document.domain import bible_books
 from document import config
-from document.domain.resource_lookup import ResourceJsonLookup
+from document.domain import resource_lookup
 import logging
 import logging.config
 
@@ -51,7 +51,7 @@ class Resource(abc.ABC):
         self,
         working_dir: str,
         output_dir: str,
-        lookup_svc: ResourceJsonLookup,
+        lookup_svc: resource_lookup.ResourceJsonLookup,
         resource: dict,
     ) -> None:
         self._working_dir: str = working_dir
@@ -628,7 +628,7 @@ class USFMResource(Resource):
         self,
         working_dir: str,
         output_dir: str,
-        lookup_svc: ResourceJsonLookup,
+        lookup_svc: resource_lookup.ResourceJsonLookup,
         resource: dict,
     ) -> None:
         # I am not sure if this is the right design to call the
@@ -1191,7 +1191,7 @@ class TResource(Resource):
         self,
         working_dir: str,
         output_dir: str,
-        lookup_svc: ResourceJsonLookup,
+        lookup_svc: resource_lookup.ResourceJsonLookup,
         resource: Dict,
     ) -> None:
         super().__init__(working_dir, output_dir, lookup_svc, resource)
@@ -1357,7 +1357,7 @@ class TNResource(TResource):
         self,
         working_dir: str,
         output_dir: str,
-        lookup_svc: ResourceJsonLookup,
+        lookup_svc: resource_lookup.ResourceJsonLookup,
         resource: Dict,
     ) -> None:
         super().__init__(working_dir, output_dir, lookup_svc, resource)
@@ -1766,7 +1766,7 @@ class TWResource(TResource):
         self,
         working_dir: str,
         output_dir: str,
-        lookup_svc: ResourceJsonLookup,
+        lookup_svc: resource_lookup.ResourceJsonLookup,
         resource: Dict,
     ) -> None:
         super().__init__(working_dir, output_dir, lookup_svc, resource)
@@ -1844,7 +1844,7 @@ class TQResource(TResource):
         self,
         working_dir: str,
         output_dir: str,
-        lookup_svc: ResourceJsonLookup,
+        lookup_svc: resource_lookup.ResourceJsonLookup,
         resource: Dict,
     ) -> None:
         super().__init__(working_dir, output_dir, lookup_svc, resource)
@@ -1959,7 +1959,7 @@ class TAResource(TResource):
         self,
         working_dir: str,
         output_dir: str,
-        lookup_svc: ResourceJsonLookup,
+        lookup_svc: resource_lookup.ResourceJsonLookup,
         resource: Dict,
     ) -> None:
         super().__init__(working_dir, output_dir, lookup_svc, resource)
@@ -2130,7 +2130,10 @@ class TAResource(TResource):
 # how to retrieve a value differently based on its value. I think,
 # however, that this will not be needed.
 def resource_factory(
-    working_dir: str, output_dir: str, lookup_svc: ResourceJsonLookup, resource: Dict
+    working_dir: str,
+    output_dir: str,
+    lookup_svc: resource_lookup.ResourceJsonLookup,
+    resource: dict,
 ) -> Union[USFMResource, TAResource, TNResource, TQResource, TWResource]:
     """ Factory method. """
     resources = {
