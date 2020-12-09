@@ -20,6 +20,7 @@ from document.utils import url_utils
 from document import config
 
 # https://www.python.org/dev/peps/pep-0563/
+# https://www.stefaanlippens.net/circular-imports-type-hints-python.html
 # Python 3.7 now allows type checks to not be evaluated at function or
 # class definition time which in turn solves the issue of circular
 # imports which using type hinting/checking can create. Circular imports
@@ -31,6 +32,8 @@ from document import config
 # without resorting to putting everything in one module or using
 # function-embedded imports, yuk. Note that you must use the import
 # ___future__ annotations to make this work as of now, Dec 9, 2020.
+# IF you care, here is how Python got here:
+# https://github.com/python/typing/issues/105
 if TYPE_CHECKING:
     from document.domain.resource import (
         Resource,
@@ -231,7 +234,9 @@ class ResourceJsonLookup(ResourceLookup):
         resource._resource_url = url
         return url
 
-    # FIXME This could live in a USFMResourceJsonLookup class.
+    # FIXME This could live in a USFMResourceJsonLookup class if we
+    # decide to break ResourceJsonLookup up into more specialized
+    # classes per resource type.
     @icontract.require(lambda resource: resource.lang_code is not None)
     @icontract.require(lambda resource: resource.resource_type is not None)
     @icontract.require(lambda resource: resource.resource_code is not None)
