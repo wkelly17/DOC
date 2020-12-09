@@ -96,7 +96,6 @@ class ResourceJsonLookup(ResourceLookup):
         logger.info("JSON file is {}".format(self._json_file))
 
         self._json_data: Dict = {}
-        self._get_data()
 
     # protected access level
     @icontract.require(lambda self: self._json_file_url is not None)
@@ -386,7 +385,7 @@ class ResourceJsonLookup(ResourceLookup):
     @icontract.ensure(lambda result: result is not None)
     def _lookup(self, jsonpath: str,) -> List[str]:
         """ Return jsonpath value or empty list if node doesn't exist. """
-        # self._get_data()
+        self._get_data()
         logger.info("jsonpath: {}".format(jsonpath))
         value: List[str] = jp.match(
             jsonpath, self._json_data,
