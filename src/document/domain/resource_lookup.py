@@ -419,6 +419,7 @@ class ResourceJsonLookup(ResourceLookup):
         set of all language codes available through API. Presumably
         this could be called to populate a dropdown menu. """
         codes: List[str] = []
+        self._get_data()
         for lang in self._json_data:
             codes.append(lang["code"])
         return codes
@@ -431,7 +432,7 @@ class ResourceJsonLookup(ResourceLookup):
         set of all language code, name tuples available through API.
         Presumably this could be called to populate a dropdown menu.
         """
-        # self._get_data()
+        self._get_data()
         codes_and_names: List[Tuple[str, str]] = []
         # Using jsonpath in a loop here was prohibitively slow so we
         # use the dictionary in this case.
@@ -444,6 +445,7 @@ class ResourceJsonLookup(ResourceLookup):
     def resource_types(self) -> List[str]:
         """ Convenience method that can be called, e.g., from the UI,
         to get the set of all resource types. """
+        self._get_data()
         return self._lookup("$[*].contents[*].code")
 
     @icontract.ensure(lambda result: result is not None)
@@ -451,4 +453,5 @@ class ResourceJsonLookup(ResourceLookup):
     def resource_codes(self) -> List[str]:
         """ Convenience method that can be called, e.g., from the UI,
         to get the set of all resource codes. """
+        self._get_data()
         return self._lookup("$[*].contents[*].subcontents[*].code")
