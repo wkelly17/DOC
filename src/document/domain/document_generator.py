@@ -92,7 +92,7 @@ class DocumentGenerator(object):
     ) -> None:
         # Get the concrete Strategy pattern subclass based on the
         # assembly_strategy key passed in from BIEL's UI
-        self.assembly_strategy = assembly_strategy_factory(assembly_strategy_key)
+        self.assembly_strategy: func = assembly_strategy_factory(assembly_strategy_key)
         self.working_dir = working_dir
         self.output_dir = output_dir
         # The Markdown and later HTML for the document which is composed of the Markdown and later HTML for each resource.
