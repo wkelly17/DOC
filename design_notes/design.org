@@ -263,7 +263,11 @@ then
 # envs. With pipenv as you probably know, this will make a virtual env
 # only install of the requirements only accessible after: pipenv
 # shell.
-pip install -r requirements.txt
+pip install -r depends/requirements.txt
+#+end_src
+
+#+begin_src shell
+pip install -e src/
 #+end_src
 
 *** Run demo outside Docker container (faster)
@@ -271,7 +275,7 @@ pip install -r requirements.txt
 In pipenv or virtualenv shell:
 
 #+begin_src shell
-python -m test_resource_lookup
+python -m tests.test_resource_lookup
 #+end_src
 
 You should see a lot of output resulting from the tests doing various
@@ -280,13 +284,13 @@ needed.
 **** For =document_generator.py= (used to be named =export_md_to_pdf.py=):
 
 #+begin_src shell
-python -m test_document_generator
+python -m tests.test_document_generator
 #+end_src
 
 This will go a long ways, but eventually die before generating a final
 document.
 
-**** For testing the web service front end do:
+**** TODO For testing the web service front end do:
 
     1. First, run the web server
 
@@ -302,7 +306,7 @@ python -m test_flask
 
 This will run HTTP web client tests that exercise the web service.
 
-*** For demo inside the Docker container (slower):
+*** TODO For demo inside the Docker container (slower):
 
 - Get the docker container source:
 
