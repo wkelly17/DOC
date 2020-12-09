@@ -129,7 +129,7 @@ class DocumentGenerator(object):
         for resource in resources:
             # FIXME self.lookup_svc will become a local var: lookup_svc
             self._resources.append(
-                resource.resource_factory(
+                resource_factory(
                     self.working_dir, self.output_dir, lookup_svc, resource
                 )
             )
@@ -382,4 +382,4 @@ def assembly_strategy_factory(
         # "chapter": ChapterAssemblyStrategy,
         "book": assemble_content_by_book,
     }
-    return strategies[assembly_strategy_key]()
+    return strategies[assembly_strategy_key]
