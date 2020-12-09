@@ -27,9 +27,9 @@ def get_working_dir() -> str:
     generated automatically. """
     dir: str = ""
     if os.environ.get("IN_CONTAINER"):
-        dir = os.environ.get("IRG_WORKING_DIR", "working/temp")
+        dir = os.environ.get("IRG_WORKING_DIR", "/working/temp")
     else:
-        dir = os.environ.get("IRG_WORKING_DIR", "../working/temp")
+        dir = os.environ.get("IRG_WORKING_DIR", "working/temp")
     return dir
 
 
@@ -37,9 +37,9 @@ def get_output_dir() -> str:
     """ The directory where the generated documents are placed. """
     dir: str = ""
     if os.environ.get("IN_CONTAINER"):
-        dir = os.environ.get("IRG_OUTPUT_DIR", "working/temp")
+        dir = os.environ.get("IRG_OUTPUT_DIR", "/working/temp")
     else:
-        dir = os.environ.get("IRG_OUTPUT_DIR", "../working/temp")
+        dir = os.environ.get("IRG_OUTPUT_DIR", "working/temp")
     return dir
 
 
@@ -85,7 +85,7 @@ def get_logging_config_file_path() -> str:
     if os.environ.get("IN_CONTAINER"):
         filepath = os.environ.get("LOGGING_CONFIG", "document/logging_config.yaml")
     else:
-        filepath = "document/logging_config.yaml"
+        filepath = "src/document/logging_config.yaml"
     return filepath
 
 
