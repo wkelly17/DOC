@@ -84,10 +84,6 @@ class ResourceJsonLookup(ResourceLookup):
         self._working_dir = working_dir
         self._json_file_url = json_file_url
 
-        if not self._working_dir:
-            logger.info("Creating working dir")
-            self._working_dir = tempfile.mkdtemp(prefix="json_")
-
         logger.info("Working dir is {}".format(self._working_dir))
 
         self._json_file = pathlib.Path(
