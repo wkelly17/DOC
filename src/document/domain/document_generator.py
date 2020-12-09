@@ -10,7 +10,8 @@
 XFIXME This script exports tN into HTML format from DCS and generates a PDF from the HTML
 """
 
-from typing import Any, Callable, Dict, List, Optional, Union
+from __future__ import annotations  # https://www.python.org/dev/peps/pep-0563/
+from typing import Any, Callable, Dict, List, Optional, TYPE_CHECKING, Union
 import os
 import sys
 import re
@@ -34,14 +35,24 @@ from usfm_tools.transform import UsfmTransform  # type: ignore
 
 from document import config
 from document.utils import file_utils
-from document.domain.resource import (
-    USFMResource,
-    TNResource,
-    TQResource,
-    TAResource,
-    TWResource,
-    resource_factory,
-)
+
+if TYPE_CHECKING:
+    from document.domain.resource import (
+        Resource,
+        USFMResource,
+        TNResource,
+        TWResource,
+        TQResource,
+        TAResource,
+    )
+
+    # Define type alias for brevity
+    AResource = Union[USFMResource, TAResource, TNResource, TQResource, TWResource]
+
+# This is always needed and thus is not included in the TYPE_CHECKING
+# protected import above.
+from document.domain.resource import resource_factory
+
 from document.domain import resource_lookup
 
 with open(config.get_logging_config_file_path(), "r") as f:
@@ -50,8 +61,6 @@ with open(config.get_logging_config_file_path(), "r") as f:
 
 logger = logging.getLogger(__name__)
 
-# type alias
-AResource = Union[USFMResource, TAResource, TNResource, TQResource, TWResource]
 
 # NOTE Not all languages have tn, tw, tq, tq, udb, ulb. Some
 # have only a subset of those resources. Presumably the web UI
