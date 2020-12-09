@@ -59,12 +59,12 @@ class Resource(abc.ABC):
         self._resource: dict = resource
 
         # self._lang_code: str = resource["lang_code"]
-        # self._resource_type: str = resource["resource_type"]
+        # self.resource_type: str = resource["resource_type"]
         # self._resource_code: str = resource["resource_code"]
 
-        # self._resource_dir: str = os.path.join(
-        #     self.working_dir, "{}_{}".format(self.lang_code, self.resource_type)
-        # )
+        self._resource_dir: str = os.path.join(
+            self.working_dir, "{}_{}".format(self.lang_code, self.resource_type)
+        )
         # self._p: pathlib.Path = pathlib.Path(self._resource_dir)
 
         # NOTE We actually want to pass in the lookup_svc, not create
@@ -137,6 +137,10 @@ class Resource(abc.ABC):
             self.working_dir, "{}_{}".format(self.lang_code, self.resource_type)
         )
 
+    @resource_dir.setter
+    def resource_dir(self, value) -> None:
+        self._resource_dir = value
+
     @property
     def resource_dir_path(self) -> pathlib.Path:
         return pathlib.Path(self.resource_dir)
@@ -170,20 +174,20 @@ class Resource(abc.ABC):
         self._acquire_resource()
 
     # protected
-    @icontract.ensure(lambda self: os.path.exists(self._resource_dir))
+    @icontract.ensure(lambda self: os.path.exists(self.resource_dir))
     def _prepare_resource_directory(self) -> None:
         """ If it doesn't exist yet, create the directory for the
         resource where it will be downloaded to. """
 
         logger.debug("os.getcwd(): {}".format(os.getcwd()))
-        if not os.path.exists(self._resource_dir):
-            logger.debug("About to create directory {}".format(self._resource_dir))
+        if not os.path.exists(self.resource_dir):
+            logger.debug("About to create directory {}".format(self.resource_dir))
             try:
-                os.mkdir(self._resource_dir)
-                logger.debug("Created directory {}".format(self._resource_dir))
+                os.mkdir(self.resource_dir)
+                logger.debug("Created directory {}".format(self.resource_dir))
             except:
                 logger.exception(
-                    "Failed to create directory {}".format(self._resource_dir)
+                    "Failed to create directory {}".format(self.resource_dir)
                 )
 
     # protected
@@ -194,11 +198,11 @@ class Resource(abc.ABC):
         if self._is_git():
             filename: str = self._resource_url.rpartition(os.path.sep)[2]
             # Git repo has an extra layer of depth directory
-            self._resource_dir = os.path.join(self._resource_dir, filename)
+            self.resource_dir = os.path.join(self.resource_dir, filename)
 
     # protected
-    @icontract.require(lambda self: self._resource_type is not None)
-    @icontract.require(lambda self: self._resource_dir is not None)
+    @icontract.require(lambda self: self.resource_type is not None)
+    @icontract.require(lambda self: self.resource_dir is not None)
     @icontract.require(lambda self: self._resource_url is not None)
     @icontract.ensure(lambda self: self._resource_filepath is not None)
     @icontract.ensure(lambda self: os.path.exists(self._resource_filepath))
@@ -214,12 +218,12 @@ class Resource(abc.ABC):
         # the (updated) resource:
         # os.path.join(resource["resource_dir"], resource["resource_type"])
         logger.debug(
-            "os.path.join(self._resource_dir, self._resource_type): {}".format(
-                os.path.join(self._resource_dir, self._resource_type)
+            "os.path.join(self.resource_dir, self.resource_type): {}".format(
+                os.path.join(self.resource_dir, self.resource_type)
             )
         )
         self._resource_filepath = os.path.join(
-            self._resource_dir, self._resource_url.rpartition(os.path.sep)[2]
+            self.resource_dir, self._resource_url.rpartition(os.path.sep)[2]
         )
         logger.debug(
             "Using file location, _resource_filepath: {}".format(
@@ -314,8 +318,8 @@ class Resource(abc.ABC):
         if it exists. Subclasses specialize this method to
         additionally initialize other disk layout related properties.
         """
-        logger.debug("self._p: {}".format(self._p))
-        manifest_file_list = list(self._p.glob("**/manifest.*"))
+        logger.debug("self.resource_dir_path: {}".format(self.resource_dir_path))
+        manifest_file_list = list(self.resource_dir_path.glob("**/manifest.*"))
         self._manifest_file_path = (
             None if len(manifest_file_list) == 0 else list(manifest_file_list)[0]
         )
@@ -342,7 +346,7 @@ class Resource(abc.ABC):
         else:
             logger.debug(
                 "manifest file does not exist for resource {}.".format(
-                    self._resource_type
+                    self.resource_type
                 )
             )
 
@@ -432,13 +436,13 @@ class Resource(abc.ABC):
                 try:
                     file_path = os.path.join(
                         self._working_dir,
-                        "{}_{}".format(self._lang_code, resource_tmp),
+                        "{}_{}".format(self.lang_code, resource_tmp),
                         "{}.md".format(path),
                     )
                     if not os.path.isfile(file_path):
                         file_path = os.path.join(
                             self._working_dir,
-                            "{}_{}".format(self._lang_code, resource_tmp),
+                            "{}_{}".format(self.lang_code, resource_tmp),
                             "{}/01.md".format(path),
                         )
                     if not os.path.isfile(file_path):
@@ -455,7 +459,7 @@ class Resource(abc.ABC):
                         link = "#{}".format(anchor_id)
                         file_path = os.path.join(
                             self._working_dir,
-                            "{}_{}".format(self._lang_code, resource_tmp),
+                            "{}_{}".format(self.lang_code, resource_tmp),
                             "{}.md".format(path2),
                         )
                     if os.path.isfile(file_path):
@@ -488,10 +492,10 @@ class Resource(abc.ABC):
     def _fix_tw_links(self, text: str, dictionary) -> str:
         rep = {
             r"\]\(\.\./([^/)]+?)(\.md)*\)": r"](rc://{}/tw/dict/bible/{}/\1)".format(
-                self._lang_code, dictionary
+                self.lang_code, dictionary
             ),
             r"\]\(\.\./([^)]+?)(\.md)*\)": r"](rc://{}/tw/dict/bible/\1)".format(
-                self._lang_code
+                self.lang_code
             ),
         }
         for pattern, repl in rep.items():
@@ -712,10 +716,10 @@ class USFMResource(Resource):
         # instead?
         super()._discover_manifest()
 
-        usfm_content_files = list(self._p.glob("**/*.usfm"))
+        usfm_content_files = list(self.resource_dir_path.glob("**/*.usfm"))
         # markdown_files = list(q.glob("**/*.md"))
         # USFM files sometimes have txt suffix
-        txt_content_files = list(self._p.glob("**/*.txt"))
+        txt_content_files = list(self.resource_dir_path.glob("**/*.txt"))
         # Find the manifest file, if any
 
         # logger.debug("usfm_content_files: {}".format(usfm_content_files))
@@ -725,7 +729,7 @@ class USFMResource(Resource):
             # in the resource request.
             self._content_files = list(
                 filter(
-                    lambda x: self._resource_code.lower() in str(x).lower(),
+                    lambda x: self.resource_code.lower() in str(x).lower(),
                     usfm_content_files,
                 )
             )
@@ -734,21 +738,21 @@ class USFMResource(Resource):
             # in the resource request.
             self._content_files = list(
                 filter(
-                    lambda x: self._resource_code.lower() in str(x).lower(),
+                    lambda x: self.resource_code.lower() in str(x).lower(),
                     txt_content_files,
                 )
             )
 
         logger.debug(
             "self._content_files for {}: {}".format(
-                self._resource_code, self._content_files,
+                self.resource_code, self._content_files,
             )
         )
 
     # protected
     # FIXME This is game for rewrite or removal considering new
     # approach in _discover_layout using pathlib.
-    @icontract.require(lambda self: self._resource_code is not None)
+    @icontract.require(lambda self: self.resource_code is not None)
     @icontract.require(lambda self: self._resource_filename is not None)
     @icontract.ensure(lambda self: self._book_id is not None)
     @icontract.ensure(lambda self: self._book_number is not None)
@@ -766,7 +770,7 @@ class USFMResource(Resource):
             book_id = self._resource_filename
         self._book_id = book_id.lower()
         logger.debug("book_id for usfm file: {}".format(self._book_id))
-        self._book_title = bible_books.BOOK_NAMES[self._resource_code]
+        self._book_title = bible_books.BOOK_NAMES[self.resource_code]
         self._book_number = bible_books.BOOK_NUMBERS[self._book_id]
         logger.debug("book_number for usfm file: {}".format(self._book_number))
 
@@ -812,7 +816,7 @@ class USFMResource(Resource):
         #     # self._my_rcs = []
         #     logger.debug(
         #         "Creating {} for {} ({}-{})...".format(
-        #             self._resource_type,
+        #             self.resource_type,
         #             self._book_title,
         #             self._book_number,
         #             self._book_id.upper(),
@@ -824,7 +828,7 @@ class USFMResource(Resource):
         # TODO This likely needs to change because of how we
         # build resource_dir
         self._filename_base = "{}_tn_{}-{}_v{}".format(
-            self._lang_code,
+            self.lang_code,
             self._book_number.zfill(2),
             self._book_id.upper(),  # FIXME This could blow up if book requested doesn't exist
             self._version,
@@ -837,7 +841,7 @@ class USFMResource(Resource):
         # self._my_rcs = []
         logger.debug(
             "Creating {} for {} ({}-{})...".format(
-                self._resource_type,
+                self.resource_type,
                 self._book_title,
                 self._book_number,
                 self._book_id.upper(),
@@ -865,15 +869,15 @@ class USFMResource(Resource):
         logger.debug("book projects: {}".format(projects))
         for p in projects:
             project: Dict[Any, Any] = p  # FIXME This is not used
-            self._book_id = self._resource_code
+            self._book_id = self.resource_code
             # self._book_id = p["identifier"]
-            self._book_title = bible_books.BOOK_NAMES[self._resource_code]
+            self._book_title = bible_books.BOOK_NAMES[self.resource_code]
             # self._book_title = p["title"].replace(" translationNotes", "")
             self._book_number = bible_books.BOOK_NUMBERS[self._book_id]
             # TODO This likely needs to change because of how we
             # build resource_dir
             self._filename_base = "{}_tn_{}-{}_v{}".format(
-                self._lang_code,
+                self.lang_code,
                 self._book_number.zfill(2),
                 self._book_id.upper(),
                 self._version,
@@ -887,7 +891,7 @@ class USFMResource(Resource):
             # self._my_rcs = []
             logger.debug(
                 "Creating {} for {} ({}-{})...".format(
-                    self._resource_type,
+                    self.resource_type,
                     self._book_title,
                     self._book_number,
                     self._book_id.upper(),
@@ -909,7 +913,7 @@ class USFMResource(Resource):
             # specified by the user, or, 2) only those books that
             # matched the books requested from the command line.
             for p in self._manifest["projects"]:
-                if p["identifier"] in self._resource_code:
+                if p["identifier"] in self.resource_code:
                     return p
                     # if not p["sort"]:
                     #     p["sort"] = bible_books.BOOK_NUMBERS[p["identifier"]]
@@ -940,8 +944,8 @@ class USFMResource(Resource):
             # matched the books requested from the command line.
             for p in self._manifest["projects"]:
                 if (
-                    self._resource_code is not None  # _resource_code is never none
-                    and p["identifier"] in self._resource_code
+                    self.resource_code is not None  # _resource_code is never none
+                    and p["identifier"] in self.resource_code
                 ):
                     if not p["sort"]:
                         p["sort"] = bible_books.BOOK_NUMBERS[p["identifier"]]
@@ -975,7 +979,7 @@ class USFMResource(Resource):
             # return sorted(projects, key=lambda k: k["sort"])
 
             for p in self._manifest["finished_chunks"]:
-                if p["identifier"] in self._resource_code:
+                if p["identifier"] in self.resource_code:
                     return p
                 # projects.append(p)
             # return projects
@@ -1032,8 +1036,8 @@ class USFMResource(Resource):
     @icontract.ensure(lambda self: self._filename_base is not None)
     def _initialize_filename_base(self) -> None:
         self._filename_base = "{}_{}_{}-{}".format(
-            self._lang_code,
-            self._resource_type,
+            self.lang_code,
+            self.resource_type,
             self._book_number.zfill(2),
             self._book_id.upper(),
         )
@@ -1048,7 +1052,7 @@ class USFMResource(Resource):
         # logger.debug("self._resource_filename: {}".format(self._resource_filename))
 
         filename = "{}_{}_{}".format(
-            self._lang_code, self._resource_type, self._resource_filename,
+            self.lang_code, self.resource_type, self._resource_filename,
         )
         assert filename is not None, "filename cannot be None"
         logger.debug(
@@ -1314,12 +1318,12 @@ class TResource(Resource):
         super()._discover_manifest()
 
         # Get the content files
-        markdown_files = list(self._p.glob("**/*.md"))
+        markdown_files = list(self.resource_dir_path.glob("**/*.md"))
         markdown_content_files = filter(
             lambda x: str(x.stem).lower() not in config.get_markdown_doc_file_names(),
             markdown_files,
         )
-        txt_files = list(self._p.glob("**/*.txt"))
+        txt_files = list(self.resource_dir_path.glob("**/*.txt"))
         txt_content_files = filter(
             lambda x: str(x.stem).lower() not in config.get_markdown_doc_file_names(),
             txt_files,
@@ -1328,20 +1332,20 @@ class TResource(Resource):
         if len(list(markdown_content_files)) > 0:
             self._content_files = list(
                 filter(
-                    lambda x: self._resource_code.lower() in str(x).lower(),
+                    lambda x: self.resource_code.lower() in str(x).lower(),
                     markdown_files,
                 )
             )
         if len(list(txt_content_files)) > 0:
             self._content_files = list(
                 filter(
-                    lambda x: self._resource_code.lower() in str(x).lower(), txt_files,
+                    lambda x: self.resource_code.lower() in str(x).lower(), txt_files,
                 )
             )
 
         logger.debug(
             "self._content_files for {}: {}".format(
-                self._resource_code, self._content_files,
+                self.resource_code, self._content_files,
             )
         )
 
@@ -1398,7 +1402,7 @@ class TNResource(TResource):
 
         # TODO Might need localization
         # tn_md = '# Translation Notes\n<a id="tn-{}"/>\n\n'.format(self._book_id)
-        tn_md = '# Translation Notes\n<a id="tn-{}"/>\n\n'.format(self._resource_code)
+        tn_md = '# Translation Notes\n<a id="tn-{}"/>\n\n'.format(self.resource_code)
 
         book_has_intro, tn_md_intro = self._initialize_tn_book_intro(book_dir)
         tn_md += tn_md_intro
@@ -1499,23 +1503,22 @@ class TNResource(TResource):
     def _get_book_dir(self) -> str:
         if os.path.isdir(
             os.path.join(
-                self._resource_dir,
-                "{}_{}".format(self._lang_code, self._resource_type),
+                self._resource_dir, "{}_{}".format(self.lang_code, self.resource_type),
             )
         ):
             logger.debug(
                 "Here is the directory we expect: {}".format(
                     os.path.join(
                         self._resource_dir,
-                        "{}_{}".format(self._lang_code, self._resource_type),
+                        "{}_{}".format(self.lang_code, self.resource_type),
                     )
                 )
             )
             # logger.debug(
-            #     "self._resource_dir: {}, self._lang_code: {}, self._resource_type: {}, self._book_id: {}, self._resource_code: {}".format(
+            #     "self._resource_dir: {}, self._lang_code: {}, self.resource_type: {}, self._book_id: {}, self._resource_code: {}".format(
             #         self._resource_dir,
             #         self._lang_code,
-            #         self._resource_type,
+            #         self.resource_type,
             #         self._book_id,
             #         self._resource_code,
             #     )
@@ -1523,13 +1526,13 @@ class TNResource(TResource):
             # FIXME self._book_id can be None here
             book_dir = os.path.join(
                 self._resource_dir,
-                "{}_{}".format(self._lang_code, self._resource_type),
+                "{}_{}".format(self.lang_code, self.resource_type),
                 # # self._book_id,
                 # self._resource_code,
             )
         else:
             # book_dir = os.path.join(self._resource_dir, self._book_id)
-            book_dir = os.path.join(self._resource_dir, self._resource_code)
+            book_dir = os.path.join(self.resource_dir, self.resource_code)
         return book_dir
 
     def _initialize_tn_book_intro(self, book_dir: str) -> Tuple[bool, str]:
@@ -1548,7 +1551,7 @@ class TNResource(TResource):
             id_tag = '<a id="tn-{0}-front-intro"/>'.format(self._book_id)
             md = re.compile(r"# ([^\n]+)\n").sub(r"# \1\n{0}\n".format(id_tag), md, 1)
             rc = "rc://{0}/tn/help/{1}/front/intro".format(
-                self._lang_code, self._book_id
+                self.lang_code, self._book_id
             )
             anchor_id = "tn-{}-front-intro".format(self._book_id)
             # FIXME This proaably will blow up.
@@ -1583,7 +1586,7 @@ class TNResource(TResource):
             )
             md = re.compile(r"# ([^\n]+)\n").sub(r"# \1\n{}\n".format(id_tag), md, 1)
             rc = "rc://{}/tn/help/{}/{}/intro".format(
-                self._lang_code, self._book_id, self._pad(chapter),
+                self.lang_code, self._book_id, self._pad(chapter),
             )
             anchor_id = "tn-{}-{}-intro".format(self._book_id, self._pad(chapter))
             self._resource_data[rc] = {
@@ -1610,13 +1613,13 @@ class TNResource(TResource):
                 # TODO localization
             ): "**[2 Thessalonians intro](../front/intro.md)**",
             r"\]\(\.\./\.\./([^)]+?)(\.md)*\)": r"](rc://{}/tn/help/\1)".format(
-                self._lang_code
+                self.lang_code
             ),
             r"\]\(\.\./([^)]+?)(\.md)*\)": r"](rc://{}/tn/help/{}/\1)".format(
-                self._lang_code, self._book_id
+                self.lang_code, self._book_id
             ),
             r"\]\(\./([^)]+?)(\.md)*\)": r"](rc://{}/tn/help/{}/{}/\1)".format(
-                self._lang_code, self._book_id, self._pad(chapter),
+                self.lang_code, self._book_id, self._pad(chapter),
             ),
             r"\n__.*\|.*": r"",
         }
@@ -1718,14 +1721,14 @@ class TNResource(TResource):
 
         # TODO localization
         md = "### Unlocked Dynamic Bible\n\n[[udb://{}/{}/{}/{}/{}]]\n\n".format(
-            self._lang_code,
+            self.lang_code,
             self._book_id,
             self._pad(chapter),
             self._pad(udb_first_verse),
             self._pad(last_verse),
         )
         rc = "rc://{}/tn/help/{}/{}/{}".format(
-            self._lang_code, self._book_id, self._pad(chapter), self._pad(first_verse),
+            self.lang_code, self._book_id, self._pad(chapter), self._pad(first_verse),
         )
         anchor_id = "tn-{}-{}-{}".format(
             self._book_id, self._pad(chapter), self._pad(first_verse),
@@ -1749,14 +1752,14 @@ class TNResource(TResource):
         links = "### Links:\n\n"
         if book_has_intro:
             links += "* [[rc://{}/tn/help/{}/front/intro]]\n".format(
-                self._lang_code, self._book_id
+                self.lang_code, self._book_id
             )
         if chapter_has_intro:
             links += "* [[rc://{0}/tn/help/{1}/{2}/intro]]\n".format(
-                self._lang_code, self._book_id, self._pad(chapter),
+                self.lang_code, self._book_id, self._pad(chapter),
             )
         links += "* [[rc://{0}/tq/help/{1}/{2}]]\n".format(
-            self._lang_code, self._book_id, self._pad(chapter),
+            self.lang_code, self._book_id, self._pad(chapter),
         )
         return links
 
@@ -1881,7 +1884,7 @@ class TQResource(TResource):
         tq_md = '# Translation Questions\n<a id="tq-{}"/>\n\n'.format(self._book_id)
         # TODO localization
         title = "{} Translation Questions".format(self._book_title)
-        rc = "rc://{}/tq/help/{}".format(self._lang_code, self._book_id)
+        rc = "rc://{}/tq/help/{}".format(self.lang_code, self._book_id)
         anchor_id = "tq-{}".format(self._book_id)
         self._resource_data[rc] = {
             "rc": rc,
@@ -1900,7 +1903,7 @@ class TQResource(TResource):
                 # TODO localization
                 title = "{} {} Translation Questions".format(self._book_title, chapter)
                 rc = "rc://{}/tq/help/{}/{}".format(
-                    self._lang_code, self._book_id, self._pad(chapter)
+                    self.lang_code, self._book_id, self._pad(chapter)
                 )
                 anchor_id = "tq-{}-{}".format(self._book_id, self._pad(chapter))
                 self._resource_data[rc] = {
@@ -1931,7 +1934,7 @@ class TQResource(TResource):
                             self._book_title, chapter, first_verse
                         )
                         rc = "rc://{}/tq/help/{}/{}/{}".format(
-                            self._lang_code,
+                            self.lang_code,
                             self._book_id,
                             self._pad(chapter),
                             self._pad(first_verse),
@@ -2053,13 +2056,13 @@ class TAResource(TResource):
                 try:
                     file_path = os.path.join(
                         self._working_dir,
-                        "{}_{}".format(self._lang_code, resource_tmp),
+                        "{}_{}".format(self.lang_code, resource_tmp),
                         "{}.md".format(path),
                     )
                     if not os.path.isfile(file_path):
                         file_path = os.path.join(
                             self._working_dir,
-                            "{}_{}".format(self._lang_code, resource_tmp),
+                            "{}_{}".format(self.lang_code, resource_tmp),
                             "{}/01.md".format(path),
                         )
                     if os.path.isfile(file_path):
@@ -2109,13 +2112,13 @@ class TAResource(TResource):
     def _fix_ta_links(self, text: str, manual: str) -> str:
         rep = {
             r"\]\(\.\./([^/)]+)/01\.md\)": r"](rc://{0}/ta/man/{1}/\1)".format(
-                self._lang_code, manual
+                self.lang_code, manual
             ),
             r"\]\(\.\./\.\./([^/)]+)/([^/)]+)/01\.md\)": r"](rc://{}/ta/man/\1/\2)".format(
-                self._lang_code
+                self.lang_code
             ),
             r"\]\(([^# :/)]+)\)": r"](rc://{}/ta/man/{}/\1)".format(
-                self._lang_code, manual
+                self.lang_code, manual
             ),
         }
         for pattern, repl in rep.items():
