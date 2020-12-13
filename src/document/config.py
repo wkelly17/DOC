@@ -109,9 +109,9 @@ def get_tex_format_location() -> str:
     that is used in converting the HTML to PDF using pandoc. """
     filepath: str = ""
     if os.getenv("IN_CONTAINER"):
-        filepath = os.environ.get("TEX_FORMAT_FILEPATH", "../tex/format.tex")
+        filepath = os.environ.get("TEX_FORMAT_FILEPATH", "tex/format.tex")
     else:
-        filepath = "../tex/format.tex"
+        filepath = "tex/format.tex"
     return filepath
 
 
@@ -121,9 +121,9 @@ def get_tex_template_location() -> str:
     that is used in converting the HTML to PDF using pandoc. """
     filepath: str = ""
     if os.getenv("IN_CONTAINER"):
-        filepath = os.environ.get("TEX_TEMPLATE_FILEPATH", "../tex/template.tex")
+        filepath = os.environ.get("TEX_TEMPLATE_FILEPATH", "tex/template.tex")
     else:
-        filepath = "../tex/template.tex"
+        filepath = "tex/template.tex"
     return filepath
 
 
