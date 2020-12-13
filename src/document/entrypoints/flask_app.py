@@ -53,29 +53,10 @@ def document_endpoint():
         # app.logger.info("payload: {}".format(payload))
         logger.info("payload: {}".format(payload))
     except Exception:
-        # app.logger.error("Problem reifying json")
         logger.exception("Problem reifying json")
         return "Failed to reify json", 500  # NOTE yet untested
     finally:
         app.logger.info("Successfully reified json")
-
-    # lookup_svc = ResourceJsonLookup()
-
-    # resource_urls = []
-    # for resource in payload["resources"]:
-    #     if (
-    #         resource["resource_code"] is not None
-    #         and not resource["resource_code"].strip()
-    #     ):
-    #         resource["resource_code"] = None
-    #     # app.logger.info("in document_endpoint, resource: {}".format(resource))
-    #     logger.info("resource: {}".format(resource))
-    # resource_urls.append(lookup_svc.lookup(resource))
-
-    # app.logger.info("resource_urls: {}".format(resource_urls))
-    # logger.info("resource_urls: {}".format(resource_urls))
-
-    # logger.info("resources: {}".format(resources))
 
     # NOTE I may interject a service layer here for one layer of
     # indirection. That layer of indirection will come in handy for

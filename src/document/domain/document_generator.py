@@ -114,15 +114,8 @@ class DocumentGenerator(object):
         self.content: str = ""
         # Store resource requests that were requested, but do not
         # exist.
-        self.unfound_resources: List[Any] = []
-        self.found_resources: List[Any] = []
-        # NOTE The lookup service could be (re)-implemented as a
-        # singleton (or Global Object at module level for
-        # Pythonicness) if desired. For now, just passing it to each
-        # Resource instance at object creation.
-        lookup_svc: ResourceJsonLookup = resource_lookup.ResourceJsonLookup(
-            self.working_dir
-        )
+        self.unfound_resources: List[AResource] = []
+        self.found_resources: List[AResource] = []
 
         # Show the dictionary that was passed in.
         logger.debug("resources: {}".format(resources))
@@ -132,30 +125,41 @@ class DocumentGenerator(object):
 
         # logger.debug("Working dir is {}".format(self.working_dir))
 
-        # Uniquely identifies a document request that has this order
-        # of resource requests where a resource request is identified
-        # by lang_code, resource_type, and resource_code. This can
-        # serve as a cache lookup key also so that document requests
-        # having the same self._document_request_key can skip
-        # processing and simply return the end result document if it
-        # still exists.
-        self._document_request_key: str = ""
-
         # TODO To be production worthy, we need to make this resilient
         # to errors when creating Resource instances.
-        self._resources: List[AResource] = []
-        for resource in resources:
-            # FIXME self.lookup_svc will become a local var: lookup_svc
-            self._resources.append(
-                resource_factory(
-                    self.working_dir, self.output_dir, lookup_svc, resource
-                )
-            )
+        self._resources: List[AResource] = self._initialize_resources(resources)
 
+        # Uniquely identifies a document request. A resource request
+        # is identified by lang_code, resource_type, and
+        # resource_code. This can serve as a cache lookup key also so
+        # that document requests having the same
+        # self._document_request_key can skip processing and simply
+        # return the end result document if it still exists.
+        self._document_request_key = self._initialize_document_request_key(resources)
+
+        logger.debug(
+            "self._document_request_key: {}".format(self._document_request_key)
+        )
+
+    def _initialize_resources(self, resources: dict) -> List[AResource]:
+        """ Given the dict of passed in resources return a list of
+        AResource objects. """
+        aresources: List[AResource] = []
+        for resource in resources:
+            aresources.append(
+                resource_factory(self.working_dir, self.output_dir, resource)
+            )
+        return aresources
+
+    def _initialize_document_request_key(self, resources: dict) -> str:
+        """ Given the dict of passed in resources return the
+        document_request_key. """
+        document_request_key: str = ""
+        for resource in resources:
             # NOTE Alternatively, could create a (md5?) hash of th
             # concatenation of lang_code, resource_type,
             # resource_code.
-            self._document_request_key += (
+            document_request_key += (
                 "-".join(
                     [
                         resource["lang_code"],
@@ -165,11 +169,7 @@ class DocumentGenerator(object):
                 )
                 + "_"
             )
-        self._document_request_key = self._document_request_key[:-1]
-
-        logger.debug(
-            "self._document_request_key: {}".format(self._document_request_key)
-        )
+        return document_request_key[:-1]
 
     def run(self) -> None:
         # FIXME icon no longer exists where it used to. I've saved the
@@ -177,11 +177,15 @@ class DocumentGenerator(object):
         # location for the icon that is to be used.
         # self._get_unfoldingword_icon()
 
-        # Get the resources files (do all the networking first)
+        self._fetch_resources()
+        self._initialize_resource_content()
+        self._generate_pdf()
+
+    def _fetch_resources(self) -> None:
+        """ Get the resources' files from the network. Those that are
+        found successfully add to self.found_resources. Those that are
+        not found add to self.unfound_resources. """
         for resource in self._resources:
-            # FIXME We could accomplish dependency injection by
-            # passing a lookup_function or class instance into
-            # find_location and then ask it to do the lookup.
             resource.find_location()
             if resource.is_found():
                 # Keep a list of resources that were found, we'll use
@@ -194,8 +198,9 @@ class DocumentGenerator(object):
                 # it for reporting.
                 self.unfound_resources.append(resource)
 
-        # Initialize the resources from their found assets and
-        # generate their content.
+    def _initialize_resource_content(self) -> None:
+        """ Initialize the resources from their found assets and
+        generate their content for later typesetting. """
         for resource in self.found_resources:
             resource.initialize_properties()
             # NOTE You could pass a USFM resource if it exists to get_content
@@ -206,6 +211,9 @@ class DocumentGenerator(object):
             # such that their expected language relationship is retained.
             resource.get_content()
 
+    def _generate_pdf(self) -> None:
+        """ If the PDF doesn't yet exist, go ahead and generate it
+        using the content for each AResource. """
         if not os.path.isfile(
             os.path.join(self.output_dir, "{}.pdf".format(self._document_request_key))
         ):
@@ -263,18 +271,18 @@ class DocumentGenerator(object):
         """ Generate PDF from HTML contained in self.content. """
         now = datetime.datetime.now()
         revision_date = "{}-{}-{}".format(now.year, now.month, now.day)
-        # working_dir: str = self.working_dir if not os.environ.get("IN_CONTAINER") else "/working/temp"
-        # output_dir: str = self.output_dir if not os.environ.get("IN_CONTAINER") else "/output",
-        logger.debug(
-            "self.working_dir: {}, self.output_dir: {}".format(
-                self.working_dir, self.output_dir
-            )
-        )
         logger.debug("PDF to be written to: {}".format(self.output_dir))
         # FIXME This should probably be something else, but this will
         # do for now.
         title = "Resources: "
         title += ",".join(set([r._resource_code for r in self._resources]))
+        # FIXME When run locally xelatex chokes because the LaTeX
+        # template does not set the \setmainlanguage{} and
+        # \setotherlanguages{} to any value. If I manually edit the
+        # final latex file to have these set and then run xelatex
+        # manually on the file it produces the PDF sucessfully. This
+        # issue does not arise when the code is run in the Docker
+        # container for some unknown reason.
         command = config.get_pandoc_command().format(
             # First hack at a title. Used to be just self.book_title which
             # doesn't make sense anymore.
