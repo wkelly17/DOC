@@ -274,42 +274,33 @@ class Resource(abc.ABC):
     @icontract.require(lambda self: self._resource_file_format is not None)
     def _is_git(self) -> bool:
         """ Return true if _resource_file_format is equal to 'git'. """
-        return self._resource_file_format == "git"
+        return self._resource_file_format == config.GIT
 
     # protected
     @icontract.require(lambda self: self._resource_file_format is not None)
     def _is_zip(self) -> bool:
         """ Return true if _resource_file_format is equal to 'zip'. """
-        return self._resource_file_format == "zip"
+        return self._resource_file_format == config.ZIP
 
     # protected
     @icontract.require(lambda self: self._resource_file_format is not None)
     def _is_usfm(self) -> bool:
         """ Return true if _resource_file_format is equal to 'usfm'. """
-        return self._resource_file_format == "usfm"
+        return self._resource_file_format == config.USFM
 
     # protected
     @icontract.require(lambda self: self._manifest_type is not None)
     def _is_yaml(self) -> bool:
         """ Return true if the resource's manifest file has suffix
         yaml. """
-        return self._manifest_type == "yaml"
+        return self.manifest_type == config.YAML
 
     # protected
     @icontract.require(lambda self: self._manifest_type is not None)
     def _is_json(self) -> bool:
         """ Return true if the resource's manifest file has suffix
         json. """
-        return self._manifest_type == "json"
-
-    # NOTE Not sure about this one. Some instance variables are
-    # settable in the constructor and some only after their associated
-    # files are acquired.
-    # NOTE This may not end up as part of the Resource API. So far I
-    # haven't used it for anything.
-    @abc.abstractmethod
-    def initialize_properties(self) -> None:
-        raise NotImplementedError
+        return self.manifest_type == config.JSON
 
     # protected
     # FIXME A bit of a cluster with lots of side effecting

@@ -2,6 +2,23 @@ from typing import List
 import os
 
 
+# Constants rather than literal strings in code
+GIT = "git"
+USFM = "usfm"
+ZIP = "zip"
+YAML = "yaml"
+JSON = "json"
+TXT = "txt"
+YAML_SUFFIX = ".yaml"
+TXT_SUFFIX = ".txt"
+JSON_SUFFIX = ".json"
+REPO_URL_DICT_KEY = "../download-scripture?repo_url"
+RESOURCE_TYPES_JSONPATH = "$[*].contents[*].code"
+RESOURCE_CODES_JSONPATH = "$[*].contents[*].subcontents[*].code"
+RESOURCE_FILE_FORMATS = [GIT, USFM, ZIP]
+USFM_RESOURCE_TYPES = ["reg", "ulb", "udb"]
+
+
 def get_api_root() -> str:
     return os.environ.get("API_ROOT", "/api/v1")
 

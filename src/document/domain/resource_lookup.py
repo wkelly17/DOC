@@ -296,7 +296,7 @@ class ResourceJsonLookup(ResourceLookup):
 
     @icontract.require(lambda resource: resource.lang_code is not None)
     @icontract.require(lambda resource: resource.resource_type is not None)
-    @icontract.ensure(lambda resource: resource._resource_file_format == "zip")
+    @icontract.ensure(lambda resource: resource._resource_file_format == config.ZIP)
     @icontract.ensure(lambda resource: resource._resource_jsonpath is not None)
     def _try_markdown_files_level1_location(self, resource: AResource) -> Optional[str]:
         """ If successful, return a string containing the URL of
@@ -315,7 +315,7 @@ class ResourceJsonLookup(ResourceLookup):
 
     @icontract.require(lambda resource: resource.lang_code is not None)
     @icontract.require(lambda resource: resource.resource_type is not None)
-    @icontract.ensure(lambda resource: resource._resource_file_format == "zip")
+    @icontract.ensure(lambda resource: resource._resource_file_format == config.ZIP)
     @icontract.ensure(lambda resource: resource._resource_jsonpath is not None)
     def _try_markdown_files_level2_location(self, resource: AResource) -> Optional[str]:
         """ If successful, return a string containing the URL of
@@ -334,7 +334,7 @@ class ResourceJsonLookup(ResourceLookup):
 
     @icontract.require(lambda resource: resource.lang_code is not None)
     @icontract.require(lambda resource: resource.resource_type is not None)
-    @icontract.ensure(lambda resource: resource._resource_file_format == "zip")
+    @icontract.ensure(lambda resource: resource._resource_file_format == config.ZIP)
     @icontract.ensure(lambda resource: resource._resource_jsonpath is not None)
     def _try_markdown_files_level1_sans_resource_code_location(
         self, resource: AResource
@@ -359,7 +359,7 @@ class ResourceJsonLookup(ResourceLookup):
 
     @icontract.require(lambda resource: resource.lang_code is not None)
     @icontract.require(lambda resource: resource.resource_type is not None)
-    @icontract.ensure(lambda resource: resource._resource_file_format == "zip")
+    @icontract.ensure(lambda resource: resource._resource_file_format == config.ZIP)
     @icontract.ensure(lambda resource: resource._resource_jsonpath is not None)
     def _try_markdown_files_level2_sans_resource_code_location(
         self, resource: AResource
