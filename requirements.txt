@@ -10,18 +10,23 @@ gogs-client
 icontract
 jsonpath-rw
 jsonpath-rw-ext
+logdecorator
 Markdown
 # markdown
 # markdown2
 openpyxl
 parse
 pathlib
+pydantic
 pyparsing==2.4.5
 requests
 
 # tests
+mypy
+flake8
+wemake-python-styleguide
+flake8-mypy
 pytest
 pytest-icdiff
-mypy
 pylint
 tenacity
