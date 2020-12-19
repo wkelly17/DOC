@@ -263,7 +263,7 @@ then
 # envs. With pipenv as you probably know, this will make a virtual env
 # only install of the requirements only accessible after: pipenv
 # shell.
-pip install -r depends/requirements.txt
+pip install -r requirements.txt
 #+end_src
 
 #+begin_src shell
