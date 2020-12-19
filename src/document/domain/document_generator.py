@@ -11,27 +11,25 @@ XFIXME This script exports tN into HTML format from DCS and generates a PDF from
 """
 
 from __future__ import annotations  # https://www.python.org/dev/peps/pep-0563/
-from typing import Any, Callable, Dict, List, Optional, TYPE_CHECKING, Union
-import os
-import sys
-import re
-import pprint
+import argparse
+import bs4
+import csv
+import datetime
+from glob import glob
 import logging
 import logging.config
-import argparse
-import tempfile
+import markdown
+import os
+import pprint
+import re
 import shutil
-import datetime
 import subprocess
-import csv
-from glob import glob
+import sys
+
+# import tempfile
+from typing import Callable, List, TYPE_CHECKING, Union
+from usfm_tools.transform import UsfmTransform
 import yaml
-
-
-import markdown  # type: ignore
-
-import bs4  # type: ignore
-from usfm_tools.transform import UsfmTransform  # type: ignore
 
 from document import config
 from document.utils import file_utils
@@ -62,13 +60,14 @@ if TYPE_CHECKING:
     )
 
     # Define type alias for brevity
-    AResource = Union[USFMResource, TAResource, TNResource, TQResource, TWResource]
+    # AResource = Union[USFMResource, TAResource, TNResource, TQResource, TWResource]
 
 # This is always needed and thus is not included in the TYPE_CHECKING
 # protected import above.
 from document.domain.resource import resource_factory
 
 from document.domain import resource_lookup
+from document.domain import model
 
 with open(config.get_logging_config_file_path(), "r") as f:
     logging_config = yaml.safe_load(f.read())
@@ -97,28 +96,29 @@ logger = logging.getLogger(__name__)
 # be maintained as a class variable?
 
 
-class DocumentGenerator(object):
+class DocumentGenerator:
     def __init__(
         self,
-        assembly_strategy_key: str,
-        resources: dict,
-        working_dir: str = config.get_working_dir(),
-        output_dir: str = config.get_output_dir(),
+        document_request: model.DocumentRequest,
+        working_dir: str,
+        output_dir: str,
     ) -> None:
-        # Get the concrete Strategy pattern subclass based on the
-        # assembly_strategy key passed in from BIEL's UI
-        self.assembly_strategy: func = assembly_strategy_factory(assembly_strategy_key)
+        # Get the concrete Strategy pattern Callable based on the
+        # assembly_strategy kind passed in from BIEL's UI
+        self.assembly_strategy: Callable[
+            [DocumentGenerator], str
+        ] = assembly_strategy_factory(document_request.assembly_strategy_kind)
         self.working_dir = working_dir
         self.output_dir = output_dir
         # The Markdown and later HTML for the document which is composed of the Markdown and later HTML for each resource.
         self.content: str = ""
         # Store resource requests that were requested, but do not
         # exist.
-        self.unfound_resources: List[AResource] = []
-        self.found_resources: List[AResource] = []
+        self.unfound_resources: List[Resource] = []
+        self.found_resources: List[Resource] = []
 
         # Show the dictionary that was passed in.
-        logger.debug("resources: {}".format(resources))
+        logger.debug("document_request: {}".format(document_request))
 
         if not self.output_dir:
             self.output_dir = self.working_dir
@@ -127,7 +127,7 @@ class DocumentGenerator(object):
 
         # TODO To be production worthy, we need to make this resilient
         # to errors when creating Resource instances.
-        self._resources: List[AResource] = self._initialize_resources(resources)
+        self._resources: List[Resource] = self._initialize_resources(document_request)
 
         # Uniquely identifies a document request. A resource request
         # is identified by lang_code, resource_type, and
@@ -135,36 +135,43 @@ class DocumentGenerator(object):
         # that document requests having the same
         # self._document_request_key can skip processing and simply
         # return the end result document if it still exists.
-        self._document_request_key = self._initialize_document_request_key(resources)
+        self._document_request_key = self._initialize_document_request_key(
+            document_request
+        )
 
         logger.debug(
             "self._document_request_key: {}".format(self._document_request_key)
         )
 
-    def _initialize_resources(self, resources: dict) -> List[AResource]:
-        """ Given the dict of passed in resources return a list of
-        AResource objects. """
-        aresources: List[AResource] = []
-        for resource in resources:
-            aresources.append(
-                resource_factory(self.working_dir, self.output_dir, resource)
+    def _initialize_resources(
+        self, document_request: model.DocumentRequest
+    ) -> List[Resource]:
+        """
+        Given a DocumentRequest instance, return a list of AResource
+        objects.
+        """
+        resources: List[Resource] = []
+        for resource_request in document_request.resource_requests:
+            resources.append(
+                resource_factory(self.working_dir, self.output_dir, resource_request)
             )
-        return aresources
+        return resources
 
-    def _initialize_document_request_key(self, resources: dict) -> str:
-        """ Given the dict of passed in resources return the
-        document_request_key. """
+    def _initialize_document_request_key(
+        self, document_request: model.DocumentRequest
+    ) -> str:
+        """ Return the document_request_key. """
         document_request_key: str = ""
-        for resource in resources:
+        for resource in document_request.resource_requests:
             # NOTE Alternatively, could create a (md5?) hash of th
             # concatenation of lang_code, resource_type,
             # resource_code.
             document_request_key += (
                 "-".join(
                     [
-                        resource["lang_code"],
-                        resource["resource_type"],
-                        resource["resource_code"],
+                        resource.lang_code,
+                        resource.resource_type,
+                        resource.resource_code,
                     ]
                 )
                 + "_"
@@ -172,6 +179,10 @@ class DocumentGenerator(object):
         return document_request_key[:-1]
 
     def run(self) -> None:
+        """
+        This is the main entry point for this class and the
+        backend system.
+        """
         # FIXME icon no longer exists where it used to. I've saved the
         # icon to ./working/temp for now until we find a different
         # location for the icon that is to be used.
@@ -182,9 +193,11 @@ class DocumentGenerator(object):
         self._generate_pdf()
 
     def _fetch_resources(self) -> None:
-        """ Get the resources' files from the network. Those that are
+        """
+        Get the resources' files from the network. Those that are
         found successfully add to self.found_resources. Those that are
-        not found add to self.unfound_resources. """
+        not found add to self.unfound_resources.
+        """
         for resource in self._resources:
             resource.find_location()
             if resource.is_found():
@@ -199,21 +212,25 @@ class DocumentGenerator(object):
                 self.unfound_resources.append(resource)
 
     def _initialize_resource_content(self) -> None:
-        """ Initialize the resources from their found assets and
-        generate their content for later typesetting. """
+        """
+        Initialize the resources from their found assets and
+        generate their content for later typesetting.
+        """
         for resource in self.found_resources:
             resource.initialize_properties()
             # NOTE You could pass a USFM resource if it exists to get_content
             # for TResource subclasses. This would presuppose that we initialize
             # USFM resources first in this loop or break out into multiple
             # loops: one for USFM, one for TResource subclasses. Perhaps you
-            # would sort the resources by lang_code so that they are interleaved
+            # would also sort the resources by lang_code so that they are interleaved
             # such that their expected language relationship is retained.
             resource.get_content()
 
     def _generate_pdf(self) -> None:
-        """ If the PDF doesn't yet exist, go ahead and generate it
-        using the content for each AResource. """
+        """
+        If the PDF doesn't yet exist, go ahead and generate it
+        using the content for each AResource.
+        """
         if not os.path.isfile(
             os.path.join(self.output_dir, "{}.pdf".format(self._document_request_key))
         ):
@@ -226,25 +243,26 @@ class DocumentGenerator(object):
             logger.debug(
                 "Unfound resource requests: {}".format(
                     "; ".join(str(r) for r in self.unfound_resources)
-                )
+                ),
             )
 
     def _get_unfoldingword_icon(self) -> None:
         """ Get Unfolding Word's icon for display in generated PDF. """
-
         if not os.path.isfile(os.path.join(self.working_dir, "icon-tn.png")):
             command = "curl -o {}/icon-tn.png {}".format(
-                self.working_dir, config.get_icon_url()
+                self.working_dir, config.get_icon_url(),
             )
             subprocess.call(command, shell=True)
 
     def assemble_content(self) -> None:
-        """ Concatenate/interleave the content from all requested resources
+        """
+        Concatenate/interleave the content from all requested resources
         according to the assembly_strategy requested and write out to a single
         HTML file excluding a wrapping HTML and BODY element.
         Precondition: each resource has already generated HTML of its
         body content (sans enclosing HTML and body elements) and
-        stored it in its _content instance variable. """
+        stored it in its _content instance variable.
+        """
         self.content = self.assembly_strategy(self)
         self.enclose_html_content()
         logger.debug(
@@ -260,8 +278,10 @@ class DocumentGenerator(object):
         )
 
     def enclose_html_content(self) -> None:
-        """ Write the enclosing HTML and body elements around the HTML
-        body content for the document. """
+        """
+        Write the enclosing HTML and body elements around the HTML
+        body content for the document.
+        """
         html = config.get_document_html_header()
         html += self.content
         html += config.get_document_html_footer()
@@ -275,7 +295,7 @@ class DocumentGenerator(object):
         # FIXME This should probably be something else, but this will
         # do for now.
         title = "Resources: "
-        title += ",".join(set([r._resource_code for r in self._resources]))
+        title += ",".join(set(r._resource_code for r in self._resources))
         # FIXME When run locally xelatex chokes because the LaTeX
         # template does not set the \setmainlanguage{} and
         # \setotherlanguages{} to any value. If I manually edit the
@@ -341,9 +361,11 @@ class DocumentGenerator(object):
 
 # FIXME Old legacy code
 def read_csv_as_dicts(filename: str) -> List:
-    """ Returns a list of dicts, each containing the contents of a row of
-        the given csv file. The CSV file is assumed to have a header row with
-        the field names. """
+    """
+    Returns a list of dicts, each containing the contents of a row of
+    the given csv file. The CSV file is assumed to have a header row
+    with the field names.
+    """
     rows = []
     with open(filename) as csvfile:
         reader = csv.DictReader(csvfile)
@@ -354,8 +376,10 @@ def read_csv_as_dicts(filename: str) -> List:
 
 # FIXME Old legacy code
 def index_tw_refs_by_verse(tw_refs: List) -> dict:
-    """ Returns a dictionary of books -> chapters -> verses, where each
-        verse is a list of rows for that verse. """
+    """
+    Returns a dictionary of books -> chapters -> verses, where each
+    verse is a list of rows for that verse.
+    """
     tw_refs_by_verse: dict = {}
     for tw_ref in tw_refs:
         book = tw_ref["Book"]
@@ -389,23 +413,30 @@ def index_tw_refs_by_verse(tw_refs: List) -> dict:
 
 
 def assemble_content_by_book(docgen: DocumentGenerator) -> str:
-    """ Assemble and return the collection of resources' content
+    """
+    Assemble and return the collection of resources' content
     according to the 'by book' strategy. E.g., For Genesis, USFM for
-    Genesis followed by Translation Notes for Genesis, etc.."""
+    Genesis followed by Translation Notes for Genesis, etc..
+    """
     logger.info("Assembling document by interleaving at the book level.")
+    # NOTE mypy finds the next line to be inscrutable
+    # return "\n\n{}".join([resource.content for resource in docgen.found_resources])
     content: str = ""
     for resource in docgen.found_resources:
-        content += "\n\n{}".format(resource.content)
+        content += "\n\n{}".format(resource._content)
     return content
 
 
 def assembly_strategy_factory(
-    assembly_strategy_key: str,
+    assembly_strategy_kind: model.AssemblyStrategyEnum,
 ) -> Callable[[DocumentGenerator], str]:
-    """ Strategy pattern. """
+    """
+    Strategy pattern. Given an assembly_strategy_kind, returns the
+    appropriate strategy function.
+    """
     strategies = {
-        # "verse": VerseAssemblyStrategy,
-        # "chapter": ChapterAssemblyStrategy,
-        "book": assemble_content_by_book,
+        model.AssemblyStrategyEnum.BOOK: assemble_content_by_book,
+        # model.AssemblyStrategyKind.CHAPTER: assemble_content_by_chapter,
+        # model.AssemblyStrategyKind.VERSE: assemble_content_by_verse,
     }
-    return strategies[assembly_strategy_key]
+    return strategies[assembly_strategy_kind]

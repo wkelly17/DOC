@@ -8,4 +8,4 @@
 # cp /working/*.png /working/temp
 
 # Run server
-flask run
+uvicorn --host 0.0.0.0 --port 5005 --reload src.document.entrypoints.app:app

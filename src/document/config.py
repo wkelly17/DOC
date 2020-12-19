@@ -1,6 +1,7 @@
 from typing import List
 import os
 
+# FIXME Use pydantic Settings and types
 
 # Constants rather than literal strings in code
 GIT = "git"
@@ -16,18 +17,30 @@ REPO_URL_DICT_KEY = "../download-scripture?repo_url"
 RESOURCE_TYPES_JSONPATH = "$[*].contents[*].code"
 RESOURCE_CODES_JSONPATH = "$[*].contents[*].subcontents[*].code"
 RESOURCE_FILE_FORMATS = [GIT, USFM, ZIP]
-USFM_RESOURCE_TYPES = ["reg", "ulb", "udb"]
+
+
+def get_api_test_url() -> str:
+    return f"http://localhost:{get_api_local_port()}"
 
 
 def get_api_root() -> str:
     return os.environ.get("API_ROOT", "/api/v1")
 
 
+def get_api_local_port() -> str:
+    return os.environ.get("API_LOCAL_PORT", "5005")
+
+
+def get_api_remote_port() -> str:
+    return os.environ.get("API_REMOTE_PORT", "80")
+
+
 def get_api_url() -> str:
     host = os.environ.get("API_HOST", "localhost")
-    port = 5005 if host == "localhost" else 80
+    port = get_api_local_port() if host == "localhost" else get_api_remote_port()
     root = get_api_root()
     return f"http://{host}:{port}{root}"
+    # return f"http://{host}:{port}"
 
 
 # FIXME Proper setting of working_dir is currently being handled by

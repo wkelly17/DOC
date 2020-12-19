@@ -1,7 +1,7 @@
 # app
 PyYAML
 bs4
-flask
+fastapi
 # git+git://github.com/arount/pytea#egg=pytea
 git+git://github.com/linearcombination/USFM-Tools.git@develop#egg=usfm_tools
 ## For local dev, install via: pip install /path/to/USFM-Tools
@@ -20,6 +20,7 @@ pathlib
 pydantic
 pyparsing==2.4.5
 requests
+uvicorn
 
 # tests
 mypy

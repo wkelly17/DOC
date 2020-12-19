@@ -1,11 +1,13 @@
+from typing import List
 import json
 import requests
 from document import config
+from document.domain import model
 
 
-def get_language_codes():
+def get_language_codes() -> requests.Response:
     # print("Request language codes...")
-    url = config.get_api_url()
+    url = config.get_api_test_url()
     res = requests.get(f"{url}/language_codes")
     return res
     # assert res.ok
@@ -14,10 +16,11 @@ def get_language_codes():
     #     print(res.json())
 
 
-def get_language_codes_and_names():
+def get_language_codes_and_names() -> requests.Response:
     # print("Request language code, name tuples...")
-    url = config.get_api_url()
+    url = config.get_api_test_url()
     res = requests.get(f"{url}/language_codes_and_names")
+    # res = requests.get("/language_codes_and_names")
     return res
     # assert res.ok
     # assert res.json()
@@ -25,8 +28,33 @@ def get_language_codes_and_names():
     #     print(res.json())
 
 
-# FIXME Add return type
-def post_document(payload: dict, expect_success=True):
+def get_resource_codes() -> requests.Response:
+    # print("Request language codes...")
+    url = config.get_api_test_url()
+    res = requests.get(f"{url}/resource_codes")
+    return res
+    # assert res.ok
+    # assert res.json()
+    # if res.ok:
+    #     print(res.json())
+
+
+def get_resource_types() -> requests.Response:
+    # print("Request language codes...")
+    url = config.get_api_test_url()
+    res = requests.get(f"{url}/resource_types")
+    return res
+    # assert res.ok
+    # assert res.json()
+    # if res.ok:
+    #     print(res.json())
+
+
+def post_document(
+    document_request: model.DocumentRequest, expect_success: bool = True,
+) -> requests.Response:
+    # resource_requests: List[model.ResourceRequest] = []
+    # resource_requests.append(model.ResourceRequest(**payload))
     # payload = {}
     # payload["resources"] = [
     #     {"lang_code": "en", "resource_type": "ulb-wa", "resource_code": "gen"},
@@ -39,8 +67,11 @@ def post_document(payload: dict, expect_success=True):
     # ]
     # payload["assembly_strategy"] = "book"  # verse, chapter, book
     # print("payload: {}".format(payload))
-    url: str = config.get_api_url()
-    res = requests.post(f"{url}/document", json=json.dumps(payload))
+    # url: str = config.get_api_url()
+    url: str = config.get_api_test_url()
+    # res = requests.post(f"{url}/documents", json=json.dumps(payload))
+    res = requests.post(f"{url}/documents", json=document_request.json())
+    print(res)
     if expect_success:
         assert res.ok
     return res

@@ -1,17 +1,17 @@
 from __future__ import annotations  # https://www.python.org/dev/peps/pep-0563/
-from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING, Union
+from typing import Any, Dict, List, Optional, Tuple
 
-# import abc
-import bs4  # type: ignore
+import abc
+import bs4
 from glob import glob
 import icontract
-import markdown  # type: ignore
+import markdown
 import os
 import pathlib
 import re
 import subprocess
 import tempfile
-from usfm_tools.transform import UsfmTransform  # type: ignore
+from usfm_tools.transform import UsfmTransform
 import yaml
 
 from document.utils import url_utils
@@ -19,6 +19,8 @@ from document.utils import file_utils
 from document.domain import bible_books
 from document import config
 from document.domain import resource_lookup
+from document.domain import model
+
 import logging
 import logging.config
 
@@ -28,68 +30,59 @@ with open(config.get_logging_config_file_path(), "r") as f:
 
 logger = logging.getLogger(__name__)
 
-if TYPE_CHECKING:
-    # Define type alias for brevity
-    AResource = Union[USFMResource, TAResource, TNResource, TQResource, TWResource]
-    AResourceJsonLookup = Union[
-        resource_lookup.USFMResourceJsonLookup, resource_lookup.TResourceJsonLookup,
-    ]
 
-# FIXME This note could help for design doc. Needs updating. Resource
-# (abstract super class), TWResource, TQResource, TAResource,
-# OBSResource, USFMResource API on Resource superclass:
-# find_location->List returns the url values via ResourceJsonLookup,
-# get_files -> None handles downloading/cloning/unzipping,
-# initialize_properties handles setting initial values for instance
-# variables, get_content -> str. get_content would get USFM (chunks)
-# if it is a USFMResource file, Markdown if it is a TNResource,
-# TWResource, TQResource, TAResource, etc.. See USFMSharp's
-# SelectMarker method for one way how to build the Resource subclasses
-# based on lang_code, resource_type, resource_code, etc.. Then we want
-# something like a DocumentAssembler that handles asking each Resource
-# in turn for its content via get_content.
+class AbstractResource(abc.ABC):
+    @abc.abstractmethod
+    def find_location(self) -> None:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def initialize_properties(self) -> None:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_files(self) -> None:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_content(self) -> None:
+        raise NotImplementedError
 
 
-class Resource:
-    """ Reification of the incoming document resource request
-    fortified with additional state as instance variables. """
+class Resource(AbstractResource):
+    """
+    Reification of the incoming document resource request
+    fortified with additional state as instance variables.
+    """
 
     def __init__(
         self,
         working_dir: str,
         output_dir: str,
-        lookup_svc: AResourceJsonLookup,
-        resource: dict,
+        resource_request: model.ResourceRequest,
     ) -> None:
         self._working_dir: str = working_dir
         self._output_dir: str = output_dir
-        self._resource: dict = resource
+        self._resource_request: model.ResourceRequest = resource_request
 
-        self._lang_code: str = resource["lang_code"]
-        self._resource_type: str = resource["resource_type"]
-        self._resource_code: str = resource["resource_code"]
+        # FIXME Next three instance vars could be properties instead
+        self._lang_code: str = resource_request.lang_code
+        self._resource_type: str = resource_request.resource_type
+        self._resource_code: str = resource_request.resource_code
 
         self._resource_dir: str = os.path.join(
-            self.working_dir, "{}_{}".format(self.lang_code, self.resource_type)
+            self._working_dir, "{}_{}".format(self._lang_code, self._resource_type)
         )
 
         # FIXME Is this what you want consistently?
         self._resource_filename: str = "{}_{}_{}".format(
-            self.lang_code, self.resource_type, self.resource_code
+            self._lang_code, self._resource_type, self._resource_code
         )
         # self._resource_filename: Optional[str] = None
-        self._book_id = self.resource_code
-        self._book_title = bible_books.BOOK_NAMES[self.resource_code]
+        self._book_id: str = self._resource_code
+        # FIXME Could get KeyError
+        self._book_title = bible_books.BOOK_NAMES[self._resource_code]
         self._book_number = bible_books.BOOK_NUMBERS[self._book_id]
-
-        # NOTE We actually want to pass in the lookup_svc, not create
-        # another one here - we don't want to load up the heap with
-        # unnecessary ResourceJsonLookup objects. This assumes that
-        # flask will handle each request in its own process. I.e., we
-        # need to consider contention over Resources using the same
-        # ResourceJsonLookup instance.
-        self._lookup_svc = lookup_svc
-        # FIXME We could do the resource lookup here and then finish initialization
 
         self._resource_url: Optional[str] = None
         # self._filename_base: Optional[str] = None
@@ -97,74 +90,47 @@ class Resource:
         # self._version which isn't available here. Why would we need
         # version anyway?
         # self._filename_base = "{}_tn_{}-{}_v{}".format(
-        #     self.lang_code,
+        #     self._lang_code,
         #     self._book_number.zfill(2),
         #     self._book_id.upper(),
         #     self._version,
         # )
-        self._resource_file_format: str
-        self._resource_filepath: str
-        self._bad_links: dict = {}
+        self._resource_source: str
+        self._resource_jsonpath: Optional[str] = None
+
+        # Manifest related instance vars
+        # FIXME It might be better to just have a manifest class, set
+        # it to None here and then instantiate it when we get to
+        # manifests. Then we'd have one manifest specific inst vars
+        # instead of five.
         self._manifest: Optional[Dict] = None
         self._manifest_file_path: Optional[pathlib.PurePath] = None
         self._manifest_file_dir: Optional[pathlib.Path] = None
-        self._content_files: Optional[List[str]] = None
         # FIXME self._manifest_type is now a derived property
         # self._manifest_type: Optional[str] = None
         self._version: Optional[str] = None
         self._issued: Optional[str] = None
+        # Content related instance vars
+        self._content_files: Optional[List[str]] = None
         self._content: Optional[str] = None
+        self._bad_links: dict = {}
         self._resource_data: dict = {}
         self._my_rcs: List = []
         self._rc_references: dict = {}
-        self._resource_jsonpath: Optional[str] = None
 
     def __str__(self) -> str:
         return "Resource(lang_code: {}, resource_type: {}, resource_code: {})".format(
-            self.lang_code, self.resource_type, self.resource_code
+            self._lang_code, self._resource_type, self._resource_code
         )
 
     def __repr__(self) -> str:
-        # return vars(self)
         return "Resource(lang_code: {}, resource_type: {}, resource_code: {})".format(
-            self.lang_code, self.resource_type, self.resource_code
+            self._lang_code, self._resource_type, self._resource_code
         )
 
     @property
-    def working_dir(self) -> str:
-        return self._working_dir
-
-    @property
-    def output_dir(self) -> str:
-        return self._output_dir
-
-    @property
-    def lang_code(self) -> str:
-        return self._lang_code
-
-    @property
-    def resource_type(self) -> str:
-        return self._resource_type
-
-    @property
-    def resource_code(self) -> str:
-        return self._resource_code
-
-    @property
-    def resource_dir(self) -> str:
-        return self._resource_dir
-
-    @resource_dir.setter
-    def resource_dir(self, value: str) -> None:
-        self._resource_dir = value
-
-    @property
     def resource_dir_path(self) -> pathlib.Path:
-        return pathlib.Path(self.resource_dir)
-
-    @property
-    def content(self) -> Optional[str]:
-        return self._content
+        return pathlib.Path(self._resource_dir)
 
     @property
     def manifest_type(self) -> Optional[str]:
@@ -172,28 +138,33 @@ class Resource:
             return self._manifest_file_path.suffix
         return None
 
-    # public
-    @icontract.require(lambda self: self._lookup_svc is not None)
-    @icontract.ensure(
-        lambda self: self._resource_url is not None
-    )  # FIXME This is only useful during development to find resources which have exceptional jsonpaths. But the logic needs to allow for not finding a resource, so I am just using this temporarily to root out resources with exceptional jsonpaths.
-    def find_location(self) -> None:
-        """ Find the URL where the resource's assets are located. """
-        self._resource_url = self._lookup_svc.lookup(self)
-        logger.debug("self._resource_url: {} for {}".format(self._resource_url, self))
-
-    # public
     def is_found(self) -> bool:
         "Return true if resource's URL location was found."
         return self._resource_url is not None
 
     def initialize_properties(self) -> None:
+        "Subclasses provide."
+        pass
+
+    def find_location(self) -> None:
+        "Subclasses provide."
         pass
 
     def get_content(self) -> None:
+        "Subclasses provide."
         pass
 
-    # public
+    # FIXME This could move to subclasses
+    # FIXME This could delegate via dependency reversal on another
+    # class, e.g., ResourceProvisioner or ResourceAcquirer or
+    # ResourceDownloader. Something like:
+    # provisioner_svc = ResourceProvisioner()
+    # provisioner_svc.provision(self)
+    # That would then allow us to move the provisioning methods below
+    # to the ResourceProvisioner class along. We would maybe need to
+    # send back to the resource instance certain values from the
+    # provisioning process via a Data Transfer Object class (likely
+    # another pydantic BaseModel subclass).
     def get_files(self) -> None:
         """ Using the resource's location, obtain provision the save
         location and then get the resources associated files. """
@@ -204,42 +175,38 @@ class Resource:
         #     self._initialize_resource_dir_for_git_repos()
         self._acquire_resource()
 
-    # protected
-    @icontract.ensure(lambda self: self.resource_dir is not None)
+    @icontract.ensure(lambda self: self._resource_dir is not None)
     def _prepare_resource_directory(self) -> None:
         """ If it doesn't exist yet, create the directory for the
         resource where it will be downloaded to. """
 
         logger.debug("os.getcwd(): {}".format(os.getcwd()))
-        if not os.path.exists(self.resource_dir):
-            logger.debug("About to create directory {}".format(self.resource_dir))
+        if not os.path.exists(self._resource_dir):
+            logger.debug("About to create directory {}".format(self._resource_dir))
             try:
-                os.mkdir(self.resource_dir)
-                logger.debug("Created directory {}".format(self.resource_dir))
+                os.mkdir(self._resource_dir)
+                logger.debug("Created directory {}".format(self._resource_dir))
             except:
                 logger.exception(
-                    "Failed to create directory {}".format(self.resource_dir)
+                    "Failed to create directory {}".format(self._resource_dir)
                 )
 
-    # protected
     # @icontract.require(lambda self: self._resource_url is not None)
     # def _initialize_resource_dir_for_git_repos(self) -> None:
     #     """ Git repos have a different _resource_dir location and so
     #     must be handled differently. """
     #     filename: str = self._resource_url.rpartition(os.path.sep)[2]
     #     # Git repo has an extra layer of depth directory
-    #     self.resource_dir = os.path.join(self.resource_dir, filename)
+    #     self._resource_dir = os.path.join(self._resource_dir, filename)
 
-    # protected
-    @icontract.require(lambda self: self.resource_type is not None)
-    @icontract.require(lambda self: self.resource_dir is not None)
+    @icontract.require(lambda self: self._resource_type is not None)
+    @icontract.require(lambda self: self._resource_dir is not None)
     @icontract.require(lambda self: self._resource_url is not None)
-    @icontract.ensure(lambda self: self._resource_filepath is not None)
-    @icontract.ensure(lambda self: os.path.exists(self._resource_filepath))
     def _acquire_resource(self) -> None:
         """ Download or git clone resource and unzip resulting file if it
         is a zip file. """
 
+        assert self._resource_url is not None, "self._resource_url must not be None"
         logger.debug("self._resource_url: {} for {}".format(self._resource_url, self))
 
         # FIXME To ensure consistent directory naming for later
@@ -248,26 +215,24 @@ class Resource:
         # the (updated) resource:
         # os.path.join(resource["resource_dir"], resource["resource_type"])
         # logger.debug(
-        #     "os.path.join(self.resource_dir, self.resource_type): {}".format(
-        #         os.path.join(self.resource_dir, self.resource_type)
+        #     "os.path.join(self._resource_dir, self._resource_type): {}".format(
+        #         os.path.join(self._resource_dir, self._resource_type)
         #     )
         # )
         # FIXME Not sure if this is the right approach for consistency
-        self._resource_filepath = os.path.join(
-            self.resource_dir, self._resource_url.rpartition(os.path.sep)[2]
+        resource_filepath = os.path.join(
+            self._resource_dir, self._resource_url.rpartition(os.path.sep)[2]
         )
         logger.debug(
-            "Using file location, _resource_filepath: {}".format(
-                self._resource_filepath
-            )
+            "Using file location, resource_filepath: {}".format(resource_filepath)
         )
 
         if self._is_git():  # Is a git repo, so clone it.
             try:
                 command: str = "git clone --depth=1 '{}' '{}'".format(
-                    # FIXME self._resource_filepath used to be filepath
+                    # FIXME resource_filepath used to be filepath
                     self._resource_url,
-                    self._resource_filepath,
+                    resource_filepath,
                 )
                 logger.debug("os.getcwd(): {}".format(os.getcwd()))
                 logger.debug("git command: {}".format(command))
@@ -275,7 +240,7 @@ class Resource:
                 logger.debug("git clone succeeded.")
                 # Git repos get stored on directory deeper
                 # FIXME Beware this may not be correct any longer
-                self._resource_dir = self._resource_filepath
+                self._resource_dir = resource_filepath
             except:
                 logger.debug("os.getcwd(): {}".format(os.getcwd()))
                 logger.debug("git command: {}".format(command))
@@ -284,64 +249,55 @@ class Resource:
             try:
                 logger.debug(
                     "Downloading {} into {}".format(
-                        self._resource_url, self._resource_filepath
+                        self._resource_url, resource_filepath
                     )
                 )
-                url_utils.download_file(self._resource_url, self._resource_filepath)
+                url_utils.download_file(self._resource_url, resource_filepath)
             finally:
                 logger.debug("Downloading finished.")
 
         if self._is_zip():  # Downloaded file was a zip, so unzip it.
             try:
                 logger.debug(
-                    "Unzipping {} into {}".format(
-                        self._resource_filepath, self._resource_dir
-                    )
+                    "Unzipping {} into {}".format(resource_filepath, self._resource_dir)
                 )
-                file_utils.unzip(self._resource_filepath, self._resource_dir)
+                file_utils.unzip(resource_filepath, self._resource_dir)
             finally:
                 logger.debug("Unzipping finished.")
 
-    # protected
-    @icontract.require(lambda self: self._resource_file_format is not None)
+    @icontract.require(lambda self: self._resource_source is not None)
     def _is_git(self) -> bool:
-        """ Return true if _resource_file_format is equal to 'git'. """
-        return self._resource_file_format == config.GIT
+        """ Return true if _resource_source is equal to 'git'. """
+        return self._resource_source == config.GIT
 
-    # protected
-    @icontract.require(lambda self: self._resource_file_format is not None)
+    @icontract.require(lambda self: self._resource_source is not None)
     def _is_zip(self) -> bool:
-        """ Return true if _resource_file_format is equal to 'zip'. """
-        return self._resource_file_format == config.ZIP
+        """ Return true if _resource_source is equal to 'zip'. """
+        return self._resource_source == config.ZIP
 
-    # protected
-    @icontract.require(lambda self: self._resource_file_format is not None)
+    @icontract.require(lambda self: self._resource_source is not None)
     def _is_usfm(self) -> bool:
-        """ Return true if _resource_file_format is equal to 'usfm'. """
-        return self._resource_file_format == config.USFM
+        """ Return true if _resource_source is equal to 'usfm'. """
+        return self._resource_source == config.USFM
 
-    # protected
     @icontract.require(lambda self: self.manifest_type is not None)
     def _is_yaml(self) -> bool:
         """ Return true if the resource's manifest file has suffix
         yaml. """
         return self.manifest_type == config.YAML
 
-    # protected
     @icontract.require(lambda self: self.manifest_type is not None)
     def _is_txt(self) -> bool:
         """ Return true if the resource's manifest file has suffix
         json. """
         return self.manifest_type == config.TXT
 
-    # protected
     @icontract.require(lambda self: self.manifest_type is not None)
     def _is_json(self) -> bool:
         """ Return true if the resource's manifest file has suffix
         json. """
         return self.manifest_type == config.JSON
 
-    # protected
     # FIXME A bit of a cluster with lots of side effecting
     # FIXME Perhaps many of these inst vars don't need persistence as
     # an inst var and their values could instead be calculated as
@@ -367,10 +323,9 @@ class Resource:
         # Find directory where the manifest file is located
         if self._manifest_file_path is not None:
             self._manifest_file_dir = self._manifest_file_path.parent
+            self._manifest = self._load_manifest()
+            logger.debug("self._manifest_file_dir: {}".format(self._manifest_file_dir))
 
-        logger.debug("self._manifest_file_dir: {}".format(self._manifest_file_dir))
-
-        self._manifest = self._load_manifest()
         # # FIXME Rather than all this checking we could just convert to
         # # one manifest type, say, json or whatever is considered the
         # # latest manifest type by WA.
@@ -387,20 +342,19 @@ class Resource:
         # # else:
         # #     logger.debug(
         # #         "manifest file does not exist for resource {}.".format(
-        # #             self.resource_type
+        # #             self._resource_type
         # #         )
         # #     )
 
         if self.manifest_type:
             logger.debug("self.manifest_type: {}".format(self.manifest_type))
+            if self._is_yaml():
+                self._version, self._issued = self._get_manifest_version_and_issued()
+                logger.debug(
+                    "_version: {}, _issued: {}".format(self._version, self._issued)
+                )
         if self._manifest:
             logger.debug("self._manifest: {}".format(self._manifest))
-
-        if self._is_yaml():
-            self._version, self._issued = self._get_manifest_version_and_issued()
-            logger.debug(
-                "_version: {}, _issued: {}".format(self._version, self._issued)
-            )
 
     @icontract.require(lambda self: self._manifest_file_path is not None)
     def _load_manifest(self) -> dict:
@@ -443,10 +397,10 @@ class Resource:
             and self._manifest["dublin_core"]["version"] is not None
         ):
             version = self._manifest["dublin_core"]["version"]
-        issued = self._manifest["dublin_core"]["issued"]
+        if self._manifest is not None:
+            issued = self._manifest["dublin_core"]["issued"]
         return (version, issued)
 
-    # protected
     @icontract.require(lambda num: num is not None)
     @icontract.require(lambda num: isinstance(num, str))
     def _pad(self, num: str) -> str:
@@ -456,8 +410,7 @@ class Resource:
         # return str(num).zfill(2)
         return num.zfill(2)
 
-    # protected
-    def _get_uses(self, rc) -> str:
+    def _get_uses(self, rc: str) -> str:
         md = ""
         if self._rc_references[rc]:
             references = []
@@ -471,7 +424,6 @@ class Resource:
                 md += "\n"
         return md
 
-    # protected
     # FIXME This legacy code is a mess of mixed up concerns. This
     # method is called from tn and tq concerned code so when we move
     # it it will probably have to live in a module that can be mixed
@@ -481,7 +433,7 @@ class Resource:
     # instance's version of this method.
     @icontract.require(lambda text: text is not None)
     @icontract.require(lambda source_rc: source_rc is not None)
-    def _get_resource_data_from_rc_links(self, text, source_rc) -> None:
+    def _get_resource_data_from_rc_links(self, text: str, source_rc: str) -> None:
         for rc in re.findall(
             r"rc://[A-Z0-9/_-]+", text, flags=re.IGNORECASE | re.MULTILINE
         ):
@@ -503,13 +455,13 @@ class Resource:
                 try:
                     file_path = os.path.join(
                         self._working_dir,
-                        "{}_{}".format(self.lang_code, resource_tmp),
+                        "{}_{}".format(self._lang_code, resource_tmp),
                         "{}.md".format(path),
                     )
                     if not os.path.isfile(file_path):
                         file_path = os.path.join(
                             self._working_dir,
-                            "{}_{}".format(self.lang_code, resource_tmp),
+                            "{}_{}".format(self._lang_code, resource_tmp),
                             "{}/01.md".format(path),
                         )
                     if not os.path.isfile(file_path):
@@ -526,7 +478,7 @@ class Resource:
                         link = "#{}".format(anchor_id)
                         file_path = os.path.join(
                             self._working_dir,
-                            "{}_{}".format(self.lang_code, resource_tmp),
+                            "{}_{}".format(self._lang_code, resource_tmp),
                             "{}.md".format(path2),
                         )
                     if os.path.isfile(file_path):
@@ -554,22 +506,20 @@ class Resource:
                 if t:
                     self._get_resource_data_from_rc_links(t, rc)
 
-    # protected
-    # FIXME Should dictionary be type dict?
-    def _fix_tw_links(self, text: str, dictionary) -> str:
+    # legacy
+    def _fix_tw_links(self, text: str, dictionary: str) -> str:
         rep = {
             r"\]\(\.\./([^/)]+?)(\.md)*\)": r"](rc://{}/tw/dict/bible/{}/\1)".format(
-                self.lang_code, dictionary
+                self._lang_code, dictionary
             ),
             r"\]\(\.\./([^)]+?)(\.md)*\)": r"](rc://{}/tw/dict/bible/\1)".format(
-                self.lang_code
+                self._lang_code
             ),
         }
         for pattern, repl in rep.items():
             text = re.sub(pattern, repl, text, flags=re.IGNORECASE)
         return text
 
-    # protected
     def _increase_headers(self, text: str, increase_depth: int = 1) -> str:
         if text:
             text = re.sub(
@@ -580,7 +530,6 @@ class Resource:
             )
         return text
 
-    # protected
     @icontract.require(lambda text: text is not None)
     def _decrease_headers(
         self, text: str, minimum_header: int = 1, decrease: int = 1
@@ -640,7 +589,7 @@ class Resource:
     #             self._book_id,
     #             chapter,
     #             verse
-    #             # self.lang_code, resource, self.book_id, chapter, verse
+    #             # self._lang_code, resource, self.book_id, chapter, verse
     #         ),
     #     )
     #     logger.debug(
@@ -695,61 +644,28 @@ class Resource:
 
 
 class USFMResource(Resource):
-    def __init__(self, working_dir: str, output_dir: str, resource: dict,) -> None:
-        # I am not sure if this is the right design to call the
-        # super's constructor. I may end up not having an __init__ in
-        # the abstract superclass and instead just implementing it in
-        # each subclass since they might need to be very different
-        # from one another. Basically, this is a WIP.
-        # FIXME This is unpythonic and causes issues in a few places.
-        super().__init__(
-            working_dir, output_dir, resource_lookup.USFMResourceJsonLookup(), resource
-        )
-        # TODO Add anything else that should be initialized in a
-        # resource. It may be the case that not all initialization can
-        # happen at once since some initialization can only happen
-        # after the resources files have been acquired.
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
         self._usfm_chunks: dict = {}
 
     def __repr__(self) -> str:
         return "{}, superclass: {}".format(type(self).__name__, super().__repr__())
 
-    # FIXME This is probably too tricky for others to read and it
-    # doesn't type check with mypy. If I rewrite this then I'll have
-    # to add __repr__ and __str__ methods to other subclasses too.
-    # def __repr__(self) -> Dict:
-    #     return (
-    #         super(USFMResource, self)
-    #         .__repr__()
-    #         .update({"usfm_chunks": self._usfm_chunks})
-    #     )
+    @icontract.ensure(
+        lambda self: self._resource_url is not None
+    )  # FIXME This is only useful during development to find resources which have exceptional jsonpaths. But the logic needs to allow for not finding a resource, so I am just using this temporarily to root out resources with exceptional jsonpaths.
+    def find_location(self) -> None:
+        """ Find the URL where the resource's assets are located. """
+        # FIXME For better flexibility, the lookup class could be
+        # looked up in a table, i.e., dict, that has the key as self
+        # classname and the value as the lookup subclass.
+        lookup_svc = resource_lookup.USFMResourceJsonLookup()
+        resource_lookup_dto: model.ResourceLookupDto = lookup_svc.lookup(self)
+        self._resource_url = resource_lookup_dto.url
+        self._resource_source = resource_lookup_dto.source
+        self._resource_jsonpath = resource_lookup_dto.jsonpath
+        logger.debug("self._resource_url: {} for {}".format(self._resource_url, self))
 
-    # def __str__(self) -> str:
-    #     s = "USFMResource" + "("
-    #     for k, v in self.__repr__().items():
-    #         s += k + "=" + v
-    #     s += ")"
-    #     return s
-
-    # NOTE Maybe we'll do inversion of control by passing in a
-    # ResourceJsonLookup instance and call its lookup method passing
-    # the params needed from self.
-    # FIXME I don't believe calling super is actually necessary as it
-    # will happen implicitly.
-    # NOTE According to Alex Martelli in Python in a Nutshell 2nd Ed, this
-    # is an antipattern.
-    # def find_location(self) -> None:
-    #     super().find_location()
-
-    # public
-    # FIXME I don't believe calling super is actually necessary as it
-    # will happen implicitly.
-    # NOTE According to Alex Martelli in Python in a Nutshell 2nd Ed, this
-    # is an antipattern.
-    # def get_files(self) -> None:
-    #     super().get_files()
-
-    # public
     def initialize_properties(self) -> None:
         self._discover_layout()
 
@@ -770,52 +686,46 @@ class USFMResource(Resource):
         # NOTE Without this, things blow up on line 973.
         # self._initialize_filename_base()
 
-    # protected
     def _discover_layout(self) -> None:
         """ Explore the resource's downloaded files to initialize file
         structure related properties. """
 
-        # FIXME Should we be doing Resource._discover_manifest()
-        # instead?
         super()._discover_manifest()
 
-        usfm_content_files = list(self.resource_dir_path.glob("**/*.usfm"))
-        # markdown_files = list(q.glob("**/*.md"))
+        usfm_content_files = self.resource_dir_path.glob("**/*.usfm")
         # USFM files sometimes have txt suffix
-        txt_content_files = list(self.resource_dir_path.glob("**/*.txt"))
-        # Find the manifest file, if any
+        txt_content_files = self.resource_dir_path.glob("**/*.txt")
 
         # logger.debug("usfm_content_files: {}".format(usfm_content_files))
 
-        if len(usfm_content_files) > 0:  # This resource does have USFM files
+        if len(list(usfm_content_files)) > 0:  # This resource does have USFM files
             # Only use the content files that match the resource_code
             # in the resource request.
             self._content_files = list(
                 filter(
-                    lambda x: self.resource_code.lower() in str(x).lower(),
-                    usfm_content_files,
+                    lambda x: self._resource_code.lower() in str(x).lower(),
+                    [str(file) for file in usfm_content_files],
                 )
             )
-        elif len(txt_content_files) > 0:
+        elif len(list(txt_content_files)) > 0:
             # Only use the content files that match the resource_code
             # in the resource request.
             self._content_files = list(
                 filter(
-                    lambda x: self.resource_code.lower() in str(x).lower(),
-                    txt_content_files,
+                    lambda x: self._resource_code.lower() in str(x).lower(),
+                    [str(file) for file in txt_content_files],
                 )
             )
 
         logger.debug(
             "self._content_files for {}: {}".format(
-                self.resource_code, self._content_files,
+                self._resource_code, self._content_files,
             )
         )
 
-    # protected
     # FIXME This is game for rewrite or removal considering new
     # approach in _discover_layout using pathlib.
-    # @icontract.require(lambda self: self.resource_code is not None)
+    # @icontract.require(lambda self: self._resource_code is not None)
     # @icontract.require(lambda self: self._resource_filename is not None)
     # @icontract.ensure(
     #     lambda self: self._book_id is not None
@@ -844,14 +754,13 @@ class USFMResource(Resource):
     # since book_id and resource_code should be equal. See FIXME note
     # above.
     # assert (
-    #     self._book_id == self.resource_code
+    #     self._book_id == self._resource_code
     # ), "Book name should match resource code"
     # logger.debug("book_id for usfm file: {}".format(self._book_id))
-    # self._book_title = bible_books.BOOK_NAMES[self.resource_code]
+    # self._book_title = bible_books.BOOK_NAMES[self._resource_code]
     # self._book_number = bible_books.BOOK_NUMBERS[self._book_id]
     # logger.debug("book_number for usfm file: {}".format(self._book_number))
 
-    # protected
     # FIXME This is game for rewrite or removal considering new
     # approach in _discover_layout using pathlib.
     # def _initialize_book_properties_from_manifest_yaml(self) -> None:
@@ -892,7 +801,7 @@ class USFMResource(Resource):
     # project for the book_id? I think book id is always English
     # though.
     # self._book_title = project["title"].replace(" translationNotes", "") # FIXME This could be initialized in
-    # __init__ like so: self._book_title = bible_books.BOOK_NAMES[self.resource_code]
+    # __init__ like so: self._book_title = bible_books.BOOK_NAMES[self._resource_code]
     # self._book_number = bible_books.BOOK_NUMBERS[
     #     self._book_id
     # ]  # FIXME Can't this be determined in __init__?
@@ -900,13 +809,12 @@ class USFMResource(Resource):
     # build resource_dir
     # FIXME I don't think we even use this inst var
     # self._filename_base = "{}_tn_{}-{}_v{}".format(
-    #     self.lang_code,
+    #     self._lang_code,
     #     self._book_number.zfill(2),
     #     self._book_id.upper(),  # FIXME This could blow up if book requested doesn't exist
     #     self._version,
     # )
 
-    # protected
     # FIXME This is game for rewrite or removal considering new
     # approach in _discover_layout using pathlib.
     # FIXME This needs contracts
@@ -927,21 +835,20 @@ class USFMResource(Resource):
     #     logger.debug("book projects: {}".format(projects))
     #     for p in projects:
     #         project: Dict[Any, Any] = p  # FIXME This is not used
-    #         self._book_id = self.resource_code
+    #         self._book_id = self._resource_code
     #         # self._book_id = p["identifier"]
-    #         self._book_title = bible_books.BOOK_NAMES[self.resource_code]
+    #         self._book_title = bible_books.BOOK_NAMES[self._resource_code]
     #         # self._book_title = p["title"].replace(" translationNotes", "")
     #         self._book_number = bible_books.BOOK_NUMBERS[self._book_id]
     #         # TODO This likely needs to change because of how we
     #         # build resource_dir
     #         self._filename_base = "{}_tn_{}-{}_v{}".format(
-    #             self.lang_code,
+    #             self._lang_code,
     #             self._book_number.zfill(2),
     #             self._book_id.upper(),
     #             self._version,
     #         )
 
-    # protected
     # FIXME This is no longer used
     def _get_book_project_from_yaml(self) -> dict:
         """ Return the project that was requested if it matches that
@@ -957,7 +864,7 @@ class USFMResource(Resource):
             # specified by the user, or, 2) only those books that
             # matched the books requested from the command line.
             for p in self._manifest["projects"]:
-                if p["identifier"] in self.resource_code:
+                if p["identifier"] in self._resource_code:
                     return p
                     # if not p["sort"]:
                     #     p["sort"] = bible_books.BOOK_NUMBERS[p["identifier"]]
@@ -970,7 +877,6 @@ class USFMResource(Resource):
             return {}
         return {}
 
-    # protected
     # FIXME This is no longer called. We might only want some version
     # of this to check if the book's source file is considered
     # complete. This is game for rewrite or removal considering new
@@ -990,8 +896,8 @@ class USFMResource(Resource):
             # matched the books requested from the command line.
             for p in self._manifest["projects"]:
                 if (
-                    self.resource_code is not None  # _resource_code is never none
-                    and p["identifier"] in self.resource_code
+                    self._resource_code is not None  # _resource_code is never none
+                    and p["identifier"] in self._resource_code
                 ):
                     if not p["sort"]:
                         p["sort"] = bible_books.BOOK_NUMBERS[p["identifier"]]
@@ -1001,7 +907,6 @@ class USFMResource(Resource):
             logger.info("empty projects check is true...")
             return projects
 
-    # protected
     # FIXME This is no longer called. We might only want some version
     # of this to check if the book's source file is considered
     # complete. This is game for rewrite or removal considering new
@@ -1029,7 +934,7 @@ class USFMResource(Resource):
             # return sorted(projects, key=lambda k: k["sort"])
 
             for p in self._manifest["finished_chunks"]:
-                if p["identifier"] in self.resource_code:
+                if p["identifier"] in self._resource_code:
                     return p
                 # projects.append(p)
             # return projects
@@ -1040,7 +945,6 @@ class USFMResource(Resource):
             return {}
         return {}
 
-    # protected
     # FIXME This is game for rewrite or removal considering new
     # approach in _discover_layout using pathlib.
     def _get_book_projects_from_json(self) -> List:
@@ -1078,7 +982,6 @@ class USFMResource(Resource):
             logger.info("empty projects check is true...")
             return projects
 
-    # protected
     # FIXME This is done in __init__ and is no longer needed here
     # FIXME This is game for rewrite or removal considering new
     # approach in _discover_layout using pathlib.
@@ -1088,8 +991,8 @@ class USFMResource(Resource):
     # @icontract.ensure(lambda self: self._filename_base is not None)
     # def _initialize_filename_base(self) -> None:
     #     self._filename_base = "{}_{}_{}-{}".format(
-    #         self.lang_code,
-    #         self.resource_type,
+    #         self._lang_code,
+    #         self._resource_type,
     #         self._book_number.zfill(2),
     #         self._book_id.upper(),
     #     )
@@ -1097,10 +1000,9 @@ class USFMResource(Resource):
     #     # self._resource_dir combined with self._resource_filename?
     #     logger.debug("filename_base: {}".format(self._filename_base))
 
-    # public
     @icontract.ensure(lambda self: self._resource_filename is not None)
-    @icontract.ensure(lambda self: self.lang_code is not None)
-    @icontract.ensure(lambda self: self.resource_type is not None)
+    @icontract.ensure(lambda self: self._lang_code is not None)
+    @icontract.ensure(lambda self: self._resource_type is not None)
     @icontract.ensure(lambda self: self._book_number is not None)
     @icontract.ensure(lambda self: self._book_id is not None)
     @icontract.ensure(lambda self: self._content is not None)
@@ -1121,7 +1023,6 @@ class USFMResource(Resource):
         self._content = file_utils.read_file(html_file)
         logger.debug("self._bad_links: {}".format(self._bad_links))
 
-    # protected
     # FIXME Handle git based usfm with resources.json file and .txt usfm
     # file suffixes.
     # FIXME This is game for rewrite or removal considering new
@@ -1131,17 +1032,17 @@ class USFMResource(Resource):
     @icontract.ensure(lambda self: self._usfm_chunks is not None)
     def _get_usfm_chunks(self) -> None:
         book_chunks: dict = {}
-        # usfm_file = os.path.join(
-        #     "{}/{}.usfm".format(self._resource_dir, self._resource_filename)
-        # )
         logger.debug("self._resource_filename: {}".format(self._resource_filename))
-        usfm_file = "{}/{}-{}.usfm".format(
-            self.resource_dir, self._book_number, self._book_id.upper(),
-        )
-        logger.debug("About to read: {}".format(usfm_file))
-        usfm = file_utils.read_file(usfm_file, "utf-8",)
 
-        chunks = re.compile(r"\\s5\s*\n*").split(usfm)
+        usfm_file_content: Optional[str] = self._get_usfm_file_content()
+
+        # FIXME Not sure I like this LBYL style here. Exceptions
+        # should actually be the exceptional case here, so this costs
+        # performance by checking.
+        if usfm_file_content is not None:
+            chunks = re.compile(r"\\s5\s*\n*").split(usfm_file_content)
+        else:
+            return
 
         # Break chunks into verses
         chunks_per_verse = []
@@ -1150,10 +1051,15 @@ class USFMResource(Resource):
             for line in chunk.splitlines(True):
                 # If this is a new verse and there's a pending chunk,
                 # finish it and start a new one.
+                logger.debug("pending_chunk: {}".format(pending_chunk))
                 if re.search(r"\\v", line) and pending_chunk:
                     chunks_per_verse.append(pending_chunk)
                     pending_chunk = None
-                pending_chunk = pending_chunk + line if pending_chunk else line
+                if pending_chunk:
+                    pending_chunk = pending_chunk + line
+                else:
+                    pending_chunk = line
+
             # If there's a pending chunk, finish it.
             if pending_chunk:
                 chunks_per_verse.append(pending_chunk)
@@ -1189,22 +1095,73 @@ class USFMResource(Resource):
             )
         )
 
+    def _get_usfm_file_content(self) -> Optional[str]:
+        """
+        Get the USFM file content for the resource if it is
+        available, otherwise return None.
+        """
+        usfm: Optional[str] = None
+        usfm_file: str = os.path.join(
+            self._resource_dir,
+            "{}-{}.usfm".format(self._book_number, self._book_id.upper()),
+        )
+        # FIXME Maybe it is unpythonic to check this. Perhaps instead
+        # we should just attempt to read the file and if USFM is None
+        # then we know it failed and we can try the alternate file
+        # name.
+        if os.path.exists(usfm_file):
+            logger.debug("About to read: {}".format(usfm_file))
+            # FIXME Need to handle exceptions (unless they are already
+            # handled by read_file).
+            usfm = file_utils.read_file(usfm_file, "utf-8",)
+        else:  # Individual USFM files can have this alternate naming scheme.
+            usfm_file = os.path.join(
+                self._resource_dir, "{}.usfm".format(self._book_id.upper()),
+            )
+            if os.path.exists(usfm_file):
+                logger.debug("About to read: {}".format(usfm_file))
+                usfm = file_utils.read_file(usfm_file, "utf-8",)
+        return usfm
+
 
 # Only exists for a common interface for _convert_md2html
 class TResource(Resource):
-    def __init__(self, working_dir: str, output_dir: str, resource: dict) -> None:
-        super().__init__(
-            working_dir, output_dir, resource_lookup.TResourceJsonLookup(), resource
-        )
+    # def __init__(
+    #     self, working_dir: str, output_dir: str, resource_request: model.ResourceRequest
+    # ) -> None:
+    #     super().__init__(
+    #         working_dir,
+    #         output_dir,
+    #         resource_lookup.TResourceJsonLookup(),
+    #         resource_request,
+    #     )
 
-    def __repr__(self) -> str:
-        return "{}, superclass: {}".format(type(self).__name__, super().__repr__())
+    # def __repr__(self) -> str:
+    #     return "{}, superclass: {}".format(type(self).__name__, super().__repr__())
 
+    # FIXME Should this be copied to each TResource subclass instead?
+    @icontract.ensure(
+        lambda self: self._resource_url is not None
+    )  # FIXME This is only useful during development to find resources which have exceptional jsonpaths. But the logic needs to allow for not finding a resource, so I am just using this temporarily to root out resources with exceptional jsonpaths.
+    def find_location(self) -> None:
+        """ Find the URL where the resource's assets are located. """
+        # FIXME For better flexibility, the lookup class could be
+        # looked up in a table, i.e., dict, that has the key as self
+        # classname and the value as the lookup subclass.
+        lookup_svc = resource_lookup.TResourceJsonLookup()
+        resource_lookup_dto: model.ResourceLookupDto = lookup_svc.lookup(self)
+        self._resource_url = resource_lookup_dto.url
+        self._resource_source = resource_lookup_dto.source
+        self._resource_jsonpath = resource_lookup_dto.jsonpath
+        logger.debug("self._resource_url: {} for {}".format(self._resource_url, self))
+
+    # FIXME Should this be copied to each TResource subclass instead?
+    @icontract.require(lambda self: self._content is not None)
     def _convert_md2html(self) -> None:
         """ Convert a resource's Markdown to HTML. """
+        assert self._content is not None, "self._content cannot be None here."
         self._content = markdown.markdown(self._content)
 
-    # protected
     # FIXME Bit of a legacy cluster. This used to be a function and
     # maybe still should be, but for now I've made it an instance
     # method.
@@ -1248,8 +1205,7 @@ class TResource(Resource):
 
         self._content = text
 
-    # protected
-    # FIXME Bit of a legacy cluster. This used to be a function and
+    # FIXME Legacy cluster. This used to be a function and
     # maybe still should be, but for now I've made it an instance
     # method.
     def _fix_links(self) -> None:
@@ -1318,12 +1274,12 @@ class TResource(Resource):
         super()._discover_manifest()
 
         # Get the content files
-        markdown_files = list(self.resource_dir_path.glob("**/*.md"))
+        markdown_files = self.resource_dir_path.glob("**/*.md")
         markdown_content_files = filter(
             lambda x: str(x.stem).lower() not in config.get_markdown_doc_file_names(),
             markdown_files,
         )
-        txt_files = list(self.resource_dir_path.glob("**/*.txt"))
+        txt_files = self.resource_dir_path.glob("**/*.txt")
         txt_content_files = filter(
             lambda x: str(x.stem).lower() not in config.get_markdown_doc_file_names(),
             txt_files,
@@ -1332,28 +1288,26 @@ class TResource(Resource):
         if len(list(markdown_content_files)) > 0:
             self._content_files = list(
                 filter(
-                    lambda x: self.resource_code.lower() in str(x).lower(),
-                    markdown_files,
+                    lambda x: self._resource_code.lower() in str(x).lower(),
+                    [str(file) for file in markdown_files],
                 )
             )
         if len(list(txt_content_files)) > 0:
             self._content_files = list(
                 filter(
-                    lambda x: self.resource_code.lower() in str(x).lower(), txt_files,
+                    lambda x: self._resource_code.lower() in str(x).lower(),
+                    [str(file) for file in txt_files],
                 )
             )
 
         logger.debug(
             "self._content_files for {}: {}".format(
-                self.resource_code, self._content_files,
+                self._resource_code, self._content_files,
             )
         )
 
 
 class TNResource(TResource):
-    def __init__(self, working_dir: str, output_dir: str, resource: dict,) -> None:
-        super().__init__(working_dir, output_dir, resource)
-
     def get_content(self) -> None:
         logger.info("Processing Translation Notes Markdown...")
         self._get_tn_markdown()
@@ -1364,8 +1318,7 @@ class TNResource(TResource):
         self._convert_md2html()
         logger.debug("self._bad_links: {}".format(self._bad_links))
 
-    # protected
-    @icontract.require(lambda self: self.resource_code is not None)
+    @icontract.require(lambda self: self._resource_code is not None)
     def _get_tn_markdown(self) -> None:
         book_dir: str = self._get_book_dir()
         logger.debug("book_dir: {}".format(book_dir))
@@ -1375,7 +1328,7 @@ class TNResource(TResource):
 
         # TODO Might need localization
         # tn_md = '# Translation Notes\n<a id="tn-{}"/>\n\n'.format(self._book_id)
-        tn_md = '# Translation Notes\n<a id="tn-{}"/>\n\n'.format(self.resource_code)
+        tn_md = '# Translation Notes\n<a id="tn-{}"/>\n\n'.format(self._resource_code)
 
         book_has_intro, tn_md_intro = self._initialize_tn_book_intro(book_dir)
         tn_md += tn_md_intro
@@ -1397,6 +1350,7 @@ class TNResource(TResource):
                 )
                 # Get all the Markdown files that start with a digit
                 # and end with suffix md.
+                # FIXME Could use pathlib here instead of glob from lib
                 chunk_files = sorted(glob(os.path.join(chapter_dir, "[0-9]*.md")))
                 logger.debug("chunk_files: {}".format(chunk_files))
                 for _, chunk_file in enumerate(chunk_files):
@@ -1411,7 +1365,10 @@ class TNResource(TResource):
                     anchors = ""
                     pre_md = ""
                     # FIXME I don't think it should be fetching USFM
-                    # stuff here in this method.
+                    # stuff here in this method under the new design.
+                    # _initialize_tn_chapter_verse_links now takes a
+                    # first argument of a USFMResource instance which
+                    # will provide the _usfm_chunks.
                     # if bool(self._usfm_chunks):
                     #     # Create links to each chapter
                     #     anchors += self._initialize_tn_chapter_verse_links(
@@ -1473,24 +1430,24 @@ class TNResource(TResource):
 
         self._content = tn_md
 
-    @icontract.require(lambda self: self.resource_dir is not None)
-    @icontract.require(lambda self: self.lang_code is not None)
-    @icontract.require(lambda self: self.resource_type is not None)
+    @icontract.require(lambda self: self._resource_dir is not None)
+    @icontract.require(lambda self: self._lang_code is not None)
+    @icontract.require(lambda self: self._resource_type is not None)
     def _get_book_dir(self) -> str:
         """ Given the lang_code, resource_type, and resource_dir,
         generate the book directory. """
         filepath: str = os.path.join(
-            self.resource_dir, "{}_{}".format(self.lang_code, self.resource_type)
+            self._resource_dir, "{}_{}".format(self._lang_code, self._resource_type)
         )
-        logger.debug("self.lang_code: {}".format(self.lang_code))
-        logger.debug("self.resource_type: {}".format(self.resource_type))
-        logger.debug("self.resource_dir: {}".format(self.resource_dir))
+        logger.debug("self._lang_code: {}".format(self._lang_code))
+        logger.debug("self._resource_type: {}".format(self._resource_type))
+        logger.debug("self._resource_dir: {}".format(self._resource_dir))
         logger.debug("filepath: {}".format(filepath))
         if os.path.isdir(filepath):
             book_dir = filepath
         else:  # FIXME What case is this, I don't recall.
             logger.info("in else of _get_book_dir")
-            book_dir = os.path.join(self.resource_dir, self.resource_code)
+            book_dir = os.path.join(self._resource_dir, self._resource_code)
         return book_dir
 
     def _initialize_tn_book_intro(self, book_dir: str) -> Tuple[bool, str]:
@@ -1509,7 +1466,7 @@ class TNResource(TResource):
             id_tag = '<a id="tn-{0}-front-intro"/>'.format(self._book_id)
             md = re.compile(r"# ([^\n]+)\n").sub(r"# \1\n{0}\n".format(id_tag), md, 1)
             rc = "rc://{0}/tn/help/{1}/front/intro".format(
-                self.lang_code, self._book_id
+                self._lang_code, self._book_id
             )
             anchor_id = "tn-{}-front-intro".format(self._book_id)
             # FIXME This proaably will blow up.
@@ -1544,7 +1501,7 @@ class TNResource(TResource):
             )
             md = re.compile(r"# ([^\n]+)\n").sub(r"# \1\n{}\n".format(id_tag), md, 1)
             rc = "rc://{}/tn/help/{}/{}/intro".format(
-                self.lang_code, self._book_id, self._pad(chapter),
+                self._lang_code, self._book_id, self._pad(chapter),
             )
             anchor_id = "tn-{}-{}-intro".format(self._book_id, self._pad(chapter))
             self._resource_data[rc] = {
@@ -1571,13 +1528,13 @@ class TNResource(TResource):
                 # TODO localization
             ): "**[2 Thessalonians intro](../front/intro.md)**",
             r"\]\(\.\./\.\./([^)]+?)(\.md)*\)": r"](rc://{}/tn/help/\1)".format(
-                self.lang_code
+                self._lang_code
             ),
             r"\]\(\.\./([^)]+?)(\.md)*\)": r"](rc://{}/tn/help/{}/\1)".format(
-                self.lang_code, self._book_id
+                self._lang_code, self._book_id
             ),
             r"\]\(\./([^)]+?)(\.md)*\)": r"](rc://{}/tn/help/{}/{}/\1)".format(
-                self.lang_code, self._book_id, self._pad(chapter),
+                self._lang_code, self._book_id, self._pad(chapter),
             ),
             r"\n__.*\|.*": r"",
         }
@@ -1586,7 +1543,7 @@ class TNResource(TResource):
         return text
 
     def _initialize_tn_chapter_files(
-        self, chunk_file, chapter
+        self, chunk_file: str, chapter: str
     ) -> Tuple[str, Optional[str], str, str]:
         first_verse = os.path.splitext(os.path.basename(chunk_file))[0].lstrip("0")
         logger.debug("first_verse: {}".format(first_verse))
@@ -1619,11 +1576,16 @@ class TNResource(TResource):
         md = md.replace("#### Translation Words", "### Translation Words")
         return (first_verse, last_verse, title, md)
 
-    # FIXME This should possibly live in a UDBResource
-    def _initialize_tn_chapter_verse_links(self, chapter: str, first_verse: str) -> str:
+    # FIXME This should possibly have a USFMResource instance passed
+    # in as parameter for the sake of self._usfm_chunks
+    def _initialize_tn_chapter_verse_links(
+        self, usfm_resource: USFMResource, chapter: str, first_verse: str
+    ) -> str:
         anchors = ""
         try:
-            for verse in self._usfm_chunks["ulb"][chapter][first_verse]["verses"]:
+            for verse in usfm_resource._usfm_chunks["ulb"][chapter][first_verse][
+                "verses"
+            ]:
                 anchors += '<a id="tn-{}-{}-{}"/>'.format(
                     self._book_id, self._pad(chapter), self._pad(verse),
                 )
@@ -1679,14 +1641,14 @@ class TNResource(TResource):
 
         # TODO localization
         md = "### Unlocked Dynamic Bible\n\n[[udb://{}/{}/{}/{}/{}]]\n\n".format(
-            self.lang_code,
+            self._lang_code,
             self._book_id,
             self._pad(chapter),
             self._pad(udb_first_verse),
             self._pad(last_verse),
         )
         rc = "rc://{}/tn/help/{}/{}/{}".format(
-            self.lang_code, self._book_id, self._pad(chapter), self._pad(first_verse),
+            self._lang_code, self._book_id, self._pad(chapter), self._pad(first_verse),
         )
         anchor_id = "tn-{}-{}-{}".format(
             self._book_id, self._pad(chapter), self._pad(first_verse),
@@ -1710,43 +1672,26 @@ class TNResource(TResource):
         links = "### Links:\n\n"
         if book_has_intro:
             links += "* [[rc://{}/tn/help/{}/front/intro]]\n".format(
-                self.lang_code, self._book_id
+                self._lang_code, self._book_id
             )
         if chapter_has_intro:
             links += "* [[rc://{0}/tn/help/{1}/{2}/intro]]\n".format(
-                self.lang_code, self._book_id, self._pad(chapter),
+                self._lang_code, self._book_id, self._pad(chapter),
             )
         links += "* [[rc://{0}/tq/help/{1}/{2}]]\n".format(
-            self.lang_code, self._book_id, self._pad(chapter),
+            self._lang_code, self._book_id, self._pad(chapter),
         )
         return links
 
 
 class TWResource(TResource):
-    def __init__(self, working_dir: str, output_dir: str, resource: dict,) -> None:
-        super().__init__(working_dir, output_dir, resource)
-
-    # NOTE According to Alex Martelli in Python in a Nutshell 2nd Ed, this
-    # is an antipattern.
-    # def find_location(self) -> None:
-    #     super().find_location()
-
-    # NOTE According to Alex Martelli in Python in a Nutshell 2nd Ed, this
-    # is an antipattern.
-    # def get_files(self) -> None:
-    #     super().get_files()
-
-    # NOTE According to Alex Martelli in Python in a Nutshell 2nd Ed, this
-    # is an antipattern.
-    # def initialize_properties(self) -> None:
-    #     super().initialize_properties()
-
     def get_content(self) -> None:
         logger.info("Processing Translation Words Markdown...")
         self._get_tw_markdown()
         # FIXME
         # self._replace_rc_links()
-        # self._fix_links()
+        ## self._fix_links()
+        # self._content = fix_links(self._content)
         logger.info("Converting MD to HTML...")
         self._convert_md2html()
         logger.debug("self._bad_links: {}".format(self._bad_links))
@@ -1795,24 +1740,6 @@ class TWResource(TResource):
 
 
 class TQResource(TResource):
-    def __init__(self, working_dir: str, output_dir: str, resource: Dict,) -> None:
-        super().__init__(working_dir, output_dir, resource)
-
-    # NOTE According to Alex Martelli in Python in a Nutshell 2nd Ed, this
-    # is an antipattern.
-    # def find_location(self) -> None:
-    #     super().find_location()
-
-    # NOTE According to Alex Martelli in Python in a Nutshell 2nd Ed, this
-    # is an antipattern.
-    # def get_files(self) -> None:
-    #     super().get_files()
-
-    # NOTE According to Alex Martelli in Python in a Nutshell 2nd Ed, this
-    # is an antipattern.
-    # def initialize_properties(self) -> None:
-    #     super().initialize_properties()
-
     def get_content(self) -> None:
         logger.info("Processing Translation Questions Markdown...")
         self._get_tq_markdown()
@@ -1830,7 +1757,7 @@ class TQResource(TResource):
         tq_md = '# Translation Questions\n<a id="tq-{}"/>\n\n'.format(self._book_id)
         # TODO localization
         title = "{} Translation Questions".format(self._book_title)
-        rc = "rc://{}/tq/help/{}".format(self.lang_code, self._book_id)
+        rc = "rc://{}/tq/help/{}".format(self._lang_code, self._book_id)
         anchor_id = "tq-{}".format(self._book_id)
         self._resource_data[rc] = {
             "rc": rc,
@@ -1839,7 +1766,7 @@ class TQResource(TResource):
             "title": title,
         }
         self._my_rcs.append(rc)
-        tq_book_dir = os.path.join(self.resource_dir, self._book_id)
+        tq_book_dir = os.path.join(self._resource_dir, self._book_id)
         for chapter in sorted(os.listdir(tq_book_dir)):
             chapter_dir = os.path.join(tq_book_dir, chapter)
             chapter = chapter.lstrip("0")
@@ -1849,7 +1776,7 @@ class TQResource(TResource):
                 # TODO localization
                 title = "{} {} Translation Questions".format(self._book_title, chapter)
                 rc = "rc://{}/tq/help/{}/{}".format(
-                    self.lang_code, self._book_id, self._pad(chapter)
+                    self._lang_code, self._book_id, self._pad(chapter)
                 )
                 anchor_id = "tq-{}-{}".format(self._book_id, self._pad(chapter))
                 self._resource_data[rc] = {
@@ -1880,7 +1807,7 @@ class TQResource(TResource):
                             self._book_title, chapter, first_verse
                         )
                         rc = "rc://{}/tq/help/{}/{}/{}".format(
-                            self.lang_code,
+                            self._lang_code,
                             self._book_id,
                             self._pad(chapter),
                             self._pad(first_verse),
@@ -1904,24 +1831,6 @@ class TQResource(TResource):
 
 
 class TAResource(TResource):
-    def __init__(self, working_dir: str, output_dir: str, resource: dict) -> None:
-        super().__init__(working_dir, output_dir, resource)
-
-    # NOTE According to Alex Martelli in Python in a Nutshell 2nd Ed, this
-    # is an antipattern.
-    # def find_location(self) -> None:
-    #     super().find_location()
-
-    # NOTE According to Alex Martelli in Python in a Nutshell 2nd Ed, this
-    # is an antipattern.
-    # def get_files(self) -> None:
-    #     super().get_files()
-
-    # NOTE According to Alex Martelli in Python in a Nutshell 2nd Ed, this
-    # is an antipattern.
-    # def initialize_properties(self) -> None:
-    #     super().initialize_properties()
-
     def get_content(self) -> None:
         logger.info("Processing Translation Academy Markdown...")
         self._get_ta_markdown()
@@ -1996,13 +1905,13 @@ class TAResource(TResource):
                 try:
                     file_path = os.path.join(
                         self._working_dir,
-                        "{}_{}".format(self.lang_code, resource_tmp),
+                        "{}_{}".format(self._lang_code, resource_tmp),
                         "{}.md".format(path),
                     )
                     if not os.path.isfile(file_path):
                         file_path = os.path.join(
                             self._working_dir,
-                            "{}_{}".format(self.lang_code, resource_tmp),
+                            "{}_{}".format(self._lang_code, resource_tmp),
                             "{}/01.md".format(path),
                         )
                     if os.path.isfile(file_path):
@@ -2048,17 +1957,16 @@ class TAResource(TResource):
                 if t:
                     self._get_resource_data_from_rc_links(t, rc)
 
-    # protected
     def _fix_ta_links(self, text: str, manual: str) -> str:
         rep = {
             r"\]\(\.\./([^/)]+)/01\.md\)": r"](rc://{0}/ta/man/{1}/\1)".format(
-                self.lang_code, manual
+                self._lang_code, manual
             ),
             r"\]\(\.\./\.\./([^/)]+)/([^/)]+)/01\.md\)": r"](rc://{}/ta/man/\1/\2)".format(
-                self.lang_code
+                self._lang_code
             ),
             r"\]\(([^# :/)]+)\)": r"](rc://{}/ta/man/{}/\1)".format(
-                self.lang_code, manual
+                self._lang_code, manual
             ),
         }
         for pattern, repl in rep.items():
@@ -2066,13 +1974,9 @@ class TAResource(TResource):
         return text
 
 
-# QUESTION Do we need a resource code to create the right Resource
-# subclass? At a basic level, all we need is the resource_type to
-# determine the subclass of Resource to create. However, it might be
-# nice to have special subclasses that use the resource_code to know
-# how to retrieve a value differently based on its value. I think,
-# however, that this will not be needed.
-def resource_factory(working_dir: str, output_dir: str, resource: dict) -> Any:
+def resource_factory(
+    working_dir: str, output_dir: str, resource_request: model.ResourceRequest
+) -> Resource:
     """ Factory method. """
     # resource_type is key, Resource subclass is value
     resources = {
@@ -2091,7 +1995,9 @@ def resource_factory(working_dir: str, output_dir: str, resource: dict) -> Any:
         "ta": TAResource,
         "ta-wa": TAResource,
     }
-    return resources[resource["resource_type"]](working_dir, output_dir, resource)
+    return resources[resource_request.resource_type](
+        working_dir, output_dir, resource_request
+    )
 
 
 def get_tw_refs(tw_refs_by_verse: dict, book: str, chapter: str, verse: str) -> List:

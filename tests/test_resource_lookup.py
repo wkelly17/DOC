@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple, Union
 import abc
 import os
 from datetime import datetime, timedelta
@@ -12,59 +12,32 @@ from jsonpath_rw_ext import parse  # type: ignore
 import jsonpath_rw_ext as jp  # for calling extended methods
 import urllib.request, urllib.parse, urllib.error
 
-# Handle running in container or as standalone script
-try:
-    from document.utils.file_utils import load_json_object
-    from document.utils.url_utils import download_file
-    from document.config import (
-        get_translations_json_location,
-        get_individual_usfm_url_jsonpath,
-        get_resource_url_level_1_jsonpath,
-        get_resource_url_level_2_jsonpath,
-        get_resource_download_format_jsonpath,
-        get_logging_config_file_path,
-        get_working_dir,
-    )
-    from document.domain.resource_lookup import ResourceJsonLookup
-    from document.domain.resource import (
-        # Resource,
-        USFMResource,
-        TNResource,
-        TAResource,
-        TQResource,
-        TWResource,
-        resource_factory,
-    )
-except:
-    from .document.utils.file_utils import load_json_object
-    from .document.utils.url_utils import download_file
-    from .document.config import (
-        get_translations_json_location,
-        get_individual_usfm_url_jsonpath,
-        get_resource_url_level_1_jsonpath,
-        get_resource_url_level_2_jsonpath,
-        get_resource_download_format_jsonpath,
-        get_logging_config_file_path,
-        get_working_dir,
-    )
-    from .document.domain.resource_lookup import ResourceJsonLookup
-    from .document.domain.resource import (
-        # Resource,
-        USFMResource,
-        TNResource,
-        TAResource,
-        TQResource,
-        TWResource,
-        ResourceFactory,
-    )
+from document.utils import file_utils
+from document.utils import url_utils
+from document import config
+from document.domain import resource_lookup
+from document.domain import model
+from document.domain.resource import (
+    Resource,
+    USFMResource,
+    TNResource,
+    TAResource,
+    TQResource,
+    TWResource,
+    resource_factory,
+)
+
+
+# Define type alias for brevity
+# AResource = Union[USFMResource, TAResource, TNResource, TQResource, TWResource]
 
 import yaml
 import logging
 import logging.config
 
-with open(get_logging_config_file_path(), "r") as f:
-    config = yaml.safe_load(f.read())
-    logging.config.dictConfig(config)
+with open(config.get_logging_config_file_path(), "r") as f:
+    logging_config = yaml.safe_load(f.read())
+    logging.config.dictConfig(logging_config)
 
 
 logger = logging.getLogger(__name__)
@@ -73,69 +46,87 @@ logger = logging.getLogger(__name__)
 def main() -> None:
     """ Test driver. """
 
-    lookup_svc: ResourceJsonLookup = ResourceJsonLookup()
+    usfm_lookup_svc = resource_lookup.USFMResourceJsonLookup()
+    t_lookup_svc = resource_lookup.TResourceJsonLookup()
+    biel_helper_lookup_svc = resource_lookup.BIELHelperResourceJsonLookup()
 
     ## A few non-API tests that demonstrate aspects of jsonpath
     ## library or nature of data we are working with:
 
-    if True:
-        test_lookup_all_language_codes(lookup_svc)
-
-        # test_lookup_all_language_names(lookup_svc)
-
-        test_lookup_all_language_codes_and_names(lookup_svc)
-
-        test_lookup_all_resource_types(lookup_svc)
-
-        test_lookup_all_resource_codes(lookup_svc)
+    if False:
+        test_lookup_all_language_codes(biel_helper_lookup_svc)
 
     if False:
+        test_lookup_all_language_codes_and_names(biel_helper_lookup_svc)
 
-        test_all_tn_zip_urls_lookup(lookup_svc)
+    if False:
+        test_lookup_all_resource_types(biel_helper_lookup_svc)
 
-        test_lookup_downloads_at_reg(lookup_svc)
+    if False:
+        test_lookup_all_resource_codes(biel_helper_lookup_svc)
 
-        test_lookup_downloads(lookup_svc)
+    if False:
+        test_all_tn_zip_urls_lookup(t_lookup_svc)
 
-        test_lookup_downloads_not_at_reg(lookup_svc)
+    if False:
+        test_lookup_downloads_at_reg(usfm_lookup_svc)
 
-        test_lookup_downloads_not_at_reg2(lookup_svc)
+    if False:
+        test_lookup_downloads(t_lookup_svc)
 
-    if True:
-        test_lookup_downloads_not_at_reg3(lookup_svc)
+    if False:
+        test_lookup_downloads_not_at_reg(t_lookup_svc)
+
+    if False:
+        test_lookup_downloads_not_at_reg(usfm_lookup_svc)
+
+    if False:
+        test_lookup_downloads_not_at_reg2(t_lookup_svc)
+
+    if False:
+        test_lookup_downloads_not_at_reg2(usfm_lookup_svc)
+
+    if False:
+        test_lookup_downloads_not_at_reg3(t_lookup_svc)
+
+    if False:
+        test_lookup_downloads_not_at_reg3(usfm_lookup_svc)
 
     ## Test the API:
 
     if True:
-        fixtures = {}
-        fixtures["resources"] = [
-            {"lang_code": "en", "resource_type": "tn-wa", "resource_code": "lev"},
-            {"lang_code": "kn", "resource_type": "tn", "resource_code": None},
-            {"lang_code": "lo", "resource_type": "tn", "resource_code": None},
-            {"lang_code": "as", "resource_type": "tn", "resource_code": None},
-            {"lang_code": "ema", "resource_type": "tn", "resource_code": None},
-            {"lang_code": "plt", "resource_type": "tw", "resource_code": None},
-            {"lang_code": "ml", "resource_type": "tq", "resource_code": None},
-            {"lang_code": "mr", "resource_type": "ta", "resource_code": None},
-            {"lang_code": "lpx", "resource_type": "ulb", "resource_code": None},
-            {"lang_code": "mr", "resource_type": "ulb", "resource_code": "gen"},
-            # {"lang_code": "mr", "resource_type": "udb", "resource_code": None},
-            # {"lang_code": "mr", "resource_type": "obs", "resource_code": None},
-            # {"lang_code": "mr", "resource_type": "obs-tn", "resource_code": None},
-            # {"lang_code": "mr", "resource_type": "obs-tq", "resource_code": None},
-            {
-                "lang_code": "erk-x-erakor",
-                "resource_type": "reg",
-                "resource_code": "eph",
-            },
-        ]
+        assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.BOOK
+        resource_requests: List[model.ResourceRequest] = []
+        resource_requests.append(
+            model.ResourceRequest(
+                lang_code="en", resource_type="ulb-wa", resource_code="gen"
+            )
+        )
+        resource_requests.append(
+            model.ResourceRequest(
+                lang_code="en", resource_type="tn-wa", resource_code="gen"
+            )
+        )
 
-        for resource in fixtures["resources"]:
-            # FIXME Instantiate a resource object for each resource dictionary
-            # using ResourceFactory factory method/function. See
-            # document_generator.py line 151 for example.
+        resource_requests.append(
+            model.ResourceRequest(
+                lang_code="mr", resource_type="ulb", resource_code="gen"
+            )
+        )
+
+        resource_requests.append(
+            model.ResourceRequest(
+                lang_code="erk-x-erakor", resource_type="reg", resource_code="eph"
+            )
+        )
+        document_request = model.DocumentRequest(
+            assembly_strategy_kind=assembly_strategy_kind,
+            resource_requests=resource_requests,
+        )
+
+        for resource_request in document_request.resource_requests:
             r = resource_factory(
-                get_working_dir(), get_working_dir(), lookup_svc, resource
+                config.get_working_dir(), config.get_output_dir(), resource_request
             )
             test_lookup(r)
 
@@ -143,23 +134,14 @@ def main() -> None:
 ## Test the API:
 
 
-def test_lookup(resource) -> None:
+def test_lookup(resource: Resource) -> None:
     resource.find_location()
-    # values: List[Optional[str]] = lookup_svc.lookup(resource)
     print(
-        "Language {}, resource_type: {}, resource_code: {}, resource_jsonpath: {}, URL: {}".format(
-            # resource["lang_code"],
-            resource._lang_code,
-            # resource["resource_type"],
-            resource._resource_type,
-            # resource["resource_code"],
-            resource._resource_code,
-            # resource["resource_jsonpath"],
-            resource._resource_jsonpath,
-            resource._resource_url
-            # values,
+        "{}, resource_jsonpath: {}, URL: {}".format(
+            resource, resource._resource_jsonpath, resource._resource_url
         )
     )
+    # assert resource._resource_url
 
 
 ## A few non-API tests that demonstrate aspects of jsonpath
@@ -167,20 +149,17 @@ def test_lookup(resource) -> None:
 ## that are not known to be needed yet:
 
 
-def test_lookup_all_language_codes(lookup_svc: ResourceJsonLookup) -> None:
-    values: List[Optional[str]] = lookup_svc.lang_codes()
+def test_lookup_all_language_codes(
+    lookup_svc: resource_lookup.BIELHelperResourceJsonLookup,
+) -> None:
+    values = lookup_svc.lang_codes()
     print("Language codes: {}, # of language codes: {}".format(values, len(values)))
 
 
-# def test_lookup_all_language_names(lookup_svc: ResourceJsonLookup) -> None:
-#     values: List[Optional[str]] = lookup_svc.lang_names()
-#     print("Language names: {}, # of language names: {}".format(values, len(values)))
-
-
-def test_lookup_all_language_codes_and_names(lookup_svc: ResourceJsonLookup) -> None:
-    values: List[
-        Tuple[Optional[str], Optional[str]]
-    ] = lookup_svc.lang_codes_and_names()
+def test_lookup_all_language_codes_and_names(
+    lookup_svc: resource_lookup.BIELHelperResourceJsonLookup,
+) -> None:
+    values: List[Tuple[str, str]] = lookup_svc.lang_codes_and_names()
     print(
         "Language code, name tuples: {}, # of language code, name tuples: {}".format(
             values, len(values)
@@ -188,21 +167,27 @@ def test_lookup_all_language_codes_and_names(lookup_svc: ResourceJsonLookup) -> 
     )
 
 
-def test_lookup_all_resource_types(lookup_svc: ResourceJsonLookup) -> None:
-    values: List[Optional[str]] = lookup_svc.resource_types()
+def test_lookup_all_resource_types(
+    lookup_svc: resource_lookup.BIELHelperResourceJsonLookup,
+) -> None:
+    values: List[str] = lookup_svc.resource_types()
     print("Resource types: {}, # of resource types: {}".format(values, len(values)))
 
 
-def test_lookup_all_resource_codes(lookup_svc: ResourceJsonLookup) -> None:
-    values: List[Optional[str]] = lookup_svc.resource_codes()
+def test_lookup_all_resource_codes(
+    lookup_svc: resource_lookup.BIELHelperResourceJsonLookup,
+) -> None:
+    values: List[str] = lookup_svc.resource_codes()
     print("Resource codes: {}, # of resource codes: {}".format(values, len(values)))
 
 
-def test_lookup_downloads_at_reg(lookup_svc: ResourceJsonLookup) -> None:
+def test_lookup_downloads_at_reg(
+    lookup_svc: resource_lookup.USFMResourceJsonLookup,
+) -> None:
     jsonpath_str = (
         "$[*].contents[?code='reg'].subcontents[*].links[?format='Download'].url"
     )
-    values: List[Optional[str]] = lookup_svc._lookup(jsonpath_str)
+    values: List[str] = lookup_svc.resource_json_lookup._lookup(jsonpath_str)
 
     print(
         "All git repos having jsonpath {} : {}, # of repos: {}".format(
@@ -211,11 +196,15 @@ def test_lookup_downloads_at_reg(lookup_svc: ResourceJsonLookup) -> None:
     )
 
 
-def test_lookup_downloads(lookup_svc: ResourceJsonLookup) -> None:
+def test_lookup_downloads(
+    lookup_svc: Union[
+        resource_lookup.USFMResourceJsonLookup, resource_lookup.TResourceJsonLookup
+    ]
+) -> None:
     """ Find all the git repos to determine all the locations they can
     be found in translations.json. """
     jsonpath_str = "$[*].contents[*].subcontents[*].links[?format='Download'].url"
-    values: List[Optional[str]] = lookup_svc._lookup(jsonpath_str)
+    values: List[str] = lookup_svc.resource_json_lookup._lookup(jsonpath_str)
 
     print(
         "All git repos having jsonpath {} : {}, # of repos: {}".format(
@@ -224,14 +213,18 @@ def test_lookup_downloads(lookup_svc: ResourceJsonLookup) -> None:
     )
 
 
-def test_lookup_downloads_not_at_reg(lookup_svc: ResourceJsonLookup) -> None:
+def test_lookup_downloads_not_at_reg(
+    lookup_svc: Union[
+        resource_lookup.USFMResourceJsonLookup, resource_lookup.TResourceJsonLookup
+    ]
+) -> None:
     jsonpath_str = "$[*].contents[*].subcontents[*].links[?format='Download'].url"
-    values: List[Optional[str]] = lookup_svc._lookup(jsonpath_str)
+    values: List[str] = lookup_svc.resource_json_lookup._lookup(jsonpath_str)
 
     jsonpath_str2 = (
         "$[*].contents[?code='reg'].subcontents[*].links[?format='Download'].url"
     )
-    values2: List[Optional[str]] = lookup_svc._lookup(jsonpath_str2)
+    values2: List[str] = lookup_svc.resource_json_lookup._lookup(jsonpath_str2)
 
     result = list(filter(lambda x: x not in values, values2))
     print(
@@ -241,43 +234,46 @@ def test_lookup_downloads_not_at_reg(lookup_svc: ResourceJsonLookup) -> None:
     )
 
 
-def test_lookup_downloads_not_at_reg2(lookup_svc: ResourceJsonLookup) -> None:
+def test_lookup_downloads_not_at_reg2(
+    lookup_svc: Union[
+        resource_lookup.USFMResourceJsonLookup, resource_lookup.TResourceJsonLookup
+    ]
+) -> None:
     jsonpath_str = "$[*].contents[*].subcontents[*].links[?format='Download'].url"
-    values: List[Optional[str]] = lookup_svc._lookup(jsonpath_str)
+    values: List[str] = lookup_svc.resource_json_lookup._lookup(jsonpath_str)
 
     jsonpath_str2 = (
         "$[*].contents[?code='reg'].subcontents[*].links[?format='Download'].url"
     )
-    values2: List[Optional[str]] = lookup_svc._lookup(jsonpath_str2)
+    values2: List[str] = lookup_svc.resource_json_lookup._lookup(jsonpath_str2)
 
     result = list(filter(lambda x: x not in values, values2))
     for x, y in zip(values, values2):
         print("x: {}\n y: {}".format(x, y))
-    # print(
-    #     "# of values: {}, # of values2: {}, All git repos not found at countents[?code='reg'] having jsonpath {} : {}, # of repos: {}".format(
-    #         len(values), len(values2), jsonpath_str, result, len(result)
-    #     )
-    # )
 
 
-def test_lookup_downloads_not_at_reg3(lookup_svc: ResourceJsonLookup) -> None:
+def test_lookup_downloads_not_at_reg3(
+    lookup_svc: Union[
+        resource_lookup.USFMResourceJsonLookup, resource_lookup.TResourceJsonLookup
+    ]
+) -> None:
     jsonpath_str = "$[*].contents[*].subcontents[*].links[?format='Download'].url"
-    values: List[Optional[str]] = lookup_svc._lookup(jsonpath_str)
+    values: List[str] = lookup_svc.resource_json_lookup._lookup(jsonpath_str)
 
     jsonpath_str2 = (
         "$[*].contents[?code='reg'].subcontents[*].links[?format='Download'].url"
     )
-    values2: List[Optional[str]] = lookup_svc._lookup(jsonpath_str2)
+    values2: List[str] = lookup_svc.resource_json_lookup._lookup(jsonpath_str2)
 
     jsonpath_str3 = (
         "$[*].contents[?code='ulb'].subcontents[*].links[?format='Download'].url"
     )
-    values3: List[Optional[str]] = lookup_svc._lookup(jsonpath_str3)
+    values3: List[str] = lookup_svc.resource_json_lookup._lookup(jsonpath_str3)
 
     jsonpath_str4 = (
         "$[*].contents[?code='udb'].subcontents[*].links[?format='Download'].url"
     )
-    values4: List[Optional[str]] = lookup_svc._lookup(jsonpath_str4)
+    values4: List[str] = lookup_svc.resource_json_lookup._lookup(jsonpath_str4)
 
     print(
         "len(values): {}, len(values2): {}, len(values3): {}, len(values4): {}, sum(values,values2,values3,values4): {}".format(
@@ -290,9 +286,13 @@ def test_lookup_downloads_not_at_reg3(lookup_svc: ResourceJsonLookup) -> None:
     )
 
 
-def test_all_tn_zip_urls_lookup(lookup_svc: ResourceJsonLookup) -> None:
+def test_all_tn_zip_urls_lookup(
+    lookup_svc: Union[
+        resource_lookup.USFMResourceJsonLookup, resource_lookup.TResourceJsonLookup
+    ]
+) -> None:
     # For all languages
-    download_urls: List[Optional[str]] = lookup_svc._lookup(
+    download_urls: List[str] = lookup_svc.resource_json_lookup._lookup(
         "$[*].contents[?code='tn'].links[?format='zip'].url",
     )
     if download_urls is not None:

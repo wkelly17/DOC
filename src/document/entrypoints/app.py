@@ -1,29 +1,21 @@
-from flask import Flask, jsonify, request
-import json
+from fastapi import FastAPI
+
+# import json
 import os
+
 from typing import List, Tuple
 
-# Handle running in container or as standalone script
-# try:
 from document.domain.document_generator import DocumentGenerator
-from document.domain.resource_lookup import ResourceJsonLookup
+from document.domain import resource_lookup
+from document.domain import model
 from document import config
-
-# except:
-#     from .document.domain.document_generator import DocumentGenerator
-#     from .document.domain.resource_lookup import ResourceJsonLookup
-#     from .document.config import get_logging_config_file_path
 
 import logging
 import logging.config
 import yaml
 
-# import logging
-# logging.basicConfig(
-#     format="[%(asctime)s] %(levelname)s in %(module)s: %(message)s", level=logging.DEBUG
-# )
 
-app = Flask(__name__)
+app = FastAPI()
 
 with open(config.get_logging_config_file_path(), "r") as f:
     logging_config = yaml.safe_load(f.read())
@@ -31,78 +23,98 @@ with open(config.get_logging_config_file_path(), "r") as f:
 
 logger = logging.getLogger(__name__)
 
-# A particular resource is composed of: lang_code, resource_type,
-# resource_code. Example: {'lang_code': 'ml', 'resource_type': 'ulb',
-# 'resource_code': 'tit'}. There can be multiple resources in one request to this API
-# endpoint. Example: {"resources": [{"lang_code": "ml", "resource_type": "ulb",
-# "resource_code": "tit"}, {"lang_code": "en", "resource_type": "ulb-wa",
-# "resource_code": "gen"}, {"lang_code": "mr", "resource_type": "udb",
-# "resource_code": "mrk"}]}
-# FIXME Add type declarations
-@app.route(f"{config.get_api_root()}/document", methods=["POST"])
-def document_endpoint():
-    # TODO Fix comment which is out of sync with code. Code needs to
+
+# FIXME This could be async def, see
+# ~/.ghq/github.com/hogeline/sample_fastapi/code/main.py, instead of synchronous.
+# @app.post(f"{config.get_api_root()}/document")
+@app.post("/documents")
+def document_endpoint(document_request: model.DocumentRequest,):
+    # FIXME Fix comment which is out of sync with code. Code needs to
     # change until this comment is true.
-    """ Get the JSON POSTed data, create document batch job consisting
+    """
+    Get the JSON POSTed data, create document batch job consisting
     of the requested resources and hand it off to the message bus for handling
     asynchronously. Return OK to the requesting HTTP client along with
-    JSON return payload containing URL of eventually resulting PDF. """
+    JSON return payload containing URL of eventually resulting PDF.
 
-    try:
-        payload = json.loads(request.get_json())
-        # app.logger.info("payload: {}".format(payload))
-        logger.info("payload: {}".format(payload))
-    except Exception:
-        logger.exception("Problem reifying json")
-        return "Failed to reify json", 500  # NOTE yet untested
-    finally:
-        app.logger.info("Successfully reified json")
+    Params:
+
+    - assembly_strategy_kind Either BOOK - "book", CHAPTER -
+    "chapter", or VERSE - "verse"
+
+    - document_request The DocumentRequest instance that contains the
+    resource requests for one document generation request.
+
+    """
 
     # NOTE I may interject a service layer here for one layer of
     # indirection. That layer of indirection will come in handy for
     # testing and provide more flexibility to API changes.
     # Hand off resource object to domain layer
     document_generator = DocumentGenerator(
-        payload["assembly_strategy"], payload["resources"]
+        document_request, config.get_working_dir(), config.get_output_dir(),
     )
     document_generator.run()  # eventually this will return path to finished PDF
 
-    # return jsonify({"resource_urls": resource_urls}), 200
-    return jsonify({"finished_document_url": "yet to be done"}), 200
+    finished_document_url: str = "{}.html".format(
+        os.path.join(
+            document_generator.working_dir, document_generator._document_request_key
+        )
+    )
+
+    return {"finished_document_url": finished_document_url}, 200
+    # FIXME Ask document_generator for URL where finished document can
+    # be downloaded. A subsequent HTTP GET of that URL should yield
+    # the document.
+    # return jsonify({"finished_document_url": "yet to be done"}), 200
     # return "OK", 201
 
 
-# FIXME Add type declarations
-@app.route(f"{config.get_api_root()}/language_codes", methods=["GET"])
+# FIXME Add return type info
+# @app.get(f"{config.get_api_root()}/language_codes")
+@app.get("/language_codes")
 def lang_codes():
     """ Return list of all available language codes. """
-    lookup_svc = ResourceJsonLookup()
+    lookup_svc = resource_lookup.BIELHelperResourceJsonLookup()
     lang_codes: List[str] = lookup_svc.lang_codes()
-    return jsonify({"lang_codes": lang_codes}), 200
+    # return jsonify({"lang_codes": lang_codes}), 200
+    return lang_codes
 
 
-# FIXME Add type declarations
-@app.route(f"{config.get_api_root()}/language_codes_and_names", methods=["GET"])
+# FIXME Add return type info
+# @app.get(f"{config.get_api_root()}/language_codes_and_names")
+@app.get("/language_codes_and_names")
 def lang_codes_and_names():
     """ Return list of all available language code, name tuples. """
-    lookup_svc = ResourceJsonLookup()
+    lookup_svc = resource_lookup.BIELHelperResourceJsonLookup()
     lang_codes_and_names: List[Tuple[str, str]] = lookup_svc.lang_codes_and_names()
-    return jsonify({"lang_codes_and_names": lang_codes_and_names}), 200
+    # return jsonify({"lang_codes_and_names": lang_codes_and_names}), 200
+    return lang_codes_and_names
 
 
-# FIXME Add type declarations
-@app.route(f"{config.get_api_root()}/resource_types", methods=["GET"])
+# FIXME Add return type info
+# @app.get(f"{config.get_api_root()}/resource_types")
+@app.get("/resource_types")
 def resource_types():
     """ Return list of all available resource types. """
-    lookup_svc = ResourceJsonLookup()
+    lookup_svc = resource_lookup.BIELHelperResourceJsonLookup()
     resource_types: List[str] = lookup_svc.resource_types()
-    return jsonify({"resource_types": resource_types}), 200
+    # return jsonify({"resource_types": resource_types}), 200
+    return resource_types
 
 
-# FIXME Add type declarations
-@app.route(f"{config.get_api_root()}/resource_codes", methods=["GET"])
+# FIXME Add return type info
+# @app.get(f"{config.get_api_root()}/resource_codes")
+@app.get("/resource_codes")
 def resource_codes():
     """ Return list of all available resource codes. """
-    lookup_svc = ResourceJsonLookup()
+    lookup_svc = resource_lookup.BIELHelperResourceJsonLookup()
     resource_codes: List[str] = lookup_svc.resource_codes()
-    return jsonify({"resource_codes": resource_codes}), 200
+    # return jsonify({"resource_codes": resource_codes}), 200
+    return resource_codes
+
+
+@app.get("/health/status")
+def health_status():
+    """ Ping-able server endpoint. """
+    return {"status": "ok"}, 200
