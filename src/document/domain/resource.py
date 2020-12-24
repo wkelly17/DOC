@@ -105,9 +105,6 @@ class Resource(AbstractResource):
         # instead of five.
         self._manifest: Optional[Dict] = None
         self._manifest_file_path: Optional[pathlib.PurePath] = None
-        self._manifest_file_dir: Optional[pathlib.Path] = None
-        # FIXME self._manifest_type is now a derived property
-        # self._manifest_type: Optional[str] = None
         self._version: Optional[str] = None
         self._issued: Optional[str] = None
         # Content related instance vars
@@ -154,17 +151,6 @@ class Resource(AbstractResource):
         "Subclasses provide."
         pass
 
-    # FIXME This could move to subclasses
-    # FIXME This could delegate via dependency reversal on another
-    # class, e.g., ResourceProvisioner or ResourceAcquirer or
-    # ResourceDownloader. Something like:
-    # provisioner_svc = ResourceProvisioner()
-    # provisioner_svc.provision(self)
-    # That would then allow us to move the provisioning methods below
-    # to the ResourceProvisioner class along. We would maybe need to
-    # send back to the resource instance certain values from the
-    # provisioning process via a Data Transfer Object class (likely
-    # another pydantic BaseModel subclass).
     def get_files(self) -> None:
         """ Using the resource's location, obtain provision the save
         location and then get the resources associated files. """
@@ -218,9 +204,8 @@ class Resource(AbstractResource):
         logger.debug("self._manifest_file_path: {}".format(self._manifest_file_path))
         # Find directory where the manifest file is located
         if self._manifest_file_path is not None:
-            self._manifest_file_dir = self._manifest_file_path.parent
             self._manifest = self._load_manifest()
-            logger.debug("self._manifest_file_dir: {}".format(self._manifest_file_dir))
+            logger.debug("manifest dir: {}".format(self._manifest_file_path.parent))
 
         # # FIXME Rather than all this checking we could just convert to
         # # one manifest type, say, json or whatever is considered the
@@ -1020,20 +1005,7 @@ class USFMResource(Resource):
         return usfm
 
 
-# Only exists for a common interface for _convert_md2html
 class TResource(Resource):
-    # def __init__(
-    #     self, working_dir: str, output_dir: str, resource_request: model.ResourceRequest
-    # ) -> None:
-    #     super().__init__(
-    #         working_dir,
-    #         output_dir,
-    #         resource_lookup.TResourceJsonLookup(),
-    #         resource_request,
-    #     )
-
-    # def __repr__(self) -> str:
-    #     return "{}, superclass: {}".format(type(self).__name__, super().__repr__())
 
     # FIXME Should this be copied to each TResource subclass instead?
     @icontract.ensure(
@@ -1058,9 +1030,7 @@ class TResource(Resource):
         assert self._content is not None, "self._content cannot be None here."
         self._content = markdown.markdown(self._content)
 
-    # FIXME Bit of a legacy cluster. This used to be a function and
-    # maybe still should be, but for now I've made it an instance
-    # method.
+    # FIXME Bit of a legacy cluster.
     @icontract.require(lambda self: self._content is not None)
     @icontract.require(lambda self: self._my_rcs is not None)
     def _replace_rc_links(self) -> None:
