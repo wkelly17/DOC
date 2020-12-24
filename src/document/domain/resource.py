@@ -168,112 +168,8 @@ class Resource(AbstractResource):
     def get_files(self) -> None:
         """ Using the resource's location, obtain provision the save
         location and then get the resources associated files. """
-        self._prepare_resource_directory()
-        # The initialization of resource file format is done in
-        # resource_lookup module now in lookup method.
-        # if self._is_git():
-        #     self._initialize_resource_dir_for_git_repos()
-        self._acquire_resource()
-
-    @icontract.ensure(lambda self: self._resource_dir is not None)
-    def _prepare_resource_directory(self) -> None:
-        """ If it doesn't exist yet, create the directory for the
-        resource where it will be downloaded to. """
-
-        logger.debug("os.getcwd(): {}".format(os.getcwd()))
-        if not os.path.exists(self._resource_dir):
-            logger.debug("About to create directory {}".format(self._resource_dir))
-            try:
-                os.mkdir(self._resource_dir)
-                logger.debug("Created directory {}".format(self._resource_dir))
-            except:
-                logger.exception(
-                    "Failed to create directory {}".format(self._resource_dir)
-                )
-
-    # @icontract.require(lambda self: self._resource_url is not None)
-    # def _initialize_resource_dir_for_git_repos(self) -> None:
-    #     """ Git repos have a different _resource_dir location and so
-    #     must be handled differently. """
-    #     filename: str = self._resource_url.rpartition(os.path.sep)[2]
-    #     # Git repo has an extra layer of depth directory
-    #     self._resource_dir = os.path.join(self._resource_dir, filename)
-
-    @icontract.require(lambda self: self._resource_type is not None)
-    @icontract.require(lambda self: self._resource_dir is not None)
-    @icontract.require(lambda self: self._resource_url is not None)
-    def _acquire_resource(self) -> None:
-        """ Download or git clone resource and unzip resulting file if it
-        is a zip file. """
-
-        assert self._resource_url is not None, "self._resource_url must not be None"
-        logger.debug("self._resource_url: {} for {}".format(self._resource_url, self))
-
-        # FIXME To ensure consistent directory naming for later
-        # discovery, let's not use the url.rpartition(os.path.sep)[2].
-        # Instead let's use a directory built from the parameters of
-        # the (updated) resource:
-        # os.path.join(resource["resource_dir"], resource["resource_type"])
-        # logger.debug(
-        #     "os.path.join(self._resource_dir, self._resource_type): {}".format(
-        #         os.path.join(self._resource_dir, self._resource_type)
-        #     )
-        # )
-        # FIXME Not sure if this is the right approach for consistency
-        resource_filepath = os.path.join(
-            self._resource_dir, self._resource_url.rpartition(os.path.sep)[2]
-        )
-        logger.debug(
-            "Using file location, resource_filepath: {}".format(resource_filepath)
-        )
-
-        if self._is_git():  # Is a git repo, so clone it.
-            try:
-                command: str = "git clone --depth=1 '{}' '{}'".format(
-                    # FIXME resource_filepath used to be filepath
-                    self._resource_url,
-                    resource_filepath,
-                )
-                logger.debug("os.getcwd(): {}".format(os.getcwd()))
-                logger.debug("git command: {}".format(command))
-                subprocess.call(command, shell=True)
-                logger.debug("git clone succeeded.")
-                # Git repos get stored on directory deeper
-                # FIXME Beware this may not be correct any longer
-                self._resource_dir = resource_filepath
-            except:
-                logger.debug("os.getcwd(): {}".format(os.getcwd()))
-                logger.debug("git command: {}".format(command))
-                logger.debug("git clone failed!")
-        else:  # Is not a git repo, so just download it.
-            try:
-                logger.debug(
-                    "Downloading {} into {}".format(
-                        self._resource_url, resource_filepath
-                    )
-                )
-                url_utils.download_file(self._resource_url, resource_filepath)
-            finally:
-                logger.debug("Downloading finished.")
-
-        if self._is_zip():  # Downloaded file was a zip, so unzip it.
-            try:
-                logger.debug(
-                    "Unzipping {} into {}".format(resource_filepath, self._resource_dir)
-                )
-                file_utils.unzip(resource_filepath, self._resource_dir)
-            finally:
-                logger.debug("Unzipping finished.")
-
-    @icontract.require(lambda self: self._resource_source is not None)
-    def _is_git(self) -> bool:
-        """ Return true if _resource_source is equal to 'git'. """
-        return self._resource_source == config.GIT
-
-    @icontract.require(lambda self: self._resource_source is not None)
-    def _is_zip(self) -> bool:
-        """ Return true if _resource_source is equal to 'zip'. """
-        return self._resource_source == config.ZIP
+        provisioner = ResourceProvisioner(self)
+        provisioner.provision()
 
     @icontract.require(lambda self: self._resource_source is not None)
     def _is_usfm(self) -> bool:
@@ -2041,3 +1937,123 @@ def remove_md_section(md: str, section_name: str) -> str:
             else:
                 out_md += line + "\n"
     return out_md
+
+
+class ResourceProvisioner:
+    """
+    This class handles creating the necessary directory for a resource
+    adn then acquiring the resource instance's file assets into the
+    directory.
+    """
+
+    def __init__(self, resource: Resource):
+        self._resource = resource
+
+    def provision(self) -> None:
+        self._prepare_resource_directory()
+        self._acquire_resource()
+
+    @icontract.ensure(lambda self: self._resource._resource_dir is not None)
+    def _prepare_resource_directory(self) -> None:
+        """ If it doesn't exist yet, create the directory for the
+        resource where it will be downloaded to. """
+
+        logger.debug("os.getcwd(): {}".format(os.getcwd()))
+        if not os.path.exists(self._resource._resource_dir):
+            logger.debug(
+                "About to create directory {}".format(self._resource._resource_dir)
+            )
+            try:
+                os.mkdir(self._resource._resource_dir)
+                logger.debug(
+                    "Created directory {}".format(self._resource._resource_dir)
+                )
+            except:
+                logger.exception(
+                    "Failed to create directory {}".format(self._resource._resource_dir)
+                )
+
+    @icontract.require(lambda self: self._resource._resource_type is not None)
+    @icontract.require(lambda self: self._resource._resource_dir is not None)
+    @icontract.require(lambda self: self._resource._resource_url is not None)
+    def _acquire_resource(self) -> None:
+        """ Download or git clone resource and unzip resulting file if it
+        is a zip file. """
+
+        assert (
+            self._resource._resource_url is not None
+        ), "self._resource_url must not be None"
+        logger.debug(
+            "self._resource._resource_url: {} for {}".format(
+                self._resource._resource_url, self
+            )
+        )
+
+        # FIXME To ensure consistent directory naming for later
+        # discovery, let's not use the url.rpartition(os.path.sep)[2].
+        # Instead let's use a directory built from the parameters of
+        # the (updated) resource:
+        # os.path.join(resource["resource_dir"], resource["resource_type"])
+        # logger.debug(
+        #     "os.path.join(self._resource_dir, self._resource_type): {}".format(
+        #         os.path.join(self._resource_dir, self._resource_type)
+        #     )
+        # )
+        # FIXME Not sure if this is the right approach for consistency
+        resource_filepath = os.path.join(
+            self._resource._resource_dir,
+            self._resource._resource_url.rpartition(os.path.sep)[2],
+        )
+        logger.debug(
+            "Using file location, resource_filepath: {}".format(resource_filepath)
+        )
+
+        if self._is_git():  # Is a git repo, so clone it.
+            try:
+                command: str = "git clone --depth=1 '{}' '{}'".format(
+                    # FIXME resource_filepath used to be filepath
+                    self._resource._resource_url,
+                    resource_filepath,
+                )
+                logger.debug("os.getcwd(): {}".format(os.getcwd()))
+                logger.debug("git command: {}".format(command))
+                subprocess.call(command, shell=True)
+                logger.debug("git clone succeeded.")
+                # Git repos get stored on directory deeper
+                # FIXME Beware this may not be correct any longer
+                self._resource._resource_dir = resource_filepath
+            except:
+                logger.debug("os.getcwd(): {}".format(os.getcwd()))
+                logger.debug("git command: {}".format(command))
+                logger.debug("git clone failed!")
+        else:  # Is not a git repo, so just download it.
+            try:
+                logger.debug(
+                    "Downloading {} into {}".format(
+                        self._resource._resource_url, resource_filepath
+                    )
+                )
+                url_utils.download_file(self._resource._resource_url, resource_filepath)
+            finally:
+                logger.debug("Downloading finished.")
+
+        if self._is_zip():  # Downloaded file was a zip, so unzip it.
+            try:
+                logger.debug(
+                    "Unzipping {} into {}".format(
+                        resource_filepath, self._resource._resource_dir
+                    )
+                )
+                file_utils.unzip(resource_filepath, self._resource._resource_dir)
+            finally:
+                logger.debug("Unzipping finished.")
+
+    @icontract.require(lambda self: self._resource._resource_source is not None)
+    def _is_git(self) -> bool:
+        """ Return true if _resource_source is equal to 'git'. """
+        return self._resource._resource_source == config.GIT
+
+    @icontract.require(lambda self: self._resource._resource_source is not None)
+    def _is_zip(self) -> bool:
+        """ Return true if _resource_source is equal to 'zip'. """
+        return self._resource._resource_source == config.ZIP
