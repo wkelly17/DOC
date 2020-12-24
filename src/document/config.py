@@ -39,7 +39,9 @@ def get_api_url() -> str:
     host = os.environ.get("API_HOST", "localhost")
     port = get_api_local_port() if host == "localhost" else get_api_remote_port()
     root = get_api_root()
-    return f"http://{host}:{port}{root}"
+    # FIXME HTTPS shouldn't be hardcoded. fastapi will have a sane way
+    # to deal with this that I've yet to research.
+    return f"https://{host}:{port}{root}"
     # return f"http://{host}:{port}"
 
 
