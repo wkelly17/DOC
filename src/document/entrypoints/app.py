@@ -1,9 +1,10 @@
+from typing import List, Optional, Tuple
 from fastapi import FastAPI
+import os
+from pydantic import BaseModel
 
 # import json
-import os
 
-from typing import List, Tuple
 
 from document.domain.document_generator import DocumentGenerator
 from document.domain import resource_lookup
@@ -24,11 +25,17 @@ with open(config.get_logging_config_file_path(), "r") as f:
 logger = logging.getLogger(__name__)
 
 
+class FinishedDocumentDetails(BaseModel):
+    finished_document_url: Optional[str]
+
+
 # FIXME This could be async def, see
 # ~/.ghq/github.com/hogeline/sample_fastapi/code/main.py, instead of synchronous.
 # @app.post(f"{config.get_api_root()}/document")
 @app.post("/documents")
-def document_endpoint(document_request: model.DocumentRequest,):
+def document_endpoint(
+    document_request: model.DocumentRequest, response_model=FinishedDocumentDetails
+):
     # FIXME Fix comment which is out of sync with code. Code needs to
     # change until this comment is true.
     """
@@ -56,13 +63,17 @@ def document_endpoint(document_request: model.DocumentRequest,):
     )
     document_generator.run()  # eventually this will return path to finished PDF
 
-    finished_document_url: str = "{}.html".format(
-        os.path.join(
-            document_generator.working_dir, document_generator._document_request_key
+    details = FinishedDocumentDetails(
+        finished_document_url="{}.html".format(
+            os.path.join(
+                document_generator.working_dir, document_generator._document_request_key
+            )
         )
     )
 
-    return {"finished_document_url": finished_document_url}, 200
+    logger.debug("details: {}".format(details))
+    print("details: {}".format(details))
+    return details, 200
     # FIXME Ask document_generator for URL where finished document can
     # be downloaded. A subsequent HTTP GET of that URL should yield
     # the document.

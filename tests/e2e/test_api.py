@@ -41,7 +41,7 @@ def test_get_resource_types_returns_ok() -> None:
 
 
 @pytest.mark.usefixtures("restart_api")
-def test_happy_path_returns_ok2() -> None:
+def test_happy_path_returns_ok() -> None:
     with TestClient(app=app, base_url=config.get_api_test_url()) as client:
         response = client.post(
             "/documents",
@@ -61,9 +61,11 @@ def test_happy_path_returns_ok2() -> None:
                 ],
             },
         )
+        print(response.json())
         assert response.status_code == 200, response.text
+
         # assert response.json() == {
-        #     "finished_document_url": "/working/temp/en-ulb-wa-gen_en-tn-wa-gen.html"
+        #     "finished_document_url": "/working/temp/en-ulb-wa-eph_en-tn-wa-eph.html"
         # }
 
 
