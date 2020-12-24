@@ -141,8 +141,7 @@ class Resource(AbstractResource):
     def get_files(self) -> None:
         """ Using the resource's location, obtain provision the save
         location and then get the resources associated files. """
-        provisioner = ResourceProvisioner(self)
-        provisioner.provision()
+        _ = ResourceProvisioner(self)
 
     @icontract.require(lambda self: self._resource_source is not None)
     def _is_usfm(self) -> bool:
@@ -1651,7 +1650,7 @@ class ResourceProvisioner:
     def __init__(self, resource: Resource):
         self._resource = resource
 
-    def provision(self) -> None:
+    def __call__(self) -> None:
         self._prepare_resource_directory()
         self._acquire_resource()
 
