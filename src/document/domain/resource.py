@@ -207,26 +207,6 @@ class Resource(AbstractResource):
             self._manifest = self._load_manifest()
             logger.debug("manifest dir: {}".format(self._manifest_file_path.parent))
 
-        # # FIXME Rather than all this checking we could just convert to
-        # # one manifest type, say, json or whatever is considered the
-        # # latest manifest type by WA.
-        # # if self._manifest_file_path is not None:
-        # if self._is_yaml():
-        #     self._manifest = file_utils.load_yaml_object(self._manifest_file_path)
-        #     self._manifest_type = config.YAML
-        # elif self._manifest_file_path.suffix == config.TXT_SUFFIX:
-        #     self._manifest = file_utils.load_yaml_object(self._manifest_file_path)
-        #     self._manifest_type = config.TXT
-        # elif self._manifest_file_path.suffix == config.JSON_SUFFIX:
-        #     self._manifest = file_utils.load_json_object(self._manifest_file_path)
-        #     self._manifest_type = config.JSON
-        # # else:
-        # #     logger.debug(
-        # #         "manifest file does not exist for resource {}.".format(
-        # #             self._resource_type
-        # #         )
-        # #     )
-
         if self.manifest_type:
             logger.debug("self.manifest_type: {}".format(self.manifest_type))
             if self._is_yaml():
@@ -243,16 +223,10 @@ class Resource(AbstractResource):
         manifest: dict = {}
         if self._is_yaml():
             manifest = file_utils.load_yaml_object(self._manifest_file_path)
-            # NOTE self.manifest_type is a property now
-            # self._manifest_type = config.YAML
         elif self._is_txt():
             manifest = file_utils.load_yaml_object(self._manifest_file_path)
-            # NOTE self.manifest_type is a property now
-            # self._manifest_type = config.TXT
         elif self._is_json():
             manifest = file_utils.load_json_object(self._manifest_file_path)
-            # NOTE self.manifest_type is a property now
-            # self._manifest_type = config.JSON
         return manifest
 
     @icontract.require(lambda self: self._manifest is not None)
@@ -266,8 +240,8 @@ class Resource(AbstractResource):
         # FIXME Can we flatten this conditional and therefore be more
         # pythonic?
         if (
-            # FIXME This next line doesn't type check with mypy
             self._manifest
+            # FIXME This next line doesn't type check with mypy
             and 0 in self._manifest
             and self._manifest[0]["dublin_core"]["version"] is not None
         ):
@@ -286,9 +260,7 @@ class Resource(AbstractResource):
     @icontract.require(lambda num: isinstance(num, str))
     def _pad(self, num: str) -> str:
         if self._book_id == "psa":
-            # return str(num).zfill(3)
             return num.zfill(3)
-        # return str(num).zfill(2)
         return num.zfill(2)
 
     def _get_uses(self, rc: str) -> str:
