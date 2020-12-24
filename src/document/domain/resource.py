@@ -99,14 +99,7 @@ class Resource(AbstractResource):
         self._resource_jsonpath: Optional[str] = None
 
         # Manifest related instance vars
-        # FIXME It might be better to just have a manifest class, set
-        # it to None here and then instantiate it when we get to
-        # manifests. Then we'd have one manifest specific inst vars
-        # instead of five.
-        self._manifest: Optional[Dict] = None
-        self._manifest_file_path: Optional[pathlib.PurePath] = None
-        self._version: Optional[str] = None
-        self._issued: Optional[str] = None
+        self._manifest: Manifest
         # Content related instance vars
         self._content_files: Optional[List[str]] = None
         self._content: Optional[str] = None
@@ -128,12 +121,6 @@ class Resource(AbstractResource):
     @property
     def resource_dir_path(self) -> pathlib.Path:
         return pathlib.Path(self._resource_dir)
-
-    @property
-    def manifest_type(self) -> Optional[str]:
-        if self._manifest_file_path is not None:
-            return self._manifest_file_path.suffix
-        return None
 
     def is_found(self) -> bool:
         "Return true if resource's URL location was found."
@@ -161,100 +148,6 @@ class Resource(AbstractResource):
     def _is_usfm(self) -> bool:
         """ Return true if _resource_source is equal to 'usfm'. """
         return self._resource_source == config.USFM
-
-    @icontract.require(lambda self: self.manifest_type is not None)
-    def _is_yaml(self) -> bool:
-        """ Return true if the resource's manifest file has suffix
-        yaml. """
-        return self.manifest_type == config.YAML
-
-    @icontract.require(lambda self: self.manifest_type is not None)
-    def _is_txt(self) -> bool:
-        """ Return true if the resource's manifest file has suffix
-        json. """
-        return self.manifest_type == config.TXT
-
-    @icontract.require(lambda self: self.manifest_type is not None)
-    def _is_json(self) -> bool:
-        """ Return true if the resource's manifest file has suffix
-        json. """
-        return self.manifest_type == config.JSON
-
-    # FIXME A bit of a cluster with lots of side effecting
-    # FIXME Perhaps many of these inst vars don't need persistence as
-    # an inst var and their values could instead be calculated as
-    # needed lazily.
-    @icontract.require(lambda self: self.resource_dir_path is not None)
-    def _discover_manifest(self) -> None:
-        """ All subclasses need to at least find their manifest file,
-        if it exists. Subclasses specialize this method to
-        additionally initialize other disk layout related properties.
-        """
-        logger.debug("self.resource_dir_path: {}".format(self.resource_dir_path))
-        manifest_file_list = list(self.resource_dir_path.glob("**/manifest.*"))
-        # FIXME We may be saving inst vars unnecessarily below. If we
-        # must save state maybe we'll have a Manifest dataclass that
-        # stores the values as fields and can be composed into the
-        # Resource. Maybe we'd only store the and its path manifest
-        # itself in inst vars and then get the others values as
-        # properties.
-        self._manifest_file_path = (
-            None if len(manifest_file_list) == 0 else list(manifest_file_list)[0]
-        )
-        logger.debug("self._manifest_file_path: {}".format(self._manifest_file_path))
-        # Find directory where the manifest file is located
-        if self._manifest_file_path is not None:
-            self._manifest = self._load_manifest()
-            logger.debug("manifest dir: {}".format(self._manifest_file_path.parent))
-
-        if self.manifest_type:
-            logger.debug("self.manifest_type: {}".format(self.manifest_type))
-            if self._is_yaml():
-                self._version, self._issued = self._get_manifest_version_and_issued()
-                logger.debug(
-                    "_version: {}, _issued: {}".format(self._version, self._issued)
-                )
-        if self._manifest:
-            logger.debug("self._manifest: {}".format(self._manifest))
-
-    @icontract.require(lambda self: self._manifest_file_path is not None)
-    def _load_manifest(self) -> dict:
-        """ Load the manifest file. """
-        manifest: dict = {}
-        if self._is_yaml():
-            manifest = file_utils.load_yaml_object(self._manifest_file_path)
-        elif self._is_txt():
-            manifest = file_utils.load_yaml_object(self._manifest_file_path)
-        elif self._is_json():
-            manifest = file_utils.load_json_object(self._manifest_file_path)
-        return manifest
-
-    @icontract.require(lambda self: self._manifest is not None)
-    def _get_manifest_version_and_issued(self) -> Tuple[str, str]:
-        """ Return the manifest's version and issued values. """
-        version: str = ""
-        issued: str = ""
-        # NOTE manifest.txt files do not have 'dublin_core' or
-        # 'version' keys.
-        # TODO Handle manifest.json which has different fields.
-        # FIXME Can we flatten this conditional and therefore be more
-        # pythonic?
-        if (
-            self._manifest
-            # FIXME This next line doesn't type check with mypy
-            and 0 in self._manifest
-            and self._manifest[0]["dublin_core"]["version"] is not None
-        ):
-            version = self._manifest[0]["dublin_core"]["version"]
-        elif (
-            self._manifest
-            and 0 not in self._manifest
-            and self._manifest["dublin_core"]["version"] is not None
-        ):
-            version = self._manifest["dublin_core"]["version"]
-        if self._manifest is not None:
-            issued = self._manifest["dublin_core"]["issued"]
-        return (version, issued)
 
     @icontract.require(lambda num: num is not None)
     @icontract.require(lambda num: isinstance(num, str))
@@ -543,7 +436,7 @@ class USFMResource(Resource):
         """ Explore the resource's downloaded files to initialize file
         structure related properties. """
 
-        super()._discover_manifest()
+        self._manifest = Manifest(self)
 
         usfm_content_files = self.resource_dir_path.glob("**/*.usfm")
         # USFM files sometimes have txt suffix
@@ -701,139 +594,6 @@ class USFMResource(Resource):
     #             self._book_id.upper(),
     #             self._version,
     #         )
-
-    # FIXME This is no longer used
-    def _get_book_project_from_yaml(self) -> dict:
-        """ Return the project that was requested if it matches that
-        found in the manifest file for the resource otherwise return
-        an empty dict. """
-
-        if (
-            self._manifest and "projects" in self._manifest
-        ):  # This is the manifest.yaml case.
-            # logger.info("about to get projects")
-            # NOTE The old code would return the list of book projects
-            # that either contained: 1) all books if no books were
-            # specified by the user, or, 2) only those books that
-            # matched the books requested from the command line.
-            for p in self._manifest["projects"]:
-                if p["identifier"] in self._resource_code:
-                    return p
-                    # if not p["sort"]:
-                    #     p["sort"] = bible_books.BOOK_NUMBERS[p["identifier"]]
-                    # projects.append(p)
-            # return sorted(projects, key=lambda k: k["sort"])
-        else:
-            logger.info(
-                "manifest.yaml did not contain any matching books in its projects node..."
-            )
-            return {}
-        return {}
-
-    # FIXME This is no longer called. We might only want some version
-    # of this to check if the book's source file is considered
-    # complete. This is game for rewrite or removal considering new
-    # approach in _discover_layout using pathlib.
-    def _get_book_projects_from_yaml(self) -> List[Dict[Any, Any]]:
-        """ Return the sorted list of projects that are found in the
-        manifest file for the resource. """
-
-        projects: List[Dict[Any, Any]] = []
-        if (
-            self._manifest and "projects" in self._manifest
-        ):  # This is the manifest.yaml case.
-            # logger.info("about to get projects")
-            # NOTE The old code would return the list of book projects
-            # that either contained: 1) all books if no books were
-            # specified by the user, or, 2) only those books that
-            # matched the books requested from the command line.
-            for p in self._manifest["projects"]:
-                if (
-                    self._resource_code is not None  # _resource_code is never none
-                    and p["identifier"] in self._resource_code
-                ):
-                    if not p["sort"]:
-                        p["sort"] = bible_books.BOOK_NUMBERS[p["identifier"]]
-                    projects.append(p)
-            return sorted(projects, key=lambda k: k["sort"])
-        else:
-            logger.info("empty projects check is true...")
-            return projects
-
-    # FIXME This is no longer called. We might only want some version
-    # of this to check if the book's source file is considered
-    # complete. This is game for rewrite or removal considering new
-    # approach in _discover_layout using pathlib.
-    def _get_book_project_from_json(self) -> dict:
-        """ Return the project that was requested if it is found in the
-        manifest.json file for the resource, otherwise return an empty
-        dict. """
-
-        # projects: List[Dict[Any, Any]] = []
-        if (
-            self._manifest and "finished_chunks" in self._manifest
-        ):  # This is the manifest.json case
-            logger.info("about to get finished_chunks from manifest.json")
-
-            # NTOE From _get_book_projects_from_yaml:
-            # for p in self._manifest["projects"]:
-            #     if (
-            #         self._resource_code is not None
-            #         and p["identifier"] in self._resource_code
-            #     ):
-            #         if not p["sort"]:
-            #             p["sort"] = bible_books.BOOK_NUMBERS[p["identifier"]]
-            #         projects.append(p)
-            # return sorted(projects, key=lambda k: k["sort"])
-
-            for p in self._manifest["finished_chunks"]:
-                if p["identifier"] in self._resource_code:
-                    return p
-                # projects.append(p)
-            # return projects
-        else:
-            logger.info(
-                "no project was found in manifest.json matching the requested book..."
-            )
-            return {}
-        return {}
-
-    # FIXME This is game for rewrite or removal considering new
-    # approach in _discover_layout using pathlib.
-    def _get_book_projects_from_json(self) -> List:
-        """ Return the sorted list of projects that are found in the
-        manifest file for the resource. """
-
-        projects: List[Dict[Any, Any]] = []
-        if (
-            self._manifest and "finished_chunks" in self._manifest
-        ):  # This is the manifest.json case
-            logger.info("about to get finished_chunks from manifest.json")
-
-            # NTOE From _get_book_projects_from_yaml:
-            # for p in self._manifest["projects"]:
-            #     if (
-            #         self._resource_code is not None
-            #         and p["identifier"] in self._resource_code
-            #     ):
-            #         if not p["sort"]:
-            #             p["sort"] = bible_books.BOOK_NUMBERS[p["identifier"]]
-            #         projects.append(p)
-            # return sorted(projects, key=lambda k: k["sort"])
-
-            for p in self._manifest["finished_chunks"]:
-                # TODO In resource_lookup, self._resource_code is used
-                # determine jsonpath for lookup. Some resources don't
-                # have anything more specific than the lang_code to
-                # get resources from. Well, at least one language is
-                # like that. In that case it contains a zip that has
-                # all the resources contained therein.
-                # if self._resource_code is not None:
-                projects.append(p)
-            return projects
-        else:
-            logger.info("empty projects check is true...")
-            return projects
 
     # FIXME This is done in __init__ and is no longer needed here
     # FIXME This is game for rewrite or removal considering new
@@ -1109,7 +869,7 @@ class TResource(Resource):
     def _discover_layout(self) -> None:
         """ Programmatically discover the manifest and content files. """
         # Execute logic common to all resources
-        super()._discover_manifest()
+        self._manifest = Manifest(self)
 
         # Get the content files
         markdown_files = self.resource_dir_path.glob("**/*.md")
@@ -1999,3 +1759,265 @@ class ResourceProvisioner:
     def _is_zip(self) -> bool:
         """ Return true if _resource_source is equal to 'zip'. """
         return self._resource._resource_source == config.ZIP
+
+
+class Manifest:
+    """
+    This class handles finding, loading, and converting manifest
+    files for a resource instance.
+    """
+
+    def __init__(self, resource: Resource) -> None:
+        self._resource = resource
+        self._manifest_content: Optional[Dict] = None
+        self._manifest_file_path: Optional[pathlib.PurePath] = None
+        self._version: Optional[str] = None
+        self._issued: Optional[str] = None
+
+    # FIXME A bit of a cluster with lots of side effecting
+    # FIXME Perhaps many of these inst vars don't need persistence as
+    # an inst var and their values could instead be calculated as
+    # needed lazily.
+    @icontract.require(lambda self: self._resource.resource_dir_path is not None)
+    def __call__(self) -> None:
+        """ All subclasses need to at least find their manifest file,
+        if it exists. Subclasses specialize this method to
+        additionally initialize other disk layout related properties.
+        """
+        logger.debug(
+            "self._resource.resource_dir_path: {}".format(
+                self._resource.resource_dir_path
+            )
+        )
+        manifest_file_list = list(
+            self._resource.resource_dir_path.glob("**/manifest.*")
+        )
+        # FIXME We may be saving inst vars unnecessarily below. If we
+        # must save state maybe we'll have a Manifest dataclass that
+        # stores the values as fields and can be composed into the
+        # Resource. Maybe we'd only store the and its path manifest
+        # itself in inst vars and then get the others values as
+        # properties.
+        self._manifest_file_path = (
+            None if len(manifest_file_list) == 0 else list(manifest_file_list)[0]
+        )
+        logger.debug("self._manifest_file_path: {}".format(self._manifest_file_path))
+        # Find directory where the manifest file is located
+        if self._manifest_file_path is not None:
+            self._manifest_content = self._load_manifest()
+            logger.debug("manifest dir: {}".format(self._manifest_file_path.parent))
+
+        if self.manifest_type:
+            logger.debug("self.manifest_type: {}".format(self.manifest_type))
+            if self._is_yaml():
+                self._version, self._issued = self._get_manifest_version_and_issued()
+                logger.debug(
+                    "_version: {}, _issued: {}".format(self._version, self._issued)
+                )
+        if self._manifest_content:
+            logger.debug("self._manifest_content: {}".format(self._manifest_content))
+
+    @icontract.require(lambda self: self._manifest_file_path is not None)
+    def _load_manifest(self) -> dict:
+        """ Load the manifest file. """
+        manifest: dict = {}
+        if self._is_yaml():
+            manifest = file_utils.load_yaml_object(self._manifest_file_path)
+        elif self._is_txt():
+            manifest = file_utils.load_yaml_object(self._manifest_file_path)
+        elif self._is_json():
+            manifest = file_utils.load_json_object(self._manifest_file_path)
+        return manifest
+
+    @icontract.require(lambda self: self._manifest is not None)
+    def _get_manifest_version_and_issued(self) -> Tuple[str, str]:
+        """ Return the manifest's version and issued values. """
+        version: str = ""
+        issued: str = ""
+        # NOTE manifest.txt files do not have 'dublin_core' or
+        # 'version' keys.
+        # TODO Handle manifest.json which has different fields.
+        # FIXME Can we flatten this conditional and therefore be more
+        # pythonic?
+        if (
+            self._manifest_content
+            # FIXME This next line doesn't type check with mypy
+            and 0 in self._manifest_content
+            and self._manifest_content[0]["dublin_core"]["version"] is not None
+        ):
+            version = self._manifest_content[0]["dublin_core"]["version"]
+        elif (
+            self._manifest_content
+            and 0 not in self._manifest_content
+            and self._manifest_content["dublin_core"]["version"] is not None
+        ):
+            version = self._manifest_content["dublin_core"]["version"]
+        if self._manifest_content is not None:
+            issued = self._manifest_content["dublin_core"]["issued"]
+        return (version, issued)
+
+    @icontract.require(lambda self: self.manifest_type is not None)
+    def _is_yaml(self) -> bool:
+        """ Return true if the resource's manifest file has suffix
+        yaml. """
+        return self.manifest_type == config.YAML
+
+    @icontract.require(lambda self: self.manifest_type is not None)
+    def _is_txt(self) -> bool:
+        """ Return true if the resource's manifest file has suffix
+        json. """
+        return self.manifest_type == config.TXT
+
+    @icontract.require(lambda self: self.manifest_type is not None)
+    def _is_json(self) -> bool:
+        """ Return true if the resource's manifest file has suffix
+        json. """
+        return self.manifest_type == config.JSON
+
+    @property
+    def manifest_type(self) -> Optional[str]:
+        if self._manifest_file_path is not None:
+            return self._manifest_file_path.suffix
+        return None
+
+    # FIXME This is not currently used
+    # FIXME If it is used later it should be a public method, i.e., no
+    # leading underscore.
+    def _get_book_project_from_yaml(self) -> dict:
+        """ Return the project that was requested if it matches that
+        found in the manifest file for the resource otherwise return
+        an empty dict. """
+
+        if (
+            self._manifest_content and "projects" in self._manifest_content
+        ):  # This is the manifest.yaml case.
+            # logger.info("about to get projects")
+            # NOTE The old code would return the list of book projects
+            # that either contained: 1) all books if no books were
+            # specified by the user, or, 2) only those books that
+            # matched the books requested from the command line.
+            for p in self._manifest_content["projects"]:
+                if p["identifier"] in self._resource._resource_code:
+                    return p
+                    # if not p["sort"]:
+                    #     p["sort"] = bible_books.BOOK_NUMBERS[p["identifier"]]
+                    # projects.append(p)
+            # return sorted(projects, key=lambda k: k["sort"])
+        else:
+            logger.info(
+                "manifest.yaml did not contain any matching books in its projects node..."
+            )
+            return {}
+        return {}
+
+    # FIXME This is not currently called. We might only want some version
+    # of this to check if the book's source file is considered
+    # complete. This is game for rewrite or removal considering new
+    # approach in _discover_layout using pathlib.
+    # FIXME If it is used later it should be a public method, i.e., no
+    # leading underscore.
+    def _get_book_projects_from_yaml(self) -> List[Dict[Any, Any]]:
+        """ Return the sorted list of projects that are found in the
+        manifest file for the resource. """
+
+        projects: List[Dict[Any, Any]] = []
+        if (
+            self._manifest_content and "projects" in self._manifest_content
+        ):  # This is the manifest.yaml case.
+            # logger.info("about to get projects")
+            # NOTE The old code would return the list of book projects
+            # that either contained: 1) all books if no books were
+            # specified by the user, or, 2) only those books that
+            # matched the books requested from the command line.
+            for p in self._manifest_content["projects"]:
+                if (
+                    self._resource._resource_code
+                    is not None  # _resource_code is never none
+                    and p["identifier"] in self._resource._resource_code
+                ):
+                    if not p["sort"]:
+                        p["sort"] = bible_books.BOOK_NUMBERS[p["identifier"]]
+                    projects.append(p)
+            return sorted(projects, key=lambda k: k["sort"])
+        else:
+            logger.info("empty projects check is true...")
+            return projects
+
+    # FIXME This is not currently called. We might only want some version
+    # of this to check if the book's source file is considered
+    # complete. This is game for rewrite or removal considering new
+    # approach in _discover_layout using pathlib.
+    # FIXME If it is used later it should be a public method, i.e., no
+    # leading underscore.
+    def _get_book_project_from_json(self) -> dict:
+        """ Return the project that was requested if it is found in the
+        manifest.json file for the resource, otherwise return an empty
+        dict. """
+
+        # projects: List[Dict[Any, Any]] = []
+        if (
+            self._manifest_content and "finished_chunks" in self._manifest_content
+        ):  # This is the manifest.json case
+            logger.info("about to get finished_chunks from manifest.json")
+
+            # NOTE From _get_book_projects_from_yaml:
+            # for p in self._manifest_content["projects"]:
+            #     if (
+            #         self._resource._resource_code is not None
+            #         and p["identifier"] in self._resource._resource_code
+            #     ):
+            #         if not p["sort"]:
+            #             p["sort"] = bible_books.BOOK_NUMBERS[p["identifier"]]
+            #         projects.append(p)
+            # return sorted(projects, key=lambda k: k["sort"])
+
+            for p in self._manifest_content["finished_chunks"]:
+                if p["identifier"] in self._resource._resource_code:
+                    return p
+                # projects.append(p)
+            # return projects
+        else:
+            logger.info(
+                "no project was found in manifest.json matching the requested book..."
+            )
+            return {}
+        return {}
+
+    # FIXME This is game for rewrite or removal considering new
+    # approach in _discover_layout using pathlib.
+    # FIXME If it is used later it should be a public method, i.e., no
+    # leading underscore.
+    def _get_book_projects_from_json(self) -> List:
+        """ Return the sorted list of projects that are found in the
+        manifest file for the resource. """
+
+        projects: List[Dict[Any, Any]] = []
+        if (
+            self._manifest_content and "finished_chunks" in self._manifest_content
+        ):  # This is the manifest.json case
+            logger.info("about to get finished_chunks from manifest.json")
+
+            # NOTE From _get_book_projects_from_yaml:
+            # for p in self._manifest_content["projects"]:
+            #     if (
+            #         self._resource._resource_code is not None
+            #         and p["identifier"] in self._resource._resource_code
+            #     ):
+            #         if not p["sort"]:
+            #             p["sort"] = bible_books.BOOK_NUMBERS[p["identifier"]]
+            #         projects.append(p)
+            # return sorted(projects, key=lambda k: k["sort"])
+
+            for p in self._manifest_content["finished_chunks"]:
+                # TODO In resource_lookup, self._resource_code is used
+                # determine jsonpath for lookup. Some resources don't
+                # have anything more specific than the lang_code to
+                # get resources from. Well, at least one language is
+                # like that. In that case it contains a zip that has
+                # all the resources contained therein.
+                # if self._resource_code is not None:
+                projects.append(p)
+            return projects
+        else:
+            logger.info("empty projects check is true...")
+            return projects
