@@ -370,9 +370,7 @@ class USFMResource(Resource):
     def __repr__(self) -> str:
         return "{}, superclass: {}".format(type(self).__name__, super().__repr__())
 
-    @icontract.ensure(
-        lambda self: self._resource_url is not None
-    )  # FIXME This is only useful during development to find resources which have exceptional jsonpaths. But the logic needs to allow for not finding a resource, so I am just using this temporarily to root out resources with exceptional jsonpaths.
+    @icontract.ensure(lambda self: self._resource_url is not None)
     def find_location(self) -> None:
         """ Find the URL where the resource's assets are located. """
         # FIXME For better flexibility, the lookup class could be
@@ -713,9 +711,7 @@ class USFMResource(Resource):
 class TResource(Resource):
 
     # FIXME Should this be copied to each TResource subclass instead?
-    @icontract.ensure(
-        lambda self: self._resource_url is not None
-    )  # FIXME This is only useful during development to find resources which have exceptional jsonpaths. But the logic needs to allow for not finding a resource, so I am just using this temporarily to root out resources with exceptional jsonpaths.
+    @icontract.ensure(lambda self: self._resource_url is not None)
     def find_location(self) -> None:
         """ Find the URL where the resource's assets are located. """
         # FIXME For better flexibility, the lookup class could be

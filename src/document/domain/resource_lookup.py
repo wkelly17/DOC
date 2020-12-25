@@ -289,6 +289,7 @@ class USFMResourceJsonLookup(ResourceLookup):
         """
         resource_lookup_dto: model.ResourceLookupDto
 
+        # Special case:
         # Ironically, for English, translations.json file only
         # contains URLs to PDF assets rather than anything useful for
         # our purposes. Therefore, we have this guard to handle
