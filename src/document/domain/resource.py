@@ -149,7 +149,6 @@ class Resource(AbstractResource):
         return self._resource_source == config.USFM
 
     @icontract.require(lambda num: num is not None)
-    @icontract.require(lambda num: isinstance(num, str))
     def _pad(self, num: str) -> str:
         if self._book_id == "psa":
             return num.zfill(3)
@@ -263,31 +262,6 @@ class Resource(AbstractResource):
         }
         for pattern, repl in rep.items():
             text = re.sub(pattern, repl, text, flags=re.IGNORECASE)
-        return text
-
-    def _increase_headers(self, text: str, increase_depth: int = 1) -> str:
-        if text:
-            text = re.sub(
-                r"^(#+) +(.+?) *#*$",
-                r"\1{0} \2".format("#" * increase_depth),
-                text,
-                flags=re.MULTILINE,
-            )
-        return text
-
-    @icontract.require(lambda text: text is not None)
-    def _decrease_headers(
-        self, text: str, minimum_header: int = 1, decrease: int = 1
-    ) -> str:
-        if text:
-            text = re.sub(
-                r"^({0}#*){1} +(.+?) *#*$".format(
-                    "#" * (minimum_header - decrease), "#" * decrease
-                ),
-                r"\1 \2",
-                text,
-                flags=re.MULTILINE,
-            )
         return text
 
     # def _replace_bible_links(self, text: str) -> str:
@@ -1057,20 +1031,20 @@ class TNResource(TResource):
             # FIXME
             md = self._fix_tn_links(md, "intro")
             # FIXME
-            md = self._increase_headers(md)
+            md = increase_headers(md)
             # FIXME
-            md = self._decrease_headers(md, 5)  # bring headers of 5 or more #'s down 1
+            md = decrease_headers(md, 5)  # bring headers of 5 or more #'s down 1
             id_tag = '<a id="tn-{0}-front-intro"/>'.format(self._book_id)
             md = re.compile(r"# ([^\n]+)\n").sub(r"# \1\n{0}\n".format(id_tag), md, 1)
             rc = "rc://{0}/tn/help/{1}/front/intro".format(
                 self._lang_code, self._book_id
             )
             anchor_id = "tn-{}-front-intro".format(self._book_id)
-            # FIXME This proaably will blow up.
+            # FIXME This probably will blow up.
             self._resource_data[rc] = {
                 "rc": rc,
                 "id": anchor_id,
-                "link": "#{0}".format(anchor_id),
+                "link": "#{}".format(anchor_id),
                 "title": title,
             }
             self._my_rcs.append(rc)
@@ -1089,10 +1063,8 @@ class TNResource(TResource):
             md = file_utils.read_file(intro_file)
             title = get_first_header(md)
             md = self._fix_tn_links(md, chapter)
-            md = self._increase_headers(md)
-            md = self._decrease_headers(
-                md, 5, 2
-            )  # bring headers of 5 or more #'s down 2
+            md = increase_headers(md)
+            md = decrease_headers(md, 5, 2)  # bring headers of 5 or more #'s down 2
             id_tag = '<a id="tn-{}-{}-intro"/>'.format(
                 self._book_id, self._pad(chapter)
             )
@@ -1166,8 +1138,8 @@ class TNResource(TResource):
                 first_verse
                 # self.book_title, chapter, first_verse
             )
-        md = self._increase_headers(file_utils.read_file(chunk_file), 3)
-        md = self._decrease_headers(md, 5)  # bring headers of 5 or more #'s down 1
+        md = increase_headers(file_utils.read_file(chunk_file), 3)
+        md = decrease_headers(md, 5)  # bring headers of 5 or more #'s down 1
         md = self._fix_tn_links(md, chapter)
         # TODO localization
         md = md.replace("#### Translation Words", "### Translation Words")
@@ -1319,7 +1291,7 @@ class TWResource(TResource):
                 md = ""
             id_tag = '<a id="{}"/>'.format(self._resource_data[rc]["id"])
             md = re.compile(r"# ([^\n]+)\n").sub(r"# \1\n{}\n".format(id_tag), md, 1)
-            md = self._increase_headers(md)
+            md = increase_headers(md)
             uses = self._get_uses(rc)
             if uses == "":
                 continue
@@ -1388,7 +1360,7 @@ class TQResource(TResource):
                     first_verse = os.path.splitext(chunk)[0].lstrip("0")
                     if os.path.isfile(chunk_file) and re.match(r"^\d+$", first_verse):
                         md = file_utils.read_file(chunk_file)
-                        md = self._increase_headers(md, 2)
+                        md = increase_headers(md, 2)
                         md = re.compile("^([^#\n].+)$", flags=re.M).sub(
                             r'\1 [<a href="#tn-{}-{}-{}">{}:{}</a>]'.format(
                                 self._book_id,
@@ -1460,7 +1432,7 @@ class TAResource(TResource):
             # id_tag = '<a id="{}"/>'.format(resource["resource_data"][rc]["id"])
             id_tag = '<a id="{}"/>'.format(self._resource_data[rc]["id"])
             md = re.compile(r"# ([^\n]+)\n").sub(r"# \1\n{}\n".format(id_tag), md, 1)
-            md = self._increase_headers(md)
+            md = increase_headers(md)
             md += self._get_uses(rc)
             md += "\n\n"
             ta_md += md
@@ -1638,6 +1610,32 @@ def remove_md_section(md: str, section_name: str) -> str:
             else:
                 out_md += line + "\n"
     return out_md
+
+
+@icontract.require(lambda text: text is not None)
+def increase_headers(text: str, increase_depth: int = 1) -> str:
+    if text:
+        text = re.sub(
+            r"^(#+) +(.+?) *#*$",
+            r"\1{0} \2".format("#" * increase_depth),
+            text,
+            flags=re.MULTILINE,
+        )
+    return text
+
+
+@icontract.require(lambda text: text is not None)
+def decrease_headers(text: str, minimum_header: int = 1, decrease: int = 1) -> str:
+    if text:
+        text = re.sub(
+            r"^({0}#*){1} +(.+?) *#*$".format(
+                "#" * (minimum_header - decrease), "#" * decrease
+            ),
+            r"\1 \2",
+            text,
+            flags=re.MULTILINE,
+        )
+    return text
 
 
 class ResourceProvisioner:
