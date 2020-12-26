@@ -143,7 +143,7 @@ class ResourceJsonLookup:
             jsonpath, self.json_data,
         )
         logger.debug("jsonpath: {}".format(jsonpath))
-        logger.debug("value from translations.json: {}".format(value))
+        logger.debug("value[0:4] from translations.json: {}".format(value[0:4]))
         value_set: Set = set(value)
         return list(value_set)
 
