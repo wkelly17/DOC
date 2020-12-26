@@ -654,9 +654,12 @@ class USFMResource(Resource):
         for chunk in chunks[1:]:
             if not chunk.strip():
                 continue
-            c_search = re.search(r"\\c[\u00A0\s](\d+)", chunk)  # \u00A0 no break space
-            if c_search:
-                chapter = c_search.group(1)
+            chapter_search = re.search(
+                r"\\c[\u00A0\s](\d+)", chunk
+            )  # \u00A0 no break space
+            if chapter_search:
+                logger.debug("A no break space character was found in a verse chunk")
+                chapter = chapter_search.group(1)
             verses = re.findall(r"\\v[\u00A0\s](\d+)", chunk)
             if not verses:
                 continue
@@ -678,6 +681,10 @@ class USFMResource(Resource):
                 book_chunks[chapter][last_verse]
             )
         )
+        for i in range(23):
+            logger.debug(
+                "chapter 1 verse {}: {}".format(i, self._usfm_chunks["1"]["chunks"][i])
+            )
 
     def _get_usfm_file_content(self) -> Optional[str]:
         """
@@ -742,8 +749,8 @@ class TResource(Resource):
         logger.debug("self._my_rcs: {}".format(self._my_rcs))
         rep = dict(
             (
-                re.escape("[[{0}]]".format(rc)),
-                "[{0}]({1})".format(
+                re.escape("[[{}]]".format(rc)),
+                "[{}]({})".format(
                     self._resource_data[rc]["title"].strip(),
                     self._resource_data[rc]["link"],
                 ),
