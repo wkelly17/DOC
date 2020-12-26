@@ -419,8 +419,6 @@ def assemble_content_by_book(docgen: DocumentGenerator) -> str:
     Genesis followed by Translation Notes for Genesis, etc..
     """
     logger.info("Assembling document by interleaving at the book level.")
-    # NOTE mypy finds the next line to be inscrutable
-    # return "\n\n{}".join([resource.content for resource in docgen.found_resources])
     content: str = ""
     for resource in docgen.found_resources:
         content += "\n\n{}".format(resource._content)

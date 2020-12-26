@@ -1024,11 +1024,8 @@ class TNResource(TResource):
         if book_has_intro:
             md = file_utils.read_file(intro_file)
             title = get_first_header(md)
-            # FIXME
             md = self._fix_tn_links(md, "intro")
-            # FIXME
             md = increase_headers(md)
-            # FIXME
             md = decrease_headers(md, 5)  # bring headers of 5 or more #'s down 1
             id_tag = '<a id="tn-{0}-front-intro"/>'.format(self._book_id)
             md = re.compile(r"# ([^\n]+)\n").sub(r"# \1\n{0}\n".format(id_tag), md, 1)
