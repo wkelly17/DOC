@@ -22,12 +22,12 @@ def main() -> None:
     resource_requests: List[model.ResourceRequest] = []
     resource_requests.append(
         model.ResourceRequest(
-            lang_code="en", resource_type="ulb-wa", resource_code="eph"
+            lang_code="en", resource_type="ulb-wa", resource_code="jud"
         )
     )
     resource_requests.append(
         model.ResourceRequest(
-            lang_code="en", resource_type="tn-wa", resource_code="eph"
+            lang_code="en", resource_type="tn-wa", resource_code="jud"
         )
     )
     document_request = model.DocumentRequest(
