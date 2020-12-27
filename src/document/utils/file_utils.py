@@ -105,6 +105,7 @@ def load_yaml_object(file_name: pathlib.Path) -> Dict:
     return yaml.load(read_file(str(file_name.resolve())), Loader=yaml.FullLoader)
 
 
+@icontract.require(lambda file_name: os.path.exists(file_name))
 def read_file(file_name: str, encoding: str = "utf-8-sig"):
     with codecs.open(file_name, "r", encoding=encoding) as f:
         content = f.read()

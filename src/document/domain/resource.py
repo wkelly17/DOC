@@ -1,5 +1,5 @@
 from __future__ import annotations  # https://www.python.org/dev/peps/pep-0563/
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Generator, List, Optional, Tuple
 
 import abc
 import bs4
@@ -37,11 +37,11 @@ class AbstractResource(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def initialize_properties(self) -> None:
+    def get_files(self) -> None:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_files(self) -> None:
+    def initialize_properties(self) -> None:
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -74,35 +74,22 @@ class Resource(AbstractResource):
             self._working_dir, "{}_{}".format(self._lang_code, self._resource_type)
         )
 
-        # FIXME Is this what you want consistently?
         self._resource_filename: str = "{}_{}_{}".format(
             self._lang_code, self._resource_type, self._resource_code
         )
-        # self._resource_filename: Optional[str] = None
         self._book_id: str = self._resource_code
         # FIXME Could get KeyError
         self._book_title = bible_books.BOOK_NAMES[self._resource_code]
         self._book_number = bible_books.BOOK_NUMBERS[self._book_id]
 
         self._resource_url: Optional[str] = None
-        # self._filename_base: Optional[str] = None
-        # NOTE Next line wouldn't work unless you had access to
-        # self._version which isn't available here. Why would we need
-        # version anyway?
-        # self._filename_base = "{}_tn_{}-{}_v{}".format(
-        #     self._lang_code,
-        #     self._book_number.zfill(2),
-        #     self._book_id.upper(),
-        #     self._version,
-        # )
         self._resource_source: str
         self._resource_jsonpath: Optional[str] = None
 
-        # Manifest related instance vars
         self._manifest: Manifest
         # Content related instance vars
-        self._content_files: Optional[List[str]] = None
-        self._content: Optional[str] = None
+        self._content_files: List[str]
+        self._content: str
         self._bad_links: dict = {}
         self._resource_data: dict = {}
         self._my_rcs: List = []
@@ -126,22 +113,43 @@ class Resource(AbstractResource):
         "Return true if resource's URL location was found."
         return self._resource_url is not None
 
-    def initialize_properties(self) -> None:
-        "Subclasses provide."
-        pass
-
     def find_location(self) -> None:
-        "Subclasses provide."
-        pass
+        """
+        Find the remote location where a the resource's file assets
+        may be found.
 
-    def get_content(self) -> None:
-        "Subclasses provide."
+        Subclasses override this method.
+        """
         pass
 
     def get_files(self) -> None:
-        """ Using the resource's location, obtain provision the save
-        location and then get the resources associated files. """
+        """
+        Using the resource's remote location, download the resource's file
+        assets to disk.
+        """
         _ = ResourceProvisioner(self)()
+
+    # FIXME This should have a better name, e.g., initialize_assets or
+    # load_assets or ?
+    def initialize_properties(self) -> None:
+        """
+        Find and load resource files that were downloaded to disk.
+
+        Subclasses override.
+        """
+        pass
+
+    def get_content(self) -> None:
+        """
+        Initialize resource with content found in resource's files.
+
+        Subclasses override.
+        """
+        pass
+
+    ## FIXME Utiity type methods that could possibly be put in a mixin
+    ## class and then inherited by each resource subclass, e.g., by
+    ## USFMResource, TNResource, etc.:
 
     @icontract.require(lambda self: self._resource_source is not None)
     def _is_usfm(self) -> bool:
@@ -154,6 +162,7 @@ class Resource(AbstractResource):
             return num.zfill(3)
         return num.zfill(2)
 
+    # FIXME Understand how this is used and see if there is better way
     def _get_uses(self, rc: str) -> str:
         md = ""
         if self._rc_references[rc]:
@@ -168,12 +177,13 @@ class Resource(AbstractResource):
                 md += "\n"
         return md
 
+    # FIXME Understand more deeply what and why this exists in detail.
     # FIXME This legacy code is a mess of mixed up concerns. This
     # method is called from tn and tq concerned code so when we move
     # it it will probably have to live in a module that can be mixed
     # into both TNResource and TQResource or the method itself will be
     # teased apart so that conditionals are reduced and code paths
-    # pertaining to the instance are the only ones preserved in the
+    # pertaining to the instance are the only ones preserved in each
     # instance's version of this method.
     @icontract.require(lambda text: text is not None)
     @icontract.require(lambda source_rc: source_rc is not None)
@@ -264,6 +274,7 @@ class Resource(AbstractResource):
             text = re.sub(pattern, repl, text, flags=re.IGNORECASE)
         return text
 
+    # FIXME We may still need this.
     # def _replace_bible_links(self, text: str) -> str:
     #     bible_links = re.findall(
     #         r"(?:udb|ulb)://[A-Z0-9/]+", text, flags=re.IGNORECASE | re.MULTILINE
@@ -295,6 +306,9 @@ class Resource(AbstractResource):
     #     text = pattern.sub(lambda m: rep[re.escape(m.group(0))], text)
     #     return text
 
+    # FIXME I am using the bs4 bits of this elsewhere now to decompose
+    # the HTNL back into verses (but don't have it worked out totally
+    # yet).
     # def _get_chunk_html(self, resource_str: str, chapter: str, verse: str) -> str:
     #     # FIXME Do we want a temp dir here? This is where the USFM
     #     # file chunk requested, by chapter and verse, will be written
@@ -366,6 +380,7 @@ class USFMResource(Resource):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self._usfm_chunks: dict = {}
+        self._usfm_verses_generator: Generator
 
     def __repr__(self) -> str:
         return "{}, superclass: {}".format(type(self).__name__, super().__repr__())
@@ -386,51 +401,46 @@ class USFMResource(Resource):
     def initialize_properties(self) -> None:
         self._discover_layout()
 
-        # FIXME This likely can be better envisioned and implemented.
-        # if self._is_usfm():
-        #     self._initialize_book_properties_when_no_manifest()
-        # if self._is_git() and self._is_yaml():
-        #     self._initialize_book_properties_from_manifest_yaml()
-        # if self._is_git() and self._is_json():
-        #     self._initialize_book_properties_from_manifest_json()
-
-        # TODO Handle manifest.yaml, manifest.txt, and manifest.json
-        # formats - they each have different structure and keys.
-        # elif not self._is_git() and self._is_txt():
-
-        # FIXME This may still be needed for non manifest.yaml cases,
-        # but for manifest.yaml case it is initialized elsewhere.
-        # NOTE Without this, things blow up on line 973.
-        # self._initialize_filename_base()
-
     def _discover_layout(self) -> None:
         """ Explore the resource's downloaded files to initialize file
         structure related properties. """
-
         self._manifest = Manifest(self)
 
-        usfm_content_files = self.resource_dir_path.glob("**/*.usfm")
+        usfm_content_files = glob("{}**/*.usfm".format(self._resource_dir))
         # USFM files sometimes have txt suffix
-        txt_content_files = self.resource_dir_path.glob("**/*.txt")
+        txt_content_files = glob("{}**/*.txt".format(self._resource_dir))
 
-        # logger.debug("usfm_content_files: {}".format(usfm_content_files))
+        # logger.debug("usfm_content_files: {}".format(list(usfm_content_files)))
 
-        if len(list(usfm_content_files)) > 0:  # This resource does have USFM files
+        # NOTE We don't need a manifest file to find resource assets
+        # on disk as fuzzy search does that for us. We just filter
+        # down the list found with fuzzy search to only include those
+        # that match the resource code, i.e., book, being requested.
+        # This frees us from the brittleness of expecting asset files
+        # to be named a certain way for all languages since we are
+        # able to just check that the asset file has the resource code
+        # as a substring.
+        # If desired, in the case where a manifest must be consulted
+        # to determine if the file is considered usable, i.e.,
+        # 'complete' or 'finished', that can also be done by compared
+        # the filtered file(s) against the manifest's 'finished' list
+        # to see if it can be used.
+        if len(usfm_content_files) > 0:
             # Only use the content files that match the resource_code
             # in the resource request.
             self._content_files = list(
                 filter(
                     lambda x: self._resource_code.lower() in str(x).lower(),
-                    [str(file) for file in usfm_content_files],
+                    usfm_content_files,
                 )
             )
-        elif len(list(txt_content_files)) > 0:
+        elif len(txt_content_files) > 0:
             # Only use the content files that match the resource_code
             # in the resource request.
             self._content_files = list(
                 filter(
                     lambda x: self._resource_code.lower() in str(x).lower(),
-                    [str(file) for file in txt_content_files],
+                    txt_content_files,
                 )
             )
 
@@ -440,185 +450,71 @@ class USFMResource(Resource):
             )
         )
 
-    # FIXME This is game for rewrite or removal considering new
-    # approach in _discover_layout using pathlib.
-    # @icontract.require(lambda self: self._resource_code is not None)
-    # @icontract.require(lambda self: self._resource_filename is not None)
-    # @icontract.ensure(
-    #     lambda self: self._book_id is not None
-    # )  # FIXME This doesn't exist yet
-    # @icontract.ensure(
-    #     lambda self: self._book_number is not None
-    # )  # FIXME This doesn't exist yet
-    # @icontract.ensure(
-    #     lambda self: self._book_title is not None
-    # )  # FIXME This doesn't exist yet
-    # def _initialize_book_properties_when_no_manifest(self) -> None:
-    # NOTE USFM book files have form 01-GEN or GEN. So we lowercase
-    # then split on hyphen and get second component to get
-    # the book id.
-    # assert (
-    #     self._is_usfm()
-    # ), "Calling _initialize_book_properties_when_no_manifest requires a USFM file-based resource"
-    # FIXME Why derive book_id when we have the same information
-    # in resource_code?
-    # if "-" in self._resource_filename:
-    #     book_id = self._resource_filename.split("-")[1]
-    # else:
-    #     book_id = self._resource_filename
-    # self._book_id = book_id.lower()
-    # FIXME Just for development to see if this ever triggers
-    # since book_id and resource_code should be equal. See FIXME note
-    # above.
-    # assert (
-    #     self._book_id == self._resource_code
-    # ), "Book name should match resource code"
-    # logger.debug("book_id for usfm file: {}".format(self._book_id))
-    # self._book_title = bible_books.BOOK_NAMES[self._resource_code]
-    # self._book_number = bible_books.BOOK_NUMBERS[self._book_id]
-    # logger.debug("book_number for usfm file: {}".format(self._book_number))
-
-    # FIXME This is game for rewrite or removal considering new
-    # approach in _discover_layout using pathlib.
-    # def _initialize_book_properties_from_manifest_yaml(self) -> None:
-    # NOTE USFM book files have form 01-GEN or GEN. So we lowercase
-    # then split on hyphen and get second component to get
-    # the book id.
-    # assert (
-    #     self._is_git()
-    # ), "Calling _initialize_book_properties_from_manifest_yaml requires a git repo"
-    # assert (
-    #     self._is_yaml()
-    # ), "Calling _initialize_book_properties_from_manifest_yaml requires a manifest.yaml"
-    # projects: List[Dict[Any, Any]] = self._get_book_projects_from_yaml()
-    # project: dict = self._get_book_project_from_yaml()
-    # logger.debug("book projects: {}".format(projects))
-    # logger.debug("book project: {}".format(project))
-    # Invariant: projects is len == 0 or 1
-    # assert (
-    #     len(projects) <= 1
-    # ), "projects is always less than or equal to 1 in length"
-    # for p in projects:
-    #     project: Dict[Any, Any] = p
-    #     self._book_id = p["identifier"]
-    #     self._book_title = p["title"].replace(" translationNotes", "")
-    #     self._book_number = bible_books.BOOK_NUMBERS[self._book_id]
-    #     # TODO This likely needs to change because of how we
-    #     # build resource_dir
-    #     self._filename_base = "{}_tn_{}-{}_v{}".format(
-    #         self._lang_code,
-    #         self._book_number.zfill(2),
-    #         self._book_id.upper(),
-    #         self._version,
-    #     )
-    # self._book_id = project[
-    #     "identifier"
-    # ]  # FIXME Isn't book id always equal to resource_code?
-    # Although perhaps localization is obtained by asking the
-    # project for the book_id? I think book id is always English
-    # though.
-    # self._book_title = project["title"].replace(" translationNotes", "") # FIXME This could be initialized in
-    # __init__ like so: self._book_title = bible_books.BOOK_NAMES[self._resource_code]
-    # self._book_number = bible_books.BOOK_NUMBERS[
-    #     self._book_id
-    # ]  # FIXME Can't this be determined in __init__?
-    # TODO This likely needs to change because of how we
-    # build resource_dir
-    # FIXME I don't think we even use this inst var
-    # self._filename_base = "{}_tn_{}-{}_v{}".format(
-    #     self._lang_code,
-    #     self._book_number.zfill(2),
-    #     self._book_id.upper(),  # FIXME This could blow up if book requested doesn't exist
-    #     self._version,
-    # )
-
-    # FIXME This is game for rewrite or removal considering new
-    # approach in _discover_layout using pathlib.
-    # FIXME This needs contracts
-    # def _initialize_book_properties_from_manifest_json(self) -> None:
-    #     # NOTE USFM book files have form 01-GEN or GEN. So we lowercase
-    #     # then split on hyphen and get second component to get
-    #     # the book id.
-    #     assert (
-    #         self._is_git()
-    #     ), "Calling _initialize_book_properties_from_manifest_json requires a git repo"
-    #     assert (
-    #         self._is_json()
-    #     ), "Calling _initialize_book_properties_from_manifest_json requires manifest.json"
-    #     logger.info("is json")
-    #     # FIXME This should be like from_yaml version; return only one
-    #     # project as one book is requested per resource
-    #     projects: List = self._get_book_projects_from_json()
-    #     logger.debug("book projects: {}".format(projects))
-    #     for p in projects:
-    #         project: Dict[Any, Any] = p  # FIXME This is not used
-    #         self._book_id = self._resource_code
-    #         # self._book_id = p["identifier"]
-    #         self._book_title = bible_books.BOOK_NAMES[self._resource_code]
-    #         # self._book_title = p["title"].replace(" translationNotes", "")
-    #         self._book_number = bible_books.BOOK_NUMBERS[self._book_id]
-    #         # TODO This likely needs to change because of how we
-    #         # build resource_dir
-    #         self._filename_base = "{}_tn_{}-{}_v{}".format(
-    #             self._lang_code,
-    #             self._book_number.zfill(2),
-    #             self._book_id.upper(),
-    #             self._version,
-    #         )
-
-    # FIXME This is done in __init__ and is no longer needed here
-    # FIXME This is game for rewrite or removal considering new
-    # approach in _discover_layout using pathlib.
-    # @icontract.require(lambda self: self._book_id is not None)
-    # @icontract.require(lambda self: self._book_title is not None)
-    # @icontract.require(lambda self: self._book_number is not None)
-    # @icontract.ensure(lambda self: self._filename_base is not None)
-    # def _initialize_filename_base(self) -> None:
-    #     self._filename_base = "{}_{}_{}-{}".format(
-    #         self._lang_code,
-    #         self._resource_type,
-    #         self._book_number.zfill(2),
-    #         self._book_id.upper(),
-    #     )
-    #     # FIXME Should we be using self._filename_base or
-    #     # self._resource_dir combined with self._resource_filename?
-    #     logger.debug("filename_base: {}".format(self._filename_base))
-
+    @icontract.require(lambda self: self._content_files is not None)
     @icontract.ensure(lambda self: self._resource_filename is not None)
     @icontract.ensure(lambda self: self._lang_code is not None)
     @icontract.ensure(lambda self: self._resource_type is not None)
     @icontract.ensure(lambda self: self._book_number is not None)
     @icontract.ensure(lambda self: self._book_id is not None)
     @icontract.ensure(lambda self: self._content is not None)
+    @icontract.ensure(lambda self: self._content != "")
     def get_content(self) -> None:
         self._get_usfm_chunks()
 
-        # Create the USFM to HTML and store in file.
-        UsfmTransform.buildSingleHtmlFromFiles(
-            # self._resource_dir,
-            self._content_files,
-            self._output_dir,
-            self._resource_filename,
-        )
-        # Read the HTML file into _content.
-        html_file = "{}.html".format(
-            os.path.join(self._output_dir, self._resource_filename)
-        )
-        self._content = file_utils.read_file(html_file)
-        logger.debug("self._bad_links: {}".format(self._bad_links))
+        # logger.debug("self._content_files: {}".format(self._content_files))
+
+        if self._content_files is not None:
+            # Create the USFM to HTML and store in file.
+            UsfmTransform.buildSingleHtmlFromFiles(
+                # self._resource_dir,
+                [pathlib.Path(file) for file in self._content_files],
+                self._output_dir,
+                self._resource_filename,
+            )
+            # Read the HTML file into _content.
+            html_file = "{}.html".format(
+                os.path.join(self._output_dir, self._resource_filename)
+            )
+            self._content = file_utils.read_file(html_file)
+            # FIXME How to get verse chunks? Paragraphs don't do it,
+            # spans don't do it...
+            # Get html verse chunks
+            # soup = bs4.BeautifulSoup(self._content, "html.parser")
+            # header = soup.find("h1")
+            # if header:
+            #     header.decompose()
+            # chapter = soup.find("h2")
+            # if chapter:
+            #     chapter.decompose()
+            # breakpoint()  # debug
+            # logger.debug("soup.body from bs4: {}".format(soup.body))
+            # html = "".join([str(x) for x in soup.body.contents])
+            # logger.debug("html from bs4: {}".format(html))
+
+            logger.debug(
+                "html content in self._content in {}: {}".format(
+                    html_file, self._content
+                )
+            )
+            logger.debug("self._bad_links: {}".format(self._bad_links))
 
     # FIXME Handle git based usfm with resources.json file and .txt usfm
     # file suffixes.
-    # FIXME This is game for rewrite or removal considering new
-    # approach in _discover_layout using pathlib.
+    @icontract.require(lambda self: self._content_files is not None)
     @icontract.require(lambda self: self._resource_filename is not None)
     @icontract.require(lambda self: self._resource_dir is not None)
     @icontract.ensure(lambda self: self._usfm_chunks is not None)
     def _get_usfm_chunks(self) -> None:
+        """
+        Read the USFM file contents requested for resource code and
+        break it into verse chunks.
+        """
         book_chunks: dict = {}
         logger.debug("self._resource_filename: {}".format(self._resource_filename))
 
-        usfm_file_content: Optional[str] = self._get_usfm_file_content()
+        usfm_file = self._content_files[0]
+        # FIXME Should be in try block
+        usfm_file_content = file_utils.read_file(usfm_file, "utf-8",)
 
         # FIXME Not sure I like this LBYL style here. Exceptions
         # should actually be the exceptional case here, so this costs
@@ -635,7 +531,7 @@ class USFMResource(Resource):
             for line in chunk.splitlines(True):
                 # If this is a new verse and there's a pending chunk,
                 # finish it and start a new one.
-                logger.debug("pending_chunk: {}".format(pending_chunk))
+                # logger.debug("pending_chunk: {}".format(pending_chunk))
                 if re.search(r"\\v", line) and pending_chunk:
                     chunks_per_verse.append(pending_chunk)
                     pending_chunk = None
@@ -658,7 +554,6 @@ class USFMResource(Resource):
                 r"\\c[\u00A0\s](\d+)", chunk
             )  # \u00A0 no break space
             if chapter_search:
-                logger.debug("A no break space character was found in a verse chunk")
                 chapter = chapter_search.group(1)
             verses = re.findall(r"\\v[\u00A0\s](\d+)", chunk)
             if not verses:
@@ -667,6 +562,18 @@ class USFMResource(Resource):
             last_verse = verses[-1]
             if chapter not in book_chunks:
                 book_chunks[chapter] = {"chunks": []}
+            # FIXME first_verse, last_verse, and verses equal the same
+            # number, e.g., 1 or 2 or etc.. They don't seem to encode
+            # meaningfully differentiated data that would be useful.
+            # Redundant. first_verse and last_verse are used in
+            # TNResource so as to imply that they are expected to
+            # represent a range wider than one verse, but as far as
+            # execution of the algorithm here, I haven't seen a case where
+            # they are ever found to be different.
+            # I may remove them later if no ranges ever actually
+            # occur - something that remains to be learned. usfm is
+            # the verse content itself and of course is
+            # necessary.
             data = {
                 "usfm": chunk,
                 "first_verse": first_verse,
@@ -676,45 +583,28 @@ class USFMResource(Resource):
             book_chunks[chapter][first_verse] = data
             book_chunks[chapter]["chunks"].append(data)
         self._usfm_chunks = book_chunks
-        logger.debug(
-            "chapter worth of verses in self._usfm_chunks[chapter][last_verse]: {}".format(
-                book_chunks[chapter][last_verse]
-            )
-        )
-        for i in range(23):
-            logger.debug(
-                "chapter 1 verse {}: {}".format(i, self._usfm_chunks["1"]["chunks"][i])
-            )
+        # FIXME Might not need this, but this is part of my exploration
+        # of getting verse level data out after the fact for
+        # interleaving strategies.
+        # NOTE This could just as easily be an eager list producing
+        # method rather than a lazy generator producing method. Memory
+        # consumption is not a concern for this case.
+        self._usfm_verses_generator = self._get_usfm_verses()
 
-    def _get_usfm_file_content(self) -> Optional[str]:
+    # FIXME Exploratory
+    def _get_usfm_verses(self) -> Generator:
         """
-        Get the USFM file content for the resource if it is
-        available, otherwise return None.
+        Return a generator over the raw USFM verses. Might be useful
+        for interleaved assembly of the document at the verse level.
         """
-        usfm: Optional[str] = None
-        usfm_file: str = os.path.join(
-            self._resource_dir,
-            "{}-{}.usfm".format(self._book_number, self._book_id.upper()),
-        )
-        # FIXME Maybe it is unpythonic to check this. Perhaps instead
-        # we should just attempt to read the file and if USFM is None
-        # then we know it failed and we can try the alternate file
-        # name.
-        if os.path.exists(usfm_file):
-            logger.debug("About to read: {}".format(usfm_file))
-            # FIXME Need to handle exceptions (unless they are already
-            # handled by read_file).
-            usfm = file_utils.read_file(usfm_file, "utf-8",)
-        else:  # Individual USFM files can have this alternate naming scheme.
-            usfm_file = os.path.join(
-                self._resource_dir, "{}.usfm".format(self._book_id.upper()),
-            )
-            if os.path.exists(usfm_file):
-                logger.debug("About to read: {}".format(usfm_file))
-                usfm = file_utils.read_file(usfm_file, "utf-8",)
-        return usfm
+        for i in range(len(self._usfm_chunks["1"]["chunks"]) - 1):
+            yield self._usfm_chunks["1"]["chunks"][i]
 
 
+# FIXME Liskov Substitution Principle. Perhaps we should name this
+# TResourceMixin and not have it inherit from Resource, but have
+# subclasses like TNResource subclass Resource and TResourceMixin just
+# for better design purposes. Respect the MRO if you make this change.
 class TResource(Resource):
 
     # FIXME Should this be copied to each TResource subclass instead?
@@ -742,9 +632,11 @@ class TResource(Resource):
     @icontract.require(lambda self: self._content is not None)
     @icontract.require(lambda self: self._my_rcs is not None)
     def _replace_rc_links(self) -> None:
-        """ Given a resource's markdown text, replace links of the
+        """
+        Given a resource's markdown text, replace links of the
         form [[rc://en/tw/help/bible/kt/word]] with links of the form
-        [God's Word](#tw-kt-word). """
+        [God's Word](#tw-kt-word).
+        """
         # logger.debug("self._content: {}".format(self._content))
         logger.debug("self._my_rcs: {}".format(self._my_rcs))
         rep = dict(
@@ -771,7 +663,7 @@ class TResource(Resource):
 
         # Change rc://... rc links, e.g. rc://en/tw/help/bible/kt/word => [God's](#tw-kt-word)
         rep = dict(
-            (re.escape(rc), "[{0}]({1})".format(info["title"], info["link"]))
+            (re.escape(rc), "[{}]({})".format(info["title"], info["link"]))
             for rc, info in self._resource_data.items()
         )
         pattern = re.compile("|".join(list(rep.keys())))
@@ -781,7 +673,7 @@ class TResource(Resource):
 
     # FIXME Legacy cluster. This used to be a function and
     # maybe still should be, but for now I've made it an instance
-    # method.
+    # method because it works on self_content.
     def _fix_links(self) -> None:
         rep = {}
 
@@ -1019,7 +911,7 @@ class TNResource(TResource):
         logger.debug("filepath: {}".format(filepath))
         if os.path.isdir(filepath):
             book_dir = filepath
-        else:  # FIXME What case is this, I don't recall.
+        else:  # FIXME Is this the git case? I don't recall.
             logger.info("in else of _get_book_dir")
             book_dir = os.path.join(self._resource_dir, self._resource_code)
         return book_dir
@@ -1115,7 +1007,6 @@ class TNResource(TResource):
         self, chunk_file: str, chapter: str
     ) -> Tuple[str, Optional[str], str, str]:
         first_verse = os.path.splitext(os.path.basename(chunk_file))[0].lstrip("0")
-        logger.debug("first_verse: {}".format(first_verse))
         # FIXME TNResource doesn't have self._usfm_chunks
         # logger.debug("self._usfm_chunks: {}".format(self._usfm_chunks))
         # if bool(self._usfm_chunks):
@@ -2018,3 +1909,129 @@ class Manifest:
         else:
             logger.info("empty projects check is true...")
             return projects
+
+    # FIXME This is game for rewrite or removal considering new
+    # approach in _discover_layout using pathlib usage.
+    # @icontract.require(lambda self: self._resource_code is not None)
+    # @icontract.require(lambda self: self._resource_filename is not None)
+    # @icontract.ensure(
+    #     lambda self: self._book_id is not None
+    # )  # FIXME This doesn't exist yet
+    # @icontract.ensure(
+    #     lambda self: self._book_number is not None
+    # )  # FIXME This doesn't exist yet
+    # @icontract.ensure(
+    #     lambda self: self._book_title is not None
+    # )  # FIXME This doesn't exist yet
+    # def _initialize_book_properties_when_no_manifest(self) -> None:
+    # NOTE USFM book files have form 01-GEN or GEN. So we lowercase
+    # then split on hyphen and get second component to get
+    # the book id.
+    # assert (
+    #     self._is_usfm()
+    # ), "Calling _initialize_book_properties_when_no_manifest requires a USFM file-based resource"
+    # FIXME Why derive book_id when we have the same information
+    # in resource_code?
+    # if "-" in self._resource_filename:
+    #     book_id = self._resource_filename.split("-")[1]
+    # else:
+    #     book_id = self._resource_filename
+    # self._book_id = book_id.lower()
+    # FIXME Just for development to see if this ever triggers
+    # since book_id and resource_code should be equal. See FIXME note
+    # above.
+    # assert (
+    #     self._book_id == self._resource_code
+    # ), "Book name should match resource code"
+    # logger.debug("book_id for usfm file: {}".format(self._book_id))
+    # self._book_title = bible_books.BOOK_NAMES[self._resource_code]
+    # self._book_number = bible_books.BOOK_NUMBERS[self._book_id]
+    # logger.debug("book_number for usfm file: {}".format(self._book_number))
+
+    # FIXME This is game for rewrite or removal considering new
+    # approach in _discover_layout using pathlib usage.
+    # def _initialize_book_properties_from_manifest_yaml(self) -> None:
+    # NOTE USFM book files have form 01-GEN or GEN. So we lowercase
+    # then split on hyphen and get second component to get
+    # the book id.
+    # assert (
+    #     self._is_git()
+    # ), "Calling _initialize_book_properties_from_manifest_yaml requires a git repo"
+    # assert (
+    #     self._is_yaml()
+    # ), "Calling _initialize_book_properties_from_manifest_yaml requires a manifest.yaml"
+    # projects: List[Dict[Any, Any]] = self._get_book_projects_from_yaml()
+    # project: dict = self._get_book_project_from_yaml()
+    # logger.debug("book projects: {}".format(projects))
+    # logger.debug("book project: {}".format(project))
+    # Invariant: projects is len == 0 or 1
+    # assert (
+    #     len(projects) <= 1
+    # ), "projects is always less than or equal to 1 in length"
+    # for p in projects:
+    #     project: Dict[Any, Any] = p
+    #     self._book_id = p["identifier"]
+    #     self._book_title = p["title"].replace(" translationNotes", "")
+    #     self._book_number = bible_books.BOOK_NUMBERS[self._book_id]
+    #     # TODO This likely needs to change because of how we
+    #     # build resource_dir
+    #     self._filename_base = "{}_tn_{}-{}_v{}".format(
+    #         self._lang_code,
+    #         self._book_number.zfill(2),
+    #         self._book_id.upper(),
+    #         self._version,
+    #     )
+    # self._book_id = project[
+    #     "identifier"
+    # ]  # FIXME Isn't book id always equal to resource_code?
+    # Although perhaps localization is obtained by asking the
+    # project for the book_id? I think book id is always English
+    # though.
+    # self._book_title = project["title"].replace(" translationNotes", "") # FIXME This could be initialized in
+    # __init__ like so: self._book_title = bible_books.BOOK_NAMES[self._resource_code]
+    # self._book_number = bible_books.BOOK_NUMBERS[
+    #     self._book_id
+    # ]  # FIXME Can't this be determined in __init__?
+    # TODO This likely needs to change because of how we
+    # build resource_dir
+    # FIXME I don't think we even use this inst var
+    # self._filename_base = "{}_tn_{}-{}_v{}".format(
+    #     self._lang_code,
+    #     self._book_number.zfill(2),
+    #     self._book_id.upper(),  # FIXME This could blow up if book requested doesn't exist
+    #     self._version,
+    # )
+
+    # FIXME This is game for rewrite or removal considering new
+    # approach in _discover_layout using pathlib usage.
+    # FIXME This needs contracts
+    # def _initialize_book_properties_from_manifest_json(self) -> None:
+    #     # NOTE USFM book files have form 01-GEN or GEN. So we lowercase
+    #     # then split on hyphen and get second component to get
+    #     # the book id.
+    #     assert (
+    #         self._is_git()
+    #     ), "Calling _initialize_book_properties_from_manifest_json requires a git repo"
+    #     assert (
+    #         self._is_json()
+    #     ), "Calling _initialize_book_properties_from_manifest_json requires manifest.json"
+    #     logger.info("is json")
+    #     # FIXME This should be like from_yaml version; return only one
+    #     # project as one book is requested per resource
+    #     projects: List = self._get_book_projects_from_json()
+    #     logger.debug("book projects: {}".format(projects))
+    #     for p in projects:
+    #         project: Dict[Any, Any] = p  # FIXME This is not used
+    #         self._book_id = self._resource_code
+    #         # self._book_id = p["identifier"]
+    #         self._book_title = bible_books.BOOK_NAMES[self._resource_code]
+    #         # self._book_title = p["title"].replace(" translationNotes", "")
+    #         self._book_number = bible_books.BOOK_NUMBERS[self._book_id]
+    #         # TODO This likely needs to change because of how we
+    #         # build resource_dir
+    #         self._filename_base = "{}_tn_{}-{}_v{}".format(
+    #             self._lang_code,
+    #             self._book_number.zfill(2),
+    #             self._book_id.upper(),
+    #             self._version,
+    #         )
