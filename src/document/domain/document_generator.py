@@ -217,7 +217,7 @@ class DocumentGenerator:
         generate their content for later typesetting.
         """
         for resource in self.found_resources:
-            resource.initialize_properties()
+            resource.initialize_assets()
             # NOTE You could pass a USFM resource if it exists to get_content
             # for TResource subclasses. This would presuppose that we initialize
             # USFM resources first in this loop or break out into multiple

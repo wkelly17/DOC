@@ -41,7 +41,7 @@ class AbstractResource(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def initialize_properties(self) -> None:
+    def initialize_assets(self) -> None:
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -131,7 +131,7 @@ class Resource(AbstractResource):
 
     # FIXME This should have a better name, e.g., initialize_assets or
     # load_assets or ?
-    def initialize_properties(self) -> None:
+    def initialize_assets(self) -> None:
         """
         Find and load resource files that were downloaded to disk.
 
@@ -398,7 +398,7 @@ class USFMResource(Resource):
         self._resource_jsonpath = resource_lookup_dto.jsonpath
         logger.debug("self._resource_url: {} for {}".format(self._resource_url, self))
 
-    def initialize_properties(self) -> None:
+    def initialize_assets(self) -> None:
         self._discover_layout()
 
     def _discover_layout(self) -> None:
@@ -731,7 +731,7 @@ class TResource(Resource):
         for pattern, repl in rep.items():
             self._content = re.sub(pattern, repl, self._content, flags=re.IGNORECASE)
 
-    def initialize_properties(self) -> None:
+    def initialize_assets(self) -> None:
         self._discover_layout()
 
     def _discover_layout(self) -> None:
