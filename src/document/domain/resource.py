@@ -399,9 +399,6 @@ class USFMResource(Resource):
         logger.debug("self._resource_url: {} for {}".format(self._resource_url, self))
 
     def initialize_assets(self) -> None:
-        self._discover_layout()
-
-    def _discover_layout(self) -> None:
         """ Explore the resource's downloaded files to initialize file
         structure related properties. """
         self._manifest = Manifest(self)
@@ -732,9 +729,6 @@ class TResource(Resource):
             self._content = re.sub(pattern, repl, self._content, flags=re.IGNORECASE)
 
     def initialize_assets(self) -> None:
-        self._discover_layout()
-
-    def _discover_layout(self) -> None:
         """ Programmatically discover the manifest and content files. """
         # Execute logic common to all resources
         self._manifest = Manifest(self)
