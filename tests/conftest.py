@@ -11,13 +11,13 @@ pytest.register_assert_rewrite("tests.e2e.api_client")
 
 
 @retry(stop=stop_after_delay(10))
-def wait_for_webapp_to_come_up():
+def wait_for_webapp_to_come_up() -> requests.Response:
     url = config.get_api_test_url()
     return requests.get("{}/health/status".format(url))
 
 
 @pytest.fixture
-def restart_api():
+def restart_api() -> requests.Response:
     (Path(__file__).parent / "../src/document/entrypoints/app.py").touch()
     time.sleep(0.5)
-    wait_for_webapp_to_come_up()
+    return wait_for_webapp_to_come_up()
