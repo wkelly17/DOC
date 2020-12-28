@@ -59,9 +59,6 @@ if TYPE_CHECKING:
         TAResource,
     )
 
-    # Define type alias for brevity
-    # AResource = Union[USFMResource, TAResource, TNResource, TQResource, TWResource]
-
 # This is always needed and thus is not included in the TYPE_CHECKING
 # protected import above.
 from document.domain.resource import resource_factory
@@ -147,7 +144,7 @@ class DocumentGenerator:
         self, document_request: model.DocumentRequest
     ) -> List[Resource]:
         """
-        Given a DocumentRequest instance, return a list of AResource
+        Given a DocumentRequest instance, return a list of Resource
         objects.
         """
         resources: List[Resource] = []
@@ -229,7 +226,7 @@ class DocumentGenerator:
     def _generate_pdf(self) -> None:
         """
         If the PDF doesn't yet exist, go ahead and generate it
-        using the content for each AResource.
+        using the content for each resource.
         """
         if not os.path.isfile(
             os.path.join(self.output_dir, "{}.pdf".format(self._document_request_key))
