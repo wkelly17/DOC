@@ -39,7 +39,6 @@ if TYPE_CHECKING:
     from document.domain.resource import (
         Resource,
         USFMResource,
-        TResource,
         TNResource,
         TWResource,
         TQResource,

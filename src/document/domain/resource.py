@@ -14,8 +14,7 @@ import tempfile
 from usfm_tools.transform import UsfmTransform
 import yaml
 
-from document.utils import url_utils
-from document.utils import file_utils
+from document.utils import url_utils, file_utils, link_utils, markdown_utils
 from document.domain import bible_books
 from document import config
 from document.domain import resource_lookup
@@ -90,6 +89,7 @@ class Resource(AbstractResource):
         # Content related instance vars
         self._content_files: List[str]
         self._content: str
+        # Link related
         self._bad_links: dict = {}
         self._resource_data: dict = {}
         self._my_rcs: List = []
@@ -151,160 +151,10 @@ class Resource(AbstractResource):
     ## class and then inherited by each resource subclass, e.g., by
     ## USFMResource, TNResource, etc.:
 
-    @icontract.require(lambda self: self._resource_source is not None)
-    def _is_usfm(self) -> bool:
-        """ Return true if _resource_source is equal to 'usfm'. """
-        return self._resource_source == config.USFM
-
-    @icontract.require(lambda num: num is not None)
-    def _pad(self, num: str) -> str:
-        if self._book_id == "psa":
-            return num.zfill(3)
-        return num.zfill(2)
-
-    # FIXME Understand how this is used and see if there is better way
-    def _get_uses(self, rc: str) -> str:
-        md = ""
-        if self._rc_references[rc]:
-            references = []
-            for reference in self._rc_references[rc]:
-                if "/tn/" in reference:
-                    references.append("* [[{}]]".format(reference))
-            if references:
-                # TODO localization
-                md += "### Uses:\n\n"
-                md += "\n".join(references)
-                md += "\n"
-        return md
-
-    # FIXME Understand more deeply what and why this exists in detail.
-    # FIXME This legacy code is a mess of mixed up concerns. This
-    # method is called from tn and tq concerned code so when we move
-    # it it will probably have to live in a module that can be mixed
-    # into both TNResource and TQResource or the method itself will be
-    # teased apart so that conditionals are reduced and code paths
-    # pertaining to the instance are the only ones preserved in each
-    # instance's version of this method.
-    @icontract.require(lambda text: text is not None)
-    @icontract.require(lambda source_rc: source_rc is not None)
-    def _get_resource_data_from_rc_links(self, text: str, source_rc: str) -> None:
-        for rc in re.findall(
-            r"rc://[A-Z0-9/_-]+", text, flags=re.IGNORECASE | re.MULTILINE
-        ):
-            parts = rc[5:].split("/")
-            resource_tmp = parts[1]
-            path = "/".join(parts[3:])
-
-            if rc not in self._my_rcs:
-                self._my_rcs.append(rc)
-            if rc not in self._rc_references:
-                self._rc_references[rc] = []
-            self._rc_references[rc].append(source_rc)
-
-            if rc not in self._resource_data:
-                title = ""
-                t = ""
-                anchor_id = "{}-{}".format(resource_tmp, path.replace("/", "-"))
-                link = "#{}".format(anchor_id)
-                try:
-                    file_path = os.path.join(
-                        self._working_dir,
-                        "{}_{}".format(self._lang_code, resource_tmp),
-                        "{}.md".format(path),
-                    )
-                    if not os.path.isfile(file_path):
-                        file_path = os.path.join(
-                            self._working_dir,
-                            "{}_{}".format(self._lang_code, resource_tmp),
-                            "{}/01.md".format(path),
-                        )
-                    if not os.path.isfile(file_path):
-                        # TODO localization?
-                        if path.startswith("bible/other/"):
-                            # TODO localization?
-                            path2 = re.sub(r"^bible/other/", r"bible/kt/", path)
-                        else:
-                            # TODO localization?
-                            path2 = re.sub(r"^bible/kt/", r"bible/other/", path)
-                        anchor_id = "{}-{}".format(
-                            resource_tmp, path2.replace("/", "-")
-                        )
-                        link = "#{}".format(anchor_id)
-                        file_path = os.path.join(
-                            self._working_dir,
-                            "{}_{}".format(self._lang_code, resource_tmp),
-                            "{}.md".format(path2),
-                        )
-                    if os.path.isfile(file_path):
-                        t = file_utils.read_file(file_path)
-                        title = get_first_header(t)
-                        t = self._fix_tw_links(t, path.split("/")[1])
-                    else:
-                        # TODO bad_links doesn't exist yet, but should
-                        # be on resources dict.
-                        if rc not in self._bad_links:
-                            self._bad_links[rc] = []
-                        self._bad_links[rc].append(source_rc)
-                except:
-                    # TODO
-                    if rc not in self._bad_links:
-                        self._bad_links[rc] = []
-                    self._bad_links[rc].append(source_rc)
-                self._resource_data[rc] = {
-                    "rc": rc,
-                    "link": link,
-                    "id": anchor_id,
-                    "title": title,
-                    "text": t,
-                }
-                if t:
-                    self._get_resource_data_from_rc_links(t, rc)
-
-    # legacy
-    def _fix_tw_links(self, text: str, dictionary: str) -> str:
-        rep = {
-            r"\]\(\.\./([^/)]+?)(\.md)*\)": r"](rc://{}/tw/dict/bible/{}/\1)".format(
-                self._lang_code, dictionary
-            ),
-            r"\]\(\.\./([^)]+?)(\.md)*\)": r"](rc://{}/tw/dict/bible/\1)".format(
-                self._lang_code
-            ),
-        }
-        for pattern, repl in rep.items():
-            text = re.sub(pattern, repl, text, flags=re.IGNORECASE)
-        return text
-
-    # FIXME We may still need this.
-    # def _replace_bible_links(self, text: str) -> str:
-    #     bible_links = re.findall(
-    #         r"(?:udb|ulb)://[A-Z0-9/]+", text, flags=re.IGNORECASE | re.MULTILINE
-    #     )
-    #     bible_links = list(set(bible_links))
-    #     logger.debug("bible_links: {}".format(bible_links))
-    #     rep = {}
-    #     for link in sorted(bible_links):
-    #         parts = link.split("/")
-    #         logger.debug("parts: {}".format(parts))
-    #         resource_str = parts[0][0:3]
-    #         logger.debug("resource_str: {}".format(resource_str))
-    #         chapter = parts[4].lstrip("0")
-    #         logger.debug("chapter: {}".format(chapter))
-    #         first_verse = parts[5].lstrip("0")
-    #         logger.debug("first_verse: {}".format(first_verse))
-    #         rep[link] = "<div>{0}</div>".format(
-    #             # FIXME It looks like this presupposes that, as per
-    #             # the old logic path, we build links to USFM files and
-    #             # then later, i.e., here, actually produce the HTML
-    #             # from the USFM. Such presuppositions are
-    #             # inappropriate now.
-    #             self._get_chunk_html(resource_str, chapter, first_verse)
-    #         )
-    #     rep = dict(
-    #         (re.escape("[[{0}]]".format(link)), html) for link, html in rep.items()
-    #     )
-    #     pattern = re.compile("|".join(list(rep.keys())))
-    #     text = pattern.sub(lambda m: rep[re.escape(m.group(0))], text)
-    #     return text
+    # @icontract.require(lambda self: self._resource_source is not None)
+    # def _is_usfm(self) -> bool:
+    #     """ Return true if _resource_source is equal to 'usfm'. """
+    #     return self._resource_source == config.USFM
 
     # FIXME I am using the bs4 bits of this elsewhere now to decompose
     # the HTNL back into verses (but don't have it worked out totally
@@ -588,7 +438,7 @@ class USFMResource(Resource):
         # consumption is not a concern for this case.
         self._usfm_verses_generator = self._get_usfm_verses()
 
-    # FIXME Exploratory
+    # NOTE Exploratory
     def _get_usfm_verses(self) -> Generator:
         """
         Return a generator over the raw USFM verses. Might be useful
@@ -598,14 +448,11 @@ class USFMResource(Resource):
             yield self._usfm_chunks["1"]["chunks"][i]
 
 
-# FIXME Liskov Substitution Principle. Perhaps we should name this
-# TResourceMixin and not have it inherit from Resource, but have
-# subclasses like TNResource subclass Resource and TResourceMixin just
-# for better design purposes. Respect the MRO if you make this change.
 class TResource(Resource):
+    """
+    Provide methods common to all subclasses of TResource.
+    """
 
-    # FIXME Should this be copied to each TResource subclass instead?
-    @icontract.ensure(lambda self: self._resource_url is not None)
     def find_location(self) -> None:
         """ Find the URL where the resource's assets are located. """
         # FIXME For better flexibility, the lookup class could be
@@ -618,148 +465,57 @@ class TResource(Resource):
         self._resource_jsonpath = resource_lookup_dto.jsonpath
         logger.debug("self._resource_url: {} for {}".format(self._resource_url, self))
 
-    # FIXME Should this be copied to each TResource subclass instead?
     @icontract.require(lambda self: self._content is not None)
     def _convert_md2html(self) -> None:
         """ Convert a resource's Markdown to HTML. """
         assert self._content is not None, "self._content cannot be None here."
         self._content = markdown.markdown(self._content)
 
-    # FIXME Bit of a legacy cluster.
-    @icontract.require(lambda self: self._content is not None)
-    @icontract.require(lambda self: self._my_rcs is not None)
-    def _replace_rc_links(self) -> None:
-        """
-        Given a resource's markdown text, replace links of the
-        form [[rc://en/tw/help/bible/kt/word]] with links of the form
-        [God's Word](#tw-kt-word).
-        """
-        # logger.debug("self._content: {}".format(self._content))
-        logger.debug("self._my_rcs: {}".format(self._my_rcs))
-        rep = dict(
-            (
-                re.escape("[[{}]]".format(rc)),
-                "[{}]({})".format(
-                    self._resource_data[rc]["title"].strip(),
-                    self._resource_data[rc]["link"],
-                ),
-            )
-            for rc in self._my_rcs
-        )
-        logger.debug("rep: {}".format(rep))
-        pattern: re.Pattern = re.compile("|".join(list(rep.keys())))
-        text = pattern.sub(lambda m: rep[re.escape(m.group(0))], self._content)
-
-        # Change ].(rc://...) rc links, e.g. [Click here](rc://en/tw/help/bible/kt/word) => [Click here](#tw-kt-word)
-        rep = dict(
-            (re.escape("]({0})".format(rc)), "]({0})".format(info["link"]))
-            for rc, info in self._resource_data.items()
-        )
-        pattern = re.compile("|".join(list(rep.keys())))
-        text = pattern.sub(lambda m: rep[re.escape(m.group(0))], text)
-
-        # Change rc://... rc links, e.g. rc://en/tw/help/bible/kt/word => [God's](#tw-kt-word)
-        rep = dict(
-            (re.escape(rc), "[{}]({})".format(info["title"], info["link"]))
-            for rc, info in self._resource_data.items()
-        )
-        pattern = re.compile("|".join(list(rep.keys())))
-        text = pattern.sub(lambda m: rep[re.escape(m.group(0))], text)
-
-        self._content = text
-
-    # FIXME Legacy cluster. This used to be a function and
-    # maybe still should be, but for now I've made it an instance
-    # method because it works on self_content.
-    def _fix_links(self) -> None:
-        rep = {}
-
-        def replace_tn_with_door43_link(match):
-            book = match.group(1)
-            chapter = match.group(2)
-            verse = match.group(3)
-            if book in bible_books.BOOK_NUMBERS:
-                book_num = bible_books.BOOK_NUMBERS[book]
-            else:
-                return None
-            if int(book_num) > 40:
-                anchor_book_num = str(int(book_num) - 1)
-            else:
-                anchor_book_num = book_num
-            url = "https://live.door43.org/u/Door43/en_ulb/c0bd11bad0/{}-{}.html#{}-ch-{}-v-{}".format(
-                book_num.zfill(2),
-                book.upper(),
-                anchor_book_num.zfill(3),
-                chapter.zfill(3),
-                verse.zfill(3),
-            )
-            return url
-
-        def replace_obs_with_door43_link(match):
-            url = "https://live.door43.org/u/Door43/en_obs/b9c4f076ff/{}.html".format(
-                match.group(1)
-            )
-            return url
-
-        # convert OBS links: rc://en/tn/help/obs/15/07 => https://live.door43.org/u/Door43/en_obs/b9c4f076ff/15.html
-        rep[r"rc://[^/]+/tn/help/obs/(\d+)/(\d+)"] = replace_obs_with_door43_link
-
-        # convert tN links (NT books use USFM numbering in HTML file name, but standard book numbering in the anchor):
-        # rc://en/tn/help/rev/15/07 => https://live.door43.org/u/Door43/en_ulb/c0bd11bad0/67-REV.html#066-ch-015-v-007
-        rep[
-            r"rc://[^/]+/tn/help/(?!obs)([^/]+)/(\d+)/(\d+)"
-        ] = replace_tn_with_door43_link
-
-        # convert RC links, e.g. rc://en/tn/help/1sa/16/02 => https://git.door43.org/Door43/en_tn/1sa/16/02.md
-        rep[
-            r"rc://([^/]+)/(?!tn)([^/]+)/([^/]+)/([^\s\)\]\n$]+)"
-        ] = r"https://git.door43.org/Door43/\1_\2/src/master/\4.md"
-
-        # convert URLs to links if not already
-        rep[
-            r'([^"\(])((http|https|ftp)://[A-Za-z0-9\/\?&_\.:=#-]+[A-Za-z0-9\/\?&_:=#-])'
-        ] = r"\1[\2](\2)"
-
-        # URLS wth just www at the start, no http
-        rep[
-            r'([^A-Za-z0-9"\(\/])(www\.[A-Za-z0-9\/\?&_\.:=#-]+[A-Za-z0-9\/\?&_:=#-])'
-        ] = r"\1[\2](http://\2.md)"
-
-        for pattern, repl in rep.items():
-            self._content = re.sub(pattern, repl, self._content, flags=re.IGNORECASE)
-
     def initialize_assets(self) -> None:
         """ Programmatically discover the manifest and content files. """
-        # Execute logic common to all resources
         self._manifest = Manifest(self)
 
+        logger.debug("self._resource_dir: {}".format(self._resource_dir))
         # Get the content files
-        markdown_files = self.resource_dir_path.glob("**/*.md")
-        markdown_content_files = filter(
-            lambda x: str(x.stem).lower() not in config.get_markdown_doc_file_names(),
-            markdown_files,
+        markdown_files = glob(
+            "{}/*{}/**/*.md".format(self._resource_dir, self._resource_code)
         )
-        txt_files = self.resource_dir_path.glob("**/*.txt")
-        txt_content_files = filter(
-            lambda x: str(x.stem).lower() not in config.get_markdown_doc_file_names(),
-            txt_files,
+        # logger.debug("markdown_files: {}".format(markdown_files))
+        markdown_content_files = list(
+            filter(
+                lambda x: str(pathlib.Path(x).stem).lower()
+                not in config.get_markdown_doc_file_names(),
+                markdown_files,
+            )
+        )
+        txt_files = glob(
+            "{}/*{}/**/*.txt".format(self._resource_dir, self._resource_code)
+        )
+        # logger.debug("txt_files: {}".format(txt_files))
+        txt_content_files = list(
+            filter(
+                lambda x: str(pathlib.Path(x).stem).lower()
+                not in config.get_markdown_doc_file_names(),
+                txt_files,
+            )
         )
 
-        if len(list(markdown_content_files)) > 0:
+        if len(markdown_content_files) > 0:
             self._content_files = list(
                 filter(
-                    lambda x: self._resource_code.lower() in str(x).lower(),
-                    [str(file) for file in markdown_files],
+                    lambda x: self._resource_code.lower() in x.lower(), markdown_files,
                 )
             )
-        if len(list(txt_content_files)) > 0:
+        if len(txt_content_files) > 0:
             self._content_files = list(
-                filter(
-                    lambda x: self._resource_code.lower() in str(x).lower(),
-                    [str(file) for file in txt_files],
-                )
+                filter(lambda x: self._resource_code.lower() in x.lower(), txt_files,)
             )
 
+        # logger.debug(
+        #     "markdown_content_files: {}, txt_content_files: {}".format(
+        #         markdown_content_files, txt_content_files,
+        #     )
+        # )
         logger.debug(
             "self._content_files for {}: {}".format(
                 self._resource_code, self._content_files,
@@ -772,12 +528,15 @@ class TNResource(TResource):
         logger.info("Processing Translation Notes Markdown...")
         self._get_tn_markdown()
         # FIXME
-        self._replace_rc_links()
-        self._fix_links()
+        self._content = link_utils.replace_rc_links(
+            self._my_rcs, self._resource_data, self._content
+        )
+        self._content = link_utils.fix_links(self._content)
         logger.info("Converting MD to HTML...")
         self._convert_md2html()
-        logger.debug("self._bad_links: {}".format(self._bad_links))
 
+    # FIXME Should we change to function w no non-local side-effects
+    # and move to markdown_utils.py?
     @icontract.require(lambda self: self._resource_code is not None)
     def _get_tn_markdown(self) -> None:
         book_dir: str = self._get_book_dir()
@@ -820,7 +579,13 @@ class TNResource(TResource):
                         last_verse,
                         title,
                         md,
-                    ) = self._initialize_tn_chapter_files(chunk_file, chapter)
+                    ) = link_utils.initialize_tn_chapter_files(
+                        self._book_id,
+                        self._book_title,
+                        self._lang_code,
+                        chunk_file,
+                        chapter,
+                    )
 
                     anchors = ""
                     pre_md = ""
@@ -831,7 +596,7 @@ class TNResource(TResource):
                     # will provide the _usfm_chunks.
                     # if bool(self._usfm_chunks):
                     #     # Create links to each chapter
-                    #     anchors += self._initialize_tn_chapter_verse_links(
+                    #     anchors += link_utils.initialize_tn_chapter_verse_links(
                     #         chapter, first_verse
                     #     )
                     #     pre_md = "\n## {}\n{}\n\n".format(title, anchors)
@@ -879,8 +644,12 @@ class TNResource(TResource):
 
                     tn_md += md
 
-                    links = self._initialize_tn_links(
-                        book_has_intro, chapter_has_intro, chapter
+                    links = link_utils.initialize_tn_links(
+                        self._lang_code,
+                        self._book_id,
+                        book_has_intro,
+                        chapter_has_intro,
+                        chapter,
                     )
                     tn_md += links + "\n\n"
             else:
@@ -890,6 +659,8 @@ class TNResource(TResource):
 
         self._content = tn_md
 
+    # FIXME Should we change to function w no non-local side-effects
+    # and move to markdown_utils.py?
     @icontract.require(lambda self: self._resource_dir is not None)
     @icontract.require(lambda self: self._lang_code is not None)
     @icontract.require(lambda self: self._resource_type is not None)
@@ -910,23 +681,26 @@ class TNResource(TResource):
             book_dir = os.path.join(self._resource_dir, self._resource_code)
         return book_dir
 
+    # FIXME Should we change to function w no non-local side-effects
+    # and move to markdown_utils.py?
     def _initialize_tn_book_intro(self, book_dir: str) -> Tuple[bool, str]:
         intro_file = os.path.join(book_dir, "front", "intro.md")
         book_has_intro = os.path.isfile(intro_file)
         md = ""
         if book_has_intro:
             md = file_utils.read_file(intro_file)
-            title = get_first_header(md)
-            md = self._fix_tn_links(md, "intro")
-            md = increase_headers(md)
-            md = decrease_headers(md, 5)  # bring headers of 5 or more #'s down 1
-            id_tag = '<a id="tn-{0}-front-intro"/>'.format(self._book_id)
-            md = re.compile(r"# ([^\n]+)\n").sub(r"# \1\n{0}\n".format(id_tag), md, 1)
+            title = markdown_utils.get_first_header(md)
+            md = link_utils.fix_tn_links(self._lang_code, self._book_id, md, "intro")
+            md = markdown_utils.increase_headers(md)
+            # bring headers of 5 or more #'s down 1
+            md = markdown_utils.decrease_headers(md, 5)
+            id_tag = '<a id="tn-{}-front-intro"/>'.format(self._book_id)
+            md = re.compile(r"# ([^\n]+)\n").sub(r"# \1\n{}\n".format(id_tag), md, 1)
+            # Create placeholder link
             rc = "rc://{0}/tn/help/{1}/front/intro".format(
                 self._lang_code, self._book_id
             )
             anchor_id = "tn-{}-front-intro".format(self._book_id)
-            # FIXME This probably will blow up.
             self._resource_data[rc] = {
                 "rc": rc,
                 "id": anchor_id,
@@ -935,7 +709,16 @@ class TNResource(TResource):
             }
             self._my_rcs.append(rc)
             # FIXME
-            self._get_resource_data_from_rc_links(md, rc)
+            link_utils.get_resource_data_from_rc_links(
+                self._lang_code,
+                self._my_rcs,
+                self._rc_references,
+                self._resource_data,
+                self._bad_links,
+                self._working_dir,
+                md,
+                rc,
+            )
             md += "\n\n"
         return (book_has_intro, md)
 
@@ -947,108 +730,48 @@ class TNResource(TResource):
         if chapter_has_intro:
             logger.info("chapter has intro")
             md = file_utils.read_file(intro_file)
-            title = get_first_header(md)
-            md = self._fix_tn_links(md, chapter)
-            md = increase_headers(md)
-            md = decrease_headers(md, 5, 2)  # bring headers of 5 or more #'s down 2
+            title = markdown_utils.get_first_header(md)
+            md = link_utils.fix_tn_links(self._lang_code, self._book_id, md, chapter)
+            md = markdown_utils.increase_headers(md)
+            md = markdown_utils.decrease_headers(
+                md, 5, 2
+            )  # bring headers of 5 or more #'s down 2
             id_tag = '<a id="tn-{}-{}-intro"/>'.format(
-                self._book_id, self._pad(chapter)
+                self._book_id, link_utils.pad(self._book_id, chapter)
             )
             md = re.compile(r"# ([^\n]+)\n").sub(r"# \1\n{}\n".format(id_tag), md, 1)
+            # Create placeholder link
             rc = "rc://{}/tn/help/{}/{}/intro".format(
-                self._lang_code, self._book_id, self._pad(chapter),
+                self._lang_code, self._book_id, link_utils.pad(self._book_id, chapter),
             )
-            anchor_id = "tn-{}-{}-intro".format(self._book_id, self._pad(chapter))
+            anchor_id = "tn-{}-{}-intro".format(
+                self._book_id, link_utils.pad(self._book_id, chapter)
+            )
             self._resource_data[rc] = {
-                # self.resource_data[rc] = {
                 "rc": rc,
                 "id": anchor_id,
                 "link": "#{}".format(anchor_id),
                 "title": title,
             }
             self._my_rcs.append(rc)
-            # self.my_rcs.append(rc)
-            self._get_resource_data_from_rc_links(md, rc)
+            link_utils.get_resource_data_from_rc_links(
+                self._lang_code,
+                self._my_rcs,
+                self._rc_references,
+                self._resource_data,
+                self._bad_links,
+                self._working_dir,
+                md,
+                rc,
+            )
             md += "\n\n"
             return (chapter_has_intro, md)
         else:
             logger.info("chapter has no intro")
             return (chapter_has_intro, "")
 
-    def _fix_tn_links(self, text: str, chapter: str) -> str:
-        rep = {
-            re.escape(
-                # TODO localization
-                "**[2 Thessalonians intro](../front/intro.md)"
-                # TODO localization
-            ): "**[2 Thessalonians intro](../front/intro.md)**",
-            r"\]\(\.\./\.\./([^)]+?)(\.md)*\)": r"](rc://{}/tn/help/\1)".format(
-                self._lang_code
-            ),
-            r"\]\(\.\./([^)]+?)(\.md)*\)": r"](rc://{}/tn/help/{}/\1)".format(
-                self._lang_code, self._book_id
-            ),
-            r"\]\(\./([^)]+?)(\.md)*\)": r"](rc://{}/tn/help/{}/{}/\1)".format(
-                self._lang_code, self._book_id, self._pad(chapter),
-            ),
-            r"\n__.*\|.*": r"",
-        }
-        for pattern, repl in rep.items():
-            text = re.sub(pattern, repl, text, flags=re.IGNORECASE | re.MULTILINE)
-        return text
-
-    def _initialize_tn_chapter_files(
-        self, chunk_file: str, chapter: str
-    ) -> Tuple[str, Optional[str], str, str]:
-        first_verse = os.path.splitext(os.path.basename(chunk_file))[0].lstrip("0")
-        # FIXME TNResource doesn't have self._usfm_chunks
-        # logger.debug("self._usfm_chunks: {}".format(self._usfm_chunks))
-        # if bool(self._usfm_chunks):
-        #     last_verse = self._usfm_chunks["ulb"][chapter][first_verse]["last_verse"]
-        # else:
-        #     last_verse = None
-        last_verse = None
-        if last_verse is not None and first_verse != last_verse:
-            title = "{} {}:{}-{}".format(
-                self._book_title,
-                chapter,
-                first_verse,
-                last_verse
-                # self.book_title, chapter, first_verse, last_verse
-            )
-        else:
-            title = "{} {}:{}".format(
-                self._book_title,
-                chapter,
-                first_verse
-                # self.book_title, chapter, first_verse
-            )
-        md = increase_headers(file_utils.read_file(chunk_file), 3)
-        md = decrease_headers(md, 5)  # bring headers of 5 or more #'s down 1
-        md = self._fix_tn_links(md, chapter)
-        # TODO localization
-        md = md.replace("#### Translation Words", "### Translation Words")
-        return (first_verse, last_verse, title, md)
-
-    # FIXME This should possibly have a USFMResource instance passed
-    # in as parameter for the sake of self._usfm_chunks
-    def _initialize_tn_chapter_verse_links(
-        self, usfm_resource: USFMResource, chapter: str, first_verse: str
-    ) -> str:
-        anchors = ""
-        try:
-            for verse in usfm_resource._usfm_chunks["ulb"][chapter][first_verse][
-                "verses"
-            ]:
-                anchors += '<a id="tn-{}-{}-{}"/>'.format(
-                    self._book_id, self._pad(chapter), self._pad(verse),
-                )
-        except:
-            pass  # TODO
-        logger.debug("anchors: {}".format(anchors))
-        return anchors
-
-    # FIXME This should probably be moved to TWResource
+    # FIXME Should we change to function w no non-local side-effects
+    # and move to markdown_utils.py?
     def _initialize_tn_translation_words(self, chapter: str, first_verse: str) -> str:
         # Add Translation Words for passage
         tw_md = ""
@@ -1071,11 +794,8 @@ class TNResource(TResource):
                     tw_md += file_ref_md
         return tw_md
 
-    # FIXME This doesn't belong on TNResource. It should be in
-    # USFMResource. There are two types of USFM: ULB and UDB.
-    # Currently we only have USFMResource for both. Should we have
-    # ULBResource, UDBResource, and maybe USFMResource also? I need to
-    # think about this.
+    # FIXME Should we change to function w no non-local side-effects
+    # and move to markdown_utils.py?
     def _initialize_tn_udb(
         self, chapter: str, title: str, first_verse: str, last_verse: str
     ) -> str:
@@ -1097,15 +817,20 @@ class TNResource(TResource):
         md = "### Unlocked Dynamic Bible\n\n[[udb://{}/{}/{}/{}/{}]]\n\n".format(
             self._lang_code,
             self._book_id,
-            self._pad(chapter),
-            self._pad(udb_first_verse),
-            self._pad(last_verse),
+            link_utils.pad(self._book_id, chapter),
+            link_utils.pad(self._book_id, udb_first_verse),
+            link_utils.pad(self._book_id, last_verse),
         )
         rc = "rc://{}/tn/help/{}/{}/{}".format(
-            self._lang_code, self._book_id, self._pad(chapter), self._pad(first_verse),
+            self._lang_code,
+            self._book_id,
+            link_utils.pad(self._book_id, chapter),
+            link_utils.pad(self._book_id, first_verse),
         )
         anchor_id = "tn-{}-{}-{}".format(
-            self._book_id, self._pad(chapter), self._pad(first_verse),
+            self._book_id,
+            link_utils.pad(self._book_id, chapter),
+            link_utils.pad(self._book_id, first_verse),
         )
         self._resource_data[rc] = {
             # self.resource_data[rc] = {
@@ -1115,27 +840,18 @@ class TNResource(TResource):
             "title": title,
         }
         self._my_rcs.append(rc)
-        self._get_resource_data_from_rc_links(md, rc)
+        link_utils.get_resource_data_from_rc_links(
+            self._lang_code,
+            self._my_rcs,
+            self._rc_references,
+            self._resource_data,
+            self._bad_links,
+            self._working_dir,
+            md,
+            rc,
+        )
         md += "\n\n"
         return md
-
-    def _initialize_tn_links(
-        self, book_has_intro: bool, chapter_has_intro: bool, chapter: str
-    ) -> str:
-        # TODO localization
-        links = "### Links:\n\n"
-        if book_has_intro:
-            links += "* [[rc://{}/tn/help/{}/front/intro]]\n".format(
-                self._lang_code, self._book_id
-            )
-        if chapter_has_intro:
-            links += "* [[rc://{0}/tn/help/{1}/{2}/intro]]\n".format(
-                self._lang_code, self._book_id, self._pad(chapter),
-            )
-        links += "* [[rc://{0}/tq/help/{1}/{2}]]\n".format(
-            self._lang_code, self._book_id, self._pad(chapter),
-        )
-        return links
 
 
 class TWResource(TResource):
@@ -1143,13 +859,16 @@ class TWResource(TResource):
         logger.info("Processing Translation Words Markdown...")
         self._get_tw_markdown()
         # FIXME
-        # self._replace_rc_links()
-        ## self._fix_links()
-        # self._content = fix_links(self._content)
+        self._content = link_utils.replace_rc_links(
+            self._my_rcs, self._resource_data, self._content
+        )
+        self._content = link_utils.fix_links(self._content)
         logger.info("Converting MD to HTML...")
         self._convert_md2html()
         logger.debug("self._bad_links: {}".format(self._bad_links))
 
+    # FIXME Should this be a function with no side effects and put in
+    # markdown_utils module?
     # def _get_tw_markdown(self) -> str:
     def _get_tw_markdown(self) -> None:
 
@@ -1176,17 +895,19 @@ class TWResource(TResource):
                 md = ""
             id_tag = '<a id="{}"/>'.format(self._resource_data[rc]["id"])
             md = re.compile(r"# ([^\n]+)\n").sub(r"# \1\n{}\n".format(id_tag), md, 1)
-            md = increase_headers(md)
-            uses = self._get_uses(rc)
+            md = markdown_utils.increase_headers(md)
+            uses = link_utils.get_uses(self._rc_references, rc)
             if uses == "":
                 continue
             md += uses
             md += "\n\n"
             tw_md += md
         # TODO localization
-        tw_md = remove_md_section(tw_md, "Bible References")
+        tw_md = markdown_utils.remove_md_section(tw_md, "Bible References")
         # TODO localization
-        tw_md = remove_md_section(tw_md, "Examples from the Bible stories")
+        tw_md = markdown_utils.remove_md_section(
+            tw_md, "Examples from the Bible stories"
+        )
 
         logger.debug("tw_md is {}".format(tw_md))
         self._content = tw_md
@@ -1202,9 +923,7 @@ class TQResource(TResource):
         # self._fix_links()
         logger.info("Converting MD to HTML...")
         self._convert_md2html()
-        logger.debug("self._bad_links: {}".format(self._bad_links))
 
-    # def _get_tq_markdown(self) -> str:
     def _get_tq_markdown(self) -> None:
         """Build tq markdown"""
         # TODO localization
@@ -1225,14 +944,20 @@ class TQResource(TResource):
             chapter_dir = os.path.join(tq_book_dir, chapter)
             chapter = chapter.lstrip("0")
             if os.path.isdir(chapter_dir) and re.match(r"^\d+$", chapter):
-                id_tag = '<a id="tq-{}-{}"/>'.format(self._book_id, self._pad(chapter))
+                id_tag = '<a id="tq-{}-{}"/>'.format(
+                    self._book_id, link_utils.pad(self._book_id, chapter)
+                )
                 tq_md += "## {} {}\n{}\n\n".format(self._book_title, chapter, id_tag)
                 # TODO localization
                 title = "{} {} Translation Questions".format(self._book_title, chapter)
                 rc = "rc://{}/tq/help/{}/{}".format(
-                    self._lang_code, self._book_id, self._pad(chapter)
+                    self._lang_code,
+                    self._book_id,
+                    link_utils.pad(self._book_id, chapter),
                 )
-                anchor_id = "tq-{}-{}".format(self._book_id, self._pad(chapter))
+                anchor_id = "tq-{}-{}".format(
+                    self._book_id, link_utils.pad(self._book_id, chapter)
+                )
                 self._resource_data[rc] = {
                     "rc": rc,
                     "id": anchor_id,
@@ -1245,12 +970,12 @@ class TQResource(TResource):
                     first_verse = os.path.splitext(chunk)[0].lstrip("0")
                     if os.path.isfile(chunk_file) and re.match(r"^\d+$", first_verse):
                         md = file_utils.read_file(chunk_file)
-                        md = increase_headers(md, 2)
+                        md = markdown_utils.increase_headers(md, 2)
                         md = re.compile("^([^#\n].+)$", flags=re.M).sub(
                             r'\1 [<a href="#tn-{}-{}-{}">{}:{}</a>]'.format(
                                 self._book_id,
-                                self._pad(chapter),
-                                self._pad(first_verse),
+                                link_utils.pad(self._book_id, chapter),
+                                link_utils.pad(self._book_id, first_verse),
                                 chapter,
                                 first_verse,
                             ),
@@ -1263,11 +988,13 @@ class TQResource(TResource):
                         rc = "rc://{}/tq/help/{}/{}/{}".format(
                             self._lang_code,
                             self._book_id,
-                            self._pad(chapter),
-                            self._pad(first_verse),
+                            link_utils.pad(self._book_id, chapter),
+                            link_utils.pad(self._book_id, first_verse),
                         )
                         anchor_id = "tq-{}-{}-{}".format(
-                            self._book_id, self._pad(chapter), self._pad(first_verse)
+                            self._book_id,
+                            link_utils.pad(self._book_id, chapter),
+                            link_utils.pad(self._book_id, first_verse),
                         )
                         self._resource_data[rc] = {
                             "rc": rc,
@@ -1276,7 +1003,16 @@ class TQResource(TResource):
                             "title": title,
                         }
                         self._my_rcs.append(rc)
-                        self._get_resource_data_from_rc_links(md, rc)
+                        link_utils.get_resource_data_from_rc_links(
+                            self._lang_code,
+                            self._my_rcs,
+                            self._rc_references,
+                            self._resource_data,
+                            self._bad_links,
+                            self._working_dir,
+                            md,
+                            rc,
+                        )
                         md += "\n\n"
                         tq_md += md
         logger.debug("tq_md is {0}".format(tq_md))
@@ -1293,9 +1029,7 @@ class TAResource(TResource):
         # self._fix_links()
         logger.info("Converting MD to HTML...")
         self._convert_md2html()
-        logger.debug("self._bad_links: {}".format(self._bad_links))
 
-    # def _get_ta_markdown(self) -> str:
     def _get_ta_markdown(self) -> None:
         # TODO localization
         ta_md = '<a id="ta-{}"/>\n# Translation Topics\n\n'.format(self._book_id)
@@ -1317,115 +1051,13 @@ class TAResource(TResource):
             # id_tag = '<a id="{}"/>'.format(resource["resource_data"][rc]["id"])
             id_tag = '<a id="{}"/>'.format(self._resource_data[rc]["id"])
             md = re.compile(r"# ([^\n]+)\n").sub(r"# \1\n{}\n".format(id_tag), md, 1)
-            md = increase_headers(md)
-            md += self._get_uses(rc)
+            md = markdown_utils.increase_headers(md)
+            md += link_utils.get_uses(self._rc_references, rc)
             md += "\n\n"
             ta_md += md
         logger.debug("ta_md is {0}".format(ta_md))
         self._content = ta_md
         # return ta_md
-
-    # FIXME This legacy code is a mess of mixed up concerns. This
-    # method is called from tn and tq concerned code so when we move
-    # it it will probably have to live in a module that can be mixed
-    # into both TNResource and TQResource or the method itself will be
-    # teased apart so that conditionals are reduced and code paths
-    # pertaining to the instance are the only ones preserved in the
-    # instances version of this method.
-    def _get_resource_data_from_rc_links(self, text: str, source_rc: str) -> None:
-        for rc in re.findall(
-            r"rc://[A-Z0-9/_-]+", text, flags=re.IGNORECASE | re.MULTILINE
-        ):
-            parts = rc[5:].split("/")
-            resource_tmp = parts[1]
-            path = "/".join(parts[3:])
-            logger.debug(
-                "parts: {}, resource_tmp: {}, path: {}".format(
-                    parts, resource_tmp, path
-                )
-            )
-
-            if rc not in self._my_rcs:
-                self._my_rcs.append(rc)
-            if rc not in self._rc_references:
-                self._rc_references[rc] = []
-            self._rc_references[rc].append(source_rc)
-
-            if rc not in self._resource_data:
-                title = ""
-                t = ""
-                anchor_id = "{}-{}".format(resource_tmp, path.replace("/", "-"))
-                link = "#{}".format(anchor_id)
-                try:
-                    file_path = os.path.join(
-                        self._working_dir,
-                        "{}_{}".format(self._lang_code, resource_tmp),
-                        "{}.md".format(path),
-                    )
-                    if not os.path.isfile(file_path):
-                        file_path = os.path.join(
-                            self._working_dir,
-                            "{}_{}".format(self._lang_code, resource_tmp),
-                            "{}/01.md".format(path),
-                        )
-                    if os.path.isfile(file_path):
-                        t = file_utils.read_file(file_path)
-                        title_file = os.path.join(
-                            os.path.dirname(file_path), "title.md"
-                        )
-                        question_file = os.path.join(
-                            os.path.dirname(file_path), "sub-title.md"
-                        )
-                        if os.path.isfile(title_file):
-                            title = file_utils.read_file(title_file)
-                        else:
-                            title = get_first_header(t)
-                        if os.path.isfile(question_file):
-                            question = file_utils.read_file(question_file)
-                            # TODO localization?
-                            question = "This page answers the question: *{}*\n\n".format(
-                                question
-                            )
-                        else:
-                            question = ""
-                        t = "# {}\n\n{}{}".format(title, question, t)
-                        t = self._fix_ta_links(t, path.split("/")[0])
-                    else:
-                        # TODO bad_links doesn't exist yet, but should
-                        # be on resources dict.
-                        if rc not in self._bad_links:
-                            self._bad_links[rc] = []
-                        self._bad_links[rc].append(source_rc)
-                except:
-                    # TODO
-                    if rc not in self._bad_links:
-                        self._bad_links[rc] = []
-                    self._bad_links[rc].append(source_rc)
-                self._resource_data[rc] = {
-                    "rc": rc,
-                    "link": link,
-                    "id": anchor_id,
-                    "title": title,
-                    "text": t,
-                }
-                if t:
-                    self._get_resource_data_from_rc_links(t, rc)
-
-    def _fix_ta_links(self, text: str, manual: str) -> str:
-        rep = {
-            r"\]\(\.\./([^/)]+)/01\.md\)": r"](rc://{0}/ta/man/{1}/\1)".format(
-                self._lang_code, manual
-            ),
-            r"\]\(\.\./\.\./([^/)]+)/([^/)]+)/01\.md\)": r"](rc://{}/ta/man/\1/\2)".format(
-                self._lang_code
-            ),
-            r"\]\(([^# :/)]+)\)": r"](rc://{}/ta/man/{}/\1)".format(
-                self._lang_code, manual
-            ),
-        }
-        for pattern, repl in rep.items():
-            text = re.sub(pattern, repl, text, flags=re.IGNORECASE)
-        return text
 
 
 def resource_factory(
@@ -1464,63 +1096,6 @@ def get_tw_refs(tw_refs_by_verse: dict, book: str, chapter: str, verse: str) -> 
     if verse not in tw_refs_by_verse[book][chapter]:
         return []
     return tw_refs_by_verse[book][chapter][verse]
-
-
-def get_first_header(text: str) -> str:
-    lines = text.split("\n")
-    if lines:
-        for line in lines:
-            if re.match(r"^ *#+ ", line):
-                return re.sub(r"^ *#+ (.*?) *#*$", r"\1", line)
-        return lines[0]
-    return "NO TITLE"
-
-
-def remove_md_section(md: str, section_name: str) -> str:
-    """ Given markdown and a section name, removes the section and the text contained in the section. """
-    header_regex = re.compile("^#.*$")
-    section_regex = re.compile("^#+ " + section_name)
-    out_md = ""
-    in_section = False
-    for line in md.splitlines():
-        if in_section:
-            if header_regex.match(line):
-                # We found a header.  The section is over.
-                out_md += line + "\n"
-                in_section = False
-        else:
-            if section_regex.match(line):
-                # We found the section header.
-                in_section = True
-            else:
-                out_md += line + "\n"
-    return out_md
-
-
-@icontract.require(lambda text: text is not None)
-def increase_headers(text: str, increase_depth: int = 1) -> str:
-    if text:
-        text = re.sub(
-            r"^(#+) +(.+?) *#*$",
-            r"\1{0} \2".format("#" * increase_depth),
-            text,
-            flags=re.MULTILINE,
-        )
-    return text
-
-
-@icontract.require(lambda text: text is not None)
-def decrease_headers(text: str, minimum_header: int = 1, decrease: int = 1) -> str:
-    if text:
-        text = re.sub(
-            r"^({0}#*){1} +(.+?) *#*$".format(
-                "#" * (minimum_header - decrease), "#" * decrease
-            ),
-            r"\1 \2",
-            text,
-            flags=re.MULTILINE,
-        )
-    return text
 
 
 class ResourceProvisioner:
