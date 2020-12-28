@@ -6,7 +6,6 @@ from document.domain import model
 from document.entrypoints.app import app
 
 
-@pytest.mark.usefixtures("restart_api")
 def test_get_language_codes_returns_ok() -> None:
     with TestClient(app=app, base_url=config.get_api_test_url()) as client:
         response = client.get("/language_codes")
@@ -16,7 +15,6 @@ def test_get_language_codes_returns_ok() -> None:
         assert len(response.json()) > 0
 
 
-@pytest.mark.usefixtures("restart_api")
 def test_get_language_codes_and_names_returns_ok() -> None:
     with TestClient(app=app, base_url=config.get_api_test_url()) as client:
         response = client.get("/language_codes_and_names")
@@ -24,7 +22,6 @@ def test_get_language_codes_and_names_returns_ok() -> None:
         assert len(response.json()) > 0
 
 
-@pytest.mark.usefixtures("restart_api")
 def test_get_resource_codes_returns_ok() -> None:
     with TestClient(app=app, base_url=config.get_api_test_url()) as client:
         response = client.get("/resource_codes")
@@ -32,7 +29,6 @@ def test_get_resource_codes_returns_ok() -> None:
         assert len(response.json()) > 0
 
 
-@pytest.mark.usefixtures("restart_api")
 def test_get_resource_types_returns_ok() -> None:
     with TestClient(app=app, base_url=config.get_api_test_url()) as client:
         response = client.get("/resource_types")
@@ -40,7 +36,8 @@ def test_get_resource_types_returns_ok() -> None:
         assert len(response.json()) > 0
 
 
-@pytest.mark.usefixtures("restart_api")
+# @pytest.mark.usefixtures("restart_api") # This makes tests fail and
+# isn't necessary yet
 def test_happy_path_returns_ok() -> None:
     with TestClient(app=app, base_url=config.get_api_test_url()) as client:
         response = client.post(
@@ -51,12 +48,12 @@ def test_happy_path_returns_ok() -> None:
                     {
                         "lang_code": "en",
                         "resource_type": "ulb-wa",
-                        "resource_code": "eph",
+                        "resource_code": "jud",
                     },
                     {
                         "lang_code": "en",
                         "resource_type": "tn-wa",
-                        "resource_code": "eph",
+                        "resource_code": "jud",
                     },
                 ],
             },
