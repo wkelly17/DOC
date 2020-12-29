@@ -410,15 +410,15 @@ class USFMResource(Resource):
             if chapter not in book_chunks:
                 book_chunks[chapter] = {"chunks": []}
             # FIXME first_verse, last_verse, and verses equal the same
-            # number, e.g., 1 or 2 or etc.. They don't seem to encode
+            # number, e.g., all 1 or all 2, etc.. They don't seem to encode
             # meaningfully differentiated data that would be useful.
-            # Redundant. first_verse and last_verse are used in
+            # first_verse and last_verse are used in
             # TNResource so as to imply that they are expected to
             # represent a range wider than one verse, but as far as
             # execution of the algorithm here, I haven't seen a case where
             # they are ever found to be different.
             # I may remove them later if no ranges ever actually
-            # occur - something that remains to be learned. usfm is
+            # occur - something that remains to be learned. chunk is
             # the verse content itself and of course is
             # necessary.
             data = {
@@ -539,17 +539,26 @@ class TNResource(TResource):
     # and move to markdown_utils.py?
     @icontract.require(lambda self: self._resource_code is not None)
     def _get_tn_markdown(self) -> None:
+        # logger.debug("len(self._content_files): {}".format(len(self._content_files)))
+
         book_dir: str = self._get_book_dir()
         logger.debug("book_dir: {}".format(book_dir))
 
         if not os.path.isdir(book_dir):
             return
 
+        # FIXME We should be using templates and then inserting values
+        # not building markdown imperatively.
         # TODO Might need localization
         # tn_md = '# Translation Notes\n<a id="tn-{}"/>\n\n'.format(self._book_id)
         tn_md = '# Translation Notes\n<a id="tn-{}"/>\n\n'.format(self._resource_code)
 
-        book_has_intro, tn_md_intro = self._initialize_tn_book_intro(book_dir)
+        book_has_intro, tn_md_intro = self._initialize_tn_book_intro()
+
+        # FIXME I don't think we should be build all these strings
+        # here. That should be the job of a view assembler or similar.
+        # Perhaps we'd be injecting values into a jinja template or
+        # something.
         tn_md += tn_md_intro
 
         # FIXME Use os.listdir(book_dir) to programmatically discover
@@ -659,6 +668,8 @@ class TNResource(TResource):
 
         self._content = tn_md
 
+    # FIXME I think this code can probably be greatly simplified,
+    # moved to _get_tn_markdown and then removed.
     # FIXME Should we change to function w no non-local side-effects
     # and move to markdown_utils.py?
     @icontract.require(lambda self: self._resource_dir is not None)
@@ -670,10 +681,10 @@ class TNResource(TResource):
         filepath: str = os.path.join(
             self._resource_dir, "{}_{}".format(self._lang_code, self._resource_type)
         )
-        logger.debug("self._lang_code: {}".format(self._lang_code))
-        logger.debug("self._resource_type: {}".format(self._resource_type))
-        logger.debug("self._resource_dir: {}".format(self._resource_dir))
-        logger.debug("filepath: {}".format(filepath))
+        # logger.debug("self._lang_code: {}".format(self._lang_code))
+        # logger.debug("self._resource_type: {}".format(self._resource_type))
+        # logger.debug("self._resource_dir: {}".format(self._resource_dir))
+        # logger.debug("filepath: {}".format(filepath))
         if os.path.isdir(filepath):
             book_dir = filepath
         else:  # FIXME Is this the git case? I don't recall.
@@ -683,44 +694,78 @@ class TNResource(TResource):
 
     # FIXME Should we change to function w no non-local side-effects
     # and move to markdown_utils.py?
-    def _initialize_tn_book_intro(self, book_dir: str) -> Tuple[bool, str]:
-        intro_file = os.path.join(book_dir, "front", "intro.md")
-        book_has_intro = os.path.isfile(intro_file)
-        md = ""
-        if book_has_intro:
-            md = file_utils.read_file(intro_file)
-            title = markdown_utils.get_first_header(md)
-            md = link_utils.fix_tn_links(self._lang_code, self._book_id, md, "intro")
-            md = markdown_utils.increase_headers(md)
-            # bring headers of 5 or more #'s down 1
-            md = markdown_utils.decrease_headers(md, 5)
-            id_tag = '<a id="tn-{}-front-intro"/>'.format(self._book_id)
-            md = re.compile(r"# ([^\n]+)\n").sub(r"# \1\n{}\n".format(id_tag), md, 1)
-            # Create placeholder link
-            rc = "rc://{0}/tn/help/{1}/front/intro".format(
-                self._lang_code, self._book_id
+    def _initialize_tn_book_intro(self) -> Tuple[bool, str]:
+        book_intro_files: List = list(
+            filter(
+                lambda x: os.path.join("front", "intro") in x.lower(),
+                self._content_files,
             )
-            anchor_id = "tn-{}-front-intro".format(self._book_id)
-            self._resource_data[rc] = {
-                "rc": rc,
-                "id": anchor_id,
-                "link": "#{}".format(anchor_id),
-                "title": title,
-            }
-            self._my_rcs.append(rc)
-            # FIXME
-            link_utils.get_resource_data_from_rc_links(
-                self._lang_code,
-                self._my_rcs,
-                self._rc_references,
-                self._resource_data,
-                self._bad_links,
-                self._working_dir,
-                md,
-                rc,
-            )
-            md += "\n\n"
-        return (book_has_intro, md)
+        )
+        logger.debug("book_intro_files[0]: {}".format(book_intro_files[0]))
+        book_has_intro = os.path.isfile(book_intro_files[0])
+        # FIXME Need exception handler
+        book_intro_content: str = file_utils.read_file(book_intro_files[0])
+        title: str = markdown_utils.get_first_header(book_intro_content)
+        book_intro_id_tag: str = '<a id="tn-{}-front-intro"/>'.format(self._book_id)
+        book_intro_rc = "rc://{}/tn/help/{}/front/intro".format(
+            self._lang_code, self._book_id
+        )
+        book_intro_anchor_id = "tn-{}-front-intro".format(self._book_id)
+
+        self._resource_data[book_intro_rc] = {
+            "rc": book_intro_rc,
+            "id": book_intro_anchor_id,
+            "link": "#{}".format(book_intro_anchor_id),
+            "title": title,
+        }
+        self._my_rcs.append(book_intro_rc)
+        link_utils.get_resource_data_from_rc_links(
+            self._lang_code,
+            self._my_rcs,
+            self._rc_references,
+            self._resource_data,
+            self._bad_links,
+            self._working_dir,
+            book_intro_content,
+            book_intro_rc,
+        )
+
+        # Old code that new code above replaces:
+        # intro_file = os.path.join(book_dir, "front", "intro.md")
+        # book_has_intro = os.path.isfile(intro_file)
+        # md = ""
+        # if book_has_intro:
+        #     md = file_utils.read_file(intro_file)
+        #     title = markdown_utils.get_first_header(md)
+        #     md = link_utils.fix_tn_links(self._lang_code, self._book_id, md, "intro")
+        #     md = markdown_utils.increase_headers(md)
+        #     # bring headers of 5 or more #'s down 1
+        #     md = markdown_utils.decrease_headers(md, 5)
+        #     id_tag = '<a id="tn-{}-front-intro"/>'.format(self._book_id)
+        #     md = re.compile(r"# ([^\n]+)\n").sub(r"# \1\n{}\n".format(id_tag), md, 1)
+        #     # Create placeholder link
+        #     rc = "rc://{}/tn/help/{}/front/intro".format(self._lang_code, self._book_id)
+        #     anchor_id = "tn-{}-front-intro".format(self._book_id)
+        #     self._resource_data[rc] = {
+        #         "rc": rc,
+        #         "id": anchor_id,
+        #         "link": "#{}".format(anchor_id),
+        #         "title": title,
+        #     }
+        #     self._my_rcs.append(rc)
+        #     # FIXME
+        #     link_utils.get_resource_data_from_rc_links(
+        #         self._lang_code,
+        #         self._my_rcs,
+        #         self._rc_references,
+        #         self._resource_data,
+        #         self._bad_links,
+        #         self._working_dir,
+        #         md,
+        #         rc,
+        #     )
+        #     md += "\n\n"
+        return (book_has_intro, book_intro_content)
 
     def _initialize_tn_chapter_intro(
         self, chapter_dir: str, chapter: str

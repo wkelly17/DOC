@@ -1,5 +1,6 @@
 import icontract
 import re
+from document.utils import file_utils
 
 
 def remove_md_section(md: str, section_name: str) -> str:
