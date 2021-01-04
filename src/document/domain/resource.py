@@ -387,7 +387,7 @@ class USFMResource(Resource):
         )
         # Add enclosing paragraph to each verse since they will be
         # interleaved against translation notes, etc..
-        self._verses_html = ["<p>" + str(verse) + "</p>" for verse in verses_html]
+        self._verses_html = ["<p>{}</p>".format(verse) for verse in verses_html]
 
     # FIXME Handle git based usfm with resources.json file and .txt usfm
     # file suffixes.
