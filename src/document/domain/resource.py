@@ -275,8 +275,10 @@ class USFMResource(Resource):
         logger.debug("self._resource_url: {} for {}".format(self._resource_url, self))
 
     def initialize_assets(self) -> None:
-        """ Explore the resource's downloaded files to initialize file
-        structure related properties. """
+        """
+        Explore the resource's downloaded files to initialize file
+        structure related properties.
+        """
         self._manifest = Manifest(self)
 
         usfm_content_files = glob("{}**/*.usfm".format(self._resource_dir))
@@ -1386,20 +1388,17 @@ class Manifest:
 
     @icontract.require(lambda self: self.manifest_type is not None)
     def _is_yaml(self) -> bool:
-        """ Return true if the resource's manifest file has suffix
-        yaml. """
+        """ Return true if the resource's manifest file has suffix yaml. """
         return self.manifest_type == config.YAML
 
     @icontract.require(lambda self: self.manifest_type is not None)
     def _is_txt(self) -> bool:
-        """ Return true if the resource's manifest file has suffix
-        json. """
+        """ Return true if the resource's manifest file has suffix json. """
         return self.manifest_type == config.TXT
 
     @icontract.require(lambda self: self.manifest_type is not None)
     def _is_json(self) -> bool:
-        """ Return true if the resource's manifest file has suffix
-        json. """
+        """ Return true if the resource's manifest file has suffix json. """
         return self.manifest_type == config.JSON
 
     @property
@@ -1412,9 +1411,10 @@ class Manifest:
     # FIXME If it is used later it should be a public method, i.e., no
     # leading underscore.
     def _get_book_project_from_yaml(self) -> dict:
-        """ Return the project that was requested if it matches that
-        found in the manifest file for the resource otherwise return
-        an empty dict. """
+        """
+        Return the project that was requested if it matches that found
+in the manifest file for the resource otherwise return an empty dict.
+        """
 
         if (
             self._manifest_content and "projects" in self._manifest_content
@@ -1445,8 +1445,10 @@ class Manifest:
     # FIXME If it is used later it should be a public method, i.e., no
     # leading underscore.
     def _get_book_projects_from_yaml(self) -> List[Dict[Any, Any]]:
-        """ Return the sorted list of projects that are found in the
-        manifest file for the resource. """
+        """
+        Return the sorted list of projects that are found in the
+manifest file for the resource.
+        """
 
         projects: List[Dict[Any, Any]] = []
         if (
@@ -1478,9 +1480,10 @@ class Manifest:
     # FIXME If it is used later it should be a public method, i.e., no
     # leading underscore.
     def _get_book_project_from_json(self) -> dict:
-        """ Return the project that was requested if it is found in the
-        manifest.json file for the resource, otherwise return an empty
-        dict. """
+        """
+        Return the project that was requested if it is found in the
+manifest.json file for the resource, otherwise return an empty dict.
+        """
 
         # projects: List[Dict[Any, Any]] = []
         if (
@@ -1516,9 +1519,10 @@ class Manifest:
     # FIXME If it is used later it should be a public method, i.e., no
     # leading underscore.
     def _get_book_projects_from_json(self) -> List:
-        """ Return the sorted list of projects that are found in the
-        manifest file for the resource. """
-
+        """
+        Return the sorted list of projects that are found in the
+manifest file for the resource.
+        """
         projects: List[Dict[Any, Any]] = []
         if (
             self._manifest_content and "finished_chunks" in self._manifest_content
