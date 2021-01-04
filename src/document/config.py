@@ -49,7 +49,7 @@ def get_api_url() -> str:
     root = get_api_root()
     # FIXME HTTPS shouldn't be hardcoded. fastapi will have a sane way
     # to deal with this that I've yet to research.
-    return f"https://{host}:{port}{root}"
+    return "https://{}:{}{}".format(host, port, root)
     # return f"http://{host}:{port}"
 
 
@@ -350,5 +350,5 @@ def get_markdown_template_path(key: str) -> str:
     }
     path = templates[key]
     if not os.environ.get("IN_CONTAINER"):
-        path = "src/" + path
+        path = "src/{}".format(path)
     return path
