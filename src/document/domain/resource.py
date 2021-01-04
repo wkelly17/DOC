@@ -336,12 +336,23 @@ class USFMResource(Resource):
     def get_content(self) -> None:
         self._get_usfm_chunks()
 
+        # FIXME Experiment with content derived from
+        # _get_usfm_verses_generator, use breakpoint to do so. Also,
+        # instead of using a generator you could just get the verses
+        # directly since there is no real advantage to using a
+        # generator as you are creating the generator from a list that
+        # is already in memory nested in the _usfm_chunks dictionary.
+        # The idea would be to see if we can just get the verse
+        # content sans USFM elements and then maybe stuff it into
+        # markdown jinja1 templates or something.
+        # raise "Work on this homey!!!"
+
         # logger.debug("self._content_files: {}".format(self._content_files))
 
         if self._content_files is not None:
+            # FIXME Could try different parser here.
             # Create the USFM to HTML and store in file.
             UsfmTransform.buildSingleHtmlFromFiles(
-                # self._resource_dir,
                 [pathlib.Path(file) for file in self._content_files],
                 self._output_dir,
                 self._resource_filename,
@@ -351,20 +362,6 @@ class USFMResource(Resource):
                 os.path.join(self._output_dir, self._resource_filename)
             )
             self._content = file_utils.read_file(html_file)
-            # FIXME How to get verse chunks? Paragraphs don't do it,
-            # spans don't do it...
-            # Get html verse chunks
-            # soup = bs4.BeautifulSoup(self._content, "html.parser")
-            # header = soup.find("h1")
-            # if header:
-            #     header.decompose()
-            # chapter = soup.find("h2")
-            # if chapter:
-            #     chapter.decompose()
-            # breakpoint()  # debug
-            # logger.debug("soup.body from bs4: {}".format(soup.body))
-            # html = "".join([str(x) for x in soup.body.contents])
-            # logger.debug("html from bs4: {}".format(html))
 
             logger.debug(
                 "html content in self._content in {}: {}".format(
@@ -458,13 +455,6 @@ class USFMResource(Resource):
             book_chunks[chapter][first_verse] = data
             book_chunks[chapter]["chunks"].append(data)
         self._usfm_chunks = book_chunks
-        # FIXME Might not need this, but this is part of my exploration
-        # of getting verse level data out after the fact for
-        # interleaving strategies.
-        # NOTE This could just as easily be an eager list producing
-        # method rather than a lazy generator producing method. Memory
-        # consumption is not a concern for this case.
-        self._usfm_verses_generator = self._get_usfm_verses()
 
     # NOTE Exploratory
     def _get_usfm_verses(self) -> Generator:
@@ -583,15 +573,8 @@ class TNResource(TResource):
 
         book_has_intro, tn_md_intro = self._initialize_tn_book_intro()
 
-        # FIXME I don't think we should be build all these strings
-        # here. That should be the job of a view assembler or similar.
-        # Perhaps we'd be injecting values into a jinja template or
-        # something.
         tn_md += tn_md_intro
 
-        # FIXME Use os.listdir(book_dir) to programmatically discover
-        # all files. Then after lower-casing each filename, match the
-        # filename in the list that contains the resource_code.
         for chapter in sorted(os.listdir(book_dir)):
             chapter_dir = os.path.join(book_dir, chapter)
             logger.debug("chapter_dir: {}".format(chapter_dir))
@@ -606,7 +589,6 @@ class TNResource(TResource):
                 )
                 # Get all the Markdown files that start with a digit
                 # and end with suffix md.
-                # FIXME Could use pathlib here instead of glob from lib
                 chunk_files = sorted(glob(os.path.join(chapter_dir, "[0-9]*.md")))
                 logger.debug("chunk_files: {}".format(chunk_files))
                 for _, chunk_file in enumerate(chunk_files):
@@ -715,13 +697,10 @@ class TNResource(TResource):
         # logger.debug("filepath: {}".format(filepath))
         if os.path.isdir(filepath):
             book_dir = filepath
-        else:  # FIXME Is this the git case? I don't recall.
-            logger.info("in else of _get_book_dir")
+        else:  # git repo case
             book_dir = os.path.join(self._resource_dir, self._resource_code)
         return book_dir
 
-    # FIXME Should we change to function w no non-local side-effects
-    # and move to markdown_utils.py?
     def _initialize_tn_book_intro(self) -> Tuple[bool, str]:
         book_intro_files: List = list(
             filter(
@@ -731,7 +710,8 @@ class TNResource(TResource):
         )
         logger.debug("book_intro_files[0]: {}".format(book_intro_files[0]))
         book_has_intro = os.path.isfile(book_intro_files[0])
-        # FIXME Need exception handler
+        # FIXME Need exception handler, or, just use: with
+        # open(book_intro_files[0], "r") as f:
         book_intro_content: str = file_utils.read_file(book_intro_files[0])
         title: str = markdown_utils.get_first_header(book_intro_content)
         book_intro_id_tag: str = '<a id="tn-{}-front-intro"/>'.format(self._book_id)
@@ -740,6 +720,7 @@ class TNResource(TResource):
         )
         book_intro_anchor_id = "tn-{}-front-intro".format(self._book_id)
 
+        # FIXME Begin side-effecting
         self._resource_data[book_intro_rc] = {
             "rc": book_intro_rc,
             "id": book_intro_anchor_id,
@@ -781,7 +762,6 @@ class TNResource(TResource):
         #         "title": title,
         #     }
         #     self._my_rcs.append(rc)
-        #     # FIXME
         #     link_utils.get_resource_data_from_rc_links(
         #         self._lang_code,
         #         self._my_rcs,
@@ -801,7 +781,8 @@ class TNResource(TResource):
         intro_file = os.path.join(chapter_dir, "intro.md")
         chapter_has_intro = os.path.isfile(intro_file)
         if chapter_has_intro:
-            logger.info("chapter has intro")
+            # logger.info("chapter has intro")
+            # FIXME Handle exceptions
             md = file_utils.read_file(intro_file)
             title = markdown_utils.get_first_header(md)
             md = link_utils.fix_tn_links(self._lang_code, self._book_id, md, chapter)

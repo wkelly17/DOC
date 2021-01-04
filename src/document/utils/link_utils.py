@@ -447,6 +447,7 @@ def initialize_tn_links(
     return links
 
 
+# FIXME Add icontract requirements
 def initialize_tn_chapter_verse_links(
     usfm_resource: USFMResource, book_id: str, chapter: str, first_verse: str
 ) -> str:
@@ -462,6 +463,7 @@ def initialize_tn_chapter_verse_links(
     return anchors
 
 
+# FIXME Add icontract requirements
 def initialize_tn_chapter_files(
     book_id: str, book_title: str, lang_code: str, chunk_file: str, chapter: str
 ) -> Tuple[str, Optional[str], str, str]:

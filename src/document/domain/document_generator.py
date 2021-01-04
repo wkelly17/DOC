@@ -387,8 +387,8 @@ def index_tw_refs_by_verse(tw_refs: List) -> dict:
     return tw_refs_by_verse
 
 
-# Assembly strategies:
-# Uses Strategy pattern: https://github.com/faif/python-patterns/blob/master/patterns/behavioral/strategy.py
+# Assembly strategies utilize the Strategy pattern:
+# https://github.com/faif/python-patterns/blob/master/patterns/behavioral/strategy.py
 
 
 def assemble_content_by_book(docgen: DocumentGenerator) -> str:
