@@ -16,7 +16,6 @@ JSON_SUFFIX = ".json"
 REPO_URL_DICT_KEY = "../download-scripture?repo_url"
 RESOURCE_TYPES_JSONPATH = "$[*].contents[*].code"
 RESOURCE_CODES_JSONPATH = "$[*].contents[*].subcontents[*].code"
-RESOURCE_FILE_FORMATS = [GIT, USFM, ZIP]
 
 
 def get_api_test_url() -> str:
