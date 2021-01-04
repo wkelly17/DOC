@@ -50,6 +50,7 @@ def decrease_headers(text: str, minimum_header: int = 1, decrease: int = 1) -> s
     return text
 
 
+@icontract.require(lambda text: text is not None)
 def get_first_header(text: str) -> str:
     lines = text.split("\n")
     if lines:

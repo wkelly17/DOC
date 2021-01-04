@@ -327,12 +327,6 @@ class USFMResource(Resource):
 
     @icontract.require(lambda self: self._content_files is not None)
     @icontract.ensure(lambda self: self._resource_filename is not None)
-    @icontract.ensure(lambda self: self._lang_code is not None)
-    @icontract.ensure(lambda self: self._resource_type is not None)
-    @icontract.ensure(lambda self: self._book_number is not None)
-    @icontract.ensure(lambda self: self._book_id is not None)
-    @icontract.ensure(lambda self: self._content is not None)
-    @icontract.ensure(lambda self: self._content != "")
     def get_content(self) -> None:
         self._get_usfm_chunks()
 
@@ -1499,6 +1493,7 @@ manifest.json file for the resource, otherwise return an empty dict.
     # approach in _discover_layout using pathlib.
     # FIXME If it is used later it should be a public method, i.e., no
     # leading underscore.
+    @icontract.require(lambda self: self._manifest_content["finished_chunks"])
     def _get_book_projects_from_json(self) -> List:
         """
         Return the sorted list of projects that are found in the

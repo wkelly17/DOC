@@ -157,6 +157,10 @@ def fix_ta_links(lang_code: str, text: str, manual: str) -> str:
     return text
 
 
+@icontract.require(lambda lang_code: lang_code is not None)
+@icontract.require(lambda book_id: book_id is not None)
+@icontract.require(lambda text: text is not None)
+@icontract.require(lambda chapter: chapter is not None)
 def fix_tn_links(lang_code: str, book_id: str, text: str, chapter: str) -> str:
     rep = {
         re.escape(
@@ -178,6 +182,9 @@ def fix_tn_links(lang_code: str, book_id: str, text: str, chapter: str) -> str:
     return text
 
 
+@icontract.require(lambda lang_code: lang_code is not None)
+@icontract.require(lambda text: text is not None)
+@icontract.require(lambda dictionary: dictionary is not None)
 def fix_tw_links(lang_code: str, text: str, dictionary: str) -> str:
     rep = {
         r"\]\(\.\./([^/)]+?)(\.md)*\)": r"](rc://{}/tw/dict/bible/{}/\1)".format(
@@ -426,6 +433,11 @@ def get_resource_data_from_rc_links(
                 )
 
 
+@icontract.require(lambda lang_code: lang_code is not None)
+@icontract.require(lambda book_id: book_id is not None)
+@icontract.require(lambda book_has_intro: book_has_intro is not None)
+@icontract.require(lambda chapter_has_intro: chapter_has_intro is not None)
+@icontract.require(lambda chapter: chapter is not None)
 def initialize_tn_links(
     lang_code: str,
     book_id: str,
