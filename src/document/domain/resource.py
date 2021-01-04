@@ -517,14 +517,6 @@ class TResource(Resource):
         self._resource_jsonpath = resource_lookup_dto.jsonpath
         logger.debug("self._resource_url: {} for {}".format(self._resource_url, self))
 
-    @icontract.require(lambda self: self._content is not None)
-    def _convert_md2html(self) -> None:
-        """ Convert a resource's Markdown to HTML. """
-        # assert self._content is not None, "self._content cannot be None here."
-        # FIXME Perhaps we can manipulate resource links, rc://, by
-        # writing our own parser extension.
-        self._content = markdown.markdown(self._content)
-
     def initialize_assets(self) -> None:
         """ Programmatically discover the manifest and content files. """
         self._manifest = Manifest(self)
@@ -605,6 +597,14 @@ class TResource(Resource):
             self._verses_html.append(markdown.markdown(verse_content))
         # self._verses_html_generator = self._get_verses_html_generator()
         logger.debug("self._verses_html: {}".format(self._verses_html))
+
+    @icontract.require(lambda self: self._content is not None)
+    def _convert_md2html(self) -> None:
+        """ Convert a resource's Markdown to HTML. """
+        # assert self._content is not None, "self._content cannot be None here."
+        # FIXME Perhaps we can manipulate resource links, rc://, by
+        # writing our own parser extension.
+        self._content = markdown.markdown(self._content)
 
 
 class TNResource(TResource):
