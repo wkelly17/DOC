@@ -1,5 +1,5 @@
-from typing import List
 import os
+from typing import List
 
 # FIXME Use pydantic Settings and types
 
