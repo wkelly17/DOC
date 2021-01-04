@@ -8,6 +8,7 @@ git+git://github.com/linearcombination/USFM-Tools.git@develop#egg=usfm_tools
 git+git://github.com/unfoldingWord-dev/uw_tools.git#egg=uw_tools
 gogs-client
 icontract
+jinja2
 jsonpath-rw
 jsonpath-rw-ext
 logdecorator

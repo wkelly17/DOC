@@ -4,19 +4,62 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-
-[packages]
-pyparsing = "*"
-uw-tools = {git = "git://github.com/unfoldingWord-dev/uw_tools.git"}
-usfm-tools = {git = "git://github.com/linearcombination/USFM-Tools.git"}
-gogs-client = "*"
-markdown2 = "*"
+PyYAML = "*"
 bs4 = "*"
+fastapi = "*"
+uw-tools = {git = "git://github.com/unfoldingWord-dev/uw_tools.git"}
+usfm-tools = {editable = true, ref="develop", git = "git://github.com/linearcombination/USFM-Tools.git"}
+gogs-client = "*"
+icontract = "*"
+jinja2 = "*"
 jsonpath-rw = "*"
 jsonpath-rw-ext = "*"
-mypy = "*"
-PyYAML = "*"
+# logdecorator
 Markdown = "*"
+# markdown
+# markdown2
+openpyxl = "*"
+parse = "*"
+pathlib = "*"
+pydantic = "*"
+pyparsing = "2.4.5"
+requests = "*"
+uvicorn = "*"
+# tests & dev
+mypy = "*"
+flake8 = "*"
+wemake-python-styleguide = "*"
+flake8-mypy = "*"
+pytest = "*"
+pytest-icdiff = "*"
+pylint = "*"
+tenacity = "*"
+python-language-server = "*"
+isort = "*"
+
+[packages]
+PyYAML = "*"
+bs4 = "*"
+fastapi = "*"
+uw-tools = {git = "git://github.com/unfoldingWord-dev/uw_tools.git"}
+usfm-tools = {editable = true, ref="develop", git = "git://github.com/linearcombination/USFM-Tools.git"}
+gogs-client = "*"
+icontract = "*"
+jinja2 = "*"
+jsonpath-rw = "*"
+jsonpath-rw-ext = "*"
+# logdecorator
+Markdown = "*"
+# markdown
+# markdown2
+openpyxl = "*"
+parse = "*"
+pathlib = "*"
+pydantic = "*"
+pyparsing = "2.4.5"
+requests = "*"
+uvicorn = "*"
+document = {editable = true, path = "./src"}
 
 [requires]
 python_version = "3.8"
