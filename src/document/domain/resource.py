@@ -1370,7 +1370,7 @@ class Manifest:
 
     def __init__(self, resource: Resource) -> None:
         self._resource = resource
-        self._manifest_content: Optional[Dict] = None
+        self._manifest_content: Dict
         self._manifest_file_path: Optional[pathlib.PurePath] = None
         self._version: Optional[str] = None
         self._issued: Optional[str] = None
