@@ -130,6 +130,7 @@ class Resource(AbstractResource):
     #         yield self._verses_html[i]
 
     def __str__(self) -> str:
+        """ Return a printable string identifying this instance. """
         return "Resource(lang_code: {}, resource_type: {}, resource_code: {})".format(
             self._lang_code, self._resource_type, self._resource_code
         )
@@ -144,7 +145,7 @@ class Resource(AbstractResource):
         return pathlib.Path(self._resource_dir)
 
     def is_found(self) -> bool:
-        "Return true if resource's URL location was found."
+        """ Return true if resource's URL location was found. """
         return self._resource_url is not None
 
     def find_location(self) -> None:
