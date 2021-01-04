@@ -1,27 +1,26 @@
 from __future__ import annotations  # https://www.python.org/dev/peps/pep-0563/
-from typing import Any, Dict, Generator, List, Optional, Tuple
 
 import abc
-import bs4
-from glob import glob
-import icontract
-import markdown
+import logging
+import logging.config
 import os
 import pathlib
 import re
 import subprocess
-import tempfile
-from usfm_tools.transform import UsfmTransform
+from glob import glob
+from typing import Any, Dict, Generator, List, Optional, Tuple
+
+import bs4
+import icontract
+import jinja2
+import markdown
+import pydantic
 import yaml
+from usfm_tools.transform import UsfmTransform
 
-from document.utils import url_utils, file_utils, link_utils, markdown_utils
-from document.domain import bible_books
 from document import config
-from document.domain import resource_lookup
-from document.domain import model
-
-import logging
-import logging.config
+from document.domain import bible_books, model, resource_lookup
+from document.utils import file_utils, link_utils, markdown_utils, url_utils
 
 with open(config.get_logging_config_file_path(), "r") as f:
     logging_config = yaml.safe_load(f.read())

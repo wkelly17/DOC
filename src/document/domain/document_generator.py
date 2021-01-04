@@ -12,27 +12,20 @@ and eventually a final document produced.
 """
 
 from __future__ import annotations  # https://www.python.org/dev/peps/pep-0563/
-import argparse
-import bs4
+
 import csv
 import datetime
-from glob import glob
 import logging
 import logging.config
-import markdown
 import os
-import pprint
-import re
-import shutil
 import subprocess
-import sys
+from typing import TYPE_CHECKING, Callable, List
 
-# import tempfile
-from typing import Callable, List, TYPE_CHECKING, Union
-from usfm_tools.transform import UsfmTransform
 import yaml
 
 from document import config
+from document.domain import model
+from document.domain.resource import resource_factory
 from document.utils import file_utils
 
 # https://www.python.org/dev/peps/pep-0563/
@@ -51,21 +44,8 @@ from document.utils import file_utils
 # IF you care, here is how Python got here:
 # https://github.com/python/typing/issues/105
 if TYPE_CHECKING:
-    from document.domain.resource import (
-        Resource,
-        USFMResource,
-        TNResource,
-        TWResource,
-        TQResource,
-        TAResource,
-    )
+    from document.domain.resource import Resource
 
-# This is always needed and thus is not included in the TYPE_CHECKING
-# protected import above.
-from document.domain.resource import resource_factory
-
-from document.domain import resource_lookup
-from document.domain import model
 
 with open(config.get_logging_config_file_path(), "r") as f:
     logging_config = yaml.safe_load(f.read())

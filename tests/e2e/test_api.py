@@ -1,9 +1,5 @@
-from typing import List
-import pytest
 from fastapi.testclient import TestClient
 from document import config
-from document.domain import model
-from document.entrypoints.app import app
 
 
 def test_get_language_codes_returns_ok() -> None:
@@ -34,6 +30,7 @@ def test_get_resource_types_returns_ok() -> None:
         response = client.get("/resource_types")
         assert response.status_code == 200, response.text
         assert len(response.json()) > 0
+from document.entrypoints.app import app
 
 
 # @pytest.mark.usefixtures("restart_api") # This makes tests fail and
