@@ -121,6 +121,14 @@ class Resource(AbstractResource):
         self._my_rcs: List = []
         self._rc_references: dict = {}
 
+        # Verse level content containers
+        self._verses_html: List[str]
+        # self._verses_html_generator: Generator
+
+    # def _get_verses_html_generator(self) -> Generator:
+    #     for i in range(len(self._verses_html) - 1):
+    #         yield self._verses_html[i]
+
     def __str__(self) -> str:
         return "Resource(lang_code: {}, resource_type: {}, resource_code: {})".format(
             self._lang_code, self._resource_type, self._resource_code
@@ -256,7 +264,9 @@ class USFMResource(Resource):
     def __init__(self, *args, **kwargs) -> None:  # type: ignore
         super().__init__(*args, **kwargs)
         self._usfm_chunks: dict = {}
-        self._usfm_verses_generator: Generator
+        # self._usfm_verses_generator: Generator
+        self._verses_html: List[str]
+        # self._verses_html_generator: Generator
 
     # def __repr__(self) -> str:
     #     return "{}, superclass: {}".format(type(self).__name__, super().__repr__())
@@ -364,7 +374,26 @@ class USFMResource(Resource):
                     html_file, self._content
                 )
             )
+
+            self._initialize_verses_html()
+            logger.debug("self._verses_html from bs4: {}".format(self._verses_html))
+
             logger.debug("self._bad_links: {}".format(self._bad_links))
+
+    @icontract.require(lambda self: self._content is not None)
+    def _initialize_verses_html(self) -> None:
+        """
+        Break apart the HTML content into HTML verse chunks, augment
+        HTML output with additional HTML elements and store in
+        _verses_html.
+        """
+        parser = bs4.BeautifulSoup(self._content, "html.parser")
+        verses_html: bs4.elements.ResultSet = parser.find_all(
+            "span", attrs={"class": "verse"}
+        )
+        # Add enclosing paragraph to each verse since they will be
+        # interleaved against translation notes, etc..
+        self._verses_html = ["<p>" + str(verse) + "</p>" for verse in verses_html]
 
     # FIXME Handle git based usfm with resources.json file and .txt usfm
     # file suffixes.
@@ -453,13 +482,24 @@ class USFMResource(Resource):
         self._usfm_chunks = book_chunks
 
     # NOTE Exploratory
-    def _get_usfm_verses(self) -> Generator:
+    @icontract.require(lambda self: self._usfm_chunks is not None)
+    @icontract.require(lambda self: self._usfm_chunks["1"]["chunks"] is not None)
+    def _get_usfm_verses_generator(self) -> Generator:
         """
         Return a generator over the raw USFM verses. Might be useful
         for interleaved assembly of the document at the verse level.
         """
         for i in range(len(self._usfm_chunks["1"]["chunks"]) - 1):
             yield self._usfm_chunks["1"]["chunks"][i]
+
+    # def _get_verses_html_generator(self) -> Generator:
+    #     """
+    #     Return a generator over the USFM converted to HTML verse
+    #     spans. Might be useful for interleaved assembly of the
+    #     document at the verse level.
+    #     """
+    #     for i in range(len(self._verses_html) - 1):
+    #         yield str(self._verses_html[i])
 
 
 class TResource(Resource):
@@ -485,7 +525,9 @@ class TResource(Resource):
     @icontract.require(lambda self: self._content is not None)
     def _convert_md2html(self) -> None:
         """ Convert a resource's Markdown to HTML. """
-        assert self._content is not None, "self._content cannot be None here."
+        # assert self._content is not None, "self._content cannot be None here."
+        # FIXME Perhaps we can manipulate resource links, rc://, by
+        # writing our own parser extension.
         self._content = markdown.markdown(self._content)
 
     def initialize_assets(self) -> None:
@@ -528,6 +570,8 @@ class TResource(Resource):
                 filter(lambda x: self._resource_code.lower() in x.lower(), txt_files,)
             )
 
+        self._initialize_verses_html()
+
         # logger.debug(
         #     "markdown_content_files: {}, txt_content_files: {}".format(
         #         markdown_content_files, txt_content_files,
@@ -538,6 +582,27 @@ class TResource(Resource):
                 self._resource_code, self._content_files,
             )
         )
+
+    def _initialize_verses_html(self) -> None:
+
+        # FIXME This whole method could be rewritten. We want to find
+        # book intro, chapter intros, and then the verses themselves.
+        # We can do all that with globbing as below rather than the
+        # laborious way it is done elsewhere in this codebase.
+        verse_files = sorted(
+            glob(
+                f"{self._resource_dir}/*{self._resource_code}/*[0-9][0-9]/*[0-9][0-9].md"
+            )
+        )
+
+        self._verses_html = []
+        for file in verse_files:
+            verse_content = ""
+            with open(file, "r") as f:
+                verse_content = f.read()
+            self._verses_html.append(markdown.markdown(verse_content))
+        # self._verses_html_generator = self._get_verses_html_generator()
+        logger.debug("self._verses_html: {}".format(self._verses_html))
 
 
 class TNResource(TResource):

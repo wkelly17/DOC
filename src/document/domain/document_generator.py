@@ -404,6 +404,23 @@ def assemble_content_by_book(docgen: DocumentGenerator) -> str:
     return content
 
 
+def assemble_content_by_verse(docgen: DocumentGenerator) -> str:
+    """
+    Assemble and return the collection of resources' content
+    according to the 'by verse' strategy. E.g., For Genesis 1, USFM for
+    Genesis 1:1 followed by Translation Notes for Genesis 1:1, etc..
+    """
+    logger.info("Assembling document by interleaving at the verse level.")
+    found_sorted = sorted(
+        docgen.found_resources, key=lambda resource: resource._lang_code
+    )
+
+    verses = map(lambda r: r._verses_html, found_sorted,)
+    # zip the verse HTML content for all resources together.
+    verses_zipped: List[str] = [x for t in zip(*list(verses)) for x in t]
+    return "".join(verses_zipped)
+
+
 def assembly_strategy_factory(
     assembly_strategy_kind: model.AssemblyStrategyEnum,
 ) -> Callable[[DocumentGenerator], str]:
@@ -413,7 +430,7 @@ def assembly_strategy_factory(
     """
     strategies = {
         model.AssemblyStrategyEnum.BOOK: assemble_content_by_book,
-        # model.AssemblyStrategyKind.CHAPTER: assemble_content_by_chapter,
-        # model.AssemblyStrategyKind.VERSE: assemble_content_by_verse,
+        # model.AssemblyStrategyEnum.CHAPTER: assemble_content_by_chapter,
+        model.AssemblyStrategyEnum.VERSE: assemble_content_by_verse,
     }
     return strategies[assembly_strategy_kind]
