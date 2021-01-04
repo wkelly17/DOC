@@ -135,10 +135,6 @@ class Resource(AbstractResource):
             self._lang_code, self._resource_type, self._resource_code
         )
 
-    def __repr__(self) -> str:
-        return "Resource(lang_code: {}, resource_type: {}, resource_code: {})".format(
-            self._lang_code, self._resource_type, self._resource_code
-        )
 
     @property
     def resource_dir_path(self) -> pathlib.Path:
