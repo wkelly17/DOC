@@ -763,8 +763,10 @@ class TNResource(TResource):
     @icontract.require(lambda self: self._lang_code is not None)
     @icontract.require(lambda self: self._resource_type is not None)
     def _get_book_dir(self) -> str:
-        """ Given the lang_code, resource_type, and resource_dir,
-        generate the book directory. """
+        """
+        Given the lang_code, resource_type, and resource_dir,
+        generate the book directory.
+        """
         filepath: str = os.path.join(
             self._resource_dir, "{}_{}".format(self._lang_code, self._resource_type)
         )
@@ -1224,8 +1226,10 @@ def resource_factory(
 
 
 def get_tw_refs(tw_refs_by_verse: dict, book: str, chapter: str, verse: str) -> List:
-    """ Returns a list of refs for the given book, chapter, verse, or
-        empty list if no matches. """
+    """
+    Returns a list of refs for the given book, chapter, verse, or
+    empty list if no matches.
+    """
     if tw_refs_by_verse and book not in tw_refs_by_verse:
         return []
     if chapter not in tw_refs_by_verse[book]:
@@ -1251,8 +1255,10 @@ class ResourceProvisioner:
 
     @icontract.ensure(lambda self: self._resource._resource_dir is not None)
     def _prepare_resource_directory(self) -> None:
-        """ If it doesn't exist yet, create the directory for the
-        resource where it will be downloaded to. """
+        """
+        If it doesn't exist yet, create the directory for the
+        resource where it will be downloaded to.
+        """
 
         logger.debug("os.getcwd(): {}".format(os.getcwd()))
         if not os.path.exists(self._resource._resource_dir):
