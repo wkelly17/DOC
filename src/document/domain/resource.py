@@ -483,8 +483,12 @@ class USFMResource(Resource):
         Return a generator over the raw USFM verses. Might be useful
         for interleaved assembly of the document at the verse level.
         """
-        for i in range(len(self._usfm_chunks["1"]["chunks"]) - 1):
-            yield self._usfm_chunks["1"]["chunks"][i]
+        # for i in range(len(self._usfm_chunks["1"]["chunks"]) - 1):
+        #     yield self._usfm_chunks["1"]["chunks"][i]
+        yield from (
+            self._usfm_chunks["1"]["chunks"][index]
+            for index in range(len(self._usfm_chunks["1"]["chunks"]) - 1)
+        )
 
     # def _get_verses_html_generator(self) -> Generator:
     #     """
