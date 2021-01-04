@@ -253,7 +253,7 @@ class Resource(AbstractResource):
 
 
 class USFMResource(Resource):
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args, **kwargs) -> None:  # type: ignore
         super().__init__(*args, **kwargs)
         self._usfm_chunks: dict = {}
         self._usfm_verses_generator: Generator
