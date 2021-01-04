@@ -553,7 +553,7 @@ class TResource(Resource):
         # logger.debug("txt_files: {}".format(txt_files))
         txt_content_files = list(
             filter(
-                lambda x: str(pathlib.Path(x).stem).lower()
+                lambda txt_file: str(pathlib.Path(txt_file).stem).lower()
                 not in config.get_markdown_doc_file_names(),
                 txt_files,
             )
@@ -562,12 +562,17 @@ class TResource(Resource):
         if len(markdown_content_files) > 0:
             self._content_files = list(
                 filter(
-                    lambda x: self._resource_code.lower() in x.lower(), markdown_files,
+                    lambda markdown_file: self._resource_code.lower()
+                    in markdown_file.lower(),
+                    markdown_files,
                 )
             )
         if len(txt_content_files) > 0:
             self._content_files = list(
-                filter(lambda x: self._resource_code.lower() in x.lower(), txt_files,)
+                filter(
+                    lambda txt_file: self._resource_code.lower() in txt_file.lower(),
+                    txt_files,
+                )
             )
 
         self._initialize_verses_html()
@@ -596,10 +601,10 @@ class TResource(Resource):
         )
 
         self._verses_html = []
-        for file in verse_files:
+        for filepath in verse_files:
             verse_content = ""
-            with open(file, "r") as f:
-                verse_content = f.read()
+            with open(filepath, "r") as fin:
+                verse_content = fin.read()
             self._verses_html.append(markdown.markdown(verse_content))
         # self._verses_html_generator = self._get_verses_html_generator()
         logger.debug("self._verses_html: {}".format(self._verses_html))
