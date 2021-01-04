@@ -135,11 +135,6 @@ class Resource(AbstractResource):
             self._lang_code, self._resource_type, self._resource_code
         )
 
-
-    @property
-    def resource_dir_path(self) -> pathlib.Path:
-        return pathlib.Path(self._resource_dir)
-
     def is_found(self) -> bool:
         """ Return true if resource's URL location was found. """
         return self._resource_url is not None
@@ -1378,16 +1373,14 @@ class Manifest:
     # FIXME Perhaps many of these inst vars don't need persistence as
     # an inst var and their values could instead be calculated as
     # needed lazily.
-    @icontract.require(lambda self: self._resource.resource_dir_path is not None)
+    @icontract.require(lambda self: self._resource.resource_dir is not None)
     def __call__(self) -> None:
         """ All subclasses need to at least find their manifest file,
         if it exists. Subclasses specialize this method to
         additionally initialize other disk layout related properties.
         """
         logger.debug(
-            "self._resource.resource_dir_path: {}".format(
-                self._resource.resource_dir_path
-            )
+            "self._resource.resource_dir: {}".format(self._resource.resource_dir)
         )
         manifest_file_list = glob("{}**/manifest.*".format(self._resource))
         # FIXME We may be saving inst vars unnecessarily below. If we
