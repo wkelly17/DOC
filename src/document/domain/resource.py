@@ -300,7 +300,7 @@ class USFMResource(Resource):
         # 'complete' or 'finished', that can also be done by compared
         # the filtered file(s) against the manifest's 'finished' list
         # to see if it can be used.
-        if len(usfm_content_files) > 0:
+        if usfm_content_files:
             # Only use the content files that match the resource_code
             # in the resource request.
             self._content_files = list(
@@ -309,7 +309,7 @@ class USFMResource(Resource):
                     usfm_content_files,
                 )
             )
-        elif len(txt_content_files) > 0:
+        elif txt_content_files:
             # Only use the content files that match the resource_code
             # in the resource request.
             self._content_files = list(

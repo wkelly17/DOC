@@ -209,9 +209,10 @@ class DocumentGenerator:
         If the PDF doesn't yet exist, go ahead and generate it
         using the content for each resource.
         """
-        if not os.path.isfile(
-            os.path.join(self.output_dir, "{}.pdf".format(self._document_request_key))
-        ):
+        output_filename: str = os.path.join(
+            self.output_dir, "{}.pdf".format(self._document_request_key)
+        )
+        if not os.path.isfile(output_filename):
             self.assemble_content()
             logger.info("Generating PDF...")
             self.convert_html2pdf()
