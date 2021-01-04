@@ -93,7 +93,7 @@ def load_json_object(file_name: pathlib.Path) -> Dict:
 @icontract.require(lambda file_name: file_name is not None)
 @icontract.require(lambda file_name: os.path.exists(file_name))
 # def load_yaml_object(file_name: pathlib.Path) -> Optional[Dict]:
-def load_yaml_object(file_name: pathlib.Path) -> Dict:
+def load_yaml_object(file_name: str) -> Dict:
     """
     Deserialized YAML file <file_name> into a Python dict.
     :param str|unicode file_name: The name of the file to read

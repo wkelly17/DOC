@@ -1368,7 +1368,8 @@ class Manifest:
     def __init__(self, resource: Resource) -> None:
         self._resource = resource
         self._manifest_content: Dict
-        self._manifest_file_path: Optional[pathlib.PurePath] = None
+        # self._manifest_file_path: Optional[pathlib.PurePath] = None
+        self._manifest_file_path: Optional[str] = None
         self._version: Optional[str] = None
         self._issued: Optional[str] = None
 
@@ -1387,10 +1388,7 @@ class Manifest:
                 self._resource.resource_dir_path
             )
         )
-        # FIXME This could just be a glob and not a pathlib glob
-        manifest_file_list = list(
-            self._resource.resource_dir_path.glob("**/manifest.*")
-        )
+        manifest_file_list = glob("{}**/manifest.*".format(self._resource))
         # FIXME We may be saving inst vars unnecessarily below. If we
         # must save state maybe we'll have a Manifest dataclass that
         # stores the values as fields and can be composed into the
@@ -1398,14 +1396,16 @@ class Manifest:
         # itself in inst vars and then get the others values as
         # properties.
         if manifest_file_list:
-            self._manifest_file_path = list(manifest_file_list)[0]
+            self._manifest_file_path = manifest_file_list[0]
         else:
             self._manifest_file_path = None
         logger.debug("self._manifest_file_path: {}".format(self._manifest_file_path))
         # Find directory where the manifest file is located
         if self._manifest_file_path is not None:
             self._manifest_content = self._load_manifest()
-            logger.debug("manifest dir: {}".format(self._manifest_file_path.parent))
+            logger.debug(
+                "manifest dir: {}".format(pathlib.Path(self._manifest_file_path).parent)
+            )
 
         if self.manifest_type:
             logger.debug("self.manifest_type: {}".format(self.manifest_type))
