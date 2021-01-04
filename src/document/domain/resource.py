@@ -1494,9 +1494,9 @@ in the manifest file for the resource otherwise return an empty dict.
             # that either contained: 1) all books if no books were
             # specified by the user, or, 2) only those books that
             # matched the books requested from the command line.
-            for p in self._manifest_content["projects"]:
-                if p["identifier"] in self._resource._resource_code:
-                    return p
+            for project in self._manifest_content["projects"]:
+                if project["identifier"] in self._resource._resource_code:
+                    return project
                     # if not p["sort"]:
                     #     p["sort"] = bible_books.BOOK_NUMBERS[p["identifier"]]
                     # projects.append(p)
@@ -1529,19 +1529,14 @@ manifest file for the resource.
             # that either contained: 1) all books if no books were
             # specified by the user, or, 2) only those books that
             # matched the books requested from the command line.
-            for p in self._manifest_content["projects"]:
-                if (
-                    self._resource._resource_code
-                    is not None  # _resource_code is never none
-                    and p["identifier"] in self._resource._resource_code
-                ):
-                    if not p["sort"]:
-                        p["sort"] = bible_books.BOOK_NUMBERS[p["identifier"]]
-                    projects.append(p)
-            return sorted(projects, key=lambda k: k["sort"])
-        else:
-            logger.info("empty projects check is true...")
-            return projects
+            for project in self._manifest_content["projects"]:
+                if project["identifier"] in self._resource._resource_code:
+                    if not project["sort"]:
+                        project["sort"] = bible_books.BOOK_NUMBERS[
+                            project["identifier"]
+                        ]
+                    projects.append(project)
+        return sorted(projects, key=lambda k: k["sort"])
 
     # FIXME This is not currently called. We might only want some version
     # of this to check if the book's source file is considered
@@ -1572,9 +1567,9 @@ manifest.json file for the resource, otherwise return an empty dict.
             #         projects.append(p)
             # return sorted(projects, key=lambda k: k["sort"])
 
-            for p in self._manifest_content["finished_chunks"]:
-                if p["identifier"] in self._resource._resource_code:
-                    return p
+            for project in self._manifest_content["finished_chunks"]:
+                if project["identifier"] in self._resource._resource_code:
+                    return project
                 # projects.append(p)
             # return projects
         else:

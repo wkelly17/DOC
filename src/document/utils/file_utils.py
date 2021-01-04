@@ -107,8 +107,9 @@ def load_yaml_object(file_name: str) -> Dict:
 
 @icontract.require(lambda file_name: os.path.exists(file_name))
 def read_file(file_name: str, encoding: str = "utf-8-sig"):
-    with codecs.open(file_name, "r", encoding=encoding) as f:
-        content = f.read()
+    r""" Read file into content. Change line endings from \r\n to \n. """
+    with codecs.open(file_name, "r", encoding=encoding) as fin:
+        content = fin.read()
     # convert Windows line endings to Linux line endings
     content = content.replace("\r\n", "\n")
     return content
