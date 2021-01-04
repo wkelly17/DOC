@@ -1596,35 +1596,16 @@ manifest.json file for the resource, otherwise return an empty dict.
 manifest file for the resource.
         """
         projects: List[Dict[Any, Any]] = []
-        if (
-            self._manifest_content and "finished_chunks" in self._manifest_content
-        ):  # This is the manifest.json case
-            logger.info("about to get finished_chunks from manifest.json")
-
-            # NOTE From _get_book_projects_from_yaml:
-            # for p in self._manifest_content["projects"]:
-            #     if (
-            #         self._resource._resource_code is not None
-            #         and p["identifier"] in self._resource._resource_code
-            #     ):
-            #         if not p["sort"]:
-            #             p["sort"] = bible_books.BOOK_NUMBERS[p["identifier"]]
-            #         projects.append(p)
-            # return sorted(projects, key=lambda k: k["sort"])
-
-            for p in self._manifest_content["finished_chunks"]:
-                # TODO In resource_lookup, self._resource_code is used
-                # determine jsonpath for lookup. Some resources don't
-                # have anything more specific than the lang_code to
-                # get resources from. Well, at least one language is
-                # like that. In that case it contains a zip that has
-                # all the resources contained therein.
-                # if self._resource_code is not None:
-                projects.append(p)
-            return projects
-        else:
-            logger.info("empty projects check is true...")
-            return projects
+        for project in self._manifest_content["finished_chunks"]:
+            # TODO In resource_lookup, self._resource_code is used
+            # determine jsonpath for lookup. Some resources don't
+            # have anything more specific than the lang_code to
+            # get resources from. Well, at least one language is
+            # like that. In that case it contains a zip that has
+            # all the resources contained therein.
+            # if self._resource_code is not None:
+            projects.append(project)
+        return projects
 
     # FIXME This is game for rewrite or removal considering new
     # approach in _discover_layout using pathlib usage.
