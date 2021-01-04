@@ -88,7 +88,8 @@ class DocumentGenerator:
         ] = assembly_strategy_factory(document_request.assembly_strategy_kind)
         self.working_dir = working_dir
         self.output_dir = output_dir
-        # The Markdown and later HTML for the document which is composed of the Markdown and later HTML for each resource.
+        # The Markdown and later HTML for the document which is
+        # composed of the Markdown and later HTML for each resource.
         self.content: str = ""
         # Store resource requests that were requested, but do not
         # exist.
