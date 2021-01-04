@@ -30,20 +30,47 @@ logger = logging.getLogger(__name__)
 
 
 class AbstractResource(abc.ABC):
+    """
+    Superclass/interface for resource. Provides a simple API for
+    locating, getting and initializing a resource's assets.
+    """
+
     @abc.abstractmethod
     def find_location(self) -> None:
+        """
+        Find the remote location where a the resource's file assets
+        may be found.
+
+        Subclasses override this method.
+        """
         raise NotImplementedError
 
     @abc.abstractmethod
     def get_files(self) -> None:
+        """
+        Using the resource's remote location, download the resource's file
+        assets to disk.
+
+        Subclasses override this method.
+        """
         raise NotImplementedError
 
     @abc.abstractmethod
     def initialize_assets(self) -> None:
+        """
+        Find and load resource files that were downloaded to disk.
+
+        Subclasses override.
+        """
         raise NotImplementedError
 
     @abc.abstractmethod
     def get_content(self) -> None:
+        """
+        Initialize resource with content found in resource's files.
+
+        Subclasses override.
+        """
         raise NotImplementedError
 
 
