@@ -676,7 +676,6 @@ class TNResource(TResource):
                 chunk_files = sorted(glob(os.path.join(chapter_dir, "[0-9]*.md")))
                 logger.debug("chunk_files: {}".format(chunk_files))
                 for _, chunk_file in enumerate(chunk_files):
-                    # logger.info("in loop through chunk files")
                     (
                         first_verse,
                         last_verse,
@@ -1390,6 +1389,7 @@ class Manifest:
                 self._resource.resource_dir_path
             )
         )
+        # FIXME This could just be a glob and not a pathlib glob
         manifest_file_list = list(
             self._resource.resource_dir_path.glob("**/manifest.*")
         )
