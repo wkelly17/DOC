@@ -427,7 +427,7 @@ class USFMResource(Resource):
                     chunks_per_verse.append(pending_chunk)
                     pending_chunk = None
                 if pending_chunk:
-                    pending_chunk = pending_chunk + line
+                    pending_chunk += line
                 else:
                     pending_chunk = line
 
