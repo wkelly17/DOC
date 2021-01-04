@@ -507,8 +507,6 @@ class TResource(Resource):
     Provide methods common to all subclasses of TResource.
     """
 
-    # def __init__(self, *args, **kwargs) -> None:
-    #     super().__init__(*args, **kwargs)
 
     def find_location(self) -> None:
         """ Find the URL where the resource's assets are located. """
