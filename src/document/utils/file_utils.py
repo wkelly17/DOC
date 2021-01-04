@@ -102,7 +102,7 @@ def load_yaml_object(file_name: str) -> Dict:
     # if not os.path.isfile(file_name):
     #     return None
     # return a deserialized object
-    return yaml.load(read_file(str(file_name.resolve())), Loader=yaml.FullLoader)
+    return yaml.safe_load(read_file(file_name), Loader=yaml.FullLoader)
 
 
 @icontract.require(lambda file_name: os.path.exists(file_name))
