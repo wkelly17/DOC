@@ -554,7 +554,7 @@ class TResource(Resource):
             )
         )
 
-        if len(markdown_content_files) > 0:
+        if markdown_content_files:
             self._content_files = list(
                 filter(
                     lambda markdown_file: self._resource_code.lower()
@@ -562,7 +562,7 @@ class TResource(Resource):
                     markdown_files,
                 )
             )
-        if len(txt_content_files) > 0:
+        if txt_content_files:
             self._content_files = list(
                 filter(
                     lambda txt_file: self._resource_code.lower() in txt_file.lower(),
