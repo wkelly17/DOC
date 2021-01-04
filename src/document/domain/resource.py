@@ -258,8 +258,8 @@ class USFMResource(Resource):
         self._usfm_chunks: dict = {}
         self._usfm_verses_generator: Generator
 
-    def __repr__(self) -> str:
-        return "{}, superclass: {}".format(type(self).__name__, super().__repr__())
+    # def __repr__(self) -> str:
+    #     return "{}, superclass: {}".format(type(self).__name__, super().__repr__())
 
     @icontract.ensure(lambda self: self._resource_url is not None)
     def find_location(self) -> None:
