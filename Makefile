@@ -9,7 +9,6 @@ server: up
 
 test: up
 	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/unit /tests/integration /tests/e2e
-	# docker-compose run --rm --no-deps --entrypoint=pytest api  /tests/e2e
 
 unit-tests:
 	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/unit
