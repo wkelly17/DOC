@@ -916,86 +916,86 @@ class TNResource(TResource):
 
     # FIXME Should we change to function w no non-local side-effects
     # and move to markdown_utils.py?
-    def _initialize_tn_translation_words(self, chapter: str, first_verse: str) -> str:
-        # Add Translation Words for passage
-        tw_md = ""
-        # FIXME This should probably become _tw_refs_by_verse on TWResource
-        if self.tw_refs_by_verse:
-            tw_refs = get_tw_refs(
-                self.tw_refs_by_verse,
-                self._book_title,
-                chapter,
-                first_verse
-                # self.tw_refs_by_verse, self.book_title, chapter, first_verse
-            )
-            if tw_refs:
-                # TODO localization
-                tw_md += "### Translation Words\n\n"
-                for tw_ref in tw_refs:
-                    file_ref_md = "* [{}](rc://en/tw/dict/bible/{}/{})\n".format(
-                        tw_ref["Term"], tw_ref["Dir"], tw_ref["Ref"]
-                    )
-                    tw_md += file_ref_md
-        return tw_md
+    # def _initialize_tn_translation_words(self, chapter: str, first_verse: str) -> str:
+    #     # Add Translation Words for passage
+    #     tw_md = ""
+    #     # FIXME This should probably become _tw_refs_by_verse on TWResource
+    #     if self.tw_refs_by_verse:
+    #         tw_refs = get_tw_refs(
+    #             self.tw_refs_by_verse,
+    #             self._book_title,
+    #             chapter,
+    #             first_verse
+    #             # self.tw_refs_by_verse, self.book_title, chapter, first_verse
+    #         )
+    #         if tw_refs:
+    #             # TODO localization
+    #             tw_md += "### Translation Words\n\n"
+    #             for tw_ref in tw_refs:
+    #                 file_ref_md = "* [{}](rc://en/tw/dict/bible/{}/{})\n".format(
+    #                     tw_ref["Term"], tw_ref["Dir"], tw_ref["Ref"]
+    #                 )
+    #                 tw_md += file_ref_md
+    #     return tw_md
 
     # FIXME Should we change to function w no non-local side-effects
     # and move to markdown_utils.py?
-    def _initialize_tn_udb(
-        self, chapter: str, title: str, first_verse: str, last_verse: str
-    ) -> str:
-        # TODO Handle when there is no USFM requested.
-        # If we're inside a UDB bridge, roll back to the beginning of it
-        udb_first_verse = first_verse
-        udb_first_verse_ok = False
-        while not udb_first_verse_ok:
-            try:
-                _ = self._usfm_chunks["udb"][chapter][udb_first_verse]["usfm"]
-                udb_first_verse_ok = True
-            except KeyError:
-                udb_first_verse_int = int(udb_first_verse) - 1
-                if udb_first_verse_int <= 0:
-                    break
-                udb_first_verse = str(udb_first_verse_int)
+    # def _initialize_tn_udb(
+    #     self, chapter: str, title: str, first_verse: str, last_verse: str
+    # ) -> str:
+    #     # TODO Handle when there is no USFM requested.
+    #     # If we're inside a UDB bridge, roll back to the beginning of it
+    #     udb_first_verse = first_verse
+    #     udb_first_verse_ok = False
+    #     while not udb_first_verse_ok:
+    #         try:
+    #             _ = self._usfm_chunks["udb"][chapter][udb_first_verse]["usfm"]
+    #             udb_first_verse_ok = True
+    #         except KeyError:
+    #             udb_first_verse_int = int(udb_first_verse) - 1
+    #             if udb_first_verse_int <= 0:
+    #                 break
+    #             udb_first_verse = str(udb_first_verse_int)
 
-        # TODO localization
-        md = "### Unlocked Dynamic Bible\n\n[[udb://{}/{}/{}/{}/{}]]\n\n".format(
-            self._lang_code,
-            self._book_id,
-            link_utils.pad(self._book_id, chapter),
-            link_utils.pad(self._book_id, udb_first_verse),
-            link_utils.pad(self._book_id, last_verse),
-        )
-        rc = "rc://{}/tn/help/{}/{}/{}".format(
-            self._lang_code,
-            self._book_id,
-            link_utils.pad(self._book_id, chapter),
-            link_utils.pad(self._book_id, first_verse),
-        )
-        anchor_id = "tn-{}-{}-{}".format(
-            self._book_id,
-            link_utils.pad(self._book_id, chapter),
-            link_utils.pad(self._book_id, first_verse),
-        )
-        self._resource_data[rc] = {
-            # self.resource_data[rc] = {
-            "rc": rc,
-            "id": anchor_id,
-            "link": "#{}".format(anchor_id),
-            "title": title,
-        }
-        self._my_rcs.append(rc)
-        link_utils.get_resource_data_from_rc_links(
-            self._lang_code,
-            self._my_rcs,
-            self._rc_references,
-            self._resource_data,
-            self._bad_links,
-            self._working_dir,
-            md,
-            rc,
-        )
-        md += "\n\n"
-        return md
+    #     # TODO localization
+    #     md = "### Unlocked Dynamic Bible\n\n[[udb://{}/{}/{}/{}/{}]]\n\n".format(
+    #         self._lang_code,
+    #         self._book_id,
+    #         link_utils.pad(self._book_id, chapter),
+    #         link_utils.pad(self._book_id, udb_first_verse),
+    #         link_utils.pad(self._book_id, last_verse),
+    #     )
+    #     rc = "rc://{}/tn/help/{}/{}/{}".format(
+    #         self._lang_code,
+    #         self._book_id,
+    #         link_utils.pad(self._book_id, chapter),
+    #         link_utils.pad(self._book_id, first_verse),
+    #     )
+    #     anchor_id = "tn-{}-{}-{}".format(
+    #         self._book_id,
+    #         link_utils.pad(self._book_id, chapter),
+    #         link_utils.pad(self._book_id, first_verse),
+    #     )
+    #     self._resource_data[rc] = {
+    #         # self.resource_data[rc] = {
+    #         "rc": rc,
+    #         "id": anchor_id,
+    #         "link": "#{}".format(anchor_id),
+    #         "title": title,
+    #     }
+    #     self._my_rcs.append(rc)
+    #     link_utils.get_resource_data_from_rc_links(
+    #         self._lang_code,
+    #         self._my_rcs,
+    #         self._rc_references,
+    #         self._resource_data,
+    #         self._bad_links,
+    #         self._working_dir,
+    #         md,
+    #         rc,
+    #     )
+    #     md += "\n\n"
+    #     return md
 
 
 class TWResource(TResource):
