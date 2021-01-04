@@ -305,7 +305,8 @@ class USFMResource(Resource):
             # in the resource request.
             self._content_files = list(
                 filter(
-                    lambda x: self._resource_code.lower() in str(x).lower(),
+                    lambda usfm_content_file: self._resource_code.lower()
+                    in str(usfm_content_file).lower(),
                     usfm_content_files,
                 )
             )
@@ -314,7 +315,8 @@ class USFMResource(Resource):
             # in the resource request.
             self._content_files = list(
                 filter(
-                    lambda x: self._resource_code.lower() in str(x).lower(),
+                    lambda txt_content_file: self._resource_code.lower()
+                    in str(txt_content_file).lower(),
                     txt_content_files,
                 )
             )
