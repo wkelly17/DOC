@@ -1441,7 +1441,6 @@ class Manifest:
         # pythonic?
         if (
             self._manifest_content
-            # FIXME This next line doesn't type check with mypy
             and 0 in self._manifest_content
             and self._manifest_content[0]["dublin_core"]["version"] is not None
         ):
