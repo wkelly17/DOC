@@ -7,7 +7,8 @@
 #  Richard Mahn <richard_mahn@wycliffeassociates.org>
 
 """
-XFIXME This script exports tN into HTML format from DCS and generates a PDF from the HTML
+Entrypoint for backend. Here incoming document requests are processed
+and eventually a final document produced.
 """
 
 from __future__ import annotations  # https://www.python.org/dev/peps/pep-0563/
