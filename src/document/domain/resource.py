@@ -268,9 +268,6 @@ class USFMResource(Resource):
         self._verses_html: List[str]
         # self._verses_html_generator: Generator
 
-    # def __repr__(self) -> str:
-    #     return "{}, superclass: {}".format(type(self).__name__, super().__repr__())
-
     @icontract.ensure(lambda self: self._resource_url is not None)
     def find_location(self) -> None:
         """ Find the URL where the resource's assets are located. """
