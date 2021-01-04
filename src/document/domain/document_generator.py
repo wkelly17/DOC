@@ -220,7 +220,7 @@ class DocumentGenerator:
             # know.
             logger.debug(
                 "Unfound resource requests: {}".format(
-                    "; ".join(str(r) for r in self.unfound_resources)
+                    "; ".join(str(resource) for resource in self.unfound_resources)
                 ),
             )
 
@@ -273,7 +273,7 @@ class DocumentGenerator:
         # FIXME This should probably be something else, but this will
         # do for now.
         title = "Resources: "
-        title += ",".join(set(r._resource_code for r in self._resources))
+        title += ",".join(set(resource._resource_code for resource in self._resources))
         # FIXME When run locally xelatex chokes because the LaTeX
         # template does not set the \setmainlanguage{} and
         # \setotherlanguages{} to any value. If I manually edit the
