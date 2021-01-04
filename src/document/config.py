@@ -33,14 +33,17 @@ def get_api_root() -> str:
 
 
 def get_api_local_port() -> str:
+    """ Get port where the Fastapi server runs locally. """
     return os.environ.get("API_LOCAL_PORT", "5005")
 
 
 def get_api_remote_port() -> str:
+    """ Get port where the Fastapi server runs remotely in the Docker container. """
     return os.environ.get("API_REMOTE_PORT", "80")
 
 
 def get_api_url() -> str:
+    """  Return the full base URL of the Fastapi server. """
     host = os.environ.get("API_HOST", "localhost")
     port = get_api_local_port() if host == "localhost" else get_api_remote_port()
     root = get_api_root()
@@ -83,8 +86,10 @@ def get_output_dir() -> str:
 
 
 def get_translations_json_location() -> str:
-    """ The location where the JSON data file that we use to lookup
-    location of resources is located. """
+    """
+    The location where the JSON data file that we use to lookup
+    location of resources is located.
+    """
     loc = os.environ.get(
         "TRANSLATIONS_JSON_LOCATION",
         "http://bibleineverylanguage.org/wp-content/themes/bb-theme-child/data/translations.json",
@@ -309,6 +314,7 @@ PANDOC_COMMAND2 = """pandoc -f html -t latex \
 -o "{3}/{5}.latex" \
 "{3}/{5}.html"
 """
+
 
 # FIXME There is some issue with the HTML to LaTeX generation or from
 # the LaTeX to PDF generation. It may be wise to tell pandoc to
