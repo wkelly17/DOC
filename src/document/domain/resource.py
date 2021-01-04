@@ -503,10 +503,7 @@ class USFMResource(Resource):
 
 
 class TResource(Resource):
-    """
-    Provide methods common to all subclasses of TResource.
-    """
-
+    """ Provide methods common to all subclasses of TResource. """
 
     def find_location(self) -> None:
         """ Find the URL where the resource's assets are located. """
@@ -611,8 +608,7 @@ class TResource(Resource):
 class TNResource(TResource):
     def _get_template(self, template_lookup_key: str, dto: pydantic.BaseModel) -> str:
         """
-        Read in a template located at template_path and BaseModel
-        instance containing data for use in template and return
+        Instantiate template with dto BaseModel instance. Return
         instantiated template as string.
         """
         # FIXME Maybe use jinja2.PackageLoader here instead: https://github.com/tfbf/usfm/blob/master/usfm/html.py
