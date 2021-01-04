@@ -1546,7 +1546,7 @@ manifest file for the resource.
     def _get_book_project_from_json(self) -> dict:
         """
         Return the project that was requested if it is found in the
-manifest.json file for the resource, otherwise return an empty dict.
+        manifest.json file for the resource, otherwise return an empty dict.
         """
 
         # projects: List[Dict[Any, Any]] = []
@@ -1586,7 +1586,7 @@ manifest.json file for the resource, otherwise return an empty dict.
     def _get_book_projects_from_json(self) -> List:
         """
         Return the sorted list of projects that are found in the
-manifest file for the resource.
+        manifest file for the resource.
         """
         projects: List[Dict[Any, Any]] = []
         for project in self._manifest_content["finished_chunks"]:
