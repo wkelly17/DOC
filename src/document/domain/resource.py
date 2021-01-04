@@ -1399,9 +1399,10 @@ class Manifest:
         # Resource. Maybe we'd only store the and its path manifest
         # itself in inst vars and then get the others values as
         # properties.
-        self._manifest_file_path = (
-            None if len(manifest_file_list) == 0 else list(manifest_file_list)[0]
-        )
+        if manifest_file_list:
+            self._manifest_file_path = list(manifest_file_list)[0]
+        else:
+            self._manifest_file_path = None
         logger.debug("self._manifest_file_path: {}".format(self._manifest_file_path))
         # Find directory where the manifest file is located
         if self._manifest_file_path is not None:
