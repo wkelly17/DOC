@@ -591,7 +591,9 @@ class TResource(Resource):
         # laborious way it is done elsewhere in this codebase.
         verse_files = sorted(
             glob(
-                f"{self._resource_dir}/*{self._resource_code}/*[0-9][0-9]/*[0-9][0-9].md"
+                "{}/*{}/*[0-9][0-9]/*[0-9][0-9].md".format(
+                    self._resource_dir, self._resource_code
+                )
             )
         )
 
