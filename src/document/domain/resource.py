@@ -541,6 +541,21 @@ class TResource(Resource):
 
 
 class TNResource(TResource):
+    def _get_template(self, template_lookup_key: str, dto: pydantic.BaseModel) -> str:
+        """
+        Read in a template located at template_path and BaseModel
+        instance containing data for use in template and return
+        instantiated template as string.
+        """
+        # FIXME Maybe use jinja2.PackageLoader here instead: https://github.com/tfbf/usfm/blob/master/usfm/html.py
+        with open(
+            config.get_markdown_template_path(template_lookup_key), "r"
+        ) as filepath:
+            md_template = filepath.read()
+        # FIXME Handle exceptions
+        md_environment = jinja2.Environment().from_string(md_template)
+        return md_environment.render(data=dto)
+
     def get_content(self) -> None:
         logger.info("Processing Translation Notes Markdown...")
         self._get_tn_markdown()
@@ -556,8 +571,7 @@ class TNResource(TResource):
     # and move to markdown_utils.py?
     @icontract.require(lambda self: self._resource_code is not None)
     def _get_tn_markdown(self) -> None:
-        # logger.debug("len(self._content_files): {}".format(len(self._content_files)))
-
+        tn_md = ""
         book_dir: str = self._get_book_dir()
         logger.debug("book_dir: {}".format(book_dir))
 
@@ -568,11 +582,17 @@ class TNResource(TResource):
         # not building markdown imperatively.
         # TODO Might need localization
         # tn_md = '# Translation Notes\n<a id="tn-{}"/>\n\n'.format(self._book_id)
-        tn_md = '# Translation Notes\n<a id="tn-{}"/>\n\n'.format(self._resource_code)
+        # NOTE This is now in the book intro template
+        # tn_md = '# Translation Notes\n<a id="tn-{}"/>\n\n'.format(self._resource_code)
 
-        book_has_intro, tn_md_intro = self._initialize_tn_book_intro()
+        book_has_intro, book_intro_template_dto = self._initialize_tn_book_intro()
 
-        tn_md += tn_md_intro
+        book_intro_template: str = self._get_template(
+            "book_intro", book_intro_template_dto
+        )
+
+        # tn_md += tn_md_intro
+        tn_md += book_intro_template
 
         for chapter in sorted(os.listdir(book_dir)):
             chapter_dir = os.path.join(book_dir, chapter)
@@ -700,7 +720,7 @@ class TNResource(TResource):
             book_dir = os.path.join(self._resource_dir, self._resource_code)
         return book_dir
 
-    def _initialize_tn_book_intro(self) -> Tuple[bool, str]:
+    def _initialize_tn_book_intro(self) -> Tuple[bool, model.BookIntroTemplateDto]:
         book_intro_files: List = list(
             filter(
                 lambda x: os.path.join("front", "intro") in x.lower(),
@@ -714,10 +734,16 @@ class TNResource(TResource):
         book_intro_content: str = file_utils.read_file(book_intro_files[0])
         title: str = markdown_utils.get_first_header(book_intro_content)
         book_intro_id_tag: str = '<a id="tn-{}-front-intro"/>'.format(self._book_id)
-        book_intro_rc = "rc://{}/tn/help/{}/front/intro".format(
+        book_intro_anchor_id: str = "tn-{}-front-intro".format(self._book_id)
+        book_intro_rc: str = "rc://{}/tn/help/{}/front/intro".format(
             self._lang_code, self._book_id
         )
-        book_intro_anchor_id = "tn-{}-front-intro".format(self._book_id)
+        data = model.BookIntroTemplateDto(
+            book_id=self._book_id,
+            content=book_intro_content,
+            id_tag=book_intro_id_tag,
+            anchor_id=book_intro_anchor_id,
+        )
 
         # FIXME Begin side-effecting
         self._resource_data[book_intro_rc] = {
@@ -772,7 +798,7 @@ class TNResource(TResource):
         #         rc,
         #     )
         #     md += "\n\n"
-        return (book_has_intro, book_intro_content)
+        return (book_has_intro, data)
 
     def _initialize_tn_chapter_intro(
         self, chapter_dir: str, chapter: str

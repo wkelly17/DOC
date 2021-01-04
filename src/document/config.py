@@ -301,3 +301,13 @@ def get_english_repos_dict() -> dict:
         "tw-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_tw",
         "tq-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_tq",
     }
+
+
+def get_markdown_template_path(key: str) -> str:
+    templates = {
+        "book_intro": "templates/tn/book_intro_template.md",
+    }
+    path = templates[key]
+    if not os.environ.get("IN_CONTAINER"):
+        path = "src/" + path
+    return path

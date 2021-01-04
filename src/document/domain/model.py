@@ -68,3 +68,24 @@ class ResourceLookupDto(BaseModel):
     url: Optional[str]
     source: str
     jsonpath: Optional[str]
+
+
+class BookIntroTemplateDto(BaseModel):
+    """
+    'Data transfer object' that we use to hold data for use with Jinja2
+    template for book intro.
+    """
+
+    book_id: str
+    content: str
+    id_tag: str
+    anchor_id: str
+
+
+class ChapterIntroTemplateDto(BookIntroTemplateDto):
+    """
+    'Data transfer object' that we use to hold data for use with Jinja2
+    template for book intro.
+    """
+
+    pass
