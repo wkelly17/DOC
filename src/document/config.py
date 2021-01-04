@@ -20,10 +20,16 @@ RESOURCE_FILE_FORMATS = [GIT, USFM, ZIP]
 
 
 def get_api_test_url() -> str:
-    return f"http://localhost:{get_api_local_port()}"
+    """ Non-secure local URL for running the fastapi server for testing. """
+    return "http://localhost:{}".format(get_api_local_port())
 
 
 def get_api_root() -> str:
+    """
+    Get API prefix. Useful to have a prefix for versioning of the
+    API. TODO Fastapi probably provides a better way of specifying an
+    API prefix.
+    """
     return os.environ.get("API_ROOT", "/api/v1")
 
 
@@ -53,26 +59,28 @@ def get_api_url() -> str:
 # being run in. But until now, I've been running tools in a fish shell
 # and Docker container in a zshell.
 def get_working_dir() -> str:
-    """ The directory where the resources will be placed once
+    """
+    The directory where the resources will be placed once
     acquired. IRG_WORKING_DIR is provided when running in a docker
     environment. Otherwise a suitable temporary local directory is
-    generated automatically. """
-    dir: str = ""
+    generated automatically.
+    """
+    dirname: str = ""
     if os.environ.get("IN_CONTAINER"):
-        dir = os.environ.get("IRG_WORKING_DIR", "/working/temp")
+        dirname = os.environ.get("IRG_WORKING_DIR", "/working/temp")
     else:
-        dir = os.environ.get("IRG_WORKING_DIR", "working/temp")
-    return dir
+        dirname = os.environ.get("IRG_WORKING_DIR", "working/temp")
+    return dirname
 
 
 def get_output_dir() -> str:
     """ The directory where the generated documents are placed. """
-    dir: str = ""
+    dirname: str = ""
     if os.environ.get("IN_CONTAINER"):
-        dir = os.environ.get("IRG_OUTPUT_DIR", "/working/temp")
+        dirname = os.environ.get("IRG_OUTPUT_DIR", "/working/temp")
     else:
-        dir = os.environ.get("IRG_OUTPUT_DIR", "working/temp")
-    return dir
+        dirname = os.environ.get("IRG_OUTPUT_DIR", "working/temp")
+    return dirname
 
 
 def get_translations_json_location() -> str:
@@ -86,33 +94,44 @@ def get_translations_json_location() -> str:
 
 
 def get_individual_usfm_url_jsonpath() -> str:
-    """ The jsonpath location in TRANSLATIONS_JSON_LOCATION file where
-    individual USFM files (per bible book) may be found. """
+    """
+    The jsonpath location in TRANSLATIONS_JSON_LOCATION file where
+    individual USFM files (per bible book) may be found.
+    """
     return "$[?code='{}'].contents[?code='{}'].subcontents[?code='{}'].links[?format='usfm'].url"
 
 
 def get_resource_url_level_1_jsonpath() -> str:
-    """ The jsonpath location in TRANSLATIONS_JSON_LOCATION file where
-    resource URL, e.g., tn, tq, ta, obs, ulb, udb, etc., may normally be found. """
+    """
+    The jsonpath location in TRANSLATIONS_JSON_LOCATION file where
+    resource URL, e.g., tn, tq, ta, obs, ulb, udb, etc., may normally
+    be found.
+    """
     return "$[?code='{}'].contents[?code='{}'].links[?format='zip'].url"
 
 
 def get_resource_url_level_2_jsonpath() -> str:
-    """ The jsonpath location in TRANSLATIONS_JSON_LOCATION file where
+    """
+    The jsonpath location in TRANSLATIONS_JSON_LOCATION file where
     resource URL, e.g., tn, tq, ta, obs, ulb, udb, etc., may
-    additionally/alternatively be found. """
+    additionally/alternatively be found.
+    """
     return "$[?code='{}'].contents[*].subcontents[?code='{}'].links[?format='zip'].url"
 
 
 def get_resource_download_format_jsonpath() -> str:
-    """ The jsonpath location in TRANSLATIONS_JSON_LOCATION file where
-    resource git repo may be found. """
+    """
+    The jsonpath location in TRANSLATIONS_JSON_LOCATION file where
+    resource git repo may be found.
+    """
     return "$[?code='{}'].contents[?code='{}'].subcontents[?code='{}'].links[?format='Download'].url"
 
 
 def get_logging_config_file_path() -> str:
-    """ The file path location where the dictConfig-style yaml
-    formatted config file for logging is located. """
+    """
+    The file path location where the dictConfig-style yaml
+    formatted config file for logging is located.
+    """
     filepath: str = ""
     if os.environ.get("IN_CONTAINER"):
         filepath = os.environ.get("LOGGING_CONFIG", "document/logging_config.yaml")
@@ -137,8 +156,10 @@ def get_icon_url() -> str:
 
 # FIXME Fix literal paths now that directory organization has changed
 def get_tex_format_location() -> str:
-    """ Return the location of where the format.tex file is located
-    that is used in converting the HTML to PDF using pandoc. """
+    """
+    Return the location of where the format.tex file is located
+    that is used in converting the HTML to PDF using pandoc.
+    """
     filepath: str = ""
     if os.getenv("IN_CONTAINER"):
         filepath = os.environ.get("TEX_FORMAT_FILEPATH", "tex/format.tex")
@@ -149,8 +170,10 @@ def get_tex_format_location() -> str:
 
 # FIXME Fix literal paths now that directory organization has changed
 def get_tex_template_location() -> str:
-    """ Return the location of where the template.tex file is located
-    that is used in converting the HTML to PDF using pandoc. """
+    """
+    Return the location of where the template.tex file is located
+    that is used in converting the HTML to PDF using pandoc.
+    """
     filepath: str = ""
     if os.getenv("IN_CONTAINER"):
         filepath = os.environ.get("TEX_TEMPLATE_FILEPATH", "tex/template.tex")
@@ -160,16 +183,20 @@ def get_tex_template_location() -> str:
 
 
 def get_markdown_doc_file_names() -> List[str]:
-    """ Return the file names, excluding suffix, of files that do not
+    """
+    Return the file names, excluding suffix, of files that do not
     contain content but which may be in the same directory or
-    subdirectories of a resource's acquired files. """
+    subdirectories of a resource's acquired files.
+    """
     return ["readme", "license"]
 
 
 def get_document_html_header() -> str:
-    """ Return the enclosing HTML and body element format string used
+    """
+    Return the enclosing HTML and body element format string used
     to enclose the document's HTML content which was aggregated from
-    all the resources in the document request. """
+    all the resources in the document request.
+    """
     return """
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
@@ -219,9 +246,11 @@ def get_document_html_header() -> str:
 
 
 def get_document_html_footer() -> str:
-    """ Return the enclosing HTML and body element format string used
+    """
+    Return the enclosing HTML and body element format string used
     to enclose the document's HTML content which was aggregated from
-    all the resources in the document request. """
+    all the resources in the document request.
+    """
     return """
         </div>
     </body>
@@ -291,9 +320,11 @@ def get_pandoc_command() -> str:
 
 
 def get_english_repos_dict() -> dict:
-    """ This is a hack to compensate for translations.json which only
+    """
+    This is a hack to compensate for translations.json which only
     provides URLs for PDF assets in the English language. We need USFM
-    and Markdown. """
+    and Markdown.
+    """
     return {
         "ulb-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_ulb",
         "udb-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_udb",
@@ -304,6 +335,11 @@ def get_english_repos_dict() -> dict:
 
 
 def get_markdown_template_path(key: str) -> str:
+    """
+    Return the path to the requested template give a lookup key.
+    Return a different path if the code is running inside the Docker
+    container.
+    """
     templates = {
         "book_intro": "templates/tn/book_intro_template.md",
     }
