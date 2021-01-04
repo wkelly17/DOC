@@ -1,40 +1,9 @@
 from fastapi.testclient import TestClient
 from document import config
 
-
-def test_get_language_codes_returns_ok() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
-        response = client.get("/language_codes")
-        # print("response.url: {}".format(response.url))
-        # assert response.ok
-        assert response.status_code == 200, response.text
-        assert len(response.json()) > 0
-
-
-def test_get_language_codes_and_names_returns_ok() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
-        response = client.get("/language_codes_and_names")
-        assert response.status_code == 200, response.text
-        assert len(response.json()) > 0
-
-
-def test_get_resource_codes_returns_ok() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
-        response = client.get("/resource_codes")
-        assert response.status_code == 200, response.text
-        assert len(response.json()) > 0
-
-
-def test_get_resource_types_returns_ok() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
-        response = client.get("/resource_types")
-        assert response.status_code == 200, response.text
-        assert len(response.json()) > 0
 from document.entrypoints.app import app
 
 
-# @pytest.mark.usefixtures("restart_api") # This makes tests fail and
-# isn't necessary yet
 def test_happy_path_returns_ok() -> None:
     with TestClient(app=app, base_url=config.get_api_test_url()) as client:
         response = client.post(
