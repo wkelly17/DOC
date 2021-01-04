@@ -353,7 +353,7 @@ class USFMResource(Resource):
             # FIXME Could try different parser here.
             # Create the USFM to HTML and store in file.
             UsfmTransform.buildSingleHtmlFromFiles(
-                [pathlib.Path(file) for file in self._content_files],
+                [pathlib.Path(filepath) for filepath in self._content_files],
                 self._output_dir,
                 self._resource_filename,
             )
