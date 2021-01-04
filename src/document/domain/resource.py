@@ -158,7 +158,7 @@ class Resource(AbstractResource):
         Using the resource's remote location, download the resource's file
         assets to disk.
         """
-        _ = ResourceProvisioner(self)()
+        ResourceProvisioner(self)()
 
     # FIXME This should have a better name, e.g., initialize_assets or
     # load_assets or ?
