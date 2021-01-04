@@ -522,7 +522,7 @@ class TResource(Resource):
         # logger.debug("markdown_files: {}".format(markdown_files))
         markdown_content_files = list(
             filter(
-                lambda x: str(pathlib.Path(x).stem).lower()
+                lambda markdown_file: str(pathlib.Path(markdown_file).stem).lower()
                 not in config.get_markdown_doc_file_names(),
                 markdown_files,
             )

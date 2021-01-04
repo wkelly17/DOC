@@ -47,8 +47,8 @@ if TYPE_CHECKING:
     from document.domain.resource import Resource
 
 
-with open(config.get_logging_config_file_path(), "r") as f:
-    logging_config = yaml.safe_load(f.read())
+with open(config.get_logging_config_file_path(), "r") as fin:
+    logging_config = yaml.safe_load(fin.read())
     logging.config.dictConfig(logging_config)
 
 logger = logging.getLogger(__name__)
