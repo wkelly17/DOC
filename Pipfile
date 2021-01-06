@@ -36,6 +36,7 @@ pylint = "*"
 tenacity = "*"
 python-language-server = "*"
 isort = "*"
+pyls-mypy = "*"
 
 [packages]
 PyYAML = "*"
