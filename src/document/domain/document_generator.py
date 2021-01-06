@@ -416,8 +416,21 @@ def assemble_content_by_verse(docgen: DocumentGenerator) -> str:
         docgen.found_resources, key=lambda resource: resource._lang_code
     )
 
-    verses = map(lambda r: r._verses_html, found_sorted,)
+    # FIXME You could first partition by language group and then
+    # withint that language group partition by resource type,
+    # each resulting list could go to a data transfer object instance
+    # var used to instantiate each resources' section in a jinja template
+
+    # FIXME Find a way to use jinja2 templates to provide layout. The
+    # layout shouyld probably include a section header for each
+    # resource. E.g., Scripture, followed by the scripture verse, then
+    # Translation notes, followed by the translation note for the
+    # verse, etc..
+    verses = map(lambda resource: resource._verses_html, found_sorted)
     # zip the verse HTML content for all resources together.
+    # FIXME Zipping as below works, but it disallows us from using a
+    # jinja template to layout resources' content into. Another
+    # approach would be to just always check for
     verses_zipped: List[str] = [x for t in zip(*list(verses)) for x in t]
     return "".join(verses_zipped)
 
