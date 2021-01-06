@@ -8,7 +8,7 @@ from document.domain import document_generator
 
 
 def test_document_generator_for_english_with_interleaving_by_book() -> None:
-    filename = "en-ulb-wa-eph_en-tn-wa-eph.html"
+    filename = "en-ulb-wa-jud_en-tn-wa-jud.html"
     filepath = os.path.join(config.get_output_dir(), filename)
     if os.path.isfile(filepath):
         os.remove(filepath)
@@ -16,12 +16,12 @@ def test_document_generator_for_english_with_interleaving_by_book() -> None:
     resource_requests: List[model.ResourceRequest] = []
     resource_requests.append(
         model.ResourceRequest(
-            lang_code="en", resource_type="ulb-wa", resource_code="eph"
+            lang_code="en", resource_type="ulb-wa", resource_code="jud"
         )
     )
     resource_requests.append(
         model.ResourceRequest(
-            lang_code="en", resource_type="tn-wa", resource_code="eph"
+            lang_code="en", resource_type="tn-wa", resource_code="jud"
         )
     )
     document_request = model.DocumentRequest(
@@ -35,7 +35,7 @@ def test_document_generator_for_english_with_interleaving_by_book() -> None:
     doc_gen.run()
     assert doc_gen._document_request_key
     assert os.path.isfile(
-        os.path.join(config.get_working_dir(), "en-ulb-wa-eph_en-tn-wa-eph.html")
+        os.path.join(config.get_working_dir(), "en-ulb-wa-jud_en-tn-wa-jud.html")
     )
 
 
