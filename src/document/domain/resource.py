@@ -115,14 +115,14 @@ class Resource(AbstractResource):
         # Content related instance vars
         self._content_files: List[str]
         self._content: str
+        self._verses_html: List[str] = []
+
         # Link related
         self._bad_links: dict = {}
         self._resource_data: dict = {}
         self._my_rcs: List = []
         self._rc_references: dict = {}
 
-        # Verse level content containers
-        self._verses_html: List[str]
         # self._verses_html_generator: Generator
 
     # def _get_verses_html_generator(self) -> Generator:
@@ -257,7 +257,7 @@ class USFMResource(Resource):
         super().__init__(*args, **kwargs)
         self._usfm_chunks: dict = {}
         # self._usfm_verses_generator: Generator
-        self._verses_html: List[str]
+        # self._verses_html: List[str]
         # self._verses_html_generator: Generator
 
     @icontract.ensure(lambda self: self._resource_url is not None)
@@ -582,7 +582,6 @@ class TResource(Resource):
             )
         )
 
-        self._verses_html = []
         for filepath in verse_files:
             verse_content = ""
             with open(filepath, "r") as fin:
