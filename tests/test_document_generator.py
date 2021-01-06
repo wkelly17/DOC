@@ -54,6 +54,11 @@ def main() -> None:
             lang_code="en", resource_type="tn-wa", resource_code="jud"
         )
     )
+    resource_requests.append(
+        model.ResourceRequest(
+            lang_code="en", resource_type="tq-wa", resource_code="jud"
+        )
+    )
     document_request = model.DocumentRequest(
         assembly_strategy_kind=assembly_strategy_kind,
         resource_requests=resource_requests,
