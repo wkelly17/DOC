@@ -127,12 +127,6 @@ class Resource(AbstractResource):
         self._my_rcs: List = []
         self._rc_references: dict = {}
 
-        # self._verses_html_generator: Generator
-
-    # def _get_verses_html_generator(self) -> Generator:
-    #     for i in range(len(self._verses_html) - 1):
-    #         yield self._verses_html[i]
-
     def __str__(self) -> str:
         """ Return a printable string identifying this instance. """
         return "Resource(lang_code: {}, resource_type: {}, resource_code: {})".format(
@@ -476,20 +470,23 @@ class USFMResource(Resource):
             book_chunks[chapter]["chunks"].append(data)
         self._usfm_chunks = book_chunks
 
-    # NOTE Exploratory
-    @icontract.require(lambda self: self._usfm_chunks is not None)
-    @icontract.require(lambda self: self._usfm_chunks["1"]["chunks"] is not None)
-    def _get_usfm_verses_generator(self) -> Generator:
-        """
-        Return a generator over the raw USFM verses. Might be useful
-        for interleaved assembly of the document at the verse level.
-        """
-        # for i in range(len(self._usfm_chunks["1"]["chunks"]) - 1):
-        #     yield self._usfm_chunks["1"]["chunks"][i]
-        yield from (
-            self._usfm_chunks["1"]["chunks"][index]
-            for index in range(len(self._usfm_chunks["1"]["chunks"]) - 1)
-        )
+    # NOTE Exploratory idea
+    # @icontract.require(lambda self: self._usfm_chunks is not None)
+    # @icontract.require(lambda self: self._usfm_chunks["1"]["chunks"] is not None)
+    # def _get_usfm_verses_generator(self) -> Generator:
+    #     """
+    #     Return a generator over the raw USFM verses. Might be useful
+    #     for interleaved assembly of the document at the verse level.
+
+    #     Yields:
+    #         The next USFM verse.
+    #     """
+    #     # for i in range(len(self._usfm_chunks["1"]["chunks"]) - 1):
+    #     #     yield self._usfm_chunks["1"]["chunks"][i]
+    #     yield from (
+    #         self._usfm_chunks["1"]["chunks"][index]
+    #         for index in range(len(self._usfm_chunks["1"]["chunks"]) - 1)
+    #     )
 
     # def _get_verses_html_generator(self) -> Generator:
     #     """
