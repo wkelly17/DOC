@@ -102,16 +102,20 @@ class Resource(AbstractResource):
         self._resource_filename: str = "{}_{}_{}".format(
             self._lang_code, self._resource_type, self._resource_code
         )
+
+        # Book attributes
         self._book_id: str = self._resource_code
-        # FIXME Could get KeyError
+        # FIXME Could get KeyError with bad data from BIEL
         self._book_title = bible_books.BOOK_NAMES[self._resource_code]
         self._book_number = bible_books.BOOK_NUMBERS[self._book_id]
 
+        # Location/lookup related
         self._resource_url: Optional[str] = None
         self._resource_source: str
         self._resource_jsonpath: Optional[str] = None
 
         self._manifest: Manifest
+
         # Content related instance vars
         self._content_files: List[str]
         self._content: str
@@ -139,6 +143,8 @@ class Resource(AbstractResource):
         """ Return true if resource's URL location was found. """
         return self._resource_url is not None
 
+    # FIXME Perhaps we should make this class derive from Protocol and
+    # then  make this method @abc.abstractmethod
     def find_location(self) -> None:
         """
         Find the remote location where a the resource's file assets
@@ -148,6 +154,8 @@ class Resource(AbstractResource):
         """
         pass
 
+    # FIXME Perhaps we should make this class derive from Protocol and
+    # then  make this method @abc.abstractmethod
     def get_files(self) -> None:
         """
         Using the resource's remote location, download the resource's file
@@ -155,8 +163,8 @@ class Resource(AbstractResource):
         """
         ResourceProvisioner(self)()
 
-    # FIXME This should have a better name, e.g., initialize_assets or
-    # load_assets or ?
+    # FIXME Perhaps we should make this class derive from Protocol and
+    # then  make this method @abc.abstractmethod
     def initialize_assets(self) -> None:
         """
         Find and load resource files that were downloaded to disk.
@@ -173,9 +181,9 @@ class Resource(AbstractResource):
         """
         pass
 
-    ## FIXME Utiity type methods that could possibly be put in a mixin
-    ## class and then inherited by each resource subclass, e.g., by
-    ## USFMResource, TNResource, etc.:
+    # FIXME Utiity type methods that could possibly be put in a mixin
+    # class and then inherited by each resource subclass, e.g., by
+    # USFMResource, TNResource, etc.:
 
     # @icontract.require(lambda self: self._resource_source is not None)
     # def _is_usfm(self) -> bool:
@@ -384,8 +392,6 @@ class USFMResource(Resource):
         # interleaved against translation notes, etc..
         self._verses_html = ["<p>{}</p>".format(verse) for verse in verses_html]
 
-    # FIXME Handle git based usfm with resources.json file and .txt usfm
-    # file suffixes.
     @icontract.require(lambda self: self._content_files is not None)
     @icontract.require(lambda self: self._resource_filename is not None)
     @icontract.require(lambda self: self._resource_dir is not None)
@@ -587,7 +593,6 @@ class TResource(Resource):
             with open(filepath, "r") as fin:
                 verse_content = fin.read()
             self._verses_html.append(markdown.markdown(verse_content))
-        # self._verses_html_generator = self._get_verses_html_generator()
         logger.debug("self._verses_html: {}".format(self._verses_html))
 
     @icontract.require(lambda self: self._content is not None)
@@ -625,8 +630,6 @@ class TNResource(TResource):
         logger.info("Converting MD to HTML...")
         self._convert_md2html()
 
-    # FIXME Should we change to function w no non-local side-effects
-    # and move to markdown_utils.py?
     @icontract.require(lambda self: self._resource_code is not None)
     def _get_tn_markdown(self) -> None:
         tn_md = ""
