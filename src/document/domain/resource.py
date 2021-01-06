@@ -128,13 +128,13 @@ class Resource(AbstractResource):
         self._rc_references: dict = {}
 
     def __str__(self) -> str:
-        """ Return a printable string identifying this instance. """
+        """Return a printable string identifying this instance."""
         return "Resource(lang_code: {}, resource_type: {}, resource_code: {})".format(
             self._lang_code, self._resource_type, self._resource_code
         )
 
     def is_found(self) -> bool:
-        """ Return true if resource's URL location was found. """
+        """Return true if resource's URL location was found."""
         return self._resource_url is not None
 
     # FIXME Perhaps we should make this class derive from Protocol and
@@ -181,7 +181,7 @@ class Resource(AbstractResource):
 
     # @icontract.require(lambda self: self._resource_source is not None)
     # def _is_usfm(self) -> bool:
-    #     """ Return true if _resource_source is equal to 'usfm'. """
+    #     """Return true if _resource_source is equal to 'usfm'."""
     #     return self._resource_source == config.USFM
 
     # FIXME I am using the bs4 bits of this elsewhere now to decompose
@@ -264,7 +264,7 @@ class USFMResource(Resource):
 
     @icontract.ensure(lambda self: self._resource_url is not None)
     def find_location(self) -> None:
-        """ Find the URL where the resource's assets are located. """
+        """Find the URL where the resource's assets are located."""
         # FIXME For better flexibility, the lookup class could be
         # looked up in a table, i.e., dict, that has the key as self
         # classname and the value as the lookup subclass.
@@ -499,10 +499,10 @@ class USFMResource(Resource):
 
 
 class TResource(Resource):
-    """ Provide methods common to all subclasses of TResource. """
+    """Provide methods common to all subclasses of TResource."""
 
     def find_location(self) -> None:
-        """ Find the URL where the resource's assets are located. """
+        """Find the URL where the resource's assets are located."""
         # FIXME For better flexibility, the lookup class could be
         # looked up in a table, i.e., dict, that has the key as self
         # classname and the value as the lookup subclass.
@@ -514,7 +514,7 @@ class TResource(Resource):
         logger.debug("self._resource_url: {} for {}".format(self._resource_url, self))
 
     def initialize_assets(self) -> None:
-        """ Programmatically discover the manifest and content files. """
+        """Programmatically discover the manifest and content files."""
         self._manifest = Manifest(self)
 
         logger.debug("self._resource_dir: {}".format(self._resource_dir))
@@ -594,7 +594,7 @@ class TResource(Resource):
 
     @icontract.require(lambda self: self._content is not None)
     def _convert_md2html(self) -> None:
-        """ Convert a resource's Markdown to HTML. """
+        """Convert a resource's Markdown to HTML."""
         # assert self._content is not None, "self._content cannot be None here."
         # FIXME Perhaps we can manipulate resource links, rc://, by
         # writing our own parser extension.
@@ -1020,9 +1020,7 @@ class TWResource(TResource):
         tw_md = '<a id="tw-{}"/>\n# Translation Words\n\n'.format(self._book_id)
         # tw_md = '<a id="tw-{0}"/>\n# Translation Words\n\n'.format(self.book_id)
         sorted_rcs = sorted(
-            self._my_rcs,
-            key=lambda k: self._resource_data[k]["title"].lower()
-            # self.my_rcs, key=lambda k: self.resource_data[k]["title"].lower()
+            self._my_rcs, key=lambda k: self._resource_data[k]["title"].lower()
         )
         for rc in sorted_rcs:
             if "/tw/" not in rc:
@@ -1201,7 +1199,7 @@ class TAResource(TResource):
 def resource_factory(
     working_dir: str, output_dir: str, resource_request: model.ResourceRequest
 ) -> Resource:
-    """ Factory method. """
+    """Factory method."""
     # resource_type is key, Resource subclass is value
     resources = {
         "usfm": USFMResource,
@@ -1278,8 +1276,10 @@ class ResourceProvisioner:
     @icontract.require(lambda self: self._resource._resource_dir is not None)
     @icontract.require(lambda self: self._resource._resource_url is not None)
     def _acquire_resource(self) -> None:
-        """ Download or git clone resource and unzip resulting file if it
-        is a zip file. """
+        """
+        Download or git clone resource and unzip resulting file if it
+        is a zip file.
+        """
 
         assert (
             self._resource._resource_url is not None
@@ -1351,12 +1351,12 @@ class ResourceProvisioner:
 
     @icontract.require(lambda self: self._resource._resource_source is not None)
     def _is_git(self) -> bool:
-        """ Return true if _resource_source is equal to 'git'. """
+        """Return true if _resource_source is equal to 'git'."""
         return self._resource._resource_source == config.GIT
 
     @icontract.require(lambda self: self._resource._resource_source is not None)
     def _is_zip(self) -> bool:
-        """ Return true if _resource_source is equal to 'zip'. """
+        """Return true if _resource_source is equal to 'zip'."""
         return self._resource._resource_source == config.ZIP
 
 
@@ -1380,7 +1380,7 @@ class Manifest:
     # needed lazily.
     @icontract.require(lambda self: self._resource.resource_dir is not None)
     def __call__(self) -> None:
-        """ All subclasses need to at least find their manifest file,
+        """All subclasses need to at least find their manifest file,
         if it exists. Subclasses specialize this method to
         additionally initialize other disk layout related properties.
         """
@@ -1418,7 +1418,7 @@ class Manifest:
 
     @icontract.require(lambda self: self._manifest_file_path is not None)
     def _load_manifest(self) -> dict:
-        """ Load the manifest file. """
+        """Load the manifest file."""
         manifest: dict = {}
         if self._is_yaml():
             manifest = file_utils.load_yaml_object(self._manifest_file_path)
@@ -1430,7 +1430,7 @@ class Manifest:
 
     @icontract.require(lambda self: self._manifest is not None)
     def _get_manifest_version_and_issued(self) -> Tuple[str, str]:
-        """ Return the manifest's version and issued values. """
+        """Return the manifest's version and issued values."""
         version: str = ""
         issued: str = ""
         # NOTE manifest.txt files do not have 'dublin_core' or
@@ -1456,17 +1456,17 @@ class Manifest:
 
     @icontract.require(lambda self: self.manifest_type is not None)
     def _is_yaml(self) -> bool:
-        """ Return true if the resource's manifest file has suffix yaml. """
+        """Return true if the resource's manifest file has suffix yaml."""
         return self.manifest_type == config.YAML
 
     @icontract.require(lambda self: self.manifest_type is not None)
     def _is_txt(self) -> bool:
-        """ Return true if the resource's manifest file has suffix json. """
+        """Return true if the resource's manifest file has suffix json."""
         return self.manifest_type == config.TXT
 
     @icontract.require(lambda self: self.manifest_type is not None)
     def _is_json(self) -> bool:
-        """ Return true if the resource's manifest file has suffix json. """
+        """Return true if the resource's manifest file has suffix json."""
         return self.manifest_type == config.JSON
 
     @property
