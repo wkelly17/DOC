@@ -60,7 +60,6 @@ pydantic = "*"
 pyparsing = "2.4.5"
 requests = "*"
 uvicorn = "*"
-document = {editable = true, path = "./src"}
 
 [requires]
 python_version = "3.8"

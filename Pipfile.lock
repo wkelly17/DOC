@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "62f45e954ef51a69e52c15c4a8c93b54447e70fb3b7a0d7baeb8d6e4ac984cbc"
+            "sha256": "cf868c0df5528bb5667071bee8502f9c90da33528a22a87c0ce9c73ef5f68057"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -75,10 +75,6 @@
                 "sha256:e3a62f0520172440ca0dcc823749319382e377f37f140a0b99ef45fecb84bfe7"
             ],
             "version": "==4.4.2"
-        },
-        "document": {
-            "editable": true,
-            "path": "./src"
         },
         "et-xmlfile": {
             "hashes": [
@@ -344,7 +340,7 @@
         "usfm-tools": {
             "editable": true,
             "git": "git://github.com/linearcombination/USFM-Tools.git",
-            "ref": "aeacb4aa3001ddd3bc4137cdb596cf9fbce2ecd5"
+            "ref": "d04fa461edaec07b395247b63ddd45e4086af68c"
         },
         "uvicorn": {
             "hashes": [
@@ -441,7 +437,7 @@
                 "sha256:2e1012945a09d19a15cc87f9d15e7b14c18473ec9cf7769c641951b348de1353",
                 "sha256:529f4969029d5ff5f74bfec48adc14b6f003409141f722b6cc4b787dddc8a4dd"
             ],
-            "markers": "python_version >= '3.6' and python_version < '4'",
+            "markers": "python_version >= '3.6' and python_version < '4.0'",
             "version": "==1.5.8"
         },
         "decorator": {
@@ -498,7 +494,7 @@
                 "sha256:414477070231a5aa05468d48db2742a594b53fbc1ecba28044646706a11fb861",
                 "sha256:75858359e3ccd4f1d92a9e7582aa5c9e4485cbc920dd05954703900cf907667e"
             ],
-            "markers": "python_version >= '3.6' and python_version < '4'",
+            "markers": "python_version >= '3.6' and python_version < '4.0'",
             "version": "==0.2.1"
         },
         "flake8-bugbear": {
@@ -542,7 +538,7 @@
                 "sha256:d0b3d283d85079917acbfe39b9d637385cd82cba3ae3d76c1278c07ddcf0d9b9",
                 "sha256:e8b32b32300bfb407fe7ef74667c8d2d3a6a81bdf6f09c14a7bcc82b7b870f8b"
             ],
-            "markers": "python_version >= '3.6' and python_version < '4'",
+            "markers": "python_version >= '3.6' and python_version < '4.0'",
             "version": "==0.3.0"
         },
         "flake8-isort": {
@@ -603,11 +599,11 @@
         },
         "gitpython": {
             "hashes": [
-                "sha256:6eea89b655917b500437e9668e4a12eabdcf00229a0df1762aabd692ef9b746b",
-                "sha256:befa4d101f91bad1b632df4308ec64555db684c360bd7d2130b4807d49ce86b8"
+                "sha256:42dbefd8d9e2576c496ed0059f3103dcef7125b9ce16f9d5f9c834aed44a1dac",
+                "sha256:867ec3dfb126aac0f8296b19fb63b8c4a399f32b4b6fafe84c4b10af5fa9f7b5"
             ],
             "markers": "python_version >= '3.4'",
-            "version": "==3.1.11"
+            "version": "==3.1.12"
         },
         "gogs-client": {
             "hashes": [
@@ -961,6 +957,13 @@
             "index": "pypi",
             "version": "==2.6.0"
         },
+        "pyls-mypy": {
+            "hashes": [
+                "sha256:3fd83028961f0ca9eb3048b7a01cf42a9e3d46d8ea4935c1424c33da22c3eb03"
+            ],
+            "index": "pypi",
+            "version": "==0.1.8"
+        },
         "pyparsing": {
             "hashes": [
                 "sha256:20f995ecd72f2a1f4bf6b072b63b22e2eb457836601e76d6e5dfcd75436acc1f",
@@ -1182,7 +1185,7 @@
         "usfm-tools": {
             "editable": true,
             "git": "git://github.com/linearcombination/USFM-Tools.git",
-            "ref": "aeacb4aa3001ddd3bc4137cdb596cf9fbce2ecd5"
+            "ref": "d04fa461edaec07b395247b63ddd45e4086af68c"
         },
         "uvicorn": {
             "hashes": [
