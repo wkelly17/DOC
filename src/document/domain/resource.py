@@ -372,6 +372,7 @@ class USFMResource(Resource):
             logger.debug("self._bad_links: {}".format(self._bad_links))
 
     @icontract.require(lambda self: self._content is not None)
+    @icontract.ensure(lambda self: self._verses_html)
     def _initialize_verses_html(self) -> None:
         """
         Break apart the HTML content into HTML verse chunks, augment
@@ -389,7 +390,8 @@ class USFMResource(Resource):
     @icontract.require(lambda self: self._content_files is not None)
     @icontract.require(lambda self: self._resource_filename is not None)
     @icontract.require(lambda self: self._resource_dir is not None)
-    @icontract.ensure(lambda self: self._usfm_chunks is not None)
+    # @icontract.ensure(lambda self: self._usfm_chunks is not None)
+    @icontract.ensure(lambda self: self._usfm_chunks)
     def _get_usfm_chunks(self) -> None:
         """
         Read the USFM file contents requested for resource code and
@@ -571,6 +573,7 @@ class TResource(Resource):
             )
         )
 
+    @icontract.ensure(lambda self: self._verses_html)
     def _initialize_verses_html(self) -> None:
 
         # FIXME This whole method could be rewritten. We want to find
@@ -593,6 +596,7 @@ class TResource(Resource):
         logger.debug("self._verses_html: {}".format(self._verses_html))
 
     @icontract.require(lambda self: self._content is not None)
+    @icontract.require(lambda self: self._content)
     def _convert_md2html(self) -> None:
         """Convert a resource's Markdown to HTML."""
         # assert self._content is not None, "self._content cannot be None here."
@@ -645,12 +649,12 @@ class TNResource(TResource):
 
         book_has_intro, book_intro_template_dto = self._initialize_tn_book_intro()
 
-        book_intro_template: str = self._get_template(
-            "book_intro", book_intro_template_dto
-        )
+        if book_has_intro:
+            book_intro_template: str = self._get_template(
+                "book_intro", book_intro_template_dto
+            )
 
-        # tn_md += tn_md_intro
-        tn_md += book_intro_template
+            tn_md += book_intro_template
 
         for chapter in sorted(os.listdir(book_dir)):
             chapter_dir = os.path.join(book_dir, chapter)
