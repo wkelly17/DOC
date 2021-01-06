@@ -384,7 +384,7 @@ class USFMResource(Resource):
         )
         # Add enclosing paragraph to each verse since they will be
         # interleaved against translation notes, etc..
-        self._verses_html = ["<p>{}</p>".format(verse) for verse in verses_html]
+        self._verses_html.extend(["<p>{}</p>".format(verse) for verse in verses_html])
 
     @icontract.require(lambda self: self._content_files is not None)
     @icontract.require(lambda self: self._resource_filename is not None)
