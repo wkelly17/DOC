@@ -1,19 +1,17 @@
-from typing import List, Optional, Tuple
-from fastapi import FastAPI
-import os
-from pydantic import BaseModel
-
-# import json
-
-
-from document.domain.document_generator import DocumentGenerator
-from document.domain import resource_lookup
-from document.domain import model
-from document import config
-
 import logging
 import logging.config
+import os
+from typing import List, Optional, Tuple
+
 import yaml
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+from document import config
+from document.domain import model, resource_lookup
+from document.domain.document_generator import DocumentGenerator
+
+# import json
 
 
 app = FastAPI()
