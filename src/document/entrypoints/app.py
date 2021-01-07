@@ -85,7 +85,7 @@ def document_endpoint(
 # @app.get(f"{config.get_api_root()}/language_codes")
 @app.get("/language_codes")
 def lang_codes():
-    """ Return list of all available language codes. """
+    """Return list of all available language codes."""
     lookup_svc = resource_lookup.BIELHelperResourceJsonLookup()
     lang_codes: List[str] = lookup_svc.lang_codes()
     # return jsonify({"lang_codes": lang_codes}), 200
@@ -96,7 +96,7 @@ def lang_codes():
 # @app.get(f"{config.get_api_root()}/language_codes_and_names")
 @app.get("/language_codes_and_names")
 def lang_codes_and_names():
-    """ Return list of all available language code, name tuples. """
+    """Return list of all available language code, name tuples."""
     lookup_svc = resource_lookup.BIELHelperResourceJsonLookup()
     lang_codes_and_names: List[Tuple[str, str]] = lookup_svc.lang_codes_and_names()
     # return jsonify({"lang_codes_and_names": lang_codes_and_names}), 200
@@ -107,7 +107,7 @@ def lang_codes_and_names():
 # @app.get(f"{config.get_api_root()}/resource_types")
 @app.get("/resource_types")
 def resource_types():
-    """ Return list of all available resource types. """
+    """Return list of all available resource types."""
     lookup_svc = resource_lookup.BIELHelperResourceJsonLookup()
     resource_types: List[str] = lookup_svc.resource_types()
     # return jsonify({"resource_types": resource_types}), 200
@@ -118,7 +118,7 @@ def resource_types():
 # @app.get(f"{config.get_api_root()}/resource_codes")
 @app.get("/resource_codes")
 def resource_codes():
-    """ Return list of all available resource codes. """
+    """Return list of all available resource codes."""
     lookup_svc = resource_lookup.BIELHelperResourceJsonLookup()
     resource_codes: List[str] = lookup_svc.resource_codes()
     # return jsonify({"resource_codes": resource_codes}), 200
@@ -127,5 +127,5 @@ def resource_codes():
 
 @app.get("/health/status")
 def health_status():
-    """ Ping-able server endpoint. """
+    """Ping-able server endpoint."""
     return {"status": "ok"}, 200

@@ -268,7 +268,7 @@ class DocumentGenerator:
         self.content = html
 
     def convert_html2pdf(self) -> None:
-        """ Generate PDF from HTML contained in self.content. """
+        """Generate PDF from HTML contained in self.content."""
         now = datetime.datetime.now()
         revision_date = "{}-{}-{}".format(now.year, now.month, now.day)
         logger.debug("PDF to be written to: {}".format(self.output_dir))
