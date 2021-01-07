@@ -70,13 +70,7 @@ def document_endpoint(
     )
 
     logger.debug("details: {}".format(details))
-    print("details: {}".format(details))
     return details, 200
-    # FIXME Ask document_generator for URL where finished document can
-    # be downloaded. A subsequent HTTP GET of that URL should yield
-    # the document.
-    # return jsonify({"finished_document_url": "yet to be done"}), 200
-    # return "OK", 201
 
 
 # FIXME Add return type info
