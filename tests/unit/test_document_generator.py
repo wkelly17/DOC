@@ -34,9 +34,10 @@ def test_document_generator_for_english_with_interleaving_by_book() -> None:
     )
     doc_gen.run()
     assert doc_gen._document_request_key
-    assert os.path.isfile(
-        os.path.join(config.get_working_dir(), "en-ulb-wa-jud_en-tn-wa-jud.html")
-    )
+    if os.environ.get("IN_CONTAINER"):
+        assert os.path.isfile("/working/temp/en-ulb-wa-jud_en-tn-wa-jud.html")
+    else:
+        assert os.path.isfile("working/temp/en-ulb-wa-jud_en-tn-wa-jud.html")
 
 
 def test_document_generator_for_english_with_interleaving_by_verse() -> None:
@@ -66,6 +67,7 @@ def test_document_generator_for_english_with_interleaving_by_verse() -> None:
     )
     doc_gen.run()
     assert doc_gen._document_request_key
-    assert os.path.isfile(
-        os.path.join(config.get_working_dir(), "en-ulb-wa-jud_en-tn-wa-jud.html")
-    )
+    if os.environ.get("IN_CONTAINER"):
+        assert os.path.isfile("/working/temp/en-ulb-wa-jud_en-tn-wa-jud.html")
+    else:
+        assert os.path.isfile("working/temp/en-ulb-wa-jud_en-tn-wa-jud.html")

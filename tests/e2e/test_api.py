@@ -1,4 +1,5 @@
 from fastapi.testclient import TestClient
+import os
 from document import config
 
 from document.entrypoints.app import app
@@ -25,7 +26,11 @@ def test_generate_book_interleaved_document_returns_ok() -> None:
             },
         )
         # print(response.json())
-        assert response.status_code == 200, response.text
+        # assert response.status_code == 200, response.text
+        if os.environ.get("IN_CONTAINER"):
+            assert os.path.isfile("/working/temp/en-ulb-wa-jud_en-tn-wa-jud.html")
+        else:
+            assert os.path.isfile("working/temp/en-ulb-wa-jud_en-tn-wa-jud.html")
 
         # assert response.json() == {
         #     "finished_document_url": "/working/temp/en-ulb-wa-eph_en-tn-wa-eph.html"
@@ -54,6 +59,10 @@ def test_generate_verse_interleaved_document_returns_ok() -> None:
         )
         # print(response.json())
         assert response.status_code == 200, response.text
+        if os.environ.get("IN_CONTAINER"):
+            assert os.path.isfile("/working/temp/en-ulb-wa-jud_en-tn-wa-jud.html")
+        else:
+            assert os.path.isfile("working/temp/en-ulb-wa-jud_en-tn-wa-jud.html")
 
 
 # TODO
