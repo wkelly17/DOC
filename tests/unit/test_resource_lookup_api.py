@@ -1,3 +1,5 @@
+from typing import List
+
 from document import config
 from document.domain import resource_lookup
 from document.domain import model
