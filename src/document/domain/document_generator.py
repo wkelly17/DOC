@@ -443,8 +443,8 @@ def assembly_strategy_factory(
     appropriate strategy function.
     """
     strategies = {
-        model.AssemblyStrategyEnum.BOOK: assemble_content_by_book,
+        model.AssemblyStrategyEnum.book: assemble_content_by_book,
         # model.AssemblyStrategyEnum.CHAPTER: assemble_content_by_chapter,
-        model.AssemblyStrategyEnum.VERSE: assemble_content_by_verse,
+        model.AssemblyStrategyEnum.verse: assemble_content_by_verse,
     }
     return strategies[assembly_strategy_kind]

@@ -12,7 +12,7 @@ def test_document_generator_for_english_with_interleaving_by_book() -> None:
     filepath = os.path.join(config.get_output_dir(), filename)
     if os.path.isfile(filepath):
         os.remove(filepath)
-    assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.BOOK
+    assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.book
     resource_requests: List[model.ResourceRequest] = []
     resource_requests.append(
         model.ResourceRequest(
@@ -44,7 +44,7 @@ def test_document_generator_for_english_with_interleaving_by_verse() -> None:
     filepath = os.path.join(config.get_output_dir(), filename)
     if os.path.isfile(filepath):
         os.remove(filepath)
-    assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.VERSE
+    assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.verse
     resource_requests: List[model.ResourceRequest] = []
     resource_requests.append(
         model.ResourceRequest(

@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 def main() -> None:
 
-    assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.BOOK
+    assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.book
     resource_requests: List[model.ResourceRequest] = []
     resource_requests.append(
         model.ResourceRequest(
@@ -42,7 +42,7 @@ def main() -> None:
 
     logger.info("BOOK interleaving test is complete")
 
-    assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.VERSE
+    assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.verse
     resource_requests: List[model.ResourceRequest] = []
     resource_requests.append(
         model.ResourceRequest(

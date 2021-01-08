@@ -8,7 +8,7 @@ from document.domain.resource import resource_factory
 
 
 def test_lookup() -> None:
-    assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.BOOK
+    assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.book
     resource_requests: List[model.ResourceRequest] = []
     resource_requests.append(
         model.ResourceRequest(

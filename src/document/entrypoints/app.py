@@ -5,7 +5,6 @@ from typing import List, Optional, Tuple
 
 import yaml
 from fastapi import FastAPI
-from pydantic import BaseModel
 
 from document import config
 from document.domain import model, resource_lookup
@@ -21,10 +20,6 @@ with open(config.get_logging_config_file_path(), "r") as f:
     logging.config.dictConfig(logging_config)
 
 logger = logging.getLogger(__name__)
-
-
-class FinishedDocumentDetails(BaseModel):
-    finished_document_url: Optional[str]
 
 
 # FIXME This could be async def, see
@@ -59,9 +54,10 @@ def document_endpoint(
     document_generator = DocumentGenerator(
         document_request, config.get_working_dir(), config.get_output_dir(),
     )
-    document_generator.run()  # eventually this will return path to finished PDF
+    document_generator.run()
 
-    details = FinishedDocumentDetails(
+    # HACK for now
+    details = model.FinishedDocumentDetails(
         finished_document_url="{}.html".format(
             os.path.join(
                 document_generator.working_dir, document_generator._document_request_key
@@ -70,7 +66,7 @@ def document_endpoint(
     )
 
     logger.debug("details: {}".format(details))
-    return details, 200
+    return details  # , 200
 
 
 # FIXME Add return type info

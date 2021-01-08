@@ -95,7 +95,7 @@ def main() -> None:
     ## Test the API:
 
     if True:
-        assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.BOOK
+        assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.book
         resource_requests: List[model.ResourceRequest] = []
         resource_requests.append(
             model.ResourceRequest(

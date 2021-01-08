@@ -1,8 +1,8 @@
+from enum import Enum
 from typing import List, Optional
 
-from enum import Enum
-from enum import unique
 from pydantic import BaseModel
+
 
 # https://blog.meadsteve.dev/programming/2020/02/10/types-at-the-edges-in-python/
 # https://pydantic-docs.helpmanual.io/usage/models/
@@ -12,7 +12,7 @@ class ResourceRequest(BaseModel):
     language 'English', resource type 'ulb', resource code, i.e.,
     book, 'gen'. A document request composes n of these resource
     request instances. Because this class inherits from pydantic's
-    BaseModel we get validation and serialization for free.
+    BaseModel we get validation and JSON serialization for free.
     """
 
     lang_code: str
@@ -24,26 +24,25 @@ class ResourceRequest(BaseModel):
 # https://pydantic-docs.helpmanual.io/usage/types/#enums-and-choices
 # for where this pattern of combining Enum and BaseModel comes from in
 # pydantic.
-@unique
-class AssemblyStrategyEnum(Enum):
+class AssemblyStrategyEnum(str, Enum):
     """
     There are three assembly strategy kinds to choose from:
 
-    * BOOK
-    * CHAPTER
-    * VERSE
+    * book
+    * chapter
+    * verse
 
-    - BOOK strategy will cause a book's worth of each resource's
+    - book strategy will cause a book's worth of each resource's
     content to be interleaved.
-    - CHAPTER strategy will cause a chapter's worth of each resource's
+    - chapter strategy will cause a chapter's worth of each resource's
     content to be interleaved.
-    - VERSE strategy will cause a verse's worth of each resource's
+    - verse strategy will cause a verse's worth of each resource's
     content to be interleaved.
     """
 
-    BOOK = "book"
-    CHAPTER = "chapter"
-    VERSE = "verse"
+    book = "book"
+    chapter = "chapter"
+    verse = "verse"
 
 
 class DocumentRequest(BaseModel):
@@ -89,3 +88,13 @@ class ChapterIntroTemplateDto(BookIntroTemplateDto):
     """
 
     pass
+
+
+class FinishedDocumentDetails(BaseModel):
+    """
+    Pydanctic model that we use as a return value to send back via
+    Fastapi to the client. For now it just contains the finished
+    dcocument URL.
+    """
+
+    finished_document_url: Optional[str]
