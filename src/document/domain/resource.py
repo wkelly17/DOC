@@ -1494,8 +1494,9 @@ class Manifest:
 
     @property
     def manifest_type(self) -> Optional[str]:
+        """Return the manifest type: yaml, json, or txt."""
         if self._manifest_file_path is not None:
-            return self._manifest_file_path.suffix
+            return pathlib.Path(self._manifest_file_path).suffix
         return None
 
     # FIXME This is not currently used
