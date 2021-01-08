@@ -36,8 +36,8 @@ def test_lookup() -> None:
     )
 
     for resource_request in document_request.resource_requests:
-        r = resource_factory(
+        resource = resource_factory(
             config.get_working_dir(), config.get_output_dir(), resource_request
         )
-        r.find_location()
-        assert r._resource_url
+        resource.find_location()
+        assert resource._resource_url
