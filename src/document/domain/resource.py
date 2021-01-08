@@ -705,7 +705,7 @@ class TNResource(TResource):
                         chapter,
                     )
 
-                    anchors = ""
+                    # anchors = ""
                     pre_md = ""
                     # FIXME I don't think it should be fetching USFM
                     # stuff here in this method under the new design.
