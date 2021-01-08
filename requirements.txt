@@ -6,16 +6,13 @@ fastapi
 git+git://github.com/linearcombination/USFM-Tools.git@develop#egg=usfm_tools
 ## For local dev, install via: pip install /path/to/USFM-Tools
 git+git://github.com/unfoldingWord-dev/uw_tools.git#egg=uw_tools
-gogs-client
+# gogs-client # FIXME gitea client, old name
 icontract
 jinja2
 jsonpath-rw
 jsonpath-rw-ext
 logdecorator
 Markdown
-# markdown
-# markdown2
-openpyxl
 parse
 pathlib
 pydantic
@@ -24,11 +21,5 @@ requests
 uvicorn
 
 # tests
-mypy
-flake8
-wemake-python-styleguide
-flake8-mypy
 pytest
 pytest-icdiff
-pylint
-tenacity
