@@ -25,10 +25,10 @@ logger = logging.getLogger(__name__)
 # FIXME This could be async def, see
 # ~/.ghq/github.com/hogeline/sample_fastapi/code/main.py, instead of synchronous.
 # @app.post(f"{config.get_api_root()}/document")
-@app.post("/documents")
+@app.post("/documents", response_model=model.FinishedDocumentDetails)
 def document_endpoint(
-    document_request: model.DocumentRequest, response_model=FinishedDocumentDetails
-):
+    document_request: model.DocumentRequest,
+) -> model.FinishedDocumentDetails:
     # FIXME Fix comment which is out of sync with code. Code needs to
     # change until this comment is true.
     """
