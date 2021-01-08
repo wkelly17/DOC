@@ -1,10 +1,8 @@
 from typing import List
 
 from document import config
-from document.domain import resource_lookup
-from document.domain import model
+from document.domain import model, resource_lookup
 from document.domain.resource import resource_factory
-
 
 ## Test the API:
 
