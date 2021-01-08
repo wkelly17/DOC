@@ -90,7 +90,6 @@ class Resource(AbstractResource):
         self._output_dir: str = output_dir
         self._resource_request: model.ResourceRequest = resource_request
 
-        # FIXME Next three instance vars could be properties instead
         self._lang_code: str = resource_request.lang_code
         self._resource_type: str = resource_request.resource_type
         self._resource_code: str = resource_request.resource_code
@@ -136,6 +135,26 @@ class Resource(AbstractResource):
     def is_found(self) -> bool:
         """Return true if resource's URL location was found."""
         return self._resource_url is not None
+
+    @property
+    def lang_code(self) -> str:
+        return self._lang_code
+
+    @property
+    def resource_type(self) -> str:
+        return self._resource_type
+
+    @property
+    def resource_code(self) -> str:
+        return self._resource_code
+
+    @property
+    def verses_html(self) -> List[str]:
+        return self._verses_html
+
+    @property
+    def content(self) -> str:
+        return self._content
 
     # FIXME Perhaps we should make this class derive from Protocol and
     # then  make this method @abc.abstractmethod

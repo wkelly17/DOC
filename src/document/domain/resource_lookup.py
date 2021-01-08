@@ -94,8 +94,8 @@ class ResourceJsonLookup:
     def _get_data(self) -> None:
         self.source_data_fetcher._get_data()
 
-    @icontract.require(lambda resource: resource._lang_code == "en")
-    @icontract.require(lambda resource: resource._resource_type is not None)
+    @icontract.require(lambda resource: resource.lang_code == "en")
+    @icontract.require(lambda resource: resource.resource_type is not None)
     @icontract.ensure(lambda result: result.source == config.GIT)
     @icontract.ensure(lambda result: result.url is not None)
     def _get_english_git_repo_location(
@@ -105,12 +105,12 @@ class ResourceJsonLookup:
         If successful, return a string containing the URL of repo,
         otherwise return None.
         """
-        url: str = config.get_english_repos_dict()[resource._resource_type]
+        url: str = config.get_english_repos_dict()[resource.resource_type]
         return model.ResourceLookupDto(url=url, source=config.GIT, jsonpath=None)
 
-    @icontract.require(lambda resource: resource._lang_code is not None)
-    @icontract.require(lambda resource: resource._resource_type is not None)
-    @icontract.require(lambda resource: resource._resource_code is not None)
+    @icontract.require(lambda resource: resource.lang_code is not None)
+    @icontract.require(lambda resource: resource.resource_type is not None)
+    @icontract.require(lambda resource: resource.resource_code is not None)
     @icontract.ensure(lambda result: result.source == config.GIT)
     @icontract.ensure(lambda result: result.jsonpath is not None)
     def _try_git_repo_location(self, resource: Resource) -> model.ResourceLookupDto:
@@ -120,7 +120,7 @@ class ResourceJsonLookup:
         """
         url: Optional[str] = None
         jsonpath_str = config.get_resource_download_format_jsonpath().format(
-            resource._lang_code, resource._resource_type, resource._resource_code,
+            resource.lang_code, resource.resource_type, resource.resource_code,
         )
         urls: List[str] = self._lookup(jsonpath_str)
         if urls is not None and len(urls) > 0:
@@ -276,9 +276,9 @@ class USFMResourceJsonLookup(ResourceLookup):
         return getattr(self.resource_json_lookup, attribute)
 
     @icontract.require(lambda self: self.resource_json_lookup.json_data is not None)
-    @icontract.require(lambda resource: resource._lang_code is not None)
-    @icontract.require(lambda resource: resource._resource_type is not None)
-    @icontract.require(lambda resource: resource._resource_code is not None)
+    @icontract.require(lambda resource: resource.lang_code is not None)
+    @icontract.require(lambda resource: resource.resource_type is not None)
+    @icontract.require(lambda resource: resource.resource_code is not None)
     @icontract.ensure(lambda result: result is not None)
     def lookup(self, resource: Resource) -> model.ResourceLookupDto:
         """
@@ -294,7 +294,7 @@ class USFMResourceJsonLookup(ResourceLookup):
         # our purposes. Therefore, we have this guard to handle
         # English resource requests separately and outside of
         # translations.json by retrieving them from their git repos.
-        if resource._lang_code == "en":
+        if resource.lang_code == "en":
             logger.info("About to look for English resource assets URL for git repo")
             return self.resource_json_lookup._get_english_git_repo_location(resource)
 
@@ -313,9 +313,9 @@ class USFMResourceJsonLookup(ResourceLookup):
 
         return resource_lookup_dto
 
-    @icontract.require(lambda resource: resource._lang_code is not None)
-    @icontract.require(lambda resource: resource._resource_type is not None)
-    @icontract.require(lambda resource: resource._resource_code is not None)
+    @icontract.require(lambda resource: resource.lang_code is not None)
+    @icontract.require(lambda resource: resource.resource_type is not None)
+    @icontract.require(lambda resource: resource.resource_code is not None)
     @icontract.ensure(lambda result: result.source == config.USFM)
     @icontract.ensure(lambda result: result.jsonpath is not None)
     def _try_individual_usfm_location(
@@ -343,7 +343,7 @@ class USFMResourceJsonLookup(ResourceLookup):
         # having a zip containing USFM files at the same level.
         url: Optional[str] = None
         jsonpath_str = config.get_individual_usfm_url_jsonpath().format(
-            resource._lang_code, resource._resource_type, resource._resource_code,
+            resource.lang_code, resource.resource_type, resource.resource_code,
         )
         urls: List[str] = self.resource_json_lookup._lookup(jsonpath_str)
         if urls is not None and len(urls) > 0:
@@ -365,7 +365,7 @@ class TResourceJsonLookup(ResourceLookup):
         return self._resource_json_lookup
 
     @icontract.require(lambda self: self.resource_json_lookup.json_data is not None)
-    @icontract.require(lambda resource: resource._lang_code is not None)
+    @icontract.require(lambda resource: resource.lang_code is not None)
     @icontract.ensure(lambda result: result is not None)
     def lookup(self, resource: Resource) -> model.ResourceLookupDto:
         """
@@ -381,7 +381,7 @@ class TResourceJsonLookup(ResourceLookup):
         # our purposes. Therefore, we have this guard to handle
         # English resource requests separately and outside of
         # translations.json.
-        if resource._lang_code == "en":
+        if resource.lang_code == "en":
             return self.resource_json_lookup._get_english_git_repo_location(resource)
 
         if resource_lookup_dto.url is None:
@@ -404,8 +404,8 @@ class TResourceJsonLookup(ResourceLookup):
 
         return resource_lookup_dto
 
-    @icontract.require(lambda resource: resource._lang_code is not None)
-    @icontract.require(lambda resource: resource._resource_type is not None)
+    @icontract.require(lambda resource: resource.lang_code is not None)
+    @icontract.require(lambda resource: resource.resource_type is not None)
     @icontract.ensure(lambda result: result.source == config.ZIP)
     @icontract.ensure(lambda result: result.jsonpath is not None)
     def _try_markdown_files_level1_location(
@@ -422,7 +422,7 @@ class TResourceJsonLookup(ResourceLookup):
         """
         url: Optional[str] = None
         jsonpath_str = config.get_resource_url_level_1_jsonpath().format(
-            resource._lang_code, resource._resource_type,
+            resource.lang_code, resource.resource_type,
         )
         urls: List[str] = self.resource_json_lookup._lookup(jsonpath_str)
         if urls is not None and len(urls) > 0:
@@ -431,8 +431,8 @@ class TResourceJsonLookup(ResourceLookup):
             url=url, source=config.ZIP, jsonpath=jsonpath_str
         )
 
-    @icontract.require(lambda resource: resource._lang_code is not None)
-    @icontract.require(lambda resource: resource._resource_type is not None)
+    @icontract.require(lambda resource: resource.lang_code is not None)
+    @icontract.require(lambda resource: resource.resource_type is not None)
     @icontract.ensure(lambda result: result.source == config.ZIP)
     @icontract.ensure(lambda result: result.jsonpath is not None)
     def _try_markdown_files_level2_location(
@@ -444,7 +444,7 @@ class TResourceJsonLookup(ResourceLookup):
         """
         url: Optional[str] = None
         jsonpath_str = config.get_resource_url_level_2_jsonpath().format(
-            resource._lang_code, resource._resource_type,
+            resource.lang_code, resource.resource_type,
         )
         urls: List[str] = self.resource_json_lookup._lookup(jsonpath_str)
         if urls is not None and len(urls) > 0:
@@ -453,8 +453,8 @@ class TResourceJsonLookup(ResourceLookup):
             url=url, source=config.ZIP, jsonpath=jsonpath_str
         )
 
-    @icontract.require(lambda resource: resource._lang_code is not None)
-    @icontract.require(lambda resource: resource._resource_type is not None)
+    @icontract.require(lambda resource: resource.lang_code is not None)
+    @icontract.require(lambda resource: resource.resource_type is not None)
     @icontract.ensure(lambda result: result.source == config.ZIP)
     @icontract.ensure(lambda result: result.jsonpath is not None)
     def _try_markdown_files_level1_sans_resource_code_location(
@@ -470,7 +470,7 @@ class TResourceJsonLookup(ResourceLookup):
         # the chapter level of the translations.json file.
         url: Optional[str] = None
         jsonpath_str = config.get_resource_url_level_1_jsonpath().format(
-            resource._lang_code, resource._resource_type,
+            resource.lang_code, resource.resource_type,
         )
         urls: List[str] = self.resource_json_lookup._lookup(jsonpath_str)
         if urls is not None and len(urls) > 0:
@@ -479,8 +479,8 @@ class TResourceJsonLookup(ResourceLookup):
             url=url, source=config.ZIP, jsonpath=jsonpath_str
         )
 
-    @icontract.require(lambda resource: resource._lang_code is not None)
-    @icontract.require(lambda resource: resource._resource_type is not None)
+    @icontract.require(lambda resource: resource.lang_code is not None)
+    @icontract.require(lambda resource: resource.resource_type is not None)
     @icontract.ensure(lambda result: result.source == config.ZIP)
     @icontract.ensure(lambda result: result.jsonpath is not None)
     def _try_markdown_files_level2_sans_resource_code_location(
@@ -494,7 +494,7 @@ class TResourceJsonLookup(ResourceLookup):
         """
         url: Optional[str] = None
         jsonpath_str = config.get_resource_url_level_2_jsonpath().format(
-            resource._lang_code, resource._resource_type,
+            resource.lang_code, resource.resource_type,
         )
         urls: List[str] = self.resource_json_lookup._lookup(jsonpath_str)
         if urls is not None and len(urls) > 0:

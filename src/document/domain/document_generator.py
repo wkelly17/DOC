@@ -275,7 +275,7 @@ class DocumentGenerator:
         # FIXME This should probably be something else, but this will
         # do for now.
         title = "Resources: "
-        title += ",".join(set(resource._resource_code for resource in self._resources))
+        title += ",".join(set(resource.resource_code for resource in self._resources))
         # FIXME When run locally xelatex chokes because the LaTeX
         # template does not set the \setmainlanguage{} and
         # \setotherlanguages{} to any value. If I manually edit the
@@ -401,7 +401,7 @@ def assemble_content_by_book(docgen: DocumentGenerator) -> str:
     logger.info("Assembling document by interleaving at the book level.")
     content: str = ""
     for resource in docgen.found_resources:
-        content += "\n\n{}".format(resource._content)
+        content += "\n\n{}".format(resource.content)
     return content
 
 
@@ -413,7 +413,7 @@ def assemble_content_by_verse(docgen: DocumentGenerator) -> str:
     """
     logger.info("Assembling document by interleaving at the verse level.")
     found_sorted = sorted(
-        docgen.found_resources, key=lambda resource: resource._lang_code
+        docgen.found_resources, key=lambda resource: resource.lang_code
     )
 
     # FIXME You could first partition by language group and then
@@ -426,7 +426,7 @@ def assemble_content_by_verse(docgen: DocumentGenerator) -> str:
     # resource. E.g., Scripture, followed by the scripture verse, then
     # Translation notes, followed by the translation note for the
     # verse, etc..
-    verses = map(lambda resource: resource._verses_html, found_sorted)
+    verses = map(lambda resource: resource.verses_html, found_sorted)
     # zip the verse HTML content for all resources together.
     # FIXME Zipping as below works, but it disallows us from using a
     # jinja template to layout resources' content into. Another

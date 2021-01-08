@@ -261,13 +261,13 @@ def fix_tw_links(lang_code: str, text: str, dictionary: str) -> str:
 #             try:
 #                 file_path = os.path.join(
 #                     self._working_dir,
-#                     "{}_{}".format(self._lang_code, resource_tmp),
+#                     "{}_{}".format(self.lang_code, resource_tmp),
 #                     "{}.md".format(path),
 #                 )
 #                 if not os.path.isfile(file_path):
 #                     file_path = os.path.join(
 #                         self._working_dir,
-#                         "{}_{}".format(self._lang_code, resource_tmp),
+#                         "{}_{}".format(self.lang_code, resource_tmp),
 #                         "{}/01.md".format(path),
 #                     )
 #                 if not os.path.isfile(file_path):
@@ -284,7 +284,7 @@ def fix_tw_links(lang_code: str, text: str, dictionary: str) -> str:
 #                     link = "#{}".format(anchor_id)
 #                     file_path = os.path.join(
 #                         self._working_dir,
-#                         "{}_{}".format(self._lang_code, resource_tmp),
+#                         "{}_{}".format(self.lang_code, resource_tmp),
 #                         "{}.md".format(path2),
 #                     )
 #                 if os.path.isfile(file_path):
