@@ -473,7 +473,7 @@ class TResourceJsonLookup(ResourceLookup):
             resource.lang_code, resource.resource_type,
         )
         urls: List[str] = self.resource_json_lookup._lookup(jsonpath_str)
-        if urls is not None and len(urls) > 0:
+        if urls:
             url = urls[0]
         return model.ResourceLookupDto(
             url=url, source=config.ZIP, jsonpath=jsonpath_str
@@ -546,7 +546,7 @@ class BIELHelperResourceJsonLookup:
         return codes_and_names
 
     @icontract.ensure(lambda result: result is not None)
-    @icontract.ensure(lambda result: len(result) > 0)
+    @icontract.ensure(lambda result: result)
     def resource_types(self) -> List[str]:
         """
         Convenience method that can be called, e.g., from the UI, to
@@ -556,7 +556,7 @@ class BIELHelperResourceJsonLookup:
         return self.resource_json_lookup._lookup(config.RESOURCE_TYPES_JSONPATH)
 
     @icontract.ensure(lambda result: result is not None)
-    @icontract.ensure(lambda result: len(result) > 0)
+    @icontract.ensure(lambda result: result)
     def resource_codes(self) -> List[str]:
         """
         Convenience method that can be called, e.g., from the UI, to
