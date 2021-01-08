@@ -22,13 +22,4 @@ e2e-tests: up
 down:
 	docker-compose down --remove-orphans
 
-stubgen:
-	stubgen src/document/domain/resource.py
-	stubgen src/document/domain/document_generator.py
-	stubgen src/document/domain/resource_lookup.py
-	stubgen src/document/domain/bible_books.py
-	stubgen src/document/entrypoints/app.py
-	stubgen src/document/utils/file_utils.py
-	stubgen src/document/utils/url_utils.py
-
 all: down build up test
