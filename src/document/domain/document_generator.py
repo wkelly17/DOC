@@ -139,7 +139,7 @@ class DocumentGenerator:
     def _initialize_document_request_key(
         self, document_request: model.DocumentRequest
     ) -> str:
-        """ Return the document_request_key. """
+        """Return the document_request_key."""
         document_request_key: str = ""
         for resource in document_request.resource_requests:
             # NOTE Alternatively, could create a (md5?) hash of th
