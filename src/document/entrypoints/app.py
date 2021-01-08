@@ -66,7 +66,7 @@ def document_endpoint(
     )
 
     logger.debug("details: {}".format(details))
-    return details  # , 200
+    return details
 
 
 # FIXME Add return type info
