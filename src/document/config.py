@@ -3,7 +3,6 @@ from typing import List
 
 # FIXME Use pydantic Settings and types
 
-# Constants rather than literal strings in code
 GIT = "git"
 USFM = "usfm"
 ZIP = "zip"
@@ -19,7 +18,7 @@ RESOURCE_CODES_JSONPATH = "$[*].contents[*].subcontents[*].code"
 
 
 def get_api_test_url() -> str:
-    """ Non-secure local URL for running the fastapi server for testing. """
+    """ Non-secure local URL for running the Fastapi server for testing. """
     return "http://localhost:{}".format(get_api_local_port())
 
 
@@ -55,7 +54,7 @@ def get_api_url() -> str:
 
 # FIXME Proper setting of working_dir is currently being handled by
 # convert_html2pdf method of document_generator instance.
-# NOTE This should be using IRG_WORKING_DIR if it is set in the shell,
+# NOTE This should be using RESOURCE_ASSETS_DIR if it is set in the shell,
 # but this presupposes that the call to python -m test_flask on the
 # tools repo is being called on the same shell as Docker container is
 # being run in. But until now, I've been running tools in a fish shell
@@ -63,15 +62,15 @@ def get_api_url() -> str:
 def get_working_dir() -> str:
     """
     The directory where the resources will be placed once
-    acquired. IRG_WORKING_DIR is provided when running in a docker
+    acquired. RESOURCE_ASSETS_DIR is provided when running in a docker
     environment. Otherwise a suitable temporary local directory is
     generated automatically.
     """
     dirname: str = ""
     if os.environ.get("IN_CONTAINER"):
-        dirname = os.environ.get("IRG_WORKING_DIR", "/working/temp")
+        dirname = os.environ.get("RESOURCE_ASSETS_DIR", "/working/temp")
     else:
-        dirname = os.environ.get("IRG_WORKING_DIR", "working/temp")
+        dirname = os.environ.get("RESOURCE_ASSETS_DIR", "working/temp")
     return dirname
 
 
@@ -79,9 +78,9 @@ def get_output_dir() -> str:
     """ The directory where the generated documents are placed. """
     dirname: str = ""
     if os.environ.get("IN_CONTAINER"):
-        dirname = os.environ.get("IRG_OUTPUT_DIR", "/working/temp")
+        dirname = os.environ.get("DOCUMENT_OUTPUT_DIR", "/working/temp")
     else:
-        dirname = os.environ.get("IRG_OUTPUT_DIR", "working/temp")
+        dirname = os.environ.get("DOCUMENT_OUTPUT_DIR", "working/temp")
     return dirname
 
 
@@ -138,7 +137,7 @@ def get_logging_config_file_path() -> str:
     """
     filepath: str = ""
     if os.environ.get("IN_CONTAINER"):
-        filepath = os.environ.get("LOGGING_CONFIG", "document/logging_config.yaml")
+        filepath = os.environ.get("LOGGING_CONFIG", "src/document/logging_config.yaml")
     else:
         filepath = "src/document/logging_config.yaml"
     return filepath
@@ -345,10 +344,11 @@ def get_markdown_template_path(key: str) -> str:
     Return a different path if the code is running inside the Docker
     container.
     """
+    # FIXME Deal with env vars for docker container if desired
     templates = {
-        "book_intro": "templates/tn/book_intro_template.md",
+        "book_intro": "src/templates/tn/book_intro_template.md",
     }
     path = templates[key]
-    if not os.environ.get("IN_CONTAINER"):
-        path = "src/{}".format(path)
+    # if not os.environ.get("IN_CONTAINER"):
+    #     path = "src/{}".format(path)
     return path
