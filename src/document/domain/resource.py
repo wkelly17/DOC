@@ -28,52 +28,7 @@ from document.utils import file_utils, link_utils, markdown_utils, url_utils
 logger = config.get_logger(__name__)
 
 
-class AbstractResource(abc.ABC):
-    """
-    Superclass/interface for resource. Provides a simple API for
-    locating, getting and initializing a resource's assets.
-    """
-
-    @abc.abstractmethod
-    def find_location(self) -> None:
-        """
-        Find the remote location where a the resource's file assets
-        may be found.
-
-        Subclasses override this method.
-        """
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def get_files(self) -> None:
-        """
-        Using the resource's remote location, download the resource's file
-        assets to disk.
-
-        Subclasses override this method.
-        """
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def initialize_assets(self) -> None:
-        """
-        Find and load resource files that were downloaded to disk.
-
-        Subclasses override.
-        """
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def get_content(self) -> None:
-        """
-        Initialize resource with content found in resource's files.
-
-        Subclasses override.
-        """
-        raise NotImplementedError
-
-
-class Resource(AbstractResource):
+class Resource:
     """
     Reification of the incoming document resource request
     fortified with additional state as instance variables.
@@ -131,6 +86,41 @@ class Resource(AbstractResource):
             self._lang_code, self._resource_type, self._resource_code
         )
 
+    @abc.abstractmethod
+    def find_location(self) -> None:
+        """
+        Find the remote location where a the resource's file assets
+        may be found.
+
+        Subclasses override this method.
+        """
+        raise NotImplementedError
+
+    def get_files(self) -> None:
+        """
+        Using the resource's remote location, download the resource's file
+        assets to disk.
+        """
+        ResourceProvisioner(self)()
+
+    @abc.abstractmethod
+    def initialize_from_assets(self) -> None:
+        """
+        Find and load resource files that were downloaded to disk.
+
+        Subclasses override.
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_content(self) -> None:
+        """
+        Initialize resource with content found in resource's files.
+
+        Subclasses override.
+        """
+        raise NotImplementedError
+
     def is_found(self) -> bool:
         """Return true if resource's URL location was found."""
         return self._resource_url is not None
@@ -180,118 +170,6 @@ class Resource(AbstractResource):
         """Provide public interface for other modules."""
         return self._resource_source
 
-    # FIXME Perhaps we should make this class derive from Protocol and
-    # then  make this method @abc.abstractmethod
-    def find_location(self) -> None:
-        """
-        See docstring in superclass.
-
-        Subclasses override.
-        """
-        pass
-
-    # FIXME Perhaps we should make this class derive from Protocol and
-    # then  make this method @abc.abstractmethod
-    def get_files(self) -> None:
-        """See docstring in superclass."""
-        ResourceProvisioner(self)()
-
-    # FIXME Perhaps we should make this class derive from Protocol and
-    # then  make this method @abc.abstractmethod
-    def initialize_assets(self) -> None:
-        """
-        See docstring in superclass.
-
-        Subclasses override.
-        """
-        pass
-
-    def get_content(self) -> None:
-        """
-        See docstring in superclass.
-
-        Subclasses override.
-        """
-        pass
-
-    # FIXME Utiity type methods that could possibly be put in a mixin
-    # class and then inherited by each resource subclass, e.g., by
-    # USFMResource, TNResource, etc.:
-
-    # @icontract.require(lambda self: self._resource_source is not None)
-    # def _is_usfm(self) -> bool:
-    #     """Return true if _resource_source is equal to 'usfm'."""
-    #     return self._resource_source == config.USFM
-
-    # FIXME I am using the bs4 bits of this elsewhere now to decompose
-    # the HTNL back into verses (but don't have it worked out totally
-    # yet).
-    # def _get_chunk_html(self, resource_str: str, chapter: str, verse: str) -> str:
-    #     # FIXME Do we want a temp dir here? This is where the USFM
-    #     # file chunk requested, by chapter and verse, will be written
-    #     # and subsequently read from.
-    #     # Build a path where we'll write the USFM chunk into a file
-    #     path = tempfile.mkdtemp(
-    #         dir=self._working_dir,
-    #         prefix="usfm-{}-{}-{}-{}-{}_".format(
-    #             self._lang_code,
-    #             resource_str,
-    #             self._book_id,
-    #             chapter,
-    #             verse
-    #             # self._lang_code, resource, self.book_id, chapter, verse
-    #         ),
-    #     )
-    #     logger.debug(
-    #         "path, i.e., location of USFM chunk file to write: {}".format(path)
-    #     )
-    #     filename_base = "{}-{}-{}-{}".format(
-    #         resource_str, self._book_id, chapter, verse
-    #     )
-    #     # filename_base = "{0}-{1}-{2}-{3}".format(resource, self.book_id, chapter, verse)
-    #     # Get the chunk for chapter and verse
-    #     try:
-    #         chunk = self._usfm_chunks[resource_str][chapter][verse]["usfm"]
-    #         # chunk = self.usfm_chunks[resource_str][chapter][verse]["usfm"]
-    #     except KeyError:
-    #         chunk = ""
-    #     # Get the USFM header portion
-    #     usfm = self._usfm_chunks[resource_str]["header"]
-    #     # If a chapter markder is not present in the chunk, then add one
-    #     if "\\c" not in chunk:
-    #         usfm += "\n\n\\c {0}\n".format(chapter)
-    #     # Add the chapter chunk to the header
-    #     usfm += chunk
-    #     # FIXME Use instance vars instead?
-    #     # FIXME Do we want to use filename_base?
-    #     # Write the chapter USFM chunk to file
-    #     write_file(os.path.join(path, filename_base + ".usfm"), usfm)
-    #     # FIXME Is this what we'll use to build the USFM resource
-    #     # content?
-    #     # Convert the USFM to HTML
-    #     UsfmTransform.buildSingleHtml(path, path, filename_base)
-    #     # Read the HTML
-    #     html = read_file(os.path.join(path, filename_base + ".html"))
-    #     # Get rid of the temp directory
-    #     shutil.rmtree(path, ignore_errors=True)
-    #     # Get a parser on the HTML
-    #     soup = bs4.BeautifulSoup(html, "html.parser")
-    #     # Find the h1 element
-    #     header = soup.find("h1")
-    #     if header:  # h1 element exists
-    #         # Delete the h1 element
-    #         header.decompose()
-    #     # Find the h2 element
-    #     chapter_element: Union[
-    #         bs4.element.Tag, bs4.element.NavigableString
-    #     ] = soup.find("h2")
-    #     if chapter_element:  # h2 element exists
-    #         # Delete the h2 element
-    #         chapter_element.decompose()
-    #     # Get the HTML body
-    #     html = "".join(["%s" % x for x in soup.body.contents])
-    #     return html
-
 
 class USFMResource(Resource):
     """
@@ -319,7 +197,7 @@ class USFMResource(Resource):
         self._resource_jsonpath = resource_lookup_dto.jsonpath
         logger.debug("self._resource_url: {} for {}".format(self._resource_url, self))
 
-    def initialize_assets(self) -> None:
+    def initialize_from_assets(self) -> None:
         """See docstring in superclass."""
         self._manifest = Manifest(self)
 
@@ -557,7 +435,7 @@ class TResource(Resource):
         self._resource_jsonpath = resource_lookup_dto.jsonpath
         logger.debug("self._resource_url: {} for {}".format(self._resource_url, self))
 
-    def initialize_assets(self) -> None:
+    def initialize_from_assets(self) -> None:
         """Programmatically discover the manifest and content files."""
         self._manifest = Manifest(self)
 
