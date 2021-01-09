@@ -107,7 +107,7 @@ def get_individual_usfm_url_jsonpath() -> str:
     return "$[?code='{}'].contents[?code='{}'].subcontents[?code='{}'].links[?format='usfm'].url"
 
 
-def get_resource_url_level_1_jsonpath() -> str:
+def get_resource_url_level1_jsonpath() -> str:
     """
     The jsonpath location in TRANSLATIONS_JSON_LOCATION file where
     resource URL, e.g., tn, tq, ta, obs, ulb, udb, etc., may normally
@@ -116,7 +116,7 @@ def get_resource_url_level_1_jsonpath() -> str:
     return "$[?code='{}'].contents[?code='{}'].links[?format='zip'].url"
 
 
-def get_resource_url_level_2_jsonpath() -> str:
+def get_resource_url_level2_jsonpath() -> str:
     """
     The jsonpath location in TRANSLATIONS_JSON_LOCATION file where
     resource URL, e.g., tn, tq, ta, obs, ulb, udb, etc., may
