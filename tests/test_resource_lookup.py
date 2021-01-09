@@ -44,8 +44,7 @@ logger = logging.getLogger(__name__)
 
 
 def main() -> None:
-    """ Test driver. """
-
+    """Test driver."""
     usfm_lookup_svc = resource_lookup.USFMResourceJsonLookup()
     t_lookup_svc = resource_lookup.TResourceJsonLookup()
     biel_helper_lookup_svc = resource_lookup.BIELHelperResourceJsonLookup()

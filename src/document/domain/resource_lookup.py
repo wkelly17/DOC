@@ -1,3 +1,8 @@
+"""
+This module provides an API for looking up the location of a
+resource's asset files in the cloud.
+"""
+
 from __future__ import annotations  # https://www.python.org/dev/peps/pep-0563/
 from typing import Any, Dict, List, Optional, Set, Tuple, TYPE_CHECKING, Union
 import abc
@@ -79,9 +84,13 @@ class ResourceJsonLookup:
         # NOTE This be a Singleton
         self._source_data_fetcher = SourceDataFetcher()
 
-    # # Make composition less arduous.
-    # def __getattr__(self, attribute: str) -> Any:
-    #     return getattr(self._source_data_fetcher, attribute)
+    # Make composition less arduous.
+    def __getattr__(self, attribute: str) -> Any:
+        """
+        Delegate method calls not on self to
+        self._source_data_fetcher.
+        """
+        return getattr(self._source_data_fetcher, attribute)
 
     @property
     def source_data_fetcher(self) -> SourceDataFetcher:
@@ -198,13 +207,14 @@ class SourceDataFetcher:
 
     @property
     def json_data(self) -> dict:
+        """Provide public method for other modules to access."""
         return self._json_data
 
     @icontract.require(lambda self: self._json_file_url is not None)
     @icontract.require(lambda self: self._json_file is not None)
     @icontract.ensure(lambda self: self._json_data is not None)
     def _get_data(self) -> None:
-        """ Download json data and parse it into equivalent python objects. """
+        """Download json data and parse it into equivalent python objects."""
         logger.info("About to check if we need new translations.json")
         if self._data_needs_update():
             # Download json file
@@ -258,11 +268,18 @@ class ResourceLookup(abc.ABC):
 
     @abc.abstractmethod
     def lookup(self, resource: Resource) -> model.ResourceLookupDto:
+        """
+        Given a resource, comprised of language code, e.g., 'en', a
+        resource type, e.g., 'ulb-wa', and a resource code, e.g., 'gen',
+        return URL for resource.
+
+        Subclasses implement.
+        """
         raise NotImplementedError
 
 
 class USFMResourceJsonLookup(ResourceLookup):
-    """ Handle lookup of USFM resources. """
+    """Handle lookup of USFM resources."""
 
     def __init__(self) -> None:
         self._resource_json_lookup = ResourceJsonLookup()
@@ -273,7 +290,11 @@ class USFMResourceJsonLookup(ResourceLookup):
 
     # Make composition less arduous.
     def __getattr__(self, attribute: str) -> Any:
-        return getattr(self.resource_json_lookup, attribute)
+        """
+        Redirect method lookups that are not on self to
+        self.resource_json_lookup.
+        """
+        return getattr(self._resource_json_lookup, attribute)
 
     @icontract.require(lambda self: self.resource_json_lookup.json_data is not None)
     @icontract.require(lambda resource: resource.lang_code is not None)
@@ -282,9 +303,9 @@ class USFMResourceJsonLookup(ResourceLookup):
     @icontract.ensure(lambda result: result is not None)
     def lookup(self, resource: Resource) -> model.ResourceLookupDto:
         """
-        Given a resource, comprised of language code, e.g., 'wum', a
-        resource type, e.g., 'tn', and an optional resource code,
-        e.g., 'gen', return URL for resource.
+        Given a resource, comprised of language code, e.g., 'en', a
+        resource type, e.g., 'ulb-wa', and a resource code, e.g., 'gen',
+        return URL for resource.
         """
         resource_lookup_dto: model.ResourceLookupDto
 
@@ -355,7 +376,7 @@ class USFMResourceJsonLookup(ResourceLookup):
 
 
 class TResourceJsonLookup(ResourceLookup):
-    """ Handle lookup of TN, TA, TQ, TW resources. """
+    """Handle lookup of TN, TA, TQ, TW resources."""
 
     def __init__(self) -> None:
         self._resource_json_lookup = ResourceJsonLookup()
@@ -505,7 +526,7 @@ class TResourceJsonLookup(ResourceLookup):
 
 
 class BIELHelperResourceJsonLookup:
-    """ Helper class for BIEL UI to fetch values for dropdown menus. """
+    """Helper class for BIEL UI to fetch values for dropdown menus."""
 
     def __init__(self) -> None:
         self._resource_json_lookup = ResourceJsonLookup()
@@ -520,7 +541,7 @@ class BIELHelperResourceJsonLookup:
         """
         Convenience method that can be called from UI to get the set
         of all language codes available through API. Presumably this
-        could be called to populate a dropdown menu.
+        could be called to populate a drop-down menu.
         """
         codes: List[str] = []
         self.resource_json_lookup._get_data()
@@ -535,7 +556,7 @@ class BIELHelperResourceJsonLookup:
         """
         Convenience method that can be called from UI to get the set
         of all language code, name tuples available through API.
-        Presumably this could be called to populate a dropdown menu.
+        Presumably this could be called to populate a drop-down menu.
         """
         self.resource_json_lookup._get_data()
         codes_and_names: List[Tuple[str, str]] = []

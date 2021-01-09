@@ -1,3 +1,5 @@
+"""This module provides the FastAPI API definition."""
+
 import logging
 import logging.config
 import os
@@ -29,28 +31,11 @@ logger = logging.getLogger(__name__)
 def document_endpoint(
     document_request: model.DocumentRequest,
 ) -> model.FinishedDocumentDetails:
-    # FIXME Fix comment which is out of sync with code. Code needs to
-    # change until this comment is true.
     """
-    Get the JSON POSTed data, create document batch job consisting
-    of the requested resources and hand it off to the message bus for handling
-    asynchronously. Return OK to the requesting HTTP client along with
-    JSON return payload containing URL of eventually resulting PDF.
-
-    Params:
-
-    - assembly_strategy_kind Either BOOK - "book", CHAPTER -
-    "chapter", or VERSE - "verse"
-
-    - document_request The DocumentRequest instance that contains the
-    resource requests for one document generation request.
-
+    Get the document request hand it off to the document_generator
+    module for processing. Return FinishedDocumentDetails instance
+    containing URL of resulting PDF.
     """
-
-    # NOTE I may interject a service layer here for one layer of
-    # indirection. That layer of indirection will come in handy for
-    # testing and provide more flexibility to API changes.
-    # Hand off resource object to domain layer
     document_generator = DocumentGenerator(
         document_request, config.get_working_dir(), config.get_output_dir(),
     )

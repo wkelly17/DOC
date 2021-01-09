@@ -1,3 +1,6 @@
+"""This module provides configuration values used by the application."""
+
+
 import os
 from typing import List
 
@@ -18,7 +21,7 @@ RESOURCE_CODES_JSONPATH = "$[*].contents[*].subcontents[*].code"
 
 
 def get_api_test_url() -> str:
-    """ Non-secure local URL for running the Fastapi server for testing. """
+    """Non-secure local URL for running the Fastapi server for testing."""
     return "http://localhost:{}".format(get_api_local_port())
 
 
@@ -32,17 +35,17 @@ def get_api_root() -> str:
 
 
 def get_api_local_port() -> str:
-    """ Get port where the Fastapi server runs locally. """
+    """Get port where the Fastapi server runs locally."""
     return os.environ.get("API_LOCAL_PORT", "5005")
 
 
 def get_api_remote_port() -> str:
-    """ Get port where the Fastapi server runs remotely in the Docker container. """
+    """Get port where the Fastapi server runs remotely in the Docker container."""
     return os.environ.get("API_REMOTE_PORT", "80")
 
 
 def get_api_url() -> str:
-    """  Return the full base URL of the Fastapi server. """
+    """Return the full base URL of the Fastapi server."""
     host = os.environ.get("API_HOST", "localhost")
     port = get_api_local_port() if host == "localhost" else get_api_remote_port()
     root = get_api_root()
@@ -75,8 +78,8 @@ def get_working_dir() -> str:
 
 
 def get_output_dir() -> str:
-    """ The directory where the generated documents are placed. """
     dirname: str = ""
+    """The directory where the generated documents are placed."""
     if os.environ.get("IN_CONTAINER"):
         dirname = os.environ.get("DOCUMENT_OUTPUT_DIR", "/working/temp")
     else:
@@ -147,7 +150,7 @@ def get_logging_config_file_path() -> str:
 # their website. For now I just copy over an old version of the icon
 # into ./working/temp/.
 def get_icon_url() -> str:
-    """ Get the tn-icon.png from unfolding word. """
+    """Get the tn-icon.png from unfolding word."""
     return "https://unfoldingword.org/assets/img/icon-tn.png"
     # return "https://static1.squarespace.com/static/591e003db8a79bd6e6c9ffae/t/5e306da5898d7b14b76889dd/1600444722464/?format=1500w"
 
@@ -319,7 +322,7 @@ PANDOC_COMMAND2 = """pandoc -f html -t latex \
 # the LaTeX to PDF generation. It may be wise to tell pandoc to
 # generate LaTeX from HTML also so that we can debug the LaTeX.
 def get_pandoc_command() -> str:
-    """ Return the pandoc command format string. """
+    """Return the pandoc command format string."""
     return PANDOC_COMMAND2
 
 

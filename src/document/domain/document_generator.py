@@ -75,6 +75,12 @@ logger = logging.getLogger(__name__)
 
 
 class DocumentGenerator:
+    """
+    This class is the entry point to the backend from Fastapi api.
+    Handles turning an incoming document request into a finished
+    document.
+    """
+
     def __init__(
         self,
         document_request: model.DocumentRequest,

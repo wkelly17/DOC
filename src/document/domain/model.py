@@ -1,3 +1,10 @@
+"""
+This module provides classes that are used as data transfer objects.
+In particular, many of the classes here are subclasses of
+pydantic.BaseModel as FastAPI can use these classes to do automatic
+validation and JSON serialization.
+"""
+
 from enum import Enum
 from typing import List, Optional
 
@@ -29,15 +36,14 @@ class AssemblyStrategyEnum(str, Enum):
     There are three assembly strategy kinds to choose from:
 
     * book
+      - book strategy will cause a book's worth of each resource's
+      content to be interleaved.
     * chapter
+      - chapter strategy will cause a chapter's worth of each resource's
+      content to be interleaved.
     * verse
-
-    - book strategy will cause a book's worth of each resource's
-    content to be interleaved.
-    - chapter strategy will cause a chapter's worth of each resource's
-    content to be interleaved.
-    - verse strategy will cause a verse's worth of each resource's
-    content to be interleaved.
+      - verse strategy will cause a verse's worth of each resource's
+      content to be interleaved.
     """
 
     book = "book"

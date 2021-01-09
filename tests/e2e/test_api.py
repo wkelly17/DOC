@@ -1,7 +1,10 @@
-from fastapi.testclient import TestClient
-import os
-from document import config
+"""This module provides tests for the FastAPI API."""
 
+import os
+
+from fastapi.testclient import TestClient
+
+from document import config
 from document.entrypoints.app import app
 
 

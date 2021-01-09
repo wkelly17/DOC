@@ -1,3 +1,8 @@
+"""
+This module provides classes that reify the concept of a resource.
+There are different classes for each resource type.
+"""
+
 from __future__ import annotations  # https://www.python.org/dev/peps/pep-0563/
 
 import abc
@@ -138,49 +143,50 @@ class Resource(AbstractResource):
 
     @property
     def lang_code(self) -> str:
+        """Provide public interface for other modules."""
         return self._lang_code
 
     @property
     def resource_type(self) -> str:
+        """Provide public interface for other modules."""
         return self._resource_type
 
     @property
     def resource_code(self) -> str:
+        """Provide public interface for other modules."""
         return self._resource_code
 
     @property
     def verses_html(self) -> List[str]:
+        """Provide public interface for other modules."""
         return self._verses_html
 
     @property
     def content(self) -> str:
+        """Provide public interface for other modules."""
         return self._content
 
     # FIXME Perhaps we should make this class derive from Protocol and
     # then  make this method @abc.abstractmethod
     def find_location(self) -> None:
         """
-        Find the remote location where a the resource's file assets
-        may be found.
+        See docstring in superclass.
 
-        Subclasses override this method.
+        Subclasses override.
         """
         pass
 
     # FIXME Perhaps we should make this class derive from Protocol and
     # then  make this method @abc.abstractmethod
     def get_files(self) -> None:
-        """
-        Using the resource's remote location, download the resource's file
-        assets to disk.
-        """
+        """See docstring in superclass."""
         ResourceProvisioner(self)()
 
     # FIXME Perhaps we should make this class derive from Protocol and
     # then  make this method @abc.abstractmethod
     def initialize_assets(self) -> None:
         """
-        Find and load resource files that were downloaded to disk.
+        See docstring in superclass.
 
         Subclasses override.
         """
@@ -188,7 +194,7 @@ class Resource(AbstractResource):
 
     def get_content(self) -> None:
         """
-        Initialize resource with content found in resource's files.
+        See docstring in superclass.
 
         Subclasses override.
         """
@@ -274,6 +280,11 @@ class Resource(AbstractResource):
 
 
 class USFMResource(Resource):
+    """
+    This class specializes the behavior and state of Resource for
+    the case of a USFM resource.
+    """
+
     def __init__(self, *args, **kwargs) -> None:  # type: ignore
         super().__init__(*args, **kwargs)
         self._usfm_chunks: dict = {}
@@ -283,7 +294,7 @@ class USFMResource(Resource):
 
     @icontract.ensure(lambda self: self._resource_url is not None)
     def find_location(self) -> None:
-        """Find the URL where the resource's assets are located."""
+        """See docstring in superclass."""
         # FIXME For better flexibility, the lookup class could be
         # looked up in a table, i.e., dict, that has the key as self
         # classname and the value as the lookup subclass.
@@ -295,10 +306,7 @@ class USFMResource(Resource):
         logger.debug("self._resource_url: {} for {}".format(self._resource_url, self))
 
     def initialize_assets(self) -> None:
-        """
-        Explore the resource's downloaded files to initialize file
-        structure related properties.
-        """
+        """See docstring in superclass."""
         self._manifest = Manifest(self)
 
         usfm_content_files = glob("{}**/*.usfm".format(self._resource_dir))
@@ -350,6 +358,7 @@ class USFMResource(Resource):
     @icontract.require(lambda self: self._content_files is not None)
     @icontract.ensure(lambda self: self._resource_filename is not None)
     def get_content(self) -> None:
+        """See docstring in superclass."""
         self._get_usfm_chunks()
 
         # FIXME Experiment with content derived from
@@ -1016,7 +1025,13 @@ class TNResource(TResource):
 
 
 class TWResource(TResource):
+    """
+    This class specializes Resource for the case of a Translation
+    Words resource.
+    """
+
     def get_content(self) -> None:
+        """See docstring in superclass."""
         logger.info("Processing Translation Words Markdown...")
         self._get_tw_markdown()
         # FIXME
@@ -1074,7 +1089,13 @@ class TWResource(TResource):
 
 
 class TQResource(TResource):
+    """
+    This class specializes Resource for the case of a Translation
+    Questions resource.
+    """
+
     def get_content(self) -> None:
+        """See docstring in superclass."""
         logger.info("Processing Translation Questions Markdown...")
         self._get_tq_markdown()
         # FIXME
@@ -1180,7 +1201,13 @@ class TQResource(TResource):
 
 
 class TAResource(TResource):
+    """
+    This class specializes Resource for the case of a Translation
+    Answers resource.
+    """
+
     def get_content(self) -> None:
+        """See docstring in superclass."""
         logger.info("Processing Translation Academy Markdown...")
         self._get_ta_markdown()
         # FIXME
@@ -1222,7 +1249,10 @@ class TAResource(TResource):
 def resource_factory(
     working_dir: str, output_dir: str, resource_request: model.ResourceRequest
 ) -> Resource:
-    """Factory method."""
+    """
+    Factory method to create the appropriate Resource subclass for
+    a given ResourceRequest instance.
+    """
     # resource_type is key, Resource subclass is value
     resources = {
         "usfm": USFMResource,
@@ -1270,6 +1300,10 @@ class ResourceProvisioner:
         self._resource = resource
 
     def __call__(self) -> None:
+        """
+        Prepare the resource directory and then download the
+        resource's file assets into that directory.
+        """
         self._prepare_resource_directory()
         self._acquire_resource()
 
