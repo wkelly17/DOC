@@ -1,12 +1,16 @@
-from contextlib import closing
 import json
 import shutil
 import sys
+from contextlib import closing
+from typing import List
+from urllib.request import urlopen
 
-from urllib.request import urlopen  # type: ignore
+from document import config
+
+logger = config.get_logger(__name__)
 
 
-def get_url(url, catch_exception=False):
+def get_url(url: str, catch_exception: bool = False) -> str:
     """
     :param str|unicode url: URL to open
     :param bool catch_exception: If <True> catches all exceptions and returns <False>
@@ -14,7 +18,7 @@ def get_url(url, catch_exception=False):
     return _get_url(url, catch_exception)
 
 
-def _get_url(url, catch_exception):
+def _get_url(url: str, catch_exception: bool) -> str:
     if catch_exception:
         # noinspection PyBroadException
         try:
@@ -27,10 +31,10 @@ def _get_url(url, catch_exception):
             response = request.read()
 
     # convert bytes to str (Python 3.5)
-    if type(response) is bytes:
+    # if type(response) is bytes:
+    if isinstance(response, bytes):
         return response.decode("utf-8")
-    else:
-        return response
+    return response
 
 
 def download_file(url: str, outfile: str) -> None:
@@ -44,12 +48,12 @@ def _download_file(url: str, outfile: str) -> None:
             with open(outfile, "wb") as fp:
                 shutil.copyfileobj(request, fp)
     except IOError as err:
-        print("ERROR retrieving %s" % url)
-        print(err)
+        logger.debug("ERROR retrieving {}".format(url))
+        logger.debug(err)
         sys.exit(1)
 
 
-def get_languages():
+def get_languages() -> List:
     """
     Returns an array of over 7000 dictionaries.
 
@@ -73,7 +77,8 @@ def get_languages():
     return json.loads(get_url(url))
 
 
-def join_url_parts(*args):
+# NOTE Currently unused.
+def join_url_parts(args: List[str]) -> str:
     """
     Joins a list of segments into a URL-like string.
 
@@ -90,16 +95,17 @@ def join_url_parts(*args):
 
         if i == len(args) - 1:
             # no need to remove a trailing slash if this is the last segment
-            return_val += "/" + arg
+            return_val = "{}/{}".format(return_val, arg)
         else:
             # remove a trailing slash so it won't be duplicated
-            return_val += "/" + clean_url_segment(arg)
+            return_val = "{}/{}".format(return_val, clean_url_segment(arg))
 
     return return_val
 
 
-def clean_url_segment(segment):
-
+# NOTE Currently unused.
+def clean_url_segment(segment: str) -> str:
+    """Remove trailing slash if it exists."""
     if segment[-1:] == "/":
         return segment[:-1]
 
