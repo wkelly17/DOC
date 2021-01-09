@@ -1,10 +1,8 @@
+import os
 from typing import List
 
-import os
-
 from document import config
-from document.domain import model
-from document.domain import document_generator
+from document.domain import document_generator, model
 
 
 def test_document_generator_for_english_with_interleaving_by_book() -> None:

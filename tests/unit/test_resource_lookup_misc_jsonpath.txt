@@ -1,3 +1,5 @@
+from typing import List
+
 from document.domain import resource_lookup
 
 ## A few random tests exercising jsonpath of no real use for the API,

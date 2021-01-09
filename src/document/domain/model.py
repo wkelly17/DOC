@@ -93,8 +93,6 @@ class ChapterIntroTemplateDto(BookIntroTemplateDto):
     template for book intro.
     """
 
-    pass
-
 
 class FinishedDocumentDetails(BaseModel):
     """

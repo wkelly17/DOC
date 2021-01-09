@@ -1,7 +1,7 @@
 from typing import List
 
 from document import config
-from document.domain import model, resource_lookup
+from document.domain import model
 from document.domain.resource import resource_factory
 
 ## Test the API:
@@ -40,4 +40,4 @@ def test_lookup() -> None:
             config.get_working_dir(), config.get_output_dir(), resource_request
         )
         resource.find_location()
-        assert resource._resource_url
+        assert resource.resource_url

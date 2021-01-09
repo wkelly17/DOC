@@ -15,13 +15,9 @@ from __future__ import annotations  # https://www.python.org/dev/peps/pep-0563/
 
 import csv
 import datetime
-import logging
-import logging.config
 import os
 import subprocess
 from typing import TYPE_CHECKING, Callable, List
-
-import yaml
 
 from document import config
 from document.domain import model
@@ -47,12 +43,7 @@ if TYPE_CHECKING:
     from document.domain.resource import Resource
 
 
-with open(config.get_logging_config_file_path(), "r") as fin:
-    logging_config = yaml.safe_load(fin.read())
-    logging.config.dictConfig(logging_config)
-
-logger = logging.getLogger(__name__)
-
+logger = config.get_logger(__name__)
 
 # NOTE Not all languages have tn, tw, tq, tq, udb, ulb. Some
 # have only a subset of those resources. Presumably the web UI
@@ -128,41 +119,6 @@ class DocumentGenerator:
             "self._document_request_key: {}".format(self._document_request_key)
         )
 
-    def _initialize_resources(
-        self, document_request: model.DocumentRequest
-    ) -> List[Resource]:
-        """
-        Given a DocumentRequest instance, return a list of Resource
-        objects.
-        """
-        resources: List[Resource] = []
-        for resource_request in document_request.resource_requests:
-            resources.append(
-                resource_factory(self.working_dir, self.output_dir, resource_request)
-            )
-        return resources
-
-    def _initialize_document_request_key(
-        self, document_request: model.DocumentRequest
-    ) -> str:
-        """Return the document_request_key."""
-        document_request_key: str = ""
-        for resource in document_request.resource_requests:
-            # NOTE Alternatively, could create a (md5?) hash of th
-            # concatenation of lang_code, resource_type,
-            # resource_code.
-            document_request_key += (
-                "-".join(
-                    [
-                        resource.lang_code,
-                        resource.resource_type,
-                        resource.resource_code,
-                    ]
-                )
-                + "_"
-            )
-        return document_request_key[:-1]
-
     def run(self) -> None:
         """
         This is the main entry point for this class and the
@@ -176,69 +132,6 @@ class DocumentGenerator:
         self._fetch_resources()
         self._initialize_resource_content()
         self._generate_pdf()
-
-    def _fetch_resources(self) -> None:
-        """
-        Get the resources' files from the network. Those that are
-        found successfully add to self.found_resources. Those that are
-        not found add to self.unfound_resources.
-        """
-        for resource in self._resources:
-            resource.find_location()
-            if resource.is_found():
-                # Keep a list of resources that were found, we'll use
-                # it soon.
-                self.found_resources.append(resource)
-                resource.get_files()
-            else:
-                logger.info("{} was not found".format(resource))
-                # Keep a list of unfound resources so that we can use
-                # it for reporting.
-                self.unfound_resources.append(resource)
-
-    def _initialize_resource_content(self) -> None:
-        """
-        Initialize the resources from their found assets and
-        generate their content for later typesetting.
-        """
-        for resource in self.found_resources:
-            resource.initialize_assets()
-            # NOTE You could pass a USFM resource if it exists to get_content
-            # for TResource subclasses. This would presuppose that we initialize
-            # USFM resources first in this loop or break out into multiple
-            # loops: one for USFM, one for TResource subclasses. Perhaps you
-            # would also sort the resources by lang_code so that they are interleaved
-            # such that their expected language relationship is retained.
-            resource.get_content()
-
-    def _generate_pdf(self) -> None:
-        """
-        If the PDF doesn't yet exist, go ahead and generate it
-        using the content for each resource.
-        """
-        output_filename: str = os.path.join(
-            self.output_dir, "{}.pdf".format(self._document_request_key)
-        )
-        if not os.path.isfile(output_filename):
-            self.assemble_content()
-            logger.info("Generating PDF...")
-            self.convert_html2pdf()
-            # TODO Return json message containing any resources that
-            # we failed to find so that the front end can let the user
-            # know.
-            logger.debug(
-                "Unfound resource requests: {}".format(
-                    "; ".join(str(resource) for resource in self.unfound_resources)
-                ),
-            )
-
-    def _get_unfoldingword_icon(self) -> None:
-        """ Get Unfolding Word's icon for display in generated PDF. """
-        if not os.path.isfile(os.path.join(self.working_dir, "icon-tn.png")):
-            command = "curl -o {}/icon-tn.png {}".format(
-                self.working_dir, config.get_icon_url(),
-            )
-            subprocess.call(command, shell=True)
 
     def assemble_content(self) -> None:
         """
@@ -281,7 +174,7 @@ class DocumentGenerator:
         # FIXME This should probably be something else, but this will
         # do for now.
         title = "Resources: "
-        title += ",".join(set(resource.resource_code for resource in self._resources))
+        title += ",".join({resource.resource_code for resource in self._resources})
         # FIXME When run locally xelatex chokes because the LaTeX
         # template does not set the \setmainlanguage{} and
         # \setotherlanguages{} to any value. If I manually edit the
@@ -343,6 +236,109 @@ class DocumentGenerator:
             logger.info("About to cp PDF to /output")
             logger.debug("Copy PDF command: {}".format(copy_command))
             subprocess.call(copy_command, shell=True)
+
+    @property
+    def document_request_key(self) -> str:
+        """Provide public access method for other modules."""
+        return self._document_request_key
+
+    def _fetch_resources(self) -> None:
+        """
+        Get the resources' files from the network. Those that are
+        found successfully add to self.found_resources. Those that are
+        not found add to self.unfound_resources.
+        """
+        for resource in self._resources:
+            resource.find_location()
+            if resource.is_found():
+                # Keep a list of resources that were found, we'll use
+                # it soon.
+                self.found_resources.append(resource)
+                resource.get_files()
+            else:
+                logger.info("{} was not found".format(resource))
+                # Keep a list of unfound resources so that we can use
+                # it for reporting.
+                self.unfound_resources.append(resource)
+
+    def _initialize_resource_content(self) -> None:
+        """
+        Initialize the resources from their found assets and
+        generate their content for later typesetting.
+        """
+        for resource in self.found_resources:
+            resource.initialize_assets()
+            # NOTE You could pass a USFM resource if it exists to get_content
+            # for TResource subclasses. This would presuppose that we initialize
+            # USFM resources first in this loop or break out into multiple
+            # loops: one for USFM, one for TResource subclasses. Perhaps you
+            # would also sort the resources by lang_code so that they are interleaved
+            # such that their expected language relationship is retained.
+            resource.get_content()
+
+    def _initialize_resources(
+        self, document_request: model.DocumentRequest
+    ) -> List[Resource]:
+        """
+        Given a DocumentRequest instance, return a list of Resource
+        objects.
+        """
+        resources: List[Resource] = []
+        for resource_request in document_request.resource_requests:
+            resources.append(
+                resource_factory(self.working_dir, self.output_dir, resource_request)
+            )
+        return resources
+
+    def _initialize_document_request_key(
+        self, document_request: model.DocumentRequest
+    ) -> str:
+        """Return the document_request_key."""
+        document_request_key = ""
+        for resource in document_request.resource_requests:
+            # NOTE Alternatively, could create a (md5?) hash of th
+            # concatenation of lang_code, resource_type,
+            # resource_code.
+            document_request_key += (
+                "-".join(
+                    [
+                        resource.lang_code,
+                        resource.resource_type,
+                        resource.resource_code,
+                    ]
+                )
+                + "_"
+            )
+        return document_request_key[:-1]
+
+    def _generate_pdf(self) -> None:
+        """
+        If the PDF doesn't yet exist, go ahead and generate it
+        using the content for each resource.
+        """
+        output_filename: str = os.path.join(
+            self.output_dir, "{}.pdf".format(self._document_request_key)
+        )
+        if not os.path.isfile(output_filename):
+            self.assemble_content()
+            logger.info("Generating PDF...")
+            self.convert_html2pdf()
+            # TODO Return json message containing any resources that
+            # we failed to find so that the front end can let the user
+            # know.
+            logger.debug(
+                "Unfound resource requests: {}".format(
+                    "; ".join(str(resource) for resource in self.unfound_resources)
+                ),
+            )
+
+    def _get_unfoldingword_icon(self) -> None:
+        """Get Unfolding Word's icon for display in generated PDF."""
+        if not os.path.isfile(os.path.join(self.working_dir, "icon-tn.png")):
+            command = "curl -o {}/icon-tn.png {}".format(
+                self.working_dir, config.get_icon_url(),
+            )
+            subprocess.call(command, shell=True)
 
 
 # FIXME Old legacy code

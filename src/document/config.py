@@ -1,8 +1,14 @@
 """This module provides configuration values used by the application."""
 
 
+import logging
 import os
+from logging import config as lc
 from typing import List
+
+import yaml
+
+from document import config
 
 # FIXME Use pydantic Settings and types
 
@@ -18,6 +24,17 @@ JSON_SUFFIX = ".json"
 REPO_URL_DICT_KEY = "../download-scripture?repo_url"
 RESOURCE_TYPES_JSONPATH = "$[*].contents[*].code"
 RESOURCE_CODES_JSONPATH = "$[*].contents[*].subcontents[*].code"
+
+
+def get_logger(name: str) -> logging.Logger:
+    """
+    Return a Logger for scope named by name, e.g., module, that can be
+    used for logging.
+    """
+    with open(config.get_logging_config_file_path(), "r") as fin:
+        logging_config = yaml.safe_load(fin.read())
+        lc.dictConfig(logging_config)
+    return logging.getLogger(name)
 
 
 def get_api_test_url() -> str:

@@ -1,13 +1,10 @@
+import logging
 from typing import List
 
-import logging
 import yaml
 
-
 from document import config
-from document.domain import model
-from document.domain import document_generator
-
+from document.domain import document_generator, model
 
 with open(config.get_logging_config_file_path(), "r") as f:
     logging_config = yaml.safe_load(f.read())
@@ -17,7 +14,11 @@ logger = logging.getLogger(__name__)
 
 
 def main() -> None:
+    book_level_interleaving_test()
+    verse_level_interleaving_test()
 
+
+def book_level_interleaving_test() -> None:
     assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.book
     resource_requests: List[model.ResourceRequest] = []
     resource_requests.append(
@@ -42,6 +43,8 @@ def main() -> None:
 
     logger.info("BOOK interleaving test is complete")
 
+
+def verse_level_interleaving_test() -> None:
     assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.verse
     resource_requests: List[model.ResourceRequest] = []
     resource_requests.append(

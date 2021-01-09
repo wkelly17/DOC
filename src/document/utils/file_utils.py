@@ -102,17 +102,17 @@ def load_yaml_object(file_name: str) -> Dict:
     # if not os.path.isfile(file_name):
     #     return None
     # return a deserialized object
-    return yaml.safe_load(read_file(file_name), Loader=yaml.FullLoader)
+    # return yaml.safe_load(read_file(file_name), Loader=yaml.FullLoader)
+    return yaml.safe_load(read_file(file_name))
 
 
 @icontract.require(lambda file_name: os.path.exists(file_name))
-def read_file(file_name: str, encoding: str = "utf-8-sig"):
+def read_file(file_name: str, encoding: str = "utf-8-sig") -> str:
     r"""Read file into content. Change line endings from \r\n to \n."""
     with codecs.open(file_name, "r", encoding=encoding) as fin:
         content = fin.read()
     # convert Windows line endings to Linux line endings
-    content = content.replace("\r\n", "\n")
-    return content
+    return content.replace("\r\n", "\n")
 
 
 def write_file(file_name, file_contents, indent=None):

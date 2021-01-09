@@ -1,39 +1,12 @@
-from typing import Dict, List, Optional, Set, Tuple, Union
-import abc
-import os
-from datetime import datetime, timedelta
-import pprint
-import tempfile
-
-import json  # Just for test debug output
-
-from jsonpath_rw import jsonpath  # type: ignore
-from jsonpath_rw_ext import parse  # type: ignore
-import jsonpath_rw_ext as jp  # for calling extended methods
-import urllib.request, urllib.parse, urllib.error
-
-from document.utils import file_utils
-from document.utils import url_utils
-from document import config
-from document.domain import resource_lookup
-from document.domain import model
-from document.domain.resource import (
-    Resource,
-    USFMResource,
-    TNResource,
-    TAResource,
-    TQResource,
-    TWResource,
-    resource_factory,
-)
-
-
-# Define type alias for brevity
-# AResource = Union[USFMResource, TAResource, TNResource, TQResource, TWResource]
+import logging
+from typing import List, Tuple, Union
 
 import yaml
 import logging
-import logging.config
+
+from document import config
+from document.domain import model, resource_lookup
+from document.domain.resource import Resource, resource_factory
 
 with open(config.get_logging_config_file_path(), "r") as f:
     logging_config = yaml.safe_load(f.read())
@@ -49,8 +22,8 @@ def main() -> None:
     t_lookup_svc = resource_lookup.TResourceJsonLookup()
     biel_helper_lookup_svc = resource_lookup.BIELHelperResourceJsonLookup()
 
-    ## A few non-API tests that demonstrate aspects of jsonpath
-    ## library or nature of data we are working with:
+    # A few non-API tests that demonstrate aspects of jsonpath
+    # library or nature of data we are working with:
 
     if False:
         test_lookup_all_language_codes(biel_helper_lookup_svc)
@@ -124,10 +97,10 @@ def main() -> None:
         )
 
         for resource_request in document_request.resource_requests:
-            r = resource_factory(
+            resource = resource_factory(
                 config.get_working_dir(), config.get_output_dir(), resource_request
             )
-            test_lookup(r)
+            test_lookup(resource)
 
 
 ## Test the API:
@@ -135,9 +108,9 @@ def main() -> None:
 
 def test_lookup(resource: Resource) -> None:
     resource.find_location()
-    print(
+    logger.debug(
         "{}, resource_jsonpath: {}, URL: {}".format(
-            resource, resource._resource_jsonpath, resource._resource_url
+            resource, resource._resource_jsonpath, resource.resource_url
         )
     )
     # assert resource._resource_url
@@ -152,14 +125,16 @@ def test_lookup_all_language_codes(
     lookup_svc: resource_lookup.BIELHelperResourceJsonLookup,
 ) -> None:
     values = lookup_svc.lang_codes()
-    print("Language codes: {}, # of language codes: {}".format(values, len(values)))
+    logger.debug(
+        "Language codes: {}, # of language codes: {}".format(values, len(values))
+    )
 
 
 def test_lookup_all_language_codes_and_names(
     lookup_svc: resource_lookup.BIELHelperResourceJsonLookup,
 ) -> None:
     values: List[Tuple[str, str]] = lookup_svc.lang_codes_and_names()
-    print(
+    logger.debug(
         "Language code, name tuples: {}, # of language code, name tuples: {}".format(
             values, len(values)
         )
@@ -170,14 +145,18 @@ def test_lookup_all_resource_types(
     lookup_svc: resource_lookup.BIELHelperResourceJsonLookup,
 ) -> None:
     values: List[str] = lookup_svc.resource_types()
-    print("Resource types: {}, # of resource types: {}".format(values, len(values)))
+    logger.debug(
+        "Resource types: {}, # of resource types: {}".format(values, len(values))
+    )
 
 
 def test_lookup_all_resource_codes(
     lookup_svc: resource_lookup.BIELHelperResourceJsonLookup,
 ) -> None:
     values: List[str] = lookup_svc.resource_codes()
-    print("Resource codes: {}, # of resource codes: {}".format(values, len(values)))
+    logger.debug(
+        "Resource codes: {}, # of resource codes: {}".format(values, len(values))
+    )
 
 
 def test_lookup_downloads_at_reg(
@@ -186,95 +165,86 @@ def test_lookup_downloads_at_reg(
     jsonpath_str = (
         "$[*].contents[?code='reg'].subcontents[*].links[?format='Download'].url"
     )
-    values: List[str] = lookup_svc.resource_json_lookup._lookup(jsonpath_str)
+    values: List[str] = lookup_svc._lookup(jsonpath_str)
 
-    print(
+    logger.debug(
         "All git repos having jsonpath {} : {}, # of repos: {}".format(
             jsonpath_str, values, len(values)
         )
     )
 
 
-def test_lookup_downloads(
-    lookup_svc: Union[
-        resource_lookup.USFMResourceJsonLookup, resource_lookup.TResourceJsonLookup
-    ]
-) -> None:
-    """ Find all the git repos to determine all the locations they can
-    be found in translations.json. """
-    jsonpath_str = "$[*].contents[*].subcontents[*].links[?format='Download'].url"
-    values: List[str] = lookup_svc.resource_json_lookup._lookup(jsonpath_str)
+# fmt: off
+LookupType = Union[resource_lookup.USFMResourceJsonLookup, resource_lookup.TResourceJsonLookup]
+# fmt: on
 
-    print(
+
+def test_lookup_downloads(lookup_svc: LookupType) -> None:
+    """
+    Find all the git repos to determine all the locations they can
+    be found in translations.json.
+    """
+    jsonpath_str = "$[*].contents[*].subcontents[*].links[?format='Download'].url"
+    values: List[str] = lookup_svc._lookup(jsonpath_str)
+
+    logger.debug(
         "All git repos having jsonpath {} : {}, # of repos: {}".format(
             jsonpath_str, values, len(values)
         )
     )
 
 
-def test_lookup_downloads_not_at_reg(
-    lookup_svc: Union[
-        resource_lookup.USFMResourceJsonLookup, resource_lookup.TResourceJsonLookup
-    ]
-) -> None:
+def test_lookup_downloads_not_at_reg(lookup_svc: LookupType) -> None:
     jsonpath_str = "$[*].contents[*].subcontents[*].links[?format='Download'].url"
-    values: List[str] = lookup_svc.resource_json_lookup._lookup(jsonpath_str)
+    values: List[str] = lookup_svc._lookup(jsonpath_str)
 
     jsonpath_str2 = (
         "$[*].contents[?code='reg'].subcontents[*].links[?format='Download'].url"
     )
-    values2: List[str] = lookup_svc.resource_json_lookup._lookup(jsonpath_str2)
+    values2: List[str] = lookup_svc._lookup(jsonpath_str2)
 
     result = list(filter(lambda x: x not in values, values2))
-    print(
+    logger.debug(
         "All git repos not found at countents[?code='reg'] having jsonpath {} : {}, # of repos: {}".format(
             jsonpath_str, result, len(result)
         )
     )
 
 
-def test_lookup_downloads_not_at_reg2(
-    lookup_svc: Union[
-        resource_lookup.USFMResourceJsonLookup, resource_lookup.TResourceJsonLookup
-    ]
-) -> None:
+def test_lookup_downloads_not_at_reg2(lookup_svc: LookupType) -> None:
     jsonpath_str = "$[*].contents[*].subcontents[*].links[?format='Download'].url"
     values: List[str] = lookup_svc.resource_json_lookup._lookup(jsonpath_str)
 
     jsonpath_str2 = (
         "$[*].contents[?code='reg'].subcontents[*].links[?format='Download'].url"
     )
-    values2: List[str] = lookup_svc.resource_json_lookup._lookup(jsonpath_str2)
+    values2: List[str] = lookup_svc._lookup(jsonpath_str2)
 
-    result = list(filter(lambda x: x not in values, values2))
+    # result = list(filter(lambda x: x not in values, values2))
     for x, y in zip(values, values2):
-        print("x: {}\n y: {}".format(x, y))
+        logger.debug("x: {}\n y: {}".format(x, y))
 
 
-def test_lookup_downloads_not_at_reg3(
-    lookup_svc: Union[
-        resource_lookup.USFMResourceJsonLookup, resource_lookup.TResourceJsonLookup
-    ]
-) -> None:
+def test_lookup_downloads_not_at_reg3(lookup_svc: LookupType) -> None:
     jsonpath_str = "$[*].contents[*].subcontents[*].links[?format='Download'].url"
-    values: List[str] = lookup_svc.resource_json_lookup._lookup(jsonpath_str)
+    values: List[str] = lookup_svc._lookup(jsonpath_str)
 
     jsonpath_str2 = (
         "$[*].contents[?code='reg'].subcontents[*].links[?format='Download'].url"
     )
-    values2: List[str] = lookup_svc.resource_json_lookup._lookup(jsonpath_str2)
+    values2: List[str] = lookup_svc._lookup(jsonpath_str2)
 
     jsonpath_str3 = (
         "$[*].contents[?code='ulb'].subcontents[*].links[?format='Download'].url"
     )
-    values3: List[str] = lookup_svc.resource_json_lookup._lookup(jsonpath_str3)
+    values3: List[str] = lookup_svc._lookup(jsonpath_str3)
 
     jsonpath_str4 = (
         "$[*].contents[?code='udb'].subcontents[*].links[?format='Download'].url"
     )
-    values4: List[str] = lookup_svc.resource_json_lookup._lookup(jsonpath_str4)
+    values4: List[str] = lookup_svc._lookup(jsonpath_str4)
 
-    print(
+    logger.debug(
         "len(values): {}, len(values2): {}, len(values3): {}, len(values4): {}, sum(values,values2,values3,values4): {}".format(
             len(values),
             len(values2),
@@ -285,23 +255,19 @@ def test_lookup_downloads_not_at_reg3(
     )
 
 
-def test_all_tn_zip_urls_lookup(
-    lookup_svc: Union[
-        resource_lookup.USFMResourceJsonLookup, resource_lookup.TResourceJsonLookup
-    ]
-) -> None:
+def test_all_tn_zip_urls_lookup(lookup_svc: LookupType) -> None:
     # For all languages
     download_urls: List[str] = lookup_svc.resource_json_lookup._lookup(
         "$[*].contents[?code='tn'].links[?format='zip'].url",
     )
     if download_urls is not None:
-        print(
+        logger.debug(
             "All translation notes having jsonpath {} : {}".format(
                 "$[*].contents[?code='tn'].links[?format='zip'].url", download_urls
             )
         )
     else:
-        print("download_urls is None")
+        logger.debug("download_urls is None")
 
 
 if __name__ == "__main__":
