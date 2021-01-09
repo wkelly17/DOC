@@ -543,7 +543,7 @@ class TNResource(TResource):
         self._content = link_utils.replace_rc_links(
             self._my_rcs, self._resource_data, self._content
         )
-        self._content = link_utils.fix_links(self._content)
+        self._content = link_utils.transform_rc_links(self._content)
         logger.info("Converting MD to HTML...")
         self._convert_md2html()
 
@@ -596,7 +596,7 @@ class TNResource(TResource):
                 # Get all the Markdown files that start with a digit
                 # and end with suffix md.
                 chunk_files = sorted(glob(os.path.join(chapter_dir, "[0-9]*.md")))
-                logger.debug("chunk_files: {}".format(chunk_files))
+                logger.debug("chapter chunk_files: {}".format(chunk_files))
                 for _, chunk_file in enumerate(chunk_files):
                     (
                         first_verse,
@@ -620,7 +620,8 @@ class TNResource(TResource):
                     # will provide the _usfm_chunks.
                     # if bool(self._usfm_chunks):
                     #     # Create links to each chapter
-                    #     anchors += link_utils.initialize_tn_chapter_verse_links(
+                    #     anchors += link_utils.initialize_tn_chapter_verse_anchor_links(
+                    #         # Need to pass usfm_chunks from a USFMResource instance here.
                     #         chapter, first_verse
                     #     )
                     #     pre_md = "\n## {}\n{}\n\n".format(title, anchors)
@@ -668,11 +669,11 @@ class TNResource(TResource):
 
                     tn_md += md
 
-                    links = link_utils.initialize_tn_links(
+                    links = self._initialize_tn_links(
                         self._lang_code,
                         self._book_id,
                         bool(book_intro_template),
-                        chapter_intro_md,
+                        bool(chapter_intro_md),
                         chapter,
                     )
                     tn_md += links + "\n\n"
@@ -682,6 +683,36 @@ class TNResource(TResource):
                 )
 
         self._content = tn_md
+
+    @icontract.require(lambda lang_code: lang_code is not None)
+    @icontract.require(lambda book_id: book_id is not None)
+    @icontract.require(lambda book_has_intro: book_has_intro is not None)
+    @icontract.require(lambda chapter_has_intro: chapter_has_intro is not None)
+    @icontract.require(lambda chapter: chapter is not None)
+    def _initialize_tn_links(
+        self,
+        lang_code: str,
+        book_id: str,
+        book_has_intro: bool,
+        chapter_has_intro: bool,
+        chapter: str,
+    ) -> str:
+        """
+        Add a Markdown level 3 header populated with links to
+        the book's intro and chapter intro as well as links to
+        translation questions for the same book.
+        """
+        links = "### Links:\n\n"
+        if book_has_intro:
+            links += "* [[rc://{}/tn/help/{}/front/intro]]\n".format(lang_code, book_id)
+        if chapter_has_intro:
+            links += "* [[rc://{}/tn/help/{}/{}/intro]]\n".format(
+                lang_code, book_id, link_utils.pad(book_id, chapter),
+            )
+        links += "* [[rc://{}/tq/help/{}/{}]]\n".format(
+            lang_code, book_id, link_utils.pad(book_id, chapter),
+        )
+        return links
 
     # FIXME I think this code can probably be greatly simplified,
     # moved to _get_tn_markdown and then removed.
@@ -944,7 +975,7 @@ class TWResource(TResource):
         self._content = link_utils.replace_rc_links(
             self._my_rcs, self._resource_data, self._content
         )
-        self._content = link_utils.fix_links(self._content)
+        self._content = link_utils.transform_rc_links(self._content)
         logger.info("Converting MD to HTML...")
         self._convert_md2html()
         logger.debug("self._bad_links: {}".format(self._bad_links))
@@ -1006,7 +1037,7 @@ class TQResource(TResource):
         self._get_tq_markdown()
         # FIXME
         # self._replace_rc_links()
-        # self._fix_links()
+        # self._content = link_utils.transform_rc_links(self._content)
         logger.info("Converting MD to HTML...")
         self._convert_md2html()
 
@@ -1118,7 +1149,7 @@ class TAResource(TResource):
         self._get_ta_markdown()
         # FIXME
         # self._replace_rc_links()
-        # self._fix_links()
+        self._content = link_utils.transform_rc_links(self._content)
         logger.info("Converting MD to HTML...")
         self._convert_md2html()
 
