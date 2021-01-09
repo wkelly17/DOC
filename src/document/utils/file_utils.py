@@ -1,19 +1,19 @@
-from typing import Optional, Dict  # , List
+"""
+This module provides various file utilities.
+"""
+
 import codecs
-import icontract
 import json
 import os
 import pathlib
 import zipfile
-import sys
-import shutil
+from typing import Any, Dict, Optional
+
+import icontract
 import yaml
-from mimetypes import MimeTypes
-
-string_types = (str,)  # FIXME Use of this should be replaced with typing module use
 
 
-def unzip(source_file, destination_dir):
+def unzip(source_file: str, destination_dir: str) -> None:
     """
     Unzips <source_file> into <destination_dir>.
 
@@ -24,49 +24,18 @@ def unzip(source_file, destination_dir):
         zf.extractall(destination_dir)
 
 
-def add_contents_to_zip(zip_file, path):
-    """
-    Zip the contents of <path> into <zip_file>.
-
-    :param str|unicode zip_file: The file name of the zip file
-    :param str|unicode path: Full path of the directory to zip up
-    """
-    path = path.rstrip(os.path.sep)
-    with zipfile.ZipFile(zip_file, "a") as zf:
-        for root, dirs, files in os.walk(path):
-            for file in files:
-                file_path = os.path.join(root, file)
-                print(
-                    "Adding {0} to {1} as {2}".format(
-                        file_path, zip_file, file_path[len(path) + 1 :]
-                    )
-                )
-                zf.write(file_path, file_path[len(path) + 1 :])
-
-
-def add_file_to_zip(zip_file, file_name, arc_name=None, compress_type=None):
-    """
-    Zip <file_name> into <zip_file> as <arc_name>.
-
-    :param str|unicode zip_file: The file name of the zip file
-    :param str|unicode file_name: The name of the file to add, including the path
-    :param str|unicode arc_name: The new name, with directories, of the file, the same as filename if not given
-    :param str|unicode compress_type:
-    """
-    with zipfile.ZipFile(zip_file, "a") as zf:
-        zf.write(file_name, arc_name, compress_type)
-
-
-def make_dir(dir_name, linux_mode=0o755, error_if_not_writable=False):
+def make_dir(
+    dir_name: str, linux_mode: int = 0o755, error_if_not_writable: bool = False
+) -> None:
     """
     Creates a directory, if it doesn't exist already.
 
     If the directory does exist, and <error_if_not_writable> is True,
-    the directory will be checked for writability.
+    the directory will be checked for write-ability.
 
-    :param str|unicode dir_name: The name of the directory to create
-    :param int linux_mode: The mode/permissions to set for the new directory expressed as an octal integer (ex. 0o755)
-    :param bool error_if_not_writable: The name of the file to read
+    :param dir_name: The name of the directory to create
+    :param linux_mode: The mode/permissions to set for the new directory expressed as an octal integer (ex. 0o755)
+    :param error_if_not_writable: Boolean saying whether to raise an exception if the file is not writable.
     """
     if not os.path.exists(dir_name):
         os.makedirs(dir_name, linux_mode)
@@ -77,35 +46,25 @@ def make_dir(dir_name, linux_mode=0o755, error_if_not_writable=False):
 
 @icontract.require(lambda file_name: file_name is not None)
 @icontract.require(lambda file_name: os.path.exists(file_name))
-# def load_json_object(file_name: pathlib.Path) -> Optional[Dict]:
 def load_json_object(file_name: pathlib.Path) -> Dict:
     """
     Deserialized JSON file <file_name> into a Python dict.
-    :param str|unicode file_name: The name of the file to read
-    :param default: The value to return if the file is not found
+    :param file_name: The name of the file to read
     """
-    # if not os.path.isfile(file_name):
-    #     return None
-    # return a deserialized object
     return json.loads(read_file(str(file_name.resolve())))
 
 
 @icontract.require(lambda file_name: file_name is not None)
 @icontract.require(lambda file_name: os.path.exists(file_name))
-# def load_yaml_object(file_name: pathlib.Path) -> Optional[Dict]:
 def load_yaml_object(file_name: str) -> Dict:
     """
     Deserialized YAML file <file_name> into a Python dict.
-    :param str|unicode file_name: The name of the file to read
-    :param default: The value to return if the file is not found
+    :param file_name: The name of the file to read
     """
-    # if not os.path.isfile(file_name):
-    #     return None
-    # return a deserialized object
-    # return yaml.safe_load(read_file(file_name), Loader=yaml.FullLoader)
     return yaml.safe_load(read_file(file_name))
 
 
+# KEEP
 @icontract.require(lambda file_name: os.path.exists(file_name))
 def read_file(file_name: str, encoding: str = "utf-8-sig") -> str:
     r"""Read file into content. Change line endings from \r\n to \n."""
@@ -115,20 +74,22 @@ def read_file(file_name: str, encoding: str = "utf-8-sig") -> str:
     return content.replace("\r\n", "\n")
 
 
-def write_file(file_name, file_contents, indent=None):
+def write_file(
+    file_name: str, file_contents: Any, indent: Optional[int] = None
+) -> None:
     """
     Writes the <file_contents> to <file_name>.
 
     If <file_contents> is not a string, it is serialized as JSON.
 
-    :param str|unicode file_name: The name of the file to write
-    :param str|unicode|object file_contents: The string to write or the object to serialize
-    :param int indent: Specify a value if you want the output formatted to be more easily readable
+    :param file_name: The name of the file to write
+    :param file_contents: The string to write or the object to serialize
+    :param indent: Specify a value if you want the output formatted to be more easily readable
     """
     # make sure the directory exists
     make_dir(os.path.dirname(file_name))
 
-    if isinstance(file_contents, string_types):
+    if isinstance(file_contents, str):
         text_to_write = file_contents
     else:
         if os.path.splitext(file_name)[1] == ".yaml":
@@ -140,77 +101,12 @@ def write_file(file_name, file_contents, indent=None):
         out_file.write(text_to_write)
 
 
-def get_mime_type(path):
-    mime = MimeTypes()
-
-    mime_type = mime.guess_type(path)[0]
-    if not mime_type:
-        mime_type = "text/{0}".format(os.path.splitext(path)[1])
-    return mime_type
-
-
-def get_files(dir, relative_paths=False, include_directories=False, topdown=False):
-    file_list = []
-    for root, dirs, files in os.walk(dir, topdown=topdown):
-        if relative_paths:
-            path = root[len(dir) + 1 :]
-        else:
-            path = root
-        for filename in files:
-            file_list.append(os.path.join(path, filename))
-        if include_directories:
-            for dirname in dirs:
-                file_list.append(os.path.join(path, dirname))
-    return file_list
-
-
-def get_subdirs(dir, relative_paths=False, topdown=False):
-    dir_list = []
-    for root, dirs, files in os.walk(dir, topdown=topdown):
-        if relative_paths:
-            path = os.path.relpath(root, dir)
-        else:
-            path = root
-        for dirname in dirs:
-            dir_list.append(os.path.join(path, dirname))
-    return dir_list
-
-
-def copy_tree(src, dst, symlinks=False, ignore=None):
-    """
-    Recursively copy a directory and all subdirectories.
-
-    Parameters same as shutil.copytree
-
-    :param src:
-    :param dst:
-    :param symlinks:
-    :param ignore:
-    :return:
-    """
-    if not os.path.exists(dst):
-        os.makedirs(dst)
-    for item in os.listdir(src):
-        s = os.path.join(src, item)
-        d = os.path.join(dst, item)
-        if os.path.isdir(s):
-            copy_tree(s, d, symlinks, ignore)
-        else:
-            # only replace file if modified
-            if not os.path.exists(d) or os.stat(s).st_mtime - os.stat(d).st_mtime > 1:
-                shutil.copy2(s, d)
-
-
-def remove_tree(dir_path, ignore_errors=True):
-    if os.path.isdir(dir_path):
-        shutil.rmtree(dir_path, ignore_errors=ignore_errors)
-
-
-def remove(file_path, ignore_errors=True):
-    if ignore_errors:
-        try:
-            os.remove(file_path)
-        except OSError:
-            pass
-    else:
-        os.remove(file_path)
+# NOTE Might want this later
+# def remove(file_path, ignore_errors=True):
+#     if ignore_errors:
+#         try:
+#             os.remove(file_path)
+#         except OSError:
+#             pass
+#     else:
+#         os.remove(file_path)
