@@ -96,7 +96,7 @@ class DocumentGenerator:
         self.output_dir = output_dir
         # The Markdown and later HTML for the document which is
         # composed of the Markdown and later HTML for each resource.
-        self.content: str = ""
+        self.content = ""
         # Store resource requests that were requested, but do not
         # exist.
         self.unfound_resources: List[Resource] = []
@@ -328,7 +328,7 @@ class DocumentGenerator:
         logger.debug("pandoc command: {}".format(command))
         # Next command replaces cp /working/tn-temp/*.pdf /output in
         # old system
-        copy_command: str = "cp {}/{}.pdf {}".format(
+        copy_command = "cp {}/{}.pdf {}".format(
             self.output_dir, self._document_request_key, "/output"
         )
         # logger.debug(
@@ -405,7 +405,7 @@ def assemble_content_by_book(docgen: DocumentGenerator) -> str:
     Genesis followed by Translation Notes for Genesis, etc..
     """
     logger.info("Assembling document by interleaving at the book level.")
-    content: str = ""
+    content = ""
     for resource in docgen.found_resources:
         content += "\n\n{}".format(resource.content)
     return content

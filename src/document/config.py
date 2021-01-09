@@ -69,7 +69,7 @@ def get_working_dir() -> str:
     environment. Otherwise a suitable temporary local directory is
     generated automatically.
     """
-    dirname: str = ""
+    dirname = ""
     if os.environ.get("IN_CONTAINER"):
         dirname = os.environ.get("RESOURCE_ASSETS_DIR", "/working/temp")
     else:
@@ -78,8 +78,8 @@ def get_working_dir() -> str:
 
 
 def get_output_dir() -> str:
-    dirname: str = ""
     """The directory where the generated documents are placed."""
+    dirname = ""
     if os.environ.get("IN_CONTAINER"):
         dirname = os.environ.get("DOCUMENT_OUTPUT_DIR", "/working/temp")
     else:
@@ -138,7 +138,7 @@ def get_logging_config_file_path() -> str:
     The file path location where the dictConfig-style yaml
     formatted config file for logging is located.
     """
-    filepath: str = ""
+    filepath = ""
     if os.environ.get("IN_CONTAINER"):
         filepath = os.environ.get("LOGGING_CONFIG", "src/document/logging_config.yaml")
     else:
@@ -166,7 +166,7 @@ def get_tex_format_location() -> str:
     Return the location of where the format.tex file is located
     that is used in converting the HTML to PDF using pandoc.
     """
-    filepath: str = ""
+    filepath = ""
     if os.getenv("IN_CONTAINER"):
         filepath = os.environ.get("TEX_FORMAT_FILEPATH", "tex/format.tex")
     else:
@@ -180,7 +180,7 @@ def get_tex_template_location() -> str:
     Return the location of where the template.tex file is located
     that is used in converting the HTML to PDF using pandoc.
     """
-    filepath: str = ""
+    filepath = ""
     if os.getenv("IN_CONTAINER"):
         filepath = os.environ.get("TEX_TEMPLATE_FILEPATH", "tex/template.tex")
     else:
