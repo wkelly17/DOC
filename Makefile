@@ -22,4 +22,10 @@ e2e-tests: up
 down:
 	docker-compose down --remove-orphans
 
+mypy:
+	mypy src/**/*.py
+	mypy src/**/**/*.py
+	mypy tests/*.py
+	mypy tests/**/*.py
+
 all: down build up test
