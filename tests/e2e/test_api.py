@@ -8,7 +8,11 @@ from document import config
 from document.entrypoints.app import app
 
 
-def test_generate_book_interleaved_document_returns_ok() -> None:
+def test_book_interleaved_en_ulb_tn_returns_ok() -> None:
+    """
+    Produce book level interleaved document for English scripture and
+    translation notes for the book of Jude.
+    """
     with TestClient(app=app, base_url=config.get_api_test_url()) as client:
         response = client.post(
             "/documents",
@@ -28,19 +32,56 @@ def test_generate_book_interleaved_document_returns_ok() -> None:
                 ],
             },
         )
-        # print(response.json())
-        # assert response.status_code == 200, response.text
-        if os.environ.get("IN_CONTAINER"):
-            assert os.path.isfile("/working/temp/en-ulb-wa-jud_en-tn-wa-jud.html")
-        else:
-            assert os.path.isfile("working/temp/en-ulb-wa-jud_en-tn-wa-jud.html")
-
-        # assert response.json() == {
-        #     "finished_document_url": "/working/temp/en-ulb-wa-eph_en-tn-wa-eph.html"
-        # }
+        finished_document_path = "/working/temp/en-ulb-wa-jud_en-tn-wa-jud.html"
+        if not os.environ.get("IN_CONTAINER"):
+            finished_document_path = finished_document_path[1:]
+        assert os.path.isfile(finished_document_path)
+        assert response.json() == {"finished_document_url": finished_document_path}
 
 
-def test_generate_verse_interleaved_document_returns_ok() -> None:
+def test_book_interleaved_en_ulb_tn_tq_returns_ok() -> None:
+    """
+    Produce book level interleaved document for English scripture,
+    translation notes, and translation questions for the book of Jude.
+    """
+    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+        response = client.post(
+            "/documents",
+            json={
+                "assembly_strategy_kind": "book",
+                "resource_requests": [
+                    {
+                        "lang_code": "en",
+                        "resource_type": "ulb-wa",
+                        "resource_code": "jud",
+                    },
+                    {
+                        "lang_code": "en",
+                        "resource_type": "tn-wa",
+                        "resource_code": "jud",
+                    },
+                    {
+                        "lang_code": "en",
+                        "resource_type": "tq-wa",
+                        "resource_code": "jud",
+                    },
+                ],
+            },
+        )
+        finished_document_path = (
+            "/working/temp/en-ulb-wa-jud_en-tn-wa-jud_en-tq-wa-jud.html"
+        )
+        if not os.environ.get("IN_CONTAINER"):
+            finished_document_path = finished_document_path[1:]
+        assert os.path.isfile(finished_document_path)
+        assert response.json() == {"finished_document_url": finished_document_path}
+
+
+def test_verse_interleaved_en_ulb_tn_returns_ok() -> None:
+    """
+    Produce verse level interleaved document for English scripture and
+    translation notes for the book of Jude.
+    """
     with TestClient(app=app, base_url=config.get_api_test_url()) as client:
         response = client.post(
             "/documents",
@@ -60,12 +101,11 @@ def test_generate_verse_interleaved_document_returns_ok() -> None:
                 ],
             },
         )
-        # print(response.json())
-        assert response.status_code == 200, response.text
-        if os.environ.get("IN_CONTAINER"):
-            assert os.path.isfile("/working/temp/en-ulb-wa-jud_en-tn-wa-jud.html")
-        else:
-            assert os.path.isfile("working/temp/en-ulb-wa-jud_en-tn-wa-jud.html")
+        finished_document_path = "/working/temp/en-ulb-wa-jud_en-tn-wa-jud.html"
+        if not os.environ.get("IN_CONTAINER"):
+            finished_document_path = finished_document_path[1:]
+        assert os.path.isfile(finished_document_path)
+        assert response.json() == {"finished_document_url": finished_document_path}
 
 
 # TODO
