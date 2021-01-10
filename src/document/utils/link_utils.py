@@ -274,95 +274,219 @@ def get_resource_data_from_rc_links(
     text: str,
     source_rc: str,
 ) -> None:
+    """
+    Summary: Overall purpose of this function: find ta or tw rc links in the text passed
+    in and use them to build filepaths that point to Markdown files
+    where further information can be found like:
+    1. The tile of the
+
+    This function is called with text coming from Translation notes book intro Markdown
+    content, Translation notes chapter intro Markdown content, and
+    Translation questions chapter content.
+
+    This function finds TW and TA rc links in the text content
+    (mentioned in previous paragraph), finds Markdown files associated
+    with them and using those Markdown files' content, forms
+    attributes associated with them. These various attributes are then
+    collected into various data structures for later use.
+
+    FIXME This function is a serious legacy cluster needing to be
+    broken up. Many of its conditional paths could possibly, pending
+    further in depth analysis, live in their respective resource
+    instance's class, e.g., TAResource and TNResource.
+    """
+    # Find all rc links in the text passed into the function.
     for rc in re.findall(
         r"rc://[A-Z0-9/_-]+", text, flags=re.IGNORECASE | re.MULTILINE
     ):
         parts = rc[5:].split("/")
-        resource = parts[1]
+        # Separate out the resource type from first part of the rc
+        # link.
+        resource_type = parts[1]
+        # Create a file path base out of the first parts of the rc link.
         path = "/".join(parts[3:])
 
-        logger.debug("resource from regexp: {}".format(resource))
+        logger.debug("resource from regexp: {}".format(resource_type))
 
-        if resource not in ["ta", "tw"]:
+        # We only process ta and tw resource links in this function.
+        if resource_type not in ["ta", "tw"]:
             continue
 
+        # Keep a running collection of rc links in a my_rcs list.
         if rc not in my_rcs:
             my_rcs.append(rc)
+        # Also save the rc link in a rc_references dictionary as a
+        # key.
         if rc not in rc_references:
             rc_references[rc] = []
+        # In the rc_references dictionary at the rc key store the
+        # source_rc link.
         rc_references[rc].append(source_rc)
 
+        # If the rc link is not yet in the resource_data dictionary...
         if rc not in resource_data:
             title = ""
-            t = ""
-            anchor_id = "{0}-{1}".format(resource, path.replace("/", "-"))
-            link = "#{}".format(anchor_id)
+            markdown_file_content = ""
+            # Create an anchor link to the TA or TW resource.
+            anchor_id = "{}-{}".format(resource_type, path.replace("/", "-"))
+            anchor_link = "#{}".format(anchor_id)
+            # A lot of file path testing ahead which could through
+            # some exceptions. FIXME Identify all the exceptions that
+            # could occur and narrow to those as narrowly as possibly
+            # instead of this gigantic try block.
             try:
+                # Get file path to the TW or TA resource's Markdown
+                # file: {working_dir}/{lang_code}_{ta|tw}/{path}.md.
+                # FIXME Resource's already know their location
+                # in _resource_dir. Further globbing can find the
+                # associated resource file. See initialize_from_assets
+                # for n example.
                 file_path = os.path.join(
                     working_dir,
-                    "{}_{}".format(lang_code, resource),
+                    "{}_{}".format(lang_code, resource_type),
                     "{}.md".format(path),
                 )
+                # If the previous filepath doesn't exist then try
+                # another location:
+                # {working_dir}/{lang_code}_{ta|tw}/01.md.
+                # FIXME Resource's are found with globbing in the new
+                # system so conditional logic like this is obviated.
                 if not os.path.isfile(file_path):
                     file_path = os.path.join(
                         working_dir,
-                        "{}_{}".format(lang_code, resource),
+                        "{}_{}".format(lang_code, resource_type),
                         "{}/01.md".format(path),
                     )
+                # If the previous file_path is not found yet again,
+                # then...
                 if not os.path.isfile(file_path):
-                    if resource == "tw":
+                    # If the resource type is tw...
+                    if resource_type == "tw":
+                        # If the path starts with bible/other then
+                        # replace it with bible/kt
                         if path.startswith("bible/other/"):
                             path2 = re.sub(r"^bible/other/", r"bible/kt/", path)
+                        # Otherwise, replace bible/kt with bible/other
                         else:
                             path2 = re.sub(r"^bible/kt/", r"bible/other/", path)
-                        anchor_id = "{0}-{1}".format(resource, path2.replace("/", "-"))
-                        link = "#{0}".format(anchor_id)
+                        # Create the anchor link for the TA or TW
+                        # resource Markdown file.
+                        anchor_id = "{}-{}".format(
+                            resource_type, path2.replace("/", "-")
+                        )
+                        anchor_link = "#{0}".format(anchor_id)
                         file_path = os.path.join(
                             working_dir,
-                            "{}_{}".format(lang_code, resource),
+                            "{}_{}".format(lang_code, resource_type),
                             "{}.md".format(path2),
                         )
+                # If we've now found the file_path for the resource
+                # currently under consideration, ta or tw, then read
+                # in the file.
                 if os.path.isfile(file_path):
-                    t = file_utils.read_file(file_path)
-                    if resource == "ta":
+                    markdown_file_content = file_utils.read_file(file_path)
+                    # If the current resource has type ta
+                    if resource_type == "ta":
+                        # Form the path to the title file which
+                        # should be located in the same directory as
+                        # the the file_path we've currently verified
+                        # exists.
                         title_file = os.path.join(
                             os.path.dirname(file_path), "title.md"
                         )
+                        # Form the path to the sub-title Markdown file
+                        # which should also be in the same directory
+                        # as the file_path.
                         question_file = os.path.join(
                             os.path.dirname(file_path), "sub-title.md"
                         )
+                        # See if the title file exists at the
+                        # title_file path that we formed above...
                         if os.path.isfile(title_file):
+                            # Now go ahead and actually read in the title
+                            # from the title Markdown file.
                             title = file_utils.read_file(title_file)
                         else:
-                            title = markdown_utils.get_first_header(t)
+                            # Apparently the title file doesn't exist
+                            # so we'll get something that works as a
+                            # title by grabbing the first Markdown
+                            # header content in the Markdown file
+                            # located at file_path.
+                            title = markdown_utils.get_first_header(
+                                markdown_file_content
+                            )
+                        # Likewise, check if the question_file
+                        # exists...
                         if os.path.isfile(question_file):
+                            # If the question_file path does exist
+                            # then read in the question file.
                             question = file_utils.read_file(question_file)
-                            question = "This page answers the question: *{0}*\n\n".format(
+                            # Now form a question phrase to be used
+                            # below.
+                            question = "This page answers the question: *{}*\n\n".format(
                                 question
                             )
                         else:
+                            # The question file didn't exist so we'll
+                            # make the question content empty.
                             question = ""
-                        t = "# {0}\n\n{1}{2}".format(title, question, t)
-                        t = fix_ta_links(lang_code, t, path.split("/")[0])
-                    elif resource == "tw":
-                        title = markdown_utils.get_first_header(t)
-                        t = fix_tw_links(lang_code, t, path.split("/")[1])
+                        # Now let's create a level 1 Markdown headline
+                        # and its content that has the title as the
+                        # headline and the question phrase we created
+                        # above followed by the link to the Markdown
+                        # file that was located at file_path, i.e.,
+                        # the ta resource's Markdown file path
+                        # that we worked hard at guessing at the top
+                        # of this function.
+                        markdown_file_content = "# {}\n\n{}{}".format(
+                            title, question, markdown_file_content
+                        )
+                        # Now call fix_ta_links on the ta
+                        # markdown_file which will transform certain
+                        # ta links according to a set of ad-hoc rules.
+                        markdown_file_content = fix_ta_links(
+                            lang_code, markdown_file_content, path.split("/")[0]
+                        )
+                    # On the other hand, if the current resource is a
+                    # tw resource...
+                    elif resource_type == "tw":
+                        # Create a title from the markdown_file's
+                        # first Markdown header.
+                        title = markdown_utils.get_first_header(markdown_file_content)
+                        # And then do some link transformations on tw
+                        # links contained in markdown_file.
+                        markdown_file_content = fix_tw_links(
+                            lang_code, markdown_file_content, path.split("/")[1]
+                        )
+
+                # If we've not found the file_path for the resource
+                # currently under consideration, ta or tw...
                 else:
+                    # If the current rc link is not currently in
+                    # bad_links dictionary then add it as a key into
+                    # bad_links with an empty value.
                     if rc not in bad_links:
                         bad_links[rc] = []
+                    # Append the source_rc to bad_links dictionary at
+                    # key rc.
                     bad_links[rc].append(source_rc)
             except:
                 if rc not in bad_links:
                     bad_links[rc] = []
                 bad_links[rc].append(source_rc)
+            # Now store all the data that we have have created
+            # associated with this resource into the resource_data
+            # dictionary with rc as the key.
             resource_data[rc] = {
                 "rc": rc,
-                "link": link,
+                "link": anchor_link,
                 "id": anchor_id,
                 "title": title,
-                "text": t,
+                "text": markdown_file_content,
             }
-            if t:
+            # If we found markdown_file earlier in this function let's
+            # call ourself again. TODO
+            if markdown_file_content:
                 get_resource_data_from_rc_links(
                     lang_code,
                     my_rcs,
@@ -370,7 +494,7 @@ def get_resource_data_from_rc_links(
                     resource_data,
                     bad_links,
                     working_dir,
-                    t,
+                    markdown_file_content,
                     rc,
                 )
 

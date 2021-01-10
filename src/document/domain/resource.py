@@ -749,20 +749,20 @@ class TNResource(TResource):
         )
         logger.debug("book_intro_files[0]: {}".format(book_intro_files[0]))
 
-        book_intro_content = ""
+        tn_book_intro_content_md = ""
         if os.path.isfile(book_intro_files[0]):
             # FIXME Need exception handler, or, just use: with
             # open(book_intro_files[0], "r") as f:
-            book_intro_content = file_utils.read_file(book_intro_files[0])
-            title: str = markdown_utils.get_first_header(book_intro_content)
+            tn_book_intro_content_md = file_utils.read_file(book_intro_files[0])
+            title: str = markdown_utils.get_first_header(tn_book_intro_content_md)
             book_intro_id_tag = '<a id="tn-{}-front-intro"/>'.format(self._book_id)
             book_intro_anchor_id = "tn-{}-front-intro".format(self._book_id)
-            book_intro_rc = "rc://{}/tn/help/{}/front/intro".format(
+            book_intro_rc_link = "rc://{}/tn/help/{}/front/intro".format(
                 self._lang_code, self._book_id
             )
             data = model.BookIntroTemplateDto(
                 book_id=self._book_id,
-                content=book_intro_content,
+                content=tn_book_intro_content_md,
                 id_tag=book_intro_id_tag,
                 anchor_id=book_intro_anchor_id,
             )
@@ -770,13 +770,13 @@ class TNResource(TResource):
             book_intro_template: str = self._get_template("book_intro", data)
 
             # FIXME Begin side-effecting
-            self._resource_data[book_intro_rc] = {
-                "rc": book_intro_rc,
+            self._resource_data[book_intro_rc_link] = {
+                "rc": book_intro_rc_link,
                 "id": book_intro_anchor_id,
                 "link": "#{}".format(book_intro_anchor_id),
                 "title": title,
             }
-            self._my_rcs.append(book_intro_rc)
+            self._my_rcs.append(book_intro_rc_link)
             link_utils.get_resource_data_from_rc_links(
                 self._lang_code,
                 self._my_rcs,
@@ -784,8 +784,8 @@ class TNResource(TResource):
                 self._resource_data,
                 self._bad_links,
                 self._working_dir,
-                book_intro_content,
-                book_intro_rc,
+                tn_book_intro_content_md,
+                book_intro_rc_link,
             )
 
         return book_intro_template
@@ -825,28 +825,30 @@ class TNResource(TResource):
         #     md += "\n\n"
 
     def _initialize_tn_chapter_intro(self, chapter_dir: str, chapter: str) -> str:
-        md = ""
+        tn_chapter_intro_md = ""
         intro_file = os.path.join(chapter_dir, "intro.md")
         if os.path.isfile(intro_file):
             try:
-                md = file_utils.read_file(intro_file)
+                tn_chapter_intro_md = file_utils.read_file(intro_file)
             except ValueError as exc:
                 logger.debug("Error opening file:", exc)
                 return ""
             else:
-                title = markdown_utils.get_first_header(md)
-                md = link_utils.fix_tn_links(
-                    self._lang_code, self._book_id, md, chapter
+                title = markdown_utils.get_first_header(tn_chapter_intro_md)
+                tn_chapter_intro_md = link_utils.fix_tn_links(
+                    self._lang_code, self._book_id, tn_chapter_intro_md, chapter
                 )
-                md = markdown_utils.increase_headers(md)
-                md = markdown_utils.decrease_headers(
-                    md, 5, 2
+                tn_chapter_intro_md = markdown_utils.increase_headers(
+                    tn_chapter_intro_md
+                )
+                tn_chapter_intro_md = markdown_utils.decrease_headers(
+                    tn_chapter_intro_md, 5, 2
                 )  # bring headers of 5 or more #'s down 2
                 id_tag = '<a id="tn-{}-{}-intro"/>'.format(
                     self._book_id, link_utils.pad(self._book_id, chapter)
                 )
-                md = re.compile(r"# ([^\n]+)\n").sub(
-                    r"# \1\n{}\n".format(id_tag), md, 1
+                tn_chapter_intro_md = re.compile(r"# ([^\n]+)\n").sub(
+                    r"# \1\n{}\n".format(id_tag), tn_chapter_intro_md, 1
                 )
                 # Create placeholder link
                 rc = "rc://{}/tn/help/{}/{}/intro".format(
@@ -871,11 +873,11 @@ class TNResource(TResource):
                     self._resource_data,
                     self._bad_links,
                     self._working_dir,
-                    md,
+                    tn_chapter_intro_md,
                     rc,
                 )
-                md += "\n\n"
-        return md
+                tn_chapter_intro_md += "\n\n"
+        return tn_chapter_intro_md
 
     # FIXME Should we change to function w no non-local side-effects
     # and move to markdown_utils.py?
@@ -1043,19 +1045,17 @@ class TQResource(TResource):
 
     def _get_tq_markdown(self) -> None:
         """Build tq markdown"""
-        # TODO localization
         tq_md = '# Translation Questions\n<a id="tq-{}"/>\n\n'.format(self._book_id)
-        # TODO localization
         title = "{} Translation Questions".format(self._book_title)
-        rc = "rc://{}/tq/help/{}".format(self._lang_code, self._book_id)
+        tq_rc_link = "rc://{}/tq/help/{}".format(self._lang_code, self._book_id)
         anchor_id = "tq-{}".format(self._book_id)
-        self._resource_data[rc] = {
-            "rc": rc,
+        self._resource_data[tq_rc_link] = {
+            "rc": tq_rc_link,
             "id": anchor_id,
             "link": "#{}".format(anchor_id),
             "title": title,
         }
-        self._my_rcs.append(rc)
+        self._my_rcs.append(tq_rc_link)
         tq_book_dir = os.path.join(self._resource_dir, self._book_id)
         for chapter in sorted(os.listdir(tq_book_dir)):
             chapter_dir = os.path.join(tq_book_dir, chapter)
@@ -1067,7 +1067,7 @@ class TQResource(TResource):
                 tq_md += "## {} {}\n{}\n\n".format(self._book_title, chapter, id_tag)
                 # TODO localization
                 title = "{} {} Translation Questions".format(self._book_title, chapter)
-                rc = "rc://{}/tq/help/{}/{}".format(
+                tq_rc_link = "rc://{}/tq/help/{}/{}".format(
                     self._lang_code,
                     self._book_id,
                     link_utils.pad(self._book_id, chapter),
@@ -1075,20 +1075,22 @@ class TQResource(TResource):
                 anchor_id = "tq-{}-{}".format(
                     self._book_id, link_utils.pad(self._book_id, chapter)
                 )
-                self._resource_data[rc] = {
-                    "rc": rc,
+                self._resource_data[tq_rc_link] = {
+                    "rc": tq_rc_link,
                     "id": anchor_id,
                     "link": "#{0}".format(anchor_id),
                     "title": title,
                 }
-                self._my_rcs.append(rc)
+                self._my_rcs.append(tq_rc_link)
                 for chunk in sorted(os.listdir(chapter_dir)):
                     chunk_file = os.path.join(chapter_dir, chunk)
                     first_verse = os.path.splitext(chunk)[0].lstrip("0")
                     if os.path.isfile(chunk_file) and re.match(r"^\d+$", first_verse):
-                        md = file_utils.read_file(chunk_file)
-                        md = markdown_utils.increase_headers(md, 2)
-                        md = re.compile("^([^#\n].+)$", flags=re.M).sub(
+                        tq_chapter_md = file_utils.read_file(chunk_file)
+                        tq_chapter_md = markdown_utils.increase_headers(
+                            tq_chapter_md, 2
+                        )
+                        tq_chapter_md = re.compile("^([^#\n].+)$", flags=re.M).sub(
                             r'\1 [<a href="#tn-{}-{}-{}">{}:{}</a>]'.format(
                                 self._book_id,
                                 link_utils.pad(self._book_id, chapter),
@@ -1096,13 +1098,13 @@ class TQResource(TResource):
                                 chapter,
                                 first_verse,
                             ),
-                            md,
+                            tq_chapter_md,
                         )
                         # TODO localization
                         title = "{} {}:{} Translation Questions".format(
                             self._book_title, chapter, first_verse
                         )
-                        rc = "rc://{}/tq/help/{}/{}/{}".format(
+                        tq_rc_link = "rc://{}/tq/help/{}/{}/{}".format(
                             self._lang_code,
                             self._book_id,
                             link_utils.pad(self._book_id, chapter),
@@ -1113,13 +1115,13 @@ class TQResource(TResource):
                             link_utils.pad(self._book_id, chapter),
                             link_utils.pad(self._book_id, first_verse),
                         )
-                        self._resource_data[rc] = {
-                            "rc": rc,
+                        self._resource_data[tq_rc_link] = {
+                            "rc": tq_rc_link,
                             "id": anchor_id,
                             "link": "#{}".format(anchor_id),
                             "title": title,
                         }
-                        self._my_rcs.append(rc)
+                        self._my_rcs.append(tq_rc_link)
                         link_utils.get_resource_data_from_rc_links(
                             self._lang_code,
                             self._my_rcs,
@@ -1127,11 +1129,11 @@ class TQResource(TResource):
                             self._resource_data,
                             self._bad_links,
                             self._working_dir,
-                            md,
-                            rc,
+                            tq_chapter_md,
+                            tq_rc_link,
                         )
-                        md += "\n\n"
-                        tq_md += md
+                        tq_chapter_md += "\n\n"
+                        tq_md += tq_chapter_md
         logger.debug("tq_md is {0}".format(tq_md))
         self._content = tq_md
         # return tq_md
