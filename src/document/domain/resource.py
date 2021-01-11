@@ -18,7 +18,6 @@ import icontract
 import jinja2
 import markdown
 import pydantic
-import yaml
 from usfm_tools.transform import UsfmTransform
 
 from document import config
@@ -58,7 +57,8 @@ class Resource:
 
         # Book attributes
         self._book_id: str = self._resource_code
-        # FIXME Could get KeyError with bad data from BIEL
+        # FIXME Could get KeyError with request for non-existent book,
+        # i.e., bad data, from BIEL
         self._book_title = bible_books.BOOK_NAMES[self._resource_code]
         self._book_number = bible_books.BOOK_NUMBERS[self._book_id]
 
@@ -70,7 +70,7 @@ class Resource:
         self._manifest: Manifest
 
         # Content related instance vars
-        self._content_files: List[str]
+        self._content_files: List[str] = []
         self._content: str
         self._verses_html: List[str] = []
 
@@ -291,7 +291,7 @@ class USFMResource(Resource):
 
             logger.debug("self._bad_links: {}".format(self._bad_links))
 
-    @icontract.require(lambda self: self._content is not None)
+    @icontract.require(lambda self: self._content)
     @icontract.ensure(lambda self: self._verses_html)
     def _initialize_verses_html(self) -> None:
         """
@@ -356,6 +356,7 @@ class USFMResource(Resource):
         header = chunks[0]
         book_chunks["header"] = header
         for chunk in chunks[1:]:
+            chapter: Optional[str] = None
             if not chunk.strip():
                 continue
             chapter_search = re.search(
@@ -493,12 +494,16 @@ class TResource(Resource):
             )
         )
 
-    @icontract.ensure(lambda self: self._verses_html)
+    # FIXME
+    # @icontract.ensure(lambda self: self._verses_html) # T* resource might not be available
     def _initialize_verses_html(self) -> None:
         # FIXME This whole method could be rewritten. We want to find
         # book intro, chapter intros, and then the verses themselves.
         # We can do all that with globbing as below rather than the
         # laborious way it is done elsewhere in this codebase.
+        # FIXME We already went to the trouble of finding the Markdown
+        # or TXT files and storing their paths in self._content_files, let's
+        # use those rather than glogging again # here if possible.
         verse_files = sorted(
             glob(
                 "{}/*{}/*[0-9][0-9]/*[0-9][0-9].md".format(
@@ -506,7 +511,19 @@ class TResource(Resource):
                 )
             )
         )
-
+        # NOTE If a resource ends up downloading a zip of asset files,
+        # then the zip will be unzipped into _resource_dir. This could
+        # create a subdirectory within the files are found.
+        # Verse_files were not found, let's try another location
+        # if not verse_files:
+        #     # Let's look a subdirectory deeper than the _resource_dir
+        #     verse_files = sorted(
+        #         glob(
+        #             "{}/*{}/*[0-9][0-9]/**/*[0-9][0-9].md".format(
+        #                 self._resource_dir, self._resource_code
+        #             )
+        #         )
+        #     )
         for filepath in verse_files:
             verse_content = ""
             with open(filepath, "r") as fin:
@@ -520,8 +537,23 @@ class TResource(Resource):
         """Convert a resource's Markdown to HTML."""
         # assert self._content is not None, "self._content cannot be None here."
         # FIXME Perhaps we can manipulate resource links, rc://, by
-        # writing our own parser extension.
+        # writing our own parser extension. It'd be better software
+        # engineering than how it is done in the legacy code.
         self._content = markdown.markdown(self._content)
+
+    def _transform_content(self) -> None:
+        """
+        If self._content is not empty, go ahead and transform rc
+        resource links and transform content from Markdown to HTML.
+        """
+        if self._content:
+            self._content = link_utils.replace_rc_links(
+                self._my_rcs, self._resource_data, self._content
+            )
+            self._content = link_utils.transform_rc_links(self._content)
+            logger.info("Converting MD to HTML...")
+            self._convert_md2html()
+            logger.debug("self._bad_links: {}".format(self._bad_links))
 
 
 class TNResource(TResource):
@@ -539,13 +571,7 @@ class TNResource(TResource):
         """
         logger.info("Processing Translation Notes Markdown...")
         self._get_tn_markdown()
-        # FIXME
-        self._content = link_utils.replace_rc_links(
-            self._my_rcs, self._resource_data, self._content
-        )
-        self._content = link_utils.transform_rc_links(self._content)
-        logger.info("Converting MD to HTML...")
-        self._convert_md2html()
+        self._transform_content()
 
     def _get_template(self, template_lookup_key: str, dto: pydantic.BaseModel) -> str:
         """
@@ -740,17 +766,19 @@ class TNResource(TResource):
         return book_dir
 
     def _initialize_tn_book_intro(self) -> str:
-        book_intro_files: List = list(
+        book_intro_template: str = ""
+        book_intro_files: List[str] = []
+        book_intro_files = list(
             filter(
                 lambda content_file: os.path.join("front", "intro")
                 in content_file.lower(),
                 self._content_files,
             )
         )
-        logger.debug("book_intro_files[0]: {}".format(book_intro_files[0]))
 
         tn_book_intro_content_md = ""
-        if os.path.isfile(book_intro_files[0]):
+        if book_intro_files and os.path.isfile(book_intro_files[0]):
+            logger.debug("book_intro_files[0]: {}".format(book_intro_files[0]))
             # FIXME Need exception handler, or, just use: with
             # open(book_intro_files[0], "r") as f:
             tn_book_intro_content_md = file_utils.read_file(book_intro_files[0])
@@ -767,7 +795,7 @@ class TNResource(TResource):
                 anchor_id=book_intro_anchor_id,
             )
 
-            book_intro_template: str = self._get_template("book_intro", data)
+            book_intro_template = self._get_template("book_intro", data)
 
             # FIXME Begin side-effecting
             self._resource_data[book_intro_rc_link] = {
@@ -973,14 +1001,7 @@ class TWResource(TResource):
         """See docstring in superclass."""
         logger.info("Processing Translation Words Markdown...")
         self._get_tw_markdown()
-        # FIXME
-        self._content = link_utils.replace_rc_links(
-            self._my_rcs, self._resource_data, self._content
-        )
-        self._content = link_utils.transform_rc_links(self._content)
-        logger.info("Converting MD to HTML...")
-        self._convert_md2html()
-        logger.debug("self._bad_links: {}".format(self._bad_links))
+        self._transform_content()
 
     # FIXME Should this be a function with no side effects and put in
     # markdown_utils module?
@@ -1037,11 +1058,7 @@ class TQResource(TResource):
         """See docstring in superclass."""
         logger.info("Processing Translation Questions Markdown...")
         self._get_tq_markdown()
-        # FIXME
-        # self._replace_rc_links()
-        # self._content = link_utils.transform_rc_links(self._content)
-        logger.info("Converting MD to HTML...")
-        self._convert_md2html()
+        self._transform_content()
 
     def _get_tq_markdown(self) -> None:
         """Build tq markdown"""
@@ -1149,11 +1166,7 @@ class TAResource(TResource):
         """See docstring in superclass."""
         logger.info("Processing Translation Academy Markdown...")
         self._get_ta_markdown()
-        # FIXME
-        # self._replace_rc_links()
-        self._content = link_utils.transform_rc_links(self._content)
-        logger.info("Converting MD to HTML...")
-        self._convert_md2html()
+        self._transform_content()
 
     def _get_ta_markdown(self) -> None:
         # TODO localization
@@ -1199,6 +1212,7 @@ def resource_factory(
         "ulb-wa": USFMResource,
         "udb": USFMResource,
         "udb-wa": USFMResource,
+        "nav": USFMResource,
         "reg": USFMResource,
         "tn": TNResource,
         "tn-wa": TNResource,

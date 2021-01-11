@@ -309,7 +309,9 @@ class DocumentGenerator:
                 )
                 + "_"
             )
-        return document_request_key[:-1]
+        return "{}_{}".format(
+            document_request_key[:-1], document_request.assembly_strategy_kind
+        )
 
     def _generate_pdf(self) -> None:
         """

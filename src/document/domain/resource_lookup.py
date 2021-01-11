@@ -375,19 +375,15 @@ class TResourceJsonLookup(ResourceLookup):
         if resource.lang_code == "en":
             return self._get_english_git_repo_location(resource)
 
-        resource_lookup_dto = self._try_markdown_files_level1_location(resource)
+        resource_lookup_dto = self._try_level1_location(resource)
         if resource_lookup_dto.url is None:
-            resource_lookup_dto = self._try_markdown_files_level2_location(resource)
+            resource_lookup_dto = self._try_level2_location(resource)
 
         if resource_lookup_dto.url is None:
-            resource_lookup_dto = self._try_markdown_files_level1_sans_resource_code_location(
-                resource
-            )
+            resource_lookup_dto = self._try_level1_sans_resource_code_location(resource)
 
         if resource_lookup_dto.url is None:
-            resource_lookup_dto = self._try_markdown_files_level2_sans_resource_code_location(
-                resource
-            )
+            resource_lookup_dto = self._try_level2_sans_resource_code_location(resource)
 
         return resource_lookup_dto
 
