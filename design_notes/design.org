@@ -79,6 +79,12 @@ then
 pipenv install
 #+end_src
 
+then
+
+#+begin_src shell
+pip install -e src/
+#+end_src
+
 **** Run tests
 #+begin_src shell
 pytest
