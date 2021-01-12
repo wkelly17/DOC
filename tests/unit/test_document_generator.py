@@ -6,10 +6,6 @@ from document.domain import document_generator, model
 
 
 def test_document_generator_for_english_with_interleaving_by_book() -> None:
-    filename = "en-ulb-wa-jud_en-tn-wa-jud.html"
-    filepath = os.path.join(config.get_output_dir(), filename)
-    if os.path.isfile(filepath):
-        os.remove(filepath)
     assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.book
     resource_requests: List[model.ResourceRequest] = []
     resource_requests.append(
@@ -32,17 +28,16 @@ def test_document_generator_for_english_with_interleaving_by_book() -> None:
     )
     doc_gen.run()
     assert doc_gen._document_request_key
-    if os.environ.get("IN_CONTAINER"):
-        assert os.path.isfile("/working/temp/en-ulb-wa-jud_en-tn-wa-jud.html")
-    else:
-        assert os.path.isfile("working/temp/en-ulb-wa-jud_en-tn-wa-jud.html")
+
+    finished_document_path = "en-ulb-wa-jud_en-tn-wa-jud_book.html"
+    finished_document_path = os.path.join(
+        config.get_output_dir(), finished_document_path
+    )
+    assert finished_document_path == doc_gen.get_finished_document_filepath()
+    assert os.path.isfile(doc_gen.get_finished_document_filepath())
 
 
 def test_document_generator_for_english_with_interleaving_by_verse() -> None:
-    filename = "en-ulb-wa-jud_en-tn-wa-jud.html"
-    filepath = os.path.join(config.get_output_dir(), filename)
-    if os.path.isfile(filepath):
-        os.remove(filepath)
     assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.verse
     resource_requests: List[model.ResourceRequest] = []
     resource_requests.append(
@@ -64,8 +59,11 @@ def test_document_generator_for_english_with_interleaving_by_verse() -> None:
         document_request, config.get_working_dir(), config.get_output_dir(),
     )
     doc_gen.run()
+
     assert doc_gen._document_request_key
-    if os.environ.get("IN_CONTAINER"):
-        assert os.path.isfile("/working/temp/en-ulb-wa-jud_en-tn-wa-jud.html")
-    else:
-        assert os.path.isfile("working/temp/en-ulb-wa-jud_en-tn-wa-jud.html")
+    finished_document_path = "en-ulb-wa-jud_en-tn-wa-jud_verse.html"
+    finished_document_path = os.path.join(
+        config.get_output_dir(), finished_document_path
+    )
+    assert finished_document_path == doc_gen.get_finished_document_filepath()
+    assert os.path.isfile(doc_gen.get_finished_document_filepath())

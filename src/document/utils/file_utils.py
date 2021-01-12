@@ -13,6 +13,8 @@ import icontract
 import yaml
 
 
+@icontract.require(lambda source_file: source_file)
+@icontract.require(lambda destination_dir: destination_dir)
 def unzip(source_file: str, destination_dir: str) -> None:
     """
     Unzips <source_file> into <destination_dir>.
@@ -24,6 +26,9 @@ def unzip(source_file: str, destination_dir: str) -> None:
         zf.extractall(destination_dir)
 
 
+@icontract.require(lambda dir_name: dir_name)
+@icontract.snapshot(lambda dir_name: dir_name)
+@icontract.ensure(lambda OLD: os.path.exists(OLD.dir_name))
 def make_dir(
     dir_name: str, linux_mode: int = 0o755, error_if_not_writable: bool = False
 ) -> None:
@@ -74,6 +79,8 @@ def read_file(file_name: str, encoding: str = "utf-8-sig") -> str:
     return content.replace("\r\n", "\n")
 
 
+@icontract.require(lambda file_name: file_name)
+@icontract.require(lambda file_contents: file_contents is not None)
 def write_file(
     file_name: str, file_contents: Any, indent: Optional[int] = None
 ) -> None:

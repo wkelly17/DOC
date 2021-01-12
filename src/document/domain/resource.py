@@ -38,10 +38,12 @@ class Resource:
         working_dir: str,
         output_dir: str,
         resource_request: model.ResourceRequest,
+        assembly_strategy_kind: str,
     ) -> None:
         self._working_dir: str = working_dir
         self._output_dir: str = output_dir
         self._resource_request: model.ResourceRequest = resource_request
+        self._assembly_strategy_kind: str = assembly_strategy_kind
 
         self._lang_code: str = resource_request.lang_code
         self._resource_type: str = resource_request.resource_type
@@ -286,8 +288,9 @@ class USFMResource(Resource):
                 )
             )
 
-            self._initialize_verses_html()
-            logger.debug("self._verses_html from bs4: {}".format(self._verses_html))
+            if self._assembly_strategy_kind == model.AssemblyStrategyEnum.verse:
+                self._initialize_verses_html()
+                logger.debug("self._verses_html from bs4: {}".format(self._verses_html))
 
             logger.debug("self._bad_links: {}".format(self._bad_links))
 
@@ -481,7 +484,8 @@ class TResource(Resource):
                 )
             )
 
-        self._initialize_verses_html()
+        if self._assembly_strategy_kind == model.AssemblyStrategyEnum.verse:
+            self._initialize_verses_html()
 
         # logger.debug(
         #     "markdown_content_files: {}, txt_content_files: {}".format(
@@ -1199,7 +1203,10 @@ class TAResource(TResource):
 
 
 def resource_factory(
-    working_dir: str, output_dir: str, resource_request: model.ResourceRequest
+    working_dir: str,
+    output_dir: str,
+    resource_request: model.ResourceRequest,
+    assembly_strategy_kind: model.AssemblyStrategyEnum,
 ) -> Resource:
     """
     Factory method to create the appropriate Resource subclass for
@@ -1224,7 +1231,7 @@ def resource_factory(
         "ta-wa": TAResource,
     }
     return resources[resource_request.resource_type](
-        working_dir, output_dir, resource_request
+        working_dir, output_dir, resource_request, assembly_strategy_kind
     )
 
 

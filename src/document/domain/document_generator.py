@@ -19,6 +19,8 @@ import os
 import subprocess
 from typing import TYPE_CHECKING, Callable, List
 
+import icontract
+
 from document import config
 from document.domain import model
 from document.domain.resource import resource_factory
@@ -145,15 +147,10 @@ class DocumentGenerator:
         self.content = self.assembly_strategy(self)
         self.enclose_html_content()
         logger.debug(
-            "About to write HTML to {}".format(
-                os.path.join(
-                    self.output_dir, "{}.html".format(self._document_request_key)
-                )
-            )
+            "About to write HTML to {}".format(self.get_finished_document_filepath())
         )
         file_utils.write_file(
-            os.path.join(self.output_dir, "{}.html".format(self._document_request_key)),
-            self.content,
+            self.get_finished_document_filepath(), self.content,
         )
 
     def enclose_html_content(self) -> None:
@@ -242,6 +239,17 @@ class DocumentGenerator:
         """Provide public access method for other modules."""
         return self._document_request_key
 
+    @icontract.require(lambda self: self._resources)
+    @icontract.snapshot(
+        lambda self: len(self.found_resources), name="len_found_resources"
+    )
+    @icontract.snapshot(
+        lambda self: len(self.unfound_resources), name="len_unfound_resources"
+    )
+    @icontract.ensure(
+        lambda self, OLD: len(self.found_resources) > OLD.len_found_resources
+        or len(self.unfound_resources) > OLD.len_unfound_resources
+    )
     def _fetch_resources(self) -> None:
         """
         Get the resources' files from the network. Those that are
@@ -261,6 +269,7 @@ class DocumentGenerator:
                 # it for reporting.
                 self.unfound_resources.append(resource)
 
+    @icontract.require(lambda self: self.found_resources)
     def _initialize_resource_content(self) -> None:
         """
         Initialize the resources from their found assets and
@@ -276,6 +285,7 @@ class DocumentGenerator:
             # such that their expected language relationship is retained.
             resource.get_content()
 
+    @icontract.require(lambda document_request: document_request is not None)
     def _initialize_resources(
         self, document_request: model.DocumentRequest
     ) -> List[Resource]:
@@ -286,7 +296,12 @@ class DocumentGenerator:
         resources: List[Resource] = []
         for resource_request in document_request.resource_requests:
             resources.append(
-                resource_factory(self.working_dir, self.output_dir, resource_request)
+                resource_factory(
+                    self.working_dir,
+                    self.output_dir,
+                    resource_request,
+                    document_request.assembly_strategy_kind,
+                )
             )
         return resources
 
@@ -312,6 +327,18 @@ class DocumentGenerator:
         return "{}_{}".format(
             document_request_key[:-1], document_request.assembly_strategy_kind
         )
+
+    @icontract.require(lambda self: self.working_dir)
+    @icontract.require(lambda self: self._document_request_key)
+    def get_finished_document_filepath(self) -> str:
+        """
+        Return the location on disk where the finished document may be
+        found.
+        """
+        finished_document_path = "{}.html".format(
+            os.path.join(self.working_dir, self._document_request_key)
+        )
+        return finished_document_path
 
     def _generate_pdf(self) -> None:
         """
@@ -341,55 +368,6 @@ class DocumentGenerator:
                 self.working_dir, config.get_icon_url(),
             )
             subprocess.call(command, shell=True)
-
-
-# FIXME Old legacy code
-def read_csv_as_dicts(filename: str) -> List:
-    """
-    Returns a list of dicts, each containing the contents of a row of
-    the given csv file. The CSV file is assumed to have a header row
-    with the field names.
-    """
-    rows = []
-    with open(filename) as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            rows.append(row)
-    return rows
-
-
-# FIXME Old legacy code
-def index_tw_refs_by_verse(tw_refs: List) -> dict:
-    """
-    Returns a dictionary of books -> chapters -> verses, where each
-    verse is a list of rows for that verse.
-    """
-    tw_refs_by_verse: dict = {}
-    for tw_ref in tw_refs:
-        book = tw_ref["Book"]
-        chapter = tw_ref["Chapter"]
-        verse = tw_ref["Verse"]
-        if book not in tw_refs_by_verse:
-            tw_refs_by_verse[book] = {}
-        if chapter not in tw_refs_by_verse[book]:
-            tw_refs_by_verse[book][chapter] = {}
-        if verse not in tw_refs_by_verse[book][chapter]:
-            tw_refs_by_verse[book][chapter][verse] = []
-
-        # # Check for duplicates -- not sure if we need this yet
-        # folder = tw_ref["Dir"]
-        # reference = tw_ref["Ref"]
-        # found_duplicate = False
-        # for existing_tw_ref in tw_refs_by_verse[book][chapter][verse]:
-        #     if existing_tw_ref["Dir"] == folder and existing_tw_ref["Ref"] == reference:
-        #         logger.debug("Found duplicate: ", book, chapter, verse, folder, reference)
-        #         found_duplicate = True
-        #         break
-        # if found_duplicate:
-        #     continue
-
-        tw_refs_by_verse[book][chapter][verse].append(tw_ref)
-    return tw_refs_by_verse
 
 
 # Assembly strategies utilize the Strategy pattern:

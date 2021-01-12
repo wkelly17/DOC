@@ -40,13 +40,10 @@ def document_endpoint(
     )
     document_generator.run()
 
-    # HACK for now
+    # FIXME Eventually we'll provide a REST GET endpoint from
+    # which to retrieve the document in the API
     details = model.FinishedDocumentDetails(
-        finished_document_url="{}.html".format(
-            os.path.join(
-                document_generator.working_dir, document_generator.document_request_key
-            )
-        )
+        finished_document_path=document_generator.get_finished_document_filepath()
     )
 
     logger.debug("details: {}".format(details))

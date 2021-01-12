@@ -37,7 +37,10 @@ def test_lookup() -> None:
 
     for resource_request in document_request.resource_requests:
         resource = resource_factory(
-            config.get_working_dir(), config.get_output_dir(), resource_request
+            config.get_working_dir(),
+            config.get_output_dir(),
+            resource_request,
+            assembly_strategy_kind,
         )
         resource.find_location()
         assert resource.resource_url

@@ -98,7 +98,7 @@ class FinishedDocumentDetails(BaseModel):
     """
     Pydanctic model that we use as a return value to send back via
     Fastapi to the client. For now it just contains the finished
-    dcocument URL.
+    dcocument filepath on disk.
     """
 
-    finished_document_url: Optional[str]
+    finished_document_path: Optional[str]
