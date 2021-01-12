@@ -23,8 +23,8 @@ down:
 	docker-compose down --remove-orphans
 
 mypy:
-	mypy src/**/*.py
-	mypy src/**/**/*.py
+	mypy src/document/*.py
+	mypy src/document/**/*.py
 	mypy tests/*.py
 	mypy tests/**/*.py
 
