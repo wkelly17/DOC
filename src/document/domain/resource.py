@@ -586,9 +586,9 @@ class TNResource(TResource):
         with open(
             config.get_markdown_template_path(template_lookup_key), "r"
         ) as filepath:
-            md_template = filepath.read()
+            template = filepath.read()
         # FIXME Handle exceptions
-        md_environment = jinja2.Environment().from_string(md_template)
+        md_environment = jinja2.Environment().from_string(template)
         return md_environment.render(data=dto)
 
     @icontract.require(lambda self: self._resource_code is not None)
