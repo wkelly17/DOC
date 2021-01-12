@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2020-11-23 Mon 11:13 -->
+<!-- 2021-01-11 Mon 20:10 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>&lrm;</title>
@@ -39,7 +39,7 @@
   }
   pre.src {
     position: relative;
-    overflow: auto;
+    overflow: visible;
     padding-top: 1.2em;
   }
   pre.src:before {
@@ -193,26 +193,50 @@
   /*]]>*/-->
 </style>
 <script type="text/javascript">
-// @license magnet:?xt=urn:btih:e95b018ef3580986a04669f1b5879592219e2a7a&dn=public-domain.txt Public Domain
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2019 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
 <!--/*--><![CDATA[/*><!--*/
-     function CodeHighlightOn(elem, id)
-     {
-       var target = document.getElementById(id);
-       if(null != target) {
-         elem.classList.add("code-highlighted");
-         target.classList.add("code-highlighted");
-       }
-     }
-     function CodeHighlightOff(elem, id)
-     {
-       var target = document.getElementById(id);
-       if(null != target) {
-         elem.classList.remove("code-highlighted");
-         target.classList.remove("code-highlighted");
-       }
-     }
-    /*]]>*///-->
-// @license-end
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
 </script>
 </head>
 <body>
@@ -221,60 +245,43 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#orge4de88f">1. Design notes</a>
+<li><a href="#orgde93ad7">1. Design notes</a>
 <ul>
-<li><a href="#org62448ad">1.1. Requirements</a>
+<li><a href="#org192925a">1.1. Requirements</a>
 <ul>
-<li><a href="#org8f3f702">1.1.1. Requirement</a></li>
-<li><a href="#orgcb56c0f">1.1.2. Requirement</a></li>
-<li><a href="#orgb790c72">1.1.3. Requirement</a></li>
-<li><a href="#org5f61ad6">1.1.4. Requirement</a></li>
+<li><a href="#orgeddb6d9">1.1.1. Requirement</a></li>
+<li><a href="#org416eb92">1.1.2. Requirement</a></li>
+<li><a href="#org4d9c215">1.1.3. Requirement</a></li>
+<li><a href="#org6e03652">1.1.4. Requirement</a></li>
 </ul>
 </li>
-<li><a href="#org14ab039">1.2. JSON document generation request design for web client (BIEL)</a>
+<li><a href="#org039e52e">1.2. How to run a demo for yourself</a>
 <ul>
-<li><a href="#org53fe865">1.2.1. Example request from <code>test_flask.py</code></a></li>
+<li><a href="#org919a440">1.2.1. Get the code</a></li>
+<li><a href="#org22e9e54">1.2.2. Run demo inside the Docker container:</a></li>
+<li><a href="#org2738991">1.2.3. Run demo outside Docker container</a></li>
 </ul>
 </li>
-<li><a href="#org056c2b7">1.3. Interactions at a high level</a></li>
-<li><a href="#org1bf8e4a">1.4. What works currently</a></li>
-<li><a href="#org849ec51">1.5. Docker container</a></li>
-<li><a href="#org62143ca">1.6. How to run a demo for yourself</a>
-<ul>
-<li><a href="#org4285c1e">1.6.1. Set up for demos</a></li>
-<li><a href="#org4c076f9">1.6.2. Run demo outside Docker container (faster)</a>
-<ul>
-<li><a href="#orgada7729">1.6.2.1. For <code>resource_lookup.py</code>:</a></li>
-<li><a href="#org07702de">1.6.2.2. For <code>document_generator.py</code> (used to be named <code>export_md_to_pdf.py</code>):</a></li>
-<li><a href="#orgf9546d8">1.6.2.3. For testing the web service front end do:</a></li>
-</ul>
-</li>
-<li><a href="#org164565d">1.6.3. For demo inside the Docker container (slower):</a></li>
-</ul>
-</li>
-<li><a href="#orgbdfbfcb">1.7. (Bonus/optional material) Convenience web service endpoints for BIEL UI to call (if desired)</a>
-<ul>
-<li><a href="#orgd4940ba">1.7.1. Example client call to get all language codes (sans language name)</a></li>
-<li><a href="#orgc18ec24">1.7.2. Get all language code, language name pairs</a></li>
-</ul>
-</li>
-<li><a href="#org7239809">1.8. Oddities - differences from the norm in resources I've found</a></li>
-<li><a href="#org9c47678">1.9. Handling different manifests</a></li>
+<li><a href="#org29d9dd5">1.3. <span class="todo TODO">TODO</span> Update this since new code (mostly the same but some changes - more classes): Interactions at a high level</a></li>
+<li><a href="#orgd4770bc">1.4. Docker container</a></li>
+<li><a href="#orgce27244">1.5. (Bonus/optional material) Convenience web service endpoints for BIEL UI to call (if desired)</a></li>
+<li><a href="#org001af98">1.6. Oddities - differences from the norm in resources I've found</a></li>
+<li><a href="#org895c6b0">1.7. Handling different manifests</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div id="outline-container-orge4de88f" class="outline-2">
-<h2 id="orge4de88f"><span class="section-number-2">1</span> Design notes</h2>
+<div id="outline-container-orgde93ad7" class="outline-2">
+<h2 id="orgde93ad7"><span class="section-number-2">1</span> Design notes</h2>
 <div class="outline-text-2" id="text-1">
 </div>
-<div id="outline-container-org62448ad" class="outline-3">
-<h3 id="org62448ad"><span class="section-number-3">1.1</span> Requirements</h3>
+<div id="outline-container-org192925a" class="outline-3">
+<h3 id="org192925a"><span class="section-number-3">1.1</span> Requirements</h3>
 <div class="outline-text-3" id="text-1-1">
 </div>
-<div id="outline-container-org8f3f702" class="outline-4">
-<h4 id="org8f3f702"><span class="section-number-4">1.1.1</span> Requirement</h4>
+<div id="outline-container-orgeddb6d9" class="outline-4">
+<h4 id="orgeddb6d9"><span class="section-number-4">1.1.1</span> Requirement</h4>
 <div class="outline-text-4" id="text-1-1-1">
 <p>
 Allow creating a document out of any combination of resources from any
@@ -282,16 +289,16 @@ supported (in translations.json) language in any order.
 </p>
 </div>
 </div>
-<div id="outline-container-orgcb56c0f" class="outline-4">
-<h4 id="orgcb56c0f"><span class="section-number-4">1.1.2</span> Requirement</h4>
+<div id="outline-container-org416eb92" class="outline-4">
+<h4 id="org416eb92"><span class="section-number-4">1.1.2</span> Requirement</h4>
 <div class="outline-text-4" id="text-1-1-2">
 <p>
 Produce PDF final document.
 </p>
 </div>
 </div>
-<div id="outline-container-orgb790c72" class="outline-4">
-<h4 id="orgb790c72"><span class="section-number-4">1.1.3</span> Requirement</h4>
+<div id="outline-container-org4d9c215" class="outline-4">
+<h4 id="org4d9c215"><span class="section-number-4">1.1.3</span> Requirement</h4>
 <div class="outline-text-4" id="text-1-1-3">
 <p>
 If generation of PDF document takes longer than X threshold of time,
@@ -302,8 +309,8 @@ determined.
 </p>
 </div>
 </div>
-<div id="outline-container-org5f61ad6" class="outline-4">
-<h4 id="org5f61ad6"><span class="section-number-4">1.1.4</span> Requirement</h4>
+<div id="outline-container-org6e03652" class="outline-4">
+<h4 id="org6e03652"><span class="section-number-4">1.1.4</span> Requirement</h4>
 <div class="outline-text-4" id="text-1-1-4">
 <p>
 Handle TN, TA, TW, TQ, ULB, UDB resource requests. Later perhaps also
@@ -312,76 +319,137 @@ OBS, etc..
 </div>
 </div>
 </div>
-<div id="outline-container-org14ab039" class="outline-3">
-<h3 id="org14ab039"><span class="section-number-3">1.2</span> JSON document generation request design for web client (BIEL)</h3>
+<div id="outline-container-org039e52e" class="outline-3">
+<h3 id="org039e52e"><span class="section-number-3">1.2</span> How to run a demo for yourself</h3>
 <div class="outline-text-3" id="text-1-2">
-<p>
-Currently the JSON looks like this, for example:
-</p>
-
-<div class="org-src-container">
-<pre class="src src-js">{ "resources":
-  { "lang_code": "am", "resource_type": "ulb", "resource_code": "gen" },
-  { "lang_code": "lpx", "resource_type": "tn", "resource_code": "exo" },
-  ...
-}
-</pre>
 </div>
-
-<p>
-Each element in the JSON dictionary represents a resource. The whole
-dictionary represents all the resources you want in the final typeset
-document in the order you want them. Note that last point: the order.
-That could of course be changed, but I am for now making an assumption
-that BIEL's wizard would compose a JSON document generation request
-having resources in the order the user requested the document's
-resources to be represented.
-</p>
-</div>
-<div id="outline-container-org53fe865" class="outline-4">
-<h4 id="org53fe865"><span class="section-number-4">1.2.1</span> Example request from <code>test_flask.py</code></h4>
+<div id="outline-container-org919a440" class="outline-4">
+<h4 id="org919a440"><span class="section-number-4">1.2.1</span> Get the code</h4>
 <div class="outline-text-4" id="text-1-2-1">
 <p>
-Example python client request using resources JSON dictionary to submit an
-API call to generate a document composed of resources. I imagine <code>BIEL</code>
-would make this client request, instead, in Javascript.
+Get the tools repo:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-python">import json
-import requests
+<pre class="src src-shell">git clone https://github.com/linearcombination/tools.git
+</pre>
+</div>
 
-payload = {}
-payload["resources"] = [
-    {"lang_code": "am",
-     "resource_type": "ulb",
-     "resource_code": "gen"},
-    {"lang_code": "erk-x-erakor",
-     "resource_type": "reg",
-     "resource_code": "eph"},
-    {"lang_code": "ml",
-     "resource_type": "ulb",
-     "resource_code": "tit"},
-    {"lang_code": "mr",
-     "resource_type": "udb",
-     "resource_code": "mrk"},
-]
+<p>
+Then cd into the tools directory you just creating by cloning.
+</p>
+</div>
+</div>
+<div id="outline-container-org22e9e54" class="outline-4">
+<h4 id="org22e9e54"><span class="section-number-4">1.2.2</span> Run demo inside the Docker container:</h4>
+<div class="outline-text-4" id="text-1-2-2">
+</div>
+<ol class="org-ol">
+<li><a id="orga197721"></a>Build the container<br />
+<div class="outline-text-5" id="text-1-2-2-1">
+<p>
+First take down any running containers from previous runs:
+</p>
 
+<div class="org-src-container">
+<pre class="src src-shell">make down
+</pre>
+</div>
 
-res = requests.post("http://localhost:5005/api/v1/document", json=json.dumps(payload))
-if res.ok:
-    print(res.json())
+<div class="org-src-container">
+<pre class="src src-shell">make build
 </pre>
 </div>
 </div>
-</div>
+</li>
+<li><a id="org05bcec0"></a>Or, build the container the 2+Nth time from scratch<br />
+<div class="outline-text-5" id="text-1-2-2-2">
+<p>
+First take down any running containers from previous runs:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-shell">make down
+</pre>
 </div>
 
-<div id="outline-container-org056c2b7" class="outline-3">
-<h3 id="org056c2b7"><span class="section-number-3">1.3</span> Interactions at a high level</h3>
+<p>
+then
+</p>
+
+<div class="org-src-container">
+<pre class="src src-shell">make build-no-cache
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="org4f68c0e"></a>Run the tests<br />
+<div class="outline-text-5" id="text-1-2-2-3">
+<div class="org-src-container">
+<pre class="src src-shell">make test
+</pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+
+<div id="outline-container-org2738991" class="outline-4">
+<h4 id="org2738991"><span class="section-number-4">1.2.3</span> Run demo outside Docker container</h4>
+<div class="outline-text-4" id="text-1-2-3">
+</div>
+<ol class="org-ol">
+<li><a id="org6dcd2d5"></a>Install the required python packages. I use pipenv, but you can do it however you prefer.<br />
+<div class="outline-text-5" id="text-1-2-3-1">
+<p>
+First tell pipenv which python to use:
+</p>
+<div class="org-src-container">
+<pre class="src src-shell">pipenv --python /path/to/python3
+</pre>
+</div>
+
+<p>
+then
+</p>
+
+<div class="org-src-container">
+<pre class="src src-shell">pipenv shell # get in the pipenv, virtualenv, conda, whatever shell
+</pre>
+</div>
+
+<p>
+then
+</p>
+
+<div class="org-src-container">
+<pre class="src src-shell"># You can do just this one if you don't want to bother with virtual
+# envs. With pipenv as you probably know, this will make a virtual env
+# only install of the requirements only accessible after: pipenv
+# shell.
+pipenv install
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="orgdb8da72"></a>Run tests<br />
+<div class="outline-text-5" id="text-1-2-3-2">
+<div class="org-src-container">
+<pre class="src src-shell">pytest
+</pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div id="outline-container-org29d9dd5" class="outline-3">
+<h3 id="org29d9dd5"><span class="section-number-3">1.3</span> <span class="todo TODO">TODO</span> Update this since new code (mostly the same but some changes - more classes): Interactions at a high level</h3>
 <div class="outline-text-3" id="text-1-3">
 
-<div id="org4b7bd43" class="figure">
+<div class="figure">
 <p><img src="wa_design_sequence_diagram1.png" alt="wa_design_sequence_diagram1.png" />
 </p>
 </div>
@@ -395,7 +463,7 @@ long it takes to generate).
 </p>
 
 
-<div id="org5e55aed" class="figure">
+<div class="figure">
 <p><img src="wa_design_sequence_diagram2.png" alt="wa_design_sequence_diagram2.png" />
 </p>
 </div>
@@ -438,7 +506,7 @@ generation processing time.
 </p>
 
 
-<div id="org06917b5" class="figure">
+<div class="figure">
 <p><img src="wa_design_class_diagram_resources.png" alt="wa_design_class_diagram_resources.png" />
 </p>
 </div>
@@ -451,7 +519,7 @@ are not relevant to this design document.
 </p>
 
 
-<div id="orgcd91363" class="figure">
+<div class="figure">
 <p><img src="wa_design_class_diagram.png" alt="wa_design_class_diagram.png" />
 </p>
 </div>
@@ -466,53 +534,35 @@ lookup tasks.
 </p>
 
 
-<div id="org2122ffb" class="figure">
+<div class="figure">
 <p><img src="wa_design_class_diagram2.png" alt="wa_design_class_diagram2.png" />
 </p>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org1bf8e4a" class="outline-3">
-<h3 id="org1bf8e4a"><span class="section-number-3">1.4</span> What works currently</h3>
+<div id="outline-container-orgd4770bc" class="outline-3">
+<h3 id="orgd4770bc"><span class="section-number-3">1.4</span> Docker container</h3>
 <div class="outline-text-3" id="text-1-4">
-<ol class="org-ol">
-<li>Making a request for document generation to the web service (flask) running.</li>
-<li>The resources that comprise the document generation request can handle a book-level of request granularity at present.</li>
-<li>Resources are found and provisioned to disk (but not yet typeset
-into a final document &#x2013; this is mainly where my efforts are focused
-currently).</li>
-</ol>
-<p>
-Files involved: <code>flask_app.py</code>, <code>resource_lookup.py</code>,
-<code>document_generator.py</code>, <code>resource.py</code> (and <code>config.py</code>, <code>file_utils.py</code>,
-<code>url_utils.py</code>, and my clone of <code>USFM-Tools</code> repo).
-</p>
-</div>
-</div>
-<div id="outline-container-org849ec51" class="outline-3">
-<h3 id="org849ec51"><span class="section-number-3">1.5</span> Docker container</h3>
-<div class="outline-text-3" id="text-1-5">
 <p>
 There isn't much to say about the docker container except that it
 provides the runtime environment, obviously. The only significant new
-detail is that flask can be specified to run on a particular IP and
+detail is that fastapi can be specified to run on a particular IP and
 port (seen in <code>docker-compose.yaml</code>) which <code>BIEL</code> will know and use when
 submitting requests.
 </p>
 
 <p>
-In a later iteration toward the end, flask will presumably be load
+In a later iteration toward the end, Fastapi will presumably be load
 balanced. Further, to protect its pool of workers from being tied up
 by long running client requests from <code>BIEL</code>, one can adopt an
 architecture such as the one described in the next paragraph.
 </p>
 
 <p>
-<code>nginx</code> in front of <code>gnunicorn</code> in front of flask could be put in place to
+<code>nginx</code> in front of <code>gnunicorn</code> in front of fastapi could be put in place to
 handle load balancing incoming front end requests from <code>BIEL</code>. To learn
-why you might do something like that please see this <a href="https://stackoverflow.com/questions/20766684/what-benefit-is-added-by-using-gunicorn-nginx-flask#20766961">stackoverflow
-answer</a>
+why you might do something like that please see this <a href="https://stackoverflow.com/questions/20766684/what-benefit-is-added-by-using-gunicorn-nginx-flask#20766961">stackoverflow answer</a>
 </p>
 
 <p>
@@ -522,190 +572,9 @@ there.
 </p>
 </div>
 </div>
-<div id="outline-container-org62143ca" class="outline-3">
-<h3 id="org62143ca"><span class="section-number-3">1.6</span> How to run a demo for yourself</h3>
-<div class="outline-text-3" id="text-1-6">
-</div>
-<div id="outline-container-org4285c1e" class="outline-4">
-<h4 id="org4285c1e"><span class="section-number-4">1.6.1</span> Set up for demos</h4>
-<div class="outline-text-4" id="text-1-6-1">
-<ol class="org-ol">
-<li>Get the tools repo:</li>
-</ol>
-
-<div class="org-src-container">
-<pre class="src src-shell">git clone https://github.com/linearcombination/tools.git
-</pre>
-</div>
-
-<ol class="org-ol">
-<li>Install the required python packages. I use pipenv, but you can do it however you prefer:</li>
-</ol>
-
-<p>
-I do:
-</p>
-
-<div class="org-src-container">
-<pre class="src src-shell">pipenv --python /path/to/python/3.8.5 # I think this will work if you point it at any python3 though.
-</pre>
-</div>
-
-<p>
-then
-</p>
-
-<div class="org-src-container">
-<pre class="src src-shell">pipenv shell # get in the pipenv, virtualenv, conda, whatever shell
-</pre>
-</div>
-
-<p>
-then
-</p>
-
-<div class="org-src-container">
-<pre class="src src-shell"># You can do just this one if you don't want to bother with virtual
-# envs. With pipenv as you probably know, this will make a virtual env
-# only install of the requirements only accessible after: pipenv
-# shell.
-pip install -r requirements.txt
-</pre>
-</div>
-</div>
-</div>
-
-<div id="outline-container-org4c076f9" class="outline-4">
-<h4 id="org4c076f9"><span class="section-number-4">1.6.2</span> Run demo outside Docker container (faster)</h4>
-<div class="outline-text-4" id="text-1-6-2">
-</div>
-<div id="outline-container-orgada7729" class="outline-5">
-<h5 id="orgada7729"><span class="section-number-5">1.6.2.1</span> For <code>resource_lookup.py</code>:</h5>
-<div class="outline-text-5" id="text-1-6-2-1">
-<p>
-In pipenv or virtualenv shell:
-</p>
-
-<div class="org-src-container">
-<pre class="src src-shell">python -m test_resource_lookup
-</pre>
-</div>
-
-<p>
-You should see a lot of output resulting from the tests doing various
-lookups into the translations.json file after first acquiring it if
-needed.
-</p>
-</div>
-</div>
-<div id="outline-container-org07702de" class="outline-5">
-<h5 id="org07702de"><span class="section-number-5">1.6.2.2</span> For <code>document_generator.py</code> (used to be named <code>export_md_to_pdf.py</code>):</h5>
-<div class="outline-text-5" id="text-1-6-2-2">
-<div class="org-src-container">
-<pre class="src src-shell">python -m test_document_generator
-</pre>
-</div>
-
-<p>
-This will go a long ways, but eventually die before generating a final
-document.
-</p>
-</div>
-</div>
-
-<div id="outline-container-orgf9546d8" class="outline-5">
-<h5 id="orgf9546d8"><span class="section-number-5">1.6.2.3</span> For testing the web service front end do:</h5>
-<div class="outline-text-5" id="text-1-6-2-3">
-<ol class="org-ol">
-<li>First, run the web server</li>
-</ol>
-
-<div class="org-src-container">
-<pre class="src src-shell">./run_flask.sh
-</pre>
-</div>
-
-<ol class="org-ol">
-<li>In a pipenv or virtualenv shell do:</li>
-</ol>
-
-<div class="org-src-container">
-<pre class="src src-shell">python -m test_flask
-</pre>
-</div>
-
-<p>
-This will run HTTP web client tests that exercise the web service.
-</p>
-</div>
-</div>
-</div>
-
-<div id="outline-container-org164565d" class="outline-4">
-<h4 id="org164565d"><span class="section-number-4">1.6.3</span> For demo inside the Docker container (slower):</h4>
-<div class="outline-text-4" id="text-1-6-3">
-<ul class="org-ul">
-<li>Get the docker container source:</li>
-</ul>
-
-<div class="org-src-container">
-<pre class="src src-shell">git clone https://github.com/linearcombination/Interleaved_Resources_Generator
-</pre>
-</div>
-
-<ul class="org-ul">
-<li>cd into the container repo root dir from step 1a above.</li>
-
-<li>Symbolically link the tools directory from earlier into the root of the container repo you cloned earlier:</li>
-</ul>
-
-<div class="org-src-container">
-<pre class="src src-shell">ln -s /path/to/tools .
-</pre>
-</div>
-
-<ul class="org-ul">
-<li>Build the container:</li>
-</ul>
-
-<p>
-Special note: don't run the ./build.sh script in a <code>fish</code> shell as
-<code>fish</code> doesn't understand use of dollar sign to reference shell vars.
-</p>
-<div class="org-src-container">
-<pre class="src src-shell">./build.sh # This will take a little while to build the container. When it completes building it will automatically start the web server front end.
-</pre>
-</div>
-
-<p>
-If you want to rebuild the container after a git pull do:
-</p>
-
-<div class="org-src-container">
-<pre class="src src-shell">docker ps -a # This will get the ID, first column, that you need to be able to remove the container for a rebuild
-docker rm ID # ID here is the ID from the previous step
-</pre>
-</div>
-
-<p>
-then repeat 3 again.
-</p>
-
-<ul class="org-ul">
-<li>Submit client requests (you need to be in the tools repo root directory as before):</li>
-</ul>
-
-<div class="org-src-container">
-<pre class="src src-shell">python -m test_flask
-</pre>
-</div>
-</div>
-</div>
-</div>
-
-<div id="outline-container-orgbdfbfcb" class="outline-3">
-<h3 id="orgbdfbfcb"><span class="section-number-3">1.7</span> (Bonus/optional material) Convenience web service endpoints for BIEL UI to call (if desired)</h3>
-<div class="outline-text-3" id="text-1-7">
+<div id="outline-container-orgce27244" class="outline-3">
+<h3 id="orgce27244"><span class="section-number-3">1.5</span> (Bonus/optional material) Convenience web service endpoints for BIEL UI to call (if desired)</h3>
+<div class="outline-text-3" id="text-1-5">
 <p>
 In the interest of good user experience, it will be important that
 <code>BIEL</code> only request resources that actually exist (as defined by
@@ -713,53 +582,19 @@ In the interest of good user experience, it will be important that
 </p>
 
 <p>
-I've provided a couple of web app endpoints from which <code>BIEL</code> can
+I've provided a few web app endpoints from which <code>BIEL</code> can
 request data in order to populate its dropdown menu's in <code>BIEL</code>'s
 document request wizard.
 </p>
-</div>
 
-<div id="outline-container-orgd4940ba" class="outline-4">
-<h4 id="orgd4940ba"><span class="section-number-4">1.7.1</span> Example client call to get all language codes (sans language name)</h4>
-<div class="outline-text-4" id="text-1-7-1">
 <p>
-Example client call from <code>test_flask.py</code>:
+You can see those by looking at ../tests/e2e/test<sub>biel</sub><sub>helper.py</sub>
 </p>
-
-<div class="org-src-container">
-<pre class="src src-python">import json
-import requests
-
-res = requests.get("http://localhost:5005/api/v1/language_codes")
-if res.ok:
-print(res.json()) # Presumably, BIEL'll display it in a drop down menu or similar.
-</pre>
 </div>
 </div>
-</div>
-<div id="outline-container-orgc18ec24" class="outline-4">
-<h4 id="orgc18ec24"><span class="section-number-4">1.7.2</span> Get all language code, language name pairs</h4>
-<div class="outline-text-4" id="text-1-7-2">
-<p>
-Example client call from <code>test_flask.py</code>.
-</p>
-
-<div class="org-src-container">
-<pre class="src src-python">import json
-import requests
-
-res = requests.get("http://localhost:5005/api/v1/language_codes_and_names")
-if res.ok:
-    print(res.json()) # Presumably, BIEL'll display it in a drop down menu or similar.
-</pre>
-</div>
-</div>
-</div>
-</div>
-
-<div id="outline-container-org7239809" class="outline-3">
-<h3 id="org7239809"><span class="section-number-3">1.8</span> Oddities - differences from the norm in resources I've found</h3>
-<div class="outline-text-3" id="text-1-8">
+<div id="outline-container-org001af98" class="outline-3">
+<h3 id="org001af98"><span class="section-number-3">1.6</span> Oddities - differences from the norm in resources I've found</h3>
+<div class="outline-text-3" id="text-1-6">
 <p>
 These are oddities that are not currently handled, either at all or
 totally, either by the original system or the current system.
@@ -829,9 +664,9 @@ Examples:
 </div>
 </div>
 
-<div id="outline-container-org9c47678" class="outline-3">
-<h3 id="org9c47678"><span class="section-number-3">1.9</span> Handling different manifests</h3>
-<div class="outline-text-3" id="text-1-9">
+<div id="outline-container-org895c6b0" class="outline-3">
+<h3 id="org895c6b0"><span class="section-number-3">1.7</span> Handling different manifests</h3>
+<div class="outline-text-3" id="text-1-7">
 <p>
 Lang,
 </p>
@@ -862,8 +697,8 @@ Craig Oliver
 </div>
 </div>
 <div id="postamble" class="status">
-<p class="date">Created: 2020-11-23 Mon 11:13</p>
-<p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
+<p class="date">Created: 2021-01-11 Mon 20:10</p>
+<p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
 </html>
