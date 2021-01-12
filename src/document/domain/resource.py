@@ -1007,11 +1007,7 @@ class TWResource(TResource):
         self._get_tw_markdown()
         self._transform_content()
 
-    # FIXME Should this be a function with no side effects and put in
-    # markdown_utils module?
-    # def _get_tw_markdown(self) -> str:
     def _get_tw_markdown(self) -> None:
-
         # From entrypoint.sh in Interleaved_Resource_Generator, i.e.,
         # container.
         # Combine OT and NT tW files into single refs file, skipping header row of NT
