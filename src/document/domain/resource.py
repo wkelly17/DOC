@@ -310,10 +310,11 @@ class USFMResource(Resource):
         # interleaved against translation notes, etc..
         self._verses_html.extend(["<p>{}</p>".format(verse) for verse in verses_html])
 
-    @icontract.require(lambda self: self._content_files is not None)
-    @icontract.require(lambda self: self._resource_filename is not None)
-    @icontract.require(lambda self: self._resource_dir is not None)
-    # @icontract.ensure(lambda self: self._usfm_chunks is not None)
+    @icontract.require(
+        lambda self: self._content_files
+        and self._resource_filename
+        and self._resource_dir
+    )
     @icontract.ensure(lambda self: self._usfm_chunks)
     def _get_usfm_chunks(self) -> None:
         """
@@ -535,7 +536,6 @@ class TResource(Resource):
             self._verses_html.append(markdown.markdown(verse_content))
         logger.debug("self._verses_html: {}".format(self._verses_html))
 
-    @icontract.require(lambda self: self._content is not None)
     @icontract.require(lambda self: self._content)
     def _convert_md2html(self) -> None:
         """Convert a resource's Markdown to HTML."""
@@ -591,7 +591,7 @@ class TNResource(TResource):
         md_environment = jinja2.Environment().from_string(template)
         return md_environment.render(data=dto)
 
-    @icontract.require(lambda self: self._resource_code is not None)
+    @icontract.require(lambda self: self._resource_code)
     def _get_tn_markdown(self) -> None:
         tn_md = ""
         book_dir: str = self._get_book_dir()
@@ -714,11 +714,11 @@ class TNResource(TResource):
 
         self._content = tn_md
 
-    @icontract.require(lambda lang_code: lang_code is not None)
-    @icontract.require(lambda book_id: book_id is not None)
-    @icontract.require(lambda book_has_intro: book_has_intro is not None)
-    @icontract.require(lambda chapter_has_intro: chapter_has_intro is not None)
-    @icontract.require(lambda chapter: chapter is not None)
+    @icontract.require(
+        lambda lang_code, book_id, book_has_intro, chapter_has_intro, chapter: lang_code
+        and book_id
+        and chapter
+    )
     def _initialize_tn_links(
         self,
         lang_code: str,
@@ -748,9 +748,9 @@ class TNResource(TResource):
     # moved to _get_tn_markdown and then removed.
     # FIXME Should we change to function w no non-local side-effects
     # and move to markdown_utils.py?
-    @icontract.require(lambda self: self._resource_dir is not None)
-    @icontract.require(lambda self: self._lang_code is not None)
-    @icontract.require(lambda self: self._resource_type is not None)
+    @icontract.require(
+        lambda self: self._resource_dir and self._lang_code and self._resource_type
+    )
     def _get_book_dir(self) -> str:
         """
         Given the lang_code, resource_type, and resource_dir,
@@ -1263,7 +1263,7 @@ class ResourceProvisioner:
         self._prepare_resource_directory()
         self._acquire_resource()
 
-    @icontract.ensure(lambda self: self._resource.resource_dir is not None)
+    @icontract.ensure(lambda self: self._resource.resource_dir)
     def _prepare_resource_directory(self) -> None:
         """
         If it doesn't exist yet, create the directory for the
@@ -1283,9 +1283,11 @@ class ResourceProvisioner:
             else:
                 logger.debug("Created directory {}".format(self._resource.resource_dir))
 
-    @icontract.require(lambda self: self._resource.resource_type is not None)
-    @icontract.require(lambda self: self._resource.resource_dir is not None)
-    @icontract.require(lambda self: self._resource.resource_url is not None)
+    @icontract.require(
+        lambda self: self._resource.resource_type
+        and self._resource.resource_dir
+        and self._resource.resource_url
+    )
     def _acquire_resource(self) -> None:
         """
         Download or git clone resource and unzip resulting file if it
@@ -1359,12 +1361,12 @@ class ResourceProvisioner:
             finally:
                 logger.debug("Unzipping finished.")
 
-    @icontract.require(lambda self: self._resource.resource_source is not None)
+    @icontract.require(lambda self: self._resource.resource_source)
     def _is_git(self) -> bool:
         """Return true if _resource_source is equal to 'git'."""
         return self._resource.resource_source == config.GIT
 
-    @icontract.require(lambda self: self._resource.resource_source is not None)
+    @icontract.require(lambda self: self._resource.resource_source)
     def _is_zip(self) -> bool:
         """Return true if _resource_source is equal to 'zip'."""
         return self._resource.resource_source == config.ZIP
@@ -1384,7 +1386,7 @@ class Manifest:
         self._version: Optional[str] = None
         self._issued: Optional[str] = None
 
-    @icontract.require(lambda self: self._resource.resource_dir is not None)
+    @icontract.require(lambda self: self._resource.resource_dir)
     def __call__(self) -> None:
         """All subclasses need to at least find their manifest file,
         if it exists. Subclasses specialize this method to
@@ -1462,17 +1464,17 @@ class Manifest:
             version = self._manifest_content["dublin_core"]["version"]
         return version
 
-    @icontract.require(lambda self: self.manifest_type is not None)
+    @icontract.require(lambda self: self.manifest_type)
     def _is_yaml(self) -> bool:
         """Return true if the resource's manifest file has suffix yaml."""
         return self.manifest_type == config.YAML
 
-    @icontract.require(lambda self: self.manifest_type is not None)
+    @icontract.require(lambda self: self.manifest_type)
     def _is_txt(self) -> bool:
         """Return true if the resource's manifest file has suffix json."""
         return self.manifest_type == config.TXT
 
-    @icontract.require(lambda self: self.manifest_type is not None)
+    @icontract.require(lambda self: self.manifest_type)
     def _is_json(self) -> bool:
         """Return true if the resource's manifest file has suffix json."""
         return self.manifest_type == config.JSON

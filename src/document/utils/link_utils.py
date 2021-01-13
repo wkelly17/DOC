@@ -17,8 +17,7 @@ if TYPE_CHECKING:
 logger = config.get_logger(__name__)
 
 
-@icontract.require(lambda book_id: book_id is not None)
-@icontract.require(lambda num: num is not None)
+@icontract.require(lambda book_id, num: book_id is not None and num is not None)
 def pad(book_id: str, num: str) -> str:
     """
     If book_id equals 'psa', i.e., Psalms, then pad num by 3 spaces.
@@ -29,6 +28,7 @@ def pad(book_id: str, num: str) -> str:
     return num.zfill(2)
 
 
+@icontract.require(lambda rc_references, rc: rc_references is not None and rc)
 def get_uses(rc_references: Dict, rc: str) -> str:
     """
     Return Translation Note references for references at key rc as
@@ -48,9 +48,11 @@ def get_uses(rc_references: Dict, rc: str) -> str:
     return md
 
 
-@icontract.require(lambda my_rcs: my_rcs is not None)
-@icontract.require(lambda resource_data: resource_data is not None)
-@icontract.require(lambda content: content is not None)
+@icontract.require(
+    lambda my_rcs, resource_data, content: my_rcs is not None
+    and resource_data is not None
+    and content is not None
+)
 def replace_rc_links(my_rcs: List, resource_data: Dict, content: str) -> str:
     """
     Given a resource's markdown text, replace links of the
@@ -113,6 +115,8 @@ def replace_tn_with_door43_link(match: re.Match) -> str:
 #     return url
 
 
+@icontract.require(lambda text: text)
+@icontract.ensure(lambda result: result)
 def transform_rc_links(text: str) -> str:
     """
     Transform rc:// style links found in text according to a set of
@@ -173,6 +177,8 @@ def transform_rc_links(text: str) -> str:
     return text
 
 
+@icontract.require(lambda lang_code, text, manual: lang_code and text and manual)
+@icontract.ensure(lambda result: result)
 def fix_ta_links(lang_code: str, text: str, manual: str) -> str:
     r"""
     Transform the second half of various Markdown links according to a
@@ -198,10 +204,9 @@ def fix_ta_links(lang_code: str, text: str, manual: str) -> str:
     return text
 
 
-@icontract.require(lambda lang_code: lang_code is not None)
-@icontract.require(lambda book_id: book_id is not None)
-@icontract.require(lambda text: text is not None)
-@icontract.require(lambda chapter: chapter is not None)
+@icontract.require(
+    lambda lang_code, book_id, text, chapter: lang_code and book_id and text and chapter
+)
 def fix_tn_links(lang_code: str, book_id: str, text: str, chapter: str) -> str:
     r"""
     Transform the second half of various Markdown links according to a
@@ -233,9 +238,9 @@ def fix_tn_links(lang_code: str, book_id: str, text: str, chapter: str) -> str:
     return text
 
 
-@icontract.require(lambda lang_code: lang_code is not None)
-@icontract.require(lambda text: text is not None)
-@icontract.require(lambda dictionary: dictionary is not None)
+@icontract.require(
+    lambda lang_code, text, dictionary: lang_code and text and dictionary is not None
+)
 def fix_tw_links(lang_code: str, text: str, dictionary: str) -> str:
     """
     Transform the second half of various Markdown links according to a
@@ -256,14 +261,15 @@ def fix_tw_links(lang_code: str, text: str, dictionary: str) -> str:
     return text
 
 
-@icontract.require(lambda lang_code: lang_code is not None)
-@icontract.require(lambda my_rcs: my_rcs is not None)
-@icontract.require(lambda rc_references: rc_references is not None)
-@icontract.require(lambda resource_data: resource_data is not None)
-@icontract.require(lambda bad_links: bad_links is not None)
-@icontract.require(lambda working_dir: working_dir is not None)
-@icontract.require(lambda text: text is not None)
-@icontract.require(lambda source_rc: source_rc is not None)
+@icontract.require(
+    lambda lang_code, my_rcs, rc_references, resource_data, bad_links, working_dir, text, source_rc: lang_code
+    and rc_references is not None
+    and resource_data is not None
+    and bad_links is not None
+    and working_dir
+    and text
+    and source_rc is not None
+)
 def get_resource_data_from_rc_links(
     lang_code: str,
     my_rcs: List,
@@ -499,10 +505,12 @@ def get_resource_data_from_rc_links(
                 )
 
 
-@icontract.require(lambda usfm_resource: usfm_resource is not None)
-@icontract.require(lambda book_id: book_id)
-@icontract.require(lambda chapter: chapter)
-@icontract.require(lambda first_verse: first_verse)
+@icontract.require(
+    lambda usfm_resource, book_id, chapter, first_verse: usfm_resource is not None
+    and book_id
+    and chapter
+    and first_verse
+)
 @icontract.ensure(lambda result: result)
 def initialize_tn_chapter_verse_anchor_links(
     usfm_chunks: Dict, book_id: str, chapter: str, first_verse: str
@@ -523,7 +531,14 @@ def initialize_tn_chapter_verse_anchor_links(
     return anchors
 
 
-# FIXME Add icontract requirements
+@icontract.require(
+    lambda book_id, book_title, lang_code, chapter_chunk_file, chapter: book_id
+    and book_title
+    and lang_code
+    and chapter_chunk_file
+    and chapter
+)
+@icontract.ensure(lambda result: result is not None)
 def initialize_tn_chapter_files(
     book_id: str, book_title: str, lang_code: str, chapter_chunk_file: str, chapter: str
 ) -> Tuple[str, Optional[str], str, str]:
