@@ -327,8 +327,7 @@ class DocumentGenerator:
             document_request_key[:-1], document_request.assembly_strategy_kind
         )
 
-    @icontract.require(lambda self: self.working_dir)
-    @icontract.require(lambda self: self._document_request_key)
+    @icontract.require(lambda self: self.working_dir and self._document_request_key)
     def get_finished_document_filepath(self) -> str:
         """
         Return the location on disk where the finished document may be
