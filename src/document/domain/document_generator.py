@@ -83,7 +83,7 @@ class DocumentGenerator:
         # assembly_strategy kind passed in from BIEL's UI
         self.assembly_strategy: Callable[
             [DocumentGenerator], str
-        ] = assembly_strategy_factory(document_request.assembly_strategy_kind)
+        ] = _assembly_strategy_factory(document_request.assembly_strategy_kind)
         self.working_dir = working_dir
         self.output_dir = output_dir
         # The Markdown and later HTML for the document which is
@@ -134,7 +134,7 @@ class DocumentGenerator:
         self._initialize_resource_content()
         self._generate_pdf()
 
-    def assemble_content(self) -> None:
+    def _assemble_content(self) -> None:
         """
         Concatenate/interleave the content from all requested resources
         according to the assembly_strategy requested and write out to a single
@@ -144,7 +144,7 @@ class DocumentGenerator:
         stored it in its _content instance variable.
         """
         self.content = self.assembly_strategy(self)
-        self.enclose_html_content()
+        self._enclose_html_content()
         logger.debug(
             "About to write HTML to {}".format(self.get_finished_document_filepath())
         )
@@ -152,7 +152,7 @@ class DocumentGenerator:
             self.get_finished_document_filepath(), self.content,
         )
 
-    def enclose_html_content(self) -> None:
+    def _enclose_html_content(self) -> None:
         """
         Write the enclosing HTML and body elements around the HTML
         body content for the document.
@@ -162,7 +162,7 @@ class DocumentGenerator:
         html += config.get_document_html_footer()
         self.content = html
 
-    def convert_html2pdf(self) -> None:
+    def _convert_html2pdf(self) -> None:
         """Generate PDF from HTML contained in self.content."""
         now = datetime.datetime.now()
         revision_date = "{}-{}-{}".format(now.year, now.month, now.day)
@@ -348,9 +348,9 @@ class DocumentGenerator:
             self.output_dir, "{}.pdf".format(self._document_request_key)
         )
         if not os.path.isfile(output_filename):
-            self.assemble_content()
+            self._assemble_content()
             logger.info("Generating PDF...")
-            self.convert_html2pdf()
+            self._convert_html2pdf()
             # TODO Return json message containing any resources that
             # we failed to find so that the front end can let the user
             # know.
@@ -373,7 +373,7 @@ class DocumentGenerator:
 # https://github.com/faif/python-patterns/blob/master/patterns/behavioral/strategy.py
 
 
-def assemble_content_by_book(docgen: DocumentGenerator) -> str:
+def _assemble_content_by_book(docgen: DocumentGenerator) -> str:
     """
     Assemble and return the collection of resources' content
     according to the 'by book' strategy. E.g., For Genesis, USFM for
@@ -386,7 +386,7 @@ def assemble_content_by_book(docgen: DocumentGenerator) -> str:
     return content
 
 
-def assemble_content_by_verse(docgen: DocumentGenerator) -> str:
+def _assemble_content_by_verse(docgen: DocumentGenerator) -> str:
     """
     Assemble and return the collection of resources' content
     according to the 'by verse' strategy. E.g., For Genesis 1, USFM for
@@ -416,7 +416,7 @@ def assemble_content_by_verse(docgen: DocumentGenerator) -> str:
     return "".join(verses_zipped)
 
 
-def assembly_strategy_factory(
+def _assembly_strategy_factory(
     assembly_strategy_kind: model.AssemblyStrategyEnum,
 ) -> Callable[[DocumentGenerator], str]:
     """
@@ -424,8 +424,8 @@ def assembly_strategy_factory(
     appropriate strategy function.
     """
     strategies = {
-        model.AssemblyStrategyEnum.book: assemble_content_by_book,
+        model.AssemblyStrategyEnum.book: _assemble_content_by_book,
         # model.AssemblyStrategyEnum.CHAPTER: assemble_content_by_chapter,
-        model.AssemblyStrategyEnum.verse: assemble_content_by_verse,
+        model.AssemblyStrategyEnum.verse: _assemble_content_by_verse,
     }
     return strategies[assembly_strategy_kind]
