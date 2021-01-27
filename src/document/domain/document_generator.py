@@ -46,25 +46,6 @@ if TYPE_CHECKING:
 
 logger = config.get_logger(__name__)
 
-# NOTE Not all languages have tn, tw, tq, tq, udb, ulb. Some
-# have only a subset of those resources. Presumably the web UI
-# will present only valid choices per language.
-# NOTE resources could serve as a cache as well. Perhaps the
-# cache key could be an md5 hash of the resource's key/value
-# pairs or a simple concatenation of lang_code, resource_type,
-# resource_code. If the key is hashed hash, subsequent lookups
-# would compare a hash of an incoming resource request's
-# key/value pairs and if it was already in the resources
-# dictionary then the generation of the document could be
-# skipped (after first checking the final document result was
-# still available - container redeploys could destroy cache)
-# and return the URL to the previously generated document
-# right away.
-# NOTE resources is the incoming resource request dictionary
-# and so is per request, per instance. The cache, however,
-# would need to persist beyond each request. Perhaps it should
-# be maintained as a class variable?
-
 
 class DocumentGenerator:
     """
@@ -397,12 +378,12 @@ def _assemble_content_by_verse(docgen: DocumentGenerator) -> str:
     )
 
     # FIXME You could first partition by language group and then
-    # withint that language group partition by resource type,
+    # within that language group partition by resource type,
     # each resulting list could go to a data transfer object instance
     # var used to instantiate each resources' section in a jinja template
 
     # FIXME Find a way to use jinja2 templates to provide layout. The
-    # layout shouyld probably include a section header for each
+    # layout should probably include a section header for each
     # resource. E.g., Scripture, followed by the scripture verse, then
     # Translation notes, followed by the translation note for the
     # verse, etc..

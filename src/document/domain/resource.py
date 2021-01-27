@@ -219,7 +219,7 @@ class USFMResource(Resource):
         # as a substring.
         # If desired, in the case where a manifest must be consulted
         # to determine if the file is considered usable, i.e.,
-        # 'complete' or 'finished', that can also be done by compared
+        # 'complete' or 'finished', that can also be done by comparing
         # the filtered file(s) against the manifest's 'finished' list
         # to see if it can be used.
         if usfm_content_files:
@@ -255,21 +255,9 @@ class USFMResource(Resource):
         """See docstring in superclass."""
         self._get_usfm_chunks()
 
-        # FIXME Experiment with content derived from
-        # _get_usfm_verses_generator, use breakpoint to do so. Also,
-        # instead of using a generator you could just get the verses
-        # directly since there is no real advantage to using a
-        # generator as you are creating the generator from a list that
-        # is already in memory nested in the _usfm_chunks dictionary.
-        # The idea would be to see if we can just get the verse
-        # content sans USFM elements and then maybe stuff it into
-        # markdown jinja1 templates or something.
-        # raise "Work on this homey!!!"
-
         # logger.debug("self._content_files: {}".format(self._content_files))
 
         if self._content_files is not None:
-            # FIXME Could try different parser here.
             # Create the USFM to HTML and store in file.
             UsfmTransform.buildSingleHtmlFromFiles(
                 [pathlib.Path(filepath) for filepath in self._content_files],
@@ -499,7 +487,6 @@ class TResource(Resource):
             )
         )
 
-    # FIXME
     # @icontract.ensure(lambda self: self._verses_html) # T* resource might not be available
     def _initialize_verses_html(self) -> None:
         # FIXME This whole method could be rewritten. We want to find
@@ -614,12 +601,8 @@ class TNResource(TResource):
         for chapter in sorted(os.listdir(book_dir)):
             chapter_dir = os.path.join(book_dir, chapter)
             logger.debug("chapter_dir: {}".format(chapter_dir))
-            # FIXME lang_code ml, for instance, doesn't lead with a digit, but
-            # with ml_tn_*, e.g., ml_tn_57-TIT.tsv
             chapter = chapter.lstrip("0")
-            # logger.debug("chapter: {}".format(chapter))
             if os.path.isdir(chapter_dir) and re.match(r"^\d+$", chapter):
-                # logger.debug("chapter_dir, {}, exists".format(chapter_dir))
                 chapter_intro_md = self._initialize_tn_chapter_intro(
                     chapter_dir, chapter
                 )
