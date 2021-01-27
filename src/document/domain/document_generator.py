@@ -13,7 +13,6 @@ and eventually a final document produced.
 
 from __future__ import annotations  # https://www.python.org/dev/peps/pep-0563/
 
-import csv
 import datetime
 import os
 import subprocess
