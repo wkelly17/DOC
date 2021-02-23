@@ -3,7 +3,7 @@
 ** Requirements
 *** Requirement
 Allow creating a document out of any combination of resources from any
-supported (in translations.json) language in any order.
+supported (in translations.json) language.
 *** Requirement
 Produce PDF final document.
 *** Requirement
