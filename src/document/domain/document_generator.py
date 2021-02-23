@@ -14,7 +14,9 @@ and eventually a final document produced.
 from __future__ import annotations  # https://www.python.org/dev/peps/pep-0563/
 
 import datetime
+import itertools
 import os
+import re
 import subprocess
 from typing import TYPE_CHECKING, Callable, List
 
@@ -22,7 +24,14 @@ import icontract
 
 from document import config
 from document.domain import model
-from document.domain.resource import resource_factory
+from document.domain.resource import (
+    resource_factory,
+    USFMResource,
+    TNResource,
+    # TWResource,
+    # TQResource,
+    # TAResource,
+)
 from document.utils import file_utils
 
 # https://www.python.org/dev/peps/pep-0563/
@@ -353,47 +362,189 @@ class DocumentGenerator:
 # https://github.com/faif/python-patterns/blob/master/patterns/behavioral/strategy.py
 
 
-def _assemble_content_by_book(docgen: DocumentGenerator) -> str:
-    """
-    Assemble and return the collection of resources' content
-    according to the 'by book' strategy. E.g., For Genesis, USFM for
-    Genesis followed by Translation Notes for Genesis, etc..
-    """
-    logger.info("Assembling document by interleaving at the book level.")
-    content = ""
-    for resource in docgen.found_resources:
-        content += "\n\n{}".format(resource.content)
-    return content
-
-
 def _assemble_content_by_verse(docgen: DocumentGenerator) -> str:
     """
-    Assemble and return the collection of resources' content
-    according to the 'by verse' strategy. E.g., For Genesis 1, USFM for
-    Genesis 1:1 followed by Translation Notes for Genesis 1:1, etc..
+    Assemble and return the collection of resources' content according
+    to the 'by verse' strategy with a particular (arbitrary to this
+    strategy) ordering of resources. E.g., For Genesis, TN book intro
+    if available, For Genesis 1, TN chapter intro if available,
+    followed by USFM for Genesis 1:1 followed by Translation Notes for
+    Genesis 1:1, followed by Translation words for Genesis 1:1,
+    followed by Translation questions for Genesis 1:1, followed by
+    Translation answers for Genesis 1:1, etc..
+
+    Example: The user selects, say, two languages: Swahili and
+    English. They request USFM (specifically ULB) and TN for both: The
+    arbitrary interleaving algorithm for this strategy is:
+
+    1. For English (just because, say, in this strategy we arbitrarily
+sort languages alphabetically):
+       * For each book:
+       ** TN book intro if any
+       ** For each chapter:
+ ]o      *** TN chapter intro if any
+       *** Chapter heading from USFM
+       **** For each verse:
+       ***** USFM verse
+       ***** TN for USFM verse
+       ***** (if it had been requested) TW for USFM verse
+       ***** (if it had been requested) TQ for USFM verse
+       ***** (if it had been requested) TA for USFM verse
+       ***** etc.
+    1. For Swahili:
+       * For each book:
+       ** TN book intro if any
+       ** For each chapter:
+       *** TN chapter intro if any
+       *** Chapter heading from USFM
+       **** For each verse:
+       ***** USFM verse
+       ***** TN for USFM verse
+       ***** (if it had been requested) TW for USFM verse
+       ***** (if it had been requested) TQ for USFM verse
+       ***** (if it had been requested) TA for USFM verse
+       ***** etc.
+
     """
-    logger.info("Assembling document by interleaving at the verse level.")
-    found_sorted = sorted(
+    # NOTE: For now we are ignoring links that may be presented. I
+    # hope to handle their transformations with a Markdown extension
+    # plugin rather than the legacy way of doing regexp search and
+    # replace on markdown content that has been concatenated. So we'll
+    # transform them at the time the markdown is converted to HTML.
+
+    # NOTE Each strategy can interleave resource material the way it
+    # wants. A user could choose a strategy they want at the front
+    # end. Presumably, we could offer the user such strategies from a
+    # dropdown that would be intelligent enough to only present
+    # choices that make sense for the number of languages and
+    # resources they have selected, e.g., we wouldn't bother them with
+    # the choice of interleaving strategy if for instance all they
+    # wanted was TN for Swahili and nothing else.
+
+    # Utility function to clean things up.
+    def adjust_book_intro_headings(book_intro: str) -> str:
+        """
+        Change levels on headings.
+        """
+        # Move the H2 out of the way, we'll deal with it last.
+        book_intro = re.sub(r"h2", r"h6", book_intro)
+        book_intro = re.sub(r"h1", r"h2", book_intro)
+        book_intro = re.sub(r"h3", r"h4", book_intro)
+        # Now make those H6s that we used temporarily into H3s.
+        return re.sub(r"h6", r"h3", book_intro)
+
+    def adjust_chapter_intro_headings(chapter_intro: str) -> str:
+        """
+        Change levels on headings.
+        """
+        # Move the H2 out of the way, we'll deal with it last.
+        chapter_intro = re.sub(r"h4", r"h6", chapter_intro)
+        chapter_intro = re.sub(r"h3", r"h4", chapter_intro)
+        chapter_intro = re.sub(r"h1", r"h3", chapter_intro)
+        chapter_intro = re.sub(r"h2", r"h4", chapter_intro)
+        # Now make those unwanted H6s that we used temporarily into H3s.
+        return re.sub(r"h6", r"h5", chapter_intro)
+
+    logger.info(
+        "Assembling document by interleaving at the verse level using 'verse2' strategy."
+    )
+    resources_sorted_by_language = sorted(
         docgen.found_resources, key=lambda resource: resource.lang_code
     )
+    html = []
+    for language, group_by_lang in itertools.groupby(
+        resources_sorted_by_language, lambda resource: resource.lang_code
+    ):
+        html.append("<h1>Language: {}</h1>".format(language))
 
-    # FIXME You could first partition by language group and then
-    # within that language group partition by resource type,
-    # each resulting list could go to a data transfer object instance
-    # var used to instantiate each resources' section in a jinja template
+        # For groupby's sake, we need to first sort
+        # group_by_lang before doing a groupby operation on it so that
+        # resources will be clumped together by resource code, i.e.,
+        # by language, otherwise a new group will be created every time a new
+        # resource_code is sequentially encountered.
+        resources_sorted_by_book = sorted(
+            group_by_lang, key=lambda resource: resource.resource_code
+        )
+        for book, group_by_book in itertools.groupby(
+            resources_sorted_by_book, lambda resource: resource.resource_code
+        ):
+            html.append("<h2>Book: {}</h2>".format(book))
 
-    # FIXME Find a way to use jinja2 templates to provide layout. The
-    # layout should probably include a section header for each
-    # resource. E.g., Scripture, followed by the scripture verse, then
-    # Translation notes, followed by the translation note for the
-    # verse, etc..
-    verses = map(lambda resource: resource.verses_html, found_sorted)
-    # zip the verse HTML content for all resources together.
-    # FIXME Zipping as below works, but it disallows us from using a
-    # jinja template to layout resources' content into. Another
-    # approach would be to just always check for
-    verses_zipped: List[str] = [x for t in zip(*list(verses)) for x in t]
-    return "".join(verses_zipped)
+            # Save grouper generator since it will get exhausted
+            # when used and exhausted generators cannot be reused.
+            resources = list(group_by_book)
+            tn_resources = [
+                resource for resource in resources if isinstance(resource, TNResource)
+            ]
+            # Add in the book intro.
+            tn_resource = tn_resources[0] if tn_resources else None
+            book_intro = tn_resource.book_payload.intro_html if tn_resource else ""
+            book_intro = adjust_book_intro_headings(book_intro)
+            html.append(book_intro)
+
+            usfm_resources = [
+                resource for resource in resources if isinstance(resource, USFMResource)
+            ]
+            usfm_resource = usfm_resources[0] if usfm_resources else None
+
+            # FIXME A user could request only TN and not USFM so
+            # you'll need to handle that case. In such a case, the
+            # else expression will just be to grab the TN and join it
+            # into a string and append it to the html local var.
+            if usfm_resource:
+                # PEP526 disallows declaration of types in for loops, but allows this.
+                chapter_num: int
+                chapter: model.USFMChapter
+                # Dict keys need to be sorted as their order is not guaranteed.
+                for chapter_num, chapter in sorted(
+                    usfm_resource.chapters_content.items()
+                ):
+                    # Add in the USFM chapter heading.
+                    chapter_heading = chapter.chapter_content[0]
+                    # chapter_heading = re.sub(r"h2", r"h3", chapter_heading)
+                    html.append(chapter_heading)
+
+                    # Add in the translation notes chapter intro.
+                    chapter_intro = (
+                        tn_resource.book_payload.chapters[chapter_num].intro_html
+                        if tn_resource
+                        else ""
+                    )
+                    chapter_intro = adjust_chapter_intro_headings(chapter_intro)
+                    html.append(chapter_intro)
+
+                    # NOTE This commented out section is for use when
+                    # we implement a by chapter interleaving strategy.
+                    # Skip some useless elements and get the USFM
+                    # verse HTML content.
+                    # Chapter all at once including formatting HTML
+                    # elements. This would be useful for a 'by
+                    # chapter' interleaving strategy.
+                    # usfm_verses = chapter.chapter_content[3:]
+
+                    # Get TN chapter verses
+                    tn_verses = (
+                        tn_resource.book_payload.chapters[chapter_num].verses_html
+                        if tn_resource
+                        else {}
+                    )
+                    # PEP526 disallows declaration of types in for
+                    # loops, but allows this.
+                    verse_num: int
+                    verse: str
+                    # Now let's interleave USFM verse with its
+                    # translation note if available.
+                    for verse_num, verse in sorted(chapter.chapter_verses.items()):
+                        html.append("<h3>Verse</h3>")
+                        html.append(verse)
+                        if verse_num in tn_verses:
+                            html.append("<h3>Translation note</h3>")
+                            # Change H1 HTML elements to H4 HTML
+                            # elements in each translation note.
+                            tn_verse = tn_verses[verse_num]
+                            html.append(re.sub(r"h1", r"h4", tn_verse))
+
+    return "\n".join(html)
 
 
 def _assembly_strategy_factory(
@@ -404,8 +555,6 @@ def _assembly_strategy_factory(
     appropriate strategy function.
     """
     strategies = {
-        model.AssemblyStrategyEnum.book: _assemble_content_by_book,
-        # model.AssemblyStrategyEnum.CHAPTER: assemble_content_by_chapter,
         model.AssemblyStrategyEnum.verse: _assemble_content_by_verse,
     }
     return strategies[assembly_strategy_kind]

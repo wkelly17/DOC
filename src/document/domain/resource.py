@@ -22,7 +22,13 @@ from usfm_tools.transform import UsfmTransform
 
 from document import config
 from document.domain import bible_books, model, resource_lookup
-from document.utils import file_utils, link_utils, markdown_utils, url_utils
+from document.utils import (
+    file_utils,
+    html_parsing_utils,
+    link_utils,
+    markdown_utils,
+    url_utils,
+)
 
 logger = config.get_logger(__name__)
 
@@ -181,7 +187,8 @@ class USFMResource(Resource):
 
     def __init__(self, *args, **kwargs) -> None:  # type: ignore
         super().__init__(*args, **kwargs)
-        self._usfm_chunks: dict = {}
+        # self._usfm_chunks: Dict = {}
+        self._chapters_content: Dict = {}
         # self._usfm_verses_generator: Generator
         # self._verses_html: List[str]
         # self._verses_html_generator: Generator
@@ -253,7 +260,8 @@ class USFMResource(Resource):
     @icontract.ensure(lambda self: self._resource_filename is not None)
     def get_content(self) -> None:
         """See docstring in superclass."""
-        self._get_usfm_chunks()
+        # FIXME Legacy. Now obselete.
+        # self._get_usfm_chunks()
 
         # logger.debug("self._content_files: {}".format(self._content_files))
 
@@ -276,27 +284,126 @@ class USFMResource(Resource):
                 )
             )
 
-            if self._assembly_strategy_kind == model.AssemblyStrategyEnum.verse:
+            if self._assembly_strategy_kind in {
+                model.AssemblyStrategyEnum.verse,
+                model.AssemblyStrategyEnum.verse2,
+            }:
                 self._initialize_verses_html()
                 logger.debug("self._verses_html from bs4: {}".format(self._verses_html))
 
             logger.debug("self._bad_links: {}".format(self._bad_links))
 
+    @property
+    def chapters_content(self) -> Dict:
+        """Provide public interface for other modules."""
+        return self._chapters_content
+
     @icontract.require(lambda self: self._content)
-    @icontract.ensure(lambda self: self._verses_html)
+    # @icontract.ensure(lambda self: self._verses_html)
+    @icontract.ensure(lambda self: self._chapters_content)
     def _initialize_verses_html(self) -> None:
         """
-        Break apart the HTML content into HTML verse chunks, augment
+        Break apart the USFM HTML content into HTML verse chunks, augment
         HTML output with additional HTML elements and store in
         _verses_html.
         """
         parser = bs4.BeautifulSoup(self._content, "html.parser")
-        verses_html: bs4.elements.ResultSet = parser.find_all(
-            "span", attrs={"class": "verse"}
-        )
+
+        # FIXME This is the original, now obselete verses_html
+        # formulation. It will be removed later, but code relies on it
+        # right now.
+        if False:
+            verses_html: bs4.elements.ResultSet = parser.find_all(
+                "span", attrs={"class": "v-num"}
+            )
+        chapter_breaks = parser.find_all("h2", attrs={"class": "c-num"})
+        localized_chapter_heading = chapter_breaks[0].get_text().split()[0]
+        for chapter_idx, chapter_break in enumerate(chapter_breaks):
+            chapter_num = int(chapter_break.get_text().split()[1])
+            chapter_content = html_parsing_utils.tag_elements_between(
+                parser.find(
+                    "h2", text="{} {}".format(localized_chapter_heading, chapter_num),
+                ),
+                # ).next_sibling,
+                parser.find(
+                    "h2",
+                    text="{} {}".format(localized_chapter_heading, chapter_num + 1),
+                ),
+            )
+            chapter_content = [str(tag) for tag in list(chapter_content)]
+            chapter_verses_parser = bs4.BeautifulSoup(
+                "".join(chapter_content), "html.parser",
+            )
+            chapter_verse_tags: bs4.elements.ResultSet = chapter_verses_parser.find_all(
+                "span", attrs={"class": "v-num"}
+            )
+            # Get each verse opening span tag and then the actual
+            # verse text for this chapter and enclose them each
+            # in a p element.
+            # FIXME This creates a list in which the verses are first
+            # displayed properly and then the second half of the list
+            # recapitulates the list again but only the tags with no
+            # verse text content.
+            chapter_verse_list = [
+                "<p>{} {}</p>".format(verse, verse.next_sibling)
+                for verse in chapter_verse_tags
+            ]
+            # Dictionary to hold verse number, verse value pairs.
+            chapter_verses: Dict[int, str] = {}
+            for verse_idx, verse_element in enumerate(chapter_verse_list):
+                # Get the verse num from the verse HTML tag's id
+                # value.
+                # FIXME Perhaps we'd want to use regexp instead? It
+                # might be faster and clearer semantically.
+                verse_num = int(str(verse_element).split("-v-")[1].split('"')[0])
+                lower_id = "{}-ch-{}-v-{}".format(
+                    str(self._book_number).zfill(3),
+                    str(chapter_num).zfill(3),
+                    str(verse_num).zfill(3),
+                )
+                upper_id = "{}-ch-{}-v-{}".format(
+                    str(self._book_number).zfill(3),
+                    str(chapter_num).zfill(3),
+                    str(verse_num + 1).zfill(3),
+                )
+                verse_content_tags = html_parsing_utils.tag_elements_between(
+                    chapter_verses_parser.find(
+                        "span", attrs={"class": "v-num", "id": lower_id},
+                    ),
+                    # ).next_sibling,
+                    chapter_verses_parser.find(
+                        "span", attrs={"class": "v-num", "id": upper_id},
+                    ),
+                )
+                verse_content = [str(tag) for tag in list(verse_content_tags)]
+                # FIXME Hacky way to remove some recursive redundant
+                # parsing results. Should use bs4 more expertly to
+                # avoid this if it is possible.
+                del verse_content[1:4]
+                verse_content_str = "".join(verse_content)
+                # HACK "Fix" BeautifulSoup parsing issue wherein #
+                # sometimes a verse # contains its content but also includes a
+                # subsequent # verse or verses or a # recapitulation of all # previous
+                # verses:
+                verse_content_str = (
+                    '<span class="v-num"'
+                    + verse_content_str.split('<span class="v-num"')[1]
+                )
+                chapter_verses[verse_num] = verse_content_str
+            self._chapters_content[chapter_num] = model.USFMChapter(
+                chapter_content=chapter_content, chapter_verses=chapter_verses,
+            )
+
+        # FIXME Legacy. This is obselete now that the above is working.
         # Add enclosing paragraph to each verse since they will be
-        # interleaved against translation notes, etc..
-        self._verses_html.extend(["<p>{}</p>".format(verse) for verse in verses_html])
+        # interleaved with translation notes, etc..
+        if False:
+            self._verses_html.extend(
+                [
+                    "<p>{} {}</p>".format(verse, verse.next_sibling)
+                    for verse in verses_html
+                ]
+            )
 
     @icontract.require(
         lambda self: self._content_files
@@ -331,7 +438,6 @@ class USFMResource(Resource):
             for line in chunk.splitlines(True):
                 # If this is a new verse and there's a pending chunk,
                 # finish it and start a new one.
-                # logger.debug("pending_chunk: {}".format(pending_chunk))
                 if re.search(r"\\v", line) and pending_chunk:
                     chunks_per_verse.append(pending_chunk)
                     pending_chunk = None
@@ -362,7 +468,7 @@ class USFMResource(Resource):
             first_verse = verses[0]
             last_verse = verses[-1]
             if chapter not in book_chunks:
-                book_chunks[chapter] = {"chunks": []}
+                book_chunks[chapter] = {"chapters": []}
             # FIXME first_verse, last_verse, and verses equal the same
             # number, e.g., all 1 or all 2, etc.. They don't seem to encode
             # meaningfully differentiated data that would be useful.
@@ -382,12 +488,12 @@ class USFMResource(Resource):
                 "verses": verses,
             }
             book_chunks[chapter][first_verse] = data
-            book_chunks[chapter]["chunks"].append(data)
+            book_chunks[chapter]["chapters"].append(data)
         self._usfm_chunks = book_chunks
 
     # NOTE Exploratory idea
     # @icontract.require(lambda self: self._usfm_chunks is not None)
-    # @icontract.require(lambda self: self._usfm_chunks["1"]["chunks"] is not None)
+    # @icontract.require(lambda self: self._usfm_chunks["1"]["chapters"] is not None)
     # def _get_usfm_verses_generator(self) -> Generator:
     #     """
     #     Return a generator over the raw USFM verses. Might be useful
@@ -396,11 +502,11 @@ class USFMResource(Resource):
     #     Yields:
     #         The next USFM verse.
     #     """
-    #     # for i in range(len(self._usfm_chunks["1"]["chunks"]) - 1):
-    #     #     yield self._usfm_chunks["1"]["chunks"][i]
+    #     # for i in range(len(self._usfm_chunks["1"]["chapters"]) - 1):
+    #     #     yield self._usfm_chunks["1"]["chapters"][i]
     #     yield from (
-    #         self._usfm_chunks["1"]["chunks"][index]
-    #         for index in range(len(self._usfm_chunks["1"]["chunks"]) - 1)
+    #         self._usfm_chunks["1"]["chapters"][index]
+    #         for index in range(len(self._usfm_chunks["1"]["chapters"]) - 1)
     #     )
 
     # def _get_verses_html_generator(self) -> Generator:
@@ -433,6 +539,8 @@ class TResource(Resource):
         self._manifest = Manifest(self)
 
         logger.debug("self._resource_dir: {}".format(self._resource_dir))
+        # FIXME Is the next section of code even needed now that we
+        # have chapter_verses?
         # Get the content files
         markdown_files = glob(
             "{}/*{}/**/*.md".format(self._resource_dir, self._resource_code)
@@ -473,7 +581,10 @@ class TResource(Resource):
                 )
             )
 
-        if self._assembly_strategy_kind == model.AssemblyStrategyEnum.verse:
+        if self._assembly_strategy_kind in {
+            model.AssemblyStrategyEnum.verse,
+            model.AssemblyStrategyEnum.verse2,
+        }:
             self._initialize_verses_html()
 
         # logger.debug(
@@ -481,13 +592,15 @@ class TResource(Resource):
         #         markdown_content_files, txt_content_files,
         #     )
         # )
-        logger.debug(
-            "self._content_files for {}: {}".format(
-                self._resource_code, self._content_files,
-            )
-        )
+        # logger.debug(
+        #     "self._content_files for {}: {}".format(
+        #         self._resource_code, self._content_files,
+        #     )
+        # )
 
-    # @icontract.ensure(lambda self: self._verses_html) # T* resource might not be available
+    # @icontract.ensure(lambda self: self._verses_html) # T* resource
+    # might not be available, so don't require _verses_html is
+    # returned.
     def _initialize_verses_html(self) -> None:
         # FIXME This whole method could be rewritten. We want to find
         # book intro, chapter intros, and then the verses themselves.
@@ -496,32 +609,91 @@ class TResource(Resource):
         # FIXME We already went to the trouble of finding the Markdown
         # or TXT files and storing their paths in self._content_files, let's
         # use those rather than glogging again # here if possible.
-        verse_files = sorted(
-            glob(
-                "{}/*{}/*[0-9][0-9]/*[0-9][0-9].md".format(
-                    self._resource_dir, self._resource_code
+        md = markdown.Markdown()
+        chapter_dirs = sorted(
+            glob("{}/**/*{}/*[0-9]*".format(self._resource_dir, self._resource_code))
+        )
+        # Some languages are organized differently on disk (e.g., depending
+        # on if their assets were acquired as a git repo or a zip).
+        if not chapter_dirs:
+            chapter_dirs = sorted(
+                glob("{}/*{}/*[0-9]*".format(self._resource_dir, self._resource_code))
+            )
+        chapter_verses: Dict[int, model.TNChapterPayload] = {}
+        for chapter_dir in chapter_dirs:
+            chapter_num = int(os.path.split(chapter_dir)[-1])
+            # FIXME For some languages, TN assets are stored in .txt files
+            # rather of .md files. Handle this.
+            intro_paths = glob("{}/*intro.md".format(chapter_dir))
+            intro_path = intro_paths[0] if intro_paths else None
+            intro_html = ""
+            if intro_path:
+                with open(intro_path, "r", encoding="utf-8") as fin:
+                    intro_html = md.convert(fin.read())
+            # FIXME For some languages, TN assets are stored in .txt files
+            # rather of .md files. Handle this.
+            verse_paths = sorted(glob("{}/*[0-9]*.md".format(chapter_dir)))
+            verses_html: Dict[int, str] = {}
+            for filepath in verse_paths:
+                verse_num = int(pathlib.Path(filepath).stem)
+                verse_content = ""
+                with open(filepath, "r", encoding="utf-8") as fin2:
+                    verse_content = md.convert(fin2.read())
+                verses_html[verse_num] = verse_content
+            chapter_payload = model.TNChapterPayload(
+                intro_html=intro_html, verses_html=verses_html
+            )
+            chapter_verses[chapter_num] = chapter_payload
+        # Get the book intro if it exists
+        # FIXME For some languages, TN assets are stored in .txt files
+        # rather of .md files. Handle this.
+        book_intro_path = glob(
+            "{}/*{}/front/intro.md".format(self._resource_dir, self._resource_code)
+        )
+        book_intro_html = ""
+        if book_intro_path:
+            with open(book_intro_path[0], "r", encoding="utf-8") as fin3:
+                book_intro_html = md.convert(fin3.read())
+        self._book_payload = model.TNBookPayload(
+            intro_html=book_intro_html, chapters=chapter_verses
+        )
+
+        # FIXME What follows is now obselete. The code above is
+        # preferred. Eventual removal.
+        if False:
+            verse_files = sorted(
+                glob(
+                    "{}/*{}/*[0-9][0-9]/*[0-9][0-9].md".format(
+                        self._resource_dir, self._resource_code
+                    )
                 )
             )
-        )
-        # NOTE If a resource ends up downloading a zip of asset files,
-        # then the zip will be unzipped into _resource_dir. This could
-        # create a subdirectory within the files are found.
-        # Verse_files were not found, let's try another location
-        # if not verse_files:
-        #     # Let's look a subdirectory deeper than the _resource_dir
-        #     verse_files = sorted(
-        #         glob(
-        #             "{}/*{}/*[0-9][0-9]/**/*[0-9][0-9].md".format(
-        #                 self._resource_dir, self._resource_code
-        #             )
-        #         )
-        #     )
-        for filepath in verse_files:
-            verse_content = ""
-            with open(filepath, "r") as fin:
-                verse_content = fin.read()
-            self._verses_html.append(markdown.markdown(verse_content))
-        logger.debug("self._verses_html: {}".format(self._verses_html))
+            # NOTE If a resource ends up downloading a zip of asset files,
+            # then the zip will be unzipped into _resource_dir. This could
+            # create a subdirectory within the files are found.
+            # verse_files were not found, let's try another location
+            # if not verse_files:
+            #     # Let's look a subdirectory deeper than the _resource_dir
+            #     verse_files = sorted(
+            #         glob(
+            #             "{}/*{}/*[0-9][0-9]/**/*[0-9][0-9].md".format(
+            #                 self._resource_dir, self._resource_code
+            #             )
+            #         )
+            #     )
+            for filepath in verse_files:
+                verse_content = ""
+                with open(filepath, "r") as fin:
+                    verse_content = fin.read()
+                # html = markdown.markdown(verse_content)
+                # parser = bs4.BeautifulSoup(html, "html.parser")
+                # for h1 in parser.find_all("h1"):
+                #     h2 = parser.new_tag("h2")
+                #     h2.string = h1.get_text()
+                #     h1.replace_with(h2)
+                #     breakpoint()
+                self._verses_html.append(verse_content)
+            logger.debug("self._verses_html: {}".format(self._verses_html))
 
     @icontract.require(lambda self: self._content)
     def _convert_md2html(self) -> None:
@@ -531,6 +703,11 @@ class TResource(Resource):
         # writing our own parser extension. It'd be better software
         # engineering than how it is done in the legacy code.
         self._content = markdown.markdown(self._content)
+        # FIXME At this point we can do
+        # >>> parser = bs4.BeautifulSoup(self._content, "html.parser")
+        # then we can pass the parser itself to the jinja template
+        # where it can be used to transform and arrange HTML as
+        # desired.
 
     def _transform_content(self) -> None:
         """
@@ -553,6 +730,11 @@ class TNResource(TResource):
     resource is a Translation Notes resource.
     """
 
+    def __init__(self, *args, **kwargs) -> None:  # type: ignore
+        super().__init__(*args, **kwargs)
+        # self._book_payload: model.BookPayload
+        self._book_payload: model.TNBookPayload
+
     def get_content(self) -> None:
         """
         Get Markdown content from this resource's file assets. Then do
@@ -563,6 +745,11 @@ class TNResource(TResource):
         logger.info("Processing Translation Notes Markdown...")
         self._get_tn_markdown()
         self._transform_content()
+
+    @property
+    def book_payload(self) -> model.TNBookPayload:
+        """Provide public interface for other modules."""
+        return self._book_payload
 
     def _get_template(self, template_lookup_key: str, dto: pydantic.BaseModel) -> str:
         """
@@ -578,6 +765,7 @@ class TNResource(TResource):
         env = jinja2.Environment().from_string(template)
         return env.render(data=dto)
 
+    # FIXME Obselete. Slated for removal.
     @icontract.require(lambda self: self._resource_code)
     def _get_tn_markdown(self) -> None:
         tn_md = ""
@@ -594,6 +782,8 @@ class TNResource(TResource):
         # NOTE This is now in the book intro template
         # tn_md = '# Translation Notes\n<a id="tn-{}"/>\n\n'.format(self._resource_code)
 
+        # FIXME This could be an instance var so that we can assembly
+        # thing atomically in document_generator module.
         book_intro_template = self._initialize_tn_book_intro()
 
         tn_md += book_intro_template
@@ -606,6 +796,9 @@ class TNResource(TResource):
                 chapter_intro_md = self._initialize_tn_chapter_intro(
                     chapter_dir, chapter
                 )
+                # TODO Could chunk files ever be something other than
+                # verses? For instance, could they be a range of
+                # verses instead?
                 # Get all the Markdown files that start with a digit
                 # and end with suffix md.
                 chunk_files = sorted(glob(os.path.join(chapter_dir, "[0-9]*.md")))
@@ -1211,7 +1404,7 @@ def resource_factory(
     }
     return resources[resource_request.resource_type](
         working_dir, output_dir, resource_request, assembly_strategy_kind
-    )
+    )  # type: ignore
 
 
 def get_tw_refs(tw_refs_by_verse: dict, book: str, chapter: str, verse: str) -> List:

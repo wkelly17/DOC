@@ -6,7 +6,7 @@ validation and JSON serialization.
 """
 
 from enum import Enum
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
@@ -49,6 +49,7 @@ class AssemblyStrategyEnum(str, Enum):
     book = "book"
     chapter = "chapter"
     verse = "verse"
+    verse2 = "verse2"
 
 
 class DocumentRequest(BaseModel):
@@ -102,3 +103,48 @@ class FinishedDocumentDetails(BaseModel):
     """
 
     finished_document_path: Optional[str]
+
+
+class TemplateDto(BaseModel):
+    """Pydantic model that we use as HTML template data holder."""
+
+    data: Dict
+
+
+class TNChapterPayload(BaseModel):
+    """
+    A class to hold a chapter's intro translation notes and a list
+    of its verses HTML content.
+    """
+
+    intro_html: str
+    verses_html: Dict[int, str]
+
+
+class TNBookPayload(BaseModel):
+    """
+    A class to hold a book's intro translation notes and a list
+    of its chapters translation notes HTML content.
+    """
+
+    intro_html: str
+    chapters: Dict[int, TNChapterPayload]
+
+
+# FIXME Should probably be renamed to USFMChapter, use lsp rename.
+class USFMChapter(BaseModel):
+    """
+    A class to hold the USFM converted to HTML content for a chapter
+    in total (including things like 'chunk breaks' and other verse
+    formatting HTML elements), chapter_content, and by verse per
+    chapter (missing the 'chunk breaks' and other inter-verse HTML
+    formatting elements), chapter_verses. The purpose of
+    'chapter_content' is so that you can display a whole chapter at a
+    time should the system wish to do so. The purpose of
+    'chapter_verses' is so that you can display verses in a particular
+    chapter one at a time or a range of them at a time should the
+    system desire to do so.
+    """
+
+    chapter_content: List[str]
+    chapter_verses: Dict[int, str]

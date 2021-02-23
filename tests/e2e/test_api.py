@@ -12,34 +12,34 @@ from document import config
 from document.entrypoints.app import app
 
 
-# NOTE Using any is a mypy hack for fixture being passed in. Not
+# NOTE Using Any type is a mypy hack for fixture being passed in. Not
 # ideal, but the way pytest builds its path is not ideal either.
-def test_book_interleaved_en_ulb_tn_returns_ok(helpers: Any) -> None:
+def test_verse_interleaved_en_ulb_tn_returns_ok(helpers: Any) -> None:
     """
-    Produce book level interleaved document for English scripture and
-    translation notes for the book of Jude.
+    Produce verse level interleaved document for English scripture and
+    translation notes for the book of Colossians.
     """
     with TestClient(app=app, base_url=config.get_api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "assembly_strategy_kind": "book",
+                "assembly_strategy_kind": "verse",
                 "resource_requests": [
                     {
                         "lang_code": "en",
                         "resource_type": "ulb-wa",
-                        "resource_code": "jud",
+                        "resource_code": "col",
                     },
                     {
                         "lang_code": "en",
                         "resource_type": "tn-wa",
-                        "resource_code": "jud",
+                        "resource_code": "col",
                     },
                 ],
             },
         )
 
-        finished_document_path = "/working/temp/en-ulb-wa-jud_en-tn-wa-jud_book.html"
+        finished_document_path = "/working/temp/en-ulb-wa-col_en-tn-wa-col_verse.html"
         finished_document_path = helpers.get_document_filepath_for_testing(
             finished_document_path
         )
@@ -47,37 +47,37 @@ def test_book_interleaved_en_ulb_tn_returns_ok(helpers: Any) -> None:
         assert response.json() == {"finished_document_path": finished_document_path}
 
 
-def test_book_interleaved_en_ulb_tn_tq_returns_ok(helpers: Any) -> None:
+def test_verse_interleaved_en_ulb_tn_tq_returns_ok(helpers: Any) -> None:
     """
-    Produce book level interleaved document for English scripture,
-    translation notes, and translation questions for the book of Jude.
+    Produce verse level interleaved document for English scripture,
+    translation notes, and translation questions for the book of Col.
     """
     with TestClient(app=app, base_url=config.get_api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "assembly_strategy_kind": "book",
+                "assembly_strategy_kind": "verse",
                 "resource_requests": [
                     {
                         "lang_code": "en",
                         "resource_type": "ulb-wa",
-                        "resource_code": "jud",
+                        "resource_code": "col",
                     },
                     {
                         "lang_code": "en",
                         "resource_type": "tn-wa",
-                        "resource_code": "jud",
+                        "resource_code": "col",
                     },
                     {
                         "lang_code": "en",
                         "resource_type": "tq-wa",
-                        "resource_code": "jud",
+                        "resource_code": "col",
                     },
                 ],
             },
         )
         finished_document_path = (
-            "/working/temp/en-ulb-wa-jud_en-tn-wa-jud_en-tq-wa-jud_book.html"
+            "/working/temp/en-ulb-wa-col_en-tn-wa-col_en-tq-wa-col_verse.html"
         )
         finished_document_path = helpers.get_document_filepath_for_testing(
             finished_document_path
@@ -118,9 +118,9 @@ def test_verse_interleaved_en_ulb_tn_returns_ok(helpers: Any) -> None:
         assert response.json() == {"finished_document_path": finished_document_path}
 
 
-def test_book_interleaved_ar_ulb_returns_ok(helpers: Any) -> None:
+def test_verse_interleaved_ar_ulb_returns_ok(helpers: Any) -> None:
     """
-    Produce book level interleaved document for language, ar, Arabic
+    Produce verse level interleaved document for language, ar, Arabic
     scripture. There are no other resources than USFM available at
     this time.
     """
@@ -128,7 +128,7 @@ def test_book_interleaved_ar_ulb_returns_ok(helpers: Any) -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "assembly_strategy_kind": "book",
+                "assembly_strategy_kind": "verse",
                 "resource_requests": [
                     {
                         "lang_code": "ar",
@@ -138,7 +138,7 @@ def test_book_interleaved_ar_ulb_returns_ok(helpers: Any) -> None:
                 ],
             },
         )
-        finished_document_path = "/working/temp/ar-nav-jud_book.html"
+        finished_document_path = "/working/temp/ar-nav-jud_verse.html"
         finished_document_path = helpers.get_document_filepath_for_testing(
             finished_document_path
         )
@@ -146,18 +146,18 @@ def test_book_interleaved_ar_ulb_returns_ok(helpers: Any) -> None:
         assert response.json() == {"finished_document_path": finished_document_path}
 
 
-def test_book_interleaved_pt_br_ulb_tn_tn_doesnt_exist_for_book_returns_ok(
+def test_verse_interleaved_pt_br_ulb_tn_tn_doesnt_exist_for_book_returns_ok(
     helpers: Any,
 ) -> None:
     """
-    Produce book level interleaved document for Brazilian Portuguese scripture and
+    Produce verse level interleaved document for Brazilian Portuguese scripture and
     translation notes for the book of Genesis.
     """
     with TestClient(app=app, base_url=config.get_api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "assembly_strategy_kind": "book",
+                "assembly_strategy_kind": "verse",
                 "resource_requests": [
                     {
                         "lang_code": "pt-br",
@@ -172,7 +172,7 @@ def test_book_interleaved_pt_br_ulb_tn_tn_doesnt_exist_for_book_returns_ok(
                 ],
             },
         )
-        finished_document_path = "/working/temp/pt-br-ulb-gen_pt-br-tn-gen_book.html"
+        finished_document_path = "/working/temp/pt-br-ulb-gen_pt-br-tn-gen_verse.html"
         finished_document_path = helpers.get_document_filepath_for_testing(
             finished_document_path
         )
@@ -180,17 +180,17 @@ def test_book_interleaved_pt_br_ulb_tn_tn_doesnt_exist_for_book_returns_ok(
         assert response.json() == {"finished_document_path": finished_document_path}
 
 
-def test_book_interleaved_pt_br_ulb_tn_returns_ok(helpers: Any) -> None:
+def test_verse_interleaved_pt_br_ulb_tn_returns_ok(helpers: Any) -> None:
     """
-    Produce book level interleaved document for Brazilian Portuguese scripture and
+    Produce verse level interleaved document for Brazilian Portuguese scripture and
     request translation notes, which do not exist for this book at
-    this time - so fail gracefully, for the book of Genesis.
+    this time - so fail gracefully, for the book of Luke.
     """
     with TestClient(app=app, base_url=config.get_api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "assembly_strategy_kind": "book",
+                "assembly_strategy_kind": "verse",
                 "resource_requests": [
                     {
                         "lang_code": "pt-br",
@@ -205,7 +205,7 @@ def test_book_interleaved_pt_br_ulb_tn_returns_ok(helpers: Any) -> None:
                 ],
             },
         )
-        finished_document_path = "/working/temp/pt-br-ulb-luk_pt-br-tn-luk_book.html"
+        finished_document_path = "/working/temp/pt-br-ulb-luk_pt-br-tn-luk_verse.html"
         finished_document_path = helpers.get_document_filepath_for_testing(
             finished_document_path
         )
