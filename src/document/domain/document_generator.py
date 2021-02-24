@@ -266,12 +266,6 @@ class DocumentGenerator:
         """
         for resource in self.found_resources:
             resource.initialize_from_assets()
-            # NOTE You could pass a USFM resource if it exists to get_content
-            # for TResource subclasses. This would presuppose that we initialize
-            # USFM resources first in this loop or break out into multiple
-            # loops: one for USFM, one for TResource subclasses. Perhaps you
-            # would also sort the resources by lang_code so that they are interleaved
-            # such that their expected language relationship is retained.
             resource.get_content()
 
     @icontract.require(lambda document_request: document_request is not None)

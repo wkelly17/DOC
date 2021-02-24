@@ -309,13 +309,6 @@ class USFMResource(Resource):
         """
         parser = bs4.BeautifulSoup(self._content, "html.parser")
 
-        # FIXME This is the original, now obselete verses_html
-        # formulation. It will be removed later, but code relies on it
-        # right now.
-        if False:
-            verses_html: bs4.elements.ResultSet = parser.find_all(
-                "span", attrs={"class": "v-num"}
-            )
         chapter_breaks = parser.find_all("h2", attrs={"class": "c-num"})
         localized_chapter_heading = chapter_breaks[0].get_text().split()[0]
         for chapter_idx, chapter_break in enumerate(chapter_breaks):
@@ -392,17 +385,6 @@ class USFMResource(Resource):
                 chapter_verses[verse_num] = verse_content_str
             self._chapters_content[chapter_num] = model.USFMChapter(
                 chapter_content=chapter_content, chapter_verses=chapter_verses,
-            )
-
-        # FIXME Legacy. This is obselete now that the above is working.
-        # Add enclosing paragraph to each verse since they will be
-        # interleaved with translation notes, etc..
-        if False:
-            self._verses_html.extend(
-                [
-                    "<p>{} {}</p>".format(verse, verse.next_sibling)
-                    for verse in verses_html
-                ]
             )
 
     @icontract.require(
@@ -657,43 +639,6 @@ class TResource(Resource):
         self._book_payload = model.TNBookPayload(
             intro_html=book_intro_html, chapters=chapter_verses
         )
-
-        # FIXME What follows is now obselete. The code above is
-        # preferred. Eventual removal.
-        if False:
-            verse_files = sorted(
-                glob(
-                    "{}/*{}/*[0-9][0-9]/*[0-9][0-9].md".format(
-                        self._resource_dir, self._resource_code
-                    )
-                )
-            )
-            # NOTE If a resource ends up downloading a zip of asset files,
-            # then the zip will be unzipped into _resource_dir. This could
-            # create a subdirectory within the files are found.
-            # verse_files were not found, let's try another location
-            # if not verse_files:
-            #     # Let's look a subdirectory deeper than the _resource_dir
-            #     verse_files = sorted(
-            #         glob(
-            #             "{}/*{}/*[0-9][0-9]/**/*[0-9][0-9].md".format(
-            #                 self._resource_dir, self._resource_code
-            #             )
-            #         )
-            #     )
-            for filepath in verse_files:
-                verse_content = ""
-                with open(filepath, "r") as fin:
-                    verse_content = fin.read()
-                # html = markdown.markdown(verse_content)
-                # parser = bs4.BeautifulSoup(html, "html.parser")
-                # for h1 in parser.find_all("h1"):
-                #     h2 = parser.new_tag("h2")
-                #     h2.string = h1.get_text()
-                #     h1.replace_with(h2)
-                #     breakpoint()
-                self._verses_html.append(verse_content)
-            logger.debug("self._verses_html: {}".format(self._verses_html))
 
     @icontract.require(lambda self: self._content)
     def _convert_md2html(self) -> None:
