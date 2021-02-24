@@ -4,7 +4,10 @@ import icontract
 
 
 def remove_md_section(md: str, section_name: str) -> str:
-    """ Given markdown and a section name, removes the section and the text contained in the section. """
+    """
+    Given markdown and a section name, removes the section header and the
+    text contained in the section.
+    """
     header_regex = re.compile("^#.*$")
     section_regex = re.compile("^#+ {}".format(section_name))
     out_md = ""
