@@ -133,6 +133,13 @@ def get_resource_url_level1_jsonpath() -> str:
     return "$[?code='{}'].contents[?code='{}'].links[?format='zip'].url"
 
 
+def get_resource_lang_name_jsonpath() -> str:
+    """
+    The language's name.
+    """
+    return "$[?code='{}'].name"
+
+
 def get_resource_url_level2_jsonpath() -> str:
     """
     The jsonpath location in TRANSLATIONS_JSON_LOCATION file where

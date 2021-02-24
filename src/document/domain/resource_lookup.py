@@ -90,7 +90,9 @@ class ResourceJsonLookup:
         otherwise return None.
         """
         url: str = config.get_english_repos_dict()[resource.resource_type]
-        return model.ResourceLookupDto(url=url, source=config.GIT, jsonpath=None)
+        return model.ResourceLookupDto(
+            url=url, source=config.GIT, jsonpath=None, lang_name="English"
+        )
 
     @icontract.require(lambda resource: resource.lang_code is not None)
     @icontract.require(lambda resource: resource.resource_type is not None)
@@ -120,7 +122,7 @@ class ResourceJsonLookup:
     @icontract.ensure(lambda result: result is not None)
     # @log_on_start(logging.DEBUG, "json_path: {json_path}")
     def _lookup(self, json_path: str) -> List[str]:
-        """Return jsonpath value or empty list if node doesn't exist."""
+        """Return jsonpath value or empty list if JSON node doesn't exist."""
         self._get_data()
         value: List[str] = jp.match(
             json_path, self.json_data,
@@ -332,9 +334,17 @@ class USFMResourceJsonLookup(ResourceLookup):
         urls: List[str] = self._lookup(jsonpath_str)
         if urls:
             url = urls[0]
+        lang_name_jsonpath_str = config.get_resource_lang_name_jsonpath().format(
+            resource.lang_code
+        )
+        lang_name_lst: List[str] = self._lookup(lang_name_jsonpath_str)
+        if lang_name_lst:
+            lang_name = lang_name_lst[0]
+        else:
+            lang_name = ""
 
         return model.ResourceLookupDto(
-            url=url, source=config.USFM, jsonpath=jsonpath_str
+            url=url, source=config.USFM, jsonpath=jsonpath_str, lang_name=lang_name
         )
 
 
@@ -408,8 +418,16 @@ class TResourceJsonLookup(ResourceLookup):
         urls: List[str] = self._lookup(jsonpath_str)
         if urls:
             url = urls[0]
+        lang_name_jsonpath_str = config.get_resource_lang_name_jsonpath().format(
+            resource.lang_code
+        )
+        lang_name_lst: List[str] = self._lookup(lang_name_jsonpath_str)
+        if lang_name_lst:
+            lang_name = lang_name_lst[0]
+        else:
+            lang_name = ""
         return model.ResourceLookupDto(
-            url=url, source=config.ZIP, jsonpath=jsonpath_str
+            url=url, source=config.ZIP, jsonpath=jsonpath_str, lang_name=lang_name
         )
 
     @icontract.require(lambda resource: resource.lang_code is not None)
@@ -428,8 +446,16 @@ class TResourceJsonLookup(ResourceLookup):
         urls: List[str] = self._lookup(jsonpath_str)
         if urls:
             url = urls[0]
+        lang_name_jsonpath_str = config.get_resource_lang_name_jsonpath().format(
+            resource.lang_code
+        )
+        lang_name_lst: List[str] = self._lookup(lang_name_jsonpath_str)
+        if lang_name_lst:
+            lang_name = lang_name_lst[0]
+        else:
+            lang_name = ""
         return model.ResourceLookupDto(
-            url=url, source=config.ZIP, jsonpath=jsonpath_str
+            url=url, source=config.ZIP, jsonpath=jsonpath_str, lang_name=lang_name
         )
 
     @icontract.require(lambda resource: resource.lang_code is not None)
@@ -454,8 +480,16 @@ class TResourceJsonLookup(ResourceLookup):
         urls: List[str] = self._lookup(jsonpath_str)
         if urls:
             url = urls[0]
+        lang_name_jsonpath_str = config.get_resource_lang_name_jsonpath().format(
+            resource.lang_code
+        )
+        lang_name_lst: List[str] = self._lookup(lang_name_jsonpath_str)
+        if lang_name_lst:
+            lang_name = lang_name_lst[0]
+        else:
+            lang_name = ""
         return model.ResourceLookupDto(
-            url=url, source=config.ZIP, jsonpath=jsonpath_str
+            url=url, source=config.ZIP, jsonpath=jsonpath_str, lang_name=lang_name
         )
 
     @icontract.require(lambda resource: resource.lang_code is not None)
@@ -478,8 +512,16 @@ class TResourceJsonLookup(ResourceLookup):
         urls: List[str] = self._lookup(jsonpath_str)
         if urls:
             url = urls[0]
+        lang_name_jsonpath_str = config.get_resource_lang_name_jsonpath().format(
+            resource.lang_code
+        )
+        lang_name_lst: List[str] = self._lookup(lang_name_jsonpath_str)
+        if lang_name_lst:
+            lang_name = lang_name_lst[0]
+        else:
+            lang_name = ""
         return model.ResourceLookupDto(
-            url=url, source=config.ZIP, jsonpath=jsonpath_str
+            url=url, source=config.ZIP, jsonpath=jsonpath_str, lang_name=lang_name
         )
 
 

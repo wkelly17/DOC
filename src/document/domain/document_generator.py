@@ -23,7 +23,7 @@ from typing import TYPE_CHECKING, Callable, List
 import icontract
 
 from document import config
-from document.domain import model
+from document.domain import model, bible_books
 from document.domain.resource import (
     resource_factory,
     USFMResource,
@@ -159,8 +159,19 @@ class DocumentGenerator:
         logger.debug("PDF to be written to: {}".format(self.output_dir))
         # FIXME This should probably be something else, but this will
         # do for now.
-        title = "Resources: "
-        title += ",".join({resource.resource_code for resource in self._resources})
+        title = "Resources: {}".format(
+            ", ".join(
+                sorted(
+                    {
+                        "{}: {}".format(
+                            resource.lang_name,
+                            bible_books.BOOK_NAMES[resource.resource_code],
+                        )
+                        for resource in self._resources
+                    }
+                )
+            )
+        )
         # FIXME When run locally xelatex chokes because the LaTeX
         # template does not set the \setmainlanguage{} and
         # \setotherlanguages{} to any value. If I manually edit the

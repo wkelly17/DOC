@@ -71,6 +71,7 @@ class Resource:
         self._book_number = bible_books.BOOK_NUMBERS[self._book_id]
 
         # Location/lookup related
+        self._lang_name: str
         self._resource_url: Optional[str] = None
         self._resource_source: str
         self._resource_jsonpath: Optional[str] = None
@@ -139,6 +140,11 @@ class Resource:
         return self._lang_code
 
     @property
+    def lang_name(self) -> str:
+        """Provide public interface for other modules."""
+        return self._lang_name
+
+    @property
     def resource_type(self) -> str:
         """Provide public interface for other modules."""
         return self._resource_type
@@ -193,6 +199,7 @@ class USFMResource(Resource):
         # self._verses_html: List[str]
         # self._verses_html_generator: Generator
 
+    # FIXME add require for lang_name
     @icontract.ensure(lambda self: self._resource_url is not None)
     def find_location(self) -> None:
         """See docstring in superclass."""
@@ -201,6 +208,7 @@ class USFMResource(Resource):
         # classname and the value as the lookup subclass.
         lookup_svc = resource_lookup.USFMResourceJsonLookup()
         resource_lookup_dto: model.ResourceLookupDto = lookup_svc.lookup(self)
+        self._lang_name = resource_lookup_dto.lang_name
         self._resource_url = resource_lookup_dto.url
         self._resource_source = resource_lookup_dto.source
         self._resource_jsonpath = resource_lookup_dto.jsonpath
@@ -511,6 +519,7 @@ class TResource(Resource):
         # classname and the value as the lookup subclass.
         lookup_svc = resource_lookup.TResourceJsonLookup()
         resource_lookup_dto: model.ResourceLookupDto = lookup_svc.lookup(self)
+        self._lang_name = resource_lookup_dto.lang_name
         self._resource_url = resource_lookup_dto.url
         self._resource_source = resource_lookup_dto.source
         self._resource_jsonpath = resource_lookup_dto.jsonpath
@@ -521,7 +530,8 @@ class TResource(Resource):
         self._manifest = Manifest(self)
 
         logger.debug("self._resource_dir: {}".format(self._resource_dir))
-        # FIXME Is the next section of code even needed now that we
+        # FIXME Is the next section of code, up to
+        # self._initialize_verses_html, even needed now that we
         # have chapter_verses?
         # Get the content files
         markdown_files = glob(
@@ -1517,12 +1527,6 @@ class Manifest:
             "self._resource.resource_dir: {}".format(self._resource.resource_dir)
         )
         manifest_file_list = glob("{}**/manifest.*".format(self._resource))
-        # FIXME We may be saving inst vars unnecessarily below. If we
-        # must save state maybe we'll have a Manifest dataclass that
-        # stores the values as fields and can be composed into the
-        # Resource. Maybe we'd only store its path to the manifest
-        # itself in inst vars and then get the others values as
-        # properties.
         if manifest_file_list:
             self._manifest_file_path = manifest_file_list[0]
         else:

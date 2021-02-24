@@ -68,12 +68,13 @@ class DocumentRequest(BaseModel):
 class ResourceLookupDto(BaseModel):
     """
     'Data transfer object' that we use to send lookup related info to
-    the resource that it needs.
+    the resource.
     """
 
     url: Optional[str]
     source: str
     jsonpath: Optional[str]
+    lang_name: str
 
 
 class BookIntroTemplateDto(BaseModel):
