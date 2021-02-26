@@ -7,8 +7,8 @@ verify_ssl = true
 PyYAML = "*"
 bs4 = "*"
 fastapi = "*"
-uw-tools = {git = "git://github.com/unfoldingWord-dev/uw_tools.git"}
-usfm-tools = {editable = true, ref="develop", git = "git://github.com/linearcombination/USFM-Tools.git"}
+# uw-tools = {git = "git://github.com/unfoldingWord-dev/uw_tools.git"}
+# usfm-tools = {editable = true, ref="develop", git = "git://github.com/linearcombination/USFM-Tools.git"}
 # gogs-client = "*" # FIXME gitea client old name
 icontract = "*"
 jinja2 = "*"
@@ -37,13 +37,15 @@ tenacity = "*"
 python-language-server = "*"
 isort = "*"
 pyls-mypy = "*"
+document = {editable = true, path = "./src"}
+usfm-tools = {editable = true, path = "./../USFM-Tools"}
 
 [packages]
 PyYAML = "*"
 bs4 = "*"
 fastapi = "*"
-uw-tools = {git = "git://github.com/unfoldingWord-dev/uw_tools.git"}
-usfm-tools = {editable = true, ref="develop", git = "git://github.com/linearcombination/USFM-Tools.git"}
+# uw-tools = {git = "git://github.com/unfoldingWord-dev/uw_tools.git"}
+# usfm-tools = {editable = true, ref="develop", git = "git://github.com/linearcombination/USFM-Tools.git"}
 # gogs-client = "*" # FIXME gitea client, old name
 icontract = "*"
 jinja2 = "*"
@@ -60,7 +62,8 @@ pydantic = "*"
 pyparsing = "2.4.5"
 requests = "*"
 uvicorn = "*"
-document = {path = "./src"}
+document = {editable = true, path = "./src"}
+usfm-tools = {editable = true, path = "./../USFM-Tools"}
 
 [requires]
 python_version = "3.8"

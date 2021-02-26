@@ -5,7 +5,7 @@ fastapi
 # git+git://github.com/arount/pytea#egg=pytea
 git+git://github.com/linearcombination/USFM-Tools.git@develop#egg=usfm_tools
 ## For local dev, install via: pip install /path/to/USFM-Tools
-git+git://github.com/unfoldingWord-dev/uw_tools.git#egg=uw_tools
+# git+git://github.com/unfoldingWord-dev/uw_tools.git#egg=uw_tools
 icontract
 jinja2
 jsonpath-rw
