@@ -277,12 +277,13 @@ class USFMResource(Resource):
         # logger.debug("self._content_files: {}".format(self._content_files))
 
         if self._content_files is not None:
-            # Create the USFM to HTML and store in file.
-            UsfmTransform.buildSingleHtmlFromFiles(
-                [pathlib.Path(filepath) for filepath in self._content_files],
+            # Convert the USFM to HTML and store in file.
+            UsfmTransform.buildSingleHtmlFromFile(
+                pathlib.Path(self._content_files[0]),
                 self._output_dir,
                 self._resource_filename,
             )
+
             # Read the HTML file into _content.
             html_file = "{}.html".format(
                 os.path.join(self._output_dir, self._resource_filename)
