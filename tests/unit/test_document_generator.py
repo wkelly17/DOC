@@ -70,7 +70,7 @@ def test_document_generator_for_english_multichapter_with_interleaving_by_verse(
     assert os.path.isfile(doc_gen.get_finished_document_filepath())
 
 
-def test_document_generator_for_swahili_with_interleaving_by_verse() -> None:
+def test_document_generator_for_swahili_with_ulb_tn_interleaving_by_verse() -> None:
     assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.verse
     resource_requests: List[model.ResourceRequest] = []
     resource_requests.append(

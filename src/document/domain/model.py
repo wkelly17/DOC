@@ -35,21 +35,22 @@ class AssemblyStrategyEnum(str, Enum):
     """
     There are three assembly strategy kinds to choose from:
 
-    * book
-      - book strategy will cause a book's worth of each resource's
+    * verse
+      - verse strategy will cause a verse's worth of each resource's
       content to be interleaved.
     * chapter
       - chapter strategy will cause a chapter's worth of each resource's
       content to be interleaved.
-    * verse
-      - verse strategy will cause a verse's worth of each resource's
+    * book
+      - book strategy will cause a book's worth of each resource's
       content to be interleaved.
     """
 
-    book = "book"
-    chapter = "chapter"
     verse = "verse"
-    verse2 = "verse2"
+    # NOTE Chapter and book interleaving assembly strategies may be
+    # supported in the future.
+    # chapter = "chapter"
+    # book = "book"
 
 
 class DocumentRequest(BaseModel):
@@ -132,7 +133,6 @@ class TNBookPayload(BaseModel):
     chapters: Dict[int, TNChapterPayload]
 
 
-# FIXME Should probably be renamed to USFMChapter, use lsp rename.
 class USFMChapter(BaseModel):
     """
     A class to hold the USFM converted to HTML content for a chapter

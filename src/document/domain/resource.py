@@ -298,7 +298,6 @@ class USFMResource(Resource):
 
             if self._assembly_strategy_kind in {
                 model.AssemblyStrategyEnum.verse,
-                model.AssemblyStrategyEnum.verse2,
             }:
                 self._initialize_verses_html()
                 logger.debug("self._verses_html from bs4: {}".format(self._verses_html))
@@ -580,7 +579,6 @@ class TResource(Resource):
 
         if self._assembly_strategy_kind in {
             model.AssemblyStrategyEnum.verse,
-            model.AssemblyStrategyEnum.verse2,
         }:
             self._initialize_verses_html()
 
@@ -704,8 +702,12 @@ class TNResource(TResource):
         into HTML content.
         """
         logger.info("Processing Translation Notes Markdown...")
-        self._get_tn_markdown()
-        self._transform_content()
+        # FIXME All the work is done in _initialize_verses_html at the moment so
+        # this is turned off for now until refactoring cleans this up by moving
+        # a few things around.
+        if False:
+            self._get_tn_markdown()
+            self._transform_content()
 
     @property
     def book_payload(self) -> model.TNBookPayload:

@@ -47,6 +47,9 @@ def test_verse_interleaved_en_ulb_tn_returns_ok(helpers: Any) -> None:
         assert response.json() == {"finished_document_path": finished_document_path}
 
 
+# FIXME This can be reinstated once we support USFM, TNResource _and_ TQResource
+# only strategy
+@pytest.mark.skip
 def test_verse_interleaved_en_ulb_tn_tq_returns_ok(helpers: Any) -> None:
     """
     Produce verse level interleaved document for English scripture,
@@ -86,7 +89,7 @@ def test_verse_interleaved_en_ulb_tn_tq_returns_ok(helpers: Any) -> None:
         assert response.json() == {"finished_document_path": finished_document_path}
 
 
-def test_verse_interleaved_en_ulb_tn_returns_ok(helpers: Any) -> None:
+def test_verse_interleaved_en_ulb_tn_jud_returns_ok(helpers: Any) -> None:
     """
     Produce verse level interleaved document for English scripture and
     translation notes for the book of Jude.
@@ -118,6 +121,8 @@ def test_verse_interleaved_en_ulb_tn_returns_ok(helpers: Any) -> None:
         assert response.json() == {"finished_document_path": finished_document_path}
 
 
+# FIXME This can be reinstated once we support USFM only strategy
+@pytest.mark.skip
 def test_verse_interleaved_ar_ulb_returns_ok(helpers: Any) -> None:
     """
     Produce verse level interleaved document for language, ar, Arabic
@@ -180,11 +185,11 @@ def test_verse_interleaved_pt_br_ulb_tn_tn_doesnt_exist_for_book_returns_ok(
         assert response.json() == {"finished_document_path": finished_document_path}
 
 
-def test_verse_interleaved_pt_br_ulb_tn_returns_ok(helpers: Any) -> None:
+def test_verse_interleaved_en_ulb_tn_pt_br_ulb_tn_returns_ok(helpers: Any) -> None:
     """
-    Produce verse level interleaved document for Brazilian Portuguese scripture and
-    request translation notes, which do not exist for this book at
-    this time - so fail gracefully, for the book of Luke.
+    Produce verse level interleaved document for English and
+    Brazilian Portuguese scripture and translation notes for the book
+    of Luke.
     """
     with TestClient(app=app, base_url=config.get_api_test_url()) as client:
         response: requests.Response = client.post(
@@ -202,10 +207,71 @@ def test_verse_interleaved_pt_br_ulb_tn_returns_ok(helpers: Any) -> None:
                         "resource_type": "tn",
                         "resource_code": "luk",
                     },
+                    {
+                        "lang_code": "en",
+                        "resource_type": "ulb-wa",
+                        "resource_code": "luk",
+                    },
+                    {
+                        "lang_code": "en",
+                        "resource_type": "tn-wa",
+                        "resource_code": "luk",
+                    },
                 ],
             },
         )
-        finished_document_path = "/working/temp/pt-br-ulb-luk_pt-br-tn-luk_verse.html"
+        finished_document_path = "/working/temp/pt-br-ulb-luk_pt-br-tn-luk_en-ulb-wa-luk_en-tn-wa-luk_verse.html"
+        finished_document_path = helpers.get_document_filepath_for_testing(
+            finished_document_path
+        )
+        assert os.path.isfile(finished_document_path)
+        assert response.json() == {"finished_document_path": finished_document_path}
+
+
+def test_verse_interleaved_en_ulb_tn_pt_br_ulb_tn_sw_ulb_tn_returns_ok(
+    helpers: Any,
+) -> None:
+    """
+    Produce verse level interleaved document for English and
+    Brazilian Portuguese scripture and translation notes for the book
+    of Luke.
+    """
+    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+        response: requests.Response = client.post(
+            "/documents",
+            json={
+                "assembly_strategy_kind": "verse",
+                "resource_requests": [
+                    {
+                        "lang_code": "pt-br",
+                        "resource_type": "ulb",
+                        "resource_code": "luk",
+                    },
+                    {
+                        "lang_code": "pt-br",
+                        "resource_type": "tn",
+                        "resource_code": "luk",
+                    },
+                    {
+                        "lang_code": "en",
+                        "resource_type": "ulb-wa",
+                        "resource_code": "luk",
+                    },
+                    {
+                        "lang_code": "en",
+                        "resource_type": "tn-wa",
+                        "resource_code": "luk",
+                    },
+                    {
+                        "lang_code": "sw",
+                        "resource_type": "ulb",
+                        "resource_code": "col",
+                    },
+                    {"lang_code": "sw", "resource_type": "tn", "resource_code": "col",},
+                ],
+            },
+        )
+        finished_document_path = "/working/temp/pt-br-ulb-luk_pt-br-tn-luk_en-ulb-wa-luk_en-tn-wa-luk_sw-ulb-col_sw-tn-col_verse.html"
         finished_document_path = helpers.get_document_filepath_for_testing(
             finished_document_path
         )
@@ -217,7 +283,7 @@ def test_verse_interleaved_pt_br_ulb_tn_returns_ok(helpers: Any) -> None:
 # missing a body of content, so there is possibly an edge case here
 # that needs investigation.
 @pytest.mark.skip
-def test_verse_interleaved_pt_br_ulb_tn_returns_ok(helpers: Any) -> None:
+def test_verse_interleaved_pt_br_ulb_tn_luk_returns_ok(helpers: Any) -> None:
     """
     Produce verse level interleaved document for Brazilian Portuguese scripture and
     translation notes for the book of Genesis.
