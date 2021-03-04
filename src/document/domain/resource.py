@@ -310,7 +310,6 @@ class USFMResource(Resource):
         return self._chapters_content
 
     @icontract.require(lambda self: self._content)
-    # @icontract.ensure(lambda self: self._verses_html)
     @icontract.ensure(lambda self: self._chapters_content)
     def _initialize_verses_html(self) -> None:
         """
@@ -487,33 +486,6 @@ class USFMResource(Resource):
             book_chunks[chapter][first_verse] = data
             book_chunks[chapter]["chapters"].append(data)
         self._usfm_chunks = book_chunks
-
-    # NOTE Exploratory idea
-    # @icontract.require(lambda self: self._usfm_chunks is not None)
-    # @icontract.require(lambda self: self._usfm_chunks["1"]["chapters"] is not None)
-    # def _get_usfm_verses_generator(self) -> Generator:
-    #     """
-    #     Return a generator over the raw USFM verses. Might be useful
-    #     for interleaved assembly of the document at the verse level.
-
-    #     Yields:
-    #         The next USFM verse.
-    #     """
-    #     # for i in range(len(self._usfm_chunks["1"]["chapters"]) - 1):
-    #     #     yield self._usfm_chunks["1"]["chapters"][i]
-    #     yield from (
-    #         self._usfm_chunks["1"]["chapters"][index]
-    #         for index in range(len(self._usfm_chunks["1"]["chapters"]) - 1)
-    #     )
-
-    # def _get_verses_html_generator(self) -> Generator:
-    #     """
-    #     Return a generator over the USFM converted to HTML verse
-    #     spans. Might be useful for interleaved assembly of the
-    #     document at the verse level.
-    #     """
-    #     for i in range(len(self._verses_html) - 1):
-    #         yield str(self._verses_html[i])
 
 
 class TResource(Resource):
