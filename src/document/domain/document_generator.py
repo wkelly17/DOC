@@ -479,7 +479,7 @@ def _assemble_content_by_verse(docgen: DocumentGenerator) -> str:
         for book, group_by_book in itertools.groupby(
             resources_sorted_by_book, lambda resource: resource.resource_code
         ):
-            html.append("<h2>Book: {}</h2>".format(book))
+            html.append("<h2>Book: {}</h2>".format(bible_books.BOOK_NAMES[book]))
 
             # Save grouper generator since it will get exhausted
             # when used and exhausted generators cannot be reused.
