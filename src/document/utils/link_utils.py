@@ -286,9 +286,9 @@ def get_resource_data_from_rc_links(
     where further information can be found like:
     1. The tile of the
 
-    This function is called with text coming from Translation notes book intro Markdown
-    content, Translation notes chapter intro Markdown content, and
-    Translation questions chapter content.
+    This function is called with text coming from Translation Notes book intro Markdown
+    content, Translation Notes chapter intro Markdown content, and
+    Translation Questions chapter content.
 
     This function finds TW and TA rc links in the text content
     (mentioned in previous paragraph), finds Markdown files associated

@@ -66,7 +66,9 @@ class Resource:
         # Book attributes
         self._book_id: str = self._resource_code
         # FIXME Could get KeyError with request for non-existent book,
-        # i.e., bad data, from BIEL
+        # i.e., we could get bad data from BIEL.
+        # NOTE Maybe we should be stricter at the API level about the value of
+        # resource code.
         self._book_title = bible_books.BOOK_NAMES[self._resource_code]
         self._book_number = bible_books.BOOK_NUMBERS[self._book_id]
 
@@ -268,7 +270,7 @@ class USFMResource(Resource):
     @icontract.ensure(lambda self: self._resource_filename is not None)
     def get_content(self) -> None:
         """See docstring in superclass."""
-        # FIXME Legacy. Now obselete.
+        # FIXME Slated for removal.
         # self._get_usfm_chunks()
 
         # logger.debug("self._content_files: {}".format(self._content_files))
@@ -341,10 +343,15 @@ class USFMResource(Resource):
             # Get each verse opening span tag and then the actual
             # verse text for this chapter and enclose them each
             # in a p element.
-            # FIXME This creates a list in which the verses are first
-            # displayed properly and then the second half of the list
-            # recapitulates the list again but only the tags with no
-            # verse text content.
+            # FIXME Do we really want to enclose each verse in a
+            # paragraph element? I've done it mainly for later display
+            # purposes, but I don't think it is necessary because in
+            # 'by verse' interleaving strategy there each verse is
+            # sandwiched between HTML header elements anyway. But I do
+            # like that it makes the HTML have more closed tags, though the
+            # parser has other open tags, so perhaps it isn't worth
+            # it. It is easy enough to experiment with removing the
+            # enclosing paragraph element and see the result.
             chapter_verse_list = [
                 "<p>{} {}</p>".format(verse, verse.next_sibling)
                 for verse in chapter_verse_tags
@@ -354,8 +361,8 @@ class USFMResource(Resource):
             for verse_idx, verse_element in enumerate(chapter_verse_list):
                 # Get the verse num from the verse HTML tag's id
                 # value.
-                # FIXME Perhaps we'd want to use regexp instead? It
-                # might be faster and clearer semantically.
+                # split is more performant than re:
+                # See https://stackoverflow.com/questions/7501609/python-re-split-vs-split
                 verse_num = int(str(verse_element).split("-v-")[1].split('"')[0])
                 lower_id = "{}-ch-{}-v-{}".format(
                     str(self._book_number).zfill(3),
@@ -377,14 +384,14 @@ class USFMResource(Resource):
                     ),
                 )
                 verse_content = [str(tag) for tag in list(verse_content_tags)]
-                # FIXME Hacky way to remove some recursive redundant
-                # parsing results. Should use bs4 more expertly to
-                # avoid this if it is possible.
+                # NOTE Hacky way to remove some redundant parsing results
+                # due to recursion in BeautifulSoup. Should use bs4 more expertly
+                # to avoid this if it is possible.
                 del verse_content[1:4]
                 verse_content_str = "".join(verse_content)
-                # HACK "Fix" BeautifulSoup parsing issue wherein #
-                # sometimes a verse # contains its content but also includes a
-                # subsequent # verse or verses or a # recapitulation of all # previous
+                # HACK "Fix" BeautifulSoup parsing issue wherein
+                # sometimes a verse contains its content but also includes a
+                # subsequent verse or verses or a recapitulation of all previous
                 # verses:
                 verse_content_str = (
                     '<span class="v-num"'
@@ -410,7 +417,6 @@ class USFMResource(Resource):
         logger.debug("self._resource_filename: {}".format(self._resource_filename))
 
         usfm_file = self._content_files[0]
-        # FIXME Should be in try block
         usfm_file_content = file_utils.read_file(usfm_file, "utf-8")
 
         # FIXME Not sure I like this LBYL style here. Exceptions
@@ -514,9 +520,6 @@ class TResource(Resource):
 
     def find_location(self) -> None:
         """Find the URL where the resource's assets are located."""
-        # FIXME For better flexibility, the lookup class could be
-        # looked up in a table, i.e., dict, that has the key as self
-        # classname and the value as the lookup subclass.
         lookup_svc = resource_lookup.TResourceJsonLookup()
         resource_lookup_dto: model.ResourceLookupDto = lookup_svc.lookup(self)
         self._lang_name = resource_lookup_dto.lang_name
@@ -655,8 +658,9 @@ class TResource(Resource):
         """Convert a resource's Markdown to HTML."""
         # assert self._content is not None, "self._content cannot be None here."
         # FIXME Perhaps we can manipulate resource links, rc://, by
-        # writing our own parser extension. It'd be better software
-        # engineering than how it is done in the legacy code.
+        # writing our own parser extension for the Markdown module via
+        # its extension mechanism. It'd be better software engineering
+        # than how it is done in the legacy code.
         self._content = markdown.markdown(self._content)
         # FIXME At this point we can do
         # >>> parser = bs4.BeautifulSoup(self._content, "html.parser")
@@ -706,6 +710,7 @@ class TNResource(TResource):
         """Provide public interface for other modules."""
         return self._book_payload
 
+    # FIXME This is slated for removal.
     def _get_template(self, template_lookup_key: str, dto: pydantic.BaseModel) -> str:
         """
         Instantiate template with dto BaseModel instance. Return
@@ -730,15 +735,13 @@ class TNResource(TResource):
         if not os.path.isdir(book_dir):
             return
 
-        # FIXME We should be using templates and then inserting values
+        # FIXME We could be using templates and then inserting values
         # not building markdown imperatively.
         # TODO Might need localization
         # tn_md = '# Translation Notes\n<a id="tn-{}"/>\n\n'.format(self._book_id)
         # NOTE This is now in the book intro template
         # tn_md = '# Translation Notes\n<a id="tn-{}"/>\n\n'.format(self._resource_code)
 
-        # FIXME This could be an instance var so that we can assembly
-        # thing atomically in document_generator module.
         book_intro_template = self._initialize_tn_book_intro()
 
         tn_md += book_intro_template
@@ -875,6 +878,7 @@ class TNResource(TResource):
         )
         return links
 
+    # FIXME This is slated for removal.
     # FIXME I think this code can probably be greatly simplified,
     # moved to _get_tn_markdown and then removed.
     # FIXME Should we change to function w no non-local side-effects
@@ -914,8 +918,6 @@ class TNResource(TResource):
         tn_book_intro_content_md = ""
         if book_intro_files and os.path.isfile(book_intro_files[0]):
             logger.debug("book_intro_files[0]: {}".format(book_intro_files[0]))
-            # FIXME Need exception handler, or, just use: with
-            # open(book_intro_files[0], "r") as f:
             tn_book_intro_content_md = file_utils.read_file(book_intro_files[0])
             title: str = markdown_utils.get_first_header(tn_book_intro_content_md)
             book_intro_id_tag = '<a id="tn-{}-front-intro"/>'.format(self._book_id)
@@ -932,7 +934,6 @@ class TNResource(TResource):
 
             book_intro_template = self._get_template("book_intro", data)
 
-            # FIXME Begin side-effecting
             self._resource_data[book_intro_rc_link] = {
                 "rc": book_intro_rc_link,
                 "id": book_intro_anchor_id,
@@ -1443,7 +1444,8 @@ class ResourceProvisioner:
         #         os.path.join(self._resource_dir, self._resource_type)
         #     )
         # )
-        # FIXME Not sure if this is the right approach for consistency
+        # FIXME Not sure if this is the best approach for consistency
+        # across different resources' assets in different languages.
         resource_filepath = os.path.join(
             self._resource.resource_dir,
             self._resource.resource_url.rpartition(os.path.sep)[2],

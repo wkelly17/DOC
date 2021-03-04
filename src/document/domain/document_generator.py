@@ -174,36 +174,40 @@ class DocumentGenerator:
         )
         # FIXME When run locally xelatex chokes because the LaTeX
         # template does not set the \setmainlanguage{} and
-        # \setotherlanguages{} to any value. If I manually edit the
-        # final latex file to have these set and then run xelatex
-        # manually on the file it produces the PDF sucessfully. This
+        # \setotherlanguages{} to any value. I can comment out that
+        # LaTeX code and then it runs. Or if I manually edit the
+        # final latex file to have these set to English, say,
+        # even if more than English is used, and then run xelatex
+        # manually on the file it produces the PDF successfully. This
         # issue does not arise when the code is run in the Docker
         # container for some unknown reason.
         command = config.get_pandoc_command().format(
             # First hack at a title. Used to be just self.book_title which
             # doesn't make sense anymore.
             title,
-            # FIXME This should probably be today's date since not all
-            # resources have a manifest file from which issued may be
-            # initialized. And since we are dealing with multiple resources
-            # per document, which issued date would we use? It doesn't really
-            # make sense to use it anymore so I am substituting revision_date
-            # instead for now.
+            # FIXME Not all resources have a manifest file from which
+            # issued may be initialized. Further, a document request
+            # can include multiple languages and multiple resources
+            # each of which can have a manifest file. So which issued
+            # date would we use? It doesn't really make sense to use
+            # it anymore so I am substituting revision_date instead
+            # for now.
             # resource._issued if resource._issued else "",
             revision_date,
-            # FIXME Not all resources have a manifest file from which version
-            # may be initialized. Further, a document request can include
-            # multiple resources each of which can have a manifest file,
-            # depending on what is requested, and thus a _version, which one
-            # would we use? It doesn't make sense to use this anymore. For now
-            # I am just going to use some meaningless literal instead of the
-            # next commented out line.
+            # FIXME Not all resources have a manifest file from which
+            # version may be initialized. Further, a document request
+            # can include multiple languages and multiple resources
+            # each of which can have a manifest file, depending on
+            # what is requested, and thus a _version; which one would
+            # we use? It doesn't make sense to use this anymore. For
+            # now I am just going to use some meaningless literal
+            # instead of the next commented out line.
             # resource._version if resource._version else ""
             "TBD",
             self._output_dir,
             self._working_dir,
             # FIXME A document generation request is composed of theoretically
-            # an infinite number of arbitrarily ordered resources. In this new
+            # an infinite number of arbitrarily ordered resources. In this
             # context using the file location for one resource doesn't make
             # sense as in the next commented out line of code. Instead we use
             # the filename unique to the document generation request itself.
@@ -373,8 +377,8 @@ def _assemble_content_by_verse(docgen: DocumentGenerator) -> str:
     strategy) ordering of resources. E.g., For Genesis, TN book intro
     if available, For Genesis 1, TN chapter intro if available,
     followed by USFM for Genesis 1:1 followed by Translation Notes for
-    Genesis 1:1, followed by Translation words for Genesis 1:1,
-    followed by Translation questions for Genesis 1:1, followed by
+    Genesis 1:1, (TBD )followed by Translation words for Genesis 1:1,
+    (TBD) followed by Translation questions for Genesis 1:1, (TBD) followed by
     Translation answers for Genesis 1:1, etc..
 
     Example: The user selects, say, two languages: Swahili and
@@ -382,11 +386,11 @@ def _assemble_content_by_verse(docgen: DocumentGenerator) -> str:
     arbitrary interleaving algorithm for this strategy is:
 
     1. For English (just because, say, in this strategy we arbitrarily
-sort languages alphabetically):
+       sort languages alphabetically):
        * For each book:
        ** TN book intro if any
        ** For each chapter:
- ]o      *** TN chapter intro if any
+       *** TN chapter intro if any
        *** Chapter heading from USFM
        **** For each verse:
        ***** USFM verse
@@ -456,6 +460,8 @@ sort languages alphabetically):
         docgen.found_resources, key=lambda resource: resource.lang_code
     )
     html = []
+    # language: str
+    # group_by_lang: itertools._grouper
     for language, group_by_lang in itertools.groupby(
         resources_sorted_by_language, lambda resource: resource.lang_code
     ):

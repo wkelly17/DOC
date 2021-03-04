@@ -31,7 +31,7 @@ def document_endpoint(
     document_request: model.DocumentRequest,
 ) -> model.FinishedDocumentDetails:
     """
-    Get the document request hand it off to the document_generator
+    Get the document request and hand it off to the document_generator
     module for processing. Return FinishedDocumentDetails instance
     containing URL of resulting PDF.
     """
