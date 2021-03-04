@@ -321,7 +321,7 @@ class USFMResource(Resource):
 
         chapter_breaks = parser.find_all("h2", attrs={"class": "c-num"})
         localized_chapter_heading = chapter_breaks[0].get_text().split()[0]
-        for chapter_idx, chapter_break in enumerate(chapter_breaks):
+        for chapter_break in chapter_breaks:
             chapter_num = int(chapter_break.get_text().split()[1])
             chapter_content = html_parsing_utils.tag_elements_between(
                 parser.find(
@@ -358,7 +358,7 @@ class USFMResource(Resource):
             ]
             # Dictionary to hold verse number, verse value pairs.
             chapter_verses: Dict[int, str] = {}
-            for verse_idx, verse_element in enumerate(chapter_verse_list):
+            for verse_element in chapter_verse_list:
                 # Get the verse num from the verse HTML tag's id
                 # value.
                 # split is more performant than re:
