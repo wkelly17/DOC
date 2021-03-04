@@ -457,13 +457,14 @@ def _assemble_content_by_verse(docgen: DocumentGenerator) -> str:
         "Assembling document by interleaving at the verse level using 'verse2' strategy."
     )
     resources_sorted_by_language = sorted(
-        docgen.found_resources, key=lambda resource: resource.lang_code
+        docgen._found_resources, key=lambda resource: resource.lang_name,
     )
     html = []
     # language: str
     # group_by_lang: itertools._grouper
     for language, group_by_lang in itertools.groupby(
-        resources_sorted_by_language, lambda resource: resource.lang_code
+        resources_sorted_by_language,
+        lambda resource: resource.lang_name,
     ):
         html.append("<h1>Language: {}</h1>".format(language))
 
