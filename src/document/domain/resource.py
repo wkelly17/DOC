@@ -201,8 +201,9 @@ class USFMResource(Resource):
         # self._verses_html: List[str]
         # self._verses_html_generator: Generator
 
-    # FIXME add require for lang_name
-    @icontract.ensure(lambda self: self._resource_url is not None)
+    @icontract.ensure(
+        lambda self: self._resource_url is not None and self._lang_name is not None
+    )
     def find_location(self) -> None:
         """See docstring in superclass."""
         # FIXME For better flexibility, the lookup class could be
