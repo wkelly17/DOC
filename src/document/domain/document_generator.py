@@ -78,17 +78,17 @@ class DocumentGenerator:
         self.output_dir = output_dir
         # The Markdown and later HTML for the document which is
         # composed of the Markdown and later HTML for each resource.
-        self.content = ""
+        self._content = ""
         # Store resource requests that were requested, but do not
         # exist.
-        self.unfound_resources: List[Resource] = []
-        self.found_resources: List[Resource] = []
+        self._unfound_resources: List[Resource] = []
+        self._found_resources: List[Resource] = []
 
         # Show the dictionary that was passed in.
         logger.debug("document_request: {}".format(document_request))
 
-        if not self.output_dir:
-            self.output_dir = self.working_dir
+        if not self._output_dir:
+            self._output_dir = self._working_dir
 
         # logger.debug("Working dir is {}".format(self.working_dir))
 
@@ -139,7 +139,7 @@ class DocumentGenerator:
             "About to write HTML to {}".format(self.get_finished_document_filepath())
         )
         file_utils.write_file(
-            self.get_finished_document_filepath(), self.content,
+            self.get_finished_document_filepath(), self._content,
         )
 
     def _enclose_html_content(self) -> None:
@@ -148,15 +148,15 @@ class DocumentGenerator:
         body content for the document.
         """
         html = config.get_document_html_header()
-        html += self.content
+        html += self._content
         html += config.get_document_html_footer()
-        self.content = html
+        self._content = html
 
     def _convert_html2pdf(self) -> None:
         """Generate PDF from HTML contained in self.content."""
         now = datetime.datetime.now()
         revision_date = "{}-{}-{}".format(now.year, now.month, now.day)
-        logger.debug("PDF to be written to: {}".format(self.output_dir))
+        logger.debug("PDF to be written to: {}".format(self._output_dir))
         # FIXME This should probably be something else, but this will
         # do for now.
         title = "Resources: {}".format(
@@ -200,9 +200,8 @@ class DocumentGenerator:
             # next commented out line.
             # resource._version if resource._version else ""
             "TBD",
-            # Outside vs. inside Docker container
-            self.output_dir,
-            self.working_dir,
+            self._output_dir,
+            self._working_dir,
             # FIXME A document generation request is composed of theoretically
             # an infinite number of arbitrarily ordered resources. In this new
             # context using the file location for one resource doesn't make
@@ -219,7 +218,7 @@ class DocumentGenerator:
         # Next command replaces cp /working/tn-temp/*.pdf /output in
         # old system
         copy_command = "cp {}/{}.pdf {}".format(
-            self.output_dir, self._document_request_key, "/output"
+            self._output_dir, self._document_request_key, "/output"
         )
         # logger.debug(
         #     "os.listdir(self.working_dir): {}".format(os.listdir(self.working_dir))
@@ -241,14 +240,14 @@ class DocumentGenerator:
 
     @icontract.require(lambda self: self._resources)
     @icontract.snapshot(
-        lambda self: len(self.found_resources), name="len_found_resources"
+        lambda self: len(self._found_resources), name="len_found_resources"
     )
     @icontract.snapshot(
-        lambda self: len(self.unfound_resources), name="len_unfound_resources"
+        lambda self: len(self._unfound_resources), name="len_unfound_resources"
     )
     @icontract.ensure(
-        lambda self, OLD: len(self.found_resources) > OLD.len_found_resources
-        or len(self.unfound_resources) > OLD.len_unfound_resources
+        lambda self, OLD: len(self._found_resources) > OLD.len_found_resources
+        or len(self._unfound_resources) > OLD.len_unfound_resources
     )
     def _fetch_resources(self) -> None:
         """
@@ -261,21 +260,21 @@ class DocumentGenerator:
             if resource.is_found():
                 # Keep a list of resources that were found, we'll use
                 # it soon.
-                self.found_resources.append(resource)
+                self._found_resources.append(resource)
                 resource.get_files()
             else:
                 logger.info("{} was not found".format(resource))
                 # Keep a list of unfound resources so that we can use
                 # it for reporting.
-                self.unfound_resources.append(resource)
+                self._unfound_resources.append(resource)
 
-    @icontract.require(lambda self: self.found_resources)
+    @icontract.require(lambda self: self._found_resources)
     def _initialize_resource_content(self) -> None:
         """
         Initialize the resources from their found assets and
         generate their content for later typesetting.
         """
-        for resource in self.found_resources:
+        for resource in self._found_resources:
             resource.initialize_from_assets()
             resource.get_content()
 
@@ -291,8 +290,8 @@ class DocumentGenerator:
         for resource_request in document_request.resource_requests:
             resources.append(
                 resource_factory(
-                    self.working_dir,
-                    self.output_dir,
+                    self._working_dir,
+                    self._output_dir,
                     resource_request,
                     document_request.assembly_strategy_kind,
                 )
@@ -322,14 +321,14 @@ class DocumentGenerator:
             document_request_key[:-1], document_request.assembly_strategy_kind
         )
 
-    @icontract.require(lambda self: self.working_dir and self._document_request_key)
+    @icontract.require(lambda self: self._working_dir and self._document_request_key)
     def get_finished_document_filepath(self) -> str:
         """
         Return the location on disk where the finished document may be
         found.
         """
         finished_document_path = "{}.html".format(
-            os.path.join(self.working_dir, self._document_request_key)
+            os.path.join(self._working_dir, self._document_request_key)
         )
         return finished_document_path
 
@@ -339,7 +338,7 @@ class DocumentGenerator:
         using the content for each resource.
         """
         output_filename: str = os.path.join(
-            self.output_dir, "{}.pdf".format(self._document_request_key)
+            self._output_dir, "{}.pdf".format(self._document_request_key)
         )
         if not os.path.isfile(output_filename):
             self._assemble_content()
@@ -350,15 +349,15 @@ class DocumentGenerator:
             # know.
             logger.debug(
                 "Unfound resource requests: {}".format(
-                    "; ".join(str(resource) for resource in self.unfound_resources)
+                    "; ".join(str(resource) for resource in self._unfound_resources)
                 ),
             )
 
     def _get_unfoldingword_icon(self) -> None:
         """Get Unfolding Word's icon for display in generated PDF."""
-        if not os.path.isfile(os.path.join(self.working_dir, "icon-tn.png")):
+        if not os.path.isfile(os.path.join(self._working_dir, "icon-tn.png")):
             command = "curl -o {}/icon-tn.png {}".format(
-                self.working_dir, config.get_icon_url(),
+                self._working_dir, config.get_icon_url(),
             )
             subprocess.call(command, shell=True)
 
