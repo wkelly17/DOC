@@ -7,7 +7,7 @@ from document.domain import document_generator, model
 
 
 def test_document_generator_for_english_with_interleaving_by_verse() -> None:
-    assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.verse
+    assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.VERSE
     resource_requests: List[model.ResourceRequest] = []
     resource_requests.append(
         model.ResourceRequest(
@@ -39,7 +39,7 @@ def test_document_generator_for_english_with_interleaving_by_verse() -> None:
 
 
 def test_document_generator_for_english_multichapter_with_interleaving_by_verse() -> None:
-    assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.verse
+    assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.VERSE
     resource_requests: List[model.ResourceRequest] = []
     resource_requests.append(
         model.ResourceRequest(
@@ -71,7 +71,7 @@ def test_document_generator_for_english_multichapter_with_interleaving_by_verse(
 
 
 def test_document_generator_for_swahili_with_ulb_tn_interleaving_by_verse() -> None:
-    assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.verse
+    assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.VERSE
     resource_requests: List[model.ResourceRequest] = []
     resource_requests.append(
         model.ResourceRequest(lang_code="sw", resource_type="ulb", resource_code="col")
@@ -110,7 +110,7 @@ def test_document_generator_for_swahili_with_ulb_tn_interleaving_by_verse() -> N
 
 
 def test_document_generator_for_swahili_with_interleaving_by_verse() -> None:
-    assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.verse
+    assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.VERSE
     resource_requests: List[model.ResourceRequest] = []
     resource_requests.append(
         model.ResourceRequest(lang_code="sw", resource_type="ulb", resource_code="col")
@@ -155,7 +155,7 @@ def test_document_generator_for_swahili_with_interleaving_by_verse() -> None:
 
 
 def test_document_generator_for_english_and_swahili_with_interleaving_by_verse() -> None:
-    assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.verse
+    assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.VERSE
     resource_requests: List[model.ResourceRequest] = []
     resource_requests.append(
         model.ResourceRequest(

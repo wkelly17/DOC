@@ -46,7 +46,7 @@ class AssemblyStrategyEnum(str, Enum):
       content to be interleaved.
     """
 
-    verse = "verse"
+    VERSE = "verse"
     # NOTE Chapter and book interleaving assembly strategies may be
     # supported in the future.
     # chapter = "chapter"

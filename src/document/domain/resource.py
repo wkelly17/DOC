@@ -297,7 +297,7 @@ class USFMResource(Resource):
             )
 
             if self._assembly_strategy_kind in {
-                model.AssemblyStrategyEnum.verse,
+                model.AssemblyStrategyEnum.VERSE,
             }:
                 self._initialize_verses_html()
                 logger.debug("self._verses_html from bs4: {}".format(self._verses_html))
@@ -550,7 +550,7 @@ class TResource(Resource):
             )
 
         if self._assembly_strategy_kind in {
-            model.AssemblyStrategyEnum.verse,
+            model.AssemblyStrategyEnum.VERSE,
         }:
             self._initialize_verses_html()
 

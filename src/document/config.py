@@ -365,4 +365,4 @@ def get_pdf_generation_method() -> str:
     document_generator module to decide which method to call to
     generate the PDF.
     """
-    return model.PdfGenerationMethodEnum.webkit
+    return model.PdfGenerationMethodEnum.WEBKIT

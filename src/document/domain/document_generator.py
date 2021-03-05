@@ -662,7 +662,7 @@ def _assembly_strategy_factory(
     Strategy pattern. Given an assembly_strategy_kind, returns the
     appropriate strategy function to run.
     """
-    strategies = {model.AssemblyStrategyEnum.verse: _assemble_content_by_verse}
+    strategies = {model.AssemblyStrategyEnum.VERSE: _assemble_content_by_verse}
     return strategies[assembly_strategy_kind]
 
 
@@ -703,7 +703,7 @@ def _assembly_sub_strategy_factory(
             False,
             False,
             False,
-            model.AssemblyStrategyEnum.verse,
+            model.AssemblyStrategyEnum.VERSE,
         ): _assemble_usfm_tn_content_by_verse,
         # TBD
         # (
