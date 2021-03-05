@@ -590,7 +590,12 @@ class TResource(Resource):
             intro_html = ""
             if intro_path:
                 with open(intro_path, "r", encoding="utf-8") as fin:
-                    intro_html = md.convert(fin.read())
+                    intro_html = fin.read()
+                    # NOTE I am not sure the 'Links' section make
+                    # sense in the new interleaving design, so let's
+                    # remove it for now.
+                    intro_html = markdown_utils.remove_md_section(intro_html, "Links:")
+                    intro_html = md.convert(intro_html)
             # FIXME For some languages, TN assets are stored in .txt files
             # rather of .md files. Handle this.
             verse_paths = sorted(glob("{}/*[0-9]*.md".format(chapter_dir)))
@@ -599,7 +604,14 @@ class TResource(Resource):
                 verse_num = int(pathlib.Path(filepath).stem)
                 verse_content = ""
                 with open(filepath, "r", encoding="utf-8") as fin2:
-                    verse_content = md.convert(fin2.read())
+                    verse_content = fin2.read()
+                    # NOTE I am not sure the 'Links' section make
+                    # sense in the new interleaving design, so let's
+                    # remove it for now.
+                    verse_content = markdown_utils.remove_md_section(
+                        verse_content, "Links:"
+                    )
+                    verse_content = md.convert(verse_content)
                 verses_html[verse_num] = verse_content
             chapter_payload = model.TNChapterPayload(
                 intro_html=intro_html, verses_html=verses_html
