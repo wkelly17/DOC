@@ -19,6 +19,8 @@ import markdown
 from usfm_tools.transform import UsfmTransform
 
 from document import config
+
+from document.markdown_extensions import wikilink_preprocessor
 from document.domain import bible_books, model, resource_lookup
 from document.utils import (
     file_utils,
@@ -567,6 +569,18 @@ class TResource(Resource):
     # might not be available, so don't require _verses_html is
     # returned.
     def _initialize_verses_html(self) -> None:
+        """
+        Find book intro, chapter intros, and then
+        the verses themselves.
+        """
+        # Create the Markdown instance once and have it use our markdown
+        # extension that changes (See [[rc:foo]]) style links into [](rc:foo)
+        # style links for now. This is an experiment to supplant legacy code
+        # that makes link transformations on raw Markdown content. This will
+        # likely change again with the coming link transformation overhaul I
+        # have planned.
+        # md = markdown.Markdown()
+        md = markdown.Markdown(extensions=[wikilink_preprocessor.WikiLinkExtension()])
         # FIXME We already went to the trouble of finding the Markdown
         # or TXT files and storing their paths in self._content_files, perhaps
         # we'll use those rather than globbing again here. Currently
