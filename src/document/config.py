@@ -1,14 +1,17 @@
 """This module provides configuration values used by the application."""
 
 
+import jinja2
 import logging
 import os
+import pydantic
 from logging import config as lc
 from typing import List
 
 import yaml
 
 from document import config
+from document.domain import model
 
 # FIXME Use pydantic Settings and types
 
@@ -227,52 +230,7 @@ def get_document_html_header() -> str:
     to enclose the document's HTML content which was aggregated from
     all the resources in the document request.
     """
-    return """
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <meta http-equiv="content-type" content="text/html; charset=utf-8"></meta>
-    <title>Bible</title>
-    <style media="all" type="text/css">
-        .indent-0 {
-            margin-left:0em;
-            margin-bottom:0em;
-            margin-top:0em;
-        }
-        .indent-1 {
-            margin-left:0em;
-            margin-bottom:0em;
-            margin-top:0em;
-        }
-        .indent-2 {
-            margin-left:1em;
-            margin-bottom:0em;
-            margin-top:0em;
-        }
-        .indent-3 {
-            margin-left:2em;
-            margin-bottom:0em;
-            margin-top:0em;
-        }
-        .c-num {
-            color:gray;
-        }
-        .v-num {
-            color:gray;
-        }
-        .tetragrammaton {
-            font-variant: small-caps;
-        }
-        .footnotes {
-            font-size: 0.8em;
-        }
-        .footnotes-hr {
-            width: 90%;
-        }
-    </style>
-</head>
-<body>
-"""
+    return get_template("header_enclosing")
 
 
 def get_document_html_footer() -> str:
@@ -281,11 +239,7 @@ def get_document_html_footer() -> str:
     to enclose the document's HTML content which was aggregated from
     all the resources in the document request.
     """
-    return """
-        </div>
-    </body>
-</html>
-"""
+    return get_template("footer_enclosing")
 
 
 # Generate PDF from HTML
@@ -365,17 +319,50 @@ def get_english_repos_dict() -> dict:
     }
 
 
-def get_markdown_template_path(key: str) -> str:
+def get_template_path(key: str) -> str:
     """
     Return the path to the requested template give a lookup key.
     Return a different path if the code is running inside the Docker
     container.
     """
-    # FIXME Deal with env vars for docker container if desired
     templates = {
         "book_intro": "src/templates/tn/book_intro_template.md",
+        "header_enclosing": "src/templates/html/header_enclosing.html",
+        "footer_enclosing": "src/templates/html/footer_enclosing.html",
+        "cover": "src/templates/html/cover.html",
     }
     path = templates[key]
     # if not os.environ.get("IN_CONTAINER"):
     #     path = "src/{}".format(path)
     return path
+
+
+def get_instantiated_template(template_lookup_key: str, dto: pydantic.BaseModel) -> str:
+    """
+    Instantiate Jinja2 template with dto BaseModel instance. Return
+    instantiated template as string.
+    """
+    # FIXME Maybe use jinja2.PackageLoader here instead: https://github.com/tfbf/usfm/blob/master/usfm/html.py
+    with open(config.get_template_path(template_lookup_key), "r") as filepath:
+        template = filepath.read()
+    # FIXME Handle exceptions
+    env = jinja2.Environment().from_string(template)
+    return env.render(data=dto)
+
+
+def get_template(template_lookup_key: str) -> str:
+    """
+    Return template as string.
+    """
+    with open(config.get_template_path(template_lookup_key), "r") as filepath:
+        template = filepath.read()
+    return template
+
+
+def get_pdf_generation_method() -> str:
+    """
+    Return the method of PDF generation. This is used by
+    document_generator module to decide which method to call to
+    generate the PDF.
+    """
+    return model.PdfGenerationMethodEnum.webkit

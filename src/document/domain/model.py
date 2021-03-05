@@ -149,3 +149,14 @@ class USFMChapter(BaseModel):
 
     chapter_content: List[str]
     chapter_verses: Dict[int, str]
+
+
+class CoverPayload(BaseModel):
+    """
+    A class to hold a PDF cover sheet, i.e., first page, HTML template
+    variable values.
+    """
+
+    title: str
+    revision_date: str
+

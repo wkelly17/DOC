@@ -15,9 +15,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import bs4
 import icontract
-import jinja2
 import markdown
-import pydantic
 from usfm_tools.transform import UsfmTransform
 
 from document import config
@@ -686,21 +684,6 @@ class TNResource(TResource):
         """Provide public interface for other modules."""
         return self._book_payload
 
-    # FIXME This is slated for removal.
-    def _get_template(self, template_lookup_key: str, dto: pydantic.BaseModel) -> str:
-        """
-        Instantiate template with dto BaseModel instance. Return
-        instantiated template as string.
-        """
-        # FIXME Maybe use jinja2.PackageLoader here instead: https://github.com/tfbf/usfm/blob/master/usfm/html.py
-        with open(
-            config.get_markdown_template_path(template_lookup_key), "r"
-        ) as filepath:
-            template = filepath.read()
-        # FIXME Handle exceptions
-        env = jinja2.Environment().from_string(template)
-        return env.render(data=dto)
-
     # FIXME Obselete. Slated for removal.
     @icontract.require(lambda self: self._resource_code)
     def _get_tn_markdown(self) -> None:
@@ -908,7 +891,7 @@ class TNResource(TResource):
                 anchor_id=book_intro_anchor_id,
             )
 
-            book_intro_template = self._get_template("book_intro", data)
+            book_intro_template = config.get_instantiated_template("book_intro", data)
 
             self._resource_data[book_intro_rc_link] = {
                 "rc": book_intro_rc_link,
