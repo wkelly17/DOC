@@ -11,7 +11,7 @@ class WikiLinkPreprocessor(Preprocessor):
 
     def __init__(self, config: Dict, md: markdown.Markdown) -> None:
         """Initialize."""
-        self.encoding = config.get("encoding")
+        # self.encoding = config.get("encoding")
         super(WikiLinkPreprocessor, self).__init__()
 
     def parse_wikilinks(self, lines: List[str]) -> List[str]:
@@ -35,7 +35,7 @@ class WikiLinkExtension(Extension):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize."""
         self.config = {
-            "encoding": ["utf-8", 'Encoding of snippets - Default: "utf-8"'],
+            # "encoding": ["utf-8", 'Encoding of snippets - Default: "utf-8"'],
         }
         super(WikiLinkExtension, self).__init__(*args, **kwargs)
 
@@ -45,7 +45,7 @@ class WikiLinkExtension(Extension):
         md.registerExtension(self)
         config = self.getConfigs()
         wikilink = WikiLinkPreprocessor(config, md)
-        md.preprocessors.register(wikilink, "snippet", 32)
+        md.preprocessors.register(wikilink, "wikilink", 32)
 
 
 def makeExtension(*args: Any, **kwargs: Any) -> WikiLinkExtension:
