@@ -160,3 +160,19 @@ class CoverPayload(BaseModel):
     title: str
     revision_date: str
 
+
+class PdfGenerationMethodEnum(str, Enum):
+    """
+    There are currently and temporarily (until we vet the newest
+    method) two PDF generation methods to
+    choose from:
+
+    * latex
+      - Uses pandoc to convert HTML to PDF.
+    * webkit
+      - Uses webkit headless rendering engine in wkhtmltopdf binary
+        via pdfkit Python library to convert HTML to PDF.
+    """
+
+    LATEX = "latex"
+    WEBKIT = "webkit"

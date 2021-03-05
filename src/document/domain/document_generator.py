@@ -16,6 +16,7 @@ from __future__ import annotations  # https://www.python.org/dev/peps/pep-0563/
 import datetime
 import itertools
 import os
+import pdfkit
 import re
 import subprocess
 from typing import Callable, cast, List, Optional, Tuple, TYPE_CHECKING
@@ -132,7 +133,7 @@ class DocumentGenerator:
 
         self._fetch_resources()
         self._initialize_resource_content()
-        self._generate_pdf()
+        self._generate_pdf(pdf_generation_method=config.get_pdf_generation_method())
 
     def _assemble_content(self) -> None:
         """
@@ -243,6 +244,59 @@ class DocumentGenerator:
             logger.debug("Copy PDF command: {}".format(copy_command))
             subprocess.call(copy_command, shell=True)
 
+    def _convert_html_to_pdf(self) -> None:
+        """Generate PDF from HTML contained in self.content."""
+        now = datetime.datetime.now()
+        revision_date = "{}-{}-{}".format(now.year, now.month, now.day)
+        logger.debug("PDF to be written to: {}".format(self._output_dir))
+        # FIXME This should probably be something else, but this will
+        # do for now.
+        title = "Resources: {}".format(
+            ", ".join(
+                sorted(
+                    {
+                        "{}: {}".format(
+                            resource.lang_name,
+                            bible_books.BOOK_NAMES[resource.resource_code],
+                        )
+                        for resource in self._resources
+                    }
+                )
+            )
+        )
+        html_file_path = "{}.html".format(
+            os.path.join(self._working_dir, self._document_request_key)
+        )
+        output_pdf_file_path = "{}.pdf".format(
+            os.path.join(self._working_dir, self._document_request_key)
+        )
+        options = {
+            "page-size": "Letter",
+            # 'margin-top': '0.75in',
+            # 'margin-right': '0.75in',
+            # 'margin-bottom': '0.75in',
+            # 'margin-left': '0.75in',
+            "encoding": "UTF-8",
+            "load-error-handling": "ignore",
+            "outline": "",  # Produce an outline
+            "outline-depth": "3",  # Only go depth of 3 on the outline
+        }
+        # Use Jinja2 to instantiate the cover page.
+        cover = config.get_instantiated_template(
+            "cover", model.CoverPayload(title=title, revision_date=revision_date)
+        )
+        pdfkit.from_file(
+            html_file_path, output_pdf_file_path, options=options, cover=cover
+        )
+        copy_command = "cp {}/{}.pdf {}".format(
+            self._output_dir, self._document_request_key, "/output"
+        )
+        logger.debug("IN_CONTAINER: {}".format(os.environ.get("IN_CONTAINER")))
+        if os.environ.get("IN_CONTAINER"):
+            logger.info("About to cp PDF to /output")
+            logger.debug("Copy PDF command: {}".format(copy_command))
+            subprocess.call(copy_command, shell=True)
+
     @property
     def document_request_key(self) -> str:
         """Provide public access method for other modules."""
@@ -342,7 +396,9 @@ class DocumentGenerator:
         )
         return finished_document_path
 
-    def _generate_pdf(self) -> None:
+    def _generate_pdf(
+        self, pdf_generation_method: str = model.PdfGenerationMethodEnum.LATEX
+    ) -> None:
         """
         If the PDF doesn't yet exist, go ahead and generate it
         using the content for each resource.
@@ -353,7 +409,10 @@ class DocumentGenerator:
         if not os.path.isfile(output_filename):
             self._assemble_content()
             logger.info("Generating PDF...")
-            self._convert_html2pdf()
+            if pdf_generation_method == model.PdfGenerationMethodEnum.LATEX:
+                self._convert_html2pdf()
+            else:
+                self._convert_html_to_pdf()
             # TODO Return json message containing any resources that
             # we failed to find so that the front end can let the user
             # know.

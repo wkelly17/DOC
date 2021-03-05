@@ -7,8 +7,6 @@ verify_ssl = true
 PyYAML = "*"
 bs4 = "*"
 fastapi = "*"
-# uw-tools = {git = "git://github.com/unfoldingWord-dev/uw_tools.git"}
-# usfm-tools = {editable = true, ref="develop", git = "git://github.com/linearcombination/USFM-Tools.git"}
 # gogs-client = "*" # FIXME gitea client old name
 icontract = "*"
 jinja2 = "*"
@@ -16,11 +14,9 @@ jsonpath-rw = "*"
 jsonpath-rw-ext = "*"
 # logdecorator
 Markdown = "*"
-# markdown
-# markdown2
-# openpyxl = "*"
 parse = "*"
 pathlib = "*"
+pdfkit = "*"
 pydantic = "*"
 pyparsing = "2.4.5"
 requests = "*"
@@ -33,19 +29,17 @@ flake8-mypy = "*"
 pytest = "*"
 pytest-icdiff = "*"
 pylint = "*"
-tenacity = "*"
 python-language-server = "*"
 isort = "*"
 pyls-mypy = "*"
 document = {editable = true, path = "./src"}
-usfm-tools = {editable = true, path = "./../USFM-Tools"}
+# usfm-tools = {editable = true, path = "./../USFM-Tools"}
+usfm-tools = {editable = true, ref="develop", git = "git://github.com/linearcombination/USFM-Tools.git"}
 
 [packages]
 PyYAML = "*"
 bs4 = "*"
 fastapi = "*"
-# uw-tools = {git = "git://github.com/unfoldingWord-dev/uw_tools.git"}
-# usfm-tools = {editable = true, ref="develop", git = "git://github.com/linearcombination/USFM-Tools.git"}
 # gogs-client = "*" # FIXME gitea client, old name
 icontract = "*"
 jinja2 = "*"
@@ -53,17 +47,16 @@ jsonpath-rw = "*"
 jsonpath-rw-ext = "*"
 # logdecorator
 Markdown = "*"
-# markdown
-# markdown2
-# openpyxl = "*"
 parse = "*"
 pathlib = "*"
+pdfkit = "*"
 pydantic = "*"
 pyparsing = "2.4.5"
 requests = "*"
 uvicorn = "*"
 document = {editable = true, path = "./src"}
-usfm-tools = {editable = true, path = "./../USFM-Tools"}
+# usfm-tools = {editable = true, path = "./../USFM-Tools"}
+usfm-tools = {editable = true, ref="develop", git = "git://github.com/linearcombination/USFM-Tools.git"}
 
 [requires]
 python_version = "3.8"
