@@ -125,7 +125,9 @@ class DocumentGenerator:
         """
         # FIXME icon no longer exists where it used to. I've saved the
         # icon to ./working/temp for now until we find a different
-        # location for the icon that is to be used.
+        # location for the icon that is to be used if we wish to
+        # retrieve it via URL. Otherwise we'll just always get it from
+        # file.
         # self._get_unfoldingword_icon()
 
         self._fetch_resources()
@@ -185,15 +187,14 @@ class DocumentGenerator:
                 )
             )
         )
-        # FIXME When run locally xelatex chokes because the LaTeX
-        # template does not set the \setmainlanguage{} and
-        # \setotherlanguages{} to any value. I can comment out that
-        # LaTeX code and then it runs. Or if I manually edit the
-        # final latex file to have these set to English, say,
-        # even if more than English is used, and then run xelatex
-        # manually on the file it produces the PDF successfully. This
-        # issue does not arise when the code is run in the Docker
-        # container for some unknown reason.
+        # FIXME When run locally xelatex chokes because the LaTeX template does
+        # not set the \setmainlanguage{} and \setotherlanguages{} commands of
+        # the polyglossia package to any value. I can comment out that LaTeX
+        # code and then it runs. Or if I manually edit the final latex file to
+        # have these set to English, say, even if more than English is used, and
+        # then run xelatex manually on the file it produces the PDF
+        # successfully. This issue does not arise when the code is run in the
+        # Docker container for some unknown reason.
         command = config.get_pandoc_command().format(
             # First hack at a title. Used to be just self.book_title which
             # doesn't make sense anymore.
@@ -232,8 +233,6 @@ class DocumentGenerator:
             config.get_tex_template_location(),
         )
         logger.debug("pandoc command: {}".format(command))
-        # Next command replaces cp /working/tn-temp/*.pdf /output in
-        # old system
         copy_command = "cp {}/{}.pdf {}".format(
             self._output_dir, self._document_request_key, "/output"
         )

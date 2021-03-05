@@ -567,14 +567,10 @@ class TResource(Resource):
     # might not be available, so don't require _verses_html is
     # returned.
     def _initialize_verses_html(self) -> None:
-        # FIXME This whole method could be rewritten. We want to find
-        # book intro, chapter intros, and then the verses themselves.
-        # We can do all that with globbing as below rather than the
-        # laborious way it is done elsewhere in this codebase.
         # FIXME We already went to the trouble of finding the Markdown
-        # or TXT files and storing their paths in self._content_files, let's
-        # use those rather than glogging again # here if possible.
-        md = markdown.Markdown()
+        # or TXT files and storing their paths in self._content_files, perhaps
+        # we'll use those rather than globbing again here. Currently
+        # refactoring to final design, just a note for the future.
         chapter_dirs = sorted(
             glob("{}/**/*{}/*[0-9]*".format(self._resource_dir, self._resource_code))
         )
