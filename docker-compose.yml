@@ -3,9 +3,14 @@ services:
   api:
     image: document-image
     container_name: "api"
+    env_file:
+      - .env
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        PANDOC_LOC: ${PANDOC_LOC}
+        WKHTMLTOX_LOC: ${WKHTMLTOX_LOC}
     environment:
       - RESOURCE_ASSETS_DIR=/working/temp
       - DOCUMENT_OUTPUT_DIR=/working/temp

@@ -3,10 +3,32 @@ FROM analyticdelta/python3.8-slim-buster-with-texlive:v1.0
 COPY depends /installs
 COPY requirements.txt /installs
 
-# FIXME Move pandoc into the creation of the base image so as to
-# always get the latest.
-# Install latest pandoc
-RUN dpkg -i /installs/pandoc-2.10.1-1-amd64.deb
+RUN apt-get install wget
+
+# Get and install Pandoc.
+ARG PANDOC_LOC # Make a build arg available to this Dockerfile
+RUN PANDOC_TEMP="$(mktemp)" && \
+    wget -O "$PANDOC_TEMP" ${PANDOC_LOC} && \
+    dpkg -i "$PANDOC_TEMP" && \
+    rm -f "$PANDOC_TEMP"
+
+
+# FIXME You could possibly use
+# gdebi properly handle dependencies.
+# RUN apt-get install gdebi-core
+
+# Source: https://github.com/wkhtmltopdf/wkhtmltopdf/issues/2037
+# Source: https://gist.github.com/lobermann/ca0e7bb2558b3b08923c6ae2c37a26ce
+# How to get wkhtmltopdf - don't use what Debian provides as it can have
+# headless display issues that mess with wkhtmltopdf.
+# Install wkhtmltopdf
+ARG WKHTMLTOX_LOC # Make a build arg available to this Dockerfile
+RUN WKHTMLTOX_TEMP="$(mktemp)" && \
+    wget -O "$WKHTMLTOX_TEMP" ${WKHTMLTOX_LOC} && \
+    apt-get update && \
+    apt-get -V install -y fontconfig libxrender1 xfonts-75dpi xfonts-base && \
+    dpkg -i "$WKHTMLTOX_TEMP" && \
+    rm -f "$WKHTMLTOX_TEMP"
 
 # Install specific fonts
 RUN mkdir -p ~/.local/share/fonts/Raleway \
@@ -28,16 +50,3 @@ RUN pip install -e /src
 COPY tests/ /tests/
 
 WORKDIR /
-
-# FIXME docker-compose.yaml provides an entrypoint for the api that
-# launches uvicorn so we don't need it here.
-# COPY entrypoint.sh  /root/entrypoint.sh
-# RUN chmod +x /root/entrypoint.sh
-
-# Launch entrypoint.sh
-# ENTRYPOINT /root/entrypoint.sh
-
-# FIXME Make host and port env variables and use those same variables
-# in config.py also.
-# Start FastAPI
-# CMD ["uvicorn", "--host", "0.0.0.0", "--port", "5005", "--reload", "src.document.entrypoints.app:app"]
