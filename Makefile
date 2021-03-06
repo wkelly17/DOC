@@ -10,6 +10,11 @@ up:
 server: up
 	docker-compose run  api
 
+# Among other things, PYTHONOPTIMIZE=1 will turn off icontract checking
+# https://icontract.readthedocs.io/en/latest/usage.html#toggling-contracts
+server_prod: up
+	PYTHONOPTIMIZE=1 docker-compose run api
+
 test: up
 	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/unit /tests/integration /tests/e2e
 
