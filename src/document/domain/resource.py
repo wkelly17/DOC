@@ -590,6 +590,7 @@ class TResource(Resource):
         )
         # Some languages are organized differently on disk (e.g., depending
         # on if their assets were acquired as a git repo or a zip).
+        # We handle this here.
         if not chapter_dirs:
             chapter_dirs = sorted(
                 glob("{}/*{}/*[0-9]*".format(self._resource_dir, self._resource_code))
