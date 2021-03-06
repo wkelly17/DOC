@@ -36,4 +36,9 @@ mypy:
 	mypy tests/*.py
 	mypy tests/**/*.py
 
+pyicontract-lint:
+	pyicontract-lint --dont_panic ./src/document/domain
+	pyicontract-lint --dont_panic ./src/document/utils
+	pyicontract-lint --dont_panic ./src/document/entrypoints
+
 all: down build up test
