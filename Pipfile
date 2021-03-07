@@ -12,7 +12,7 @@ icontract = "*"
 jinja2 = "*"
 jsonpath-rw = "*"
 jsonpath-rw-ext = "*"
-# logdecorator
+logdecorator = "*"
 Markdown = "*"
 parse = "*"
 pathlib = "*"
@@ -33,9 +33,9 @@ pyicontract-lint = "*"
 python-language-server = "*"
 isort = "*"
 pyls-mypy = "*"
-document = {editable = true, path = "./src"}
+# document = {editable = true, path = "./src"}
 # usfm-tools = {editable = true, path = "./../USFM-Tools"}
-usfm-tools = {editable = true, ref="develop", git = "git://github.com/linearcombination/USFM-Tools.git"}
+usfm-tools = {ref="develop", git = "git://github.com/linearcombination/USFM-Tools.git"}
 
 [packages]
 PyYAML = "*"
@@ -46,7 +46,7 @@ icontract = "*"
 jinja2 = "*"
 jsonpath-rw = "*"
 jsonpath-rw-ext = "*"
-# logdecorator
+logdecorator = "*"
 Markdown = "*"
 parse = "*"
 pathlib = "*"
@@ -55,9 +55,9 @@ pydantic = "*"
 pyparsing = "2.4.5"
 requests = "*"
 uvicorn = "*"
-document = {editable = true, path = "./src"}
+# document = {editable = true, path = "./src"}
 # usfm-tools = {editable = true, path = "./../USFM-Tools"}
-usfm-tools = {editable = true, ref="develop", git = "git://github.com/linearcombination/USFM-Tools.git"}
+usfm-tools = {ref="develop", git = "git://github.com/linearcombination/USFM-Tools.git"}
 
 [requires]
 python_version = "3.8"

@@ -7,14 +7,13 @@ import json
 import os
 import pathlib
 import zipfile
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import icontract
 import yaml
 
 
-@icontract.require(lambda source_file: source_file)
-@icontract.require(lambda destination_dir: destination_dir)
+@icontract.require(lambda source_file, destination_dir: source_file and destination_dir)
 def unzip(source_file: str, destination_dir: str) -> None:
     """
     Unzips <source_file> into <destination_dir>.
@@ -49,9 +48,10 @@ def make_dir(
             raise IOError("Directory {0} is not writable.".format(dir_name))
 
 
-@icontract.require(lambda file_name: file_name is not None)
-@icontract.require(lambda file_name: os.path.exists(file_name))
-def load_json_object(file_name: pathlib.Path) -> Dict:
+@icontract.require(
+    lambda file_name: file_name is not None and os.path.exists(file_name)
+)
+def load_json_object(file_name: pathlib.Path) -> List:
     """
     Deserialized JSON file <file_name> into a Python dict.
     :param file_name: The name of the file to read
@@ -59,8 +59,9 @@ def load_json_object(file_name: pathlib.Path) -> Dict:
     return json.loads(read_file(str(file_name.resolve())))
 
 
-@icontract.require(lambda file_name: file_name is not None)
-@icontract.require(lambda file_name: os.path.exists(file_name))
+@icontract.require(
+    lambda file_name: file_name is not None and os.path.exists(file_name)
+)
 def load_yaml_object(file_name: str) -> Dict:
     """
     Deserialized YAML file <file_name> into a Python dict.
@@ -79,8 +80,9 @@ def read_file(file_name: str, encoding: str = "utf-8-sig") -> str:
     return content.replace("\r\n", "\n")
 
 
-@icontract.require(lambda file_name: file_name)
-@icontract.require(lambda file_contents: file_contents is not None)
+@icontract.require(
+    lambda file_name, file_contents: file_name and file_contents is not None
+)
 def write_file(
     file_name: str, file_contents: Any, indent: Optional[int] = None
 ) -> None:

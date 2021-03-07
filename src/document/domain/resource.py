@@ -6,12 +6,14 @@ There are different classes for each resource type.
 from __future__ import annotations  # https://www.python.org/dev/peps/pep-0563/
 
 import abc
+import logging  # For logdecorator
 import os
 import pathlib
 import re
 import subprocess
 from glob import glob
-from typing import Any, Dict, List, Optional, Tuple
+from logdecorator import log_on_start, log_on_end
+from typing import Any, cast, Dict, List, Optional, Tuple
 
 import bs4
 import icontract
@@ -204,6 +206,11 @@ class USFMResource(Resource):
     @icontract.ensure(
         lambda self: self._resource_url is not None and self._lang_name is not None
     )
+    @log_on_end(
+        logging.DEBUG,
+        "self._resource_url = {self._resource_url} for {self}",
+        logger=logger,
+    )
     def find_location(self) -> None:
         """See docstring in superclass."""
         # FIXME For better flexibility, the lookup class could be
@@ -215,8 +222,12 @@ class USFMResource(Resource):
         self._resource_url = resource_lookup_dto.url
         self._resource_source = resource_lookup_dto.source
         self._resource_jsonpath = resource_lookup_dto.jsonpath
-        logger.debug("self._resource_url: {} for {}".format(self._resource_url, self))
 
+    @log_on_end(
+        logging.DEBUG,
+        "self._content_files for {self._resource_code}: {self._content_files}",
+        logger=logger,
+    )
     def initialize_from_assets(self) -> None:
         """See docstring in superclass."""
         self._manifest = Manifest(self)
@@ -261,20 +272,18 @@ class USFMResource(Resource):
                 )
             )
 
-        logger.debug(
-            "self._content_files for {}: {}".format(
-                self._resource_code, self._content_files,
-            )
-        )
-
+    # FIXME Code in self._initialize_verses_html should possibly be
+    # made default, i.e., possibly it should always run in the new
+    # design and not be conditionalized at this call site.
+    @log_on_end(
+        logging.DEBUG, "self._bad_links: {self._bad_links}", logger=logger,
+    )
     @icontract.require(lambda self: self._content_files is not None)
     @icontract.ensure(lambda self: self._resource_filename is not None)
     def get_content(self) -> None:
         """See docstring in superclass."""
         # FIXME Slated for removal.
         # self._get_usfm_chunks()
-
-        # logger.debug("self._content_files: {}".format(self._content_files))
 
         if self._content_files is not None:
             # Convert the USFM to HTML and store in file.
@@ -290,19 +299,16 @@ class USFMResource(Resource):
             )
             self._content = file_utils.read_file(html_file)
 
-            logger.debug(
-                "html content in self._content in {}: {}".format(
-                    html_file, self._content
-                )
-            )
+            # logger.debug(
+            #     "html content in self._content in {}: {}".format(
+            #         html_file, self._content
+            #     )
+            # )
 
             if self._assembly_strategy_kind in {
                 model.AssemblyStrategyEnum.VERSE,
             }:
                 self._initialize_verses_html()
-                logger.debug("self._verses_html from bs4: {}".format(self._verses_html))
-
-            logger.debug("self._bad_links: {}".format(self._bad_links))
 
     @property
     def chapters_content(self) -> Dict:
@@ -491,6 +497,11 @@ class USFMResource(Resource):
 class TResource(Resource):
     """Provide methods common to all subclasses of TResource."""
 
+    @log_on_end(
+        logging.DEBUG,
+        "self._resource_url: {self._resource_url} for {self}",
+        logger=logger,
+    )
     def find_location(self) -> None:
         """Find the URL where the resource's assets are located."""
         lookup_svc = resource_lookup.TResourceJsonLookup()
@@ -499,13 +510,14 @@ class TResource(Resource):
         self._resource_url = resource_lookup_dto.url
         self._resource_source = resource_lookup_dto.source
         self._resource_jsonpath = resource_lookup_dto.jsonpath
-        logger.debug("self._resource_url: {} for {}".format(self._resource_url, self))
 
+    @log_on_start(
+        logging.DEBUG, "self._resource_dir: {self._resource_dir}", logger=logger
+    )
     def initialize_from_assets(self) -> None:
         """Programmatically discover the manifest and content files."""
         self._manifest = Manifest(self)
 
-        logger.debug("self._resource_dir: {}".format(self._resource_dir))
         # FIXME Is the next section of code, up to
         # self._initialize_verses_html, even needed now that we
         # have chapter_verses?
@@ -553,17 +565,6 @@ class TResource(Resource):
             model.AssemblyStrategyEnum.VERSE,
         }:
             self._initialize_verses_html()
-
-        # logger.debug(
-        #     "markdown_content_files: {}, txt_content_files: {}".format(
-        #         markdown_content_files, txt_content_files,
-        #     )
-        # )
-        # logger.debug(
-        #     "self._content_files for {}: {}".format(
-        #         self._resource_code, self._content_files,
-        #     )
-        # )
 
     # @icontract.ensure(lambda self: self._verses_html) # T* resource
     # might not be available, so don't require _verses_html is
@@ -661,6 +662,8 @@ class TResource(Resource):
         # where it can be used to transform and arrange HTML as
         # desired.
 
+    @log_on_start(logging.INFO, "Converting MD to HTML...", logger=logger)
+    @log_on_end(logging.DEBUG, "self._bad_links: {self._bad_links}", logger=logger)
     def _transform_content(self) -> None:
         """
         If self._content is not empty, go ahead and transform rc
@@ -671,9 +674,7 @@ class TResource(Resource):
                 self._my_rcs, self._resource_data, self._content
             )
             self._content = link_utils.transform_rc_links(self._content)
-            logger.info("Converting MD to HTML...")
             self._convert_md2html()
-            logger.debug("self._bad_links: {}".format(self._bad_links))
 
 
 class TNResource(TResource):
@@ -687,6 +688,9 @@ class TNResource(TResource):
         # self._book_payload: model.BookPayload
         self._book_payload: model.TNBookPayload
 
+    @log_on_start(
+        logging.INFO, "Processing Translation Notes Markdown...", logger=logger
+    )
     def get_content(self) -> None:
         """
         Get Markdown content from this resource's file assets. Then do
@@ -694,7 +698,6 @@ class TNResource(TResource):
         needs of the document output. Then convert the Markdown content
         into HTML content.
         """
-        logger.info("Processing Translation Notes Markdown...")
         # FIXME All the work is done in _initialize_verses_html at the moment so
         # this is turned off for now until refactoring cleans this up by moving
         # a few things around.
@@ -1115,9 +1118,11 @@ class TWResource(TResource):
     Words resource.
     """
 
+    @log_on_start(
+        logging.INFO, "Processing Translation Words Markdown...", logger=logger
+    )
     def get_content(self) -> None:
         """See docstring in superclass."""
-        logger.info("Processing Translation Words Markdown...")
         self._get_tw_markdown()
         self._transform_content()
 
@@ -1168,9 +1173,11 @@ class TQResource(TResource):
     Questions resource.
     """
 
+    @log_on_start(
+        logging.INFO, "Processing Translation Questions Markdown...", logger=logger
+    )
     def get_content(self) -> None:
         """See docstring in superclass."""
-        logger.info("Processing Translation Questions Markdown...")
         self._get_tq_markdown()
         self._transform_content()
 
@@ -1276,9 +1283,11 @@ class TAResource(TResource):
     Answers resource.
     """
 
+    @log_on_start(
+        logging.INFO, "Processing Translation Academy Markdown...", logger=logger
+    )
     def get_content(self) -> None:
         """See docstring in superclass."""
-        logger.info("Processing Translation Academy Markdown...")
         self._get_ta_markdown()
         self._transform_content()
 
@@ -1402,19 +1411,16 @@ class ResourceProvisioner:
         and self._resource.resource_dir
         and self._resource.resource_url
     )
+    @log_on_start(
+        logging.DEBUG,
+        "self._resource.resource_url: {self._resource.resource_url} for {self}",
+        logger=logger,
+    )
     def _acquire_resource(self) -> None:
         """
         Download or git clone resource and unzip resulting file if it
         is a zip file.
         """
-        assert (
-            self._resource.resource_url is not None
-        ), "self.resource_url must not be None"
-        logger.debug(
-            "self._resource.resource_url: {} for {}".format(
-                self._resource.resource_url, self
-            )
-        )
 
         # FIXME To ensure consistent directory naming for later
         # discovery, let's not use the url.rpartition(os.path.sep)[2].
@@ -1507,9 +1513,6 @@ class Manifest:
         if it exists. Subclasses specialize this method to
         additionally initialize other disk layout related properties.
         """
-        logger.debug(
-            "self._resource.resource_dir: {}".format(self._resource.resource_dir)
-        )
         manifest_file_list = glob("{}**/manifest.*".format(self._resource))
         if manifest_file_list:
             self._manifest_file_path = manifest_file_list[0]

@@ -15,11 +15,13 @@ from __future__ import annotations  # https://www.python.org/dev/peps/pep-0563/
 
 import datetime
 import itertools
+import logging  # For logdecorator
 import os
 import pdfkit
 import re
 import subprocess
-from typing import Callable, cast, List, Optional, Tuple, TYPE_CHECKING
+from logdecorator import log_on_start, log_on_end
+from typing import Callable, cast, List, Optional, TYPE_CHECKING
 
 import icontract
 
@@ -64,6 +66,12 @@ class DocumentGenerator:
     document.
     """
 
+    @log_on_start(logging.DEBUG, "document_request: {document_request}", logger=logger)
+    @log_on_end(
+        logging.DEBUG,
+        "self._document_request_key: {self._document_request_key}",
+        logger=logger,
+    )
     def __init__(
         self,
         document_request: model.DocumentRequest,
@@ -93,9 +101,6 @@ class DocumentGenerator:
         self._unfound_resources: List[Resource] = []
         self._found_resources: List[Resource] = []
 
-        # Show the dictionary that was passed in.
-        logger.debug("document_request: {}".format(document_request))
-
         if not self._output_dir:
             self._output_dir = self._working_dir
 
@@ -113,10 +118,6 @@ class DocumentGenerator:
         # return the end result document if it still exists.
         self._document_request_key = self._initialize_document_request_key(
             document_request
-        )
-
-        logger.debug(
-            "self._document_request_key: {}".format(self._document_request_key)
         )
 
     def run(self) -> None:
@@ -168,11 +169,13 @@ class DocumentGenerator:
         html += config.get_document_html_footer()
         self._content = html
 
+    @log_on_start(
+        logging.DEBUG, "PDF to be written to: {self._output_dir}", logger=logger
+    )
     def _convert_html2pdf(self) -> None:
         """Generate PDF from HTML contained in self.content."""
         now = datetime.datetime.now()
         revision_date = "{}-{}-{}".format(now.year, now.month, now.day)
-        logger.debug("PDF to be written to: {}".format(self._output_dir))
         # FIXME This should probably be something else, but this will
         # do for now.
         title = "Resources: {}".format(
@@ -244,11 +247,13 @@ class DocumentGenerator:
             logger.debug("Copy PDF command: {}".format(copy_command))
             subprocess.call(copy_command, shell=True)
 
+    @log_on_start(
+        logging.DEBUG, "PDF to be written to: {self._output_dir}", logger=logger
+    )
     def _convert_html_to_pdf(self) -> None:
         """Generate PDF from HTML contained in self.content."""
         now = datetime.datetime.now()
         revision_date = "{}-{}-{}".format(now.year, now.month, now.day)
-        logger.debug("PDF to be written to: {}".format(self._output_dir))
         # FIXME This should probably be something else, but this will
         # do for now.
         title = "Resources: {}".format(
@@ -416,11 +421,6 @@ class DocumentGenerator:
             # TODO Return json message containing any resources that
             # we failed to find so that the front end can let the user
             # know.
-            logger.debug(
-                "Unfound resource requests: {}".format(
-                    "; ".join(str(resource) for resource in self._unfound_resources)
-                ),
-            )
 
     def _get_unfoldingword_icon(self) -> None:
         """Get Unfolding Word's icon for display in generated PDF."""
@@ -435,6 +435,15 @@ class DocumentGenerator:
 # https://github.com/faif/python-patterns/blob/master/patterns/behavioral/strategy.py
 
 
+@log_on_start(
+    logging.INFO,
+    "Assembling document by interleaving at the verse level using 'verse' strategy.",
+    logger=logger,
+)
+# FIXME Since this method delegates to a sub strategy, perhaps it
+# could become more general than _assemble_content_by_verse since all
+# strategies would presumably at least work over language and book at
+# the most general level (which is exactly what this function does).
 def _assemble_content_by_verse(docgen: DocumentGenerator) -> str:
     """
     Assemble and return the collection of resources' content according
@@ -494,9 +503,6 @@ def _assemble_content_by_verse(docgen: DocumentGenerator) -> str:
     # the choice of interleaving strategy if for instance all they
     # wanted was TN for Swahili and nothing else.
 
-    logger.info(
-        "Assembling document by interleaving at the verse level using 'verse' strategy."
-    )
     resources_sorted_by_language = sorted(
         docgen._found_resources, key=lambda resource: resource.lang_name,
     )

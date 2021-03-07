@@ -6,6 +6,7 @@ resource's asset files in the cloud.
 from __future__ import annotations  # https://www.python.org/dev/peps/pep-0563/
 
 import abc
+import logging  # For logdecorator
 import os
 import pathlib
 from datetime import datetime, timedelta
@@ -19,7 +20,13 @@ from document import config
 from document.domain import model
 from document.utils import file_utils, url_utils
 
-# from logdecorator import log_on_end, log_on_start
+# FIXME Notice the if TYPE_CHECKING expression below. Is it needed
+# anymore because the following line does not cause an error when
+# running Python and is needed to satisfy typeguard's runtime type
+# checking during pytest runs.
+from document.domain.resource import Resource
+
+from logdecorator import log_on_start, log_on_end
 
 # https://www.python.org/dev/peps/pep-0563/
 # https://www.stefaanlippens.net/circular-imports-type-hints-python.html
@@ -82,6 +89,11 @@ class ResourceJsonLookup:
     @icontract.require(lambda resource: resource.resource_type is not None)
     @icontract.ensure(lambda result: result.source == config.GIT)
     @icontract.ensure(lambda result: result.url is not None)
+    @log_on_start(
+        logging.INFO,
+        "About to look for English resource assets URL for git repo",
+        logger=logger,
+    )
     def _get_english_git_repo_location(
         self, resource: Resource
     ) -> model.ResourceLookupDto:
@@ -94,11 +106,21 @@ class ResourceJsonLookup:
             url=url, source=config.GIT, jsonpath=None, lang_name="English"
         )
 
-    @icontract.require(lambda resource: resource.lang_code is not None)
-    @icontract.require(lambda resource: resource.resource_type is not None)
-    @icontract.require(lambda resource: resource.resource_code is not None)
-    @icontract.ensure(lambda result: result.source == config.GIT)
-    @icontract.ensure(lambda result: result.jsonpath is not None)
+    @icontract.require(
+        lambda resource: resource.lang_code is not None
+        and resource.resource_type is not None
+        and resource.resource_code is not None
+    )
+    @icontract.ensure(
+        lambda result: result.source == config.GIT
+        and result.jsonpath is not None
+        # and result.lang_name
+    )
+    @log_on_start(
+        logging.INFO,
+        "About to look for resource assets URL for git repo.",
+        logger=logger,
+    )
     def _try_git_repo_location(self, resource: Resource) -> model.ResourceLookupDto:
         """
         If successful, return a string containing the URL of USFM
@@ -117,22 +139,22 @@ class ResourceJsonLookup:
             url=url, source=config.GIT, jsonpath=jsonpath_str
         )
 
-    @icontract.require(lambda self: self.json_data is not None)
-    @icontract.require(lambda json_path: json_path is not None)
+    @icontract.require(
+        lambda self, json_path: self.json_data is not None and json_path is not None
+    )
     @icontract.ensure(lambda result: result is not None)
-    # @log_on_start(logging.DEBUG, "json_path: {json_path}")
+    @log_on_start(logging.DEBUG, "json_path: {json_path}")
     def _lookup(self, json_path: str) -> List[str]:
         """Return jsonpath value or empty list if JSON node doesn't exist."""
         self._get_data()
         value: List[str] = jp.match(
             json_path, self.json_data,
         )
-        logger.debug("json_path: {}".format(json_path))
         logger.debug("value[:4] from translations.json: {}".format(value[:4]))
         value_set: Set = set(value)
         return list(value_set)
 
-    # FIXME Add contracts
+    @icontract.require(lambda url, repo_url_dict_key: url and repo_url_dict_key)
     def _parse_repo_url_from_json_url(
         self, url: Optional[str], repo_url_dict_key: str = config.REPO_URL_DICT_KEY,
     ) -> Optional[str]:
@@ -184,9 +206,11 @@ class SourceDataFetcher:
     @icontract.require(lambda self: self._json_file_url is not None)
     @icontract.require(lambda self: self._json_file is not None)
     @icontract.ensure(lambda self: self._json_data is not None)
+    @log_on_start(
+        logging.INFO, "About to check if we need new translations.json", logger=logger
+    )
     def _get_data(self) -> None:
         """Download json data and parse it into equivalent python objects."""
-        logger.info("About to check if we need new translations.json")
         if self._data_needs_update():
             logger.debug("Downloading {}...".format(self._json_file_url))
             try:
@@ -208,18 +232,20 @@ class SourceDataFetcher:
                 logger.info("Finished loading json file.")
 
     @icontract.require(lambda self: self._json_file is not None)
+    @log_on_start(
+        logging.INFO, "About to check if translations.json needs update.", logger=logger
+    )
     def _data_needs_update(self) -> bool:
         """
         Given the json file path, return true if it has not been
         updated within 24 hours.
         """
-        logger.info("About to check if translations.json needs update.")
         # Does the translations file exist?
         if not os.path.isfile(self._json_file):
             return True
         file_mod_time: datetime = datetime.fromtimestamp(
             os.stat(self._json_file).st_mtime
-        )  # This is a datetime.datetime object!
+        )
         now: datetime = datetime.today()
         max_delay: timedelta = timedelta(minutes=60 * 24)
         # Has it been more than 24 hours since last modification time?
@@ -268,6 +294,7 @@ class USFMResourceJsonLookup(ResourceLookup):
     @icontract.require(lambda resource: resource.resource_type is not None)
     @icontract.require(lambda resource: resource.resource_code is not None)
     @icontract.ensure(lambda result: result is not None)
+    @log_on_end(logging.DEBUG, "model.ResourceLookupDto: {result}", logger=logger)
     def lookup(self, resource: Resource) -> model.ResourceLookupDto:
         """
         Given a resource, comprised of language code, e.g., 'en', a
@@ -283,27 +310,34 @@ class USFMResourceJsonLookup(ResourceLookup):
         # English resource requests separately and outside of
         # translations.json by retrieving them from their git repos.
         if resource.lang_code == "en":
-            logger.info("About to look for English resource assets URL for git repo")
             return self._get_english_git_repo_location(resource)
 
         # Prefer getting USFM files individually rather than
         # introducing the latency of cloning a git repo (next).
-        logger.info("About to look for resource assets URL for individual USFM file.")
         resource_lookup_dto = self._try_individual_usfm_location(resource)
 
         # Individual USFM file was not available, now try getting it
         # from a git repo.
         if resource_lookup_dto.url is None:
-            logger.info("About to look for resource assets URL for git repo.")
             resource_lookup_dto = self._try_git_repo_location(resource)
 
         return resource_lookup_dto
 
-    @icontract.require(lambda resource: resource.lang_code is not None)
-    @icontract.require(lambda resource: resource.resource_type is not None)
-    @icontract.require(lambda resource: resource.resource_code is not None)
-    @icontract.ensure(lambda result: result.source == config.USFM)
-    @icontract.ensure(lambda result: result.jsonpath is not None)
+    @icontract.require(
+        lambda resource: resource.lang_code is not None
+        and resource.resource_type is not None
+        and resource.resource_code is not None
+    )
+    @icontract.ensure(
+        lambda result: result.source == config.USFM
+        and result.jsonpath is not None
+        # and result.lang_name
+    )
+    @log_on_start(
+        logging.INFO,
+        "About to look for resource assets URL for individual USFM file.",
+        logger=logger,
+    )
     def _try_individual_usfm_location(
         self, resource: Resource
     ) -> model.ResourceLookupDto:
