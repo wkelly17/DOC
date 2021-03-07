@@ -1373,6 +1373,10 @@ class ResourceProvisioner:
         self._prepare_resource_directory()
         self._acquire_resource()
 
+    def __str__(self) -> str:
+        """Return a printable string identifying this instance."""
+        return "ResourceProvisioner(resource: {})".format(self._resource)
+
     @icontract.ensure(lambda self: self._resource.resource_dir)
     def _prepare_resource_directory(self) -> None:
         """
