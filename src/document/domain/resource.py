@@ -200,9 +200,6 @@ class USFMResource(Resource):
         # FIXME Next (commented) line slated for removal
         # self._usfm_chunks: Dict = {}
         self._chapters_content: Dict = {}
-        # self._usfm_verses_generator: Generator
-        # self._verses_html: List[str]
-        # self._verses_html_generator: Generator
 
     @icontract.ensure(
         lambda self: self._resource_url is not None and self._lang_name is not None
