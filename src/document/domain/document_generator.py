@@ -512,7 +512,7 @@ def _assemble_content_by_verse(docgen: DocumentGenerator) -> str:
     for language, group_by_lang in itertools.groupby(
         resources_sorted_by_language, lambda resource: resource.lang_name,
     ):
-        html.append("<h1>Language: {}</h1>".format(language))
+        html.append(config.get_html_format_string("language").format(language))
 
         # For groupby's sake, we need to first sort
         # group_by_lang before doing a groupby operation on it so that
@@ -525,7 +525,11 @@ def _assemble_content_by_verse(docgen: DocumentGenerator) -> str:
         for book, group_by_book in itertools.groupby(
             resources_sorted_by_book, lambda resource: resource.resource_code
         ):
-            html.append("<h2>Book: {}</h2>".format(bible_books.BOOK_NAMES[book]))
+            html.append(
+                config.get_html_format_string("book").format(
+                    bible_books.BOOK_NAMES[book]
+                )
+            )
 
             # Save grouper generator since it will get exhausted
             # when used and exhausted generators cannot be reused.
@@ -618,11 +622,12 @@ def _assemble_usfm_tn_content_by_verse(
         # Now let's interleave USFM verse with its
         # translation note if available.
         for verse_num, verse in sorted(chapter.chapter_verses.items()):
-            # html.append("<h3>Verse</h3>")
-            html.append("<h3>Verse {}:{}</h3>".format(chapter_num, verse_num))
+            html.append(
+                config.get_html_format_string("verse").format(chapter_num, verse_num)
+            )
             html.append(verse)
             if tn_verses and verse_num in tn_verses:
-                html.append("<h3>Translation note</h3>")
+                html.append(config.get_html_format_string("translation_notes"))
                 # Change H1 HTML elements to H4 HTML
                 # elements in each translation note.
                 tn_verse = tn_verses[verse_num]

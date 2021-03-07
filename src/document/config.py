@@ -366,3 +366,17 @@ def get_pdf_generation_method() -> str:
     generate the PDF.
     """
     return model.PdfGenerationMethodEnum.WEBKIT
+
+
+def get_html_format_string(lookup_key: str) -> str:
+    """
+    Return the HTML string associated with its lookup_key. This allows
+    changes to the HTML output without having to spelunk into code.
+    """
+    html_format_strings: dict = {
+        "language": "<h1>Language: {}</h1>",
+        "book": "<h2>Book: {}</h2>",
+        "verse": "<h3>Verse {}:{}</h3>",
+        "translation_notes": "<h3>Translation note</h3>",
+    }
+    return html_format_strings[lookup_key]
