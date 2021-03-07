@@ -197,6 +197,7 @@ class USFMResource(Resource):
 
     def __init__(self, *args, **kwargs) -> None:  # type: ignore
         super().__init__(*args, **kwargs)
+        # FIXME Next (commented) line slated for removal
         # self._usfm_chunks: Dict = {}
         self._chapters_content: Dict = {}
         # self._usfm_verses_generator: Generator
@@ -650,17 +651,7 @@ class TResource(Resource):
     @icontract.require(lambda self: self._content)
     def _convert_md2html(self) -> None:
         """Convert a resource's Markdown to HTML."""
-        # assert self._content is not None, "self._content cannot be None here."
-        # FIXME Perhaps we can manipulate resource links, rc://, by
-        # writing our own parser extension for the Markdown module via
-        # its extension mechanism. It'd be better software engineering
-        # than how it is done in the legacy code.
         self._content = markdown.markdown(self._content)
-        # FIXME At this point we can do
-        # >>> parser = bs4.BeautifulSoup(self._content, "html.parser")
-        # then we can pass the parser itself to the jinja template
-        # where it can be used to transform and arrange HTML as
-        # desired.
 
     @log_on_start(logging.INFO, "Converting MD to HTML...", logger=logger)
     @log_on_end(logging.DEBUG, "self._bad_links: {self._bad_links}", logger=logger)
@@ -701,9 +692,8 @@ class TNResource(TResource):
         # FIXME All the work is done in _initialize_verses_html at the moment so
         # this is turned off for now until refactoring cleans this up by moving
         # a few things around.
-        if False:
-            self._get_tn_markdown()
-            self._transform_content()
+        # self._get_tn_markdown()
+        # self._transform_content()
 
     @property
     def book_payload(self) -> model.TNBookPayload:
@@ -1416,6 +1406,8 @@ class ResourceProvisioner:
         "self._resource.resource_url: {self._resource.resource_url} for {self}",
         logger=logger,
     )
+    # FIXME This method is a little too long, see if you can break it
+    # up.
     def _acquire_resource(self) -> None:
         """
         Download or git clone resource and unzip resulting file if it

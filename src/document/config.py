@@ -361,7 +361,7 @@ def get_template(template_lookup_key: str) -> str:
 
 def get_pdf_generation_method() -> str:
     """
-    Return the method of PDF generation. This is used by
+    Return the current method of PDF generation. This is used by
     document_generator module to decide which method to call to
     generate the PDF.
     """
