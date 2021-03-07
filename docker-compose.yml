@@ -20,8 +20,9 @@ services:
       - TEX_TEMPLATE_FILEPATH=tex/template.tex
       - FASTAPI_HOST=0.0.0.0
       - FASTAPI_PORT=5005
-      - PYTHONDONTWRITEBYTECODE=1
-      - PYTHONUNBUFFERED=1
+      # - PYTHONDONTWRITEBYTECODE=1 @ Incompatible with optimization
+      # - PYTHONUNBUFFERED=1
+      # - PYTHONOPTIMIZE=1 # In particular, turn off iconract checks for production
       - IN_CONTAINER=1
     volumes:
       - ./src:/src
