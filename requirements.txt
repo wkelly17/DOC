@@ -6,8 +6,6 @@
 #
 
 -i https://pypi.org/simple
--e ./src
--e git+git://github.com/linearcombination/USFM-Tools.git@8fe1095160243c82ac253cd19dae1a7669b85302#egg=usfm-tools
 asttokens==2.0.4
 beautifulsoup4==4.9.3
 bs4==0.0.1
@@ -17,12 +15,14 @@ click==7.1.2; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 
 decorator==4.4.2
 fastapi==0.63.0
 future==0.18.2; python_version >= '2.6' and python_version not in '3.0, 3.1, 3.2, 3.3'
+git+git://github.com/linearcombination/USFM-Tools.git@8fe1095160243c82ac253cd19dae1a7669b85302#egg=usfm-tools
 h11==0.12.0; python_version >= '3.6'
 icontract==2.5.0
 idna==2.10; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
 jinja2==2.11.3
 jsonpath-rw-ext==1.2.2
 jsonpath-rw==1.4.0
+logdecorator==2.2
 markdown==3.3.4
 markupsafe==1.1.1; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
 parse==1.19.0
