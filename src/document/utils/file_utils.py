@@ -3,14 +3,19 @@ This module provides various file utilities.
 """
 
 import codecs
+import icontract
 import json
+import logging  # For logdecorator
 import os
 import pathlib
-import zipfile
-from typing import Any, Dict, List, Optional
-
-import icontract
 import yaml
+import zipfile
+from datetime import datetime, timedelta
+from document import config
+from logdecorator import log_on_start
+from typing import Any, Dict, List, Optional, Union
+
+logger = config.get_logger(__name__)
 
 
 @icontract.require(lambda source_file, destination_dir: source_file and destination_dir)
@@ -119,3 +124,20 @@ def write_file(
 #             pass
 #     else:
 #         os.remove(file_path)
+
+
+@icontract.require(lambda file_path: file_path is not None)
+@log_on_start(logging.INFO, "About to check if file_path needs update.", logger=logger)
+def file_needs_update(file_path: Union[str, pathlib.Path]) -> bool:
+    """
+    Given the file path, return true if it either does not exist or
+    does exist and has not been updated within 24 hours.
+    """
+    # Does the translations file exist?
+    if not os.path.isfile(file_path):
+        return True
+    file_mod_time: datetime = datetime.fromtimestamp(os.stat(file_path).st_mtime)
+    now: datetime = datetime.today()
+    max_delay: timedelta = timedelta(minutes=60 * 24)
+    # Has it been more than 24 hours since last modification time?
+    return now - file_mod_time > max_delay

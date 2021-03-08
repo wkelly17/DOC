@@ -8,7 +8,6 @@ import abc
 import logging  # For logdecorator
 import os
 import pathlib
-from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any, List, Optional, Set, Tuple
 from urllib import parse as urllib_parse
 
@@ -216,45 +215,43 @@ class SourceDataFetcher:
     )
     def _get_data(self) -> None:
         """Download json data and parse it into equivalent python objects."""
-        if self._data_needs_update():
+        if file_utils.file_needs_update(self._json_file):
             logger.debug("Downloading {}...".format(self._json_file_url))
-            try:
-                url_utils.download_file(
-                    self._json_file_url, str(self._json_file.resolve())
-                )
-            except Exception as exc:
-                logger.debug("Exception: {}".format(exc))
-            finally:
-                logger.info("Finished downloading json file.")
+            # try:
+            url_utils.download_file(self._json_file_url, str(self._json_file.resolve()))
+            # except Exception as exc:
+            #     logger.debug("Exception: {}".format(exc))
+            # finally:
+            #     logger.info("Finished downloading json file.")
 
         if not self._json_data:
             logger.debug("Loading json file {}...".format(self._json_file))
-            try:
-                self._json_data = file_utils.load_json_object(self._json_file)
-            except Exception as exc:
-                logger.debug("Exception: {}".format(exc))
-            finally:
-                logger.info("Finished loading json file.")
+            # try:
+            self._json_data = file_utils.load_json_object(self._json_file)
+            # except Exception as exc:
+            #     logger.debug("Exception: {}".format(exc))
+            # finally:
+            #     logger.info("Finished loading json file.")
 
-    @icontract.require(lambda self: self._json_file is not None)
-    @log_on_start(
-        logging.INFO, "About to check if translations.json needs update.", logger=logger
-    )
-    def _data_needs_update(self) -> bool:
-        """
-        Given the json file path, return true if it has not been
-        updated within 24 hours.
-        """
-        # Does the translations file exist?
-        if not os.path.isfile(self._json_file):
-            return True
-        file_mod_time: datetime = datetime.fromtimestamp(
-            os.stat(self._json_file).st_mtime
-        )
-        now: datetime = datetime.today()
-        max_delay: timedelta = timedelta(minutes=60 * 24)
-        # Has it been more than 24 hours since last modification time?
-        return now - file_mod_time > max_delay
+    # @icontract.require(lambda self: self._json_file is not None)
+    # @log_on_start(
+    #     logging.INFO, "About to check if translations.json needs update.", logger=logger
+    # )
+    # def _data_needs_update(self) -> bool:
+    #     """
+    #     Given the json file path, return true if it has not been
+    #     updated within 24 hours.
+    #     """
+    #     # Does the translations file exist?
+    #     if not os.path.isfile(self._json_file):
+    #         return True
+    #     file_mod_time: datetime = datetime.fromtimestamp(
+    #         os.stat(self._json_file).st_mtime
+    #     )
+    #     now: datetime = datetime.today()
+    #     max_delay: timedelta = timedelta(minutes=60 * 24)
+    #     # Has it been more than 24 hours since last modification time?
+    #     return now - file_mod_time > max_delay
 
 
 class ResourceLookup(abc.ABC):
