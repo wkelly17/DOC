@@ -1445,44 +1445,54 @@ class ResourceProvisioner:
         )
 
         if self._is_git():  # Is a git repo, so clone it.
-            command = "git clone --depth=1 '{}' '{}'".format(
-                # FIXME resource_filepath used to be filepath
-                self._resource.resource_url,
-                resource_filepath,
-            )
-            logger.debug("os.getcwd(): {}".format(os.getcwd()))
-            logger.debug("git command: {}".format(command))
-            try:
-                subprocess.call(command, shell=True)
-            except subprocess.SubprocessError:
-                logger.debug("os.getcwd(): {}".format(os.getcwd()))
-                logger.debug("git command: {}".format(command))
-                logger.debug("git clone failed!")
-            else:
-                logger.debug("git clone succeeded.")
-                # Git repos get stored on directory deeper
-                self._resource.resource_dir = resource_filepath
+            self._clone_git_repo(resource_filepath)
         else:  # Is not a git repo, so just download it.
-            logger.debug(
-                "Downloading {} into {}".format(
-                    self._resource.resource_url, resource_filepath
-                )
-            )
-            try:
-                url_utils.download_file(self._resource.resource_url, resource_filepath)
-            finally:
-                logger.debug("Downloading finished.")
+            self._download_asset(resource_filepath)
 
         if self._is_zip():  # Downloaded file was a zip, so unzip it.
-            logger.debug(
-                "Unzipping {} into {}".format(
-                    resource_filepath, self._resource.resource_dir
-                )
-            )
-            try:
-                file_utils.unzip(resource_filepath, self._resource.resource_dir)
-            finally:
-                logger.debug("Unzipping finished.")
+            self._unzip_asset(resource_filepath)
+
+    def _clone_git_repo(self, resource_filepath: str) -> None:
+        """
+        Clone the git reop.
+        """
+        command = "git clone --depth=1 '{}' '{}'".format(
+            # FIXME resource_filepath used to be filepath
+            self._resource.resource_url,
+            resource_filepath,
+        )
+        logger.debug("os.getcwd(): {}".format(os.getcwd()))
+        logger.debug("git command: {}".format(command))
+        try:
+            subprocess.call(command, shell=True)
+        except subprocess.SubprocessError:
+            logger.debug("os.getcwd(): {}".format(os.getcwd()))
+            logger.debug("git command: {}".format(command))
+            logger.debug("git clone failed!")
+        else:
+            logger.debug("git clone succeeded.")
+            # Git repos get stored on directory deeper
+            self._resource.resource_dir = resource_filepath
+
+    @log_on_start(
+        logging.DEBUG,
+        "Downloading {self._resource.resource_url} into {resource_filepath}",
+        logger=logger,
+    )
+    @log_on_end(logging.INFO, "Downloading finished.", logger=logger)
+    def _download_asset(self, resource_filepath: str) -> None:
+        """Download the asset."""
+        url_utils.download_file(self._resource.resource_url, resource_filepath)
+
+    @log_on_start(
+        logging.DEBUG,
+        "Unzipping {resource_filepath} into {self._resource.resource_dir}",
+        logger=logger,
+    )
+    @log_on_end(logging.INFO, "Unzipping finished.", logger=logger)
+    def _unzip_asset(self, resource_filepath: str) -> None:
+        """Unzip the asset."""
+        file_utils.unzip(resource_filepath, self._resource.resource_dir)
 
     @icontract.require(lambda self: self._resource.resource_source)
     def _is_git(self) -> bool:
