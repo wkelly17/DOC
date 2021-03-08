@@ -6,11 +6,26 @@ from markdown.preprocessors import Preprocessor
 from typing import Any, Dict, List
 
 
+# An experiment to see if we can make processing of links in the
+# interleaved document assets' Markdown content pluggable into the
+# Markdown library. Answer: yes, but some rough spots to work out
+# still! This has the potential to clean up and better engineer the
+# way links are converted from wikilink to Markdown style, from rc://
+# to https://, etc.. Plugins or extensions as they are called in
+# Python-Markdown library can be assigned priorities which control
+# their execution/loading order and you can have preprocessors or
+# block processors depending on what superclass you inherit from so
+# you can choose where in the conversion from Markdown to HTNL you
+# want your extension to operate.
+# See https://python-markdown.github.io/extensions/api/ for more
+# details.
 class WikiLinkPreprocessor(Preprocessor):
     """Convert wiki links to Markdown links."""
 
     def __init__(self, config: Dict, md: markdown.Markdown) -> None:
         """Initialize."""
+        # Example use of config. See __init__ for WikiLinkExtension
+        # below for initialization.
         # self.encoding = config.get("encoding")
         super(WikiLinkPreprocessor, self).__init__()
 
@@ -35,6 +50,8 @@ class WikiLinkExtension(Extension):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize."""
         self.config = {
+            # Example config entry from the snippets extension that
+            # ships with Python-Markdown library.
             # "encoding": ["utf-8", 'Encoding of snippets - Default: "utf-8"'],
         }
         super(WikiLinkExtension, self).__init__(*args, **kwargs)

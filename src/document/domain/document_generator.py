@@ -76,8 +76,8 @@ class DocumentGenerator:
         ]
         self._working_dir = working_dir
         self._output_dir = output_dir
-        # The Markdown and later HTML for the document which is
-        # composed of the Markdown and later HTML for each resource.
+        # In the end, prior to PDF generation, this is where the
+        # generated HTML is stored.
         self._content = ""
         # Store resource requests that were requested, but do not
         # exist.
@@ -94,7 +94,9 @@ class DocumentGenerator:
         # resource_code. This can serve as a cache lookup key also so
         # that document requests having the same
         # self._document_request_key can skip processing and simply
-        # return the end result document if it still exists.
+        # return the end result document if it still exists and has a
+        # modified time of within some arbitrary time window, say, 24
+        # hours.
         self._document_request_key = self._initialize_document_request_key(
             document_request
         )
@@ -346,6 +348,11 @@ class DocumentGenerator:
             )
         return resources
 
+    # FIXME We probably want to make an md5 hash of the document request key
+    # prior to returning it as otherwise they can get very long if many
+    # languages and books are requested. It would be nice to be able to
+    # reverse engineer the hash though since the hash input is designed to
+    # be a form of documentation of the document request.
     def _initialize_document_request_key(
         self, document_request: model.DocumentRequest
     ) -> str:
@@ -419,10 +426,6 @@ class DocumentGenerator:
     "Assembling document by interleaving at the verse level using 'verse' strategy.",
     logger=logger,
 )
-# FIXME Since this method delegates to a sub strategy, perhaps it
-# could become more general than _assemble_content_by_verse since all
-# strategies would presumably at least work over language and book at
-# the most general level (which is exactly what this function does).
 def _assemble_content_by_verse(docgen: DocumentGenerator) -> str:
     """
     Assemble and return the collection of resources' content according

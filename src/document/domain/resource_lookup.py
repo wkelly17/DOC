@@ -21,8 +21,8 @@ from document.utils import file_utils, url_utils
 
 # FIXME Notice the if TYPE_CHECKING expression below. Is it needed
 # anymore because the following line does not cause an error when
-# running Python and is needed to satisfy typeguard's runtime type
-# checking during pytest runs.
+# running Python 3.8. This following line is needed to satisfy
+# typeguard's runtime type # checking during pytest runs.
 from document.domain.resource import Resource
 
 from logdecorator import log_on_start, log_on_end
@@ -282,11 +282,12 @@ class USFMResourceJsonLookup(ResourceLookup):
     def __init__(self) -> None:
         self._resource_json_lookup = ResourceJsonLookup()
 
+    # NOTE Using __getattr__ instead of this, leaving this for documentation.
     # @property
     # def resource_json_lookup(self) -> ResourceJsonLookup:
     #     return self._resource_json_lookup
 
-    # Make composition less arduous.
+    # Make OO composition less arduous.
     def __getattr__(self, attribute: str) -> Any:
         """
         Redirect method lookups that are not on self to
@@ -318,7 +319,7 @@ class USFMResourceJsonLookup(ResourceLookup):
             return self._get_english_git_repo_location(resource)
 
         # Prefer getting USFM files individually rather than
-        # introducing the latency of cloning a git repo (next).
+        # introducing the latency of cloning a git repo.
         resource_lookup_dto = self._try_individual_usfm_location(resource)
 
         # Individual USFM file was not available, now try getting it

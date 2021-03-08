@@ -1365,7 +1365,8 @@ class ResourceProvisioner:
     """
     This class handles creating the necessary directory for a resource
     adn then acquiring the resource instance's file assets into the
-    directory.
+    directory using the cloud location for the asset provided by the
+    appropriate ResourceLookup subclass.
     """
 
     def __init__(self, resource: Resource):
@@ -1413,32 +1414,28 @@ class ResourceProvisioner:
         "self._resource.resource_url: {self._resource.resource_url} for {self}",
         logger=logger,
     )
-    # FIXME This method is a little too long, see if you can break it
-    # up.
     def _acquire_resource(self) -> None:
         """
         Download or git clone resource and unzip resulting file if it
         is a zip file.
         """
 
-        # FIXME To ensure consistent directory naming for later
-        # discovery, let's not use the url.rpartition(os.path.sep)[2].
-        # Instead let's use a directory built from the parameters of
-        # the (updated) resource:
-        # os.path.join(resource["resource_dir"], resource["resource_type"])
-        # logger.debug(
-        #     "os.path.join(self._resource_dir, self._resource_type): {}".format(
-        #         os.path.join(self._resource_dir, self._resource_type)
-        #     )
-        # )
-        # FIXME Not sure if this is the best approach for consistency
-        # across different resources' assets in different languages.
         self._resource.resource_url = cast(
             str, self._resource.resource_url
         )  # We know, due to how we got here, that
         # self._resource.resource_url attribute is not None. mypy
         # isn't convinced otherwise.
 
+        # FIXME To ensure consistent directory naming for later discovery, let's
+        # conxider not using the url.rpartition(os.path.sep)[2]. Instead let's
+        # use a directory built from the parameters of the (updated) resource:
+        # os.path.join(resource.resource_dir, resource.resource_type)
+        # FIXME We'll have to see if this is the best approach for consistency
+        # across different resources' assets in different languages. So far it
+        # adheres to the most consistent pattern I've seen in translations.json,
+        # but my analysis of translations.json has not been exhaustive. That
+        # being said, it has worked fine for several languages and books so far
+        # though.
         resource_filepath = os.path.join(
             self._resource.resource_dir,
             self._resource.resource_url.rpartition(os.path.sep)[2],
