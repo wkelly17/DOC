@@ -49,6 +49,7 @@ class DocumentGenerator:
     """
 
     @log_on_start(logging.DEBUG, "document_request: {document_request}", logger=logger)
+    @log_on_start(logging.DEBUG, "working_dir: {working_dir}", logger=logger)
     @log_on_end(
         logging.DEBUG,
         "self._document_request_key: {self._document_request_key}",
@@ -86,10 +87,6 @@ class DocumentGenerator:
         if not self._output_dir:
             self._output_dir = self._working_dir
 
-        # logger.debug("Working dir is {}".format(self.working_dir))
-
-        # TODO To be production worthy, we need to make this resilient
-        # to errors when creating Resource instances.
         self._resources: List[Resource] = self._initialize_resources(document_request)
 
         # Uniquely identifies a document request. A resource request
