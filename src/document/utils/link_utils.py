@@ -506,7 +506,7 @@ def get_resource_data_from_rc_links(
 
 
 @icontract.require(
-    lambda usfm_resource, book_id, chapter, first_verse: usfm_resource is not None
+    lambda usfm_chunks, book_id, chapter, first_verse: usfm_chunks
     and book_id
     and chapter
     and first_verse

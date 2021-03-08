@@ -3,7 +3,6 @@ This module provides an API for looking up the location of a
 resource's asset files in the cloud.
 """
 
-from __future__ import annotations  # https://www.python.org/dev/peps/pep-0563/
 
 import abc
 import logging  # For logdecorator
@@ -43,8 +42,6 @@ from logdecorator import log_on_start, log_on_end
 # ___future__ annotations to make this work as of now, Dec 9, 2020.
 # IF you care, here is how Python got here:
 # https://github.com/python/typing/issues/105
-if TYPE_CHECKING:
-    from document.domain.resource import Resource
 
 
 logger = config.get_logger(__name__)
@@ -135,8 +132,16 @@ class ResourceJsonLookup:
             # Get the portion of the query string that gives
             # the repo URL
             url = self._parse_repo_url_from_json_url(urls[0])
+        lang_name_jsonpath_str = config.get_resource_lang_name_jsonpath().format(
+            resource.lang_code
+        )
+        lang_name_lst: List[str] = self._lookup(lang_name_jsonpath_str)
+        if lang_name_lst:
+            lang_name = lang_name_lst[0]
+        else:
+            lang_name = ""
         return model.ResourceLookupDto(
-            url=url, source=config.GIT, jsonpath=jsonpath_str
+            url=url, source=config.GIT, jsonpath=jsonpath_str, lang_name=lang_name,
         )
 
     @icontract.require(
@@ -196,10 +201,10 @@ class SourceDataFetcher:
 
         logger.info("JSON file is {}".format(self._json_file))
 
-        self._json_data: dict = {}
+        self._json_data: List = []
 
     @property
-    def json_data(self) -> dict:
+    def json_data(self) -> List:
         """Provide public method for other modules to access."""
         return self._json_data
 
@@ -285,7 +290,7 @@ class USFMResourceJsonLookup(ResourceLookup):
     def __getattr__(self, attribute: str) -> Any:
         """
         Redirect method lookups that are not on self to
-        self.resource_json_lookup.
+        self._resource_json_lookup.
         """
         return getattr(self._resource_json_lookup, attribute)
 

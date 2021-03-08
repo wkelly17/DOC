@@ -36,6 +36,7 @@ pyls-mypy = "*"
 # document = {editable = true, path = "./src"}
 # usfm-tools = {editable = true, path = "./../USFM-Tools"}
 usfm-tools = {ref="develop", git = "git://github.com/linearcombination/USFM-Tools.git"}
+typeguard = "*"
 
 [packages]
 PyYAML = "*"
@@ -53,7 +54,10 @@ pathlib = "*"
 pdfkit = "*"
 pydantic = "*"
 pyparsing = "2.4.5"
+pytest = "*"
+pytest-icdiff = "*"
 requests = "*"
+typeguard = "*"
 uvicorn = "*"
 # document = {editable = true, path = "./src"}
 # usfm-tools = {editable = true, path = "./../USFM-Tools"}

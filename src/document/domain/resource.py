@@ -173,6 +173,12 @@ class Resource:
         """Provide public interface for other modules."""
         return self._resource_url
 
+    # This method exists to make a mypy cast possible.
+    @resource_url.setter
+    def resource_url(self, value: str) -> None:
+        """Provide public interface for other modules."""
+        self._resource_url = value
+
     @property
     def resource_dir(self) -> str:
         """Provide public interface for other modules."""
@@ -1427,6 +1433,12 @@ class ResourceProvisioner:
         # )
         # FIXME Not sure if this is the best approach for consistency
         # across different resources' assets in different languages.
+        self._resource.resource_url = cast(
+            str, self._resource.resource_url
+        )  # We know, due to how we got here, that
+        # self._resource.resource_url attribute is not None. mypy
+        # isn't convinced otherwise.
+
         resource_filepath = os.path.join(
             self._resource.resource_dir,
             self._resource.resource_url.rpartition(os.path.sep)[2],

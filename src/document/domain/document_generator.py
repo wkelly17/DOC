@@ -11,7 +11,6 @@ Entrypoint for backend. Here incoming document requests are processed
 and eventually a final document produced.
 """
 
-from __future__ import annotations  # https://www.python.org/dev/peps/pep-0563/
 
 import datetime
 import itertools
@@ -21,7 +20,7 @@ import pdfkit
 import re
 import subprocess
 from logdecorator import log_on_start, log_on_end
-from typing import Callable, cast, List, Optional, TYPE_CHECKING
+from typing import Callable, cast, List, Optional
 
 import icontract
 
@@ -29,31 +28,14 @@ from document import config
 from document.domain import model, bible_books
 from document.domain.resource import (
     resource_factory,
+    Resource,
     USFMResource,
     TNResource,
     TWResource,
     TQResource,
     TAResource,
 )
-from document.utils import file_utils, markdown_utils
-
-# https://www.python.org/dev/peps/pep-0563/
-# https://www.stefaanlippens.net/circular-imports-type-hints-python.html
-# Python 3.7 now allows type checks to not be evaluated at function or
-# class definition time which in turn solves the issue of circular
-# imports which using type hinting/checking can create. Circular imports
-# are not always a by-product of bad design but sometimes a by-product,
-# in those cases where bad design is not the issue, of Python's
-# primitive module system (which is quite lacking). So, this PEP
-# allows us to practice better engineering practices: inversion of
-# control for factored and maintainable software with type hints
-# without resorting to putting everything in one module or using
-# function-embedded imports, yuk. Note that you must use the import
-# ___future__ annotations to make this work as of now, Dec 9, 2020.
-# IF you care, here is how Python got here:
-# https://github.com/python/typing/issues/105
-if TYPE_CHECKING:
-    from document.domain.resource import Resource
+from document.utils import file_utils
 
 
 logger = config.get_logger(__name__)
