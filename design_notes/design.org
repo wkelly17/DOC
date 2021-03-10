@@ -25,7 +25,12 @@ git clone https://github.com/linearcombination/tools.git
 
 Then cd into the tools directory you just creating by cloning.
 *** Run demo inside the Docker container:
-**** Build the container
+**** One command to take down old running containers, build the new, and run all tests
+#+begin_src shell
+make all
+#+end_src
+**** Or, you can do one thing at a time using multiple Makefile targets
+***** Build the container
 
 First take down any running containers from previous runs:
 
@@ -36,7 +41,7 @@ make down
 #+begin_src shell
 make build
 #+end_src
-**** Or, build the container the 2+Nth time from scratch
+***** Or, build the container the 2+Nth time from scratch
 
 First take down any running containers from previous runs:
 
@@ -50,13 +55,13 @@ then
 make build-no-cache
 #+end_src
 
-**** Run the tests
+***** Run the tests
 #+begin_src shell
 make test
 #+end_src
 
-*** Run demo outside Docker container
-**** Install the required python packages. I use pipenv, but you can do it however you prefer.
+**** Run demo outside Docker container
+***** Install the required python packages. I use pipenv, but you can do it however you prefer.
 
 First tell pipenv which python to use:
 #+begin_src shell
@@ -85,7 +90,7 @@ then
 pip install -e src/
 #+end_src
 
-**** Run tests
+***** Run tests
 #+begin_src shell
 pytest
 #+end_src
