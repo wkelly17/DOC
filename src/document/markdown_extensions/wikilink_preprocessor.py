@@ -1,24 +1,27 @@
+# import logging  # For logdecorator
 import markdown
 import re
 
+# from logdecorator import log_on_end
 from markdown import Extension
 from markdown.preprocessors import Preprocessor
 from typing import Any, Dict, List
 
+from document import config
+
+# logger = config.get_logger(__name__)
 
 # An experiment to see if we can make processing of links in the
 # interleaved document assets' Markdown content pluggable into the
-# Markdown library. Answer: yes, but some rough spots to work out
-# still! This has the potential to clean up and better engineer the
-# way links are converted from wikilink to Markdown style, from rc://
-# to https://, etc.. Plugins or extensions as they are called in
-# Python-Markdown library can be assigned priorities which control
-# their execution/loading order and you can have preprocessors or
-# block processors depending on what superclass you inherit from so
-# you can choose where in the conversion from Markdown to HTNL you
-# want your extension to operate.
-# See https://python-markdown.github.io/extensions/api/ for more
-# details.
+# Markdown library. Answer: yes. This has the potential to clean up and
+# better engineer the way links are converted from wikilink to Markdown
+# style, from rc:// to https://, etc.. Plugins or extensions as they are
+# called in Python-Markdown library can be assigned priorities which
+# control their execution/loading order and you can have preprocessors
+# or block processors (and other types too) depending on what superclass
+# you inherit from so you can choose where in the conversion from
+# Markdown to HTNL you want your extension to operate. See
+# https://python-markdown.github.io/extensions/api/ for more details.
 class WikiLinkPreprocessor(Preprocessor):
     """Convert wiki links to Markdown links."""
 
@@ -29,15 +32,16 @@ class WikiLinkPreprocessor(Preprocessor):
         # self.encoding = config.get("encoding")
         super(WikiLinkPreprocessor, self).__init__()
 
+    # @log_on_end(logging.DEBUG, "lines after preprocessor: {result}", logger=logger)
     def parse_wikilinks(self, lines: List[str]) -> List[str]:
         """Parse wikilinks and convert to Markdown links."""
-        pattern = r"\(See: \[\[(.*)\]\]\)"
-        new_lines = []
-        for line in lines:
-            # Convert [[]] style link to markdown style link []().
-            line = re.sub(pattern, r"[](\1)", line)
-            new_lines.append(line)
-        return new_lines
+        source = "\n".join(lines)
+        pattern = r"\[\[(.*?)\]\]"
+        # if m := re.search(pattern, source):
+        #     # Inspect source and m here in debug repl
+        #     breakpoint()
+        source = re.sub(pattern, r"[](\1)", source)
+        return source.split("\n")
 
     def run(self, lines: List[str]) -> List[str]:
         """Process wikilinks."""

@@ -3,6 +3,8 @@ import re
 import icontract
 
 
+# NOTE This function's logic could opssibly be moved into a Markdown
+# extension's run method.
 def remove_md_section(md: str, section_name: str) -> str:
     """
     Given markdown and a section name, removes the section header and the
