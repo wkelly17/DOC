@@ -1,6 +1,6 @@
 """
 This module provides the assembly strategies that are used to assemble
-documents prior to their conversion to PDF form.
+HTML documents prior to their conversion to PDF form.
 
 Assembly strategies utilize the Strategy pattern:
 https://github.com/faif/python-patterns/blob/master/patterns/behavioral/strategy.py
@@ -232,6 +232,54 @@ def _assemble_usfm_tn_content_by_verse(
     return "\n".join(html)
 
 
+def _assemble_usfm_content_by_verse(
+    usfm_resource: Optional[USFMResource],
+    tn_resource: Optional[TNResource],
+    tw_resource: Optional[TWResource],
+    tq_resource: Optional[TQResource],
+    ta_resource: Optional[TAResource],
+    assembly_strategy_kind: model.AssemblyStrategyEnum,
+) -> str:
+    """
+    Construct the HTML for a 'by verse' strategy wherein only USFM exists.
+    """
+    usfm_resource = cast(
+        USFMResource, usfm_resource
+    )  # Make mypy happy. We know, due to how we got here, that usfm_resource object is not None.
+    html = []
+
+    # PEP526 disallows declaration of types in for loops, but allows this.
+    chapter_num: int
+    chapter: model.USFMChapter
+    # Dict keys need to be sorted as their order is not guaranteed.
+    for chapter_num, chapter in sorted(usfm_resource.chapters_content.items()):
+        # Add in the USFM chapter heading.
+        chapter_heading = ""
+        chapter_heading = chapter.chapter_content[0]
+        html.append(chapter_heading)
+
+        # NOTE This commented out section is for use when
+        # we implement a by chapter interleaving strategy.
+        # Skip some useless elements and get the USFM
+        # verse HTML content.
+        # Chapter all at once including formatting HTML
+        # elements. This would be useful for a 'by
+        # chapter' interleaving strategy.
+        # usfm_verses = chapter.chapter_content[3:]
+
+        # PEP526 disallows declaration of types in for
+        # loops, but allows this.
+        verse_num: int
+        verse: str
+        # Now append the USFM verses
+        for verse_num, verse in sorted(chapter.chapter_verses.items()):
+            html.append(
+                config.get_html_format_string("verse").format(chapter_num, verse_num)
+            )
+            html.append(verse)
+    return "\n".join(html)
+
+
 def _assemble_tn_content_by_verse(
     usfm_resource: Optional[USFMResource],
     tn_resource: Optional[TNResource],
@@ -430,15 +478,14 @@ def _assembly_sub_strategy_factory(
             False,
             model.AssemblyStrategyEnum.VERSE,
         ): _assemble_usfm_tn_content_by_verse,
-        # TBD
-        # (
-        #     True,
-        #     False,
-        #     False,
-        #     False,
-        #     False,
-        #     model.AssemblyStrategyEnum.verse,
-        # ): _assemble_usfm_content_by_verse,
+        (
+            True,
+            False,
+            False,
+            False,
+            False,
+            model.AssemblyStrategyEnum.VERSE,
+        ): _assemble_usfm_content_by_verse,
         (
             False,
             True,
