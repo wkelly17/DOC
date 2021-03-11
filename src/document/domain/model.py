@@ -6,7 +6,7 @@ validation and JSON serialization.
 """
 
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from pydantic import BaseModel
 
@@ -159,6 +159,7 @@ class CoverPayload(BaseModel):
 
     title: str
     revision_date: str
+    images: Dict[str, Union[str, bytes]]
 
 
 class PdfGenerationMethodEnum(str, Enum):

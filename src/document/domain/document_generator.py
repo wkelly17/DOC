@@ -12,6 +12,7 @@ and eventually a final document produced.
 """
 
 
+import base64
 import datetime
 import itertools
 import logging  # For logdecorator
@@ -20,7 +21,7 @@ import pdfkit
 import re
 import subprocess
 from logdecorator import log_on_start, log_on_end
-from typing import Callable, cast, List, Optional
+from typing import Callable, Dict, List, Optional, Union
 
 import icontract
 
@@ -238,10 +239,10 @@ class DocumentGenerator:
     def _convert_html_to_pdf(self) -> None:
         """Generate PDF from HTML contained in self.content."""
         now = datetime.datetime.now()
-        revision_date = "{}-{}-{}".format(now.year, now.month, now.day)
+        revision_date = "Generated on: {}-{}-{}".format(now.year, now.month, now.day)
         # FIXME This should probably be something else, but this will
         # do for now.
-        title = "Resources: {}".format(
+        title = "{}".format(
             ", ".join(
                 sorted(
                     {
@@ -271,12 +272,30 @@ class DocumentGenerator:
             "outline": "",  # Produce an outline
             "outline-depth": "3",  # Only go depth of 3 on the outline
         }
+        with open(config.get_logo_image_path(), "rb") as fin:
+            base64_encoded_logo_image = base64.b64encode(fin.read())
+        # FIXME Either or both of the next two expressions could blow
+        # up if we fail to read in and encode the image file
+        # successfully.
+        images: Dict[str, Union[str, bytes]] = {
+            "logo": base64_encoded_logo_image,
+        }
+        # images: Dict[str, Union[str, bytes]] = {
+        #     # Works but archive.org is sloooow
+        #     "logo": config.get_icon_url()
+        #     # "logo": config.get_logo_image_path()
+        # }
         # Use Jinja2 to instantiate the cover page.
         cover = config.get_instantiated_template(
-            "cover", model.CoverPayload(title=title, revision_date=revision_date)
+            "cover",
+            model.CoverPayload(title=title, revision_date=revision_date, images=images),
         )
+        logger.debug("cover: {}".format(cover))
+        with open(os.path.join(config.get_working_dir(), "cover.html"), "w") as fout:
+            fout.write(cover)
+        cover_filepath = os.path.join(config.get_working_dir(), "cover.html")
         pdfkit.from_file(
-            html_file_path, output_pdf_file_path, options=options, cover=cover
+            html_file_path, output_pdf_file_path, options=options, cover=cover_filepath
         )
         copy_command = "cp {}/{}.pdf {}".format(
             self._output_dir, self._document_request_key, "/output"
@@ -414,7 +433,7 @@ class DocumentGenerator:
 
     def _get_unfoldingword_icon(self) -> None:
         """Get Unfolding Word's icon for display in generated PDF."""
-        if not os.path.isfile(os.path.join(self._working_dir, "icon-tn.png")):
+        if not os.path.isfile(config.get_logo_image_path()):
             command = "curl -o {}/icon-tn.png {}".format(
                 self._working_dir, config.get_icon_url(),
             )

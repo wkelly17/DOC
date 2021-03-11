@@ -3,27 +3,44 @@
 <html>
   <head>
     <title>{{ data.title }}</title>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
-    />
-    <!-- <style>
-         .verse {
-         white-space: nowrap;
-         vertical-align: super;
-         font-size: 0.6em;
-         line-height: 0;
-         }
-         .heading {
-         font-weight: bold;
-         font-size: 1.4em;
-         text-align: center;
-         }
-         </style> -->
+    <!-- <link
+         rel="stylesheet"
+         href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+         /> -->
+    <style>
+      .verse {
+        white-space: nowrap;
+        vertical-align: super;
+        font-size: 0.6em;
+        line-height: 0;
+      }
+      .heading {
+        font-weight: bold;
+        font-size: 1.4em;
+        text-align: center;
+      }
+      .image_center {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      h2 {
+        text-align: center;
+      }
+      h3 {
+        text-align: center;
+      }
+    </style>
   </head>
   <body>
-    <p><img src="../../../icon-tn.png" /></p>
-    <h1>{{ data.title }}</h1>
-    <h2>{{ data.revision_date }}</h2>
+    <p>
+      <img
+        src='data:image/png;base64,{{data.images["logo"]}}'
+        class="image_center"
+      />
+    </p>
+    <!-- <p><img src='file://{{ data.images["logo"] }}' /></p> -->
+    <h2>{{ data.title }}</h1>
+    <h3>{{ data.revision_date }}</h2>
   </body>
 </html>
