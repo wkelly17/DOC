@@ -302,7 +302,8 @@ PANDOC_COMMAND2 = """pandoc -f html -t latex \
 # generate LaTeX from HTML also so that we can debug the LaTeX.
 def get_pandoc_command() -> str:
     """Return the pandoc command format string."""
-    return PANDOC_COMMAND2
+    # return PANDOC_COMMAND2
+    return PANDOC_COMMAND
 
 
 def get_english_repos_dict() -> dict:
