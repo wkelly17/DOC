@@ -1,5 +1,6 @@
 import bs4
 import os
+import re
 from typing import List
 
 from document import config
@@ -207,3 +208,40 @@ def test_document_generator_for_english_and_swahili_with_interleaving_by_verse()
             "span", attrs={"class": "v-num"}
         )
         assert verses_html
+
+
+def test_document_generator_for_english_and_swahili_tn_only_with_interleaving_by_verse() -> None:
+    assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.VERSE
+    resource_requests: List[model.ResourceRequest] = []
+    resource_requests.append(
+        model.ResourceRequest(
+            lang_code="en", resource_type="tn-wa", resource_code="col"
+        )
+    )
+    resource_requests.append(
+        model.ResourceRequest(lang_code="sw", resource_type="tn", resource_code="col")
+    )
+    resource_requests.append(
+        model.ResourceRequest(lang_code="sw", resource_type="tn", resource_code="tit")
+    )
+    document_request = model.DocumentRequest(
+        assembly_strategy_kind=assembly_strategy_kind,
+        resource_requests=resource_requests,
+    )
+
+    doc_gen = document_generator.DocumentGenerator(
+        document_request, config.get_working_dir(), config.get_output_dir(),
+    )
+    doc_gen.run()
+
+    assert doc_gen._document_request_key
+    finished_document_path = "en-tn-wa-col_sw-tn-col_sw-tn-tit_verse.html"
+    finished_document_path = os.path.join(
+        config.get_output_dir(), finished_document_path
+    )
+    assert finished_document_path == doc_gen.get_finished_document_filepath()
+    assert os.path.isfile(doc_gen.get_finished_document_filepath())
+    assert os.path.isdir("working/temp/sw_tn")
+    with open(doc_gen.get_finished_document_filepath(), "r") as fin:
+        html = fin.read()
+        assert re.search(r"Translation note", html)

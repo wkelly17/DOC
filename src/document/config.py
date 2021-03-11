@@ -378,7 +378,9 @@ def get_html_format_string(lookup_key: str) -> str:
         "language": "<h1>Language: {}</h1>",
         "book": "<h2>Book: {}</h2>",
         "verse": "<h3>Verse {}:{}</h3>",
-        "translation_notes": "<h3>Translation note</h3>",
+        "translation_note": "<h3>Translation note {}:{}</h3>",
+        # Example: <h2 class="c-num" id="042-ch-001">Chapter 1</h2>
+        "tn_only_chapter_header": '<h2 class="c-num" id="{}-ch-{}">Chapter {}</h2>',
     }
     return html_format_strings[lookup_key]
 def get_logo_image_path() -> str:
