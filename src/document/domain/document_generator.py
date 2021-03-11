@@ -110,7 +110,11 @@ class DocumentGenerator:
         # icon to ./working/temp for now until we find a different
         # location for the icon that is to be used if we wish to
         # retrieve it via URL. Otherwise we'll just always get it from
-        # file.
+        # file. Update: for now I am retrieving the legacy icon from
+        # archive.org. I've commented it out again though because
+        # archive.org is sloooow. Besides I don't think we want
+        # something as important as a logo for our PDF cover page to
+        # be missing due to network issues.
         # self._get_unfoldingword_icon()
 
         self._fetch_resources()

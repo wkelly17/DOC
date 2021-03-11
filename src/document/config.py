@@ -381,3 +381,9 @@ def get_html_format_string(lookup_key: str) -> str:
         "translation_notes": "<h3>Translation note</h3>",
     }
     return html_format_strings[lookup_key]
+def get_logo_image_path() -> str:
+    """
+    Get the path to the logo image that will be used on the PDF cover,
+    i.e., first, page.
+    """
+    return os.path.join(get_working_dir(), "icon-tn.png")
