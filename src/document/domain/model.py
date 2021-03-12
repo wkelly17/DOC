@@ -33,24 +33,56 @@ class ResourceRequest(BaseModel):
 # pydantic.
 class AssemblyStrategyEnum(str, Enum):
     """
-    There are three assembly strategy kinds to choose from:
+    There is currently one high level assembly strategy kind to choose from:
 
-    * verse
-      - verse strategy will cause a verse's worth of each resource's
-      content to be interleaved.
-    * chapter
-      - chapter strategy will cause a chapter's worth of each resource's
-      content to be interleaved.
-    * book
-      - book strategy will cause a book's worth of each resource's
-      content to be interleaved.
+    * LANGUAGE_BOOK_ORDER
+      - This enum value signals to use the high level strategy that orders
+        by language and then by book before delegating to an assembly
+        sub-strategy.
+
+    NOTE
+    We could later add others. As an arbitrary example,
+    Perhaps we'd want a high level strategy that ordered by book then
+    language (as opposed to the other way around) before delegating
+    the lower level assembly to a sub-strategy as signaled by
+    AssemblySubstrategyEnum. The sky is the limit.
     """
 
-    VERSE = "verse"
-    # NOTE Chapter and book interleaving assembly strategies may be
-    # supported in the future.
-    # chapter = "chapter"
-    # book = "book"
+    LANGUAGE_BOOK_ORDER = "language_book_order"
+
+
+class AssemblySubstrategyEnum(str, Enum):
+    """
+    A sub-strategy enum signals which interleaving sub-strategy
+    to use.
+    E.g., If the high level interleaving strategy LANGUAGE_BOOK_ORDER
+    has been chosen then inside the language and book interleaving
+    loop the sub-strategy will be signaled by a value from this
+    AssemblySubstrategyEnum.
+
+    We can have N such sub-strategies and each can be completely
+    arbitrary, simply based on the desires of content designers.
+
+    Said another way: the enum is just a name that is arbitrarily
+    chosen to be compact but adequate to express the type of interleaving
+    that is to be accomplished in the HTML document (prior to conversion
+    to PDf).
+
+    There is currently one assembly sub-strategy kind to choose from:
+
+    * VERSE
+      - cause a verse's worth of each resource's content to be interleaved.
+
+    NOTE
+    We could later add others. As an arbitrary example, perhaps we'd
+    want a sub-strategy that did verse-level interleaving for USFM and
+    TN, but chapter level interleaving for TQ or if not chapter then
+    some totally arbitrary interleaving or organization. Basically,
+    the enum values are just used to select a particular assembly
+    sub-strategy, whatever it is.
+    """
+
+    VERSE = "VERSE"
 
 
 class DocumentRequest(BaseModel):
@@ -116,7 +148,7 @@ class TemplateDto(BaseModel):
 class TNChapterPayload(BaseModel):
     """
     A class to hold a chapter's intro translation notes and a list
-    of its verses HTML content.
+    of its verses translation notes HTML content.
     """
 
     intro_html: str
@@ -131,6 +163,24 @@ class TNBookPayload(BaseModel):
 
     intro_html: str
     chapters: Dict[int, TNChapterPayload]
+
+
+class TQChapterPayload(BaseModel):
+    """
+    A class to hold a list of its verses translation questions HTML
+    content.
+    """
+
+    verses_html: Dict[int, str]
+
+
+class TQBookPayload(BaseModel):
+    """
+    A class to hold a list of its chapters translation questions HTML
+    content.
+    """
+
+    chapters: Dict[int, TQChapterPayload]
 
 
 class USFMChapter(BaseModel):

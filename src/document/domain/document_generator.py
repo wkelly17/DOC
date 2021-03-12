@@ -66,10 +66,10 @@ class DocumentGenerator:
             [
                 Optional[USFMResource],
                 Optional[TNResource],
-                Optional[TWResource],
                 Optional[TQResource],
+                Optional[TWResource],
                 Optional[TAResource],
-                model.AssemblyStrategyEnum,
+                model.AssemblySubstrategyEnum,
             ],
             str,
         ]
@@ -133,7 +133,7 @@ class DocumentGenerator:
             self._document_request.assembly_strategy_kind
         )
         # Pass self as param because the Callable stored in
-        # self_assembly_strategy is a function and not a method.
+        # self._assembly_strategy is a function and not a method.
         self._content = self._assembly_strategy(self)
         self._enclose_html_content()
         logger.debug(
@@ -278,11 +278,6 @@ class DocumentGenerator:
         images: Dict[str, Union[str, bytes]] = {
             "logo": base64_encoded_logo_image,
         }
-        # images: Dict[str, Union[str, bytes]] = {
-        #     # Works but archive.org is sloooow
-        #     "logo": config.get_icon_url()
-        #     # "logo": config.get_logo_image_path()
-        # }
         # Use Jinja2 to instantiate the cover page.
         cover = config.get_instantiated_template(
             "cover",
@@ -346,7 +341,6 @@ class DocumentGenerator:
         generate their content for later typesetting.
         """
         for resource in self._found_resources:
-            resource.initialize_from_assets()
             resource.get_content()
 
     @icontract.require(lambda document_request: document_request is not None)
@@ -360,16 +354,11 @@ class DocumentGenerator:
         resources: List[Resource] = []
         for resource_request in document_request.resource_requests:
             resources.append(
-                resource_factory(
-                    self._working_dir,
-                    self._output_dir,
-                    resource_request,
-                    document_request.assembly_strategy_kind,
-                )
+                resource_factory(self._working_dir, self._output_dir, resource_request,)
             )
         return resources
 
-    # FIXME We probably want to make an md5 hash of the document request key
+    # FIXME We probably want to make an (md5) hash of the document request key
     # prior to returning it as otherwise they can get very long if many
     # languages and books are requested. It would be nice to be able to
     # reverse engineer the hash though since the hash input is designed to
@@ -380,9 +369,6 @@ class DocumentGenerator:
         """Return the document_request_key."""
         document_request_key = ""
         for resource in document_request.resource_requests:
-            # NOTE Alternatively, could create a (md5?) hash of th
-            # concatenation of lang_code, resource_type,
-            # resource_code.
             document_request_key += (
                 "-".join(
                     [

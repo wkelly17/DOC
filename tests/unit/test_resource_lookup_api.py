@@ -8,7 +8,7 @@ from document.domain.resource import resource_factory
 
 
 def test_lookup() -> None:
-    assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.VERSE
+    assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER
     resource_requests: List[model.ResourceRequest] = []
     resource_requests.append(
         model.ResourceRequest(
@@ -37,10 +37,7 @@ def test_lookup() -> None:
 
     for resource_request in document_request.resource_requests:
         resource = resource_factory(
-            config.get_working_dir(),
-            config.get_output_dir(),
-            resource_request,
-            assembly_strategy_kind,
+            config.get_working_dir(), config.get_output_dir(), resource_request,
         )
         resource.find_location()
         assert resource.resource_url

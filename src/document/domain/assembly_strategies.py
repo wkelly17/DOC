@@ -37,49 +37,13 @@ logger = config.get_logger(__name__)
     "Assembling document by interleaving at the verse level using 'verse' strategy.",
     logger=logger,
 )
-def _assemble_content_by_verse(docgen: document_generator.DocumentGenerator) -> str:
+def _assemble_content_by_lang_then_book(
+    docgen: document_generator.DocumentGenerator,
+) -> str:
     """
-    Assemble and return the collection of resources' content according
-    to the 'by verse' strategy with a particular (arbitrary to this
-    strategy) ordering of resources. E.g., For Genesis, TN book intro
-    if available, For Genesis 1, TN chapter intro if available,
-    followed by USFM for Genesis 1:1 followed by Translation Notes for
-    Genesis 1:1, (TBD )followed by Translation words for Genesis 1:1,
-    (TBD) followed by Translation questions for Genesis 1:1, (TBD) followed by
-    Translation answers for Genesis 1:1, etc..
-
-    Example: The user selects, say, two languages: Swahili and
-    English. They request USFM (specifically ULB) and TN for both: The
-    arbitrary interleaving algorithm for this strategy is:
-
-    1. For English (just because, say, in this strategy we arbitrarily
-       sort languages alphabetically):
-       * For each book:
-       ** TN book intro if any
-       ** For each chapter:
-       *** TN chapter intro if any
-       *** Chapter heading from USFM
-       **** For each verse:
-       ***** USFM verse
-       ***** TN for USFM verse
-       ***** (if it had been requested) TW for USFM verse
-       ***** (if it had been requested) TQ for USFM verse
-       ***** (if it had been requested) TA for USFM verse
-       ***** etc.
-    1. For Swahili:
-       * For each book:
-       ** TN book intro if any
-       ** For each chapter:
-       *** TN chapter intro if any
-       *** Chapter heading from USFM
-       **** For each verse:
-       ***** USFM verse
-       ***** TN for USFM verse
-       ***** (if it had been requested) TW for USFM verse
-       ***** (if it had been requested) TQ for USFM verse
-       ***** (if it had been requested) TA for USFM verse
-       ***** etc.
-
+    Assemble by language then by book in lexicographical order before
+    delegating more atomic ordering/interleaving to an assembly
+    sub-strategy.
     """
     # NOTE: For now we are ignoring links that may be presented. I
     # hope to handle their transformations with a Markdown extension
@@ -129,8 +93,8 @@ def _assemble_content_by_verse(docgen: document_generator.DocumentGenerator) -> 
             resources = list(group_by_book)
             usfm_resource: Optional[USFMResource] = get_usfm_resource(resources)
             tn_resource: Optional[TNResource] = get_tn_resource(resources)
-            tw_resource: Optional[TWResource] = get_tw_resource(resources)
             tq_resource: Optional[TQResource] = get_tq_resource(resources)
+            tw_resource: Optional[TWResource] = get_tw_resource(resources)
             ta_resource: Optional[TAResource] = get_ta_resource(resources)
 
             # We've got the resources, now we can use the strategy factory method to choose the right function to use
@@ -138,32 +102,132 @@ def _assemble_content_by_verse(docgen: document_generator.DocumentGenerator) -> 
             docgen._assembly_sub_strategy = _assembly_sub_strategy_factory(
                 usfm_resource,
                 tn_resource,
-                tw_resource,
                 tq_resource,
+                tw_resource,
                 ta_resource,
-                docgen._document_request.assembly_strategy_kind,
+                config.get_default_assembly_substrategy(),
+                # NOTE DocumentGenerator does not accept a
+                # sub-strategy at this time (and may never).
+                # docgen._document_request.assembly_substrategy_kind,
             )
 
             sub_html: str = docgen._assembly_sub_strategy(
                 usfm_resource,
                 tn_resource,
-                tw_resource,
                 tq_resource,
+                tw_resource,
                 ta_resource,
-                docgen._document_request.assembly_strategy_kind,
+                config.get_default_assembly_substrategy(),
+                # NOTE DocumentGenerator does not accept a
+                # sub-strategy at this time (and may never).
+                # docgen._document_request.assembly_strategy_kind,
             )
             html.append(sub_html)
 
     return "\n".join(html)
 
 
+def _assemble_usfm_tn_tq_content_by_verse(
+    usfm_resource: Optional[USFMResource],
+    tn_resource: Optional[TNResource],
+    tq_resource: Optional[TQResource],
+    tw_resource: Optional[TWResource],
+    ta_resource: Optional[TAResource],
+    assembly_substrategy_kind: model.AssemblySubstrategyEnum,
+) -> str:
+    """
+    Construct the HTML for a 'by verse' strategy wherein USFM, TN, and
+    TQ exist.
+    """
+    usfm_resource = cast(
+        USFMResource, usfm_resource
+    )  # Make mypy happy. We know, due to how we got here, that usfm_resource object is not None.
+    tn_resource = cast(
+        TNResource, tn_resource
+    )  # Make mypy happy. We know, due to how we got here, that usfm_resource object is not None.
+    tq_resource = cast(
+        TQResource, tq_resource
+    )  # Make mypy happy. We know, due to how we got here, that usfm_resource object is not None.
+    html = []
+    book_intro = tn_resource.book_payload.intro_html if tn_resource else ""
+    book_intro = adjust_book_intro_headings(book_intro)
+    html.append(book_intro)
+
+    # PEP526 disallows declaration of types in for loops, but allows this.
+    chapter_num: int
+    chapter: model.USFMChapter
+    # Dict keys need to be sorted as their order is not guaranteed.
+    for chapter_num, chapter in sorted(usfm_resource.chapters_content.items()):
+        # Add in the USFM chapter heading.
+        chapter_heading = ""
+        chapter_heading = chapter.chapter_content[0]
+        html.append(chapter_heading)
+        # Add in the translation notes chapter intro.
+        chapter_intro = get_chapter_intro(tn_resource, chapter_num)
+        html.append(chapter_intro)
+
+        # NOTE This commented out section is for use when
+        # we implement a by chapter interleaving strategy.
+        # Skip some useless elements and get the USFM
+        # verse HTML content.
+        # Chapter all at once including formatting HTML
+        # elements. This would be useful for a 'by
+        # chapter' interleaving strategy.
+        # usfm_verses = chapter.chapter_content[3:]
+
+        # Get TN chapter verses
+        tn_verses = (
+            tn_resource.book_payload.chapters[chapter_num].verses_html
+            if tn_resource
+            else {}
+        )
+        # Get TQ chapter verses
+        tq_verses = (
+            tq_resource.book_payload.chapters[chapter_num].verses_html
+            if tq_resource
+            else {}
+        )
+        # PEP526 disallows declaration of types in for
+        # loops, but allows this.
+        verse_num: int
+        verse: str
+        # Now let's interleave USFM verse with its
+        # translation note if available.
+        for verse_num, verse in sorted(chapter.chapter_verses.items()):
+            html.append(
+                config.get_html_format_string("verse").format(chapter_num, verse_num)
+            )
+            html.append(verse)
+            if tn_verses and verse_num in tn_verses:
+                html.append(
+                    config.get_html_format_string("translation_note").format(
+                        chapter_num, verse_num
+                    )
+                )
+                # Change H1 HTML elements to H4 HTML
+                # elements in each translation note.
+                tn_verse = tn_verses[verse_num]
+                html.append(re.sub(r"h1", r"h4", tn_verse))
+            if tq_verses and verse_num in tq_verses:
+                html.append(
+                    config.get_html_format_string("translation_question").format(
+                        chapter_num, verse_num
+                    )
+                )
+                # Change H1 HTML elements to H4 HTML
+                # elements in each translation note.
+                tq_verse = tq_verses[verse_num]
+                html.append(re.sub(r"h1", r"h4", tq_verse))
+    return "\n".join(html)
+
+
 def _assemble_usfm_tn_content_by_verse(
     usfm_resource: Optional[USFMResource],
     tn_resource: Optional[TNResource],
-    tw_resource: Optional[TWResource],
     tq_resource: Optional[TQResource],
+    tw_resource: Optional[TWResource],
     ta_resource: Optional[TAResource],
-    assembly_strategy_kind: model.AssemblyStrategyEnum,
+    assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> str:
     """
     Construct the HTML for a 'by verse' strategy wherein only USFM and
@@ -235,10 +299,10 @@ def _assemble_usfm_tn_content_by_verse(
 def _assemble_usfm_content_by_verse(
     usfm_resource: Optional[USFMResource],
     tn_resource: Optional[TNResource],
-    tw_resource: Optional[TWResource],
     tq_resource: Optional[TQResource],
+    tw_resource: Optional[TWResource],
     ta_resource: Optional[TAResource],
-    assembly_strategy_kind: model.AssemblyStrategyEnum,
+    assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> str:
     """
     Construct the HTML for a 'by verse' strategy wherein only USFM exists.
@@ -283,10 +347,10 @@ def _assemble_usfm_content_by_verse(
 def _assemble_tn_content_by_verse(
     usfm_resource: Optional[USFMResource],
     tn_resource: Optional[TNResource],
-    tw_resource: Optional[TWResource],
     tq_resource: Optional[TQResource],
+    tw_resource: Optional[TWResource],
     ta_resource: Optional[TAResource],
-    assembly_strategy_kind: model.AssemblyStrategyEnum,
+    assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> str:
     """
     Construct the HTML for a 'by verse' strategy wherein only TN exists.
@@ -435,48 +499,59 @@ def _assembly_strategy_factory(
     Strategy pattern. Given an assembly_strategy_kind, returns the
     appropriate strategy function to run.
     """
-    strategies = {model.AssemblyStrategyEnum.VERSE: _assemble_content_by_verse}
+    strategies = {
+        model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER: _assemble_content_by_lang_then_book
+    }
     return strategies[assembly_strategy_kind]
 
 
 def _assembly_sub_strategy_factory(
     usfm_resource: Optional[USFMResource],
     tn_resource: Optional[TNResource],
-    tw_resource: Optional[TWResource],
     tq_resource: Optional[TQResource],
+    tw_resource: Optional[TWResource],
     ta_resource: Optional[TAResource],
-    assembly_strategy_kind: model.AssemblyStrategyEnum,
+    assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> Callable[
     [
         Optional[USFMResource],
         Optional[TNResource],
-        Optional[TWResource],
         Optional[TQResource],
+        Optional[TWResource],
         Optional[TAResource],
-        model.AssemblyStrategyEnum,
+        model.AssemblySubstrategyEnum,
     ],
     str,
 ]:
     """
-    Strategy pattern. Given the presence status of each type of the
-    five possible resources and an assembly_strategy_kind, returns the
-    appropriate strategy function to run.
+    Strategy pattern. Given the existence, i.e., exists or None, of each
+    type of the five possible resource instances and an
+    assembly_strategy_kind, returns the appropriate sub-strategy
+    function to run.
 
     This functions as a lookup table that will select the right
     assembly function to run. The impetus for it is to avoid messy
     conditional logic in the assembly algorithm that would otherwise
     be checking the existence of each resource. This makes adding new
-    algorithms straightforward.
+    strategies straightforward.
     """
     strategies = {
-        # Params: usfm_resource_exists, tn_resource_exists, tw_resource_exists, tq_resource_exists, ta_resource_exists, assembly_strategy_kind
+        # Params: usfm_resource_exists, tn_resource_exists, tq_resource_exists, tw_resource_exists, ta_resource_exists, assembly_strategy_kind
+        (
+            True,
+            True,
+            True,
+            False,
+            False,
+            model.AssemblySubstrategyEnum.VERSE,
+        ): _assemble_usfm_tn_tq_content_by_verse,
         (
             True,
             True,
             False,
             False,
             False,
-            model.AssemblyStrategyEnum.VERSE,
+            model.AssemblySubstrategyEnum.VERSE,
         ): _assemble_usfm_tn_content_by_verse,
         (
             True,
@@ -484,7 +559,7 @@ def _assembly_sub_strategy_factory(
             False,
             False,
             False,
-            model.AssemblyStrategyEnum.VERSE,
+            model.AssemblySubstrategyEnum.VERSE,
         ): _assemble_usfm_content_by_verse,
         (
             False,
@@ -492,16 +567,16 @@ def _assembly_sub_strategy_factory(
             False,
             False,
             False,
-            model.AssemblyStrategyEnum.VERSE,
+            model.AssemblySubstrategyEnum.VERSE,
         ): _assemble_tn_content_by_verse,
     }
     return strategies[
         (
             usfm_resource is not None,
             tn_resource is not None,
-            tw_resource is not None,
             tq_resource is not None,
+            tw_resource is not None,
             ta_resource is not None,
-            assembly_strategy_kind,
+            assembly_substrategy_kind,
         )
     ]

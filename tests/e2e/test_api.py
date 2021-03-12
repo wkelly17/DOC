@@ -23,7 +23,7 @@ def test_verse_interleaved_en_ulb_tn_returns_ok(helpers: Any) -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "assembly_strategy_kind": "verse",
+                "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -39,7 +39,9 @@ def test_verse_interleaved_en_ulb_tn_returns_ok(helpers: Any) -> None:
             },
         )
 
-        finished_document_path = "/working/temp/en-ulb-wa-col_en-tn-wa-col_verse.html"
+        finished_document_path = (
+            "/working/temp/en-ulb-wa-col_en-tn-wa-col_language_book_order.html"
+        )
         finished_document_path = helpers.get_document_filepath_for_testing(
             finished_document_path
         )
@@ -47,9 +49,7 @@ def test_verse_interleaved_en_ulb_tn_returns_ok(helpers: Any) -> None:
         assert response.json() == {"finished_document_path": finished_document_path}
 
 
-# FIXME This can be reinstated once we support USFM, TNResource _and_ TQResource
-# only strategy
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_verse_interleaved_en_ulb_tn_tq_returns_ok(helpers: Any) -> None:
     """
     Produce verse level interleaved document for English scripture,
@@ -59,7 +59,7 @@ def test_verse_interleaved_en_ulb_tn_tq_returns_ok(helpers: Any) -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "assembly_strategy_kind": "verse",
+                "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -79,9 +79,7 @@ def test_verse_interleaved_en_ulb_tn_tq_returns_ok(helpers: Any) -> None:
                 ],
             },
         )
-        finished_document_path = (
-            "/working/temp/en-ulb-wa-col_en-tn-wa-col_en-tq-wa-col_verse.html"
-        )
+        finished_document_path = "/working/temp/en-ulb-wa-col_en-tn-wa-col_en-tq-wa-col_language_book_order.html"
         finished_document_path = helpers.get_document_filepath_for_testing(
             finished_document_path
         )
@@ -98,7 +96,7 @@ def test_verse_interleaved_en_ulb_tn_jud_returns_ok(helpers: Any) -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "assembly_strategy_kind": "verse",
+                "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -113,7 +111,9 @@ def test_verse_interleaved_en_ulb_tn_jud_returns_ok(helpers: Any) -> None:
                 ],
             },
         )
-        finished_document_path = "/working/temp/en-ulb-wa-jud_en-tn-wa-jud_verse.html"
+        finished_document_path = (
+            "/working/temp/en-ulb-wa-jud_en-tn-wa-jud_language_book_order.html"
+        )
         finished_document_path = helpers.get_document_filepath_for_testing(
             finished_document_path
         )
@@ -121,8 +121,7 @@ def test_verse_interleaved_en_ulb_tn_jud_returns_ok(helpers: Any) -> None:
         assert response.json() == {"finished_document_path": finished_document_path}
 
 
-# FIXME This can be reinstated once we support USFM only strategy
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_verse_interleaved_ar_ulb_returns_ok(helpers: Any) -> None:
     """
     Produce verse level interleaved document for language, ar, Arabic
@@ -133,7 +132,7 @@ def test_verse_interleaved_ar_ulb_returns_ok(helpers: Any) -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "assembly_strategy_kind": "verse",
+                "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
                         "lang_code": "ar",
@@ -143,7 +142,7 @@ def test_verse_interleaved_ar_ulb_returns_ok(helpers: Any) -> None:
                 ],
             },
         )
-        finished_document_path = "/working/temp/ar-nav-jud_verse.html"
+        finished_document_path = "/working/temp/ar-nav-jud_language_book_order.html"
         finished_document_path = helpers.get_document_filepath_for_testing(
             finished_document_path
         )
@@ -162,7 +161,7 @@ def test_verse_interleaved_pt_br_ulb_tn_tn_doesnt_exist_for_book_returns_ok(
         response: requests.Response = client.post(
             "/documents",
             json={
-                "assembly_strategy_kind": "verse",
+                "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
                         "lang_code": "pt-br",
@@ -177,7 +176,9 @@ def test_verse_interleaved_pt_br_ulb_tn_tn_doesnt_exist_for_book_returns_ok(
                 ],
             },
         )
-        finished_document_path = "/working/temp/pt-br-ulb-gen_pt-br-tn-gen_verse.html"
+        finished_document_path = (
+            "/working/temp/pt-br-ulb-gen_pt-br-tn-gen_language_book_order.html"
+        )
         finished_document_path = helpers.get_document_filepath_for_testing(
             finished_document_path
         )
@@ -195,7 +196,7 @@ def test_verse_interleaved_en_ulb_tn_pt_br_ulb_tn_returns_ok(helpers: Any) -> No
         response: requests.Response = client.post(
             "/documents",
             json={
-                "assembly_strategy_kind": "verse",
+                "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
                         "lang_code": "pt-br",
@@ -220,7 +221,7 @@ def test_verse_interleaved_en_ulb_tn_pt_br_ulb_tn_returns_ok(helpers: Any) -> No
                 ],
             },
         )
-        finished_document_path = "/working/temp/pt-br-ulb-luk_pt-br-tn-luk_en-ulb-wa-luk_en-tn-wa-luk_verse.html"
+        finished_document_path = "/working/temp/pt-br-ulb-luk_pt-br-tn-luk_en-ulb-wa-luk_en-tn-wa-luk_language_book_order.html"
         finished_document_path = helpers.get_document_filepath_for_testing(
             finished_document_path
         )
@@ -240,7 +241,7 @@ def test_verse_interleaved_en_ulb_tn_pt_br_ulb_tn_sw_ulb_tn_returns_ok(
         response: requests.Response = client.post(
             "/documents",
             json={
-                "assembly_strategy_kind": "verse",
+                "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
                         "lang_code": "pt-br",
@@ -271,7 +272,7 @@ def test_verse_interleaved_en_ulb_tn_pt_br_ulb_tn_sw_ulb_tn_returns_ok(
                 ],
             },
         )
-        finished_document_path = "/working/temp/pt-br-ulb-luk_pt-br-tn-luk_en-ulb-wa-luk_en-tn-wa-luk_sw-ulb-col_sw-tn-col_verse.html"
+        finished_document_path = "/working/temp/pt-br-ulb-luk_pt-br-tn-luk_en-ulb-wa-luk_en-tn-wa-luk_sw-ulb-col_sw-tn-col_language_book_order.html"
         finished_document_path = helpers.get_document_filepath_for_testing(
             finished_document_path
         )
@@ -292,7 +293,7 @@ def test_verse_interleaved_pt_br_ulb_tn_luk_returns_ok(helpers: Any) -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "assembly_strategy_kind": "verse",
+                "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
                         "lang_code": "pt-br",
@@ -307,7 +308,9 @@ def test_verse_interleaved_pt_br_ulb_tn_luk_returns_ok(helpers: Any) -> None:
                 ],
             },
         )
-        finished_document_path = "/working/temp/pt-br-ulb-luk_pt-br-tn-luk_verse.html"
+        finished_document_path = (
+            "/working/temp/pt-br-ulb-luk_pt-br-tn-luk_language_book_order.html"
+        )
         if not os.environ.get("IN_CONTAINER"):
             finished_document_path = finished_document_path[1:]
         assert os.path.isfile(finished_document_path)

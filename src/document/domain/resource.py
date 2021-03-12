@@ -46,12 +46,10 @@ class Resource:
         working_dir: str,
         output_dir: str,
         resource_request: model.ResourceRequest,
-        assembly_strategy_kind: str,
     ) -> None:
         self._working_dir: str = working_dir
         self._output_dir: str = output_dir
         self._resource_request: model.ResourceRequest = resource_request
-        self._assembly_strategy_kind: str = assembly_strategy_kind
 
         self._lang_code: str = resource_request.lang_code
         self._resource_type: str = resource_request.resource_type
@@ -117,9 +115,9 @@ class Resource:
         ResourceProvisioner(self)()
 
     @abc.abstractmethod
-    def initialize_from_assets(self) -> None:
+    def _initialize_from_assets(self) -> None:
         """
-        Find and load resource files that were downloaded to disk.
+        Find and load resource asset files that were downloaded to disk.
 
         Subclasses override.
         """
@@ -128,7 +126,7 @@ class Resource:
     @abc.abstractmethod
     def get_content(self) -> None:
         """
-        Initialize resource with content found in resource's files.
+        Initialize resource with content found in resource's asset files.
 
         Subclasses override.
         """
@@ -232,7 +230,7 @@ class USFMResource(Resource):
         "self._content_files for {self._resource_code}: {self._content_files}",
         logger=logger,
     )
-    def initialize_from_assets(self) -> None:
+    def _initialize_from_assets(self) -> None:
         """See docstring in superclass."""
         self._manifest = Manifest(self)
 
@@ -250,6 +248,7 @@ class USFMResource(Resource):
         # to be named a certain way for all languages since we are
         # able to just check that the asset file has the resource code
         # as a substring.
+        #
         # If desired, in the case where a manifest must be consulted
         # to determine if the file is considered usable, i.e.,
         # 'complete' or 'finished', that can also be done by comparing
@@ -276,9 +275,6 @@ class USFMResource(Resource):
                 )
             )
 
-    # FIXME Code in self._initialize_verses_html should possibly be
-    # made default, i.e., possibly it should always run in the new
-    # design and not be conditionalized at this call site.
     @log_on_end(
         logging.DEBUG, "self._bad_links: {self._bad_links}", logger=logger,
     )
@@ -288,6 +284,8 @@ class USFMResource(Resource):
         """See docstring in superclass."""
         # FIXME Slated for removal.
         # self._get_usfm_chunks()
+
+        self._initialize_from_assets()
 
         if self._content_files is not None:
             # Convert the USFM to HTML and store in file.
@@ -309,10 +307,7 @@ class USFMResource(Resource):
             #     )
             # )
 
-            if self._assembly_strategy_kind in {
-                model.AssemblyStrategyEnum.VERSE,
-            }:
-                self._initialize_verses_html()
+            self._initialize_verses_html()
 
     @property
     def chapters_content(self) -> Dict:
@@ -323,9 +318,9 @@ class USFMResource(Resource):
     @icontract.ensure(lambda self: self._chapters_content)
     def _initialize_verses_html(self) -> None:
         """
-        Break apart the USFM HTML content into HTML verse chunks, augment
-        HTML output with additional HTML elements and store in
-        _verses_html.
+        Break apart the USFM HTML content into HTML chapter and verse
+        chunks, augment HTML output with additional HTML elements and
+        store in an instance variable.
         """
         parser = bs4.BeautifulSoup(self._content, "html.parser")
 
@@ -350,18 +345,15 @@ class USFMResource(Resource):
             chapter_verse_tags: bs4.elements.ResultSet = chapter_verses_parser.find_all(
                 "span", attrs={"class": "v-num"}
             )
-            # Get each verse opening span tag and then the actual
-            # verse text for this chapter and enclose them each
-            # in a p element.
-            # FIXME Do we really want to enclose each verse in a
-            # paragraph element? I've done it mainly for later display
-            # purposes, but I don't think it is necessary because in
-            # 'by verse' interleaving strategy there each verse is
-            # sandwiched between HTML header elements anyway. But I do
-            # like that it makes the HTML have more closed tags, though the
-            # parser has other open tags, so perhaps it isn't worth
-            # it. It is easy enough to experiment with removing the
-            # enclosing paragraph element and see the result.
+            # Get each verse opening span tag and then the actual verse text for
+            # this chapter and enclose them each in a p element.
+            # NOTE Do we really want to enclose each verse in a paragraph element?
+            # I've done it mainly for later display purposes, but I don't think it
+            # is necessary because in 'by verse' interleaving strategy each verse is
+            # sandwiched between HTML header elements anyway. But I do like that it
+            # makes the HTML have more closed tags, though the parser has other open
+            # tags, so perhaps it isn't worth it. It is easy enough to experiment
+            # with removing the enclosing paragraph element and see the result.
             chapter_verse_list = [
                 "<p>{} {}</p>".format(verse, verse.next_sibling)
                 for verse in chapter_verse_tags
@@ -369,9 +361,8 @@ class USFMResource(Resource):
             # Dictionary to hold verse number, verse value pairs.
             chapter_verses: Dict[int, str] = {}
             for verse_element in chapter_verse_list:
-                # Get the verse num from the verse HTML tag's id
-                # value.
-                # split is more performant than re:
+                # Get the verse num from the verse HTML tag's id value. split is more
+                # performant than re:
                 # See https://stackoverflow.com/questions/7501609/python-re-split-vs-split
                 verse_num = int(str(verse_element).split("-v-")[1].split('"')[0])
                 lower_id = "{}-ch-{}-v-{}".format(
@@ -396,13 +387,15 @@ class USFMResource(Resource):
                 verse_content = [str(tag) for tag in list(verse_content_tags)]
                 # NOTE Hacky way to remove some redundant parsing results
                 # due to recursion in BeautifulSoup. Should use bs4 more expertly
-                # to avoid this if it is possible.
+                # to avoid this if it is possible. But this does work
+                # and produces the desired result in the end.
                 del verse_content[1:4]
                 verse_content_str = "".join(verse_content)
                 # HACK "Fix" BeautifulSoup parsing issue wherein
                 # sometimes a verse contains its content but also includes a
                 # subsequent verse or verses or a recapitulation of all previous
-                # verses:
+                # verses. This does fix the problem though and gives
+                # the desired result:
                 verse_content_str = (
                     '<span class="v-num"'
                     + verse_content_str.split('<span class="v-num"')[1]
@@ -412,90 +405,90 @@ class USFMResource(Resource):
                 chapter_content=chapter_content, chapter_verses=chapter_verses,
             )
 
-    @icontract.require(
-        lambda self: self._content_files
-        and self._resource_filename
-        and self._resource_dir
-    )
-    @icontract.ensure(lambda self: self._usfm_chunks)
-    def _get_usfm_chunks(self) -> None:
-        """
-        Read the USFM file contents requested for resource code and
-        break it into verse chunks.
-        """
-        book_chunks: dict = {}
-        logger.debug("self._resource_filename: {}".format(self._resource_filename))
+    # @icontract.require(
+    #     lambda self: self._content_files
+    #     and self._resource_filename
+    #     and self._resource_dir
+    # )
+    # @icontract.ensure(lambda self: self._usfm_chunks)
+    # def _get_usfm_chunks(self) -> None:
+    #     """
+    #     Read the USFM file contents requested for resource code and
+    #     break it into verse chunks.
+    #     """
+    #     book_chunks: dict = {}
+    #     logger.debug("self._resource_filename: {}".format(self._resource_filename))
 
-        usfm_file = self._content_files[0]
-        usfm_file_content = file_utils.read_file(usfm_file, "utf-8")
+    #     usfm_file = self._content_files[0]
+    #     usfm_file_content = file_utils.read_file(usfm_file, "utf-8")
 
-        # FIXME Not sure I like this LBYL style here. Exceptions
-        # should actually be the exceptional case here, so this costs
-        # performance by checking.
-        if usfm_file_content is not None:
-            chunks = re.compile(r"\\s5\s*\n*").split(usfm_file_content)
-        else:
-            return
+    #     # FIXME Not sure I like this LBYL style here. Exceptions
+    #     # should actually be the exceptional case here, so this costs
+    #     # performance by checking.
+    #     if usfm_file_content is not None:
+    #         chunks = re.compile(r"\\s5\s*\n*").split(usfm_file_content)
+    #     else:
+    #         return
 
-        # Break chunks into verses
-        chunks_per_verse = []
-        for chunk in chunks:
-            pending_chunk = None
-            for line in chunk.splitlines(True):
-                # If this is a new verse and there's a pending chunk,
-                # finish it and start a new one.
-                if re.search(r"\\v", line) and pending_chunk:
-                    chunks_per_verse.append(pending_chunk)
-                    pending_chunk = None
-                if pending_chunk:
-                    pending_chunk += line
-                else:
-                    pending_chunk = line
+    #     # Break chunks into verses
+    #     chunks_per_verse = []
+    #     for chunk in chunks:
+    #         pending_chunk = None
+    #         for line in chunk.splitlines(True):
+    #             # If this is a new verse and there's a pending chunk,
+    #             # finish it and start a new one.
+    #             if re.search(r"\\v", line) and pending_chunk:
+    #                 chunks_per_verse.append(pending_chunk)
+    #                 pending_chunk = None
+    #             if pending_chunk:
+    #                 pending_chunk += line
+    #             else:
+    #                 pending_chunk = line
 
-            # If there's a pending chunk, finish it.
-            if pending_chunk:
-                chunks_per_verse.append(pending_chunk)
-        chunks = chunks_per_verse
+    #         # If there's a pending chunk, finish it.
+    #         if pending_chunk:
+    #             chunks_per_verse.append(pending_chunk)
+    #     chunks = chunks_per_verse
 
-        header = chunks[0]
-        book_chunks["header"] = header
-        for chunk in chunks[1:]:
-            chapter: Optional[str] = None
-            if not chunk.strip():
-                continue
-            chapter_search = re.search(
-                r"\\c[\u00A0\s](\d+)", chunk
-            )  # \u00A0 no break space
-            if chapter_search:
-                chapter = chapter_search.group(1)
-            verses = re.findall(r"\\v[\u00A0\s](\d+)", chunk)
-            if not verses:
-                continue
-            first_verse = verses[0]
-            last_verse = verses[-1]
-            if chapter not in book_chunks:
-                book_chunks[chapter] = {"chapters": []}
-            # FIXME first_verse, last_verse, and verses equal the same
-            # number, e.g., all 1 or all 2, etc.. They don't seem to encode
-            # meaningfully differentiated data that would be useful.
-            # first_verse and last_verse are used in
-            # TNResource so as to imply that they are expected to
-            # represent a range wider than one verse, but as far as
-            # execution of the algorithm here, I haven't seen a case where
-            # they are ever found to be different.
-            # I may remove them later if no ranges ever actually
-            # occur - something that remains to be learned. chunk is
-            # the verse content itself and of course is
-            # necessary.
-            data = {
-                "usfm": chunk,
-                "first_verse": first_verse,
-                "last_verse": last_verse,
-                "verses": verses,
-            }
-            book_chunks[chapter][first_verse] = data
-            book_chunks[chapter]["chapters"].append(data)
-        self._usfm_chunks = book_chunks
+    #     header = chunks[0]
+    #     book_chunks["header"] = header
+    #     for chunk in chunks[1:]:
+    #         chapter: Optional[str] = None
+    #         if not chunk.strip():
+    #             continue
+    #         chapter_search = re.search(
+    #             r"\\c[\u00A0\s](\d+)", chunk
+    #         )  # \u00A0 no break space
+    #         if chapter_search:
+    #             chapter = chapter_search.group(1)
+    #         verses = re.findall(r"\\v[\u00A0\s](\d+)", chunk)
+    #         if not verses:
+    #             continue
+    #         first_verse = verses[0]
+    #         last_verse = verses[-1]
+    #         if chapter not in book_chunks:
+    #             book_chunks[chapter] = {"chapters": []}
+    #         # FIXME first_verse, last_verse, and verses equal the same
+    #         # number, e.g., all 1 or all 2, etc.. They don't seem to encode
+    #         # meaningfully differentiated data that would be useful.
+    #         # first_verse and last_verse are used in
+    #         # TNResource so as to imply that they are expected to
+    #         # represent a range wider than one verse, but as far as
+    #         # execution of the algorithm here, I haven't seen a case where
+    #         # they are ever found to be different.
+    #         # I may remove them later if no ranges ever actually
+    #         # occur - something that remains to be learned. chunk is
+    #         # the verse content itself and of course is
+    #         # necessary.
+    #         data = {
+    #             "usfm": chunk,
+    #             "first_verse": first_verse,
+    #             "last_verse": last_verse,
+    #             "verses": verses,
+    #         }
+    #         book_chunks[chapter][first_verse] = data
+    #         book_chunks[chapter]["chapters"].append(data)
+    #     self._usfm_chunks = book_chunks
 
 
 class TResource(Resource):
@@ -515,68 +508,115 @@ class TResource(Resource):
         self._resource_source = resource_lookup_dto.source
         self._resource_jsonpath = resource_lookup_dto.jsonpath
 
+    @icontract.require(lambda self: self._content)
+    def _convert_md2html(self) -> None:
+        """Convert a resource's Markdown to HTML."""
+        self._content = markdown.markdown(self._content)
+
+    @log_on_start(logging.INFO, "Converting MD to HTML...", logger=logger)
+    @log_on_end(logging.DEBUG, "self._bad_links: {self._bad_links}", logger=logger)
+    def _transform_content(self) -> None:
+        """
+        If self._content is not empty, go ahead and transform rc
+        resource links and transform content from Markdown to HTML.
+        """
+        if self._content:
+            self._content = link_utils.replace_rc_links(
+                self._my_rcs, self._resource_data, self._content
+            )
+            self._content = link_utils.transform_rc_links(self._content)
+            self._convert_md2html()
+
+
+class TNResource(TResource):
+    """
+    This class handles specializing Resource for the case when the
+    resource is a Translation Notes resource.
+    """
+
+    def __init__(self, *args, **kwargs) -> None:  # type: ignore
+        super().__init__(*args, **kwargs)
+        self._book_payload: model.TNBookPayload
+
+    @log_on_start(
+        logging.INFO, "Processing Translation Notes Markdown...", logger=logger
+    )
+    def get_content(self) -> None:
+        """
+        Get Markdown content from this resource's file assets. Then do
+        some manipulation of said Markdown content according to the
+        needs of the document output. Then convert the Markdown content
+        into HTML content.
+        """
+        # FIXME All the work is done in _initialize_verses_html.
+        # So these legacy methods are turned off for now. There are
+        # likely bits of logic from these two functions that will find
+        # their way back into the system later though (in a different
+        # and improved form), e.g., linking.
+        # self._get_tn_markdown()
+        # self._transform_content()
+        self._initialize_from_assets()
+
+        self._initialize_verses_html()
+
+    @property
+    def book_payload(self) -> model.TNBookPayload:
+        """Provide public interface for other modules."""
+        return self._book_payload
+
     @log_on_start(
         logging.DEBUG, "self._resource_dir: {self._resource_dir}", logger=logger
     )
-    def initialize_from_assets(self) -> None:
-        """Programmatically discover the manifest and content files."""
+    def _initialize_from_assets(self) -> None:
+        """See docstring in superclass."""
         self._manifest = Manifest(self)
 
-        # FIXME Is the next section of code, up to
-        # self._initialize_verses_html, even needed now that we
-        # have chapter_verses?
-        # Get the content files
-        markdown_files = glob(
-            "{}/*{}/**/*.md".format(self._resource_dir, self._resource_code)
-        )
-        # logger.debug("markdown_files: {}".format(markdown_files))
-        markdown_content_files = list(
-            filter(
-                lambda markdown_file: str(pathlib.Path(markdown_file).stem).lower()
-                not in config.get_markdown_doc_file_names(),
-                markdown_files,
-            )
-        )
-        txt_files = glob(
-            "{}/*{}/**/*.txt".format(self._resource_dir, self._resource_code)
-        )
-        # logger.debug("txt_files: {}".format(txt_files))
-        txt_content_files = list(
-            filter(
-                lambda txt_file: str(pathlib.Path(txt_file).stem).lower()
-                not in config.get_markdown_doc_file_names(),
-                txt_files,
-            )
-        )
+        # FIXME Slated for removal.
+        # # Get the content files
+        # markdown_files = glob(
+        #     "{}/*{}/**/*.md".format(self._resource_dir, self._resource_code)
+        # )
+        # # logger.debug("markdown_files: {}".format(markdown_files))
+        # markdown_content_files = list(
+        #     filter(
+        #         lambda markdown_file: str(pathlib.Path(markdown_file).stem).lower()
+        #         not in config.get_markdown_doc_file_names(),
+        #         markdown_files,
+        #     )
+        # )
+        # txt_files = glob(
+        #     "{}/*{}/**/*.txt".format(self._resource_dir, self._resource_code)
+        # )
+        # # logger.debug("txt_files: {}".format(txt_files))
+        # txt_content_files = list(
+        #     filter(
+        #         lambda txt_file: str(pathlib.Path(txt_file).stem).lower()
+        #         not in config.get_markdown_doc_file_names(),
+        #         txt_files,
+        #     )
+        # )
 
-        if markdown_content_files:
-            self._content_files = list(
-                filter(
-                    lambda markdown_file: self._resource_code.lower()
-                    in markdown_file.lower(),
-                    markdown_files,
-                )
-            )
-        if txt_content_files:
-            self._content_files = list(
-                filter(
-                    lambda txt_file: self._resource_code.lower() in txt_file.lower(),
-                    txt_files,
-                )
-            )
+        # if markdown_content_files:
+        #     self._content_files = list(
+        #         filter(
+        #             lambda markdown_file: self._resource_code.lower()
+        #             in markdown_file.lower(),
+        #             markdown_files,
+        #         )
+        #     )
+        # if txt_content_files:
+        #     self._content_files = list(
+        #         filter(
+        #             lambda txt_file: self._resource_code.lower()
+        #             in txt_file.lower(),
+        #             txt_files,
+        #         )
+        #     )
 
-        if self._assembly_strategy_kind in {
-            model.AssemblyStrategyEnum.VERSE,
-        }:
-            self._initialize_verses_html()
-
-    # @icontract.ensure(lambda self: self._verses_html) # T* resource
-    # might not be available, so don't require _verses_html is
-    # returned.
     def _initialize_verses_html(self) -> None:
         """
-        Find book intro, chapter intros, and then
-        the verses themselves.
+        Find book intro, chapter intros, and then the translation
+        notes for the verses themselves.
         """
         # Create the Markdown instance once and have it use our markdown
         # extension that changes (See [[rc:foo]]) style links into [](rc:foo)
@@ -651,375 +691,321 @@ class TResource(Resource):
             intro_html=book_intro_html, chapters=chapter_verses
         )
 
-    @icontract.require(lambda self: self._content)
-    def _convert_md2html(self) -> None:
-        """Convert a resource's Markdown to HTML."""
-        self._content = markdown.markdown(self._content)
-
-    @log_on_start(logging.INFO, "Converting MD to HTML...", logger=logger)
-    @log_on_end(logging.DEBUG, "self._bad_links: {self._bad_links}", logger=logger)
-    def _transform_content(self) -> None:
-        """
-        If self._content is not empty, go ahead and transform rc
-        resource links and transform content from Markdown to HTML.
-        """
-        if self._content:
-            self._content = link_utils.replace_rc_links(
-                self._my_rcs, self._resource_data, self._content
-            )
-            self._content = link_utils.transform_rc_links(self._content)
-            self._convert_md2html()
-
-
-class TNResource(TResource):
-    """
-    This class handles specializing Resource for the case when the
-    resource is a Translation Notes resource.
-    """
-
-    def __init__(self, *args, **kwargs) -> None:  # type: ignore
-        super().__init__(*args, **kwargs)
-        # self._book_payload: model.BookPayload
-        self._book_payload: model.TNBookPayload
-
-    @log_on_start(
-        logging.INFO, "Processing Translation Notes Markdown...", logger=logger
-    )
-    def get_content(self) -> None:
-        """
-        Get Markdown content from this resource's file assets. Then do
-        some manipulation of said Markdown content according to the
-        needs of the document output. Then convert the Markdown content
-        into HTML content.
-        """
-        # FIXME All the work is done in _initialize_verses_html at the moment so
-        # this is turned off for now until refactoring cleans this up by moving
-        # a few things around.
-        # self._get_tn_markdown()
-        # self._transform_content()
-
-    @property
-    def book_payload(self) -> model.TNBookPayload:
-        """Provide public interface for other modules."""
-        return self._book_payload
-
     # FIXME Obselete. Slated for removal.
-    @icontract.require(lambda self: self._resource_code)
-    def _get_tn_markdown(self) -> None:
-        tn_md = ""
-        book_dir: str = self._get_book_dir()
-        logger.debug("book_dir: {}".format(book_dir))
+    # @icontract.require(lambda self: self._resource_code)
+    # def _get_tn_markdown(self) -> None:
+    #     tn_md = ""
+    #     book_dir: str = self._get_book_dir()
+    #     logger.debug("book_dir: {}".format(book_dir))
 
-        if not os.path.isdir(book_dir):
-            return
+    #     if not os.path.isdir(book_dir):
+    #         return
 
-        # FIXME We could be using templates and then inserting values
-        # not building markdown imperatively.
-        # TODO Might need localization
-        # tn_md = '# Translation Notes\n<a id="tn-{}"/>\n\n'.format(self._book_id)
-        # NOTE This is now in the book intro template
-        # tn_md = '# Translation Notes\n<a id="tn-{}"/>\n\n'.format(self._resource_code)
+    #     # TODO Might need localization
+    #     # tn_md = '# Translation Notes\n<a id="tn-{}"/>\n\n'.format(self._book_id)
+    #     # NOTE This is now in the book intro template
+    #     # tn_md = '# Translation Notes\n<a id="tn-{}"/>\n\n'.format(self._resource_code)
 
-        book_intro_template = self._initialize_tn_book_intro()
+    #     book_intro_template = self._initialize_tn_book_intro()
 
-        tn_md += book_intro_template
+    #     tn_md += book_intro_template
 
-        for chapter in sorted(os.listdir(book_dir)):
-            chapter_dir = os.path.join(book_dir, chapter)
-            logger.debug("chapter_dir: {}".format(chapter_dir))
-            chapter = chapter.lstrip("0")
-            if os.path.isdir(chapter_dir) and re.match(r"^\d+$", chapter):
-                chapter_intro_md = self._initialize_tn_chapter_intro(
-                    chapter_dir, chapter
-                )
-                # TODO Could chunk files ever be something other than
-                # verses? For instance, could they be a range of
-                # verses instead?
-                # Get all the Markdown files that start with a digit
-                # and end with suffix md.
-                chunk_files = sorted(glob(os.path.join(chapter_dir, "[0-9]*.md")))
-                logger.debug("chapter chunk_files: {}".format(chunk_files))
-                for _, chunk_file in enumerate(chunk_files):
-                    (
-                        first_verse,
-                        last_verse,
-                        title,
-                        md,
-                    ) = link_utils.initialize_tn_chapter_files(
-                        self._book_id,
-                        self._book_title,
-                        self._lang_code,
-                        chunk_file,
-                        chapter,
-                    )
+    #     for chapter in sorted(os.listdir(book_dir)):
+    #         chapter_dir = os.path.join(book_dir, chapter)
+    #         logger.debug("chapter_dir: {}".format(chapter_dir))
+    #         chapter = chapter.lstrip("0")
+    #         if os.path.isdir(chapter_dir) and re.match(r"^\d+$", chapter):
+    #             chapter_intro_md = self._initialize_tn_chapter_intro(
+    #                 chapter_dir, chapter
+    #             )
+    #             # TODO Could chunk files ever be something other than
+    #             # verses? For instance, could they be a range of
+    #             # verses instead?
+    #             # Get all the Markdown files that start with a digit
+    #             # and end with suffix md.
+    #             chunk_files = sorted(glob(os.path.join(chapter_dir, "[0-9]*.md")))
+    #             logger.debug("chapter chunk_files: {}".format(chunk_files))
+    #             for _, chunk_file in enumerate(chunk_files):
+    #                 (
+    #                     first_verse,
+    #                     last_verse,
+    #                     title,
+    #                     md,
+    #                 ) = link_utils.initialize_tn_chapter_files(
+    #                     self._book_id,
+    #                     self._book_title,
+    #                     self._lang_code,
+    #                     chunk_file,
+    #                     chapter,
+    #                 )
 
-                    # anchors = ""
-                    pre_md = ""
-                    # FIXME I don't think it should be fetching USFM
-                    # stuff here in this method under the new design.
-                    # _initialize_tn_chapter_verse_links now takes a
-                    # first argument of a USFMResource instance which
-                    # will provide the _usfm_chunks.
-                    # if bool(self._usfm_chunks):
-                    #     # Create links to each chapter
-                    #     anchors += link_utils.initialize_tn_chapter_verse_anchor_links(
-                    #         # Need to pass usfm_chunks from a USFMResource instance here.
-                    #         chapter, first_verse
-                    #     )
-                    #     pre_md = "\n## {}\n{}\n\n".format(title, anchors)
-                    #     # TODO localization
-                    #     pre_md += "### Unlocked Literal Bible\n\n[[ulb://{}/{}/{}/{}/{}]]\n\n".format(
-                    #         self._lang_code,
-                    #         self._book_id,
-                    #         self._pad(chapter),
-                    #         self._pad(first_verse),
-                    #         self._pad(last_verse),
-                    #     )
-                    # TODO localization
-                    pre_md += "### Translation Notes\n"
-                    md = "{}\n{}\n\n".format(pre_md, md)
+    #                 # anchors = ""
+    #                 pre_md = ""
+    #                 # FIXME I don't think it should be fetching USFM
+    #                 # stuff here in this method under the new design.
+    #                 # _initialize_tn_chapter_verse_links now takes a
+    #                 # first argument of a USFMResource instance which
+    #                 # will provide the _usfm_chunks.
+    #                 # if bool(self._usfm_chunks):
+    #                 #     # Create links to each chapter
+    #                 #     anchors += link_utils.initialize_tn_chapter_verse_anchor_links(
+    #                 #         # Need to pass usfm_chunks from a USFMResource instance here.
+    #                 #         chapter, first_verse
+    #                 #     )
+    #                 #     pre_md = "\n## {}\n{}\n\n".format(title, anchors)
+    #                 #     # TODO localization
+    #                 #     pre_md += "### Unlocked Literal Bible\n\n[[ulb://{}/{}/{}/{}/{}]]\n\n".format(
+    #                 #         self._lang_code,
+    #                 #         self._book_id,
+    #                 #         self._pad(chapter),
+    #                 #         self._pad(first_verse),
+    #                 #         self._pad(last_verse),
+    #                 #     )
+    #                 # TODO localization
+    #                 pre_md += "### Translation Notes\n"
+    #                 md = "{}\n{}\n\n".format(pre_md, md)
 
-                    # FIXME Handle case where the user doesn't request tw resource.
-                    # We don't want conditionals protecting execution
-                    # of tw related code, but that is what we are
-                    # doing for now until the code is refactored
-                    # toward a better design. Just making this work
-                    # with legacy for the moment.
-                    # TODO This needs to be moved to a different logic
-                    # path.
+    #                 # FIXME Handle case where the user doesn't request tw resource.
+    #                 # We don't want conditionals protecting execution
+    #                 # of tw related code, but that is what we are
+    #                 # doing for now until the code is refactored
+    #                 # toward a better design. Just making this work
+    #                 # with legacy for the moment.
+    #                 # TODO This needs to be moved to a different logic
+    #                 # path.
 
-                    # FIXME This should be moved to TWResource. Note
-                    # that it may be necessary to compare what
-                    # _initialize_tn_translation_words does compared
-                    # to what _get_tw_markdown does to see if they are
-                    # redundant.
-                    # tw_md = self._initialize_tn_translation_words(chapter, first_verse)
-                    # md = "{}\n{}\n\n".format(md, tw_md)
+    #                 # FIXME This should be moved to TWResource. Note
+    #                 # that it may be necessary to compare what
+    #                 # _initialize_tn_translation_words does compared
+    #                 # to what _get_tw_markdown does to see if they are
+    #                 # redundant.
+    #                 # tw_md = self._initialize_tn_translation_words(chapter, first_verse)
+    #                 # md = "{}\n{}\n\n".format(md, tw_md)
 
-                    # FIXME This belongs in USFMResource or in a new
-                    # UDBResource.
-                    # NOTE For now, I could guard this with a
-                    # conditional that checks if UDB exists.
-                    # NOTE The idea of this function assumes that UDB
-                    # exists every time.
-                    # NOTE For now commenting this out to see how far
-                    # we get without it.
+    #                 # FIXME This belongs in USFMResource or in a new
+    #                 # UDBResource.
+    #                 # NOTE For now, I could guard this with a
+    #                 # conditional that checks if UDB exists.
+    #                 # NOTE The idea of this function assumes that UDB
+    #                 # exists every time.
+    #                 # NOTE For now commenting this out to see how far
+    #                 # we get without it.
 
-                    # md += self._initialize_tn_udb(
-                    #     chapter, title, first_verse, last_verse
-                    # )
+    #                 # md += self._initialize_tn_udb(
+    #                 #     chapter, title, first_verse, last_verse
+    #                 # )
 
-                    tn_md += md
+    #                 tn_md += md
 
-                    links = self._initialize_tn_links(
-                        self._lang_code,
-                        self._book_id,
-                        bool(book_intro_template),
-                        bool(chapter_intro_md),
-                        chapter,
-                    )
-                    tn_md += links + "\n\n"
-            else:
-                logger.debug(
-                    "chapter_dir: {}, chapter: {}".format(chapter_dir, chapter)
-                )
+    #                 links = self._initialize_tn_links(
+    #                     self._lang_code,
+    #                     self._book_id,
+    #                     bool(book_intro_template),
+    #                     bool(chapter_intro_md),
+    #                     chapter,
+    #                 )
+    #                 tn_md += links + "\n\n"
+    #         else:
+    #             logger.debug(
+    #                 "chapter_dir: {}, chapter: {}".format(chapter_dir, chapter)
+    #             )
 
-        self._content = tn_md
+    #     self._content = tn_md
 
-    @icontract.require(
-        lambda lang_code, book_id, book_has_intro, chapter_has_intro, chapter: lang_code
-        and book_id
-        and chapter
-    )
-    def _initialize_tn_links(
-        self,
-        lang_code: str,
-        book_id: str,
-        book_has_intro: bool,
-        chapter_has_intro: bool,
-        chapter: str,
-    ) -> str:
-        """
-        Add a Markdown level 3 header populated with links to
-        the book's intro and chapter intro as well as links to
-        translation questions for the same book.
-        """
-        links = "### Links:\n\n"
-        if book_has_intro:
-            links += "* [[rc://{}/tn/help/{}/front/intro]]\n".format(lang_code, book_id)
-        if chapter_has_intro:
-            links += "* [[rc://{}/tn/help/{}/{}/intro]]\n".format(
-                lang_code, book_id, link_utils.pad(book_id, chapter),
-            )
-        links += "* [[rc://{}/tq/help/{}/{}]]\n".format(
-            lang_code, book_id, link_utils.pad(book_id, chapter),
-        )
-        return links
+    # @icontract.require(
+    #     lambda lang_code, book_id, book_has_intro, chapter_has_intro, chapter: lang_code
+    #     and book_id
+    #     and chapter
+    # )
+    # def _initialize_tn_links(
+    #     self,
+    #     lang_code: str,
+    #     book_id: str,
+    #     book_has_intro: bool,
+    #     chapter_has_intro: bool,
+    #     chapter: str,
+    # ) -> str:
+    #     """
+    #     Add a Markdown level 3 header populated with links to
+    #     the book's intro and chapter intro as well as links to
+    #     translation questions for the same book.
+    #     """
+    #     links = "### Links:\n\n"
+    #     if book_has_intro:
+    #         links += "* [[rc://{}/tn/help/{}/front/intro]]\n".format(lang_code, book_id)
+    #     if chapter_has_intro:
+    #         links += "* [[rc://{}/tn/help/{}/{}/intro]]\n".format(
+    #             lang_code, book_id, link_utils.pad(book_id, chapter),
+    #         )
+    #     links += "* [[rc://{}/tq/help/{}/{}]]\n".format(
+    #         lang_code, book_id, link_utils.pad(book_id, chapter),
+    #     )
+    #     return links
 
     # FIXME This is slated for removal.
     # FIXME I think this code can probably be greatly simplified,
     # moved to _get_tn_markdown and then removed.
     # FIXME Should we change to function w no non-local side-effects
     # and move to markdown_utils.py?
-    @icontract.require(
-        lambda self: self._resource_dir and self._lang_code and self._resource_type
-    )
-    def _get_book_dir(self) -> str:
-        """
-        Given the lang_code, resource_type, and resource_dir,
-        generate the book directory.
-        """
-        filepath: str = os.path.join(
-            self._resource_dir, "{}_{}".format(self._lang_code, self._resource_type)
-        )
-        # logger.debug("self._lang_code: {}".format(self._lang_code))
-        # logger.debug("self._resource_type: {}".format(self._resource_type))
-        # logger.debug("self._resource_dir: {}".format(self._resource_dir))
-        # logger.debug("filepath: {}".format(filepath))
-        if os.path.isdir(filepath):
-            book_dir = filepath
-        else:  # git repo case
-            book_dir = os.path.join(self._resource_dir, self._resource_code)
-        return book_dir
+    # @icontract.require(
+    #     lambda self: self._resource_dir and self._lang_code and self._resource_type
+    # )
+    # def _get_book_dir(self) -> str:
+    #     """
+    #     Given the lang_code, resource_type, and resource_dir,
+    #     generate the book directory.
+    #     """
+    #     filepath: str = os.path.join(
+    #         self._resource_dir, "{}_{}".format(self._lang_code, self._resource_type)
+    #     )
+    #     # logger.debug("self._lang_code: {}".format(self._lang_code))
+    #     # logger.debug("self._resource_type: {}".format(self._resource_type))
+    #     # logger.debug("self._resource_dir: {}".format(self._resource_dir))
+    #     # logger.debug("filepath: {}".format(filepath))
+    #     if os.path.isdir(filepath):
+    #         book_dir = filepath
+    #     else:  # git repo case
+    #         book_dir = os.path.join(self._resource_dir, self._resource_code)
+    #     return book_dir
 
-    def _initialize_tn_book_intro(self) -> str:
-        book_intro_template: str = ""
-        book_intro_files: List[str] = []
-        book_intro_files = list(
-            filter(
-                lambda content_file: os.path.join("front", "intro")
-                in content_file.lower(),
-                self._content_files,
-            )
-        )
+    # def _initialize_tn_book_intro(self) -> str:
+    #     book_intro_template: str = ""
+    #     book_intro_files: List[str] = []
+    #     book_intro_files = list(
+    #         filter(
+    #             lambda content_file: os.path.join("front", "intro")
+    #             in content_file.lower(),
+    #             self._content_files,
+    #         )
+    #     )
 
-        tn_book_intro_content_md = ""
-        if book_intro_files and os.path.isfile(book_intro_files[0]):
-            logger.debug("book_intro_files[0]: {}".format(book_intro_files[0]))
-            tn_book_intro_content_md = file_utils.read_file(book_intro_files[0])
-            title: str = markdown_utils.get_first_header(tn_book_intro_content_md)
-            book_intro_id_tag = '<a id="tn-{}-front-intro"/>'.format(self._book_id)
-            book_intro_anchor_id = "tn-{}-front-intro".format(self._book_id)
-            book_intro_rc_link = "rc://{}/tn/help/{}/front/intro".format(
-                self._lang_code, self._book_id
-            )
-            data = model.BookIntroTemplateDto(
-                book_id=self._book_id,
-                content=tn_book_intro_content_md,
-                id_tag=book_intro_id_tag,
-                anchor_id=book_intro_anchor_id,
-            )
+    #     tn_book_intro_content_md = ""
+    #     if book_intro_files and os.path.isfile(book_intro_files[0]):
+    #         logger.debug("book_intro_files[0]: {}".format(book_intro_files[0]))
+    #         tn_book_intro_content_md = file_utils.read_file(book_intro_files[0])
+    #         title: str = markdown_utils.get_first_header(tn_book_intro_content_md)
+    #         book_intro_id_tag = '<a id="tn-{}-front-intro"/>'.format(self._book_id)
+    #         book_intro_anchor_id = "tn-{}-front-intro".format(self._book_id)
+    #         book_intro_rc_link = "rc://{}/tn/help/{}/front/intro".format(
+    #             self._lang_code, self._book_id
+    #         )
+    #         data = model.BookIntroTemplateDto(
+    #             book_id=self._book_id,
+    #             content=tn_book_intro_content_md,
+    #             id_tag=book_intro_id_tag,
+    #             anchor_id=book_intro_anchor_id,
+    #         )
 
-            book_intro_template = config.get_instantiated_template("book_intro", data)
+    #         book_intro_template = config.get_instantiated_template("book_intro", data)
 
-            self._resource_data[book_intro_rc_link] = {
-                "rc": book_intro_rc_link,
-                "id": book_intro_anchor_id,
-                "link": "#{}".format(book_intro_anchor_id),
-                "title": title,
-            }
-            self._my_rcs.append(book_intro_rc_link)
-            link_utils.get_resource_data_from_rc_links(
-                self._lang_code,
-                self._my_rcs,
-                self._rc_references,
-                self._resource_data,
-                self._bad_links,
-                self._working_dir,
-                tn_book_intro_content_md,
-                book_intro_rc_link,
-            )
+    #         self._resource_data[book_intro_rc_link] = {
+    #             "rc": book_intro_rc_link,
+    #             "id": book_intro_anchor_id,
+    #             "link": "#{}".format(book_intro_anchor_id),
+    #             "title": title,
+    #         }
+    #         self._my_rcs.append(book_intro_rc_link)
+    #         link_utils.get_resource_data_from_rc_links(
+    #             self._lang_code,
+    #             self._my_rcs,
+    #             self._rc_references,
+    #             self._resource_data,
+    #             self._bad_links,
+    #             self._working_dir,
+    #             tn_book_intro_content_md,
+    #             book_intro_rc_link,
+    #         )
 
-        return book_intro_template
-        # Old code that new code above replaces:
-        # intro_file = os.path.join(book_dir, "front", "intro.md")
-        # book_has_intro = os.path.isfile(intro_file)
-        # md = ""
-        # if book_has_intro:
-        #     md = file_utils.read_file(intro_file)
-        #     title = markdown_utils.get_first_header(md)
-        #     md = link_utils.fix_tn_links(self._lang_code, self._book_id, md, "intro")
-        #     md = markdown_utils.increase_headers(md)
-        #     # bring headers of 5 or more #'s down 1
-        #     md = markdown_utils.decrease_headers(md, 5)
-        #     id_tag = '<a id="tn-{}-front-intro"/>'.format(self._book_id)
-        #     md = re.compile(r"# ([^\n]+)\n").sub(r"# \1\n{}\n".format(id_tag), md, 1)
-        #     # Create placeholder link
-        #     rc = "rc://{}/tn/help/{}/front/intro".format(self._lang_code, self._book_id)
-        #     anchor_id = "tn-{}-front-intro".format(self._book_id)
-        #     self._resource_data[rc] = {
-        #         "rc": rc,
-        #         "id": anchor_id,
-        #         "link": "#{}".format(anchor_id),
-        #         "title": title,
-        #     }
-        #     self._my_rcs.append(rc)
-        #     link_utils.get_resource_data_from_rc_links(
-        #         self._lang_code,
-        #         self._my_rcs,
-        #         self._rc_references,
-        #         self._resource_data,
-        #         self._bad_links,
-        #         self._working_dir,
-        #         md,
-        #         rc,
-        #     )
-        #     md += "\n\n"
+    #     return book_intro_template
+    #     # Old code that new code above replaces:
+    #     # intro_file = os.path.join(book_dir, "front", "intro.md")
+    #     # book_has_intro = os.path.isfile(intro_file)
+    #     # md = ""
+    #     # if book_has_intro:
+    #     #     md = file_utils.read_file(intro_file)
+    #     #     title = markdown_utils.get_first_header(md)
+    #     #     md = link_utils.fix_tn_links(self._lang_code, self._book_id, md, "intro")
+    #     #     md = markdown_utils.increase_headers(md)
+    #     #     # bring headers of 5 or more #'s down 1
+    #     #     md = markdown_utils.decrease_headers(md, 5)
+    #     #     id_tag = '<a id="tn-{}-front-intro"/>'.format(self._book_id)
+    #     #     md = re.compile(r"# ([^\n]+)\n").sub(r"# \1\n{}\n".format(id_tag), md, 1)
+    #     #     # Create placeholder link
+    #     #     rc = "rc://{}/tn/help/{}/front/intro".format(self._lang_code, self._book_id)
+    #     #     anchor_id = "tn-{}-front-intro".format(self._book_id)
+    #     #     self._resource_data[rc] = {
+    #     #         "rc": rc,
+    #     #         "id": anchor_id,
+    #     #         "link": "#{}".format(anchor_id),
+    #     #         "title": title,
+    #     #     }
+    #     #     self._my_rcs.append(rc)
+    #     #     link_utils.get_resource_data_from_rc_links(
+    #     #         self._lang_code,
+    #     #         self._my_rcs,
+    #     #         self._rc_references,
+    #     #         self._resource_data,
+    #     #         self._bad_links,
+    #     #         self._working_dir,
+    #     #         md,
+    #     #         rc,
+    #     #     )
+    #     #     md += "\n\n"
 
-    def _initialize_tn_chapter_intro(self, chapter_dir: str, chapter: str) -> str:
-        tn_chapter_intro_md = ""
-        intro_file = os.path.join(chapter_dir, "intro.md")
-        if os.path.isfile(intro_file):
-            try:
-                tn_chapter_intro_md = file_utils.read_file(intro_file)
-            except ValueError as exc:
-                logger.debug("Error opening file:", exc)
-                return ""
-            else:
-                title = markdown_utils.get_first_header(tn_chapter_intro_md)
-                tn_chapter_intro_md = link_utils.fix_tn_links(
-                    self._lang_code, self._book_id, tn_chapter_intro_md, chapter
-                )
-                tn_chapter_intro_md = markdown_utils.increase_headers(
-                    tn_chapter_intro_md
-                )
-                tn_chapter_intro_md = markdown_utils.decrease_headers(
-                    tn_chapter_intro_md, 5, 2
-                )  # bring headers of 5 or more #'s down 2
-                id_tag = '<a id="tn-{}-{}-intro"/>'.format(
-                    self._book_id, link_utils.pad(self._book_id, chapter)
-                )
-                tn_chapter_intro_md = re.compile(r"# ([^\n]+)\n").sub(
-                    r"# \1\n{}\n".format(id_tag), tn_chapter_intro_md, 1
-                )
-                # Create placeholder link
-                rc = "rc://{}/tn/help/{}/{}/intro".format(
-                    self._lang_code,
-                    self._book_id,
-                    link_utils.pad(self._book_id, chapter),
-                )
-                anchor_id = "tn-{}-{}-intro".format(
-                    self._book_id, link_utils.pad(self._book_id, chapter)
-                )
-                self._resource_data[rc] = {
-                    "rc": rc,
-                    "id": anchor_id,
-                    "link": "#{}".format(anchor_id),
-                    "title": title,
-                }
-                self._my_rcs.append(rc)
-                link_utils.get_resource_data_from_rc_links(
-                    self._lang_code,
-                    self._my_rcs,
-                    self._rc_references,
-                    self._resource_data,
-                    self._bad_links,
-                    self._working_dir,
-                    tn_chapter_intro_md,
-                    rc,
-                )
-                tn_chapter_intro_md += "\n\n"
-        return tn_chapter_intro_md
+    # def _initialize_tn_chapter_intro(self, chapter_dir: str, chapter: str) -> str:
+    #     tn_chapter_intro_md = ""
+    #     intro_file = os.path.join(chapter_dir, "intro.md")
+    #     if os.path.isfile(intro_file):
+    #         try:
+    #             tn_chapter_intro_md = file_utils.read_file(intro_file)
+    #         except ValueError as exc:
+    #             logger.debug("Error opening file:", exc)
+    #             return ""
+    #         else:
+    #             title = markdown_utils.get_first_header(tn_chapter_intro_md)
+    #             tn_chapter_intro_md = link_utils.fix_tn_links(
+    #                 self._lang_code, self._book_id, tn_chapter_intro_md, chapter
+    #             )
+    #             tn_chapter_intro_md = markdown_utils.increase_headers(
+    #                 tn_chapter_intro_md
+    #             )
+    #             tn_chapter_intro_md = markdown_utils.decrease_headers(
+    #                 tn_chapter_intro_md, 5, 2
+    #             )  # bring headers of 5 or more #'s down 2
+    #             id_tag = '<a id="tn-{}-{}-intro"/>'.format(
+    #                 self._book_id, link_utils.pad(self._book_id, chapter)
+    #             )
+    #             tn_chapter_intro_md = re.compile(r"# ([^\n]+)\n").sub(
+    #                 r"# \1\n{}\n".format(id_tag), tn_chapter_intro_md, 1
+    #             )
+    #             # Create placeholder link
+    #             rc = "rc://{}/tn/help/{}/{}/intro".format(
+    #                 self._lang_code,
+    #                 self._book_id,
+    #                 link_utils.pad(self._book_id, chapter),
+    #             )
+    #             anchor_id = "tn-{}-{}-intro".format(
+    #                 self._book_id, link_utils.pad(self._book_id, chapter)
+    #             )
+    #             self._resource_data[rc] = {
+    #                 "rc": rc,
+    #                 "id": anchor_id,
+    #                 "link": "#{}".format(anchor_id),
+    #                 "title": title,
+    #             }
+    #             self._my_rcs.append(rc)
+    #             link_utils.get_resource_data_from_rc_links(
+    #                 self._lang_code,
+    #                 self._my_rcs,
+    #                 self._rc_references,
+    #                 self._resource_data,
+    #                 self._bad_links,
+    #                 self._working_dir,
+    #                 tn_chapter_intro_md,
+    #                 rc,
+    #             )
+    #             tn_chapter_intro_md += "\n\n"
+    #     return tn_chapter_intro_md
 
     # FIXME Should we change to function w no non-local side-effects
     # and move to markdown_utils.py?
@@ -1105,6 +1091,262 @@ class TNResource(TResource):
     #     return md
 
 
+class TQResource(TResource):
+    """
+    This class specializes Resource for the case of a Translation
+    Questions resource.
+    """
+
+    def __init__(self, *args, **kwargs) -> None:  # type: ignore
+        super().__init__(*args, **kwargs)
+        self._book_payload: model.TQBookPayload
+
+    @log_on_start(
+        logging.INFO, "Processing Translation Questions Markdown...", logger=logger
+    )
+    def get_content(self) -> None:
+        """
+        Get Markdown content from this resource's file assets. Then do
+        some manipulation of said Markdown content according to the
+        needs of the document output. Then convert the Markdown content
+        into HTML content.
+        """
+        # FIXME All the work is done in _initialize_verses_html.
+        # So these legacy methods are turned off for now. There are
+        # likely bits of logic from these two functions that will find
+        # their way back into the system later though (in a different
+        # and improved form), e.g., linking.
+        # self._get_tn_markdown()
+        # self._transform_content()
+
+        self._initialize_from_assets()
+        self._initialize_verses_html()
+
+    @property
+    def book_payload(self) -> model.TQBookPayload:
+        """Provide public interface for other modules."""
+        return self._book_payload
+
+    @log_on_start(
+        logging.DEBUG, "self._resource_dir: {self._resource_dir}", logger=logger
+    )
+    def _initialize_from_assets(self) -> None:
+        """See docstring in superclass."""
+        self._manifest = Manifest(self)
+
+        # FIXME Slated for removal
+        # # Get the content files
+        # markdown_files = glob(
+        #     "{}/*{}/**/*.md".format(self._resource_dir, self._resource_code)
+        # )
+        # # logger.debug("markdown_files: {}".format(markdown_files))
+        # markdown_content_files = list(
+        #     filter(
+        #         lambda markdown_file: str(pathlib.Path(markdown_file).stem).lower()
+        #         not in config.get_markdown_doc_file_names(),
+        #         markdown_files,
+        #     )
+        # )
+        # txt_files = glob(
+        #     "{}/*{}/**/*.txt".format(self._resource_dir, self._resource_code)
+        # )
+        # # logger.debug("txt_files: {}".format(txt_files))
+        # txt_content_files = list(
+        #     filter(
+        #         lambda txt_file: str(pathlib.Path(txt_file).stem).lower()
+        #         not in config.get_markdown_doc_file_names(),
+        #         txt_files,
+        #     )
+        # )
+
+        # if markdown_content_files:
+        #     self._content_files = list(
+        #         filter(
+        #             lambda markdown_file: self._resource_code.lower()
+        #             in markdown_file.lower(),
+        #             markdown_files,
+        #         )
+        #     )
+        # if txt_content_files:
+        #     self._content_files = list(
+        #         filter(
+        #             lambda txt_file: self._resource_code.lower()
+        #             in txt_file.lower(),
+        #             txt_files,
+        #         )
+        #     )
+
+    def _initialize_verses_html(self) -> None:
+        """
+        Find translation questions for the verses.
+        """
+        # Create the Markdown instance once and have it use our markdown
+        # extension that changes (See [[rc:foo]]) style links into [](rc:foo)
+        # style links for now. This is an experiment to supplant legacy code
+        # that makes link transformations on raw Markdown content. This will
+        # likely change again with the coming link transformation overhaul I
+        # have planned.
+        # md = markdown.Markdown()
+        md = markdown.Markdown(extensions=[wikilink_preprocessor.WikiLinkExtension()])
+        # FIXME We already went to the trouble of finding the Markdown
+        # or TXT files and storing their paths in self._content_files, perhaps
+        # we'll use those rather than globbing again here. Currently
+        # refactoring to final design, just a note for the future.
+        chapter_dirs = sorted(
+            glob("{}/**/*{}/*[0-9]*".format(self._resource_dir, self._resource_code))
+        )
+        # Some languages are organized differently on disk (e.g., depending
+        # on if their assets were acquired as a git repo or a zip).
+        # We handle this here.
+        if not chapter_dirs:
+            chapter_dirs = sorted(
+                glob("{}/*{}/*[0-9]*".format(self._resource_dir, self._resource_code))
+            )
+        chapter_verses: Dict[int, model.TQChapterPayload] = {}
+        for chapter_dir in chapter_dirs:
+            chapter_num = int(os.path.split(chapter_dir)[-1])
+            # FIXME For some languages, TN assets are stored in .txt files
+            # rather of .md files. Handle this.
+            # intro_paths = glob("{}/*intro.md".format(chapter_dir))
+            # intro_path = intro_paths[0] if intro_paths else None
+            # intro_html = ""
+            # if intro_path:
+            #     with open(intro_path, "r", encoding="utf-8") as fin:
+            #         intro_html = fin.read()
+            #         # NOTE I am not sure the 'Links' section make
+            #         # sense in the new interleaving design, so let's
+            #         # remove it for now.
+            #         intro_html = markdown_utils.remove_md_section(intro_html, "Links:")
+            #         intro_html = md.convert(intro_html)
+            # FIXME For some languages, TN assets are stored in .txt files
+            # rather of .md files. Handle this.
+            verse_paths = sorted(glob("{}/*[0-9]*.md".format(chapter_dir)))
+            verses_html: Dict[int, str] = {}
+            for filepath in verse_paths:
+                verse_num = int(pathlib.Path(filepath).stem)
+                verse_content = ""
+                with open(filepath, "r", encoding="utf-8") as fin2:
+                    verse_content = fin2.read()
+                    # NOTE I am not sure the 'Links' section make
+                    # sense in the new interleaving design, so let's
+                    # remove it for now.
+                    # NOTE I don't think translation questions have a
+                    # 'Links:' section.
+                    # verse_content = markdown_utils.remove_md_section(
+                    #     verse_content, "Links:"
+                    # )
+                    verse_content = md.convert(verse_content)
+                verses_html[verse_num] = verse_content
+            chapter_payload = model.TQChapterPayload(verses_html=verses_html)
+            chapter_verses[chapter_num] = chapter_payload
+        # Get the book intro if it exists
+        # FIXME For some languages, TN assets are stored in .txt files
+        # rather of .md files. Handle this.
+        # book_intro_path = glob(
+        #     "{}/*{}/front/intro.md".format(self._resource_dir, self._resource_code)
+        # )
+        # book_intro_html = ""
+        # if book_intro_path:
+        #     with open(book_intro_path[0], "r", encoding="utf-8") as fin3:
+        #         book_intro_html = md.convert(fin3.read())
+        self._book_payload = model.TQBookPayload(chapters=chapter_verses)
+
+    # def _get_tq_markdown(self) -> None:
+    #     """Build tq markdown"""
+    #     tq_md = '# Translation Questions\n<a id="tq-{}"/>\n\n'.format(self._book_id)
+    #     title = "{} Translation Questions".format(self._book_title)
+    #     tq_rc_link = "rc://{}/tq/help/{}".format(self._lang_code, self._book_id)
+    #     anchor_id = "tq-{}".format(self._book_id)
+    #     self._resource_data[tq_rc_link] = {
+    #         "rc": tq_rc_link,
+    #         "id": anchor_id,
+    #         "link": "#{}".format(anchor_id),
+    #         "title": title,
+    #     }
+    #     self._my_rcs.append(tq_rc_link)
+    #     tq_book_dir = os.path.join(self._resource_dir, self._book_id)
+    #     for chapter in sorted(os.listdir(tq_book_dir)):
+    #         chapter_dir = os.path.join(tq_book_dir, chapter)
+    #         chapter = chapter.lstrip("0")
+    #         if os.path.isdir(chapter_dir) and re.match(r"^\d+$", chapter):
+    #             id_tag = '<a id="tq-{}-{}"/>'.format(
+    #                 self._book_id, link_utils.pad(self._book_id, chapter)
+    #             )
+    #             tq_md += "## {} {}\n{}\n\n".format(self._book_title, chapter, id_tag)
+    #             # TODO localization
+    #             title = "{} {} Translation Questions".format(self._book_title, chapter)
+    #             tq_rc_link = "rc://{}/tq/help/{}/{}".format(
+    #                 self._lang_code,
+    #                 self._book_id,
+    #                 link_utils.pad(self._book_id, chapter),
+    #             )
+    #             anchor_id = "tq-{}-{}".format(
+    #                 self._book_id, link_utils.pad(self._book_id, chapter)
+    #             )
+    #             self._resource_data[tq_rc_link] = {
+    #                 "rc": tq_rc_link,
+    #                 "id": anchor_id,
+    #                 "link": "#{0}".format(anchor_id),
+    #                 "title": title,
+    #             }
+    #             self._my_rcs.append(tq_rc_link)
+    #             for chunk in sorted(os.listdir(chapter_dir)):
+    #                 chunk_file = os.path.join(chapter_dir, chunk)
+    #                 first_verse = os.path.splitext(chunk)[0].lstrip("0")
+    #                 if os.path.isfile(chunk_file) and re.match(r"^\d+$", first_verse):
+    #                     tq_chapter_md = file_utils.read_file(chunk_file)
+    #                     tq_chapter_md = markdown_utils.increase_headers(
+    #                         tq_chapter_md, 2
+    #                     )
+    #                     tq_chapter_md = re.compile("^([^#\n].+)$", flags=re.M).sub(
+    #                         r'\1 [<a href="#tn-{}-{}-{}">{}:{}</a>]'.format(
+    #                             self._book_id,
+    #                             link_utils.pad(self._book_id, chapter),
+    #                             link_utils.pad(self._book_id, first_verse),
+    #                             chapter,
+    #                             first_verse,
+    #                         ),
+    #                         tq_chapter_md,
+    #                     )
+    #                     # TODO localization
+    #                     title = "{} {}:{} Translation Questions".format(
+    #                         self._book_title, chapter, first_verse
+    #                     )
+    #                     tq_rc_link = "rc://{}/tq/help/{}/{}/{}".format(
+    #                         self._lang_code,
+    #                         self._book_id,
+    #                         link_utils.pad(self._book_id, chapter),
+    #                         link_utils.pad(self._book_id, first_verse),
+    #                     )
+    #                     anchor_id = "tq-{}-{}-{}".format(
+    #                         self._book_id,
+    #                         link_utils.pad(self._book_id, chapter),
+    #                         link_utils.pad(self._book_id, first_verse),
+    #                     )
+    #                     self._resource_data[tq_rc_link] = {
+    #                         "rc": tq_rc_link,
+    #                         "id": anchor_id,
+    #                         "link": "#{}".format(anchor_id),
+    #                         "title": title,
+    #                     }
+    #                     self._my_rcs.append(tq_rc_link)
+    #                     link_utils.get_resource_data_from_rc_links(
+    #                         self._lang_code,
+    #                         self._my_rcs,
+    #                         self._rc_references,
+    #                         self._resource_data,
+    #                         self._bad_links,
+    #                         self._working_dir,
+    #                         tq_chapter_md,
+    #                         tq_rc_link,
+    #                     )
+    #                     tq_chapter_md += "\n\n"
+    #                     tq_md += tq_chapter_md
+    #     logger.debug("tq_md is {0}".format(tq_md))
+    #     self._content = tq_md
+    #     # return tq_md
+
+
 class TWResource(TResource):
     """
     This class specializes Resource for the case of a Translation
@@ -1160,116 +1402,6 @@ class TWResource(TResource):
         # return tw_md
 
 
-class TQResource(TResource):
-    """
-    This class specializes Resource for the case of a Translation
-    Questions resource.
-    """
-
-    @log_on_start(
-        logging.INFO, "Processing Translation Questions Markdown...", logger=logger
-    )
-    def get_content(self) -> None:
-        """See docstring in superclass."""
-        self._get_tq_markdown()
-        self._transform_content()
-
-    def _get_tq_markdown(self) -> None:
-        """Build tq markdown"""
-        tq_md = '# Translation Questions\n<a id="tq-{}"/>\n\n'.format(self._book_id)
-        title = "{} Translation Questions".format(self._book_title)
-        tq_rc_link = "rc://{}/tq/help/{}".format(self._lang_code, self._book_id)
-        anchor_id = "tq-{}".format(self._book_id)
-        self._resource_data[tq_rc_link] = {
-            "rc": tq_rc_link,
-            "id": anchor_id,
-            "link": "#{}".format(anchor_id),
-            "title": title,
-        }
-        self._my_rcs.append(tq_rc_link)
-        tq_book_dir = os.path.join(self._resource_dir, self._book_id)
-        for chapter in sorted(os.listdir(tq_book_dir)):
-            chapter_dir = os.path.join(tq_book_dir, chapter)
-            chapter = chapter.lstrip("0")
-            if os.path.isdir(chapter_dir) and re.match(r"^\d+$", chapter):
-                id_tag = '<a id="tq-{}-{}"/>'.format(
-                    self._book_id, link_utils.pad(self._book_id, chapter)
-                )
-                tq_md += "## {} {}\n{}\n\n".format(self._book_title, chapter, id_tag)
-                # TODO localization
-                title = "{} {} Translation Questions".format(self._book_title, chapter)
-                tq_rc_link = "rc://{}/tq/help/{}/{}".format(
-                    self._lang_code,
-                    self._book_id,
-                    link_utils.pad(self._book_id, chapter),
-                )
-                anchor_id = "tq-{}-{}".format(
-                    self._book_id, link_utils.pad(self._book_id, chapter)
-                )
-                self._resource_data[tq_rc_link] = {
-                    "rc": tq_rc_link,
-                    "id": anchor_id,
-                    "link": "#{0}".format(anchor_id),
-                    "title": title,
-                }
-                self._my_rcs.append(tq_rc_link)
-                for chunk in sorted(os.listdir(chapter_dir)):
-                    chunk_file = os.path.join(chapter_dir, chunk)
-                    first_verse = os.path.splitext(chunk)[0].lstrip("0")
-                    if os.path.isfile(chunk_file) and re.match(r"^\d+$", first_verse):
-                        tq_chapter_md = file_utils.read_file(chunk_file)
-                        tq_chapter_md = markdown_utils.increase_headers(
-                            tq_chapter_md, 2
-                        )
-                        tq_chapter_md = re.compile("^([^#\n].+)$", flags=re.M).sub(
-                            r'\1 [<a href="#tn-{}-{}-{}">{}:{}</a>]'.format(
-                                self._book_id,
-                                link_utils.pad(self._book_id, chapter),
-                                link_utils.pad(self._book_id, first_verse),
-                                chapter,
-                                first_verse,
-                            ),
-                            tq_chapter_md,
-                        )
-                        # TODO localization
-                        title = "{} {}:{} Translation Questions".format(
-                            self._book_title, chapter, first_verse
-                        )
-                        tq_rc_link = "rc://{}/tq/help/{}/{}/{}".format(
-                            self._lang_code,
-                            self._book_id,
-                            link_utils.pad(self._book_id, chapter),
-                            link_utils.pad(self._book_id, first_verse),
-                        )
-                        anchor_id = "tq-{}-{}-{}".format(
-                            self._book_id,
-                            link_utils.pad(self._book_id, chapter),
-                            link_utils.pad(self._book_id, first_verse),
-                        )
-                        self._resource_data[tq_rc_link] = {
-                            "rc": tq_rc_link,
-                            "id": anchor_id,
-                            "link": "#{}".format(anchor_id),
-                            "title": title,
-                        }
-                        self._my_rcs.append(tq_rc_link)
-                        link_utils.get_resource_data_from_rc_links(
-                            self._lang_code,
-                            self._my_rcs,
-                            self._rc_references,
-                            self._resource_data,
-                            self._bad_links,
-                            self._working_dir,
-                            tq_chapter_md,
-                            tq_rc_link,
-                        )
-                        tq_chapter_md += "\n\n"
-                        tq_md += tq_chapter_md
-        logger.debug("tq_md is {0}".format(tq_md))
-        self._content = tq_md
-        # return tq_md
-
-
 class TAResource(TResource):
     """
     This class specializes Resource for the case of a Translation
@@ -1318,7 +1450,8 @@ def resource_factory(
     working_dir: str,
     output_dir: str,
     resource_request: model.ResourceRequest,
-    assembly_strategy_kind: model.AssemblyStrategyEnum,
+    # FIXME Why should resources care about assembly strategies?
+    # assembly_strategy_kind: model.AssemblyStrategyEnum,
 ) -> Resource:
     """
     Factory method to create the appropriate Resource subclass for
@@ -1343,7 +1476,7 @@ def resource_factory(
         "ta-wa": TAResource,
     }
     return resources[resource_request.resource_type](
-        working_dir, output_dir, resource_request, assembly_strategy_kind
+        working_dir, output_dir, resource_request
     )  # type: ignore
 
 
