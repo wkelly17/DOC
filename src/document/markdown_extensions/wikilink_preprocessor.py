@@ -7,7 +7,7 @@ from markdown import Extension
 from markdown.preprocessors import Preprocessor
 from typing import Any, Dict, List
 
-from document import config
+# from document import config
 
 # logger = config.get_logger(__name__)
 
@@ -30,11 +30,12 @@ class WikiLinkPreprocessor(Preprocessor):
         # Example use of config. See __init__ for WikiLinkExtension
         # below for initialization.
         # self.encoding = config.get("encoding")
-        super(WikiLinkPreprocessor, self).__init__()
+        # super(WikiLinkPreprocessor, self).__init__()
+        super().__init__()
 
     # @log_on_end(logging.DEBUG, "lines after preprocessor: {result}", logger=logger)
-    def parse_wikilinks(self, lines: List[str]) -> List[str]:
-        """Parse wikilinks and convert to Markdown links."""
+    def convert_wikilinks(self, lines: List[str]) -> List[str]:
+        """Convert wiki style links into Markdown links."""
         source = "\n".join(lines)
         pattern = r"\[\[(.*?)\]\]"
         # if m := re.search(pattern, source):
@@ -44,21 +45,22 @@ class WikiLinkPreprocessor(Preprocessor):
         return source.split("\n")
 
     def run(self, lines: List[str]) -> List[str]:
-        """Process wikilinks."""
-        return self.parse_wikilinks(lines)
+        """Entrypoint."""
+        return self.convert_wikilinks(lines)
 
 
 class WikiLinkExtension(Extension):
     """Wikilink to Markdown link conversion extension."""
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
+    def __init__(self, *args: List, **kwargs: Dict) -> None:
         """Initialize."""
         self.config = {
             # Example config entry from the snippets extension that
             # ships with Python-Markdown library.
             # "encoding": ["utf-8", 'Encoding of snippets - Default: "utf-8"'],
         }
-        super(WikiLinkExtension, self).__init__(*args, **kwargs)
+        # super(WikiLinkExtension, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def extendMarkdown(self, md: markdown.Markdown) -> None:
         """Register the extension."""
