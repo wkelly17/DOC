@@ -399,6 +399,15 @@ class USFMResource(Resource):
                     '<span class="v-num"'
                     + verse_content_str.split('<span class="v-num"')[1]
                 )
+                # At this point we alter verse_content_str span's ID by prepending the
+                # lang_code to ensure unique verse references within language scope in a
+                # multi-language document.
+                pattern = r'id="(.+?)-ch-(.+?)-v-(.+?)"'
+                verse_content_str = re.sub(
+                    pattern,
+                    r"id='{}-\1-ch-\2-v-\3'".format(self.lang_code),
+                    verse_content_str,
+                )
                 chapter_verses[verse_num] = verse_content_str
             self._chapters_content[chapter_num] = model.USFMChapter(
                 chapter_content=chapter_content, chapter_verses=chapter_verses,
