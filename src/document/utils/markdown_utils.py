@@ -3,32 +3,6 @@ import re
 import icontract
 
 
-# NOTE This function's logic could opssibly be moved into a Markdown
-# extension's run method.
-def remove_md_section(md: str, section_name: str) -> str:
-    """
-    Given markdown and a section name, removes the section header and the
-    text contained in the section.
-    """
-    header_regex = re.compile("^#.*$")
-    section_regex = re.compile("^#+ {}".format(section_name))
-    out_md = ""
-    in_section = False
-    for line in md.splitlines():
-        if in_section:
-            if header_regex.match(line):
-                # We found a header.  The section is over.
-                out_md += line + "\n"
-                in_section = False
-        else:
-            if section_regex.match(line):
-                # We found the section header.
-                in_section = True
-            else:
-                out_md = "{}{}\n".format(out_md, line)
-    return out_md
-
-
 @icontract.require(lambda text: text is not None)
 def increase_headers(text: str, increase_depth: int = 1) -> str:
     """Increase Markdown headers by increase_depth amount."""

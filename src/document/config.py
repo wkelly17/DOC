@@ -402,3 +402,11 @@ def get_default_assembly_substrategy() -> model.AssemblySubstrategyEnum:
     sub-strategies and choose one to put in play at a time here.
     """
     return model.AssemblySubstrategyEnum.VERSE
+
+
+def get_markdown_sections_to_remove() -> List[str]:
+    """
+    Return a list of the Markdown section titles that our
+    Python-Markdown remove_section_processor extension should remove.
+    """
+    return ["Bible References", "Examples from the Bible stories", "Links"]

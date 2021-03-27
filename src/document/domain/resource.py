@@ -654,7 +654,6 @@ class TNResource(TResource):
                     # NOTE I am not sure the 'Links' section make
                     # sense in the new interleaving design, so let's
                     # remove it for now.
-                    intro_html = markdown_utils.remove_md_section(intro_html, "Links:")
                     intro_html = md.convert(intro_html)
             # FIXME For some languages, TN assets are stored in .txt files
             # rather of .md files. Handle this.
@@ -668,9 +667,6 @@ class TNResource(TResource):
                     # NOTE I am not sure the 'Links' section make
                     # sense in the new interleaving design, so let's
                     # remove it for now.
-                    verse_content = markdown_utils.remove_md_section(
-                        verse_content, "Links:"
-                    )
                     verse_content = md.convert(verse_content)
                 verses_html[verse_num] = verse_content
             chapter_payload = model.TNChapterPayload(
