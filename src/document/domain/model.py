@@ -96,6 +96,16 @@ class DocumentRequest(BaseModel):
 
     assembly_strategy_kind: AssemblyStrategyEnum
     resource_requests: List[ResourceRequest]
+class ManifestFormatTypeEnum(str, Enum):
+    """
+    Manifest files can come in a variety of formats types: YAML,
+    JSON, or either of the previous two with a TXT suffix. There can
+    be others as well.
+    """
+
+    YAML = "yaml"
+    JSON = "json"
+    TXT = "txt"
 
 
 class ResourceLookupDto(BaseModel):

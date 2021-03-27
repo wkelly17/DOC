@@ -1727,17 +1727,17 @@ class Manifest:
     @icontract.require(lambda self: self.manifest_type)
     def _is_yaml(self) -> bool:
         """Return true if the resource's manifest file has suffix yaml."""
-        return self.manifest_type == config.YAML
+        return self.manifest_type == model.ManifestFormatTypeEnum.YAML
 
     @icontract.require(lambda self: self.manifest_type)
     def _is_txt(self) -> bool:
         """Return true if the resource's manifest file has suffix json."""
-        return self.manifest_type == config.TXT
+        return self.manifest_type == model.ManifestFormatTypeEnum.TXT
 
     @icontract.require(lambda self: self.manifest_type)
     def _is_json(self) -> bool:
         """Return true if the resource's manifest file has suffix json."""
-        return self.manifest_type == config.JSON
+        return self.manifest_type == model.ManifestFormatTypeEnum.JSON
 
     # FIXME Not currently used. The idea for how this would be used is
     # to verify that the book project that we have already found via
