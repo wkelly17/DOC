@@ -13,14 +13,7 @@ import yaml
 from document import config
 from document.domain import model
 
-# FIXME Use pydantic Settings and types
 
-GIT = "git"
-USFM = "usfm"
-ZIP = "zip"
-YAML_SUFFIX = ".yaml"
-TXT_SUFFIX = ".txt"
-JSON_SUFFIX = ".json"
 REPO_URL_DICT_KEY = "../download-scripture?repo_url"
 RESOURCE_TYPES_JSONPATH = "$[*].contents[*].code"
 RESOURCE_CODES_JSONPATH = "$[*].contents[*].subcontents[*].code"

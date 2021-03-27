@@ -1633,12 +1633,12 @@ class ResourceProvisioner:
     @icontract.require(lambda self: self._resource.resource_source)
     def _is_git(self) -> bool:
         """Return true if _resource_source is equal to 'git'."""
-        return self._resource.resource_source == config.GIT
+        return self._resource.resource_source == model.AssetSourceEnum.GIT
 
     @icontract.require(lambda self: self._resource.resource_source)
     def _is_zip(self) -> bool:
         """Return true if _resource_source is equal to 'zip'."""
-        return self._resource.resource_source == config.ZIP
+        return self._resource.resource_source == model.AssetSourceEnum.ZIP
 
 
 class Manifest:

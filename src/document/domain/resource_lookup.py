@@ -83,7 +83,7 @@ class ResourceJsonLookup:
 
     @icontract.require(lambda resource: resource.lang_code == "en")
     @icontract.require(lambda resource: resource.resource_type is not None)
-    @icontract.ensure(lambda result: result.source == config.GIT)
+    @icontract.ensure(lambda result: result.source == model.AssetSourceEnum.GIT)
     @icontract.ensure(lambda result: result.url is not None)
     @log_on_start(
         logging.INFO,
@@ -99,7 +99,10 @@ class ResourceJsonLookup:
         """
         url: str = config.get_english_repos_dict()[resource.resource_type]
         return model.ResourceLookupDto(
-            url=url, source=config.GIT, jsonpath=None, lang_name="English"
+            url=url,
+            source=model.AssetSourceEnum.GIT,
+            jsonpath=None,
+            lang_name="English",
         )
 
     @icontract.require(
@@ -108,7 +111,7 @@ class ResourceJsonLookup:
         and resource.resource_code is not None
     )
     @icontract.ensure(
-        lambda result: result.source == config.GIT
+        lambda result: result.source == model.AssetSourceEnum.GIT
         and result.jsonpath is not None
         # and result.lang_name
     )
@@ -140,7 +143,10 @@ class ResourceJsonLookup:
         else:
             lang_name = ""
         return model.ResourceLookupDto(
-            url=url, source=config.GIT, jsonpath=jsonpath_str, lang_name=lang_name,
+            url=url,
+            source=model.AssetSourceEnum.GIT,
+            jsonpath=jsonpath_str,
+            lang_name=lang_name,
         )
 
     @icontract.require(
@@ -332,7 +338,7 @@ class USFMResourceJsonLookup(ResourceLookup):
         and resource.resource_code is not None
     )
     @icontract.ensure(
-        lambda result: result.source == config.USFM
+        lambda result: result.source == model.AssetSourceEnum.USFM
         and result.jsonpath is not None
         # and result.lang_name
     )
@@ -381,7 +387,10 @@ class USFMResourceJsonLookup(ResourceLookup):
             lang_name = ""
 
         return model.ResourceLookupDto(
-            url=url, source=config.USFM, jsonpath=jsonpath_str, lang_name=lang_name
+            url=url,
+            source=model.AssetSourceEnum.USFM,
+            jsonpath=jsonpath_str,
+            lang_name=lang_name,
         )
 
 
@@ -436,7 +445,7 @@ class TResourceJsonLookup(ResourceLookup):
 
     @icontract.require(lambda resource: resource.lang_code is not None)
     @icontract.require(lambda resource: resource.resource_type is not None)
-    @icontract.ensure(lambda result: result.source == config.ZIP)
+    @icontract.ensure(lambda result: result.source == model.AssetSourceEnum.ZIP)
     @icontract.ensure(lambda result: result.jsonpath is not None)
     def _try_level1_location(self, resource: Resource) -> model.ResourceLookupDto:
         """
@@ -464,12 +473,15 @@ class TResourceJsonLookup(ResourceLookup):
         else:
             lang_name = ""
         return model.ResourceLookupDto(
-            url=url, source=config.ZIP, jsonpath=jsonpath_str, lang_name=lang_name
+            url=url,
+            source=model.AssetSourceEnum.ZIP,
+            jsonpath=jsonpath_str,
+            lang_name=lang_name,
         )
 
     @icontract.require(lambda resource: resource.lang_code is not None)
     @icontract.require(lambda resource: resource.resource_type is not None)
-    @icontract.ensure(lambda result: result.source == config.ZIP)
+    @icontract.ensure(lambda result: result.source == model.AssetSourceEnum.ZIP)
     @icontract.ensure(lambda result: result.jsonpath is not None)
     def _try_level2_location(self, resource: Resource) -> model.ResourceLookupDto:
         """
@@ -492,12 +504,15 @@ class TResourceJsonLookup(ResourceLookup):
         else:
             lang_name = ""
         return model.ResourceLookupDto(
-            url=url, source=config.ZIP, jsonpath=jsonpath_str, lang_name=lang_name
+            url=url,
+            source=model.AssetSourceEnum.ZIP,
+            jsonpath=jsonpath_str,
+            lang_name=lang_name,
         )
 
     @icontract.require(lambda resource: resource.lang_code is not None)
     @icontract.require(lambda resource: resource.resource_type is not None)
-    @icontract.ensure(lambda result: result.source == config.ZIP)
+    @icontract.ensure(lambda result: result.source == model.AssetSourceEnum.ZIP)
     @icontract.ensure(lambda result: result.jsonpath is not None)
     def _try_level1_sans_resource_code_location(
         self, resource: Resource
@@ -526,12 +541,15 @@ class TResourceJsonLookup(ResourceLookup):
         else:
             lang_name = ""
         return model.ResourceLookupDto(
-            url=url, source=config.ZIP, jsonpath=jsonpath_str, lang_name=lang_name
+            url=url,
+            source=model.AssetSourceEnum.ZIP,
+            jsonpath=jsonpath_str,
+            lang_name=lang_name,
         )
 
     @icontract.require(lambda resource: resource.lang_code is not None)
     @icontract.require(lambda resource: resource.resource_type is not None)
-    @icontract.ensure(lambda result: result.source == config.ZIP)
+    @icontract.ensure(lambda result: result.source == model.AssetSourceEnum.ZIP)
     @icontract.ensure(lambda result: result.jsonpath is not None)
     def _try_level2_sans_resource_code_location(
         self, resource: Resource
@@ -558,7 +576,10 @@ class TResourceJsonLookup(ResourceLookup):
         else:
             lang_name = ""
         return model.ResourceLookupDto(
-            url=url, source=config.ZIP, jsonpath=jsonpath_str, lang_name=lang_name
+            url=url,
+            source=model.AssetSourceEnum.ZIP,
+            jsonpath=jsonpath_str,
+            lang_name=lang_name,
         )
 
 

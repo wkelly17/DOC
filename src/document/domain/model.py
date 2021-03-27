@@ -51,6 +51,19 @@ class AssemblyStrategyEnum(str, Enum):
     LANGUAGE_BOOK_ORDER = "language_book_order"
 
 
+class DocumentRequest(BaseModel):
+    """
+    This class is used to send in a document generation request from
+    the front end client. A document request is composed of n resource
+    requests. Because this class inherits from pydantic's BaseModel we
+    get validation, serialization, and special dunder functions for
+    free.
+    """
+
+    assembly_strategy_kind: AssemblyStrategyEnum
+    resource_requests: List[ResourceRequest]
+
+
 class AssemblySubstrategyEnum(str, Enum):
     """
     A sub-strategy enum signals which interleaving sub-strategy
@@ -85,17 +98,19 @@ class AssemblySubstrategyEnum(str, Enum):
     VERSE = "VERSE"
 
 
-class DocumentRequest(BaseModel):
+class AssetSourceEnum(str, Enum):
     """
-    This class is used to send in a document generation request from
-    the front end client. A document request is composed of n resource
-    requests. Because this class inherits from pydantic's BaseModel we
-    get validation, serialization, and special dunder functions for
-    free.
+    This class/enum captures the concept of: where did the resource's
+    asset files come from? At present they come from either a GIT
+    repository, an individual USFM file download, or a ZIP file
+    download.
     """
 
-    assembly_strategy_kind: AssemblyStrategyEnum
-    resource_requests: List[ResourceRequest]
+    GIT = "git"
+    USFM = "usfm"
+    ZIP = "zip"
+
+
 class ManifestFormatTypeEnum(str, Enum):
     """
     Manifest files can come in a variety of formats types: YAML,
