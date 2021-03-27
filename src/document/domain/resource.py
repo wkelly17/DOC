@@ -22,7 +22,11 @@ from usfm_tools.transform import UsfmTransform
 
 from document import config
 
-from document.markdown_extensions import wikilink_preprocessor
+from document.markdown_extensions import (
+    wikilink_preprocessor,
+    remove_section_preprocessor,
+    translation_word_link_preprocessor,
+)
 from document.domain import bible_books, model, resource_lookup
 from document.utils import (
     file_utils,
@@ -629,14 +633,19 @@ class TNResource(TResource):
         Find book intro, chapter intros, and then the translation
         notes for the verses themselves.
         """
-        # Create the Markdown instance once and have it use our markdown
-        # extension that changes (See [[rc:foo]]) style links into [](rc:foo)
-        # style links for now. This is an experiment to supplant legacy code
-        # that makes link transformations on raw Markdown content. This will
-        # likely change again with the coming link transformation overhaul I
-        # have planned.
-        # md = markdown.Markdown()
-        md = markdown.Markdown(extensions=[wikilink_preprocessor.WikiLinkExtension()])
+        # WIP. Create the Markdown instance once and have it use our markdown
+        # extensions. The first extension changes (See [[rc:foo]]) style links
+        # into [](rc:foo) style links. This is an experiment to supplant legacy
+        # code that makes Markdown transformations on raw Markdown content.
+        md = markdown.Markdown(
+            extensions=[
+                wikilink_preprocessor.WikiLinkExtension(),
+                remove_section_preprocessor.RemoveSectionExtension(),
+                translation_word_link_preprocessor.TranslationWordLinkExtension(
+                    lang_code={self.lang_code: "Language code for resource."}
+                ),
+            ]
+        )
         # FIXME We already went to the trouble of finding the Markdown
         # or TXT files and storing their paths in self._content_files, perhaps
         # we'll use those rather than globbing again here. Currently
@@ -1188,13 +1197,16 @@ class TQResource(TResource):
         Find translation questions for the verses.
         """
         # Create the Markdown instance once and have it use our markdown
-        # extension that changes (See [[rc:foo]]) style links into [](rc:foo)
-        # style links for now. This is an experiment to supplant legacy code
-        # that makes link transformations on raw Markdown content. This will
-        # likely change again with the coming link transformation overhaul I
-        # have planned.
-        # md = markdown.Markdown()
-        md = markdown.Markdown(extensions=[wikilink_preprocessor.WikiLinkExtension()])
+        # extensions.
+        md = markdown.Markdown(
+            extensions=[
+                wikilink_preprocessor.WikiLinkExtension(),
+                remove_section_preprocessor.RemoveSectionExtension(),
+                translation_word_link_preprocessor.TranslationWordLinkExtension(
+                    lang_code={self.lang_code: "Language code for resource."}
+                ),
+            ]
+        )
         # FIXME We already went to the trouble of finding the Markdown
         # or TXT files and storing their paths in self._content_files, perhaps
         # we'll use those rather than globbing again here. Currently
