@@ -237,6 +237,8 @@ class USFMResource(Resource):
         usfm_content_files = glob("{}**/*.usfm".format(self._resource_dir))
         # USFM files sometimes have txt suffix
         txt_content_files = glob("{}**/*.txt".format(self._resource_dir))
+        if not txt_content_files:
+            txt_content_files = glob("{}**/**/*.txt".format(self._resource_dir))
 
         # logger.debug("usfm_content_files: {}".format(list(usfm_content_files)))
 
