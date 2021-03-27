@@ -1360,53 +1360,213 @@ class TWResource(TResource):
     Words resource.
     """
 
+    def __init__(self, *args, **kwargs) -> None:  # type: ignore
+        super().__init__(*args, **kwargs)
+        self._language_payload: model.TWLanguagePayload
+
     @log_on_start(
         logging.INFO, "Processing Translation Words Markdown...", logger=logger
     )
     def get_content(self) -> None:
+        """
+        Get Markdown content from this resource's file assets. Then do
+        some manipulation of said Markdown content according to the
+        needs of the document output. Then convert the Markdown content
+        into HTML content.
+        """
+        # FIXME All the work is done in _initialize_verses_html.
+        # So these legacy methods are turned off for now. There are
+        # likely bits of logic from these two functions that will find
+        # their way back into the system later though (in a different
+        # and improved form), e.g., linking.
+        # self._get_tw_markdown()
+        # self._transform_content()
+
+        self._initialize_from_assets()
+        self._initialize_verses_html()
+
+    @property
+    def language_payload(self) -> model.TWLanguagePayload:
+        """Provide public interface for other modules."""
+        return self._language_payload
+
+    @log_on_start(
+        logging.DEBUG, "self._resource_dir: {self._resource_dir}", logger=logger
+    )
+    def _initialize_from_assets(self) -> None:
         """See docstring in superclass."""
-        self._get_tw_markdown()
-        self._transform_content()
+        self._manifest = Manifest(self)
 
-    def _get_tw_markdown(self) -> None:
-        # From entrypoint.sh in Interleaved_Resource_Generator, i.e.,
-        # container.
-        # Combine OT and NT tW files into single refs file, skipping header row of NT
-        # cp         /working/tn-temp/en_tw/tWs_for_PDFs/tWs_for_OT_PDF.txt    /working/tn-temp/tw_refs.csv
-        # tail -n +2 /working/tn-temp/en_tw/tWs_for_PDFs/tWs_for_NT_PDF.txt >> /working/tn-temp/tw_refs.csv
-
-        # TODO localization
-        tw_md = '<a id="tw-{}"/>\n# Translation Words\n\n'.format(self._book_id)
-        # tw_md = '<a id="tw-{0}"/>\n# Translation Words\n\n'.format(self.book_id)
-        sorted_rcs = sorted(
-            self._my_rcs, key=lambda k: self._resource_data[k]["title"].lower()
+    # FIXME Refactor to make DRY
+    def _initialize_verses_html(self) -> None:
+        """
+        Find translation words for the verses.
+        """
+        # Create the Markdown instance once and have it use our markdown
+        # extensions.
+        # FIXME In the case of translation words we may want to wait
+        # until assembly to do conversion from Markdown to HTML rather
+        # than doing it here.
+        md = markdown.Markdown(
+            extensions=[
+                wikilink_preprocessor.WikiLinkExtension(),
+                remove_section_preprocessor.RemoveSectionExtension(),
+                translation_word_link_preprocessor.TranslationWordLinkExtension(
+                    lang_code={self.lang_code: "Language code for resource."}
+                ),
+            ]
         )
-        for rc in sorted_rcs:
-            if "/tw/" not in rc:
-                continue
-            if self._resource_data[rc]["text"]:
-                md = self._resource_data[rc]["text"]
-            else:
-                md = ""
-            id_tag = '<a id="{}"/>'.format(self._resource_data[rc]["id"])
-            md = re.compile(r"# ([^\n]+)\n").sub(r"# \1\n{}\n".format(id_tag), md, 1)
-            md = markdown_utils.increase_headers(md)
-            uses = link_utils.get_uses(self._rc_references, rc)
-            if uses == "":
-                continue
-            md += uses
-            md += "\n\n"
-            tw_md += md
-        # TODO localization
-        tw_md = markdown_utils.remove_md_section(tw_md, "Bible References")
-        # TODO localization
-        tw_md = markdown_utils.remove_md_section(
-            tw_md, "Examples from the Bible stories"
+        kt_files = sorted(glob("{}/bible/kt/*.md".format(self._resource_dir)))
+        # breakpoint()
+
+        kt_dict: Dict[model.BaseFilename, model.TWNameContentPair] = {}
+        for kt_file in kt_files:
+            with open(kt_file, "r") as fin:
+                translation_word_content = fin.read()
+                # Remember that localized word is sometimes capitalized and sometimes
+                # not. So later when we search for the localized word in kt_dict.keys
+                # compared to the verse we'll need to account for that.
+                # For each translation word we encounter in a verse
+                # we'll collect a link into a collection which we'll
+                # display in a translation words section after the
+                # translation questions section for that verse. Later
+                # after all verses we'll display all the translation
+                # words and each will be prepended with its anchor
+                # link. That way the links in verses will point to the
+                # word.
+                # TODO We have to find out how all display words are
+                # displayed by looking at the legacy PDF. Do they
+                # display kt words followed by names and then other?
+                # The localized word is the very first word in the
+                # first line right after the Markdown 1st level
+                # header, i.e., right after '#'.
+                # NOTE Translation words are bidirectional. By that I
+                # mean that when you are at a verse there follows,
+                # after translation questions, links to the
+                # translation words that occur in that verse. But then
+                # when you navigate to the word by clicking the link,
+                # at the end of the translation word note there is a
+                # section called 'Uses:' that also has links to the
+                # verses wherein the word occurs. So, we need to
+                # build up a data structure that for every word
+                # collects which verses it occurs in.
+                localized_word = translation_word_content.split("\n\n")[0].split("# ")[
+                    1
+                ]
+                html_word_content = md.convert(translation_word_content)
+                # Make adjustments to the HTML here.
+                html_word_content = re.sub(r"h2", r"h4", html_word_content)
+                html_word_content = re.sub(r"h1", r"h3", html_word_content)
+                # We need to store both the word in English, i.e., the filename
+                # sans extension; the localized word; and the associated HTML content.
+                # Thus we'll use the localized word as key so that we can do lookups
+                # against verse content, but for the value, instead of html_word_content
+                # only, we'll store a data structure that takes html_word_content and
+                # also the English word as fields. The reason is that for non-English
+                # languages the word filenames are still in English and we need to have
+                # them to make the inter-document linking work (for the filenames) for
+                # 'See also' section references.
+                kt_base_filename: model.BaseFilename = cast(
+                    model.BaseFilename, pathlib.Path(kt_file).stem
+                )
+                kt_dict[kt_base_filename] = model.TWNameContentPair(
+                    localized_word=localized_word, content=html_word_content
+                )
+        names_files = sorted(glob("{}/bible/names/*.md".format(self._resource_dir)))
+        names_dict: Dict[model.BaseFilename, model.TWNameContentPair] = {}
+        for names_file in names_files:
+            with open(names_file) as fin:
+                # FIXME Somehow tirzah.md got associated with a
+                # localized file of Timotheo for sw
+                # if pathlib.Path(names_file).stem == "tirzah" and self.lang_code == "sw":
+                #     breakpoint()
+                translation_word_content = fin.read()
+                localized_word = translation_word_content.split("\n\n")[0].split("# ")[
+                    1
+                ]
+                html_word_content = md.convert(translation_word_content)
+                # Make adjustments to the HTML here.
+                html_word_content = re.sub(r"h2", r"h4", html_word_content)
+                html_word_content = re.sub(r"h1", r"h3", html_word_content)
+
+                names_base_filename: model.BaseFilename = cast(
+                    model.BaseFilename, pathlib.Path(names_file).stem
+                )
+                names_dict[names_base_filename] = model.TWNameContentPair(
+                    localized_word=localized_word, content=html_word_content,
+                )
+        other_files = sorted(glob("{}/bible/other/*.md".format(self._resource_dir)))
+        other_dict: Dict[model.BaseFilename, model.TWNameContentPair] = {}
+        for other_file in other_files:
+            with open(other_file) as fin:
+                translation_word_content = fin.read()
+                localized_word = translation_word_content.split("\n\n")[0].split("# ")[
+                    1
+                ]
+                html_word_content = md.convert(translation_word_content)
+                # Make adjustments to the HTML here.
+                html_word_content = re.sub(r"h2", r"h4", html_word_content)
+                html_word_content = re.sub(r"h1", r"h3", html_word_content)
+
+                other_base_filename: model.BaseFilename = cast(
+                    model.BaseFilename, pathlib.Path(other_file).stem
+                )
+                other_dict[other_base_filename] = model.TWNameContentPair(
+                    localized_word=localized_word, content=html_word_content,
+                )
+
+        self._language_payload = model.TWLanguagePayload(
+            kt_dict=kt_dict, names_dict=names_dict, other_dict=other_dict
         )
 
-        logger.debug("tw_md is {}".format(tw_md))
-        self._content = tw_md
-        # return tw_md
+    # FIXME Remove
+    # @log_on_start(
+    #     logging.INFO, "Processing Translation Words Markdown...", logger=logger
+    # )
+    # def get_content(self) -> None:
+    #     """See docstring in superclass."""
+    #     self._get_tw_markdown()
+    #     self._transform_content()
+
+    # def _get_tw_markdown(self) -> None:
+    #     # From entrypoint.sh in Interleaved_Resource_Generator, i.e.,
+    #     # container.
+    #     # Combine OT and NT tW files into single refs file, skipping header row of NT
+    #     # cp         /working/tn-temp/en_tw/tWs_for_PDFs/tWs_for_OT_PDF.txt    /working/tn-temp/tw_refs.csv
+    #     # tail -n +2 /working/tn-temp/en_tw/tWs_for_PDFs/tWs_for_NT_PDF.txt >> /working/tn-temp/tw_refs.csv
+
+    #     # TODO localization
+    #     tw_md = '<a id="tw-{}"/>\n# Translation Words\n\n'.format(self._book_id)
+    #     # tw_md = '<a id="tw-{0}"/>\n# Translation Words\n\n'.format(self.book_id)
+    #     sorted_rcs = sorted(
+    #         self._my_rcs, key=lambda k: self._resource_data[k]["title"].lower()
+    #     )
+    #     for rc in sorted_rcs:
+    #         if "/tw/" not in rc:
+    #             continue
+    #         if self._resource_data[rc]["text"]:
+    #             md = self._resource_data[rc]["text"]
+    #         else:
+    #             md = ""
+    #         id_tag = '<a id="{}"/>'.format(self._resource_data[rc]["id"])
+    #         md = re.compile(r"# ([^\n]+)\n").sub(r"# \1\n{}\n".format(id_tag), md, 1)
+    #         md = markdown_utils.increase_headers(md)
+    #         uses = link_utils.get_uses(self._rc_references, rc)
+    #         if uses == "":
+    #             continue
+    #         md += uses
+    #         md += "\n\n"
+    #         tw_md += md
+    #     # TODO localization
+    #     tw_md = markdown_utils.remove_md_section(tw_md, "Bible References")
+    #     # TODO localization
+    #     tw_md = markdown_utils.remove_md_section(
+    #         tw_md, "Examples from the Bible stories"
+    #     )
+
+    #     logger.debug("tw_md is {}".format(tw_md))
+    #     self._content = tw_md
+    #     # return tw_md
 
 
 class TAResource(TResource):
