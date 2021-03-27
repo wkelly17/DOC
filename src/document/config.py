@@ -130,7 +130,7 @@ def get_individual_usfm_url_jsonpath() -> str:
 def get_resource_url_level1_jsonpath() -> str:
     """
     The jsonpath location in TRANSLATIONS_JSON_LOCATION file where
-    resource URL, e.g., tn, tq, ta, obs, ulb, udb, etc., may normally
+    resource URL, e.g., tn, tq, tw, ta, obs, ulb, udb, etc., may normally
     be found.
     """
     return "$[?code='{}'].contents[?code='{}'].links[?format='zip'].url"
@@ -146,7 +146,7 @@ def get_resource_lang_name_jsonpath() -> str:
 def get_resource_url_level2_jsonpath() -> str:
     """
     The jsonpath location in TRANSLATIONS_JSON_LOCATION file where
-    resource URL, e.g., tn, tq, ta, obs, ulb, udb, etc., may
+    resource URL, e.g., tn, tq, tw, ta, obs, ulb, udb, etc., may
     additionally/alternatively be found.
     """
     return "$[?code='{}'].contents[*].subcontents[?code='{}'].links[?format='zip'].url"

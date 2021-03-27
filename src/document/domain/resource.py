@@ -361,8 +361,8 @@ class USFMResource(Resource):
             # Dictionary to hold verse number, verse value pairs.
             chapter_verses: Dict[int, str] = {}
             for verse_element in chapter_verse_list:
-                # Get the verse num from the verse HTML tag's id value. split is more
-                # performant than re:
+                # Get the verse num from the verse HTML tag's id value.
+                # split is more performant than re.
                 # See https://stackoverflow.com/questions/7501609/python-re-split-vs-split
                 verse_num = int(str(verse_element).split("-v-")[1].split('"')[0])
                 lower_id = "{}-ch-{}-v-{}".format(
@@ -385,17 +385,16 @@ class USFMResource(Resource):
                     ),
                 )
                 verse_content = [str(tag) for tag in list(verse_content_tags)]
-                # NOTE Hacky way to remove some redundant parsing results
-                # due to recursion in BeautifulSoup. Should use bs4 more expertly
-                # to avoid this if it is possible. But this does work
-                # and produces the desired result in the end.
+                # Hacky way to remove some redundant parsing results due to recursion in
+                # BeautifulSoup. Should use bs4 more expertly to avoid this if it is
+                # possible. But this does work and produces the desired result in the
+                # end.
                 del verse_content[1:4]
                 verse_content_str = "".join(verse_content)
-                # HACK "Fix" BeautifulSoup parsing issue wherein
-                # sometimes a verse contains its content but also includes a
-                # subsequent verse or verses or a recapitulation of all previous
-                # verses. This does fix the problem though and gives
-                # the desired result:
+                # HACK "Fix" BeautifulSoup parsing issue wherein sometimes a verse
+                # contains its content but also includes a subsequent verse or verses or
+                # a recapitulation of all previous verses. This does fix the problem
+                # though and gives the desired result:
                 verse_content_str = (
                     '<span class="v-num"'
                     + verse_content_str.split('<span class="v-num"')[1]
@@ -405,6 +404,7 @@ class USFMResource(Resource):
                 chapter_content=chapter_content, chapter_verses=chapter_verses,
             )
 
+    # FIXME Remove
     # @icontract.require(
     #     lambda self: self._content_files
     #     and self._resource_filename
@@ -1553,7 +1553,7 @@ class ResourceProvisioner:
             str, self._resource.resource_url
         )  # We know, due to how we got here, that
         # self._resource.resource_url attribute is not None. mypy
-        # isn't convinced otherwise.
+        # isn't convinced otherwise without the cast.
 
         # FIXME To ensure consistent directory naming for later discovery, let's
         # conxider not using the url.rpartition(os.path.sep)[2]. Instead let's
@@ -1575,7 +1575,7 @@ class ResourceProvisioner:
 
         if self._is_git():  # Is a git repo, so clone it.
             self._clone_git_repo(resource_filepath)
-        else:  # Is not a git repo, so just download it.
+        else:  # Is not a git repo, so download it.
             self._download_asset(resource_filepath)
 
         if self._is_zip():  # Downloaded file was a zip, so unzip it.
@@ -1586,9 +1586,7 @@ class ResourceProvisioner:
         Clone the git reop.
         """
         command = "git clone --depth=1 '{}' '{}'".format(
-            # FIXME resource_filepath used to be filepath
-            self._resource.resource_url,
-            resource_filepath,
+            self._resource.resource_url, resource_filepath
         )
         logger.debug("os.getcwd(): {}".format(os.getcwd()))
         logger.debug("git command: {}".format(command))

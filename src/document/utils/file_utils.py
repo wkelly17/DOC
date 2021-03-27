@@ -133,7 +133,6 @@ def file_needs_update(file_path: Union[str, pathlib.Path]) -> bool:
     Given the file path, return true if it either does not exist or
     does exist and has not been updated within 24 hours.
     """
-    # Does the translations file exist?
     if not os.path.isfile(file_path):
         return True
     file_mod_time: datetime = datetime.fromtimestamp(os.stat(file_path).st_mtime)

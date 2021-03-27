@@ -84,6 +84,7 @@ def _assemble_content_by_lang_then_book(
         ):
             html.append(
                 config.get_html_format_string("book").format(
+                    # FIXME Use localized book name
                     bible_books.BOOK_NAMES[book]
                 )
             )
