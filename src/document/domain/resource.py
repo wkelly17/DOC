@@ -1807,9 +1807,24 @@ class ResourceProvisioner:
         logger=logger,
     )
     @log_on_end(logging.INFO, "Unzipping finished.", logger=logger)
+    @log_on_end(
+        logging.DEBUG,
+        "self._resource.resource_dir updated: {self._resource.resource_dir}.",
+        logger=logger,
+    )
     def _unzip_asset(self, resource_filepath: str) -> None:
         """Unzip the asset."""
         file_utils.unzip(resource_filepath, self._resource.resource_dir)
+        # FIXME Update resource_dir. If we make this change, it will likely mean we
+        # can update the glob patterns for resource asset files.
+        # Update: Turns out the globs still work with the '**' in them, but
+        # perhaps it would be faster to eliminate '**'. Also perhaps it would be
+        # faster to use os.scandir there as well, if we can.
+        subdirs = [
+            f.path for f in os.scandir(self._resource.resource_dir) if f.is_dir()
+        ]
+
+        self._resource.resource_dir = subdirs[0]
 
     @icontract.require(lambda self: self._resource.resource_source)
     def _is_git(self) -> bool:
