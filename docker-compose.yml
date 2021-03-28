@@ -20,9 +20,9 @@ services:
       - TEX_TEMPLATE_FILEPATH=tex/template.tex
       - FASTAPI_HOST=0.0.0.0
       - FASTAPI_PORT=5005
-      # - PYTHONDONTWRITEBYTECODE=1 @ Incompatible with optimization
-      # - PYTHONUNBUFFERED=1
-      # - PYTHONOPTIMIZE=1 # In particular, turn off iconract checks for production
+      # - PYTHONDONTWRITEBYTECODE=1 # Incompatible with optimization in production.
+      # - PYTHONUNBUFFERED=1  # Not sure we want this.
+      # - PYTHONOPTIMIZE=1 # In particular, turn off icontract checks for production.
       - IN_CONTAINER=1
       - ENABLE_ASSET_CACHING=1
     volumes:

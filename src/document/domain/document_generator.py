@@ -47,6 +47,15 @@ class DocumentGenerator:
     document.
     """
 
+    # XXX Not sure I'll bother with this precondition since it will be
+    # optimized out in production anyway and that is where I'd want to
+    # catch spurious resource codes submitted by BIEL.
+    # @icontract.require(
+    #     lambda document_request: [
+    #         (resource_request.resource_code in bible_books.BOOK_NAMES.keys)
+    #         for resource_request in document_request.resource_requests
+    #     ]
+    # )
     @log_on_start(logging.DEBUG, "document_request: {document_request}", logger=logger)
     @log_on_start(logging.DEBUG, "working_dir: {working_dir}", logger=logger)
     @log_on_end(
