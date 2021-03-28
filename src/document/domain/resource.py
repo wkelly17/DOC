@@ -1792,7 +1792,14 @@ class ResourceProvisioner:
     @log_on_end(logging.INFO, "Downloading finished.", logger=logger)
     def _download_asset(self, resource_filepath: str) -> None:
         """Download the asset."""
-        url_utils.download_file(self._resource.resource_url, resource_filepath)
+        # Caching. See file_needs_update definition for caching
+        # policy.
+        if file_utils.asset_file_needs_update(resource_filepath):
+            # FIXME Might want to retry after some acceptable interval if there is a
+            # failure here due to network issues. It has happened very
+            # occasionally during testing that there has been a hiccup
+            # with the network at this point.
+            url_utils.download_file(self._resource.resource_url, resource_filepath)
 
     @log_on_start(
         logging.DEBUG,

@@ -24,6 +24,7 @@ services:
       # - PYTHONUNBUFFERED=1
       # - PYTHONOPTIMIZE=1 # In particular, turn off iconract checks for production
       - IN_CONTAINER=1
+      - ENABLE_ASSET_CACHING=1
     volumes:
       - ./src:/src
       - ./tests:/tests

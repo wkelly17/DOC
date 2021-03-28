@@ -221,7 +221,7 @@ class SourceDataFetcher:
     )
     def _get_data(self) -> None:
         """Download json data and parse it into equivalent python objects."""
-        if file_utils.file_needs_update(self._json_file):
+        if file_utils.source_file_needs_update(self._json_file):
             logger.debug("Downloading {}...".format(self._json_file_url))
             # try:
             url_utils.download_file(self._json_file_url, str(self._json_file.resolve()))

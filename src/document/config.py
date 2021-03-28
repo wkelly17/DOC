@@ -375,6 +375,21 @@ def get_html_format_string(lookup_key: str) -> str:
         "translation_question": "<h3>Translation question {}:{}</h3>",
     }
     return html_format_strings[lookup_key]
+
+def asset_caching_enabled() -> bool:
+    """
+    Return boolean indicating if caching of generated document's
+    should be cached. The default is to not cache, but can be enabled
+    by setting the environment variable ENABLE_ASSET_CACHING=1 in
+    the shell (Docker or otherwise) environment where Python is
+    executing.
+    """
+    if int(os.environ.get("ENABLE_ASSET_CACHING", "0")) == 1:
+        return True
+    else:
+        return False
+
+
 def get_logo_image_path() -> str:
     """
     Get the path to the logo image that will be used on the PDF cover,

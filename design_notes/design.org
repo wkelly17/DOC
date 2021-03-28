@@ -29,6 +29,11 @@ Then cd into the tools directory you just creating by cloning.
 #+begin_src shell
 make all
 #+end_src
+
+Note that resource asset file caching is enabled by default in the
+Docker container environment (see docker-compose.yml,
+ENABLE_ASSET_CACHING value for setting). The resource asset file
+caching policy is defined in =file_utils.file_needs_update()=.
 **** Or, you can do one thing at a time using multiple Makefile targets
 ***** Build the container
 
@@ -60,8 +65,8 @@ make build-no-cache
 make test
 #+end_src
 
-**** Run demo outside Docker container
-***** Install the required python packages. I use pipenv, but you can do it however you prefer.
+*** Run demo outside Docker container
+**** Install the required python packages. I use pipenv, but you can do it however you prefer.
 
 First tell pipenv which python to use:
 #+begin_src shell
@@ -90,10 +95,19 @@ then
 pip install -e src/
 #+end_src
 
-***** Run tests
+**** Run tests
 #+begin_src shell
 pytest
 #+end_src
+
+**** Or, run tests with caching enabled (for speedup)
+#+begin_src shell
+ENABLE_ASSET_CACHING=1 pytest
+#+end_src
+
+Obviously this only kicks in according to the caching policy used. See
+=file_utils.asset_caching_enabled()= for the caching policy.
+The default for caching is False.
 ** TODO Update this since new code (mostly the same but some changes - more classes): Interactions at a high level
 
 #+begin_src plantuml :file wa_design_sequence_diagram1.png :exports results

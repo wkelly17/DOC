@@ -12,7 +12,7 @@ import yaml
 import zipfile
 from datetime import datetime, timedelta
 from document import config
-from logdecorator import log_on_start
+from logdecorator import log_on_end, log_on_start
 from typing import Any, Dict, List, Optional, Union
 
 logger = config.get_logger(__name__)
@@ -127,11 +127,44 @@ def write_file(
 
 
 @icontract.require(lambda file_path: file_path is not None)
-@log_on_start(logging.INFO, "About to check if file_path needs update.", logger=logger)
-def file_needs_update(file_path: Union[str, pathlib.Path]) -> bool:
+# @log_on_start(
+#     logging.DEBUG, "About to check if {file_path} needs update.", logger=logger
+# )
+@log_on_end(logging.DEBUG, "{file_path} needs update: {result}.", logger=logger)
+def source_file_needs_update(file_path: Union[str, pathlib.Path]) -> bool:
     """
-    Given the file path, return true if it either does not exist or
-    does exist and has not been updated within 24 hours.
+    Given the file path to the data source file, e.g.,
+    working/temp/translations.json, return true if it either does not
+    exist or does exist and has not been updated within 24 hours.
+    """
+    return __file_needs_update(file_path)
+
+
+@icontract.require(lambda file_path: file_path is not None)
+# @log_on_start(
+#     logging.DEBUG, "About to check if {file_path} needs update.", logger=logger
+# )
+@log_on_end(logging.DEBUG, "{file_path} needs update: {result}.", logger=logger)
+def asset_file_needs_update(file_path: Union[str, pathlib.Path]) -> bool:
+    """
+    Return True if config.asset_caching_enabled() is False or if
+    file_path either does not exist or does exist and has not been
+    updated within 24 hours. This function is to be used to test a
+    resource asset file, typically a zip file at a location like
+    working/temp/sw_tn/tn.zip.
+    """
+    if not config.asset_caching_enabled():
+        return True
+    return __file_needs_update(file_path)
+
+
+@icontract.require(lambda file_path: file_path is not None)
+def __file_needs_update(file_path: Union[str, pathlib.Path]) -> bool:
+    """
+    Return True if file_path either does not exist or does exist and
+    has not been updated within 24 hours. Used by
+    source_file_needs_update and asset_file_needs_update. Don't call
+    directly.
     """
     if not os.path.isfile(file_path):
         return True
