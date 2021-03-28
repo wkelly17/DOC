@@ -8,7 +8,7 @@ import abc
 import logging  # For logdecorator
 import os
 import pathlib
-from typing import TYPE_CHECKING, Any, List, Optional, Set, Tuple
+from typing import Any, List, Optional, Set, Tuple
 from urllib import parse as urllib_parse
 
 import icontract

@@ -71,7 +71,7 @@ class DocumentGenerator:
                 Optional[TAResource],
                 model.AssemblySubstrategyEnum,
             ],
-            str,
+            model.HtmlContent,
         ]
         self._working_dir = working_dir
         self._output_dir = output_dir
@@ -116,6 +116,12 @@ class DocumentGenerator:
         # be missing due to network issues.
         # self._get_unfoldingword_icon()
 
+        # FIXME We could put a cache lookup in place here so as not to
+        # fetch resources if the document has already been requested
+        # and is fresh enough.
+        document_request_html_file_path = os.path.join(
+            self._working_dir, "{}.html".format(self._document_request_key)
+        )
         self._fetch_resources()
         self._initialize_resource_content()
         self._generate_pdf(pdf_generation_method=config.get_pdf_generation_method())

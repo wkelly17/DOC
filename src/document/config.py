@@ -6,7 +6,7 @@ import logging
 import os
 import pydantic
 from logging import config as lc
-from typing import List
+from typing import Dict, List
 
 import yaml
 
@@ -360,21 +360,31 @@ def get_pdf_generation_method() -> str:
     return model.PdfGenerationMethodEnum.WEBKIT
 
 
-def get_html_format_string(lookup_key: str) -> str:
+def get_html_format_string(lookup_key: str) -> model.HtmlContent:
     """
     Return the HTML string associated with its lookup_key. This allows
     changes to the HTML output without having to spelunk into code.
     """
-    html_format_strings: dict = {
+    html_format_strings: Dict[str, str] = {
         "language": "<h1>Language: {}</h1>",
         "book": "<h2>Book: {}</h2>",
         "verse": "<h3>Verse {}:{}</h3>",
         "translation_note": "<h3>Translation note {}:{}</h3>",
-        # Example: <h2 class="c-num" id="042-ch-001">Chapter 1</h2>
-        "tn_only_chapter_header": '<h2 class="c-num" id="{}-ch-{}">Chapter {}</h2>',
+        # Example: <h2 class="c-num" id="en-042-ch-001">Chapter 1</h2>
+        # FIXME Should rename key since it is used in more cases than
+        # just TN
+        "tn_only_chapter_header": '<h2 class="c-num" id="{}-{}-ch-{}">Chapter {}</h2>',
         "translation_question": "<h3>Translation question {}:{}</h3>",
+        "unordered_list_begin": "<ul>",
+        "unordered_list_end": "</ul>",
+        "translation_word_list_item": '<li><a href="#{}-{}">{}</a></li>',
+        "translation_words": "<h3>Translation words {}:{}</h3>",
+        "translation_words_section": "<h2>Translation words</h2>",
+        "translation_word_verse_section_header": "<h4>Uses:</h4>",
+        "translation_word_verse_ref_item": '<li><a href="#{}-{}-ch-{}-v-{}">{} {}:{}</a></li>',
     }
-    return html_format_strings[lookup_key]
+    return model.HtmlContent(html_format_strings[lookup_key])
+
 
 def asset_caching_enabled() -> bool:
     """

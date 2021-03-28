@@ -6,9 +6,29 @@ validation and JSON serialization.
 """
 
 from enum import Enum
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, NewType, Optional, Union
 
 from pydantic import BaseModel
+
+TranslationWord = NewType("TranslationWord", str)
+BaseFilename = NewType("BaseFilename", str)
+ImageLookupKey = NewType("ImageLookupKey", str)
+DateString = NewType("DateString", str)
+HtmlContent = NewType("HtmlContent", str)
+# This might look like overkill, but there are two reasons why we have
+# an abstraction for ChapterNum and VerseNum:
+# 1. If we wish to constrain chapter or verse numbers to their actual
+# range for any given book then we have an abstraction to hang that
+# validation off of. If that turns out to be a requirement, we'll likely
+# change ChapterNum and VersNum to be subclasses of BaseModel from a
+# NewType and add validation. None of the call sites will have to change
+# except if we add exception handling for non-sensical chapter or verse
+# numbers being used.
+# 2. If we accept ranges of chapters or verses instead of whole books as a
+# request, then we'll again have an abstraction to hang such logic off
+# of.
+ChapterNum = NewType("ChapterNum", int)
+VerseNum = NewType("VerseNum", int)
 
 
 # https://blog.meadsteve.dev/programming/2020/02/10/types-at-the-edges-in-python/
@@ -135,23 +155,9 @@ class ResourceLookupDto(BaseModel):
     lang_name: str
 
 
-class BookIntroTemplateDto(BaseModel):
-    """
-    'Data transfer object' that we use to hold data for use with Jinja2
-    template for book intro.
-    """
-
-    book_id: str
-    content: str
-    id_tag: str
-    anchor_id: str
 
 
-class ChapterIntroTemplateDto(BookIntroTemplateDto):
-    """
-    'Data transfer object' that we use to hold data for use with Jinja2
-    template for book intro.
-    """
+
 
 
 class FinishedDocumentDetails(BaseModel):
@@ -176,8 +182,8 @@ class TNChapterPayload(BaseModel):
     of its verses translation notes HTML content.
     """
 
-    intro_html: str
-    verses_html: Dict[int, str]
+    intro_html: HtmlContent
+    verses_html: Dict[VerseNum, HtmlContent]
 
 
 class TNBookPayload(BaseModel):
@@ -186,8 +192,8 @@ class TNBookPayload(BaseModel):
     of its chapters translation notes HTML content.
     """
 
-    intro_html: str
-    chapters: Dict[int, TNChapterPayload]
+    intro_html: HtmlContent
+    chapters: Dict[ChapterNum, TNChapterPayload]
 
 
 class TQChapterPayload(BaseModel):
@@ -196,7 +202,7 @@ class TQChapterPayload(BaseModel):
     content.
     """
 
-    verses_html: Dict[int, str]
+    verses_html: Dict[VerseNum, HtmlContent]
 
 
 class TQBookPayload(BaseModel):
@@ -205,7 +211,39 @@ class TQBookPayload(BaseModel):
     content.
     """
 
-    chapters: Dict[int, TQChapterPayload]
+    chapters: Dict[ChapterNum, TQChapterPayload]
+
+
+class TWUse(BaseModel):
+    lang_code: str
+    book_id: str
+    book_name: str
+    chapter_num: ChapterNum
+    verse_num: VerseNum
+    base_filename: BaseFilename
+    localized_word: TranslationWord
+
+
+class TWNameContentPair(BaseModel):
+    """
+    A class to hold the localized translation word and its associated
+    HTML content (which was converted from its Markdown).
+    """
+
+    localized_word: TranslationWord
+    content: HtmlContent
+
+
+class TWLanguagePayload(BaseModel):
+    """
+    A class to hold a map between a translation word's base filename,
+    e.g., abomination, and its TWNameContentPair instance.
+    """
+
+    kt_dict: Dict[BaseFilename, TWNameContentPair]
+    names_dict: Dict[BaseFilename, TWNameContentPair]
+    other_dict: Dict[BaseFilename, TWNameContentPair]
+    uses: Dict[BaseFilename, List[TWUse]] = {}
 
 
 class USFMChapter(BaseModel):
@@ -222,8 +260,8 @@ class USFMChapter(BaseModel):
     system desire to do so.
     """
 
-    chapter_content: List[str]
-    chapter_verses: Dict[int, str]
+    chapter_content: List[HtmlContent]
+    chapter_verses: Dict[VerseNum, HtmlContent]
 
 
 class CoverPayload(BaseModel):
@@ -233,8 +271,8 @@ class CoverPayload(BaseModel):
     """
 
     title: str
-    revision_date: str
-    images: Dict[str, Union[str, bytes]]
+    revision_date: DateString
+    images: Dict[ImageLookupKey, Union[str, bytes]]
 
 
 class PdfGenerationMethodEnum(str, Enum):
