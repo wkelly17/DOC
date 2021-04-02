@@ -27,7 +27,7 @@ class TranslationWordLinkPreprocessor(Preprocessor):
     # @log_on_end(logging.DEBUG, "lines after preprocessor: {result}", logger=logger)
     def run(self, lines: List[str]) -> List[str]:
         """
-        Entrypoint. Convert translation word relative file  Markdown links into
+        Entrypoint. Convert translation word relative file Markdown links into
         links pointing to the anchor for said translation words in the
         translation words section.
         """

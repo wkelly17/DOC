@@ -90,6 +90,7 @@ class Resource:
         self._verses_html: List[str] = []
 
         # Link related
+        # FIXME _bad_links will be removed
         self._bad_links: dict = {}
         self._resource_data: dict = {}
         self._my_rcs: List = []
@@ -281,9 +282,10 @@ class USFMResource(Resource):
                 )
             )
 
-    @log_on_end(
-        logging.DEBUG, "self._bad_links: {self._bad_links}", logger=logger,
-    )
+    # FIXME this log message is slated for removal.
+    # @log_on_end(
+    #     logging.DEBUG, "self._bad_links: {self._bad_links}", logger=logger,
+    # )
     @icontract.require(lambda self: self._content_files is not None)
     @icontract.ensure(lambda self: self._resource_filename is not None)
     def get_content(self) -> None:
@@ -293,8 +295,15 @@ class USFMResource(Resource):
 
         self._initialize_from_assets()
 
+        logger.debug("self._content_files: {}".format(self._content_files))
+
         if self._content_files is not None:
             # Convert the USFM to HTML and store in file.
+            # TODO USFM-Tools books.py can raise MalformedUsfmError
+            # when the following code is called. If that happens we
+            # want to skip this resource request but continue with
+            # others in the same document request. The TODO is that I
+            # need to work out where I want to catch said exception.
             UsfmTransform.buildSingleHtmlFromFile(
                 pathlib.Path(self._content_files[0]),
                 self._output_dir,
@@ -529,7 +538,8 @@ class TResource(Resource):
         self._content = markdown.markdown(self._content)
 
     @log_on_start(logging.INFO, "Converting MD to HTML...", logger=logger)
-    @log_on_end(logging.DEBUG, "self._bad_links: {self._bad_links}", logger=logger)
+    # FIXME This log message is slated for removal.
+    # @log_on_end(logging.DEBUG, "self._bad_links: {self._bad_links}", logger=logger)
     def _transform_content(self) -> None:
         """
         If self._content is not empty, go ahead and transform rc
@@ -650,6 +660,7 @@ class TNResource(TResource):
         # or TXT files and storing their paths in self._content_files, perhaps
         # we'll use those rather than globbing again here. Currently
         # refactoring to final design, just a note for the future.
+        # FIXME We can likely now remove the first '**'
         chapter_dirs = sorted(
             glob("{}/**/*{}/*[0-9]*".format(self._resource_dir, self._resource_code))
         )
@@ -1211,6 +1222,7 @@ class TQResource(TResource):
         # or TXT files and storing their paths in self._content_files, perhaps
         # we'll use those rather than globbing again here. Currently
         # refactoring to final design, just a note for the future.
+        # FIXME We can likely now remove the first '**'
         chapter_dirs = sorted(
             glob("{}/**/*{}/*[0-9]*".format(self._resource_dir, self._resource_code))
         )
@@ -1218,6 +1230,7 @@ class TQResource(TResource):
         # on if their assets were acquired as a git repo or a zip).
         # We handle this here.
         if not chapter_dirs:
+            # FIXME We can likely now remove the first '**'
             chapter_dirs = sorted(
                 glob("{}/*{}/*[0-9]*".format(self._resource_dir, self._resource_code))
             )
@@ -1659,6 +1672,7 @@ def resource_factory(
     )  # type: ignore
 
 
+# FIXME Slated for removal
 def get_tw_refs(tw_refs_by_verse: dict, book: str, chapter: str, verse: str) -> List:
     """
     Returns a list of refs for the given book, chapter, verse, or
