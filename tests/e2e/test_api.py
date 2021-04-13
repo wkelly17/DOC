@@ -139,6 +139,7 @@ def test_non_english_fixtures(
 # )
 # NOTE Using Any type is a mypy hack for fixture being passed in. Not
 # ideal, but the way pytest builds its path is not ideal either.
+@pytest.mark.skip
 def test_two_resource_combos_language_book_order(helpers: Any) -> None:
     """
     Produce verse level interleaved document for English scripture and
