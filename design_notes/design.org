@@ -30,31 +30,20 @@ Then cd into the tools directory you just creating by cloning.
 make all
 #+end_src
 
-Note that resource asset file caching is enabled by default in the
-Docker container environment (see docker-compose.yml,
-ENABLE_ASSET_CACHING value for setting). The resource asset file
-caching policy is defined in =file_utils.file_needs_update()=.
+Warning: this will take a _long_ time!
 
-To view the PDF files created by the test runs you can do
+If you don't want to have this running for so long then do this
+instead:
 
 #+begin_src shell
-docker ps -a
+make unit-tests
 #+end_src
 
-to find the container ID of the container associated with the tests.
-
-Then use Docker's =cp= functionality to copy a generated PDF from the
-Docker container referenced by the container ID to the
-=docker_pdf_output= directory you just created
-
-#+begin_src shell
-docker cp 799189:/working/temp/en-ulb-wa-col_en-tn-wa-col_en-tq-wa-col_en-tw-wa-col_sw-ulb-col_sw-tn-col_sw-tq-col_sw-tw-col_sw-ulb-tit_sw-tn-tit_sw-tq-tit_sw-tw-tit_language_book_order.pdf docker_pdf_output/en-ulb-wa-col_en-tn-wa-col_en-tq-wa-col_en-tw-wa-col_sw-ulb-col_sw-tn-col_sw-tq-col_sw-tw-col_sw-ulb-tit_sw-tn-tit_sw-tq-tit_sw-tw-tit_language_book_order.pdf
-#+end_src
-
-where =799189= is the unique portion of the example container ID.
+The generated PDFs are copied from the Docker container to the
+=docker_pdf_output= directory at the base of the repo.
 
 For ease of stakeholders, one or more example PDFs created by the test
-runs has been committed to the git repo in the =docker_pdf_output=
+runs are committed to the git repo in the =docker_pdf_output=
 directory.
 **** Or, you can do one thing at a time using multiple Makefile targets
 ***** Build the container
