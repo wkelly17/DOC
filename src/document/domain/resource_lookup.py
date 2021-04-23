@@ -213,8 +213,9 @@ class SourceDataFetcher:
         """Provide public method for other modules to access."""
         return self._json_data
 
-    @icontract.require(lambda self: self._json_file_url is not None)
-    @icontract.require(lambda self: self._json_file is not None)
+    @icontract.require(
+        lambda self: self._json_file_url is not None and self._json_file is not None
+    )
     @icontract.ensure(lambda self: self._json_data is not None)
     @log_on_start(
         logging.INFO, "About to check if we need new translations.json", logger=logger
@@ -299,9 +300,11 @@ class USFMResourceJsonLookup(ResourceLookup):
         return getattr(self._resource_json_lookup, attribute)
 
     @icontract.require(lambda self: self.json_data is not None)
-    @icontract.require(lambda resource: resource.lang_code is not None)
-    @icontract.require(lambda resource: resource.resource_type is not None)
-    @icontract.require(lambda resource: resource.resource_code is not None)
+    @icontract.require(
+        lambda resource: resource.lang_code is not None
+        and resource.resource_type is not None
+        and resource.resource_code is not None
+    )
     @icontract.ensure(lambda result: result is not None)
     @log_on_end(logging.DEBUG, "model.ResourceLookupDto: {result}", logger=logger)
     def lookup(self, resource: Resource) -> model.ResourceLookupDto:
@@ -413,7 +416,11 @@ class TResourceJsonLookup(ResourceLookup):
         return getattr(self._resource_json_lookup, attribute)
 
     @icontract.require(lambda self: self.json_data is not None)
-    @icontract.require(lambda resource: resource.lang_code is not None)
+    @icontract.require(
+        lambda resource: resource.lang_code is not None
+        and resource.resource_type is not None
+        and resource.resource_code is not None
+    )
     @icontract.ensure(lambda result: result is not None)
     def lookup(self, resource: Resource) -> model.ResourceLookupDto:
         """
@@ -443,10 +450,14 @@ class TResourceJsonLookup(ResourceLookup):
 
         return resource_lookup_dto
 
-    @icontract.require(lambda resource: resource.lang_code is not None)
-    @icontract.require(lambda resource: resource.resource_type is not None)
-    @icontract.ensure(lambda result: result.source == model.AssetSourceEnum.ZIP)
-    @icontract.ensure(lambda result: result.jsonpath is not None)
+    @icontract.require(
+        lambda resource: resource.lang_code is not None
+        and resource.resource_type is not None
+    )
+    @icontract.ensure(
+        lambda result: result.source == model.AssetSourceEnum.ZIP
+        and result.jsonpath is not None
+    )
     def _try_level1_location(self, resource: Resource) -> model.ResourceLookupDto:
         """
         If successful, return a string containing the URL of Markdown
