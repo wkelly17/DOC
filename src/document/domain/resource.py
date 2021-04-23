@@ -210,7 +210,7 @@ class USFMResource(Resource):
         # self._usfm_chunks: Dict = {}
         self._chapters_content: Dict = {}
 
-    # FIXME We may want to not enforce the post-condition that the
+    # We may want to not enforce the post-condition that the
     # resource URL be found since we have a requirement that not found
     # resources are to be handled gracefully. I.e., if we fail to find
     # a ResourceRequest instance we should continue to try to find a
@@ -1243,8 +1243,6 @@ class TQResource(TResource):
         chapter_verses: Dict[int, model.TQChapterPayload] = {}
         for chapter_dir in chapter_dirs:
             chapter_num = int(os.path.split(chapter_dir)[-1])
-            # FIXME For some languages, TN assets are stored in .txt files
-            # rather of .md files. Handle this.
             # intro_paths = glob("{}/*intro.md".format(chapter_dir))
             # intro_path = intro_paths[0] if intro_paths else None
             # intro_html = ""
@@ -1256,7 +1254,7 @@ class TQResource(TResource):
             #         # remove it for now.
             #         intro_html = markdown_utils.remove_md_section(intro_html, "Links:")
             #         intro_html = md.convert(intro_html)
-            # FIXME For some languages, TN assets are stored in .txt files
+            # FIXME For some languages, TQ assets are stored in .txt files
             # rather of .md files. Handle this.
             verse_paths = sorted(glob("{}/*[0-9]*.md".format(chapter_dir)))
             verses_html: Dict[int, str] = {}
@@ -1734,12 +1732,12 @@ class ResourceProvisioner:
             "Using file location, resource_filepath: {}".format(resource_filepath)
         )
 
-        if self._is_git():  # Is a git repo, so clone it.
+        if self._is_git():
             self._clone_git_repo(resource_filepath)
-        else:  # Is not a git repo, so download it.
+        else:
             self._download_asset(resource_filepath)
 
-        if self._is_zip():  # Downloaded file was a zip, so unzip it.
+        if self._is_zip():
             self._unzip_asset(resource_filepath)
 
     def _clone_git_repo(self, resource_filepath: str) -> None:
@@ -1770,8 +1768,6 @@ class ResourceProvisioner:
     @log_on_end(logging.INFO, "Downloading finished.", logger=logger)
     def _download_asset(self, resource_filepath: str) -> None:
         """Download the asset."""
-        # Caching. See file_needs_update definition for caching
-        # policy.
         if file_utils.asset_file_needs_update(resource_filepath):
             # FIXME Might want to retry after some acceptable interval if there is a
             # failure here due to network issues. It has happened very
