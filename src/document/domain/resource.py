@@ -210,9 +210,14 @@ class USFMResource(Resource):
         # self._usfm_chunks: Dict = {}
         self._chapters_content: Dict = {}
 
-    @icontract.ensure(
-        lambda self: self._resource_url is not None and self._lang_name is not None
-    )
+    # FIXME We may want to not enforce the post-condition that the
+    # resource URL be found since we have a requirement that not found
+    # resources are to be handled gracefully. I.e., if we fail to find
+    # a ResourceRequest instance we should continue to try to find a
+    # DocumentRequest instances's other ResourceRequests instances.
+    # @icontract.ensure(
+    #     lambda self: self._resource_url is not None and self._lang_name is not None
+    # )
     @log_on_end(
         logging.DEBUG,
         "self._resource_url = {self._resource_url} for {self}",
