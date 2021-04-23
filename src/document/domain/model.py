@@ -10,7 +10,6 @@ from typing import Dict, List, NewType, Optional, Union
 
 from pydantic import BaseModel
 
-TranslationWord = NewType("TranslationWord", str)
 BaseFilename = NewType("BaseFilename", str)
 ImageLookupKey = NewType("ImageLookupKey", str)
 DateString = NewType("DateString", str)
@@ -155,11 +154,6 @@ class ResourceLookupDto(BaseModel):
     lang_name: str
 
 
-
-
-
-
-
 class FinishedDocumentDetails(BaseModel):
     """
     Pydanctic model that we use as a return value to send back via
@@ -221,7 +215,7 @@ class TWUse(BaseModel):
     chapter_num: ChapterNum
     verse_num: VerseNum
     base_filename: BaseFilename
-    localized_word: TranslationWord
+    localized_word: str
 
 
 class TWNameContentPair(BaseModel):
@@ -230,7 +224,7 @@ class TWNameContentPair(BaseModel):
     HTML content (which was converted from its Markdown).
     """
 
-    localized_word: TranslationWord
+    localized_word: str
     content: HtmlContent
 
 
