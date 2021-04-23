@@ -152,10 +152,12 @@ class DocumentGenerator:
         self._content = self._assembly_strategy(self)
         self._enclose_html_content()
         logger.debug(
-            "About to write HTML to {}".format(self.get_finished_document_filepath())
+            "About to write HTML to {}".format(
+                self.get_finished_html_document_filepath()
+            )
         )
         file_utils.write_file(
-            self.get_finished_document_filepath(), self._content,
+            self.get_finished_html_document_filepath(), self._content,
         )
 
     def _enclose_html_content(self) -> None:
@@ -400,12 +402,23 @@ class DocumentGenerator:
         )
 
     @icontract.require(lambda self: self._working_dir and self._document_request_key)
-    def get_finished_document_filepath(self) -> str:
+    def get_finished_html_document_filepath(self) -> str:
         """
-        Return the location on disk where the finished document may be
+        Return the location on disk where the HTML finished document may be
         found.
         """
         finished_document_path = "{}.html".format(
+            os.path.join(self._working_dir, self._document_request_key)
+        )
+        return finished_document_path
+
+    @icontract.require(lambda self: self._working_dir and self._document_request_key)
+    def get_finished_document_filepath(self) -> str:
+        """
+        Return the location on disk where the finished PDF document may be
+        found.
+        """
+        finished_document_path = "{}.pdf".format(
             os.path.join(self._working_dir, self._document_request_key)
         )
         return finished_document_path
