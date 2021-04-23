@@ -55,6 +55,17 @@ def document_endpoint(
     return details
 
 
+# @app.get(f"{config.get_api_root()}/language_codes_names_and_resource_types")
+@app.get("/language_codes_names_and_resource_types")
+def lang_codes_names_and_resource_types() -> List[Tuple[str, str, List[str]]]:
+    """
+    Return list of tuples of lang_code, lang_name, resource_types for
+    all available language codes.
+    """
+    lookup_svc = resource_lookup.BIELHelperResourceJsonLookup()
+    return lookup_svc.lang_codes_names_and_resource_types()
+
+
 # @app.get(f"{config.get_api_root()}/language_codes")
 @app.get("/language_codes")
 def lang_codes() -> List[str]:

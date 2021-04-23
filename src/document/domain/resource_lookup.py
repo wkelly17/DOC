@@ -16,6 +16,7 @@ import jsonpath_rw_ext as jp
 
 from document import config
 from document.domain import model
+# from document.domain import exceptions
 from document.utils import file_utils, url_utils
 
 # FIXME Notice the if TYPE_CHECKING expression below. Is it needed
@@ -51,6 +52,39 @@ class ResourceJsonLookup:
     A class that let's you retrieve values from it using jsonpath.
     Subclasses of ResourceLookup delegate to this class.
     """
+
+    # FIXME For efficiency sake, I want to get the data from translations.json
+    # once for all ResourceJsonLookup instances. The following commented out
+    # code would do that lazily. I will likely change this design approach
+    # though as it will be hard to understand for a newcomer. I may just get
+    # the data at the instance level since it runs very fast anyway. It'd be
+    # a little less efficient because it will be done per instance rather
+    # than once per class, but the code would be easier to understand since
+    # there would not be interaction between class and instance level
+    # methods.
+    _lang_codes_names_and_resource_types: List[Tuple[str, str, List[str]]] = []
+
+    @staticmethod
+    def _initialize_lang_codes_names_and_resource_types() -> List[
+        Tuple[str, str, List[str]]
+    ]:
+        """
+        Initialize a list of available Tuple[lang_code, lang_name,
+        List[resource_type]].
+        """
+
+        return BIELHelperResourceJsonLookup().lang_codes_names_and_resource_types()
+
+    @classmethod
+    def get_lang_codes_names_and_resource_types(
+        cls,
+    ) -> List[Tuple[str, str, List[str]]]:
+        # if cls._lang_codes_names_and_resource_types is None:
+        if not cls._lang_codes_names_and_resource_types:
+            # fmt: off
+            cls._lang_codes_names_and_resource_types = ResourceJsonLookup._initialize_lang_codes_names_and_resource_types()
+
+        return cls._lang_codes_names_and_resource_types
 
     def __init__(self) -> None:
         """
@@ -293,6 +327,29 @@ class USFMResourceJsonLookup(ResourceLookup):
         resource type, e.g., 'ulb-wa', and a resource code, e.g., 'gen',
         return URL for resource.
         """
+
+        # Get a list wherein each element is a tuple comprised of the
+        # language code, language name, and the list of resource types
+        # that are actually available for request for that language.
+        data: List[Tuple[str, str, List[str]]] = ResourceJsonLookup.get_lang_codes_names_and_resource_types()
+        if data:
+            resource_types_for_language = [tuple[2] for tuple in data if tuple[0] == resource.lang_code][0]
+            # Check that resource is requesting a resource type that is
+            # actually available for the language.
+            if not resource.resource_type in resource_types_for_language:
+                # On second thought, let's not raise an
+                # exceptions.IncompatibleREsourceTypeRequestError exception here. For
+                # now, we are better off logging the error and returning a
+                # model.ResourceLookupDto whose instance vars are initialized to None.
+                # raise exceptions.IncompatibleResourceTypeRequestError("{} requested a resource type that is not available for this language. The resource types available are {}".format(resource, resource_types_for_language))
+
+                # Instead of raising an exception let's just make the value proposition
+                # for this code be to log unavailable resource types. Eventually this
+                # could be developed more fully and queries by BIEL to preclude a user
+                # from ever being given the chance to request any resource that does not
+                # exist in the first place.
+                logger.debug("{} requested a resource type that is not available for this language. The resource types available are {}".format(resource, resource_types_for_language))
+
         resource_lookup_dto: model.ResourceLookupDto
 
         # Special case:
@@ -330,6 +387,7 @@ class USFMResourceJsonLookup(ResourceLookup):
         "About to look for resource assets URL for individual USFM file.",
         logger=logger,
     )
+    @log_on_end(logging.DEBUG, "model.ResourceLookupDto: {result}", logger=logger)
     def _try_individual_usfm_location(
         self, resource: Resource
     ) -> model.ResourceLookupDto:
@@ -639,3 +697,154 @@ class BIELHelperResourceJsonLookup:
         """
         self._get_data()
         return self._lookup(config.RESOURCE_CODES_JSONPATH)
+
+    @icontract.require(lambda self: self.json_data is not None)
+    @icontract.ensure(lambda result: result)
+    def lang_codes_names_and_resource_types(self) -> List[Tuple[str, str, List[str]]]:
+        """
+        Convenience method that can be called to get the set
+        of all tuples where each tuple consists of language code,
+        language name, and list of resource types available for that
+        language.
+
+        Example usage in repl:
+        >>> from document.domain import resource_lookup
+        >>> data = resource_lookup.BIELHelperResourceJsonLookup().lang_codes_names_and_resource_types()
+        # Lookup the resource type available for zh
+        >>> [pair[2] for pair in data if pair[0] == "zh"]
+        [['cuv', 'tn', 'tq', 'tw']]
+        """
+        self._get_data()
+        lang_codes_names_and_resource_types: List[Tuple[str, str, List[str]]] = []
+        # Using jsonpath in a loop here was prohibitively slow so we
+        # use the dictionary in this case.
+        for lang in self.json_data:
+            resource_types: List[str] = []
+            for resource_type_dict in lang["contents"]:
+                try:
+                    resource_type = resource_type_dict["code"]
+                except:
+                    resource_type = None
+                if resource_type is not None:
+                    resource_types.append(resource_type)
+            lang_codes_names_and_resource_types.append(
+                (lang["code"], lang["name"], resource_types)
+            )
+        return lang_codes_names_and_resource_types
+
+    @icontract.require(lambda self: self.json_data is not None)
+    @icontract.ensure(lambda result: result)
+    def lang_codes_names_resource_types_and_resource_codes(
+        self,
+    ) -> List[Tuple[str, str, List[Tuple[str, List[str]]]]]:
+        """
+        Convenience method that can be called to get the set
+        of all tuples where each tuple consists of language code,
+        language name, list of resource types available for that
+        language, and the resource_codes available for each resource
+        type.
+
+        Example usage in repl:
+        >>> from document.domain import resource_lookup
+        >>> data = resource_lookup.BIELHelperResourceJsonLookup().lang_codes_names_resource_types_and_resource_codes()
+        # Lookup the resource type available for zh
+        >>> [pair[2] for pair in data if pair[0] == "zh"]
+        [[('cuv', ['gen', 'exo', 'lev', 'num', 'deu', 'jos', 'jdg', 'rut',
+        '1sa', '2sa', '1ki', '2ki', '1ch', '2ch', 'ezr', 'neh', 'est',
+        'job', 'psa', 'pro', 'ecc', 'sng', 'isa', 'jer', 'lam', 'ezk',
+        'dan', 'hos', 'jol', 'amo', 'oba', 'jon', 'mic', 'nam', 'hab',
+        'zep', 'hag', 'zec', 'mal', 'mat', 'mrk', 'luk', 'jhn', 'act',
+        'rom', '1co', '2co', 'gal', 'eph', 'php', 'col', '1th', '2th',
+        '1ti', '2ti', 'tit', 'phm', 'heb', 'jas', '1pe', '2pe', '1jn',
+        '2jn', '3jn', 'jud', 'rev']), ('tn', []), ('tq', []), ('tw',
+        [])]]
+        """
+        self._get_data()
+        lang_codes_names_resource_types_and_resource_codes: List[
+            Tuple[str, str, List[Tuple[str, List[str]]]]
+        ] = []
+        # Using jsonpath in a loop here was prohibitively slow so we
+        # use the dictionary in this case.
+        for lang in self.json_data:
+            resource_types: List[Tuple[str, List[str]]] = []
+            for resource_type_dict in lang["contents"]:
+                # breakpoint()
+                # Usage of dpath at this point:
+                # (Pdb) import dpath.util
+                # (Pdb) dpath.util.search(resource_type_dict, "subcontents/0/code")
+                # {'subcontents': [{'code': '2co'}]}
+                # (Pdb) dpath.util.search(resource_type_dict, "subcontents")
+                # {'subcontents': [{'name': '2 Corinthians', 'category': 'bible-nt', 'code': '2co', 'sort': 48, 'links': [{'url': 'http://read.bibletranslationtools.org/u/Southern./kbt_2co_text_reg/92731d1550/', 'format': 'Read on Web'}, {'url': '../download-scripture?repo_url=https%3A%2F%2Fcontent.bibletranslationtools.org%2Fsouthern.%2Fkbt_2co_text_reg&book_name=2%20Corinthians', 'format': 'Download'}]}]}
+                # (Pdb) dpath.util.search(resource_type_dict, "subcontents")["subcontents"]
+                # [{'name': '2 Corinthians', 'category': 'bible-nt', 'code': '2co', 'sort': 48, 'links': [{'url': 'http://read.bibletranslationtools.org/u/Southern./kbt_2co_text_reg/92731d1550/', 'format': 'Read on Web'}, {'url': '../download-scripture?repo_url=https%3A%2F%2Fcontent.bibletranslationtools.org%2Fsouthern.%2Fkbt_2co_text_reg&book_name=2%20Corinthians', 'format': 'Download'}]}]
+                # (Pdb) interact
+                # >>> for x in dpath.util.search(resource_type_dict, "subcontents")["subcontents"]:
+                # ...   print(x["code"])
+                # ...
+                # 2co
+                try:
+                    resource_type = resource_type_dict["code"]
+                except:
+                    resource_type = None
+                resource_codes_list = resource_type_dict["subcontents"]
+                resource_codes: List[str] = []
+                for resource_code_dict in resource_codes_list:
+                    resource_code = resource_code_dict["code"]
+                    resource_codes.append(resource_code)
+                if resource_type is not None:
+                    resource_types.append((resource_type, resource_codes))
+            lang_codes_names_resource_types_and_resource_codes.append(
+                (lang["code"], lang["name"], resource_types)
+            )
+        return lang_codes_names_resource_types_and_resource_codes
+
+    # NOTE Only used for debugging and testing. Not part of long-term
+    # API.
+    @icontract.require(lambda self: self.json_data is not None)
+    @icontract.ensure(lambda result: result)
+    def lang_codes_names_and_contents_codes(self) -> List[Tuple[str, str, str]]:
+        """
+        Convenience test method that can be called to get the set
+        of all language code, language name, contents level code as
+        tuples.
+
+        Example usage in repl:
+        >>> from document.domain import resource_lookup
+        >>> data = resource_lookup.BIELHelperResourceJsonLookup().lang_codes_names_and_contents_codes()
+        >>> [(pair[0], pair[1]) for pair in data if pair[2] == "nil"]
+        [('grc', 'Ancient Greek'), ('acq', 'لهجة تعزية-عدنية'), ('gaj-x-ymnk', 'Gadsup Yomunka'), ('mve', 'مارواري (Pakistan)'), ('lus', 'Lushai'), ('mor', 'Moro'), ('tig', 'Tigre')]
+        # Other possible queries:
+        >>> [(pair[0], pair[1]) for pair in data if pair[2] == "reg"]
+        >>> [(pair[0], pair[1]) for pair in data if pair[2] == "ulb"]
+        >>> [(pair[0], pair[1]) for pair in data if pair[2] == "cuv"]
+        >>> [(pair[0], pair[1]) for pair in data if pair[2] == "udb"]
+        >>> [(pair[0], pair[1]) for pair in data if pair[2] == "udb"]
+        # Lookup the resource type available for zh
+        >>> [pair[2] for pair in data if pair[0] == "zh"]
+        ['cuv']
+        >>> data = sorted(data, key=lambda tuple: tuple[2])
+        >>> import itertools
+        >>> [tuple[0] for tuple in list(itertools.groupby(data, key=lambda tuple: tuple[2]))]
+        # 'nil' is None
+        >>> ['cuv', 'dkl', 'kar', 'nil', 'pdb', 'reg', 'rg', 'tn', 'tw', 'udb', 'ugnt', 'uhb', 'ulb', 'ulb-wa', 'ust']
+        >>> for resource_type in [tuple[0] for tuple in list(itertools.groupby(data, key=lambda tuple: tuple[2]))]:
+        ...   [(resource_type, pair[0], pair[1]) for pair in data if pair[2] == resource_type]
+        ...
+        # See <project
+        dir>/lang_codes_names_and_contents_codes_groups.json for
+        output dumped to json format.
+        """
+        self._get_data()
+        lang_codes_names_and_contents_codes: List[Tuple[str, str, str]] = []
+        # Using jsonpath in a loop here was prohibitively slow so we
+        # use the dictionary in this case.
+        for d in self.json_data:
+            try:
+                contents_code = d["contents"][0]["code"]
+            except:
+                contents_code = "nil"
+            lang_codes_names_and_contents_codes.append(
+                (d["code"], d["name"], contents_code)
+            )
+        # breakpoint()
+        return lang_codes_names_and_contents_codes
