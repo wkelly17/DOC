@@ -28,6 +28,7 @@ services:
     volumes:
       - ./src:/src
       - ./tests:/tests
+      - ./docker_pdf_output:/output
     entrypoint:
       - uvicorn
       - --host=0.0.0.0
