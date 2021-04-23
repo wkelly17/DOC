@@ -657,6 +657,8 @@ class TNResource(TResource):
             extensions=[
                 wikilink_preprocessor.WikiLinkExtension(),
                 remove_section_preprocessor.RemoveSectionExtension(),
+                # FIXME Decide how to handle translation word under
+                # different contexts, e.g.: no TW requested.
                 translation_word_link_preprocessor.TranslationWordLinkExtension(
                     lang_code={self.lang_code: "Language code for resource."}
                 ),
@@ -701,9 +703,11 @@ class TNResource(TResource):
                 verse_content = ""
                 with open(filepath, "r", encoding="utf-8") as fin2:
                     verse_content = fin2.read()
-                    # NOTE I am not sure the 'Links' section make
-                    # sense in the new interleaving design, so let's
-                    # remove it for now.
+                    # FIXME We could just comment out the next line, i.e.,
+                    # not convert Markdown to HTML yet. We could do
+                    # the conversion in the assembly strategies
+                    # instead and do it all at once for all Markdown
+                    # content?
                     verse_content = md.convert(verse_content)
                 verses_html[verse_num] = verse_content
             chapter_payload = model.TNChapterPayload(
@@ -1219,6 +1223,8 @@ class TQResource(TResource):
             extensions=[
                 wikilink_preprocessor.WikiLinkExtension(),
                 remove_section_preprocessor.RemoveSectionExtension(),
+                # FIXME Decide how to handle translation word under
+                # different contexts, e.g.: no TW requested.
                 translation_word_link_preprocessor.TranslationWordLinkExtension(
                     lang_code={self.lang_code: "Language code for resource."}
                 ),
@@ -1271,6 +1277,11 @@ class TQResource(TResource):
                     # verse_content = markdown_utils.remove_md_section(
                     #     verse_content, "Links:"
                     # )
+                    # FIXME We could just comment out the next line, i.e.,
+                    # not convert Markdown to HTML yet. We could do
+                    # the conversion in the assembly strategies
+                    # instead and do it all at once for all Markdown
+                    # content?
                     verse_content = md.convert(verse_content)
                 verses_html[verse_num] = verse_content
             chapter_payload = model.TQChapterPayload(verses_html=verses_html)
@@ -1426,6 +1437,20 @@ class TWResource(TResource):
         """See docstring in superclass."""
         self._manifest = Manifest(self)
 
+    # FIXME This logic may need to happen inside the
+    # TranslationWordLinkExtension rather than here.
+    def _get_translation_word_filepaths(self) -> FrozenSet[str]:
+        """
+        Get the file paths to the translation word files for the
+        TWResource instance.
+        """
+        filepaths = glob("{}/bible/kt/*.md".format(self._resource_dir))
+        filepaths.extend(glob("{}/bible/names/*.md".format(self._resource_dir)))
+        filepaths.extend(glob("{}/bible/other/*.md".format(self._resource_dir)))
+        # Parameter to Markdown extension must be hashable. FrozenSet
+        # is hashable.
+        return frozenset(filepaths)
+
     # FIXME Refactor to make DRY
     def _initialize_verses_html(self) -> None:
         """
@@ -1436,12 +1461,20 @@ class TWResource(TResource):
         # FIXME In the case of translation words we may want to wait
         # until assembly to do conversion from Markdown to HTML rather
         # than doing it here.
+        filepaths = self._get_translation_word_filepaths()
+        # FIXME I could avoid this instantiation and instead store the
+        # verse content in Markdown form until assembly strategy time.
         md = markdown.Markdown(
             extensions=[
                 wikilink_preprocessor.WikiLinkExtension(),
                 remove_section_preprocessor.RemoveSectionExtension(),
+                # FIXME Decide how to handle translation word under
+                # different contexts, e.g.: no TW requested.
                 translation_word_link_preprocessor.TranslationWordLinkExtension(
-                    lang_code={self.lang_code: "Language code for resource."}
+                    lang_code={self.lang_code: "Language code for resource."},
+                    filepaths={
+                        filepaths: "Translation word markdown file paths for resource."
+                    },
                 ),
             ]
         )
@@ -1479,6 +1512,8 @@ class TWResource(TResource):
                 # build up a data structure that for every word
                 # collects which verses it occurs in.
                 localized_word = translation_word_content.split("\n")[0].split("# ")[1]
+                # FIXME I could avoid converting to HTML now and do it
+                # later in assembly strategy.
                 html_word_content = md.convert(translation_word_content)
                 # Make adjustments to the HTML here.
                 html_word_content = re.sub(r"h2", r"h4", html_word_content)
