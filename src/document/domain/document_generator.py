@@ -273,6 +273,7 @@ class DocumentGenerator:
         html_file_path = "{}.html".format(
             os.path.join(self._working_dir, self._document_request_key)
         )
+        assert os.path.exists(html_file_path)
         output_pdf_file_path = "{}.pdf".format(
             os.path.join(self._working_dir, self._document_request_key)
         )
@@ -308,6 +309,7 @@ class DocumentGenerator:
         pdfkit.from_file(
             html_file_path, output_pdf_file_path, options=options, cover=cover_filepath
         )
+        assert os.path.exists(output_pdf_file_path)
         copy_command = "cp {}/{}.pdf {}".format(
             self._output_dir, self._document_request_key, "/output"
         )

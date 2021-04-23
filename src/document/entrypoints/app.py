@@ -43,6 +43,7 @@ def document_endpoint(
     # FIXME Eventually we'll provide a REST GET endpoint from
     # which to retrieve the document in the API
     finished_document_path = document_generator.get_finished_document_filepath()
+    assert os.path.exists(finished_document_path)
     details = model.FinishedDocumentDetails(
         # FIXME document_generator.get_finished_document_filepath()
         # will become document_generator.get_finished_document_url()

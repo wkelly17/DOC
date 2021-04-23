@@ -319,6 +319,7 @@ class USFMResource(Resource):
             html_file = "{}.html".format(
                 os.path.join(self._output_dir, self._resource_filename)
             )
+            assert os.path.exists(html_file)
             self._content = file_utils.read_file(html_file)
 
             # logger.debug(
