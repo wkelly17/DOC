@@ -57,7 +57,7 @@ class ResourceJsonLookup:
         Delegate obtaining the translations.json source file to
         SourceDataFetcher class.
         """
-        # NOTE This be a Singleton
+        # NOTE This could be modified to be a Singleton
         self._source_data_fetcher = SourceDataFetcher(
             config.get_working_dir(), config.get_translations_json_location()
         )
@@ -239,26 +239,6 @@ class SourceDataFetcher:
             #     logger.debug("Exception: {}".format(exc))
             # finally:
             #     logger.info("Finished loading json file.")
-
-    # @icontract.require(lambda self: self._json_file is not None)
-    # @log_on_start(
-    #     logging.INFO, "About to check if translations.json needs update.", logger=logger
-    # )
-    # def _data_needs_update(self) -> bool:
-    #     """
-    #     Given the json file path, return true if it has not been
-    #     updated within 24 hours.
-    #     """
-    #     # Does the translations file exist?
-    #     if not os.path.isfile(self._json_file):
-    #         return True
-    #     file_mod_time: datetime = datetime.fromtimestamp(
-    #         os.stat(self._json_file).st_mtime
-    #     )
-    #     now: datetime = datetime.today()
-    #     max_delay: timedelta = timedelta(minutes=60 * 24)
-    #     # Has it been more than 24 hours since last modification time?
-    #     return now - file_mod_time > max_delay
 
 
 class ResourceLookup(abc.ABC):

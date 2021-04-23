@@ -187,7 +187,7 @@ def _assemble_usfm_tn_tq_tw_content_by_verse(
         chapter_heading = model.HtmlContent("")
         chapter_heading = chapter.chapter_content[0]
         html.append(chapter_heading)
-        # Add in the translation notes chapter intro.
+        # Add the translation notes chapter intro.
         chapter_intro = get_chapter_intro(tn_resource, chapter_num)
         html.append(chapter_intro)
 
@@ -245,8 +245,8 @@ def _assemble_usfm_tn_tw_content_by_verse(
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> model.HtmlContent:
     """
-    Construct the HTML for a 'by verse' strategy wherein USFM, TN, TQ,
-    and TW exist.
+    Construct the HTML for a 'by verse' strategy wherein USFM, TN, and
+    TW exist.
     """
     usfm_resource = cast(
         USFMResource, usfm_resource
@@ -271,7 +271,7 @@ def _assemble_usfm_tn_tw_content_by_verse(
         chapter_heading = model.HtmlContent("")
         chapter_heading = chapter.chapter_content[0]
         html.append(chapter_heading)
-        # Add in the translation notes chapter intro.
+        # Add the translation notes chapter intro.
         chapter_intro = get_chapter_intro(tn_resource, chapter_num)
         html.append(chapter_intro)
 
@@ -449,6 +449,7 @@ def _assemble_usfm_tw_content_by_verse(
     return model.HtmlContent("\n".join(html))
 
 
+# FIXME Slated for removal
 def _merge_and_sort_translation_word_dicts(
     kt_dict: Dict[model.BaseFilename, model.TWNameContentPair],
     names_dict: Dict[model.BaseFilename, model.TWNameContentPair],
@@ -737,7 +738,7 @@ def _assemble_usfm_tn_tq_content_by_verse(
         chapter_heading = model.HtmlContent("")
         chapter_heading = chapter.chapter_content[0]
         html.append(chapter_heading)
-        # Add in the translation notes chapter intro.
+        # Add the translation notes chapter intro.
         chapter_intro = get_chapter_intro(tn_resource, chapter_num)
         html.append(chapter_intro)
 
@@ -859,7 +860,7 @@ def _assemble_usfm_tn_content_by_verse(
         chapter_heading = model.HtmlContent("")
         chapter_heading = chapter.chapter_content[0]
         html.append(chapter_heading)
-        # Add in the translation notes chapter intro.
+        # Add the translation notes chapter intro.
         chapter_intro = get_chapter_intro(tn_resource, chapter_num)
         html.append(chapter_intro)
 
@@ -964,7 +965,7 @@ def _assemble_tn_content_by_verse(
         )
         html.append(chapter_heading)
 
-        # Add in the translation notes chapter intro.
+        # Add the translation notes chapter intro.
         chapter_intro = get_chapter_intro(tn_resource, chapter_num)
         html.append(chapter_intro)
 
@@ -1024,7 +1025,7 @@ def _assemble_tn_tq_tw_content_by_verse(
         # chapter_heading = chapter.chapter_content[0]
         html.append(chapter_heading)
 
-        # Add in the translation notes chapter intro.
+        # Add the translation notes chapter intro.
         chapter_intro = get_chapter_intro(tn_resource, chapter_num)
         html.append(chapter_intro)
 
@@ -1099,7 +1100,7 @@ def _assemble_tn_tw_content_by_verse(
         # chapter_heading = chapter.chapter_content[0]
         html.append(chapter_heading)
 
-        # Add in the translation notes chapter intro.
+        # Add the translation notes chapter intro.
         chapter_intro = get_chapter_intro(tn_resource, chapter_num)
         html.append(chapter_intro)
 
@@ -1169,7 +1170,7 @@ def _assemble_tn_tq_content_by_verse(
         # chapter_heading = chapter.chapter_content[0]
         html.append(chapter_heading)
 
-        # Add in the translation notes chapter intro.
+        # Add the translation notes chapter intro.
         chapter_intro = get_chapter_intro(tn_resource, chapter_num)
         html.append(chapter_intro)
 

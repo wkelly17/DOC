@@ -42,8 +42,13 @@ def document_endpoint(
 
     # FIXME Eventually we'll provide a REST GET endpoint from
     # which to retrieve the document in the API
+    finished_document_path = document_generator.get_finished_document_filepath()
     details = model.FinishedDocumentDetails(
-        finished_document_path=document_generator.get_finished_document_filepath()
+        # FIXME document_generator.get_finished_document_filepath()
+        # will become document_generator.get_finished_document_url()
+        # and will return the URL of the PDF served through FastAPI
+        # FileResponse method.
+        finished_document_path=finished_document_path
     )
 
     logger.debug("details: {}".format(details))
