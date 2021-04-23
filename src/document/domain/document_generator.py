@@ -125,15 +125,50 @@ class DocumentGenerator:
         # be missing due to network issues.
         # self._get_unfoldingword_icon()
 
-        # FIXME We could put a cache lookup in place here so as not to
-        # fetch resources if the document has already been requested
-        # and is fresh enough.
-        document_request_html_file_path = os.path.join(
-            self._working_dir, "{}.html".format(self._document_request_key)
-        )
+        # Immediately return pre-built PDF if the document has already been
+        # requested and is fresh enough. In that case, front run all requests to
+        # the cloud including the more low level resource asset caching
+        # mechanism for almost immediate return of PDF.
+        # if self._document_needs_update():
         self._fetch_resources()
         self._initialize_resource_content()
         self._generate_pdf(pdf_generation_method=config.get_pdf_generation_method())
+        # else:
+        #     # FIXME Need to handle case where previous document was
+        #     generated, but it contained fewer than requested
+        #     resources because one of the resources requested had an
+        #     invalid resource type for the language requested, e.g.,
+        #     lang_code: zh, resource_type: ulb. ulb should have been
+        #     cuv for zh.
+        #     self._serve_pdf_document()
+
+    # Front run all requests to the cloud, including the
+    # more low level resource asset caching mechanism for almost immediate
+    # return of PDF.
+    @icontract.require(lambda self: self._working_dir and self._document_request_key)
+    def _document_needs_update(self) -> bool:
+        """
+        Perform caching of PDF document according to the
+        caching policy expressed in
+        file_utils.asset_file_needs_update.
+        """
+        pdf_file_path = os.path.join(
+            self._working_dir, "{}.pdf".format(self._document_request_key)
+        )
+        return file_utils.asset_file_needs_update(pdf_file_path)
+
+    # FIXME implement
+    @log_on_end(
+        logging.INFO, "Called _serve_pdf_document (not yet implemented)", logger=logger
+    )
+    def _serve_pdf_document(self) -> None:
+        """
+        Placeholder for serving PDF document to the user. NOTE Likely we'll
+        hand off the responsibility to a fronting web server like
+        nginx because experience says that OS level send-file support
+        is more stable than doing it through something like Python.
+        """
+        pass
 
     def _assemble_content(self) -> None:
         """
