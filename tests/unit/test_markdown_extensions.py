@@ -62,36 +62,10 @@ def test_translation_word_link_preprocessor() -> None:
     md = markdown.Markdown(
         extensions=[
             translation_word_link_preprocessor.TranslationWordLinkExtension(
+                # FIXME More parameters are required now
                 lang_code={"en": "Language code for resource."}
             )
         ],
     )
     actual = md.convert(source)
     assert expected == actual
-
-
-# @pytest.mark.skip
-# def test_substitution_preprocessor() -> None:
-#     """
-#     Test the substitution pre-processor extension.
-#     """
-#     source = """## Translation Suggestions:
-
-# * It is important to translate the terms "apostle" and "disciple" in different ways.
-
-# (See also: [authority](../kt/authority.md), [disciple](../kt/disciple.md), [James (son of Zebedee)](../names/jamessonofzebedee.md), [Paul](../names/paul.md), [the twelve](../kt/thetwelve.md))"""
-
-#     expected = """<h2>Translation suggestions:</h2>\n<ul>\n<li>It is important to translate the terms "apostle" and "disciple" in different ways.<p>(See also: <a href="#en-authority">authority</a>, <a href="#en-disciple">disciple</a>, <a href="#en-jamessonofzebedee">James (son of Zebedee)</a>, <a href="#en-paul">Paul</a>, <a href="#en-thetwelve">the twelve</a></li>\n</ul>"""
-
-#     from collections import OrderedDict
-
-#     # substitutions = OrderedDict(
-#     #     [("Suggestions:", "suggestions:"), ("It is important", "It is smart"),]
-#     # )
-
-#     # subn_extension = SubstitutionExtension(substitutions)
-#     md = markdown.Markdown(
-#         extensions=[substitution_preprocessor.SubstitutionExtension(lang_code="en")]
-#     )
-#     actual = md.convert(source)
-#     assert expected == actual
