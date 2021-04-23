@@ -463,8 +463,8 @@ class TResourceJsonLookup(ResourceLookup):
     def lookup(self, resource: Resource) -> model.ResourceLookupDto:
         """
         Given a resource, comprised of language code, e.g., 'wum', a
-        resource type, e.g., 'tn', and an optional resource code,
-        e.g., 'gen', return URL for resource.
+        resource type, e.g., 'tn', and a resource code, e.g., 'gen',
+        return URL for resource.
         """
         resource_lookup_dto: model.ResourceLookupDto
 
