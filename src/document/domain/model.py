@@ -240,9 +240,7 @@ class TWLanguagePayload(BaseModel):
     e.g., abomination, and its TWNameContentPair instance.
     """
 
-    kt_dict: Dict[BaseFilename, TWNameContentPair]
-    names_dict: Dict[BaseFilename, TWNameContentPair]
-    other_dict: Dict[BaseFilename, TWNameContentPair]
+    translation_words_dict: Dict[BaseFilename, TWNameContentPair]
     uses: Dict[BaseFilename, List[TWUse]] = {}
 
 

@@ -13,7 +13,7 @@ import re
 import subprocess
 from glob import glob
 from logdecorator import log_on_start, log_on_end
-from typing import Any, cast, Dict, List, Optional, Tuple
+from typing import Any, cast, Dict, FrozenSet, List, Optional, Tuple
 
 import bs4
 import icontract
@@ -1441,15 +1441,14 @@ class TWResource(TResource):
                 ),
             ]
         )
-        kt_files = sorted(glob("{}/bible/kt/*.md".format(self._resource_dir)))
-        # breakpoint()
 
-        kt_dict: Dict[model.BaseFilename, model.TWNameContentPair] = {}
-        for kt_file in kt_files:
-            with open(kt_file, "r") as fin:
+        translation_words_dict: Dict[model.BaseFilename, model.TWNameContentPair] = {}
+        for translation_word_file in filepaths:
+            with open(translation_word_file, "r") as fin:
                 translation_word_content = fin.read()
                 # Remember that localized word is sometimes capitalized and sometimes
-                # not. So later when we search for the localized word in kt_dict.keys
+                # not. So later when we search for the localized word
+                # in translation_word_dict.keys
                 # compared to the verse we'll need to account for that.
                 # For each translation word we encounter in a verse
                 # we'll collect a link into a collection which we'll
@@ -1461,7 +1460,7 @@ class TWResource(TResource):
                 # word.
                 # TODO We have to find out how all display words are
                 # displayed by looking at the legacy PDF. Do they
-                # display kt words followed by names and then other?
+                # display translation_word words followed by names and then other?
                 # The localized word is the very first word in the
                 # first line right after the Markdown 1st level
                 # header, i.e., right after '#'.
@@ -1475,9 +1474,7 @@ class TWResource(TResource):
                 # verses wherein the word occurs. So, we need to
                 # build up a data structure that for every word
                 # collects which verses it occurs in.
-                localized_word = translation_word_content.split("\n\n")[0].split("# ")[
-                    1
-                ]
+                localized_word = translation_word_content.split("\n")[0].split("# ")[1]
                 html_word_content = md.convert(translation_word_content)
                 # Make adjustments to the HTML here.
                 html_word_content = re.sub(r"h2", r"h4", html_word_content)
@@ -1491,57 +1488,17 @@ class TWResource(TResource):
                 # languages the word filenames are still in English and we need to have
                 # them to make the inter-document linking work (for the filenames) for
                 # 'See also' section references.
-                kt_base_filename: model.BaseFilename = cast(
-                    model.BaseFilename, pathlib.Path(kt_file).stem
+                translation_word_base_filename = model.BaseFilename(
+                    pathlib.Path(translation_word_file).stem
                 )
-                kt_dict[kt_base_filename] = model.TWNameContentPair(
+                translation_words_dict[
+                    translation_word_base_filename
+                ] = model.TWNameContentPair(
                     localized_word=localized_word, content=html_word_content
-                )
-        names_files = sorted(glob("{}/bible/names/*.md".format(self._resource_dir)))
-        names_dict: Dict[model.BaseFilename, model.TWNameContentPair] = {}
-        for names_file in names_files:
-            with open(names_file) as fin:
-                # FIXME Somehow tirzah.md got associated with a
-                # localized file of Timotheo for sw
-                # if pathlib.Path(names_file).stem == "tirzah" and self.lang_code == "sw":
-                #     breakpoint()
-                translation_word_content = fin.read()
-                localized_word = translation_word_content.split("\n\n")[0].split("# ")[
-                    1
-                ]
-                html_word_content = md.convert(translation_word_content)
-                # Make adjustments to the HTML here.
-                html_word_content = re.sub(r"h2", r"h4", html_word_content)
-                html_word_content = re.sub(r"h1", r"h3", html_word_content)
-
-                names_base_filename: model.BaseFilename = cast(
-                    model.BaseFilename, pathlib.Path(names_file).stem
-                )
-                names_dict[names_base_filename] = model.TWNameContentPair(
-                    localized_word=localized_word, content=html_word_content,
-                )
-        other_files = sorted(glob("{}/bible/other/*.md".format(self._resource_dir)))
-        other_dict: Dict[model.BaseFilename, model.TWNameContentPair] = {}
-        for other_file in other_files:
-            with open(other_file) as fin:
-                translation_word_content = fin.read()
-                localized_word = translation_word_content.split("\n\n")[0].split("# ")[
-                    1
-                ]
-                html_word_content = md.convert(translation_word_content)
-                # Make adjustments to the HTML here.
-                html_word_content = re.sub(r"h2", r"h4", html_word_content)
-                html_word_content = re.sub(r"h1", r"h3", html_word_content)
-
-                other_base_filename: model.BaseFilename = cast(
-                    model.BaseFilename, pathlib.Path(other_file).stem
-                )
-                other_dict[other_base_filename] = model.TWNameContentPair(
-                    localized_word=localized_word, content=html_word_content,
                 )
 
         self._language_payload = model.TWLanguagePayload(
-            kt_dict=kt_dict, names_dict=names_dict, other_dict=other_dict
+            translation_words_dict=translation_words_dict
         )
 
     # FIXME Remove

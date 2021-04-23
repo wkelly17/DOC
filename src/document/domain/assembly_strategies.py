@@ -197,12 +197,7 @@ def _assemble_usfm_tn_tq_tw_content_by_verse(
         # Get TQ chapter verses
         tq_verses = tq_resource.book_payload.chapters[chapter_num].verses_html
 
-        # Merge the translation word dictionaries together.
-        translation_words_dict = _merge_and_sort_translation_word_dicts(
-            tw_resource.language_payload.kt_dict,
-            tw_resource.language_payload.names_dict,
-            tw_resource.language_payload.other_dict,
-        )
+        translation_words_dict = tw_resource.language_payload.translation_words_dict
 
         # Invariant: translation word file basename is the key into
         # each dictionary and file basename is always lower case.
@@ -283,12 +278,7 @@ def _assemble_usfm_tn_tw_content_by_verse(
         # Get TN chapter verses
         tn_verses = tn_resource.book_payload.chapters[chapter_num].verses_html
 
-        # Merge the translation word dictionaries together.
-        translation_words_dict = _merge_and_sort_translation_word_dicts(
-            tw_resource.language_payload.kt_dict,
-            tw_resource.language_payload.names_dict,
-            tw_resource.language_payload.other_dict,
-        )
+        translation_words_dict = tw_resource.language_payload.translation_words_dict
 
         # Invariant: translation word file basename is the key into
         # each dictionary and file basename is always lower case.
@@ -360,12 +350,7 @@ def _assemble_usfm_tq_tw_content_by_verse(
         # Get TQ chapter verses
         tq_verses = tq_resource.book_payload.chapters[chapter_num].verses_html
 
-        # Merge the translation word dictionaries together.
-        translation_words_dict = _merge_and_sort_translation_word_dicts(
-            tw_resource.language_payload.kt_dict,
-            tw_resource.language_payload.names_dict,
-            tw_resource.language_payload.other_dict,
-        )
+        translation_words_dict = tw_resource.language_payload.translation_words_dict
 
         # Invariant: translation word file basename is the key into
         # each dictionary and file basename is always lower case.
@@ -431,12 +416,7 @@ def _assemble_usfm_tw_content_by_verse(
         chapter_heading = chapter.chapter_content[0]
         html.append(chapter_heading)
 
-        # Merge the translation word dictionaries together.
-        translation_words_dict = _merge_and_sort_translation_word_dicts(
-            tw_resource.language_payload.kt_dict,
-            tw_resource.language_payload.names_dict,
-            tw_resource.language_payload.other_dict,
-        )
+        translation_words_dict = tw_resource.language_payload.translation_words_dict
 
         # Invariant: translation word file basename is the key into
         # each dictionary and file basename is always lower case.
@@ -1052,12 +1032,7 @@ def _assemble_tn_tq_tw_content_by_verse(
         tn_verses = tn_resource.book_payload.chapters[chapter_num].verses_html
         tq_verses = tq_resource.book_payload.chapters[chapter_num].verses_html
 
-        # Merge the translation word dictionaries together.
-        translation_words_dict = _merge_and_sort_translation_word_dicts(
-            tw_resource.language_payload.kt_dict,
-            tw_resource.language_payload.names_dict,
-            tw_resource.language_payload.other_dict,
-        )
+        translation_words_dict = tw_resource.language_payload.translation_words_dict
 
         # PEP526 disallows declaration of types in for loops, but allows this.
         verse_num: model.VerseNum
@@ -1131,12 +1106,7 @@ def _assemble_tn_tw_content_by_verse(
         # Get TN chapter verses
         tn_verses = tn_resource.book_payload.chapters[chapter_num].verses_html
 
-        # Merge the translation word dictionaries together.
-        translation_words_dict = _merge_and_sort_translation_word_dicts(
-            tw_resource.language_payload.kt_dict,
-            tw_resource.language_payload.names_dict,
-            tw_resource.language_payload.other_dict,
-        )
+        translation_words_dict = tw_resource.language_payload.translation_words_dict
 
         # PEP526 disallows declaration of types in for loops, but allows this.
         verse_num: model.VerseNum
@@ -1308,12 +1278,7 @@ def _assemble_tq_tw_content_by_verse(
         # Get TQ chapter verses
         tq_verses = tq_resource.book_payload.chapters[chapter_num].verses_html
 
-        # Merge the translation word dictionaries together.
-        translation_words_dict = _merge_and_sort_translation_word_dicts(
-            tw_resource.language_payload.kt_dict,
-            tw_resource.language_payload.names_dict,
-            tw_resource.language_payload.other_dict,
-        )
+        translation_words_dict = tw_resource.language_payload.translation_words_dict
 
         # PEP526 disallows declaration of types in for loops, but allows this.
         verse_num: model.VerseNum
@@ -1352,12 +1317,7 @@ def _assemble_tw_content_by_verse(
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
     html: List[model.HtmlContent] = []
 
-    # Merge the translation word dictionaries together.
-    translation_words_dict = _merge_and_sort_translation_word_dicts(
-        tw_resource.language_payload.kt_dict,
-        tw_resource.language_payload.names_dict,
-        tw_resource.language_payload.other_dict,
-    )
+    translation_words_dict = tw_resource.language_payload.translation_words_dict
 
     # Add the translation words definition section.
     linked_translation_words: List[model.HtmlContent] = _get_translation_words_section(
