@@ -114,15 +114,10 @@ class DocumentGenerator:
         This is the main entry point for this class and the
         backend system.
         """
-        # FIXME icon no longer exists where it used to. I've saved the
+        # icon no longer exists where it used to. I've saved the
         # icon to ./working/temp for now until we find a different
-        # location for the icon that is to be used if we wish to
-        # retrieve it via URL. Otherwise we'll just always get it from
-        # file. Update: for now I am retrieving the legacy icon from
-        # archive.org. I've commented it out again though because
-        # archive.org is sloooow. Besides I don't think we want
-        # something as important as a logo for our PDF cover page to
-        # be missing due to network issues.
+        # location for the icon if we wish to
+        # retrieve it via URL.
         # self._get_unfoldingword_icon()
 
         # Immediately return pre-built PDF if the document has already been
