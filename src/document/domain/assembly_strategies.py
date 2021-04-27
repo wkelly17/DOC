@@ -477,6 +477,7 @@ def _get_tn_verse(
     chapter_num and verse verse_num.
     """
     html: List[model.HtmlContent] = []
+    # Add header
     html.append(
         model.HtmlContent(
             config.get_html_format_string("translation_note").format(
