@@ -678,7 +678,7 @@ class TNResource(TResource):
         book_intro_path = glob(
             "{}/*{}/front/intro.md".format(self._resource_dir, self._resource_code)
         )
-        book_intro_html = ""
+        book_intro_html = model.HtmlContent("")
         if book_intro_path:
             with open(book_intro_path[0], "r", encoding="utf-8") as fin3:
                 book_intro_html = md.convert(fin3.read())
