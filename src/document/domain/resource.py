@@ -682,7 +682,7 @@ class TNResource(TResource):
             intro_html=book_intro_html, chapters=chapter_verses
         )
 
-    def get_tn_verses_for_chapter(
+    def get_verses_for_chapter(
         self, chapter_num: model.ChapterNum
     ) -> Dict[model.VerseNum, model.HtmlContent]:
         """
