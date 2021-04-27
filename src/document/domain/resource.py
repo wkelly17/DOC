@@ -1125,48 +1125,6 @@ class TQResource(TResource):
         """See docstring in superclass."""
         self._manifest = Manifest(self)
 
-        # FIXME Slated for removal
-        # # Get the content files
-        # markdown_files = glob(
-        #     "{}/*{}/**/*.md".format(self._resource_dir, self._resource_code)
-        # )
-        # # logger.debug("markdown_files: {}".format(markdown_files))
-        # markdown_content_files = list(
-        #     filter(
-        #         lambda markdown_file: str(pathlib.Path(markdown_file).stem).lower()
-        #         not in config.get_markdown_doc_file_names(),
-        #         markdown_files,
-        #     )
-        # )
-        # txt_files = glob(
-        #     "{}/*{}/**/*.txt".format(self._resource_dir, self._resource_code)
-        # )
-        # # logger.debug("txt_files: {}".format(txt_files))
-        # txt_content_files = list(
-        #     filter(
-        #         lambda txt_file: str(pathlib.Path(txt_file).stem).lower()
-        #         not in config.get_markdown_doc_file_names(),
-        #         txt_files,
-        #     )
-        # )
-
-        # if markdown_content_files:
-        #     self._content_files = list(
-        #         filter(
-        #             lambda markdown_file: self._resource_code.lower()
-        #             in markdown_file.lower(),
-        #             markdown_files,
-        #         )
-        #     )
-        # if txt_content_files:
-        #     self._content_files = list(
-        #         filter(
-        #             lambda txt_file: self._resource_code.lower()
-        #             in txt_file.lower(),
-        #             txt_files,
-        #         )
-        #     )
-
     def _initialize_verses_html(self) -> None:
         """
         Find translation questions for the verses.
