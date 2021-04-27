@@ -99,7 +99,8 @@ class TranslationWordLinkPreprocessor(Preprocessor):
                     )
             # FIXME Handle non-translation word cases, e.g., scripture links
             else:
-                breakpoint()
+                # breakpoint()
+                pass
         return source.split("\n")
 
 
