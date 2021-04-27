@@ -1203,16 +1203,6 @@ class TQResource(TResource):
                 verses_html[verse_num] = verse_content
             chapter_payload = model.TQChapterPayload(verses_html=verses_html)
             chapter_verses[chapter_num] = chapter_payload
-        # Get the book intro if it exists
-        # FIXME For some languages, TN assets are stored in .txt files
-        # rather of .md files. Handle this.
-        # book_intro_path = glob(
-        #     "{}/*{}/front/intro.md".format(self._resource_dir, self._resource_code)
-        # )
-        # book_intro_html = ""
-        # if book_intro_path:
-        #     with open(book_intro_path[0], "r", encoding="utf-8") as fin3:
-        #         book_intro_html = md.convert(fin3.read())
         self._book_payload = model.TQBookPayload(chapters=chapter_verses)
 
     def get_verses_for_chapter(

@@ -197,9 +197,6 @@ def _assemble_usfm_tn_tq_tw_content_by_verse(
         # Get TQ chapter verses
         tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
 
-        # Invariant: translation word file basename is the key into
-        # each dictionary and file basename is always lower case.
-
         # PEP526 disallows declaration of types in for
         # loops, but allows this.
         verse_num: model.VerseNum
@@ -276,9 +273,6 @@ def _assemble_usfm_tn_tw_content_by_verse(
         # Get TN chapter verses
         tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
 
-        # Invariant: translation word file basename is the key into
-        # each dictionary and file basename is always lower case.
-
         # PEP526 disallows declaration of types in for
         # loops, but allows this.
         verse_num: model.VerseNum
@@ -346,9 +340,6 @@ def _assemble_usfm_tq_tw_content_by_verse(
         # Get TQ chapter verses
         tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
 
-        # Invariant: translation word file basename is the key into
-        # each dictionary and file basename is always lower case.
-
         # PEP526 disallows declaration of types in for
         # loops, but allows this.
         verse_num: model.VerseNum
@@ -409,9 +400,6 @@ def _assemble_usfm_tw_content_by_verse(
         chapter_heading = model.HtmlContent("")
         chapter_heading = chapter.chapter_content[0]
         html.append(chapter_heading)
-
-        # Invariant: translation word file basename is the key into
-        # each dictionary and file basename is always lower case.
 
         # PEP526 disallows declaration of types in for
         # loops, but allows this.
