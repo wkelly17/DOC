@@ -192,10 +192,10 @@ def _assemble_usfm_tn_tq_tw_content_by_verse(
         html.append(chapter_intro)
 
         # Get TN chapter verses
-        tn_verses = tn_resource.book_payload.chapters[chapter_num].verses_html
+        tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
 
         # Get TQ chapter verses
-        tq_verses = tq_resource.book_payload.chapters[chapter_num].verses_html
+        tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
 
         # Invariant: translation word file basename is the key into
         # each dictionary and file basename is always lower case.
@@ -274,7 +274,7 @@ def _assemble_usfm_tn_tw_content_by_verse(
         html.append(chapter_intro)
 
         # Get TN chapter verses
-        tn_verses = tn_resource.book_payload.chapters[chapter_num].verses_html
+        tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
 
         # Invariant: translation word file basename is the key into
         # each dictionary and file basename is always lower case.
@@ -344,7 +344,7 @@ def _assemble_usfm_tq_tw_content_by_verse(
         html.append(chapter_heading)
 
         # Get TQ chapter verses
-        tq_verses = tq_resource.book_payload.chapters[chapter_num].verses_html
+        tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
 
         # Invariant: translation word file basename is the key into
         # each dictionary and file basename is always lower case.
@@ -575,10 +575,10 @@ def _assemble_usfm_tn_tq_content_by_verse(
         html.append(chapter_intro)
 
         # Get TN chapter verses
-        tn_verses = tn_resource.book_payload.chapters[chapter_num].verses_html
+        tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
 
         # Get TQ chapter verses
-        tq_verses = tq_resource.book_payload.chapters[chapter_num].verses_html
+        tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
 
         # PEP526 disallows declaration of types in for
         # loops, but allows this.
@@ -637,7 +637,7 @@ def _assemble_usfm_tq_content_by_verse(
         html.append(chapter_heading)
 
         # Get TQ chapter verses
-        tq_verses = tq_resource.book_payload.chapters[chapter_num].verses_html
+        tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
 
         # PEP526 disallows declaration of types in for
         # loops, but allows this.
@@ -697,7 +697,7 @@ def _assemble_usfm_tn_content_by_verse(
         html.append(chapter_intro)
 
         # Get TN chapter verses
-        tn_verses = tn_resource.book_payload.chapters[chapter_num].verses_html
+        tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
 
         # PEP526 disallows declaration of types in for
         # loops, but allows this.
@@ -802,7 +802,7 @@ def _assemble_tn_content_by_verse(
         html.append(chapter_intro)
 
         # Get TN chapter verses
-        tn_verses = tn_resource.book_payload.chapters[chapter_num].verses_html
+        tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
 
         # PEP526 disallows declaration of types in for loops, but allows this.
         verse_num: model.VerseNum
@@ -862,8 +862,8 @@ def _assemble_tn_tq_tw_content_by_verse(
         html.append(chapter_intro)
 
         # Get TN chapter verses
-        tn_verses = tn_resource.book_payload.chapters[chapter_num].verses_html
-        tq_verses = tq_resource.book_payload.chapters[chapter_num].verses_html
+        tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
+        tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
 
         # PEP526 disallows declaration of types in for loops, but allows this.
         verse_num: model.VerseNum
@@ -935,7 +935,7 @@ def _assemble_tn_tw_content_by_verse(
         html.append(chapter_intro)
 
         # Get TN chapter verses
-        tn_verses = tn_resource.book_payload.chapters[chapter_num].verses_html
+        tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
 
         # PEP526 disallows declaration of types in for loops, but allows this.
         verse_num: model.VerseNum
@@ -1003,8 +1003,8 @@ def _assemble_tn_tq_content_by_verse(
         html.append(chapter_intro)
 
         # Get TN chapter verses
-        tn_verses = tn_resource.book_payload.chapters[chapter_num].verses_html
-        tq_verses = tq_resource.book_payload.chapters[chapter_num].verses_html
+        tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
+        tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
 
         # PEP526 disallows declaration of types in for loops, but allows this.
         verse_num: model.VerseNum
@@ -1055,7 +1055,7 @@ def _assemble_tq_content_by_verse(
         html.append(chapter_heading)
 
         # Get TQ chapter verses
-        tq_verses = tq_resource.book_payload.chapters[chapter_num].verses_html
+        tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
 
         # PEP526 disallows declaration of types in for loops, but allows this.
         verse_num: model.VerseNum
@@ -1105,7 +1105,7 @@ def _assemble_tq_tw_content_by_verse(
         html.append(chapter_heading)
 
         # Get TQ chapter verses
-        tq_verses = tq_resource.book_payload.chapters[chapter_num].verses_html
+        tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
 
         # PEP526 disallows declaration of types in for loops, but allows this.
         verse_num: model.VerseNum

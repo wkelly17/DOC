@@ -682,6 +682,15 @@ class TNResource(TResource):
             intro_html=book_intro_html, chapters=chapter_verses
         )
 
+    def get_tn_verses_for_chapter(
+        self, chapter_num: model.ChapterNum
+    ) -> Dict[model.VerseNum, model.HtmlContent]:
+        """
+        Return the HTML for verses that are in the chapter with
+        chapter_num.
+        """
+        return self.book_payload.chapters[chapter_num].verses_html
+
     # FIXME Obselete. Slated for removal.
     # @icontract.require(lambda self: self._resource_code)
     # def _get_tn_markdown(self) -> None:
@@ -1205,6 +1214,14 @@ class TQResource(TResource):
         #     with open(book_intro_path[0], "r", encoding="utf-8") as fin3:
         #         book_intro_html = md.convert(fin3.read())
         self._book_payload = model.TQBookPayload(chapters=chapter_verses)
+
+    def get_verses_for_chapter(
+        self, chapter_num: model.ChapterNum
+    ) -> Dict[model.VerseNum, model.HtmlContent]:
+        """
+        Return the HTML for verses in chapter_num.
+        """
+        return self.book_payload.chapters[chapter_num].verses_html
 
     # def _get_tq_markdown(self) -> None:
     #     """Build tq markdown"""
