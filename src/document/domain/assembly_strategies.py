@@ -449,24 +449,6 @@ def _assemble_usfm_tw_content_by_verse(
     return model.HtmlContent("\n".join(html))
 
 
-# FIXME Slated for removal
-def _merge_and_sort_translation_word_dicts(
-    kt_dict: Dict[model.BaseFilename, model.TWNameContentPair],
-    names_dict: Dict[model.BaseFilename, model.TWNameContentPair],
-    other_dict: Dict[model.BaseFilename, model.TWNameContentPair],
-) -> Dict[model.BaseFilename, model.TWNameContentPair]:
-    """
-    Merge kt_dict, names_dict, and other_dict for a
-    model.TWLanguagePayload instance, sort, and return the resulting
-    dictionary.
-    """
-    translation_words_dict = kt_dict
-    translation_words_dict.update(names_dict)
-    translation_words_dict.update(other_dict)
-    # Sort the dictionary by its keys.
-    return dict(sorted(translation_words_dict.items()))
-
-
 def _get_tn_verse(
     tn_verses: Dict[model.VerseNum, model.HtmlContent],
     chapter_num: model.ChapterNum,
