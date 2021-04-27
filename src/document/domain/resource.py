@@ -602,48 +602,6 @@ class TNResource(TResource):
         """See docstring in superclass."""
         self._manifest = Manifest(self)
 
-        # FIXME Slated for removal.
-        # # Get the content files
-        # markdown_files = glob(
-        #     "{}/*{}/**/*.md".format(self._resource_dir, self._resource_code)
-        # )
-        # # logger.debug("markdown_files: {}".format(markdown_files))
-        # markdown_content_files = list(
-        #     filter(
-        #         lambda markdown_file: str(pathlib.Path(markdown_file).stem).lower()
-        #         not in config.get_markdown_doc_file_names(),
-        #         markdown_files,
-        #     )
-        # )
-        # txt_files = glob(
-        #     "{}/*{}/**/*.txt".format(self._resource_dir, self._resource_code)
-        # )
-        # # logger.debug("txt_files: {}".format(txt_files))
-        # txt_content_files = list(
-        #     filter(
-        #         lambda txt_file: str(pathlib.Path(txt_file).stem).lower()
-        #         not in config.get_markdown_doc_file_names(),
-        #         txt_files,
-        #     )
-        # )
-
-        # if markdown_content_files:
-        #     self._content_files = list(
-        #         filter(
-        #             lambda markdown_file: self._resource_code.lower()
-        #             in markdown_file.lower(),
-        #             markdown_files,
-        #         )
-        #     )
-        # if txt_content_files:
-        #     self._content_files = list(
-        #         filter(
-        #             lambda txt_file: self._resource_code.lower()
-        #             in txt_file.lower(),
-        #             txt_files,
-        #         )
-        #     )
-
     def _initialize_verses_html(self) -> None:
         """
         Find book intro, chapter intros, and then the translation
@@ -1539,6 +1497,149 @@ class TWResource(TResource):
         self._language_payload = model.TWLanguagePayload(
             translation_words_dict=translation_words_dict
         )
+
+    def get_translation_word_links(
+        self,
+        # translation_words_dict: Dict[model.BaseFilename, model.TWNameContentPair],
+        chapter_num: model.ChapterNum,
+        verse_num: model.VerseNum,
+        verse: model.HtmlContent,
+    ) -> List[model.HtmlContent]:
+        """
+        Add the translation links section which provides links from words
+        used in the current verse to their definition, i.e., to their
+        translation word content.
+        """
+        html: List[model.HtmlContent] = []
+        # Check if any of the kt_dict, names_dict, or other_dict keys appear in
+        # the current scripture verse. If so make a link to point to the word
+        # content which occurs later in the document.
+        uses: List[model.TWUse] = []
+        key: model.BaseFilename
+        value: model.TWNameContentPair
+        for key, value in self._language_payload.translation_words_dict.items():
+            # This checks that the word occurs as an exact sub-string in
+            # the verse.
+            if re.search(r"\b{}\b".format(value.localized_word), verse):
+                use = model.TWUse(
+                    lang_code=self.lang_code,
+                    book_id=self.resource_code,
+                    # FIXME Use localized book name.
+                    book_name=bible_books.BOOK_NAMES[self.resource_code],
+                    chapter_num=chapter_num,
+                    verse_num=verse_num,
+                    base_filename=key,
+                    localized_word=value.localized_word,
+                )
+                uses.append(use)
+                # Store reference for use in 'Uses:' section that
+                # comes later.
+                # FIXME Perhaps we can later simplify to use one data structure instead
+                # of both uses and tw_resource.language_payload.uses.
+                if key in self.language_payload.uses:
+                    self.language_payload.uses[key].append(use)
+                else:
+                    self.language_payload.uses[key] = [use]
+
+        if uses:
+            html.append(
+                model.HtmlContent(
+                    config.get_html_format_string("translation_words").format(
+                        chapter_num, verse_num
+                    )
+                )
+            )
+            html.append(config.get_html_format_string("unordered_list_begin"))
+            # Append word links.
+            uses_list_items = [
+                config.get_html_format_string("translation_word_list_item").format(
+                    self.lang_code, use.base_filename, use.localized_word,
+                )
+                for use in uses
+            ]
+            html.append(model.HtmlContent("\n".join(uses_list_items)))
+            html.append(config.get_html_format_string("unordered_list_end"))
+        return html
+
+    def get_translation_words_section(
+        self, include_uses_section: bool = True,
+    ) -> List[model.HtmlContent]:
+        """
+        Build and return the translation words definition section, i.e.,
+        the list of all translation words for this language, book
+        combination. Include a 'Uses:' section that points from the
+        translation word back to the verses which include the translation
+        word if include_uses_section is True.
+        """
+        html: List[model.HtmlContent] = []
+        html.append(config.get_html_format_string("translation_words_section"))
+
+        for (
+            base_filename,
+            tw_name_content_pair,
+        ) in self._language_payload.translation_words_dict.items():
+            # NOTE If we un-comment the commented out if conditional logic
+            # on the next commented line and remove the same conditional logic which
+            # occurs later in this same function, we will only include words in the
+            # translation section which occur in current lang_code, book. The
+            # problem, I found, with this is that translation note 'See also'
+            # sections often refer to translation words that are not part of the
+            # lang_code, book combination content and thus those links are dead
+            # unless we include them even if they don't have any 'Uses' section.
+
+            # if base_filename in tw_resource.language_payload.uses:
+
+            # Make linking work.
+            tw_name_content_pair.content = model.HtmlContent(
+                tw_name_content_pair.content.replace(
+                    "<h3>{}".format(tw_name_content_pair.localized_word),
+                    '<h3 id="{}-{}">{}'.format(
+                        self.lang_code,
+                        base_filename,
+                        tw_name_content_pair.localized_word,
+                    ),
+                )
+            )
+            uses_section = model.HtmlContent("")
+
+            # See comment above.
+            if include_uses_section and base_filename in self.language_payload.uses:
+                uses_section = self._get_uses_section(
+                    self.language_payload.uses[base_filename]
+                )
+                tw_name_content_pair.content = model.HtmlContent(
+                    tw_name_content_pair.content + uses_section
+                )
+            html.append(tw_name_content_pair.content)
+        return html
+
+    def _get_uses_section(self, uses: List[model.TWUse]) -> model.HtmlContent:
+        """
+        Construct and return the 'Uses:' section which comes at the end of
+        a translation word definition and wherein each item points to
+        verses (as targeted by lang_code, book_id, chapter_num, and
+        verse_num) wherein the word occurs.
+        """
+        html: List[model.HtmlContent] = []
+        html.append(
+            config.get_html_format_string("translation_word_verse_section_header")
+        )
+        html.append(config.get_html_format_string("unordered_list_begin"))
+        for use in uses:
+            html_content_str = model.HtmlContent(
+                config.get_html_format_string("translation_word_verse_ref_item").format(
+                    use.lang_code,
+                    bible_books.BOOK_NUMBERS[use.book_id].zfill(3),
+                    str(use.chapter_num).zfill(3),
+                    str(use.verse_num).zfill(3),
+                    bible_books.BOOK_NAMES[use.book_id],
+                    use.chapter_num,
+                    use.verse_num,
+                )
+            )
+            html.append(html_content_str)
+        html.append(config.get_html_format_string("unordered_list_end"))
+        return model.HtmlContent("\n".join(html))
 
     # FIXME Remove
     # @log_on_start(
