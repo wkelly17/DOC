@@ -622,10 +622,6 @@ class TNResource(TResource):
                 ),
             ]
         )
-        # FIXME We already went to the trouble of finding the Markdown
-        # or TXT files and storing their paths in self._content_files, perhaps
-        # we'll use those rather than globbing again here. Currently
-        # refactoring to final design, just a note for the future.
         # FIXME We can likely now remove the first '**'
         chapter_dirs = sorted(
             glob("{}/**/*{}/*[0-9]*".format(self._resource_dir, self._resource_code))
@@ -1188,10 +1184,6 @@ class TQResource(TResource):
                 ),
             ]
         )
-        # FIXME We already went to the trouble of finding the Markdown
-        # or TXT files and storing their paths in self._content_files, perhaps
-        # we'll use those rather than globbing again here. Currently
-        # refactoring to final design, just a note for the future.
         # FIXME We can likely now remove the first '**'
         chapter_dirs = sorted(
             glob("{}/**/*{}/*[0-9]*".format(self._resource_dir, self._resource_code))
