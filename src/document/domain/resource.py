@@ -1776,21 +1776,6 @@ def resource_factory(
     )  # type: ignore
 
 
-# FIXME Slated for removal
-def get_tw_refs(tw_refs_by_verse: dict, book: str, chapter: str, verse: str) -> List:
-    """
-    Returns a list of refs for the given book, chapter, verse, or
-    empty list if no matches.
-    """
-    if tw_refs_by_verse and book not in tw_refs_by_verse:
-        return []
-    if chapter not in tw_refs_by_verse[book]:
-        return []
-    if verse not in tw_refs_by_verse[book][chapter]:
-        return []
-    return tw_refs_by_verse[book][chapter][verse]
-
-
 class ResourceProvisioner:
     """
     This class handles creating the necessary directory for a resource
