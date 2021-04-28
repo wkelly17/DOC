@@ -1245,7 +1245,7 @@ class TQResource(TResource):
         Build and return the content for the translation question for chapter
         chapter_num and verse verse_num.
         """
-        tq_verse = self.verses_for_chapter(chapter_num)[verse_num]
+        tq_verse = self.get_verses_for_chapter(chapter_num)[verse_num]
         if not tq_verse:
             return [model.HtmlContent("")]
 
