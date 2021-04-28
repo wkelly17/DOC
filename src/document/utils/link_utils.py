@@ -10,9 +10,6 @@ from document import config
 from document.domain import bible_books
 from document.utils import file_utils, markdown_utils
 
-if TYPE_CHECKING:
-    from document.domain.resource import USFMResource
-
 
 logger = config.get_logger(__name__)
 
