@@ -247,6 +247,7 @@ class USFMResource(Resource):
         usfm_content_files = glob("{}**/*.usfm".format(self._resource_dir))
         # USFM files sometimes have txt suffix
         txt_content_files = glob("{}**/*.txt".format(self._resource_dir))
+        # Sometimes the txt USFM files live at another location
         if not txt_content_files:
             txt_content_files = glob("{}**/**/*.txt".format(self._resource_dir))
 
@@ -287,10 +288,6 @@ class USFMResource(Resource):
                 )
             )
 
-    # FIXME this log message is slated for removal.
-    # @log_on_end(
-    #     logging.DEBUG, "self._bad_links: {self._bad_links}", logger=logger,
-    # )
     @icontract.require(lambda self: self._content_files is not None)
     @icontract.ensure(lambda self: self._resource_filename is not None)
     def get_content(self) -> None:
@@ -307,8 +304,7 @@ class USFMResource(Resource):
             # TODO USFM-Tools books.py can raise MalformedUsfmError
             # when the following code is called. If that happens we
             # want to skip this resource request but continue with
-            # others in the same document request. The TODO is that I
-            # need to work out where I want to catch said exception.
+            # others in the same document request. Catch said exception.
             UsfmTransform.buildSingleHtmlFromFile(
                 pathlib.Path(self._content_files[0]),
                 self._output_dir,
@@ -321,12 +317,6 @@ class USFMResource(Resource):
             )
             assert os.path.exists(html_file)
             self._content = file_utils.read_file(html_file)
-
-            # logger.debug(
-            #     "html content in self._content in {}: {}".format(
-            #         html_file, self._content
-            #     )
-            # )
 
             self._initialize_verses_html()
 
@@ -644,9 +634,6 @@ class TNResource(TResource):
             if intro_path:
                 with open(intro_path, "r", encoding="utf-8") as fin:
                     intro_html = fin.read()
-                    # NOTE I am not sure the 'Links' section make
-                    # sense in the new interleaving design, so let's
-                    # remove it for now.
                     intro_html = md.convert(intro_html)
             # FIXME For some languages, TN assets are stored in .txt files
             # rather of .md files. Handle this.
@@ -1191,17 +1178,6 @@ class TQResource(TResource):
         chapter_verses: Dict[int, model.TQChapterPayload] = {}
         for chapter_dir in chapter_dirs:
             chapter_num = int(os.path.split(chapter_dir)[-1])
-            # intro_paths = glob("{}/*intro.md".format(chapter_dir))
-            # intro_path = intro_paths[0] if intro_paths else None
-            # intro_html = ""
-            # if intro_path:
-            #     with open(intro_path, "r", encoding="utf-8") as fin:
-            #         intro_html = fin.read()
-            #         # NOTE I am not sure the 'Links' section make
-            #         # sense in the new interleaving design, so let's
-            #         # remove it for now.
-            #         intro_html = markdown_utils.remove_md_section(intro_html, "Links:")
-            #         intro_html = md.convert(intro_html)
             # FIXME For some languages, TQ assets are stored in .txt files
             # rather of .md files. Handle this.
             verse_paths = sorted(glob("{}/*[0-9]*.md".format(chapter_dir)))
@@ -1211,9 +1187,6 @@ class TQResource(TResource):
                 verse_content = ""
                 with open(filepath, "r", encoding="utf-8") as fin2:
                     verse_content = fin2.read()
-                    # NOTE I am not sure the 'Links' section make
-                    # sense in the new interleaving design, so let's
-                    # remove it for now.
                     # NOTE I don't think translation questions have a
                     # 'Links:' section.
                     # verse_content = markdown_utils.remove_md_section(
@@ -1401,8 +1374,6 @@ class TWResource(TResource):
         """See docstring in superclass."""
         self._manifest = Manifest(self)
 
-    # FIXME This logic may need to happen inside the
-    # TranslationWordLinkExtension rather than here.
     def _get_translation_word_filepaths(self) -> FrozenSet[str]:
         """
         Get the file paths to the translation word files for the
@@ -1415,7 +1386,6 @@ class TWResource(TResource):
         # is hashable.
         return frozenset(filepaths)
 
-    # FIXME Refactor to make DRY
     def _initialize_verses_html(self) -> None:
         """
         Find translation words for the verses.
@@ -1459,13 +1429,8 @@ class TWResource(TResource):
                 # words and each will be prepended with its anchor
                 # link. That way the links in verses will point to the
                 # word.
-                # TODO We have to find out how all display words are
-                # displayed by looking at the legacy PDF. Do they
-                # display translation_word words followed by names and then other?
-                # The localized word is the very first word in the
-                # first line right after the Markdown 1st level
-                # header, i.e., right after '#'.
-                # NOTE Translation words are bidirectional. By that I
+                #
+                # Translation words are bidirectional. By that I
                 # mean that when you are at a verse there follows,
                 # after translation questions, links to the
                 # translation words that occur in that verse. But then
@@ -1489,8 +1454,8 @@ class TWResource(TResource):
                 # only, we'll store a data structure that takes html_word_content and
                 # also the English word as fields. The reason is that for non-English
                 # languages the word filenames are still in English and we need to have
-                # them to make the inter-document linking work (for the filenames) for
-                # 'See also' section references.
+                # them to make the inter-document linking work (for
+                # the filenames), e.g., for 'See also' section references.
                 translation_word_base_filename = model.BaseFilename(
                     pathlib.Path(translation_word_file).stem
                 )
@@ -1506,7 +1471,6 @@ class TWResource(TResource):
 
     def get_translation_word_links(
         self,
-        # translation_words_dict: Dict[model.BaseFilename, model.TWNameContentPair],
         chapter_num: model.ChapterNum,
         verse_num: model.VerseNum,
         verse: model.HtmlContent,
@@ -1540,14 +1504,13 @@ class TWResource(TResource):
                 uses.append(use)
                 # Store reference for use in 'Uses:' section that
                 # comes later.
-                # FIXME Perhaps we can later simplify to use one data structure instead
-                # of both uses and tw_resource.language_payload.uses.
                 if key in self.language_payload.uses:
                     self.language_payload.uses[key].append(use)
                 else:
                     self.language_payload.uses[key] = [use]
 
         if uses:
+            # Add header
             html.append(
                 model.HtmlContent(
                     config.get_html_format_string("translation_words").format(
@@ -1555,6 +1518,7 @@ class TWResource(TResource):
                     )
                 )
             )
+            # Start list formatting
             html.append(config.get_html_format_string("unordered_list_begin"))
             # Append word links.
             uses_list_items = [
@@ -1564,6 +1528,7 @@ class TWResource(TResource):
                 for use in uses
             ]
             html.append(model.HtmlContent("\n".join(uses_list_items)))
+            # End list formatting
             html.append(config.get_html_format_string("unordered_list_end"))
         return html
 
@@ -1593,11 +1558,11 @@ class TWResource(TResource):
             # lang_code, book combination content and thus those links are dead
             # unless we include them even if they don't have any 'Uses' section.
 
-            # if base_filename in tw_resource.language_payload.uses:
-
             # Make linking work.
             tw_name_content_pair.content = model.HtmlContent(
                 tw_name_content_pair.content.replace(
+                    # FIXME Don't use magic strings, move format
+                    # string to config.get_html_format_string
                     "<h3>{}".format(tw_name_content_pair.localized_word),
                     '<h3 id="{}-{}">{}'.format(
                         self.lang_code,
@@ -1646,55 +1611,6 @@ class TWResource(TResource):
             html.append(html_content_str)
         html.append(config.get_html_format_string("unordered_list_end"))
         return model.HtmlContent("\n".join(html))
-
-    # FIXME Remove
-    # @log_on_start(
-    #     logging.INFO, "Processing Translation Words Markdown...", logger=logger
-    # )
-    # def get_content(self) -> None:
-    #     """See docstring in superclass."""
-    #     self._get_tw_markdown()
-    #     self._transform_content()
-
-    # def _get_tw_markdown(self) -> None:
-    #     # From entrypoint.sh in Interleaved_Resource_Generator, i.e.,
-    #     # container.
-    #     # Combine OT and NT tW files into single refs file, skipping header row of NT
-    #     # cp         /working/tn-temp/en_tw/tWs_for_PDFs/tWs_for_OT_PDF.txt    /working/tn-temp/tw_refs.csv
-    #     # tail -n +2 /working/tn-temp/en_tw/tWs_for_PDFs/tWs_for_NT_PDF.txt >> /working/tn-temp/tw_refs.csv
-
-    #     # TODO localization
-    #     tw_md = '<a id="tw-{}"/>\n# Translation Words\n\n'.format(self._book_id)
-    #     # tw_md = '<a id="tw-{0}"/>\n# Translation Words\n\n'.format(self.book_id)
-    #     sorted_rcs = sorted(
-    #         self._my_rcs, key=lambda k: self._resource_data[k]["title"].lower()
-    #     )
-    #     for rc in sorted_rcs:
-    #         if "/tw/" not in rc:
-    #             continue
-    #         if self._resource_data[rc]["text"]:
-    #             md = self._resource_data[rc]["text"]
-    #         else:
-    #             md = ""
-    #         id_tag = '<a id="{}"/>'.format(self._resource_data[rc]["id"])
-    #         md = re.compile(r"# ([^\n]+)\n").sub(r"# \1\n{}\n".format(id_tag), md, 1)
-    #         md = markdown_utils.increase_headers(md)
-    #         uses = link_utils.get_uses(self._rc_references, rc)
-    #         if uses == "":
-    #             continue
-    #         md += uses
-    #         md += "\n\n"
-    #         tw_md += md
-    #     # TODO localization
-    #     tw_md = markdown_utils.remove_md_section(tw_md, "Bible References")
-    #     # TODO localization
-    #     tw_md = markdown_utils.remove_md_section(
-    #         tw_md, "Examples from the Bible stories"
-    #     )
-
-    #     logger.debug("tw_md is {}".format(tw_md))
-    #     self._content = tw_md
-    #     # return tw_md
 
 
 class TAResource(TResource):
