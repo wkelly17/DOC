@@ -2,15 +2,11 @@
 
 import bs4
 import os
-import pathlib
-from typing import Any
-
 import pytest
 import requests
 from fastapi.testclient import TestClient
 
 from document import config
-from document.utils import file_utils
 from document.entrypoints.app import app
 
 ##########################################################################
