@@ -691,6 +691,34 @@ class TNResource(TResource):
         """
         return self.book_payload.chapters[chapter_num].verses_html
 
+    def get_tn_verse(
+        self,
+        # tn_verses: Dict[model.VerseNum, model.HtmlContent],
+        chapter_num: model.ChapterNum,
+        verse_num: model.VerseNum,
+    ) -> List[model.HtmlContent]:
+        """
+        Build and return the content for the translation note for chapter
+        chapter_num and verse verse_num.
+        """
+        tn_verse = self.get_verses_for_chapter(chapter_num)[verse_num]
+        if not tn_verse:
+            return model.HtmlContent("")
+
+        html: List[model.HtmlContent] = []
+        # Add header
+        html.append(
+            model.HtmlContent(
+                config.get_html_format_string("translation_note").format(
+                    chapter_num, verse_num
+                )
+            )
+        )
+        # Change H1 HTML elements to H4 HTML elements in each translation note
+        # so that overall indentation works out.
+        html.append(model.HtmlContent(re.sub(r"h1", r"h4", tn_verse)))
+        return html
+
     # FIXME Obselete. Slated for removal.
     # @icontract.require(lambda self: self._resource_code)
     # def _get_tn_markdown(self) -> None:
@@ -1212,6 +1240,33 @@ class TQResource(TResource):
         Return the HTML for verses in chapter_num.
         """
         return self.book_payload.chapters[chapter_num].verses_html
+
+    def get_tq_verse(
+        self,
+        # tq_verses: Dict[model.VerseNum, model.HtmlContent],
+        chapter_num: model.ChapterNum,
+        verse_num: model.VerseNum,
+    ) -> List[model.HtmlContent]:
+        """
+        Build and return the content for the translation question for chapter
+        chapter_num and verse verse_num.
+        """
+        tq_verse = self.verses_for_chapter(chapter_num)[verse_num]
+        if not tq_verse:
+            return model.HtmlContent("")
+
+        html: List[model.HtmlContent] = []
+        html.append(
+            model.HtmlContent(
+                config.get_html_format_string("translation_question").format(
+                    chapter_num, verse_num
+                )
+            )
+        )
+        # Change H1 HTML elements to H4 HTML elements in each translation question
+        # so that overall indentation works out.
+        html.append(model.HtmlContent(re.sub(r"h1", r"h4", tq_verse)))
+        return html
 
     # def _get_tq_markdown(self) -> None:
     #     """Build tq markdown"""

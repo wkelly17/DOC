@@ -191,12 +191,6 @@ def _assemble_usfm_tn_tq_tw_content_by_verse(
         chapter_intro = get_chapter_intro(tn_resource, chapter_num)
         html.append(chapter_intro)
 
-        # Get TN chapter verses
-        tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
-
-        # Get TQ chapter verses
-        tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
-
         # PEP526 disallows declaration of types in for
         # loops, but allows this.
         verse_num: model.VerseNum
@@ -212,12 +206,10 @@ def _assemble_usfm_tn_tq_tw_content_by_verse(
                 )
             )
             html.append(verse)
-            if tn_verses and verse_num in tn_verses:
-                tn_verse_content = _get_tn_verse(tn_verses, chapter_num, verse_num)
-                html.extend(tn_verse_content)
-            if tq_verses and verse_num in tq_verses:
-                tq_verse_content = _get_tq_verse(tq_verses, chapter_num, verse_num)
-                html.extend(tq_verse_content)
+            tn_verse_content = tn_resource.get_tn_verse(chapter_num, verse_num)
+            html.extend(tn_verse_content)
+            tq_verse_content = tq_resource.get_tq_verse(chapter_num, verse_num)
+            html.extend(tq_verse_content)
             # Add the translation words links section.
             translation_word_links_html = tw_resource.get_translation_word_links(
                 chapter_num, verse_num, verse,
@@ -270,9 +262,6 @@ def _assemble_usfm_tn_tw_content_by_verse(
         chapter_intro = get_chapter_intro(tn_resource, chapter_num)
         html.append(chapter_intro)
 
-        # Get TN chapter verses
-        tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
-
         # PEP526 disallows declaration of types in for
         # loops, but allows this.
         verse_num: model.VerseNum
@@ -288,9 +277,8 @@ def _assemble_usfm_tn_tw_content_by_verse(
                 )
             )
             html.append(verse)
-            if tn_verses and verse_num in tn_verses:
-                tn_verse_content = _get_tn_verse(tn_verses, chapter_num, verse_num)
-                html.extend(tn_verse_content)
+            tn_verse_content = tn_resource.get_tn_verse(chapter_num, verse_num)
+            html.extend(tn_verse_content)
             # Add the translation words links section.
             translation_word_links_html = tw_resource.get_translation_word_links(
                 chapter_num, verse_num, verse,
@@ -337,9 +325,6 @@ def _assemble_usfm_tq_tw_content_by_verse(
         chapter_heading = chapter.chapter_content[0]
         html.append(chapter_heading)
 
-        # Get TQ chapter verses
-        tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
-
         # PEP526 disallows declaration of types in for
         # loops, but allows this.
         verse_num: model.VerseNum
@@ -355,9 +340,8 @@ def _assemble_usfm_tq_tw_content_by_verse(
                 )
             )
             html.append(verse)
-            if tq_verses and verse_num in tq_verses:
-                tq_verse_content = _get_tq_verse(tq_verses, chapter_num, verse_num)
-                html.extend(tq_verse_content)
+            tq_verse_content = tq_resource.get_tq_verse(chapter_num, verse_num)
+            html.extend(tq_verse_content)
             # Add the translation words links section.
             translation_word_links_html = tw_resource.get_translation_word_links(
                 chapter_num, verse_num, verse,
@@ -429,31 +413,6 @@ def _assemble_usfm_tw_content_by_verse(
     return model.HtmlContent("\n".join(html))
 
 
-def _get_tn_verse(
-    tn_verses: Dict[model.VerseNum, model.HtmlContent],
-    chapter_num: model.ChapterNum,
-    verse_num: model.VerseNum,
-) -> List[model.HtmlContent]:
-    """
-    Build and return the content for the translation note for chapter
-    chapter_num and verse verse_num.
-    """
-    html: List[model.HtmlContent] = []
-    # Add header
-    html.append(
-        model.HtmlContent(
-            config.get_html_format_string("translation_note").format(
-                chapter_num, verse_num
-            )
-        )
-    )
-    # Change H1 HTML elements to H4 HTML elements in each translation note
-    # so that overall indentation works out.
-    tn_verse = tn_verses[verse_num]
-    html.append(model.HtmlContent(re.sub(r"h1", r"h4", tn_verse)))
-    return html
-
-
 def _get_tn_without_usfm_verse(
     chapter_num: model.ChapterNum, verse_num: model.VerseNum, verse: model.HtmlContent
 ) -> List[model.HtmlContent]:
@@ -473,30 +432,6 @@ def _get_tn_without_usfm_verse(
     )
     # Change H1 HTML elements to H4 HTML elements in each translation note.
     html.append(model.HtmlContent(re.sub(r"h1", r"h4", verse)))
-    return html
-
-
-def _get_tq_verse(
-    tq_verses: Dict[model.VerseNum, model.HtmlContent],
-    chapter_num: model.ChapterNum,
-    verse_num: model.VerseNum,
-) -> List[model.HtmlContent]:
-    """
-    Build and return the content for the translation question for chapter
-    chapter_num and verse verse_num.
-    """
-    html: List[model.HtmlContent] = []
-    html.append(
-        model.HtmlContent(
-            config.get_html_format_string("translation_question").format(
-                chapter_num, verse_num
-            )
-        )
-    )
-    # Change H1 HTML elements to H4 HTML elements in each translation question
-    # so that overall indentation works out.
-    tq_verse = tq_verses[verse_num]
-    html.append(model.HtmlContent(re.sub(r"h1", r"h4", tq_verse)))
     return html
 
 
@@ -562,12 +497,6 @@ def _assemble_usfm_tn_tq_content_by_verse(
         chapter_intro = get_chapter_intro(tn_resource, chapter_num)
         html.append(chapter_intro)
 
-        # Get TN chapter verses
-        tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
-
-        # Get TQ chapter verses
-        tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
-
         # PEP526 disallows declaration of types in for
         # loops, but allows this.
         verse_num: model.VerseNum
@@ -583,12 +512,10 @@ def _assemble_usfm_tn_tq_content_by_verse(
                 )
             )
             html.append(verse)
-            if tn_verses and verse_num in tn_verses:
-                tn_verse_content = _get_tn_verse(tn_verses, chapter_num, verse_num)
-                html.extend(tn_verse_content)
-            if tq_verses and verse_num in tq_verses:
-                tq_verse_content = _get_tq_verse(tq_verses, chapter_num, verse_num)
-                html.extend(tq_verse_content)
+            tn_verse_content = tn_resource.get_tn_verse(chapter_num, verse_num)
+            html.extend(tn_verse_content)
+            tq_verse_content = tq_resource.get_tq_verse(chapter_num, verse_num)
+            html.extend(tq_verse_content)
     return model.HtmlContent("\n".join(html))
 
 
@@ -624,9 +551,6 @@ def _assemble_usfm_tq_content_by_verse(
         chapter_heading = chapter.chapter_content[0]
         html.append(chapter_heading)
 
-        # Get TQ chapter verses
-        tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
-
         # PEP526 disallows declaration of types in for
         # loops, but allows this.
         verse_num: model.VerseNum
@@ -642,9 +566,8 @@ def _assemble_usfm_tq_content_by_verse(
                 )
             )
             html.append(verse)
-            if tq_verses and verse_num in tq_verses:
-                tq_verse_content = _get_tq_verse(tq_verses, chapter_num, verse_num)
-                html.extend(tq_verse_content)
+            tq_verse_content = tq_resource.get_tq_verse(chapter_num, verse_num)
+            html.extend(tq_verse_content)
     return model.HtmlContent("\n".join(html))
 
 
@@ -684,9 +607,6 @@ def _assemble_usfm_tn_content_by_verse(
         chapter_intro = get_chapter_intro(tn_resource, chapter_num)
         html.append(chapter_intro)
 
-        # Get TN chapter verses
-        tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
-
         # PEP526 disallows declaration of types in for
         # loops, but allows this.
         verse_num: model.VerseNum
@@ -702,9 +622,8 @@ def _assemble_usfm_tn_content_by_verse(
                 )
             )
             html.append(verse)
-            if tn_verses and verse_num in tn_verses:
-                tn_verse_content = _get_tn_verse(tn_verses, chapter_num, verse_num)
-                html.extend(tn_verse_content)
+            tn_verse_content = tn_resource.get_tn_verse(chapter_num, verse_num)
+            html.extend(tn_verse_content)
     return model.HtmlContent("\n".join(html))
 
 
@@ -851,7 +770,6 @@ def _assemble_tn_tq_tw_content_by_verse(
 
         # Get TN chapter verses
         tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
-        tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
 
         # PEP526 disallows declaration of types in for loops, but allows this.
         verse_num: model.VerseNum
@@ -861,9 +779,8 @@ def _assemble_tn_tq_tw_content_by_verse(
             tn_verse_content = _get_tn_without_usfm_verse(chapter_num, verse_num, verse)
             html.extend(tn_verse_content)
 
-            if tq_verses and verse_num in tq_verses:
-                tq_verse_content = _get_tq_verse(tq_verses, chapter_num, verse_num)
-                html.extend(tq_verse_content)
+            tq_verse_content = tq_resource.get_tq_verse(chapter_num, verse_num)
+            html.extend(tq_verse_content)
             # Add the translation words links section.
             translation_word_links_html = tw_resource.get_translation_word_links(
                 chapter_num, verse_num, verse,
@@ -992,7 +909,6 @@ def _assemble_tn_tq_content_by_verse(
 
         # Get TN chapter verses
         tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
-        tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
 
         # PEP526 disallows declaration of types in for loops, but allows this.
         verse_num: model.VerseNum
@@ -1002,9 +918,8 @@ def _assemble_tn_tq_content_by_verse(
             tn_verse_content = _get_tn_without_usfm_verse(chapter_num, verse_num, verse)
             html.extend(tn_verse_content)
 
-            if tq_verses and verse_num in tq_verses:
-                tq_verse_content = _get_tq_verse(tq_verses, chapter_num, verse_num)
-                html.extend(tq_verse_content)
+            tq_verse_content = tq_resource.get_tq_verse(chapter_num, verse_num)
+            html.extend(tq_verse_content)
     return model.HtmlContent("\n".join(html))
 
 
