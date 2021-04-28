@@ -206,9 +206,9 @@ def _assemble_usfm_tn_tq_tw_content_by_verse(
                 )
             )
             html.append(verse)
-            tn_verse_content = tn_resource.get_tn_verse(chapter_num, verse_num)
+            tn_verse_content = tn_resource.format_tn_verse(chapter_num, verse_num)
             html.extend(tn_verse_content)
-            tq_verse_content = tq_resource.get_tq_verse(chapter_num, verse_num)
+            tq_verse_content = tq_resource.format_tq_verse(chapter_num, verse_num)
             html.extend(tq_verse_content)
             # Add the translation words links section.
             translation_word_links_html = tw_resource.get_translation_word_links(
@@ -277,7 +277,7 @@ def _assemble_usfm_tn_tw_content_by_verse(
                 )
             )
             html.append(verse)
-            tn_verse_content = tn_resource.get_tn_verse(chapter_num, verse_num)
+            tn_verse_content = tn_resource.format_tn_verse(chapter_num, verse_num)
             html.extend(tn_verse_content)
             # Add the translation words links section.
             translation_word_links_html = tw_resource.get_translation_word_links(
@@ -340,7 +340,7 @@ def _assemble_usfm_tq_tw_content_by_verse(
                 )
             )
             html.append(verse)
-            tq_verse_content = tq_resource.get_tq_verse(chapter_num, verse_num)
+            tq_verse_content = tq_resource.format_tq_verse(chapter_num, verse_num)
             html.extend(tq_verse_content)
             # Add the translation words links section.
             translation_word_links_html = tw_resource.get_translation_word_links(
@@ -413,7 +413,7 @@ def _assemble_usfm_tw_content_by_verse(
     return model.HtmlContent("\n".join(html))
 
 
-def _get_tn_without_usfm_verse(
+def _format_tn_verse(
     chapter_num: model.ChapterNum, verse_num: model.VerseNum, verse: model.HtmlContent
 ) -> List[model.HtmlContent]:
     """
@@ -512,9 +512,9 @@ def _assemble_usfm_tn_tq_content_by_verse(
                 )
             )
             html.append(verse)
-            tn_verse_content = tn_resource.get_tn_verse(chapter_num, verse_num)
+            tn_verse_content = tn_resource.format_tn_verse(chapter_num, verse_num)
             html.extend(tn_verse_content)
-            tq_verse_content = tq_resource.get_tq_verse(chapter_num, verse_num)
+            tq_verse_content = tq_resource.format_tq_verse(chapter_num, verse_num)
             html.extend(tq_verse_content)
     return model.HtmlContent("\n".join(html))
 
@@ -566,7 +566,7 @@ def _assemble_usfm_tq_content_by_verse(
                 )
             )
             html.append(verse)
-            tq_verse_content = tq_resource.get_tq_verse(chapter_num, verse_num)
+            tq_verse_content = tq_resource.format_tq_verse(chapter_num, verse_num)
             html.extend(tq_verse_content)
     return model.HtmlContent("\n".join(html))
 
@@ -622,7 +622,7 @@ def _assemble_usfm_tn_content_by_verse(
                 )
             )
             html.append(verse)
-            tn_verse_content = tn_resource.get_tn_verse(chapter_num, verse_num)
+            tn_verse_content = tn_resource.format_tn_verse(chapter_num, verse_num)
             html.extend(tn_verse_content)
     return model.HtmlContent("\n".join(html))
 
@@ -716,7 +716,7 @@ def _assemble_tn_content_by_verse(
         verse: model.HtmlContent
         # Now let's get all the verse translation notes available.
         for verse_num, verse in sorted(tn_verses.items()):
-            tn_verse_content = _get_tn_without_usfm_verse(chapter_num, verse_num, verse)
+            tn_verse_content = _format_tn_verse(chapter_num, verse_num, verse)
             html.extend(tn_verse_content)
     return model.HtmlContent("\n".join(html))
 
@@ -776,10 +776,10 @@ def _assemble_tn_tq_tw_content_by_verse(
         verse: model.HtmlContent
         # Now let's get all the verse translation notes available.
         for verse_num, verse in sorted(tn_verses.items()):
-            tn_verse_content = _get_tn_without_usfm_verse(chapter_num, verse_num, verse)
+            tn_verse_content = _format_tn_verse(chapter_num, verse_num, verse)
             html.extend(tn_verse_content)
 
-            tq_verse_content = tq_resource.get_tq_verse(chapter_num, verse_num)
+            tq_verse_content = tq_resource.format_tq_verse(chapter_num, verse_num)
             html.extend(tq_verse_content)
             # Add the translation words links section.
             translation_word_links_html = tw_resource.get_translation_word_links(
@@ -847,7 +847,7 @@ def _assemble_tn_tw_content_by_verse(
         verse: model.HtmlContent
         # Now let's get all the verse translation notes available.
         for verse_num, verse in sorted(tn_verses.items()):
-            tn_verse_content = _get_tn_without_usfm_verse(chapter_num, verse_num, verse)
+            tn_verse_content = _format_tn_verse(chapter_num, verse_num, verse)
             html.extend(tn_verse_content)
 
             # Add the translation words links section.
@@ -915,10 +915,10 @@ def _assemble_tn_tq_content_by_verse(
         verse: model.HtmlContent
         # Now let's get all the verse translation notes available.
         for verse_num, verse in sorted(tn_verses.items()):
-            tn_verse_content = _get_tn_without_usfm_verse(chapter_num, verse_num, verse)
+            tn_verse_content = _format_tn_verse(chapter_num, verse_num, verse)
             html.extend(tn_verse_content)
 
-            tq_verse_content = tq_resource.get_tq_verse(chapter_num, verse_num)
+            tq_verse_content = tq_resource.format_tq_verse(chapter_num, verse_num)
             html.extend(tq_verse_content)
     return model.HtmlContent("\n".join(html))
 

@@ -691,11 +691,8 @@ class TNResource(TResource):
         """
         return self.book_payload.chapters[chapter_num].verses_html
 
-    def get_tn_verse(
-        self,
-        # tn_verses: Dict[model.VerseNum, model.HtmlContent],
-        chapter_num: model.ChapterNum,
-        verse_num: model.VerseNum,
+    def format_tn_verse(
+        self, chapter_num: model.ChapterNum, verse_num: model.VerseNum,
     ) -> List[model.HtmlContent]:
         """
         Build and return the content for the translation note for chapter
@@ -1241,11 +1238,8 @@ class TQResource(TResource):
         """
         return self.book_payload.chapters[chapter_num].verses_html
 
-    def get_tq_verse(
-        self,
-        # tq_verses: Dict[model.VerseNum, model.HtmlContent],
-        chapter_num: model.ChapterNum,
-        verse_num: model.VerseNum,
+    def format_tq_verse(
+        self, chapter_num: model.ChapterNum, verse_num: model.VerseNum,
     ) -> List[model.HtmlContent]:
         """
         Build and return the content for the translation question for chapter
