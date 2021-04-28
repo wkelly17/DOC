@@ -15,7 +15,7 @@ import logging  # For logdecorator
 import re
 
 from logdecorator import log_on_start
-from typing import Callable, cast, Dict, List, Optional
+from typing import Callable, cast, List, Optional
 
 from document import config
 from document.domain import bible_books, document_generator, model
@@ -220,9 +220,7 @@ def _assemble_usfm_tn_tq_tw_content_by_verse(
             )
             html.extend(translation_word_links_html)
     # Add the translation words definition section.
-    linked_translation_words: List[
-        model.HtmlContent
-    ] = tw_resource.get_translation_words_section()
+    linked_translation_words = tw_resource.get_translation_words_section()
     html.extend(linked_translation_words)
     return model.HtmlContent("\n".join(html))
 
@@ -292,9 +290,7 @@ def _assemble_usfm_tn_tw_content_by_verse(
             )
             html.extend(translation_word_links_html)
     # Add the translation words definition section.
-    linked_translation_words: List[
-        model.HtmlContent
-    ] = tw_resource.get_translation_words_section()
+    linked_translation_words = tw_resource.get_translation_words_section()
     html.extend(linked_translation_words)
     return model.HtmlContent("\n".join(html))
 
@@ -358,9 +354,7 @@ def _assemble_usfm_tq_tw_content_by_verse(
             )
             html.extend(translation_word_links_html)
     # Add the translation words definition section.
-    linked_translation_words: List[
-        model.HtmlContent
-    ] = tw_resource.get_translation_words_section()
+    linked_translation_words = tw_resource.get_translation_words_section()
     html.extend(linked_translation_words)
     return model.HtmlContent("\n".join(html))
 
@@ -418,9 +412,7 @@ def _assemble_usfm_tw_content_by_verse(
             )
             html.extend(translation_word_links_html)
     # Add the translation words definition section.
-    linked_translation_words: List[
-        model.HtmlContent
-    ] = tw_resource.get_translation_words_section()
+    linked_translation_words = tw_resource.get_translation_words_section()
     html.extend(linked_translation_words)
     return model.HtmlContent("\n".join(html))
 
@@ -674,11 +666,14 @@ def _assemble_usfm_content_by_verse(
         verse: model.HtmlContent
         # Now append the USFM verses
         for verse_num, verse in sorted(chapter.chapter_verses.items()):
-            verse_title = config.get_html_format_string("verse").format(
-                chapter_num, verse_num
             # Add scripture verse header
+            html.append(
+                model.HtmlContent(
+                    config.get_html_format_string("verse").format(
+                        chapter_num, verse_num
+                    )
+                )
             )
-            html.append(model.HtmlContent(verse_title))
             # Add scripture verse
             html.append(verse)
     return model.HtmlContent("\n".join(html))
@@ -806,9 +801,9 @@ def _assemble_tn_tq_tw_content_by_verse(
             )
             html.extend(translation_word_links_html)
     # Add the translation words definition section.
-    linked_translation_words: List[
-        model.HtmlContent
-    ] = tw_resource.get_translation_words_section(include_uses_section=False)
+    linked_translation_words = tw_resource.get_translation_words_section(
+        include_uses_section=False
+    )
     html.extend(linked_translation_words)
 
     return model.HtmlContent("\n".join(html))
@@ -876,9 +871,9 @@ def _assemble_tn_tw_content_by_verse(
             )
             html.extend(translation_word_links_html)
     # Add the translation words definition section.
-    linked_translation_words: List[
-        model.HtmlContent
-    ] = tw_resource.get_translation_words_section(include_uses_section=False)
+    linked_translation_words = tw_resource.get_translation_words_section(
+        include_uses_section=False
+    )
     html.extend(linked_translation_words)
     return model.HtmlContent("\n".join(html))
 
@@ -1044,9 +1039,9 @@ def _assemble_tq_tw_content_by_verse(
             )
             html.extend(translation_word_links_html)
     # Add the translation words definition section.
-    linked_translation_words: List[
-        model.HtmlContent
-    ] = tw_resource.get_translation_words_section(include_uses_section=False)
+    linked_translation_words = tw_resource.get_translation_words_section(
+        include_uses_section=False
+    )
     html.extend(linked_translation_words)
     return model.HtmlContent("\n".join(html))
 
@@ -1068,9 +1063,9 @@ def _assemble_tw_content_by_verse(
     html: List[model.HtmlContent] = []
 
     # Add the translation words definition section.
-    linked_translation_words: List[
-        model.HtmlContent
-    ] = tw_resource.get_translation_words_section(include_uses_section=False)
+    linked_translation_words = tw_resource.get_translation_words_section(
+        include_uses_section=False
+    )
     html.extend(linked_translation_words)
     return model.HtmlContent("\n".join(html))
 
