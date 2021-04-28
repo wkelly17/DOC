@@ -90,8 +90,6 @@ class Resource:
         self._verses_html: List[str] = []
 
         # Link related
-        # FIXME _bad_links will be removed
-        self._bad_links: dict = {}
         self._resource_data: dict = {}
         self._my_rcs: List = []
         self._rc_references: dict = {}
