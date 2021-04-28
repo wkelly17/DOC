@@ -1408,9 +1408,9 @@ class TWResource(TResource):
         Get the file paths to the translation word files for the
         TWResource instance.
         """
-        filepaths = glob("{}/bible/kt/*.md".format(self._resource_dir))
-        filepaths.extend(glob("{}/bible/names/*.md".format(self._resource_dir)))
-        filepaths.extend(glob("{}/bible/other/*.md".format(self._resource_dir)))
+        filepaths = glob("{}/bible/kt/*.md".format(self.resource_dir))
+        filepaths.extend(glob("{}/bible/names/*.md".format(self.resource_dir)))
+        filepaths.extend(glob("{}/bible/other/*.md".format(self.resource_dir)))
         # Parameter to Markdown extension must be hashable. FrozenSet
         # is hashable.
         return frozenset(filepaths)
