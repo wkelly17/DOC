@@ -91,7 +91,9 @@ class Resource:
 
         # Link related
         self._resource_data: dict = {}
+        # FIXME Slated for future removal
         self._my_rcs: List = []
+        # FIXME Slated for future removal
         self._rc_references: dict = {}
 
     def __str__(self) -> str:
