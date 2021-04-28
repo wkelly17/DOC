@@ -198,6 +198,7 @@ def _assemble_usfm_tn_tq_tw_content_by_verse(
         # Now let's interleave USFM verse with its translation note, translation
         # questions, and translation words if available.
         for verse_num, verse in sorted(chapter.chapter_verses.items()):
+            # Add header
             html.append(
                 model.HtmlContent(
                     config.get_html_format_string("verse").format(
@@ -205,9 +206,12 @@ def _assemble_usfm_tn_tq_tw_content_by_verse(
                     )
                 )
             )
+            # Add scripture verse
             html.append(verse)
+            # Add TN verse content, if any
             tn_verse_content = tn_resource.format_tn_verse(chapter_num, verse_num)
             html.extend(tn_verse_content)
+            # Add TQ verse content, if any
             tq_verse_content = tq_resource.format_tq_verse(chapter_num, verse_num)
             html.extend(tq_verse_content)
             # Add the translation words links section.
@@ -716,6 +720,7 @@ def _assemble_tn_content_by_verse(
         verse: model.HtmlContent
         # Now let's get all the verse translation notes available.
         for verse_num, verse in sorted(tn_verses.items()):
+            # FIXME See if you can move function to resource module.
             tn_verse_content = _format_tn_verse(chapter_num, verse_num, verse)
             html.extend(tn_verse_content)
     return model.HtmlContent("\n".join(html))
@@ -776,6 +781,7 @@ def _assemble_tn_tq_tw_content_by_verse(
         verse: model.HtmlContent
         # Now let's get all the verse translation notes available.
         for verse_num, verse in sorted(tn_verses.items()):
+            # FIXME See if you can move function to resource module.
             tn_verse_content = _format_tn_verse(chapter_num, verse_num, verse)
             html.extend(tn_verse_content)
 
@@ -847,6 +853,7 @@ def _assemble_tn_tw_content_by_verse(
         verse: model.HtmlContent
         # Now let's get all the verse translation notes available.
         for verse_num, verse in sorted(tn_verses.items()):
+            # FIXME See if you can move function to resource module.
             tn_verse_content = _format_tn_verse(chapter_num, verse_num, verse)
             html.extend(tn_verse_content)
 
@@ -915,6 +922,7 @@ def _assemble_tn_tq_content_by_verse(
         verse: model.HtmlContent
         # Now let's get all the verse translation notes available.
         for verse_num, verse in sorted(tn_verses.items()):
+            # FIXME See if you can move function to resource module.
             tn_verse_content = _format_tn_verse(chapter_num, verse_num, verse)
             html.extend(tn_verse_content)
 
