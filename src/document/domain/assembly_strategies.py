@@ -421,10 +421,8 @@ def _format_tn_verse(
     chapter_num: model.ChapterNum, verse_num: model.VerseNum, verse: model.HtmlContent
 ) -> List[model.HtmlContent]:
     """
-    This is a slightly different form of _get_tn_verse that is used
-    when no USFM has been requested. The code is slightly different,
-    but used in more than in one place. Hence we keep things DRY with
-    this function.
+    This is a slightly different form of TNResource.get_tn_verse that is used
+    when no USFM has been requested.
     """
     html: List[model.HtmlContent] = []
     html.append(
@@ -443,10 +441,8 @@ def _get_tq_without_usfm_verse(
     chapter_num: model.ChapterNum, verse_num: model.VerseNum, verse: model.HtmlContent
 ) -> List[model.HtmlContent]:
     """
-    This is a slightly different form of _get_tq_verse that is used
-    when no USFM or TN has been requested. The code is slightly different,
-    but used in more than in one place. Hence we keep things DRY with
-    this function.
+    This is a slightly different form of TQResource.get_tq_verse that is used
+    when no USFM or TN has been requested.
     """
     html: List[model.HtmlContent] = []
     html.append(
