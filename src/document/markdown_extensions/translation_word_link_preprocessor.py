@@ -104,7 +104,7 @@ class TranslationWordLinkExtension(Extension):
                 "The language code for the resource whose asset files are currently being processed.",
             ],
             "filepaths": [
-                {},
+                frozenset(),
                 "The filepaths to the language's translation word Markdown files.",
             ],
         }
