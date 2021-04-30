@@ -596,8 +596,11 @@ class TNResource(TResource):
         Build and return the content for the translation note for chapter
         chapter_num and verse verse_num.
         """
-        tn_verse = self.get_verses_for_chapter(chapter_num)[verse_num]
-        if not tn_verse:
+        chapter_verses = self.get_verses_for_chapter(chapter_num)
+        tn_verse = None
+        if verse_num in chapter_verses:
+            tn_verse = chapter_verses[verse_num]
+        if tn_verse is None:
             return [model.HtmlContent("")]
 
         html: List[model.HtmlContent] = []
@@ -736,8 +739,11 @@ class TQResource(TResource):
         Build and return the content for the translation question for chapter
         chapter_num and verse verse_num.
         """
-        tq_verse = self.get_verses_for_chapter(chapter_num)[verse_num]
-        if not tq_verse:
+        chapter_verses = self.get_verses_for_chapter(chapter_num)
+        tq_verse = None
+        if verse_num in chapter_verses:
+            tq_verse = chapter_verses[verse_num]
+        if tq_verse is None:
             return [model.HtmlContent("")]
 
         html: List[model.HtmlContent] = []
