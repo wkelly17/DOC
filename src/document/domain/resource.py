@@ -292,8 +292,6 @@ class USFMResource(Resource):
     @icontract.ensure(lambda self: self._resource_filename is not None)
     def get_content(self) -> None:
         """See docstring in superclass."""
-        # FIXME Slated for removal.
-        # self._get_usfm_chunks()
 
         self._initialize_from_assets()
 
@@ -798,18 +796,10 @@ class TWResource(TResource):
         """
         # Create the Markdown instance once and have it use our markdown
         # extensions.
-        # FIXME In the case of translation words we may want to wait
-        # until assembly to do conversion from Markdown to HTML rather
-        # than doing it here.
-        filepaths = self._get_translation_word_filepaths()
-        # FIXME I could avoid this instantiation and instead store the
-        # verse content in Markdown form until assembly strategy time.
         md = markdown.Markdown(
             extensions=[
                 wikilink_preprocessor.WikiLinkExtension(),
                 remove_section_preprocessor.RemoveSectionExtension(),
-                # FIXME Decide how to handle translation word under
-                # different contexts, e.g.: no TW requested.
                 translation_word_link_preprocessor.TranslationWordLinkExtension(
                     lang_code={self.lang_code: "Language code for resource."},
                     filepaths={

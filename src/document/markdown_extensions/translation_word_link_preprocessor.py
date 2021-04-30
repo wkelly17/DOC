@@ -68,17 +68,6 @@ class TranslationWordLinkPreprocessor(Preprocessor):
             if filename_sans_suffix in self.translation_words_dict:
                 # Only need to localize non-English languages.
                 if self.lang_code != "en":
-                    # Get the localized name for the translation word
-                    # dirname = "{}_tw".format(self.lang_code)
-                    # filename = "{}{}.md".format(
-                    #     os.path.join(self.working_dir, dirname, dirname),
-                    #     filename_sans_suffix,
-                    # )
-
-                    # with open(
-                    #     self.translation_words_dict[filename_sans_suffix], "r"
-                    # ) as fin:
-
                     file_content = file_utils.read_file(
                         self.translation_words_dict[filename_sans_suffix]
                     )
