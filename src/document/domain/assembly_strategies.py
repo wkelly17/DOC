@@ -236,17 +236,18 @@ def _initialize_resources_html(
     """
     Call initialize_verses_html for each non-USFM resource that is not null.
     """
-    filepaths = None
+    tw_resource_dir = None
     if tw_resource:
-        # Get filepaths to translation word Markdown files in order to
-        # pass to other resources who will in turn pass them to the
-        # translation word Markdown extension.
-        filepaths = tw_resource.get_translation_word_filepaths()
-        tw_resource.initialize_verses_html(filepaths)
+        # Pass the tw_resource's resource_dir to other resources which
+        # in turn will pass it on to the TranslationWordLinkExtension
+        # which will handle transformating links for translation
+        # words.
+        tw_resource_dir = tw_resource.resource_dir
+        tw_resource.initialize_verses_html(tw_resource_dir)
     if tn_resource:
-        tn_resource.initialize_verses_html(filepaths)
+        tn_resource.initialize_verses_html(tw_resource_dir)
     if tq_resource:
-        tq_resource.initialize_verses_html(filepaths)
+        tq_resource.initialize_verses_html(tw_resource_dir)
 
 
 def _assemble_usfm_tn_tw_content_by_verse(

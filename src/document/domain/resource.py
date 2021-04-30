@@ -502,7 +502,7 @@ class TNResource(TResource):
         "About to convert TN Markdown to HTML with Markdown extension",
         logger=logger,
     )
-    def initialize_verses_html(self, filepaths: Optional[FrozenSet[str]]) -> None:
+    def initialize_verses_html(self, tw_resource_dir: Optional[str]) -> None:
         """
         Find book intro, chapter intros, and then the translation
         notes for the verses themselves.
@@ -519,7 +519,9 @@ class TNResource(TResource):
                 # different contexts, e.g.: no TW requested.
                 translation_word_link_preprocessor.TranslationWordLinkExtension(
                     lang_code={self.lang_code: "Language code for resource"},
-                    filepaths={filepaths: "Paths to translation word markdown files"},
+                    tw_resource_dir={
+                        tw_resource_dir: "Base directory for paths to translation word markdown files"
+                    },
                 ),
             ]
         )
@@ -666,7 +668,7 @@ class TQResource(TResource):
         "About to convert TQ Markdown to HTML with Markdown extension",
         logger=logger,
     )
-    def initialize_verses_html(self, filepaths: Optional[FrozenSet[str]]) -> None:
+    def initialize_verses_html(self, tw_resource_dir: Optional[str]) -> None:
         """
         Find translation questions for the verses.
         """
@@ -680,7 +682,9 @@ class TQResource(TResource):
                 # different contexts, e.g.: no TW requested.
                 translation_word_link_preprocessor.TranslationWordLinkExtension(
                     lang_code={self.lang_code: "Language code for resource"},
-                    filepaths={filepaths: "Paths to translation words markdown files"},
+                    tw_resource_dir={
+                        tw_resource_dir: "Paths to translation words markdown files"
+                    },
                 ),
             ]
         )
@@ -796,14 +800,15 @@ class TWResource(TResource):
         """See docstring in superclass."""
         self._manifest = Manifest(self)
 
-    def get_translation_word_filepaths(self) -> FrozenSet[str]:
+    @staticmethod
+    def get_translation_word_filepaths(resource_dir: str) -> FrozenSet[str]:
         """
         Get the file paths to the translation word files for the
         TWResource instance.
         """
-        filepaths = glob("{}/bible/kt/*.md".format(self.resource_dir))
-        filepaths.extend(glob("{}/bible/names/*.md".format(self.resource_dir)))
-        filepaths.extend(glob("{}/bible/other/*.md".format(self.resource_dir)))
+        filepaths = glob("{}/bible/kt/*.md".format(resource_dir))
+        filepaths.extend(glob("{}/bible/names/*.md".format(resource_dir)))
+        filepaths.extend(glob("{}/bible/other/*.md".format(resource_dir)))
         # Parameter to Markdown extension must be hashable. FrozenSet
         # is hashable.
         return frozenset(filepaths)
@@ -813,7 +818,7 @@ class TWResource(TResource):
         "About to convert TW Markdown to HTML with Markdown extension",
         logger=logger,
     )
-    def initialize_verses_html(self, filepaths: FrozenSet[str]) -> None:
+    def initialize_verses_html(self, tw_resource_dir: str) -> None:
         """
         Find translation words for the verses.
         """
@@ -825,13 +830,13 @@ class TWResource(TResource):
                 remove_section_preprocessor.RemoveSectionExtension(),
                 translation_word_link_preprocessor.TranslationWordLinkExtension(
                     lang_code={self.lang_code: "Language code for resource."},
-                    filepaths={
-                        filepaths: "Translation word markdown file paths for resource."
+                    tw_resource_dir={
+                        tw_resource_dir: "Base directory for Translation word markdown file paths ."
                     },
                 ),
             ]
         )
-
+        filepaths = TWResource.get_translation_word_filepaths(tw_resource_dir)
         translation_words_dict: Dict[model.BaseFilename, model.TWNameContentPair] = {}
         for translation_word_file in filepaths:
             with open(translation_word_file, "r") as fin:

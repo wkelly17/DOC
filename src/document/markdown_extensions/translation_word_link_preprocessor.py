@@ -7,11 +7,12 @@ import re
 # from logdecorator import log_on_end
 from markdown import Extension
 from markdown.preprocessors import Preprocessor
-from typing import cast, Dict, FrozenSet, List, Optional
+from typing import cast, Dict, List, Optional
 
+from document import config
 from document.utils import file_utils
 
-# logger = config.get_logger(__name__)
+logger = config.get_logger(__name__)
 
 # See https://github.com/Python-Markdown/markdown/wiki/Tutorial-2---Altering-Markdown-Rendering
 # for template to follow.
@@ -21,17 +22,28 @@ class TranslationWordLinkPreprocessor(Preprocessor):
     """Convert wiki links to Markdown links."""
 
     def __init__(
-        self,
-        md: markdown.Markdown,
-        lang_code: str,
-        filepaths: Optional[FrozenSet[str]],
+        self, md: markdown.Markdown, lang_code: str, tw_resource_dir: Optional[str],
     ) -> None:
         """Initialize."""
+        # Avoid circular reference by importing here instead of the
+        # top of the file.
+        from document.domain.resource import TWResource
+
+        logger.debug("lang_code: {}".format(lang_code))
+        logger.debug("tw_resource_dir: {}".format(tw_resource_dir))
         self.md = md
         self.lang_code = lang_code
+        self.tw_resource_dir = tw_resource_dir
         self.translation_word_filepaths = (
-            cast(FrozenSet[str], filepaths) if filepaths else None
+            TWResource.get_translation_word_filepaths(cast(str, self.tw_resource_dir))
+            if tw_resource_dir
+            else None
         )
+        # logger.debug(
+        #     "self.translation_word_filepaths: {}".format(
+        #         self.translation_word_filepaths
+        #     )
+        # )
         self.translation_words_dict = (
             {
                 pathlib.Path(os.path.basename(word_filepath)).stem: word_filepath
@@ -40,22 +52,25 @@ class TranslationWordLinkPreprocessor(Preprocessor):
             if self.translation_word_filepaths
             else {}
         )
+        # logger.debug(
+        #     "self.translation_words_dict: {}".format(self.translation_words_dict)
+        # )
         super().__init__()
 
     # @log_on_end(logging.DEBUG, "lines after preprocessor: {result}", logger=logger)
     def run(self, lines: List[str]) -> List[str]:
         """
         Entry point. Convert translation word relative file Markdown links into
-        links pointing to the anchor for said translation words in the
+        links pointing to the anchor for translation words in the
         translation words section.
-
-        FIXME: Better docs, this can be unclear to the uninitiated.
         """
         source = "\n".join(lines)
-        # pattern = r"\[(.*?)\]\(\.+\/(?:kt|names|other)\/(.*?)\.md\)"
+        # FIXME Some languages do not follow this pattern, so we need
+        # to handle those
+        pattern = r"\[(.*?)\]\(\.+\/(?:kt|names|other)\/(.*?)\.md\)"
         # This next pattern catches scripture references like
         # ../col/01/03.md
-        pattern = r"\[(.*?)\]\(.*?\/(.*?)\.md\)"
+        # pattern = r"\[(.*?)\]\(.*?\/(.*?)\.md\)"
         if m := re.search(pattern, source):
             # FIXME Refactor into its own method. Then we'll have
             # another method for scripture links.
@@ -71,6 +86,7 @@ class TranslationWordLinkPreprocessor(Preprocessor):
                     file_content = file_utils.read_file(
                         self.translation_words_dict[filename_sans_suffix]
                     )
+                    # Get the localized name for the translation word
                     localized_translation_word = file_content.split("\n").split(" ")
                     source = re.sub(
                         pattern,
@@ -79,6 +95,7 @@ class TranslationWordLinkPreprocessor(Preprocessor):
                         ),
                         source,
                     )
+                    # FIXME This never gets called
                     breakpoint()
                 else:
                     # English, no need to localize translation word,
@@ -88,8 +105,7 @@ class TranslationWordLinkPreprocessor(Preprocessor):
                     )
             # FIXME Handle non-translation word cases, e.g., scripture links
             else:
-                # breakpoint()
-                pass
+                breakpoint()
         return source.split("\n")
 
 
@@ -103,19 +119,24 @@ class TranslationWordLinkExtension(Extension):
                 "en",
                 "The language code for the resource whose asset files are currently being processed.",
             ],
-            "filepaths": [
-                frozenset(),
-                "The filepaths to the language's translation word Markdown files.",
+            "tw_resource_dir": [
+                "",
+                "The base directory for the translation word Markdown filepaths.",
             ],
         }
         super().__init__(**kwargs)
 
     def extendMarkdown(self, md: markdown.Markdown) -> None:
+        # logger.debug(
+        #     "self.getConfig('translation_word_filepaths'): {}".format(
+        #         self.getConfig("translation_word_filepaths")
+        #     )
+        # )
         md.preprocessors.register(
             TranslationWordLinkPreprocessor(
                 md,
                 lang_code=list(self.getConfig("lang_code"))[0],
-                filepaths=self.getConfig("translation_word_filepaths"),
+                tw_resource_dir=list(self.getConfig("tw_resource_dir"))[0],
             ),
             "translationwordlink",
             32,
