@@ -173,6 +173,9 @@ def _assemble_usfm_tn_tq_tw_content_by_verse(
     tw_resource = cast(
         TWResource, tw_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
+
+    _initialize_resources_html(tn_resource, tq_resource, tw_resource)
+
     html: List[model.HtmlContent] = []
     book_intro = tn_resource.book_payload.intro_html
     book_intro = adjust_book_intro_headings(book_intro)
@@ -225,6 +228,27 @@ def _assemble_usfm_tn_tq_tw_content_by_verse(
     return model.HtmlContent("\n".join(html))
 
 
+def _initialize_resources_html(
+    tn_resource: Optional[TNResource],
+    tq_resource: Optional[TQResource],
+    tw_resource: Optional[TWResource],
+) -> None:
+    """
+    Call initialize_verses_html for each non-USFM resource that is not null.
+    """
+    filepaths = None
+    if tw_resource:
+        # Get filepaths to translation word Markdown files in order to
+        # pass to other resources who will in turn pass them to the
+        # translation word Markdown extension.
+        filepaths = tw_resource.get_translation_word_filepaths()
+        tw_resource.initialize_verses_html(filepaths)
+    if tn_resource:
+        tn_resource.initialize_verses_html(filepaths)
+    if tq_resource:
+        tq_resource.initialize_verses_html(filepaths)
+
+
 def _assemble_usfm_tn_tw_content_by_verse(
     usfm_resource: Optional[USFMResource],
     tn_resource: Optional[TNResource],
@@ -246,6 +270,9 @@ def _assemble_usfm_tn_tw_content_by_verse(
     tw_resource = cast(
         TWResource, tw_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
+
+    _initialize_resources_html(tn_resource, tq_resource, tw_resource)
+
     html: List[model.HtmlContent] = []
     book_intro = tn_resource.book_payload.intro_html
     book_intro = adjust_book_intro_headings(book_intro)
@@ -316,6 +343,9 @@ def _assemble_usfm_tq_tw_content_by_verse(
     tw_resource = cast(
         TWResource, tw_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
+
+    _initialize_resources_html(tn_resource, tq_resource, tw_resource)
+
     html: List[model.HtmlContent] = []
 
     # PEP526 disallows declaration of types in for loops, but allows this.
@@ -377,6 +407,9 @@ def _assemble_usfm_tw_content_by_verse(
     tw_resource = cast(
         TWResource, tw_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
+
+    _initialize_resources_html(tn_resource, tq_resource, tw_resource)
+
     html: List[model.HtmlContent] = []
 
     # PEP526 disallows declaration of types in for loops, but allows this.
@@ -479,6 +512,9 @@ def _assemble_usfm_tn_tq_content_by_verse(
     tq_resource = cast(
         TQResource, tq_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
+
+    _initialize_resources_html(tn_resource, tq_resource, tw_resource)
+
     html: List[model.HtmlContent] = []
     book_intro = tn_resource.book_payload.intro_html
     book_intro = adjust_book_intro_headings(book_intro)
@@ -540,6 +576,9 @@ def _assemble_usfm_tq_content_by_verse(
     tq_resource = cast(
         TQResource, tq_resource
     )  # Make mypy happy. We know, due to how we got here, that usfm_resource object is not None.
+
+    _initialize_resources_html(tn_resource, tq_resource, tw_resource)
+
     html: List[model.HtmlContent] = []
 
     # PEP526 disallows declaration of types in for loops, but allows this.
@@ -593,6 +632,9 @@ def _assemble_usfm_tn_content_by_verse(
     tn_resource = cast(
         TNResource, tn_resource
     )  # Make mypy happy. We know, due to how we got here, that usfm_resource object is not None.
+
+    _initialize_resources_html(tn_resource, tq_resource, tw_resource)
+
     html = []
     book_intro = tn_resource.book_payload.intro_html
     book_intro = adjust_book_intro_headings(book_intro)
@@ -693,6 +735,9 @@ def _assemble_tn_content_by_verse(
     tn_resource = cast(
         TNResource, tn_resource
     )  # Make mypy happy. We know, due to how we got here, that tn_resource object is not None.
+
+    _initialize_resources_html(tn_resource, tq_resource, tw_resource)
+
     html: List[model.HtmlContent] = []
     book_intro = tn_resource.book_payload.intro_html
     book_intro = adjust_book_intro_headings(book_intro)
@@ -753,6 +798,9 @@ def _assemble_tn_tq_tw_content_by_verse(
     tw_resource = cast(
         TWResource, tw_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
+
+    _initialize_resources_html(tn_resource, tq_resource, tw_resource)
+
     html: List[model.HtmlContent] = []
     book_intro = tn_resource.book_payload.intro_html
     book_intro = adjust_book_intro_headings(book_intro)
@@ -826,6 +874,9 @@ def _assemble_tn_tw_content_by_verse(
     tw_resource = cast(
         TWResource, tw_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
+
+    _initialize_resources_html(tn_resource, tq_resource, tw_resource)
+
     html: List[model.HtmlContent] = []
     book_intro = tn_resource.book_payload.intro_html
     book_intro = adjust_book_intro_headings(book_intro)
@@ -895,6 +946,9 @@ def _assemble_tn_tq_content_by_verse(
     tq_resource = cast(
         TQResource, tq_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
+
+    _initialize_resources_html(tn_resource, tq_resource, tw_resource)
+
     html: List[model.HtmlContent] = []
     book_intro = tn_resource.book_payload.intro_html
     book_intro = adjust_book_intro_headings(book_intro)
@@ -954,6 +1008,9 @@ def _assemble_tq_content_by_verse(
     tq_resource = cast(
         TQResource, tq_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
+
+    _initialize_resources_html(tn_resource, tq_resource, tw_resource)
+
     html: List[model.HtmlContent] = []
 
     # PEP526 disallows declaration of types in for loops, but allows this.
@@ -1003,6 +1060,9 @@ def _assemble_tq_tw_content_by_verse(
     tw_resource = cast(
         TWResource, tw_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
+
+    _initialize_resources_html(tn_resource, tq_resource, tw_resource)
+
     html: List[model.HtmlContent] = []
 
     # PEP526 disallows declaration of types in for loops, but allows this.
@@ -1060,6 +1120,9 @@ def _assemble_tw_content_by_verse(
     tw_resource = cast(
         TWResource, tw_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
+
+    _initialize_resources_html(tn_resource, tq_resource, tw_resource)
+
     html: List[model.HtmlContent] = []
 
     # Add the translation words definition section.

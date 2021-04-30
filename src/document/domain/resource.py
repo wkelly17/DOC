@@ -483,7 +483,7 @@ class TNResource(TResource):
         """
         self._initialize_from_assets()
 
-        self._initialize_verses_html()
+        # self._initialize_verses_html()
 
     @property
     def book_payload(self) -> model.TNBookPayload:
@@ -497,7 +497,12 @@ class TNResource(TResource):
         """See docstring in superclass."""
         self._manifest = Manifest(self)
 
-    def _initialize_verses_html(self) -> None:
+    @log_on_start(
+        logging.INFO,
+        "About to convert TN Markdown to HTML with Markdown extension",
+        logger=logger,
+    )
+    def initialize_verses_html(self, filepaths: Optional[FrozenSet[str]]) -> None:
         """
         Find book intro, chapter intros, and then the translation
         notes for the verses themselves.
@@ -513,7 +518,8 @@ class TNResource(TResource):
                 # FIXME Decide how to handle translation word under
                 # different contexts, e.g.: no TW requested.
                 translation_word_link_preprocessor.TranslationWordLinkExtension(
-                    lang_code={self.lang_code: "Language code for resource."}
+                    lang_code={self.lang_code: "Language code for resource"},
+                    filepaths={filepaths: "Paths to translation word markdown files"},
                 ),
             ]
         )
@@ -638,7 +644,7 @@ class TQResource(TResource):
         # self._transform_content()
 
         self._initialize_from_assets()
-        self._initialize_verses_html()
+        # self._initialize_verses_html()
 
     @property
     def book_payload(self) -> model.TQBookPayload:
@@ -652,7 +658,12 @@ class TQResource(TResource):
         """See docstring in superclass."""
         self._manifest = Manifest(self)
 
-    def _initialize_verses_html(self) -> None:
+    @log_on_start(
+        logging.INFO,
+        "About to convert TQ Markdown to HTML with Markdown extension",
+        logger=logger,
+    )
+    def initialize_verses_html(self, filepaths: Optional[FrozenSet[str]]) -> None:
         """
         Find translation questions for the verses.
         """
@@ -665,7 +676,8 @@ class TQResource(TResource):
                 # FIXME Decide how to handle translation word under
                 # different contexts, e.g.: no TW requested.
                 translation_word_link_preprocessor.TranslationWordLinkExtension(
-                    lang_code={self.lang_code: "Language code for resource."}
+                    lang_code={self.lang_code: "Language code for resource"},
+                    filepaths={filepaths: "Paths to translation words markdown files"},
                 ),
             ]
         )
@@ -764,7 +776,7 @@ class TWResource(TResource):
         """
 
         self._initialize_from_assets()
-        self._initialize_verses_html()
+        # self._initialize_verses_html()
 
     @property
     def language_payload(self) -> model.TWLanguagePayload:
@@ -778,7 +790,7 @@ class TWResource(TResource):
         """See docstring in superclass."""
         self._manifest = Manifest(self)
 
-    def _get_translation_word_filepaths(self) -> FrozenSet[str]:
+    def get_translation_word_filepaths(self) -> FrozenSet[str]:
         """
         Get the file paths to the translation word files for the
         TWResource instance.
@@ -790,7 +802,12 @@ class TWResource(TResource):
         # is hashable.
         return frozenset(filepaths)
 
-    def _initialize_verses_html(self) -> None:
+    @log_on_start(
+        logging.INFO,
+        "About to convert TW Markdown to HTML with Markdown extension",
+        logger=logger,
+    )
+    def initialize_verses_html(self, filepaths: FrozenSet[str]) -> None:
         """
         Find translation words for the verses.
         """
