@@ -254,6 +254,7 @@ class USFMChapter(BaseModel):
 
     chapter_content: List[HtmlContent]
     chapter_verses: Dict[VerseNum, HtmlContent]
+    chapter_footnotes: HtmlContent
 
 
 class CoverPayload(BaseModel):

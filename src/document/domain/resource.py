@@ -348,11 +348,19 @@ class USFMResource(Resource):
                 ),
             )
             chapter_content = [str(tag) for tag in list(chapter_content)]
-            chapter_verses_parser = bs4.BeautifulSoup(
+            chapter_content_parser = bs4.BeautifulSoup(
                 "".join(chapter_content), "html.parser",
             )
-            chapter_verse_tags: bs4.elements.ResultSet = chapter_verses_parser.find_all(
+            chapter_verse_tags: bs4.elements.ResultSet = chapter_content_parser.find_all(
                 "span", attrs={"class": "v-num"}
+            )
+            chapter_footnote_tag: bs4.elements.ResultSet = chapter_content_parser.find(
+                "div", attrs={"class": "footnotes"}
+            )
+            chapter_footnotes = (
+                model.HtmlContent(str(chapter_footnote_tag))
+                if chapter_footnote_tag
+                else model.HtmlContent("")
             )
             # Get each verse opening span tag and then the actual verse text for
             # this chapter and enclose them each in a p element.
@@ -385,11 +393,11 @@ class USFMResource(Resource):
                     str(verse_num + 1).zfill(3),
                 )
                 verse_content_tags = html_parsing_utils.tag_elements_between(
-                    chapter_verses_parser.find(
+                    chapter_content_parser.find(
                         "span", attrs={"class": "v-num", "id": lower_id},
                     ),
                     # ).next_sibling,
-                    chapter_verses_parser.find(
+                    chapter_content_parser.find(
                         "span", attrs={"class": "v-num", "id": upper_id},
                     ),
                 )
@@ -419,7 +427,9 @@ class USFMResource(Resource):
                 )
                 chapter_verses[verse_num] = verse_content_str
             self._chapters_content[chapter_num] = model.USFMChapter(
-                chapter_content=chapter_content, chapter_verses=chapter_verses,
+                chapter_content=chapter_content,
+                chapter_verses=chapter_verses,
+                chapter_footnotes=chapter_footnotes,
             )
 
 

@@ -423,6 +423,10 @@ def _assemble_usfm_tn_tq_tw_content_by_verse(
                 chapter_num, verse_num, verse,
             )
             html.extend(translation_word_links_html)
+        # Add scripture footnotes if available
+        if chapter.chapter_footnotes:
+            html.append(config.get_html_format_string("footnotes"))
+            html.append(chapter.chapter_footnotes)
     # Add the translation words definition section.
     linked_translation_words = tw_resource.get_translation_words_section()
     html.extend(linked_translation_words)
@@ -496,6 +500,10 @@ def _assemble_usfm_tn_tw_content_by_verse(
                 chapter_num, verse_num, verse,
             )
             html.extend(translation_word_links_html)
+        # Add scripture footnotes if available
+        if chapter.chapter_footnotes:
+            html.append(config.get_html_format_string("footnotes"))
+            html.append(chapter.chapter_footnotes)
     # Add the translation words definition section.
     linked_translation_words = tw_resource.get_translation_words_section()
     html.extend(linked_translation_words)
@@ -563,6 +571,10 @@ def _assemble_usfm_tq_tw_content_by_verse(
                 chapter_num, verse_num, verse,
             )
             html.extend(translation_word_links_html)
+        # Add scripture footnotes if available
+        if chapter.chapter_footnotes:
+            html.append(config.get_html_format_string("footnotes"))
+            html.append(chapter.chapter_footnotes)
     # Add the translation words definition section.
     linked_translation_words = tw_resource.get_translation_words_section()
     html.extend(linked_translation_words)
@@ -624,6 +636,10 @@ def _assemble_usfm_tw_content_by_verse(
                 chapter_num, verse_num, verse,
             )
             html.extend(translation_word_links_html)
+        # Add scripture footnotes if available
+        if chapter.chapter_footnotes:
+            html.append(config.get_html_format_string("footnotes"))
+            html.append(chapter.chapter_footnotes)
     # Add the translation words definition section.
     linked_translation_words = tw_resource.get_translation_words_section()
     html.extend(linked_translation_words)
@@ -695,6 +711,10 @@ def _assemble_usfm_tn_tq_content_by_verse(
             # Add TQ verse content, if any
             tq_verse_content = tq_resource.format_tq_verse(chapter_num, verse_num)
             html.extend(tq_verse_content)
+        # Add scripture footnotes if available
+        if chapter.chapter_footnotes:
+            html.append(config.get_html_format_string("footnotes"))
+            html.append(chapter.chapter_footnotes)
     return model.HtmlContent("\n".join(html))
 
 
@@ -750,6 +770,10 @@ def _assemble_usfm_tq_content_by_verse(
             # Add TQ verse content, if any
             tq_verse_content = tq_resource.format_tq_verse(chapter_num, verse_num)
             html.extend(tq_verse_content)
+        # Add scripture footnotes if available
+        if chapter.chapter_footnotes:
+            html.append(config.get_html_format_string("footnotes"))
+            html.append(chapter.chapter_footnotes)
     return model.HtmlContent("\n".join(html))
 
 
@@ -812,6 +836,10 @@ def _assemble_usfm_tn_content_by_verse(
             # Add TN verse content, if any
             tn_verse_content = tn_resource.format_tn_verse(chapter_num, verse_num)
             html.extend(tn_verse_content)
+        # Add scripture footnotes if available
+        if chapter.chapter_footnotes:
+            html.append(config.get_html_format_string("footnotes"))
+            html.append(chapter.chapter_footnotes)
     return model.HtmlContent("\n".join(html))
 
 
@@ -857,6 +885,10 @@ def _assemble_usfm_content_by_verse(
             )
             # Add scripture verse
             html.append(verse)
+        # Add scripture footnotes if available
+        if chapter.chapter_footnotes:
+            html.append(config.get_html_format_string("footnotes"))
+            html.append(chapter.chapter_footnotes)
     return model.HtmlContent("\n".join(html))
 
 
