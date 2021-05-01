@@ -81,7 +81,7 @@ class TranslationWordLinkPreprocessor(Preprocessor):
             # constructor. This can be the case when called within a
             # a non-TWResource. The design will likely change.
             if filename_sans_suffix in self.translation_words_dict:
-                # Only need to localize non-English languages.
+                # Need to localize non-English languages.
                 if self.lang_code != "en":
                     file_content = file_utils.read_file(
                         self.translation_words_dict[filename_sans_suffix]
