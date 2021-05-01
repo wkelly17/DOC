@@ -2,7 +2,8 @@
 
 import bs4
 import os
-import pytest
+
+# import pytest
 import requests
 from fastapi.testclient import TestClient
 
@@ -544,6 +545,73 @@ def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_
         assert os.path.exists(html_file)
         assert os.path.isdir("working/temp/en_ulb-wa")
         assert os.path.isdir("working/temp/sw_ulb")
+        assert os.path.isdir("working/temp/sw_tq")
+        assert os.path.isdir("working/temp/sw_tw")
+        assert response.ok
+        with open(html_file, "r") as fin:
+            html = fin.read()
+            parser = bs4.BeautifulSoup(html, "html.parser")
+            body: bs4.elements.ResultSet = parser.find_all("body")
+            assert body
+            verses_html: bs4.elements.ResultSet = parser.find_all(
+                "span", attrs={"class": "v-num"}
+            )
+            assert verses_html
+
+
+def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_zh_cuv_tit_sw_tq_tit_sw_tw_tit_language_book_order() -> None:
+    """
+    This test demonstrates the quirk of combining resources for
+    the same books but from different languages.
+    """
+    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+        response: requests.Response = client.post(
+            "/documents",
+            json={
+                "assembly_strategy_kind": "language_book_order",
+                "resource_requests": [
+                    {
+                        "lang_code": "en",
+                        "resource_type": "ulb-wa",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "en",
+                        "resource_type": "tq-wa",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "en",
+                        "resource_type": "tw-wa",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "sw",
+                        "resource_type": "ulb",
+                        "resource_code": "col",
+                    },
+                    {"lang_code": "sw", "resource_type": "tq", "resource_code": "col",},
+                    {"lang_code": "sw", "resource_type": "tw", "resource_code": "col",},
+                    {
+                        "lang_code": "zh",
+                        "resource_type": "cuv",
+                        "resource_code": "tit",
+                    },
+                    {"lang_code": "sw", "resource_type": "tq", "resource_code": "tit",},
+                    {"lang_code": "sw", "resource_type": "tw", "resource_code": "tit",},
+                ],
+            },
+        )
+        finished_document_path = "en-ulb-wa-col_en-tq-wa-col_en-tw-wa-col_sw-ulb-col_sw-tq-col_sw-tw-col_zh-cuv-tit_sw-tq-tit_sw-tw-tit_language_book_order.pdf"
+        finished_document_path = os.path.join(
+            config.get_output_dir(), finished_document_path
+        )
+        html_file = "{}.html".format(finished_document_path.split(".")[0])
+        assert os.path.exists(finished_document_path)
+        assert os.path.exists(html_file)
+        assert os.path.isdir("working/temp/en_ulb-wa")
+        assert os.path.isdir("working/temp/sw_ulb")
+        assert os.path.isdir("working/temp/zh_cuv")
         assert os.path.isdir("working/temp/sw_tq")
         assert os.path.isdir("working/temp/sw_tw")
         assert response.ok
