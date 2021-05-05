@@ -627,9 +627,7 @@ def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_
 
 
 ###################################################################
-# Targeted tests
-#
-# Targeted tests that originally were randomly chosen and failed
+# Tests that originally were randomly chosen and failed
 # using our random combinatoric tests.
 ###################################################################
 

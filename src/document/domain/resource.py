@@ -206,8 +206,6 @@ class USFMResource(Resource):
 
     def __init__(self, *args, **kwargs) -> None:  # type: ignore
         super().__init__(*args, **kwargs)
-        # FIXME Next (commented) line slated for removal
-        # self._usfm_chunks: Dict = {}
         self._chapters_content: Dict = {}
 
     # We may want to not enforce the post-condition that the
@@ -462,8 +460,6 @@ class TResource(Resource):
         self._content = markdown.markdown(self._content)
 
     @log_on_start(logging.INFO, "Converting MD to HTML...", logger=logger)
-    # FIXME This log message is slated for removal.
-    # @log_on_end(logging.DEBUG, "self._bad_links: {self._bad_links}", logger=logger)
     def _transform_content(self) -> None:
         """
         If self._content is not empty, go ahead and transform rc
@@ -531,8 +527,6 @@ class TNResource(TResource):
             extensions=[
                 wikilink_preprocessor.WikiLinkExtension(),
                 remove_section_preprocessor.RemoveSectionExtension(),
-                # FIXME Decide how to handle translation word under
-                # different contexts, e.g.: no TW requested.
                 translation_word_link_preprocessor.TranslationWordLinkExtension(
                     lang_code={self.lang_code: "Language code for resource"},
                     tw_resource_dir={
@@ -573,11 +567,6 @@ class TNResource(TResource):
                 verse_content = ""
                 with open(filepath, "r", encoding="utf-8") as fin2:
                     verse_content = fin2.read()
-                    # FIXME We could just comment out the next line, i.e.,
-                    # not convert Markdown to HTML yet. We could do
-                    # the conversion in the assembly strategies
-                    # instead and do it all at once for all Markdown
-                    # content?
                     verse_content = md.convert(verse_content)
                 verses_html[verse_num] = verse_content
             chapter_payload = model.TNChapterPayload(
@@ -659,13 +648,6 @@ class TQResource(TResource):
         needs of the document output. Then convert the Markdown content
         into HTML content.
         """
-        # FIXME All the work is done in _initialize_verses_html.
-        # So these legacy methods are turned off for now. There are
-        # likely bits of logic from these two functions that will find
-        # their way back into the system later though (in a different
-        # and improved form), e.g., linking.
-        # self._get_tn_markdown()
-        # self._transform_content()
 
         self._initialize_from_assets()
         # self._initialize_verses_html()
@@ -697,8 +679,6 @@ class TQResource(TResource):
             extensions=[
                 wikilink_preprocessor.WikiLinkExtension(),
                 remove_section_preprocessor.RemoveSectionExtension(),
-                # FIXME Decide how to handle translation word under
-                # different contexts, e.g.: no TW requested.
                 translation_word_link_preprocessor.TranslationWordLinkExtension(
                     lang_code={self.lang_code: "Language code for resource"},
                     tw_resource_dir={
@@ -736,11 +716,6 @@ class TQResource(TResource):
                     # verse_content = markdown_utils.remove_md_section(
                     #     verse_content, "Links:"
                     # )
-                    # FIXME We could just comment out the next line, i.e.,
-                    # not convert Markdown to HTML yet. We could do
-                    # the conversion in the assembly strategies
-                    # instead and do it all at once for all Markdown
-                    # content?
                     verse_content = md.convert(verse_content)
                 verses_html[verse_num] = verse_content
             chapter_payload = model.TQChapterPayload(verses_html=verses_html)
@@ -887,8 +862,6 @@ class TWResource(TResource):
                 # build up a data structure that for every word
                 # collects which verses it occurs in.
                 localized_word = translation_word_content.split("\n")[0].split("# ")[1]
-                # FIXME I could avoid converting to HTML now and do it
-                # later in assembly strategy.
                 html_word_content = md.convert(translation_word_content)
                 # Make adjustments to the HTML here.
                 html_word_content = re.sub(r"h2", r"h4", html_word_content)
@@ -1107,7 +1080,7 @@ def resource_factory(
     working_dir: str,
     output_dir: str,
     resource_request: model.ResourceRequest,
-    # FIXME Why should resources care about assembly strategies?
+    # XXX Resources shouldn't care about assembly strategies.
     # assembly_strategy_kind: model.AssemblyStrategyEnum,
 ) -> Resource:
     """
@@ -1261,7 +1234,8 @@ class ResourceProvisioner:
             # FIXME Might want to retry after some acceptable interval if there is a
             # failure here due to network issues. It has happened very
             # occasionally during testing that there has been a hiccup
-            # with the network at this point.
+            # with the network at this point but succeeded on retry of
+            # the same test.
             url_utils.download_file(self._resource.resource_url, resource_filepath)
 
     @log_on_start(
@@ -1278,8 +1252,8 @@ class ResourceProvisioner:
     def _unzip_asset(self, resource_filepath: str) -> None:
         """Unzip the asset."""
         file_utils.unzip(resource_filepath, self._resource.resource_dir)
-        # FIXME Update resource_dir. If we make this change, it will likely mean we
-        # can update the glob patterns for resource asset files.
+        # Update resource_dir.
+        # FIXME We can likely update the glob patterns for resource asset files.
         # Update: Turns out the globs still work with the '**' in them, but
         # perhaps it would be faster to eliminate '**'. Also perhaps it would be
         # faster to use os.scandir there as well, if we can.
