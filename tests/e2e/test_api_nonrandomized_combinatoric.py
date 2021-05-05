@@ -13,7 +13,7 @@ from document.entrypoints.app import app
 
 
 # @pytest.mark.skip
-def test_two_resource_combos_language_book_order(helpers: Any) -> None:
+def test_two_resource_combos_language_book_order() -> None:
     """
     Produce verse level interleaved document for English scripture and
     translation notes for the book of Colossians.
