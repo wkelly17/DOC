@@ -375,7 +375,7 @@ def _assemble_usfm_tn_tq_tw_content_by_verse(
         TWResource, tw_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
 
-    _initialize_resources_html(tn_resource, tq_resource, tw_resource)
+    _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
 
     html: List[model.HtmlContent] = []
     book_intro = tn_resource.book_payload.intro_html
@@ -455,7 +455,7 @@ def _assemble_usfm_tn_tw_content_by_verse(
         TWResource, tw_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
 
-    _initialize_resources_html(tn_resource, tq_resource, tw_resource)
+    _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
 
     html: List[model.HtmlContent] = []
     book_intro = tn_resource.book_payload.intro_html
@@ -532,7 +532,7 @@ def _assemble_usfm_tq_tw_content_by_verse(
         TWResource, tw_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
 
-    _initialize_resources_html(tn_resource, tq_resource, tw_resource)
+    _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
 
     html: List[model.HtmlContent] = []
 
@@ -600,7 +600,7 @@ def _assemble_usfm_tw_content_by_verse(
         TWResource, tw_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
 
-    _initialize_resources_html(tn_resource, tq_resource, tw_resource)
+    _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
 
     html: List[model.HtmlContent] = []
 
@@ -668,7 +668,7 @@ def _assemble_usfm_tn_tq_content_by_verse(
         TQResource, tq_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
 
-    _initialize_resources_html(tn_resource, tq_resource, tw_resource)
+    _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
 
     html: List[model.HtmlContent] = []
     book_intro = tn_resource.book_payload.intro_html
@@ -736,7 +736,7 @@ def _assemble_usfm_tq_content_by_verse(
         TQResource, tq_resource
     )  # Make mypy happy. We know, due to how we got here, that usfm_resource object is not None.
 
-    _initialize_resources_html(tn_resource, tq_resource, tw_resource)
+    _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
 
     html: List[model.HtmlContent] = []
 
@@ -796,7 +796,7 @@ def _assemble_usfm_tn_content_by_verse(
         TNResource, tn_resource
     )  # Make mypy happy. We know, due to how we got here, that usfm_resource object is not None.
 
-    _initialize_resources_html(tn_resource, tq_resource, tw_resource)
+    _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
 
     html = []
     book_intro = tn_resource.book_payload.intro_html
@@ -907,7 +907,7 @@ def _assemble_tn_content_by_verse(
         TNResource, tn_resource
     )  # Make mypy happy. We know, due to how we got here, that tn_resource object is not None.
 
-    _initialize_resources_html(tn_resource, tq_resource, tw_resource)
+    _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
 
     html: List[model.HtmlContent] = []
     book_intro = tn_resource.book_payload.intro_html
@@ -971,7 +971,7 @@ def _assemble_tn_tq_tw_content_by_verse(
         TWResource, tw_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
 
-    _initialize_resources_html(tn_resource, tq_resource, tw_resource)
+    _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
 
     html: List[model.HtmlContent] = []
     book_intro = tn_resource.book_payload.intro_html
@@ -1048,7 +1048,7 @@ def _assemble_tn_tw_content_by_verse(
         TWResource, tw_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
 
-    _initialize_resources_html(tn_resource, tq_resource, tw_resource)
+    _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
 
     html: List[model.HtmlContent] = []
     book_intro = tn_resource.book_payload.intro_html
@@ -1121,7 +1121,7 @@ def _assemble_tn_tq_content_by_verse(
         TQResource, tq_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
 
-    _initialize_resources_html(tn_resource, tq_resource, tw_resource)
+    _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
 
     html: List[model.HtmlContent] = []
     book_intro = tn_resource.book_payload.intro_html
@@ -1183,7 +1183,7 @@ def _assemble_tq_content_by_verse(
         TQResource, tq_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
 
-    _initialize_resources_html(tn_resource, tq_resource, tw_resource)
+    _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
 
     html: List[model.HtmlContent] = []
 
@@ -1236,7 +1236,7 @@ def _assemble_tq_tw_content_by_verse(
         TWResource, tw_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
 
-    _initialize_resources_html(tn_resource, tq_resource, tw_resource)
+    _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
 
     html: List[model.HtmlContent] = []
 
@@ -1296,7 +1296,7 @@ def _assemble_tw_content_by_verse(
         TWResource, tw_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
 
-    _initialize_resources_html(tn_resource, tq_resource, tw_resource)
+    _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
 
     html: List[model.HtmlContent] = []
 
