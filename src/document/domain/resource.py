@@ -594,12 +594,15 @@ class TNResource(TResource):
 
     def get_verses_for_chapter(
         self, chapter_num: model.ChapterNum
-    ) -> Dict[model.VerseNum, model.HtmlContent]:
+    ) -> Optional[Dict[model.VerseNum, model.HtmlContent]]:
         """
         Return the HTML for verses that are in the chapter with
         chapter_num.
         """
-        return self.book_payload.chapters[chapter_num].verses_html
+        verses_html = None
+        if chapter_num in self.book_payload.chapters:
+            verses_html = self.book_payload.chapters[chapter_num].verses_html
+        return verses_html
 
     def format_tn_verse(
         self, chapter_num: model.ChapterNum, verse_num: model.VerseNum,
@@ -610,7 +613,7 @@ class TNResource(TResource):
         """
         chapter_verses = self.get_verses_for_chapter(chapter_num)
         tn_verse = None
-        if verse_num in chapter_verses:
+        if chapter_verses and verse_num in chapter_verses:
             tn_verse = chapter_verses[verse_num]
         if tn_verse is None:
             return [model.HtmlContent("")]
@@ -740,11 +743,14 @@ class TQResource(TResource):
 
     def get_verses_for_chapter(
         self, chapter_num: model.ChapterNum
-    ) -> Dict[model.VerseNum, model.HtmlContent]:
+    ) -> Optional[Dict[model.VerseNum, model.HtmlContent]]:
         """
         Return the HTML for verses in chapter_num.
         """
-        return self.book_payload.chapters[chapter_num].verses_html
+        verses_html = None
+        if chapter_num in self.book_payload.chapters:
+            verses_html = self.book_payload.chapters[chapter_num].verses_html
+        return verses_html
 
     def format_tq_verse(
         self, chapter_num: model.ChapterNum, verse_num: model.VerseNum,
@@ -755,7 +761,7 @@ class TQResource(TResource):
         """
         chapter_verses = self.get_verses_for_chapter(chapter_num)
         tq_verse = None
-        if verse_num in chapter_verses:
+        if chapter_verses and verse_num in chapter_verses:
             tq_verse = chapter_verses[verse_num]
         if tq_verse is None:
             return [model.HtmlContent("")]
