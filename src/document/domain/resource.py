@@ -1097,6 +1097,7 @@ def resource_factory(
         "nav": USFMResource,
         "reg": USFMResource,
         "cuv": USFMResource,
+        "udb": USFMResource,
         "tn": TNResource,
         "tn-wa": TNResource,
         "tq": TQResource,

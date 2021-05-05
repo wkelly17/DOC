@@ -16,7 +16,7 @@ import logging  # For logdecorator
 import re
 
 from logdecorator import log_on_start
-from typing import Callable, cast, Dict, List, Optional
+from typing import Callable, cast, Dict, List, Optional, Tuple
 
 from document import config
 from document.domain import bible_books, document_generator, model
@@ -61,11 +61,12 @@ def _assembly_strategy_factory(
 
 
 def _assembly_sub_strategy_factory(
-    usfm_resource: Optional[USFMResource],
+    usfm_resource: Optional[USFMResource],  # ulb, nav, cuv, etc.
     tn_resource: Optional[TNResource],
     tq_resource: Optional[TQResource],
     tw_resource: Optional[TWResource],
     ta_resource: Optional[TAResource],
+    usfm_resource2: Optional[USFMResource],  # udb
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> Callable[
     [
@@ -74,6 +75,7 @@ def _assembly_sub_strategy_factory(
         Optional[TQResource],
         Optional[TWResource],
         Optional[TAResource],
+        Optional[USFMResource],
         model.AssemblySubstrategyEnum,
     ],
     model.HtmlContent,
@@ -91,13 +93,45 @@ def _assembly_sub_strategy_factory(
     This makes adding new strategies straightforward, if a bit
     redundant. The redundancy is the cost of comprehension.
     """
-    strategies = {
-        # Params: usfm_resource_exists, tn_resource_exists, tq_resource_exists, tw_resource_exists, ta_resource_exists, assembly_strategy_kind
+    strategies: Dict[
+        Tuple[
+            # Params: usfm_resource_exists, tn_resource_exists, tq_resource_exists, tw_resource_exists, ta_resource_exists, usfm_resource2_exists, assembly_strategy_kind
+            bool,
+            bool,
+            bool,
+            bool,
+            bool,
+            bool,
+            model.AssemblySubstrategyEnum,
+        ],
+        Callable[
+            [
+                Optional[USFMResource],
+                Optional[TNResource],
+                Optional[TQResource],
+                Optional[TWResource],
+                Optional[TAResource],
+                Optional[USFMResource],
+                model.AssemblySubstrategyEnum,
+            ],
+            model.HtmlContent,
+        ],
+    ] = {
         (
             True,
             True,
             True,
             True,
+            True,
+            False,
+            model.AssemblySubstrategyEnum.VERSE,
+        ): _assemble_usfm_tn_tq_tw_ta_content_by_verse,
+        (
+            True,
+            True,
+            True,
+            True,
+            False,
             False,
             model.AssemblySubstrategyEnum.VERSE,
         ): _assemble_usfm_tn_tq_tw_content_by_verse,
@@ -107,6 +141,7 @@ def _assembly_sub_strategy_factory(
             False,
             True,
             False,
+            False,
             model.AssemblySubstrategyEnum.VERSE,
         ): _assemble_usfm_tn_tw_content_by_verse,
         (
@@ -114,6 +149,7 @@ def _assembly_sub_strategy_factory(
             False,
             True,
             True,
+            False,
             False,
             model.AssemblySubstrategyEnum.VERSE,
         ): _assemble_usfm_tq_tw_content_by_verse,
@@ -123,12 +159,14 @@ def _assembly_sub_strategy_factory(
             False,
             True,
             False,
+            False,
             model.AssemblySubstrategyEnum.VERSE,
         ): _assemble_usfm_tw_content_by_verse,
         (
             True,
             True,
             True,
+            False,
             False,
             False,
             model.AssemblySubstrategyEnum.VERSE,
@@ -139,6 +177,7 @@ def _assembly_sub_strategy_factory(
             True,
             False,
             False,
+            False,
             model.AssemblySubstrategyEnum.VERSE,
         ): _assemble_usfm_tq_content_by_verse,
         (
@@ -146,6 +185,7 @@ def _assembly_sub_strategy_factory(
             True,
             True,
             True,
+            False,
             False,
             model.AssemblySubstrategyEnum.VERSE,
         ): _assemble_tn_tq_tw_content_by_verse,
@@ -155,12 +195,14 @@ def _assembly_sub_strategy_factory(
             False,
             True,
             False,
+            False,
             model.AssemblySubstrategyEnum.VERSE,
         ): _assemble_tn_tw_content_by_verse,
         (
             False,
             True,
             True,
+            False,
             False,
             False,
             model.AssemblySubstrategyEnum.VERSE,
@@ -171,6 +213,7 @@ def _assembly_sub_strategy_factory(
             True,
             True,
             False,
+            False,
             model.AssemblySubstrategyEnum.VERSE,
         ): _assemble_tq_tw_content_by_verse,
         (
@@ -179,11 +222,13 @@ def _assembly_sub_strategy_factory(
             False,
             True,
             False,
+            False,
             model.AssemblySubstrategyEnum.VERSE,
         ): _assemble_tw_content_by_verse,
         (
             True,
             True,
+            False,
             False,
             False,
             False,
@@ -195,10 +240,12 @@ def _assembly_sub_strategy_factory(
             True,
             False,
             False,
+            False,
             model.AssemblySubstrategyEnum.VERSE,
         ): _assemble_tq_content_by_verse,
         (
             True,
+            False,
             False,
             False,
             False,
@@ -211,16 +258,21 @@ def _assembly_sub_strategy_factory(
             False,
             False,
             False,
+            False,
             model.AssemblySubstrategyEnum.VERSE,
         ): _assemble_tn_content_by_verse,
     }
     return strategies[
         (
+            # Turn existence (exists or not) into a boolean for each
+            # instance, the tuple of these together are an immutable,
+            # and thus hashable, dictionary key into our function lookup table.
             usfm_resource is not None,
             tn_resource is not None,
             tq_resource is not None,
             tw_resource is not None,
             ta_resource is not None,
+            usfm_resource2 is not None,
             assembly_substrategy_kind,
         )
     ]
@@ -290,11 +342,14 @@ def _assemble_content_by_lang_then_book(
             # Save grouper generator since it will get exhausted
             # when used and exhausted generators cannot be reused.
             resources = list(group_by_book)
-            usfm_resource: Optional[USFMResource] = _get_usfm_resource(resources)
+            usfm_resource: Optional[USFMResource] = _get_first_usfm_resource(resources)
             tn_resource: Optional[TNResource] = _get_tn_resource(resources)
             tq_resource: Optional[TQResource] = _get_tq_resource(resources)
             tw_resource: Optional[TWResource] = _get_tw_resource(resources)
             ta_resource: Optional[TAResource] = _get_ta_resource(resources)
+            usfm_resource2: Optional[USFMResource] = _get_second_usfm_resource(
+                resources
+            )
 
             # We've got the resources, now we can use the sub-strategy factory
             # method to choose the right function to use from here on out.
@@ -304,10 +359,8 @@ def _assemble_content_by_lang_then_book(
                 tq_resource,
                 tw_resource,
                 ta_resource,
+                usfm_resource2,
                 config.get_default_assembly_substrategy(),
-                # NOTE DocumentGenerator does not accept a
-                # sub-strategy at this time (and may never).
-                # docgen._document_request.assembly_substrategy_kind,
             )
 
             sub_html: model.HtmlContent = docgen._assembly_sub_strategy(
@@ -316,10 +369,8 @@ def _assemble_content_by_lang_then_book(
                 tq_resource,
                 tw_resource,
                 ta_resource,
+                usfm_resource2,
                 config.get_default_assembly_substrategy(),
-                # NOTE DocumentGenerator does not accept a
-                # sub-strategy at this time (and may never).
-                # docgen._document_request.assembly_strategy_kind,
             )
             html.append(sub_html)
 
@@ -356,6 +407,7 @@ def _assemble_usfm_tn_tq_tw_content_by_verse(
     tq_resource: Optional[TQResource],
     tw_resource: Optional[TWResource],
     ta_resource: Optional[TAResource],
+    usfm_resource2: Optional[USFMResource],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> model.HtmlContent:
     """
@@ -448,6 +500,7 @@ def _assemble_usfm_tn_tw_content_by_verse(
     tq_resource: Optional[TQResource],
     tw_resource: Optional[TWResource],
     ta_resource: Optional[TAResource],
+    usfm_resource2: Optional[USFMResource],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> model.HtmlContent:
     """
@@ -529,6 +582,7 @@ def _assemble_usfm_tq_tw_content_by_verse(
     tq_resource: Optional[TQResource],
     tw_resource: Optional[TWResource],
     ta_resource: Optional[TAResource],
+    usfm_resource2: Optional[USFMResource],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> model.HtmlContent:
     """
@@ -605,6 +659,7 @@ def _assemble_usfm_tw_content_by_verse(
     tq_resource: Optional[TQResource],
     tw_resource: Optional[TWResource],
     ta_resource: Optional[TAResource],
+    usfm_resource2: Optional[USFMResource],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> model.HtmlContent:
     """
@@ -670,6 +725,7 @@ def _assemble_usfm_tn_tq_content_by_verse(
     tq_resource: Optional[TQResource],
     tw_resource: Optional[TWResource],
     ta_resource: Optional[TAResource],
+    usfm_resource2: Optional[USFMResource],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> model.HtmlContent:
     """
@@ -751,6 +807,7 @@ def _assemble_usfm_tq_content_by_verse(
     tq_resource: Optional[TQResource],
     tw_resource: Optional[TWResource],
     ta_resource: Optional[TAResource],
+    usfm_resource2: Optional[USFMResource],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> model.HtmlContent:
     """
@@ -815,6 +872,7 @@ def _assemble_usfm_tn_content_by_verse(
     tq_resource: Optional[TQResource],
     tw_resource: Optional[TWResource],
     ta_resource: Optional[TAResource],
+    usfm_resource2: Optional[USFMResource],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> model.HtmlContent:
     """
@@ -886,6 +944,7 @@ def _assemble_usfm_content_by_verse(
     tq_resource: Optional[TQResource],
     tw_resource: Optional[TWResource],
     ta_resource: Optional[TAResource],
+    usfm_resource2: Optional[USFMResource],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> model.HtmlContent:
     """
@@ -935,6 +994,7 @@ def _assemble_tn_content_by_verse(
     tq_resource: Optional[TQResource],
     tw_resource: Optional[TWResource],
     ta_resource: Optional[TAResource],
+    usfm_resource2: Optional[USFMResource],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> model.HtmlContent:
     """
@@ -992,6 +1052,7 @@ def _assemble_tn_tq_tw_content_by_verse(
     tq_resource: Optional[TQResource],
     tw_resource: Optional[TWResource],
     ta_resource: Optional[TAResource],
+    usfm_resource2: Optional[USFMResource],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> model.HtmlContent:
     """
@@ -1079,6 +1140,7 @@ def _assemble_tn_tw_content_by_verse(
     tq_resource: Optional[TQResource],
     tw_resource: Optional[TWResource],
     ta_resource: Optional[TAResource],
+    usfm_resource2: Optional[USFMResource],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> model.HtmlContent:
     """
@@ -1153,6 +1215,7 @@ def _assemble_tn_tq_content_by_verse(
     tq_resource: Optional[TQResource],
     tw_resource: Optional[TWResource],
     ta_resource: Optional[TAResource],
+    usfm_resource2: Optional[USFMResource],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> model.HtmlContent:
     """
@@ -1228,6 +1291,7 @@ def _assemble_tq_content_by_verse(
     tq_resource: Optional[TQResource],
     tw_resource: Optional[TWResource],
     ta_resource: Optional[TAResource],
+    usfm_resource2: Optional[USFMResource],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> model.HtmlContent:
     """
@@ -1278,6 +1342,7 @@ def _assemble_tq_tw_content_by_verse(
     tq_resource: Optional[TQResource],
     tw_resource: Optional[TWResource],
     ta_resource: Optional[TAResource],
+    usfm_resource2: Optional[USFMResource],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> model.HtmlContent:
     """
@@ -1343,6 +1408,7 @@ def _assemble_tw_content_by_verse(
     tq_resource: Optional[TQResource],
     tw_resource: Optional[TWResource],
     ta_resource: Optional[TAResource],
+    usfm_resource2: Optional[USFMResource],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> model.HtmlContent:
     """
@@ -1372,6 +1438,7 @@ def _initialize_resources_html(
     tn_resource: Optional[TNResource],
     tq_resource: Optional[TQResource],
     tw_resource: Optional[TWResource],
+    ta_resource: Optional[TAResource],
 ) -> None:
     """
     Call initialize_verses_html for each non-USFM resource that is not null.
@@ -1432,14 +1499,26 @@ def _format_tq_verse(
 
 
 def _get_usfm_resource(resources: List[Resource]) -> Optional[USFMResource]:
+def _get_first_usfm_resource(resources: List[Resource]) -> Optional[USFMResource]:
     """
-    Return the USFMResource instance, if any, contained in resources,
+    Return the first USFMResource instance, if any, contained in resources,
     else return None.
     """
     usfm_resources = [
         resource for resource in resources if isinstance(resource, USFMResource)
     ]
     return usfm_resources[0] if usfm_resources else None
+
+
+def _get_second_usfm_resource(resources: List[Resource]) -> Optional[USFMResource]:
+    """
+    Return the second USFMResource instance, if any, contained in resources,
+    else return None.
+    """
+    usfm_resources = [
+        resource for resource in resources if isinstance(resource, USFMResource)
+    ]
+    return usfm_resources[1] if usfm_resources and 1 in usfm_resources else None
 
 
 def _get_tn_resource(resources: List[Resource]) -> Optional[TNResource]:

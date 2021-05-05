@@ -78,6 +78,7 @@ class DocumentGenerator:
                 Optional[TQResource],
                 Optional[TWResource],
                 Optional[TAResource],
+                Optional[USFMResource],
                 model.AssemblySubstrategyEnum,
             ],
             model.HtmlContent,
