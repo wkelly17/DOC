@@ -380,54 +380,13 @@ class USFMResource(Resource):
                 for verse in chapter_verse_tags
             ]
             # Dictionary to hold verse number, verse value pairs.
-            chapter_verses: Dict[int, str] = {}
+            chapter_verses: Dict[str, str] = {}
             for verse_element in chapter_verse_list:
-                # Get the verse num from the verse HTML tag's id value.
-                # split is more performant than re.
-                # See https://stackoverflow.com/questions/7501609/python-re-split-vs-split
-                verse_num = int(str(verse_element).split("-v-")[1].split('"')[0])
-                lower_id = "{}-ch-{}-v-{}".format(
-                    str(self._book_number).zfill(3),
-                    str(chapter_num).zfill(3),
-                    str(verse_num).zfill(3),
-                )
-                upper_id = "{}-ch-{}-v-{}".format(
-                    str(self._book_number).zfill(3),
-                    str(chapter_num).zfill(3),
-                    str(verse_num + 1).zfill(3),
-                )
-                verse_content_tags = html_parsing_utils.tag_elements_between(
-                    chapter_content_parser.find(
-                        "span", attrs={"class": "v-num", "id": lower_id},
-                    ),
-                    # ).next_sibling,
-                    chapter_content_parser.find(
-                        "span", attrs={"class": "v-num", "id": upper_id},
-                    ),
-                )
-                verse_content = [str(tag) for tag in list(verse_content_tags)]
-                # Hacky way to remove some redundant parsing results due to recursion in
-                # BeautifulSoup. Should use bs4 more expertly to avoid this if it is
-                # possible. But this does work and produces the desired result in the
-                # end.
-                del verse_content[1:4]
-                verse_content_str = "".join(verse_content)
-                # HACK "Fix" BeautifulSoup parsing issue wherein sometimes a verse
-                # contains its content but also includes a subsequent verse or verses or
-                # a recapitulation of all previous verses. This does fix the problem
-                # though and gives the desired result:
-                verse_content_str = (
-                    '<span class="v-num"'
-                    + verse_content_str.split('<span class="v-num"')[1]
-                )
-                # At this point we alter verse_content_str span's ID by prepending the
-                # lang_code to ensure unique verse references within language scope in a
-                # multi-language document.
-                pattern = r'id="(.+?)-ch-(.+?)-v-(.+?)"'
-                verse_content_str = re.sub(
-                    pattern,
-                    r"id='{}-\1-ch-\2-v-\3'".format(self.lang_code),
+                (
+                    verse_num,
                     verse_content_str,
+                ) = self._get_verse_num_and_verse_content_str(
+                    chapter_num, chapter_content_parser, verse_element
                 )
                 chapter_verses[verse_num] = verse_content_str
             self._chapters_content[chapter_num] = model.USFMChapter(
@@ -435,6 +394,94 @@ class USFMResource(Resource):
                 chapter_verses=chapter_verses,
                 chapter_footnotes=chapter_footnotes,
             )
+
+    def _get_verse_num_and_verse_content_str(
+        self,
+        chapter_num: int,
+        chapter_content_parser: bs4.BeautifulSoup,
+        verse_element: str,
+    ) -> Tuple[model.VerseRef, model.HtmlContent]:
+        """
+        Handle some messy initialization and return the
+        chapter_num and verse_content_str.
+        """
+        # Rather than a single verse num, the item in
+        # verse_num may be a verse range, e.g., 1-2.
+        # See test_mr_ulb_mrk_mr_tn_mrk_mr_tq_mrk_mr_tw_mrk_mr_udb_mrk_language_book_order
+        # for test that triggers this situation.
+        # Get the verse num from the verse HTML tag's id value.
+        # split is more performant than re.
+        # See https://stackoverflow.com/questions/7501609/python-re-split-vs-split
+        verse_num = str(verse_element).split("-v-")[1].split('"')[0]
+        # Check for hyphen in the range
+        verse_num_components = verse_num.split("-")
+        if len(verse_num_components) > 1:
+            upper_bound_value = int(verse_num_components[1]) + 1
+            # Get rid of leading zeroes on first verse number
+            # in range.
+            verse_num_int = int(verse_num_components[0])
+            # Get rid of leading zeroes on second verse number
+            # in range.
+            verse_num2_int = int(verse_num_components[1])
+            # Recreate the verse range, now without leading
+            # zeroes.
+            verse_num = "{}-{}".format(str(verse_num_int), str(verse_num2_int))
+
+            # NOTE Would have to pass in chapter_num to use this.
+            logger.debug(
+                "chapter_num: {}, verse_num is a verse range: {}".format(
+                    chapter_num, verse_num
+                )
+            )
+        else:
+            upper_bound_value = int(verse_num) + 1
+            # Get rid of leading zeroes.
+            verse_num = str(int(verse_num))
+
+        # Create the lower and upper search bounds for the
+        # BeautifulSoup HTML parser.
+        lower_id = "{}-ch-{}-v-{}".format(
+            str(self._book_number).zfill(3),
+            str(chapter_num).zfill(3),
+            verse_num.zfill(3),
+        )
+        upper_id = "{}-ch-{}-v-{}".format(
+            str(self._book_number).zfill(3),
+            str(chapter_num).zfill(3),
+            str(upper_bound_value).zfill(3),
+        )
+        # Using the upper and lower parse a verse worth of HTML
+        # content.
+        verse_content_tags = html_parsing_utils.tag_elements_between(
+            chapter_content_parser.find(
+                "span", attrs={"class": "v-num", "id": lower_id},
+            ),
+            # ).next_sibling,
+            chapter_content_parser.find(
+                "span", attrs={"class": "v-num", "id": upper_id},
+            ),
+        )
+        verse_content = [str(tag) for tag in list(verse_content_tags)]
+        # Hacky way to remove some redundant parsing results due to recursion in
+        # BeautifulSoup. Perhaps there is bs4 mway to avoid this. But
+        # this does work and produces the desired result in the end.
+        del verse_content[1:4]
+        verse_content_str = "".join(verse_content)
+        # HACK "Fix" BeautifulSoup parsing issue wherein sometimes a verse
+        # contains its content but also includes a subsequent verse or verses or
+        # a recapitulation of all previous verses. This does fix the problem
+        # though and gives the desired result:
+        verse_content_str = (
+            '<span class="v-num"' + verse_content_str.split('<span class="v-num"')[1]
+        )
+        # At this point we alter verse_content_str span's ID by prepending the
+        # lang_code to ensure unique verse references within language scope in a
+        # multi-language document.
+        pattern = r'id="(.+?)-ch-(.+?)-v-(.+?)"'
+        verse_content_str = re.sub(
+            pattern, r"id='{}-\1-ch-\2-v-\3'".format(self.lang_code), verse_content_str,
+        )
+        return model.VerseRef(verse_num), model.HtmlContent(verse_content_str)
 
 
 class TResource(Resource):
@@ -589,7 +636,7 @@ class TNResource(TResource):
 
     def get_verses_for_chapter(
         self, chapter_num: model.ChapterNum
-    ) -> Optional[Dict[model.VerseNum, model.HtmlContent]]:
+    ) -> Optional[Dict[model.VerseRef, model.HtmlContent]]:
         """
         Return the HTML for verses that are in the chapter with
         chapter_num.
@@ -600,7 +647,7 @@ class TNResource(TResource):
         return verses_html
 
     def format_tn_verse(
-        self, chapter_num: model.ChapterNum, verse_num: model.VerseNum,
+        self, chapter_num: model.ChapterNum, verse_num: model.VerseRef,
     ) -> List[model.HtmlContent]:
         """
         Build and return the content for the translation note for chapter
@@ -724,7 +771,7 @@ class TQResource(TResource):
 
     def get_verses_for_chapter(
         self, chapter_num: model.ChapterNum
-    ) -> Optional[Dict[model.VerseNum, model.HtmlContent]]:
+    ) -> Optional[Dict[model.VerseRef, model.HtmlContent]]:
         """
         Return the HTML for verses in chapter_num.
         """
@@ -734,7 +781,7 @@ class TQResource(TResource):
         return verses_html
 
     def format_tq_verse(
-        self, chapter_num: model.ChapterNum, verse_num: model.VerseNum,
+        self, chapter_num: model.ChapterNum, verse_num: model.VerseRef,
     ) -> List[model.HtmlContent]:
         """
         Build and return the content for the translation question for chapter
@@ -891,7 +938,7 @@ class TWResource(TResource):
     def get_translation_word_links(
         self,
         chapter_num: model.ChapterNum,
-        verse_num: model.VerseNum,
+        verse_num: model.VerseRef,
         verse: model.HtmlContent,
     ) -> List[model.HtmlContent]:
         """

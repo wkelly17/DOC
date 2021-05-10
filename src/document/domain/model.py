@@ -27,7 +27,7 @@ HtmlContent = NewType("HtmlContent", str)
 # request, then we'll again have an abstraction to hang such logic off
 # of.
 ChapterNum = NewType("ChapterNum", int)
-VerseNum = NewType("VerseNum", int)
+VerseRef = NewType("VerseRef", str)
 
 
 # https://blog.meadsteve.dev/programming/2020/02/10/types-at-the-edges-in-python/
@@ -177,7 +177,7 @@ class TNChapterPayload(BaseModel):
     """
 
     intro_html: HtmlContent
-    verses_html: Dict[VerseNum, HtmlContent]
+    verses_html: Dict[VerseRef, HtmlContent]
 
 
 class TNBookPayload(BaseModel):
@@ -196,7 +196,7 @@ class TQChapterPayload(BaseModel):
     content.
     """
 
-    verses_html: Dict[VerseNum, HtmlContent]
+    verses_html: Dict[VerseRef, HtmlContent]
 
 
 class TQBookPayload(BaseModel):
@@ -213,7 +213,7 @@ class TWUse(BaseModel):
     book_id: str
     book_name: str
     chapter_num: ChapterNum
-    verse_num: VerseNum
+    verse_num: VerseRef
     base_filename: BaseFilename
     localized_word: str
 
@@ -253,7 +253,7 @@ class USFMChapter(BaseModel):
     """
 
     chapter_content: List[HtmlContent]
-    chapter_verses: Dict[VerseNum, HtmlContent]
+    chapter_verses: Dict[VerseRef, HtmlContent]
     chapter_footnotes: HtmlContent
 
 
