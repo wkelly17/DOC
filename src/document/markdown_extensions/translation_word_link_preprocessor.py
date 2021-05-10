@@ -87,7 +87,11 @@ class TranslationWordLinkPreprocessor(Preprocessor):
                         self.translation_words_dict[filename_sans_suffix]
                     )
                     # Get the localized name for the translation word
-                    localized_translation_word = file_content.split("\n").split(" ")
+                    # FIXME Doing the same logic as in TWResource,
+                    # perhaps there is a way to keep things DRY
+                    localized_translation_word = file_content.split("\n")[0].split(
+                        "# "
+                    )[1]
                     source = re.sub(
                         pattern,
                         r"[\1](#{}-{})".format(
