@@ -296,11 +296,10 @@ def get_pandoc_command() -> str:
     return PANDOC_COMMAND
 
 
-def get_english_repos_dict() -> dict:
+def get_english_git_repo_url(resource_type: str) -> str:
     """
     This is a hack to compensate for translations.json which only
-    provides URLs for PDF assets in the English language. We need USFM
-    and Markdown.
+    provides URLs in non-English languages.
     """
     return {
         "ulb-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_ulb",
@@ -308,7 +307,7 @@ def get_english_repos_dict() -> dict:
         "tn-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_tn",
         "tw-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_tw",
         "tq-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_tq",
-    }
+    }[resource_type]
 
 
 def get_template_path(key: str) -> str:

@@ -131,7 +131,7 @@ class ResourceJsonLookup:
         If successful, return a string containing the URL of repo,
         otherwise return None.
         """
-        url: str = config.get_english_repos_dict()[resource.resource_type]
+        url: str = config.get_english_git_repo_url(resource.resource_type)
         return model.ResourceLookupDto(
             url=url,
             source=model.AssetSourceEnum.GIT,
