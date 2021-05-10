@@ -756,7 +756,7 @@ class BIELHelperResourceJsonLookup:
     @icontract.ensure(lambda result: result)
     def lang_codes_names_and_resource_types(self) -> List[Tuple[str, str, List[str]]]:
         """
-        Convenience method that can be called to get the set
+        Convenience method that can be called to get the list
         of all tuples where each tuple consists of language code,
         language name, and list of resource types available for that
         language.

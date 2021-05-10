@@ -8,29 +8,6 @@ from typing import Any
 from document import config
 from document.entrypoints.app import app
 
-#############################################################################
-## Test at least one example of all combinations of ulb, tn, tq, tw.       ##
-## These are the possible combinations of the resource types ulb, tn,      ##
-## tq, tw:                                                                 ##
-##                                                                         ##
-##  | ulb | tn | tq | tw | combination as string | complete | unit test |  ##
-##  |-----+----+----+----+-----------------------+----------+-----------|  ##
-##  |   0 |  0 |  0 |  1 | tw                    | y        | y         |  ##
-##  |   0 |  0 |  1 |  0 | tq                    | y        | y         |  ##
-##  |   0 |  0 |  1 |  1 | tq,tw                 | y        | y         |  ##
-##  |   0 |  1 |  0 |  0 | tn                    | y        | y         |  ##
-##  |   0 |  1 |  0 |  1 | tn,tw                 | y        | y         |  ##
-##  |   0 |  1 |  1 |  0 | tn,tq                 | y        | y         |  ##
-##  |   0 |  1 |  1 |  1 | tn,tq,tw              | y        | y         |  ##
-##  |   1 |  0 |  0 |  0 | ulb                   | y        | y         |  ##
-##  |   1 |  0 |  0 |  1 | ulb,tw                | y        | y         |  ##
-##  |   1 |  0 |  1 |  0 | ulb,tq                | y        | y         |  ##
-##  |   1 |  0 |  1 |  1 | ulb,tq,tw             | y        | y         |  ##
-##  |   1 |  1 |  0 |  0 | ulb,tn                | y        | y         |  ##
-##  |   1 |  1 |  0 |  1 | ulb,tn,tw             | y        | y         |  ##
-##  |   1 |  1 |  1 |  0 | ulb,tn,tq             | y        | y         |  ##
-#############################################################################
-
 
 def test_en_ulb_wa_tit_en_tn_wa_tit_language_book_order() -> None:
     "English ulb-wa and tn-wa for book of Timothy."
