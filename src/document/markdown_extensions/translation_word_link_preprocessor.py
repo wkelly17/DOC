@@ -95,8 +95,6 @@ class TranslationWordLinkPreprocessor(Preprocessor):
                         ),
                         source,
                     )
-                    # FIXME This never gets called
-                    breakpoint()
                 else:
                     # English, no need to localize translation word,
                     # just create the link.
@@ -105,7 +103,7 @@ class TranslationWordLinkPreprocessor(Preprocessor):
                     )
             # FIXME Handle non-translation word cases, e.g., scripture links
             else:
-                breakpoint()
+                pass
         return source.split("\n")
 
 
