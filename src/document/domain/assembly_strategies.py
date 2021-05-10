@@ -122,10 +122,31 @@ def _assembly_sub_strategy_factory(
             True,
             True,
             True,
+            False,
+            True,
+            model.AssemblySubstrategyEnum.VERSE,
+            # ): _assemble_usfm_tn_tq_tw_usfm2_content_by_verse,
+        ): _assemble_usfm_as_iterator_content_by_verse,
+        (
+            True,
+            True,
+            True,
+            False,
+            False,
+            True,
+            model.AssemblySubstrategyEnum.VERSE,
+            # ): _assemble_usfm_tn_tq_usfm2_content_by_verse,
+        ): _assemble_usfm_as_iterator_content_by_verse,
+        (
+            True,
+            True,
+            True,
+            True,
             True,
             False,
             model.AssemblySubstrategyEnum.VERSE,
         ): _assemble_usfm_tn_tq_tw_ta_content_by_verse,
+        # ): _assemble_usfm_as_iterator_content_by_verse,
         (
             True,
             True,
@@ -134,7 +155,8 @@ def _assembly_sub_strategy_factory(
             False,
             False,
             model.AssemblySubstrategyEnum.VERSE,
-        ): _assemble_usfm_tn_tq_tw_content_by_verse,
+            # ): _assemble_usfm_tn_tq_tw_content_by_verse,
+        ): _assemble_usfm_as_iterator_content_by_verse,
         (
             True,
             True,
@@ -143,7 +165,8 @@ def _assembly_sub_strategy_factory(
             False,
             False,
             model.AssemblySubstrategyEnum.VERSE,
-        ): _assemble_usfm_tn_tw_content_by_verse,
+            # ): _assemble_usfm_tn_tw_content_by_verse,
+        ): _assemble_usfm_as_iterator_content_by_verse,
         (
             True,
             False,
@@ -153,6 +176,7 @@ def _assembly_sub_strategy_factory(
             False,
             model.AssemblySubstrategyEnum.VERSE,
         ): _assemble_usfm_tq_tw_content_by_verse,
+        # ): _assemble_usfm_as_iterator_content_by_verse,
         (
             True,
             False,
@@ -170,7 +194,8 @@ def _assembly_sub_strategy_factory(
             False,
             False,
             model.AssemblySubstrategyEnum.VERSE,
-        ): _assemble_usfm_tn_tq_content_by_verse,
+            # ): _assemble_usfm_tn_tq_content_by_verse,
+        ): _assemble_usfm_as_iterator_content_by_verse,
         (
             True,
             False,
@@ -181,6 +206,16 @@ def _assembly_sub_strategy_factory(
             model.AssemblySubstrategyEnum.VERSE,
         ): _assemble_usfm_tq_content_by_verse,
         (
+            True,
+            True,
+            False,
+            False,
+            False,
+            False,
+            model.AssemblySubstrategyEnum.VERSE,
+            # ): _assemble_usfm_tn_content_by_verse,
+        ): _assemble_usfm_as_iterator_content_by_verse,
+        (
             False,
             True,
             True,
@@ -188,7 +223,8 @@ def _assembly_sub_strategy_factory(
             False,
             False,
             model.AssemblySubstrategyEnum.VERSE,
-        ): _assemble_tn_tq_tw_content_by_verse,
+            # ): _assemble_tn_tq_tw_content_by_verse,
+        ): _assemble_tn_as_iterator_content_by_verse,
         (
             False,
             True,
@@ -197,7 +233,8 @@ def _assembly_sub_strategy_factory(
             False,
             False,
             model.AssemblySubstrategyEnum.VERSE,
-        ): _assemble_tn_tw_content_by_verse,
+            # ): _assemble_tn_tw_content_by_verse,
+        ): _assemble_tn_as_iterator_content_by_verse,
         (
             False,
             True,
@@ -206,7 +243,8 @@ def _assembly_sub_strategy_factory(
             False,
             False,
             model.AssemblySubstrategyEnum.VERSE,
-        ): _assemble_tn_tq_content_by_verse,
+            # ): _assemble_tn_tq_content_by_verse,
+        ): _assemble_tn_as_iterator_content_by_verse,
         (
             False,
             False,
@@ -226,15 +264,6 @@ def _assembly_sub_strategy_factory(
             model.AssemblySubstrategyEnum.VERSE,
         ): _assemble_tw_content_by_verse,
         (
-            True,
-            True,
-            False,
-            False,
-            False,
-            False,
-            model.AssemblySubstrategyEnum.VERSE,
-        ): _assemble_usfm_tn_content_by_verse,
-        (
             False,
             False,
             True,
@@ -251,7 +280,8 @@ def _assembly_sub_strategy_factory(
             False,
             False,
             model.AssemblySubstrategyEnum.VERSE,
-        ): _assemble_usfm_content_by_verse,
+            # ): _assemble_usfm_content_by_verse,
+        ): _assemble_usfm_as_iterator_content_by_verse,
         (
             False,
             True,
@@ -260,7 +290,8 @@ def _assembly_sub_strategy_factory(
             False,
             False,
             model.AssemblySubstrategyEnum.VERSE,
-        ): _assemble_tn_content_by_verse,
+            # ): _assemble_tn_content_by_verse,
+        ): _assemble_tn_as_iterator_content_by_verse,
     }
     return strategies[
         (
@@ -363,6 +394,14 @@ def _assemble_content_by_lang_then_book(
                 config.get_default_assembly_substrategy(),
             )
 
+            logger.debug(
+                "docgen._assembly_sub_strategy: {}".format(
+                    str(docgen._assembly_sub_strategy)
+                )
+            )
+
+            # Now that we have the sub-strategy, let's run it and
+            # generate the HTML output.
             sub_html: model.HtmlContent = docgen._assembly_sub_strategy(
                 usfm_resource,
                 tn_resource,
@@ -380,121 +419,419 @@ def _assemble_content_by_lang_then_book(
 ########################################################################
 ## Assembly sub-strategy implementations
 ##
-## Possible combinations with usfm, tn, tq, tw:
+## Possible combinations with usfm (e.g., ulb, ulb-wa, cuv, nav, etc), tn,
+## tq, tw, usfm2 (e.g., udb):
 ##
-## | ulb | tn | tq | tw | combination as string | complete | unit test |
-## |-----+----+----+----+-----------------------+----------+-----------|
-## |   0 |  0 |  0 |  1 | tw                    | y        | y         |
-## |   0 |  0 |  1 |  0 | tq                    | y        | y         |
-## |   0 |  0 |  1 |  1 | tq,tw                 | y        | y         |
-## |   0 |  1 |  0 |  0 | tn                    | y        | y         |
-## |   0 |  1 |  0 |  1 | tn,tw                 | y        | y         |
-## |   0 |  1 |  1 |  0 | tn,tq                 | y        | y         |
-## |   0 |  1 |  1 |  1 | tn,tq,tw              | y        | y         |
-## |   1 |  0 |  0 |  0 | ulb                   | y        | y         |
-## |   1 |  0 |  0 |  1 | ulb,tw                | y        | y         |
-## |   1 |  0 |  1 |  0 | ulb,tq                | y        | y         |
-## |   1 |  0 |  1 |  1 | ulb,tq,tw             | y        | y         |
-## |   1 |  1 |  0 |  0 | ulb,tn                | y        | y         |
-## |   1 |  1 |  0 |  1 | ulb,tn,tw             | y        | y         |
-## |   1 |  1 |  1 |  0 | ulb,tn,tq             | y        | y         |
-## |   1 |  1 |  1 |  1 | ulb,tn,tq,tw          | y        | y         |
+# | usfm | tn | tq | tw | usfm2 | combination as string | complete | unit test |
+# |------+----+----+----+-------+-----------------------+----------+-----------|
+# |    0 |  0 |  0 |  0 |     1 | usfm2                 |          |           |
+# |    0 |  0 |  0 |  1 |     0 | tw                    | y        | y         |
+# |    0 |  0 |  0 |  1 |     1 | tw,usfm2              |          |           |
+# |    0 |  0 |  1 |  0 |     0 | tq                    | y        | y         |
+# |    0 |  0 |  1 |  0 |     1 | tq,usfm22             |          |           |
+# |    0 |  0 |  1 |  1 |     0 | tq,tw                 | y        | y         |
+# |    0 |  0 |  1 |  1 |     1 | tq,tw,usfm2           |          |           |
+# |    0 |  1 |  0 |  0 |     0 | tn                    | y        | y         |
+# |    0 |  1 |  0 |  0 |     1 | tn,usfm2              |          |           |
+# |    0 |  1 |  0 |  1 |     0 | tn,tw                 | y        | y         |
+# |    0 |  1 |  0 |  1 |     1 | tn,tw,usfm2           |          |           |
+# |    0 |  1 |  1 |  0 |     0 | tn,tq                 | y        | y         |
+# |    0 |  1 |  1 |  0 |     1 | tn,tq,usfm2           |          |           |
+# |    0 |  1 |  1 |  1 |     0 | tn,tq,tw              | y        | y         |
+# |    0 |  1 |  1 |  1 |     1 | tn,tq,tw,usfm2        |          |           |
+# |    1 |  0 |  0 |  0 |     0 | usfm                  | y        | y         |
+# |    1 |  0 |  0 |  0 |     1 | usfm,usfm2            |          |           |
+# |    1 |  0 |  0 |  1 |     0 | usfm,tw               | y        | y         |
+# |    1 |  0 |  0 |  1 |     1 | usfm,tw,usfm2         |          |           |
+# |    1 |  0 |  1 |  0 |     0 | usfm,tq               | y        | y         |
+# |    1 |  0 |  1 |  0 |     1 | usfm,tq,usfm2         |          |           |
+# |    1 |  0 |  1 |  1 |     0 | usfm,tq,tw            | y        | y         |
+# |    1 |  0 |  1 |  1 |     1 | usfm,tq,tw,usfm2      |          |           |
+# |    1 |  1 |  0 |  0 |     0 | usfm,tn               | y        | y         |
+# |    1 |  1 |  0 |  0 |     1 | usfm,tn,usfm2         |          |           |
+# |    1 |  1 |  0 |  1 |     0 | usfm,tn,tw            | y        | y         |
+# |    1 |  1 |  0 |  1 |     1 | usfm,tn,tw,usfm2      |          |           |
+# |    1 |  1 |  1 |  0 |     0 | usfm,tn,tq            | y        | y         |
+# |    1 |  1 |  1 |  0 |     1 | usfm,tn,tq,usfm2      |          |           |
+# |    1 |  1 |  1 |  1 |     0 | usfm,tn,tq,tw         | y        | y         |
+# |    1 |  1 |  1 |  1 |     1 | usfm,tn,tq,tw,usfm2   | y        | y         |
 
-
-def _assemble_usfm_tn_tq_tw_content_by_verse(
-    usfm_resource: Optional[USFMResource],
+# Experiment: add conditional logic to avoid so many functions
+def _assemble_usfm_as_iterator_content_by_verse(
+    usfm_resource: Optional[USFMResource],  # e.g., ulb, cuv, nav, etc.
     tn_resource: Optional[TNResource],
     tq_resource: Optional[TQResource],
     tw_resource: Optional[TWResource],
     ta_resource: Optional[TAResource],
-    usfm_resource2: Optional[USFMResource],
+    usfm_resource2: Optional[USFMResource],  # e.g., udb
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> model.HtmlContent:
     """
-    Construct the HTML for a 'by verse' strategy wherein USFM, TN, TQ,
-    and TW exist.
+    Construct the HTML for a 'by verse' strategy wherein USFM (e.g.,
+    ulb, nav, cuv, etc.) exists, and TN, TQ, TW, and a second USFM (e.g.,
+    probably always udb) may exist.
     """
-    usfm_resource = cast(
-        USFMResource, usfm_resource
-    )  # Make mypy happy. We know, due to how we got here, that usfm_resource object is not None.
-    tn_resource = cast(
-        TNResource, tn_resource
-    )  # Make mypy happy. We know, due to how we got here, that tn_resource object is not None.
-    tq_resource = cast(
-        TQResource, tq_resource
-    )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
-    tw_resource = cast(
-        TWResource, tw_resource
-    )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
 
     _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
 
     html: List[model.HtmlContent] = []
-    book_intro = tn_resource.book_payload.intro_html
-    book_intro = _adjust_book_intro_headings(book_intro)
-    html.append(model.HtmlContent(book_intro))
+    if tn_resource:
+        book_intro = tn_resource.book_payload.intro_html
+        book_intro = _adjust_book_intro_headings(book_intro)
+        html.append(model.HtmlContent(book_intro))
 
-    # PEP526 disallows declaration of types in for loops, but allows this.
-    chapter_num: model.ChapterNum
-    chapter: model.USFMChapter
-    # Dict keys need to be sorted as their order is otherwise not guaranteed.
-    for chapter_num, chapter in sorted(usfm_resource.chapters_content.items()):
-        # Add in the USFM chapter heading.
-        chapter_heading = model.HtmlContent("")
-        chapter_heading = chapter.chapter_content[0]
-        html.append(chapter_heading)
-        # Add the translation notes chapter intro.
-        chapter_intro = _get_chapter_intro(tn_resource, chapter_num)
-        html.append(chapter_intro)
+    if usfm_resource:
+        # Scripture type for usfm_resource, e.g., ulb, cuv, nav, etc.
+        html.append(
+            model.HtmlContent(
+                config.get_html_format_string("resource_type_name").format(
+                    usfm_resource.resource_type_name
+                )
+            )
+        )
+        # PEP526 disallows declaration of types in for loops, but allows this.
+        chapter_num: model.ChapterNum
+        chapter: model.USFMChapter
+        for chapter_num, chapter in usfm_resource.chapters_content.items():
+            # Add in the USFM chapter heading.
+            chapter_heading = model.HtmlContent("")
+            chapter_heading = chapter.chapter_content[0]
+            html.append(chapter_heading)
+            if tn_resource:
+                # Add the translation notes chapter intro.
+                chapter_intro = _get_chapter_intro(tn_resource, chapter_num)
+                html.append(chapter_intro)
 
-        tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
-        tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
+                tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
+            if tq_resource:
+                tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
 
-        # PEP526 disallows declaration of types in for
-        # loops, but allows this.
-        verse_num: model.VerseNum
-        verse: model.HtmlContent
-        # Now let's interleave USFM verse with its translation note, translation
-        # questions, and translation words if available.
-        for verse_num, verse in sorted(chapter.chapter_verses.items()):
-            # Add header
-            html.append(
-                model.HtmlContent(
-                    config.get_html_format_string("verse").format(
-                        chapter_num, verse_num
+            # PEP526 disallows declaration of types in for
+            # loops, but allows this.
+            verse_num: model.VerseRef
+            verse: model.HtmlContent
+            # Now let's interleave USFM verse with its translation note, translation
+            # questions, and translation words if available.
+            for verse_num, verse in chapter.chapter_verses.items():
+                # Add header
+                html.append(
+                    model.HtmlContent(
+                        config.get_html_format_string(
+                            "resource_type_name_with_ref"
+                        ).format(
+                            usfm_resource.resource_type_name, chapter_num, verse_num
+                        )
                     )
                 )
-            )
-            # Add scripture verse
-            html.append(verse)
-            # Add TN verse content, if any
-            if tn_verses and verse_num in tn_verses:
-                tn_verse_content = _format_tn_verse(
-                    chapter_num, verse_num, tn_verses[verse_num]
+                # Add scripture verse
+                html.append(verse)
+                # Add TN verse content, if any
+                if tn_resource and tn_verses and verse_num in tn_verses:
+                    tn_verse_content = _format_tn_verse(
+                        tn_resource.resource_type_name,
+                        chapter_num,
+                        verse_num,
+                        tn_verses[verse_num],
+                    )
+                    html.extend(tn_verse_content)
+                # Add TQ verse content, if any
+                if tq_resource and tq_verses and verse_num in tq_verses:
+                    tq_verse_content = _format_tq_verse(
+                        tq_resource.resource_type_name,
+                        chapter_num,
+                        verse_num,
+                        tq_verses[verse_num],
+                    )
+                    html.extend(tq_verse_content)
+
+                if tw_resource:
+                    # Add the translation words links section.
+                    translation_word_links_html = tw_resource.get_translation_word_links(
+                        chapter_num, verse_num, verse,
+                    )
+                    html.extend(translation_word_links_html)
+            # Add scripture footnotes if available
+            if chapter.chapter_footnotes:
+                html.append(config.get_html_format_string("footnotes"))
+                html.append(chapter.chapter_footnotes)
+        if tw_resource:
+            # Add the translation words definition section.
+            linked_translation_words = tw_resource.get_translation_words_section()
+            html.extend(linked_translation_words)
+
+    if usfm_resource2:
+        # Add the usfm_resource2, e.g., udb, scripture verses.
+        for chapter_num, chapter in usfm_resource2.chapters_content.items():
+            # Add in the USFM chapter heading.
+            chapter_heading = model.HtmlContent("")
+            chapter_heading = chapter.chapter_content[0]
+            html.append(chapter_heading)
+            # Now let's interleave USFM verse with its translation note, translation
+            # questions, and translation words if available.
+            for verse_num, verse in chapter.chapter_verses.items():
+                # Add header
+                html.append(
+                    model.HtmlContent(
+                        config.get_html_format_string(
+                            "resource_type_name_with_ref"
+                        ).format(
+                            usfm_resource2.resource_type_name, chapter_num, verse_num
+                        )
+                    )
                 )
-                html.extend(tn_verse_content)
-            # Add TQ verse content, if any
-            if tq_verses and verse_num in tq_verses:
-                tq_verse_content = _format_tq_verse(
-                    chapter_num, verse_num, tq_verses[verse_num]
-                )
-                html.extend(tq_verse_content)
-            # Add the translation words links section.
-            translation_word_links_html = tw_resource.get_translation_word_links(
-                chapter_num, verse_num, verse,
-            )
-            html.extend(translation_word_links_html)
-        # Add scripture footnotes if available
-        if chapter.chapter_footnotes:
-            html.append(config.get_html_format_string("footnotes"))
-            html.append(chapter.chapter_footnotes)
-    # Add the translation words definition section.
-    linked_translation_words = tw_resource.get_translation_words_section()
-    html.extend(linked_translation_words)
+                # Add scripture verse
+                html.append(verse)
     return model.HtmlContent("\n".join(html))
 
 
-def _assemble_usfm_tn_tw_content_by_verse(
+# def _assemble_usfm_tn_tq_tw_usfm2_content_by_verse(
+#     usfm_resource: Optional[USFMResource],  # e.g., ulb, cuv, nav, etc.
+#     tn_resource: Optional[TNResource],
+#     tq_resource: Optional[TQResource],
+#     tw_resource: Optional[TWResource],
+#     ta_resource: Optional[TAResource],
+#     usfm_resource2: Optional[USFMResource],  # e.g., udb
+#     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
+# ) -> model.HtmlContent:
+#     """
+#     Construct the HTML for a 'by verse' strategy wherein USFM (e.g.,
+#     ulb, nav, cuv, etc.), TN, TQ, TW, and a second USFM (e.g.,
+#     probably always udb) exist.
+#     """
+#     usfm_resource = cast(
+#         USFMResource, usfm_resource
+#     )  # Make mypy happy. We know, due to how we got here, that usfm_resource object is not None.
+#     tn_resource = cast(
+#         TNResource, tn_resource
+#     )  # Make mypy happy. We know, due to how we got here, that tn_resource object is not None.
+#     tq_resource = cast(
+#         TQResource, tq_resource
+#     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
+#     tw_resource = cast(
+#         TWResource, tw_resource
+#     )  # Make mypy happy. We know, due to how we got here, that tw_resource object is not None.
+#     usfm_resource2 = cast(
+#         USFMResource, usfm_resource2
+#     )  # Make mypy happy. We know, due to how we got here, that ta_resource object is not None.
+
+#     _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
+
+#     html: List[model.HtmlContent] = []
+#     book_intro = tn_resource.book_payload.intro_html
+#     book_intro = _adjust_book_intro_headings(book_intro)
+#     html.append(model.HtmlContent(book_intro))
+
+#     # Scripture type for usfm_resource, e.g., ulb, cuv, nav, etc.
+#     html.append(
+#         model.HtmlContent(
+#             config.get_html_format_string("resource_type_name").format(
+#                 usfm_resource.resource_type_name
+#             )
+#         )
+#     )
+
+#     # PEP526 disallows declaration of types in for loops, but allows this.
+#     chapter_num: model.ChapterNum
+#     chapter: model.USFMChapter
+#     # Dict keys need to be sorted as their order is otherwise not guaranteed.
+#     for chapter_num, chapter in sorted(usfm_resource.chapters_content.items()):
+#         # Add in the USFM chapter heading.
+#         chapter_heading = model.HtmlContent("")
+#         chapter_heading = chapter.chapter_content[0]
+#         html.append(chapter_heading)
+#         # Add the translation notes chapter intro.
+#         chapter_intro = _get_chapter_intro(tn_resource, chapter_num)
+#         html.append(chapter_intro)
+
+#         tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
+#         tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
+
+#         # PEP526 disallows declaration of types in for
+#         # loops, but allows this.
+#         verse_num: model.VerseRef
+#         verse: model.HtmlContent
+#         # Now let's interleave USFM verse with its translation note, translation
+#         # questions, and translation words if available.
+#         for verse_num, verse in sorted(chapter.chapter_verses.items()):
+#             # Add header
+#             html.append(
+#                 model.HtmlContent(
+#                     config.get_html_format_string("verse").format(
+#                         chapter_num, verse_num
+#                     )
+#                 )
+#             )
+#             # Add scripture verse
+#             html.append(verse)
+#             # Add TN verse content, if any
+#             if tn_verses and verse_num in tn_verses:
+#                 tn_verse_content = _format_tn_verse(
+#                     tn_resource.resource_type_name,
+#                     chapter_num,
+#                     verse_num,
+#                     tn_verses[verse_num],
+#                 )
+#                 html.extend(tn_verse_content)
+#             # Add TQ verse content, if any
+#             if tq_verses and verse_num in tq_verses:
+#                 tq_verse_content = _format_tq_verse(
+#                     tq_resource.resource_type_name,
+#                     chapter_num,
+#                     verse_num,
+#                     tq_verses[verse_num],
+#                 )
+#                 html.extend(tq_verse_content)
+
+#             # Add the translation words links section.
+#             translation_word_links_html = tw_resource.get_translation_word_links(
+#                 chapter_num, verse_num, verse,
+#             )
+#             html.extend(translation_word_links_html)
+#         # Add scripture footnotes if available
+#         if chapter.chapter_footnotes:
+#             html.append(config.get_html_format_string("footnotes"))
+#             html.append(chapter.chapter_footnotes)
+#     # Add the translation words definition section.
+#     linked_translation_words = tw_resource.get_translation_words_section()
+#     html.extend(linked_translation_words)
+
+#     # Add the usfm_resource2, e.g., udb, scripture verses.
+#     # Dict keys need to be sorted as their order is otherwise not guaranteed.
+#     for chapter_num, chapter in sorted(usfm_resource2.chapters_content.items()):
+#         # Add in the USFM chapter heading.
+#         chapter_heading = model.HtmlContent("")
+#         chapter_heading = chapter.chapter_content[0]
+#         html.append(chapter_heading)
+#         # Now let's interleave USFM verse with its translation note, translation
+#         # questions, and translation words if available.
+#         for verse_num, verse in sorted(chapter.chapter_verses.items()):
+#             # Add header
+#             html.append(
+#                 model.HtmlContent(
+#                     config.get_html_format_string("verse").format(
+#                         chapter_num, verse_num
+#                     )
+#                 )
+#             )
+#             # Add scripture verse
+#             html.append(verse)
+#     return model.HtmlContent("\n".join(html))
+
+
+# def _assemble_usfm_tn_tq_usfm2_content_by_verse(
+#     usfm_resource: Optional[USFMResource],  # e.g., ulb, cuv, nav, etc.
+#     tn_resource: Optional[TNResource],
+#     tq_resource: Optional[TQResource],
+#     tw_resource: Optional[TWResource],
+#     ta_resource: Optional[TAResource],
+#     usfm_resource2: Optional[USFMResource],  # e.g., udb
+#     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
+# ) -> model.HtmlContent:
+#     """
+#     Construct the HTML for a 'by verse' strategy wherein USFM (e.g.,
+#     ulb, nav, cuv, etc.), TN, TQ, and a second USFM (e.g., probably
+#     always udb) exist.
+#     """
+#     usfm_resource = cast(
+#         USFMResource, usfm_resource
+#     )  # Make mypy happy. We know, due to how we got here, that usfm_resource object is not None.
+#     tn_resource = cast(
+#         TNResource, tn_resource
+#     )  # Make mypy happy. We know, due to how we got here, that tn_resource object is not None.
+#     tq_resource = cast(
+#         TQResource, tq_resource
+#     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
+#     usfm_resource2 = cast(
+#         USFMResource, usfm_resource2
+#     )  # Make mypy happy. We know, due to how we got here, that ta_resource object is not None.
+
+#     _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
+
+#     html: List[model.HtmlContent] = []
+#     book_intro = tn_resource.book_payload.intro_html
+#     book_intro = _adjust_book_intro_headings(book_intro)
+#     html.append(model.HtmlContent(book_intro))
+
+#     # PEP526 disallows declaration of types in for loops, but allows this.
+#     chapter_num: model.ChapterNum
+#     chapter: model.USFMChapter
+#     # Dict keys need to be sorted as their order is otherwise not guaranteed.
+#     for chapter_num, chapter in sorted(usfm_resource.chapters_content.items()):
+#         # Add in the USFM chapter heading.
+#         chapter_heading = model.HtmlContent("")
+#         chapter_heading = chapter.chapter_content[0]
+#         html.append(chapter_heading)
+#         # Add the translation notes chapter intro.
+#         chapter_intro = _get_chapter_intro(tn_resource, chapter_num)
+#         html.append(chapter_intro)
+
+#         tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
+#         tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
+
+#         # PEP526 disallows declaration of types in for
+#         # loops, but allows this.
+#         verse_num: model.VerseRef
+#         verse: model.HtmlContent
+#         # Now let's interleave USFM verse with its translation note, translation
+#         # questions, and translation words if available.
+#         for verse_num, verse in sorted(chapter.chapter_verses.items()):
+#             # Add header
+#             html.append(
+#                 model.HtmlContent(
+#                     config.get_html_format_string("verse").format(
+#                         chapter_num, verse_num
+#                     )
+#                 )
+#             )
+#             # Add scripture verse
+#             html.append(verse)
+#             # Add TN verse content, if any
+#             if tn_verses and verse_num in tn_verses:
+#                 tn_verse_content = _format_tn_verse(
+#                     tn_resource.resource_type_name,
+#                     chapter_num,
+#                     verse_num,
+#                     tn_verses[verse_num],
+#                 )
+#                 html.extend(tn_verse_content)
+#             # Add TQ verse content, if any
+#             if tq_verses and verse_num in tq_verses:
+#                 tq_verse_content = _format_tq_verse(
+#                     tq_resource.resource_type_name,
+#                     chapter_num,
+#                     verse_num,
+#                     tq_verses[verse_num],
+#                 )
+#                 html.extend(tq_verse_content)
+
+#         # Add scripture footnotes if available
+#         if chapter.chapter_footnotes:
+#             html.append(config.get_html_format_string("footnotes"))
+#             html.append(chapter.chapter_footnotes)
+
+#     # Add the usfm_resource2 scripture verses.
+#     # Dict keys need to be sorted as their order is otherwise not guaranteed.
+#     for chapter_num, chapter in sorted(usfm_resource2.chapters_content.items()):
+#         # Add in the USFM chapter heading.
+#         chapter_heading = model.HtmlContent("")
+#         chapter_heading = chapter.chapter_content[0]
+#         html.append(chapter_heading)
+#         # Now let's interleave USFM verse with its translation note, translation
+#         # questions, and translation words if available.
+#         for verse_num, verse in sorted(chapter.chapter_verses.items()):
+#             # Add header
+#             html.append(
+#                 model.HtmlContent(
+#                     config.get_html_format_string("verse").format(
+#                         chapter_num, verse_num
+#                     )
+#                 )
+#             )
+#             # Add scripture verse
+#             html.append(verse)
+#     return model.HtmlContent("\n".join(html))
+
+
     usfm_resource: Optional[USFMResource],
     tn_resource: Optional[TNResource],
     tq_resource: Optional[TQResource],
@@ -576,6 +913,188 @@ def _assemble_usfm_tn_tw_content_by_verse(
     return model.HtmlContent("\n".join(html))
 
 
+# def _assemble_usfm_tn_tq_tw_content_by_verse(
+#     usfm_resource: Optional[USFMResource],
+#     tn_resource: Optional[TNResource],
+#     tq_resource: Optional[TQResource],
+#     tw_resource: Optional[TWResource],
+#     ta_resource: Optional[TAResource],
+#     usfm_resource2: Optional[USFMResource],
+#     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
+# ) -> model.HtmlContent:
+#     """
+#     Construct the HTML for a 'by verse' strategy wherein USFM, TN, TQ,
+#     and TW exist.
+#     """
+#     usfm_resource = cast(
+#         USFMResource, usfm_resource
+#     )  # Make mypy happy. We know, due to how we got here, that usfm_resource object is not None.
+#     tn_resource = cast(
+#         TNResource, tn_resource
+#     )  # Make mypy happy. We know, due to how we got here, that tn_resource object is not None.
+#     tq_resource = cast(
+#         TQResource, tq_resource
+#     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
+#     tw_resource = cast(
+#         TWResource, tw_resource
+#     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
+
+#     _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
+
+#     html: List[model.HtmlContent] = []
+#     book_intro = tn_resource.book_payload.intro_html
+#     book_intro = _adjust_book_intro_headings(book_intro)
+#     html.append(model.HtmlContent(book_intro))
+
+#     # PEP526 disallows declaration of types in for loops, but allows this.
+#     chapter_num: model.ChapterNum
+#     chapter: model.USFMChapter
+#     for chapter_num, chapter in usfm_resource.chapters_content.items():
+#         # Add in the USFM chapter heading.
+#         chapter_heading = model.HtmlContent("")
+#         chapter_heading = chapter.chapter_content[0]
+#         html.append(chapter_heading)
+#         # Add the translation notes chapter intro.
+#         chapter_intro = _get_chapter_intro(tn_resource, chapter_num)
+#         html.append(chapter_intro)
+
+#         tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
+#         tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
+
+#         # PEP526 disallows declaration of types in for
+#         # loops, but allows this.
+#         verse_num: model.VerseRef
+#         verse: model.HtmlContent
+#         # Now let's interleave USFM verse with its translation note, translation
+#         # questions, and translation words if available.
+#         for verse_num, verse in chapter.chapter_verses.items():
+#             # Add header
+#             html.append(
+#                 model.HtmlContent(
+#                     config.get_html_format_string("verse").format(
+#                         chapter_num, verse_num
+#                     )
+#                 )
+#             )
+#             # Add scripture verse
+#             html.append(verse)
+#             # Add TN verse content, if any
+#             if tn_verses and verse_num in tn_verses:
+#                 tn_verse_content = _format_tn_verse(
+#                     tn_resource.resource_type_name,
+#                     chapter_num,
+#                     verse_num,
+#                     tn_verses[verse_num],
+#                 )
+#                 html.extend(tn_verse_content)
+#             # Add TQ verse content, if any
+#             if tq_verses and verse_num in tq_verses:
+#                 tq_verse_content = _format_tq_verse(
+#                     tq_resource.resource_type_name,
+#                     chapter_num,
+#                     verse_num,
+#                     tq_verses[verse_num],
+#                 )
+#                 html.extend(tq_verse_content)
+#             # Add the translation words links section.
+#             translation_word_links_html = tw_resource.get_translation_word_links(
+#                 chapter_num, verse_num, verse,
+#             )
+#             html.extend(translation_word_links_html)
+#         # Add scripture footnotes if available
+#         if chapter.chapter_footnotes:
+#             html.append(config.get_html_format_string("footnotes"))
+#             html.append(chapter.chapter_footnotes)
+#     # Add the translation words definition section.
+#     linked_translation_words = tw_resource.get_translation_words_section()
+#     html.extend(linked_translation_words)
+#     return model.HtmlContent("\n".join(html))
+
+
+# def _assemble_usfm_tn_tw_content_by_verse(
+#     usfm_resource: Optional[USFMResource],
+#     tn_resource: Optional[TNResource],
+#     tq_resource: Optional[TQResource],
+#     tw_resource: Optional[TWResource],
+#     ta_resource: Optional[TAResource],
+#     usfm_resource2: Optional[USFMResource],
+#     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
+# ) -> model.HtmlContent:
+#     """
+#     Construct the HTML for a 'by verse' strategy wherein USFM, TN, and
+#     TW exist.
+#     """
+#     usfm_resource = cast(
+#         USFMResource, usfm_resource
+#     )  # Make mypy happy. We know, due to how we got here, that usfm_resource object is not None.
+#     tn_resource = cast(
+#         TNResource, tn_resource
+#     )  # Make mypy happy. We know, due to how we got here, that tn_resource object is not None.
+#     tw_resource = cast(
+#         TWResource, tw_resource
+#     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
+
+#     _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
+
+#     html: List[model.HtmlContent] = []
+#     book_intro = tn_resource.book_payload.intro_html
+#     book_intro = _adjust_book_intro_headings(book_intro)
+#     html.append(model.HtmlContent(book_intro))
+
+#     # PEP526 disallows declaration of types in for loops, but allows this.
+#     chapter_num: model.ChapterNum
+#     chapter: model.USFMChapter
+#     for chapter_num, chapter in usfm_resource.chapters_content.items():
+#         # Add in the USFM chapter heading.
+#         chapter_heading = model.HtmlContent("")
+#         chapter_heading = chapter.chapter_content[0]
+#         html.append(chapter_heading)
+#         # Add the translation notes chapter intro.
+#         chapter_intro = _get_chapter_intro(tn_resource, chapter_num)
+#         html.append(chapter_intro)
+
+#         tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
+#         # PEP526 disallows declaration of types in for
+#         # loops, but allows this.
+#         verse_num: model.VerseRef
+#         verse: model.HtmlContent
+#         # Now let's interleave USFM verse with its translation note, translation
+#         # questions, and translation words if available.
+#         for verse_num, verse in chapter.chapter_verses.items():
+#             # Add header
+#             html.append(
+#                 model.HtmlContent(
+#                     config.get_html_format_string("verse").format(
+#                         chapter_num, verse_num
+#                     )
+#                 )
+#             )
+#             # Add verse
+#             html.append(verse)
+#             # Add TN verse content, if any
+#             if tn_verses and verse_num in tn_verses:
+#                 tn_verse_content = _format_tn_verse(
+#                     tn_resource.resource_type_name,
+#                     chapter_num,
+#                     verse_num,
+#                     tn_verses[verse_num],
+#                 )
+#                 html.extend(tn_verse_content)
+#             # Add the translation words links section
+#             translation_word_links_html = tw_resource.get_translation_word_links(
+#                 chapter_num, verse_num, verse,
+#             )
+#             html.extend(translation_word_links_html)
+#         # Add scripture footnotes if available
+#         if chapter.chapter_footnotes:
+#             html.append(config.get_html_format_string("footnotes"))
+#             html.append(chapter.chapter_footnotes)
+#     # Add the translation words definition section.
+#     linked_translation_words = tw_resource.get_translation_words_section()
+#     html.extend(linked_translation_words)
+#     return model.HtmlContent("\n".join(html))
+
+
 def _assemble_usfm_tq_tw_content_by_verse(
     usfm_resource: Optional[USFMResource],
     tn_resource: Optional[TNResource],
@@ -606,8 +1125,7 @@ def _assemble_usfm_tq_tw_content_by_verse(
     # PEP526 disallows declaration of types in for loops, but allows this.
     chapter_num: model.ChapterNum
     chapter: model.USFMChapter
-    # Dict keys need to be sorted as their order is otherwise not guaranteed.
-    for chapter_num, chapter in sorted(usfm_resource.chapters_content.items()):
+    for chapter_num, chapter in usfm_resource.chapters_content.items():
         # Add in the USFM chapter heading.
         chapter_heading = model.HtmlContent("")
         chapter_heading = chapter.chapter_content[0]
@@ -617,16 +1135,16 @@ def _assemble_usfm_tq_tw_content_by_verse(
 
         # PEP526 disallows declaration of types in for
         # loops, but allows this.
-        verse_num: model.VerseNum
+        verse_num: model.VerseRef
         verse: model.HtmlContent
         # Now let's interleave USFM verse with its translation note, translation
         # questions, and translation words if available.
-        for verse_num, verse in sorted(chapter.chapter_verses.items()):
+        for verse_num, verse in chapter.chapter_verses.items():
             # Add header
             html.append(
                 model.HtmlContent(
-                    config.get_html_format_string("verse").format(
-                        chapter_num, verse_num
+                    config.get_html_format_string("resource_type_name_with_ref").format(
+                        usfm_resource.resource_type_name, chapter_num, verse_num
                     )
                 )
             )
@@ -635,7 +1153,10 @@ def _assemble_usfm_tq_tw_content_by_verse(
             # Add TN verse content, if any
             if tq_verses and verse_num in tq_verses:
                 tq_verse_content = _format_tq_verse(
-                    chapter_num, verse_num, tq_verses[verse_num]
+                    tq_resource.resource_type_name,
+                    chapter_num,
+                    verse_num,
+                    tq_verses[verse_num],
                 )
                 html.extend(tq_verse_content)
             # Add the translation words links section
@@ -680,8 +1201,7 @@ def _assemble_usfm_tw_content_by_verse(
     # PEP526 disallows declaration of types in for loops, but allows this.
     chapter_num: model.ChapterNum
     chapter: model.USFMChapter
-    # Dict keys need to be sorted as their order is otherwise not guaranteed.
-    for chapter_num, chapter in sorted(usfm_resource.chapters_content.items()):
+    for chapter_num, chapter in usfm_resource.chapters_content.items():
         # Add in the USFM chapter heading.
         chapter_heading = model.HtmlContent("")
         chapter_heading = chapter.chapter_content[0]
@@ -689,16 +1209,16 @@ def _assemble_usfm_tw_content_by_verse(
 
         # PEP526 disallows declaration of types in for
         # loops, but allows this.
-        verse_num: model.VerseNum
+        verse_num: model.VerseRef
         verse: model.HtmlContent
         # Now let's interleave USFM verse with its translation note, translation
         # questions, and translation words if available.
-        for verse_num, verse in sorted(chapter.chapter_verses.items()):
+        for verse_num, verse in chapter.chapter_verses.items():
             # Add scripture verse header
             html.append(
                 model.HtmlContent(
-                    config.get_html_format_string("verse").format(
-                        chapter_num, verse_num
+                    config.get_html_format_string("resource_type_name_with_ref").format(
+                        usfm_resource.resource_type_name, chapter_num, verse_num
                     )
                 )
             )
@@ -719,86 +1239,91 @@ def _assemble_usfm_tw_content_by_verse(
     return model.HtmlContent("\n".join(html))
 
 
-def _assemble_usfm_tn_tq_content_by_verse(
-    usfm_resource: Optional[USFMResource],
-    tn_resource: Optional[TNResource],
-    tq_resource: Optional[TQResource],
-    tw_resource: Optional[TWResource],
-    ta_resource: Optional[TAResource],
-    usfm_resource2: Optional[USFMResource],
-    assembly_substrategy_kind: model.AssemblySubstrategyEnum,
-) -> model.HtmlContent:
-    """
-    Construct the HTML for a 'by verse' strategy wherein USFM, TN, and
-    TQ exist.
-    """
-    usfm_resource = cast(
-        USFMResource, usfm_resource
-    )  # Make mypy happy. We know, due to how we got here, that usfm_resource object is not None.
-    tn_resource = cast(
-        TNResource, tn_resource
-    )  # Make mypy happy. We know, due to how we got here, that tn_resource object is not None.
-    tq_resource = cast(
-        TQResource, tq_resource
-    )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
+# def _assemble_usfm_tn_tq_content_by_verse(
+#     usfm_resource: Optional[USFMResource],
+#     tn_resource: Optional[TNResource],
+#     tq_resource: Optional[TQResource],
+#     tw_resource: Optional[TWResource],
+#     ta_resource: Optional[TAResource],
+#     usfm_resource2: Optional[USFMResource],
+#     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
+# ) -> model.HtmlContent:
+#     """
+#     Construct the HTML for a 'by verse' strategy wherein USFM, TN, and
+#     TQ exist.
+#     """
+#     usfm_resource = cast(
+#         USFMResource, usfm_resource
+#     )  # Make mypy happy. We know, due to how we got here, that usfm_resource object is not None.
+#     tn_resource = cast(
+#         TNResource, tn_resource
+#     )  # Make mypy happy. We know, due to how we got here, that tn_resource object is not None.
+#     tq_resource = cast(
+#         TQResource, tq_resource
+#     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
 
-    _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
+#     _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
 
-    html: List[model.HtmlContent] = []
-    book_intro = tn_resource.book_payload.intro_html
-    book_intro = _adjust_book_intro_headings(book_intro)
-    html.append(book_intro)
+#     html: List[model.HtmlContent] = []
+#     book_intro = tn_resource.book_payload.intro_html
+#     book_intro = _adjust_book_intro_headings(book_intro)
+#     html.append(book_intro)
 
-    # PEP526 disallows declaration of types in for loops, but allows this.
-    chapter_num: model.ChapterNum
-    chapter: model.USFMChapter
-    # Dict keys need to be sorted as their order is not guaranteed.
-    for chapter_num, chapter in sorted(usfm_resource.chapters_content.items()):
-        # Add in the USFM chapter heading.
-        chapter_heading = model.HtmlContent("")
-        chapter_heading = chapter.chapter_content[0]
-        html.append(chapter_heading)
-        # Add the translation notes chapter intro.
-        chapter_intro = _get_chapter_intro(tn_resource, chapter_num)
-        html.append(chapter_intro)
+#     # PEP526 disallows declaration of types in for loops, but allows this.
+#     chapter_num: model.ChapterNum
+#     chapter: model.USFMChapter
+#     for chapter_num, chapter in usfm_resource.chapters_content.items():
+#         # Add in the USFM chapter heading.
+#         chapter_heading = model.HtmlContent("")
+#         chapter_heading = chapter.chapter_content[0]
+#         html.append(chapter_heading)
+#         # Add the translation notes chapter intro.
+#         chapter_intro = _get_chapter_intro(tn_resource, chapter_num)
+#         html.append(chapter_intro)
 
-        tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
-        tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
+#         tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
+#         tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
 
-        # PEP526 disallows declaration of types in for
-        # loops, but allows this.
-        verse_num: model.VerseNum
-        verse: model.HtmlContent
-        # Now let's interleave USFM verse with its
-        # translation note if available.
-        for verse_num, verse in sorted(chapter.chapter_verses.items()):
-            # Add scripture verse header
-            html.append(
-                model.HtmlContent(
-                    config.get_html_format_string("verse").format(
-                        chapter_num, verse_num
-                    )
-                )
-            )
-            # Add scripture verse
-            html.append(verse)
-            # Add TN verse content, if any
-            if tn_verses and verse_num in tn_verses:
-                tn_verse_content = _format_tn_verse(
-                    chapter_num, verse_num, tn_verses[verse_num]
-                )
-                html.extend(tn_verse_content)
-            # Add TQ verse content, if any
-            if tq_verses and verse_num in tq_verses:
-                tq_verse_content = _format_tq_verse(
-                    chapter_num, verse_num, tq_verses[verse_num]
-                )
-                html.extend(tq_verse_content)
-        # Add scripture footnotes if available
-        if chapter.chapter_footnotes:
-            html.append(config.get_html_format_string("footnotes"))
-            html.append(chapter.chapter_footnotes)
-    return model.HtmlContent("\n".join(html))
+#         # PEP526 disallows declaration of types in for
+#         # loops, but allows this.
+#         verse_num: model.VerseRef
+#         verse: model.HtmlContent
+#         # Now let's interleave USFM verse with its
+#         # translation note if available.
+#         for verse_num, verse in chapter.chapter_verses.items():
+#             # Add scripture verse header
+#             html.append(
+#                 model.HtmlContent(
+#                     config.get_html_format_string("verse").format(
+#                         chapter_num, verse_num
+#                     )
+#                 )
+#             )
+#             # Add scripture verse
+#             html.append(verse)
+#             # Add TN verse content, if any
+#             if tn_verses and verse_num in tn_verses:
+#                 tn_verse_content = _format_tn_verse(
+#                     tn_resource.resource_type_name,
+#                     chapter_num,
+#                     verse_num,
+#                     tn_verses[verse_num],
+#                 )
+#                 html.extend(tn_verse_content)
+#             # Add TQ verse content, if any
+#             if tq_verses and verse_num in tq_verses:
+#                 tq_verse_content = _format_tq_verse(
+#                     tq_resource.resource_type_name,
+#                     chapter_num,
+#                     verse_num,
+#                     tq_verses[verse_num],
+#                 )
+#                 html.extend(tq_verse_content)
+#         # Add scripture footnotes if available
+#         if chapter.chapter_footnotes:
+#             html.append(config.get_html_format_string("footnotes"))
+#             html.append(chapter.chapter_footnotes)
+#     return model.HtmlContent("\n".join(html))
 
 
 def _assemble_usfm_tq_content_by_verse(
@@ -827,8 +1352,7 @@ def _assemble_usfm_tq_content_by_verse(
     # PEP526 disallows declaration of types in for loops, but allows this.
     chapter_num: model.ChapterNum
     chapter: model.USFMChapter
-    # Dict keys need to be sorted as their order is not guaranteed.
-    for chapter_num, chapter in sorted(usfm_resource.chapters_content.items()):
+    for chapter_num, chapter in usfm_resource.chapters_content.items():
         # Add in the USFM chapter heading.
         chapter_heading = model.HtmlContent("")
         chapter_heading = chapter.chapter_content[0]
@@ -838,16 +1362,16 @@ def _assemble_usfm_tq_content_by_verse(
 
         # PEP526 disallows declaration of types in for
         # loops, but allows this.
-        verse_num: model.VerseNum
+        verse_num: model.VerseRef
         verse: model.HtmlContent
         # Now let's interleave USFM verse with its
         # translation note if available.
-        for verse_num, verse in sorted(chapter.chapter_verses.items()):
+        for verse_num, verse in chapter.chapter_verses.items():
             # Add scripture verse heading
             html.append(
                 model.HtmlContent(
-                    config.get_html_format_string("verse").format(
-                        chapter_num, verse_num
+                    config.get_html_format_string("resource_type_name_with_ref").format(
+                        usfm_resource.resource_type_name, chapter_num, verse_num
                     )
                 )
             )
@@ -856,7 +1380,10 @@ def _assemble_usfm_tq_content_by_verse(
             # Add TQ verse content, if any
             if tq_verses and verse_num in tq_verses:
                 tq_verse_content = _format_tq_verse(
-                    chapter_num, verse_num, tq_verses[verse_num]
+                    tq_resource.resource_type_name,
+                    chapter_num,
+                    verse_num,
+                    tq_verses[verse_num],
                 )
                 html.extend(tq_verse_content)
         # Add scripture footnotes if available
@@ -866,187 +1393,189 @@ def _assemble_usfm_tq_content_by_verse(
     return model.HtmlContent("\n".join(html))
 
 
-def _assemble_usfm_tn_content_by_verse(
-    usfm_resource: Optional[USFMResource],
-    tn_resource: Optional[TNResource],
-    tq_resource: Optional[TQResource],
-    tw_resource: Optional[TWResource],
-    ta_resource: Optional[TAResource],
-    usfm_resource2: Optional[USFMResource],
-    assembly_substrategy_kind: model.AssemblySubstrategyEnum,
-) -> model.HtmlContent:
-    """
-    Construct the HTML for a 'by verse' strategy wherein only USFM and
-    TN exist.
-    """
-    usfm_resource = cast(
-        USFMResource, usfm_resource
-    )  # Make mypy happy. We know, due to how we got here, that usfm_resource object is not None.
-    tn_resource = cast(
-        TNResource, tn_resource
-    )  # Make mypy happy. We know, due to how we got here, that usfm_resource object is not None.
+# def _assemble_usfm_tn_content_by_verse(
+#     usfm_resource: Optional[USFMResource],
+#     tn_resource: Optional[TNResource],
+#     tq_resource: Optional[TQResource],
+#     tw_resource: Optional[TWResource],
+#     ta_resource: Optional[TAResource],
+#     usfm_resource2: Optional[USFMResource],
+#     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
+# ) -> model.HtmlContent:
+#     """
+#     Construct the HTML for a 'by verse' strategy wherein only USFM and
+#     TN exist.
+#     """
+#     usfm_resource = cast(
+#         USFMResource, usfm_resource
+#     )  # Make mypy happy. We know, due to how we got here, that usfm_resource object is not None.
+#     tn_resource = cast(
+#         TNResource, tn_resource
+#     )  # Make mypy happy. We know, due to how we got here, that usfm_resource object is not None.
 
-    _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
+#     _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
 
-    html = []
-    book_intro = tn_resource.book_payload.intro_html
-    book_intro = _adjust_book_intro_headings(book_intro)
-    html.append(book_intro)
+#     html = []
+#     book_intro = tn_resource.book_payload.intro_html
+#     book_intro = _adjust_book_intro_headings(book_intro)
+#     html.append(book_intro)
 
-    # PEP526 disallows declaration of types in for loops, but allows this.
-    chapter_num: model.ChapterNum
-    chapter: model.USFMChapter
-    # Dict keys need to be sorted as their order is not guaranteed.
-    for chapter_num, chapter in sorted(usfm_resource.chapters_content.items()):
-        # Add in the USFM chapter heading.
-        chapter_heading = model.HtmlContent("")
-        chapter_heading = chapter.chapter_content[0]
-        html.append(chapter_heading)
-        # Add the translation notes chapter intro.
-        chapter_intro = _get_chapter_intro(tn_resource, chapter_num)
-        html.append(chapter_intro)
+#     # PEP526 disallows declaration of types in for loops, but allows this.
+#     chapter_num: model.ChapterNum
+#     chapter: model.USFMChapter
+#     for chapter_num, chapter in usfm_resource.chapters_content.items():
+#         # Add in the USFM chapter heading.
+#         chapter_heading = model.HtmlContent("")
+#         chapter_heading = chapter.chapter_content[0]
+#         html.append(chapter_heading)
+#         # Add the translation notes chapter intro.
+#         chapter_intro = _get_chapter_intro(tn_resource, chapter_num)
+#         html.append(chapter_intro)
 
-        tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
+#         tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
 
-        # PEP526 disallows declaration of types in for
-        # loops, but allows this.
-        verse_num: model.VerseNum
-        verse: model.HtmlContent
-        # Now let's interleave USFM verse with its
-        # translation note if available.
-        for verse_num, verse in sorted(chapter.chapter_verses.items()):
-            # Add scripture verse header
-            html.append(
-                model.HtmlContent(
-                    config.get_html_format_string("verse").format(
-                        chapter_num, verse_num
-                    )
-                )
-            )
-            # Add scripture verse
-            html.append(verse)
-            # Add TN verse content, if any
-            if tn_verses and verse_num in tn_verses:
-                tn_verse_content = _format_tn_verse(
-                    chapter_num, verse_num, tn_verses[verse_num]
-                )
-                html.extend(tn_verse_content)
-        # Add scripture footnotes if available
-        if chapter.chapter_footnotes:
-            html.append(config.get_html_format_string("footnotes"))
-            html.append(chapter.chapter_footnotes)
-    return model.HtmlContent("\n".join(html))
-
-
-def _assemble_usfm_content_by_verse(
-    usfm_resource: Optional[USFMResource],
-    tn_resource: Optional[TNResource],
-    tq_resource: Optional[TQResource],
-    tw_resource: Optional[TWResource],
-    ta_resource: Optional[TAResource],
-    usfm_resource2: Optional[USFMResource],
-    assembly_substrategy_kind: model.AssemblySubstrategyEnum,
-) -> model.HtmlContent:
-    """
-    Construct the HTML for a 'by verse' strategy wherein only USFM exists.
-    """
-    usfm_resource = cast(
-        USFMResource, usfm_resource
-    )  # Make mypy happy. We know, due to how we got here, that usfm_resource object is not None.
-    html: List[model.HtmlContent] = []
-
-    # PEP526 disallows declaration of types in for loops, but allows this.
-    chapter_num: model.ChapterNum
-    chapter: model.USFMChapter
-    # Dict keys need to be sorted as their order is not guaranteed.
-    for chapter_num, chapter in sorted(usfm_resource.chapters_content.items()):
-        # Add in the USFM chapter heading.
-        chapter_heading = model.HtmlContent("")
-        chapter_heading = chapter.chapter_content[0]
-        html.append(chapter_heading)
-
-        # PEP526 disallows declaration of types in for
-        # loops, but allows this.
-        verse_num: model.VerseNum
-        verse: model.HtmlContent
-        # Now append the USFM verses
-        for verse_num, verse in sorted(chapter.chapter_verses.items()):
-            # Add scripture verse header
-            html.append(
-                model.HtmlContent(
-                    config.get_html_format_string("verse").format(
-                        chapter_num, verse_num
-                    )
-                )
-            )
-            # Add scripture verse
-            html.append(verse)
-        # Add scripture footnotes if available
-        if chapter.chapter_footnotes:
-            html.append(config.get_html_format_string("footnotes"))
-            html.append(chapter.chapter_footnotes)
-    return model.HtmlContent("\n".join(html))
+#         # PEP526 disallows declaration of types in for
+#         # loops, but allows this.
+#         verse_num: model.VerseRef
+#         verse: model.HtmlContent
+#         # Now let's interleave USFM verse with its
+#         # translation note if available.
+#         for verse_num, verse in chapter.chapter_verses.items():
+#             # Add scripture verse header
+#             html.append(
+#                 model.HtmlContent(
+#                     config.get_html_format_string("verse").format(
+#                         chapter_num, verse_num
+#                     )
+#                 )
+#             )
+#             # Add scripture verse
+#             html.append(verse)
+#             # Add TN verse content, if any
+#             if tn_verses and verse_num in tn_verses:
+#                 tn_verse_content = _format_tn_verse(
+#                     tn_resource.resource_type_name,
+#                     chapter_num,
+#                     verse_num,
+#                     tn_verses[verse_num],
+#                 )
+#                 html.extend(tn_verse_content)
+#         # Add scripture footnotes if available
+#         if chapter.chapter_footnotes:
+#             html.append(config.get_html_format_string("footnotes"))
+#             html.append(chapter.chapter_footnotes)
+#     return model.HtmlContent("\n".join(html))
 
 
-def _assemble_tn_content_by_verse(
-    usfm_resource: Optional[USFMResource],
-    tn_resource: Optional[TNResource],
-    tq_resource: Optional[TQResource],
-    tw_resource: Optional[TWResource],
-    ta_resource: Optional[TAResource],
-    usfm_resource2: Optional[USFMResource],
-    assembly_substrategy_kind: model.AssemblySubstrategyEnum,
-) -> model.HtmlContent:
-    """
-    Construct the HTML for a 'by verse' strategy wherein only TN exists.
-    """
-    tn_resource = cast(
-        TNResource, tn_resource
-    )  # Make mypy happy. We know, due to how we got here, that tn_resource object is not None.
+# def _assemble_usfm_content_by_verse(
+#     usfm_resource: Optional[USFMResource],
+#     tn_resource: Optional[TNResource],
+#     tq_resource: Optional[TQResource],
+#     tw_resource: Optional[TWResource],
+#     ta_resource: Optional[TAResource],
+#     usfm_resource2: Optional[USFMResource],
+#     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
+# ) -> model.HtmlContent:
+#     """
+#     Construct the HTML for a 'by verse' strategy wherein only USFM exists.
+#     """
+#     usfm_resource = cast(
+#         USFMResource, usfm_resource
+#     )  # Make mypy happy. We know, due to how we got here, that usfm_resource object is not None.
+#     html: List[model.HtmlContent] = []
 
-    _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
+#     # PEP526 disallows declaration of types in for loops, but allows this.
+#     chapter_num: model.ChapterNum
+#     chapter: model.USFMChapter
+#     for chapter_num, chapter in usfm_resource.chapters_content.items():
+#         # Add in the USFM chapter heading.
+#         chapter_heading = model.HtmlContent("")
+#         chapter_heading = chapter.chapter_content[0]
+#         html.append(chapter_heading)
 
-    html: List[model.HtmlContent] = []
-    book_intro = tn_resource.book_payload.intro_html
-    book_intro = _adjust_book_intro_headings(book_intro)
-    html.append(book_intro)
-
-    # PEP526 disallows declaration of types in for loops, but allows this.
-    chapter_num: model.ChapterNum
-    # Dict keys need to be sorted as their order is not guaranteed.
-    for chapter_num in sorted(tn_resource.book_payload.chapters):
-        # How to get chapter heading for Translation notes when there is
-        # not USFM requested? For now we'll use non-localized chapter heading.
-        # Add in the USFM chapter heading.
-        chapter_heading = model.HtmlContent(
-            config.get_html_format_string("tn_only_chapter_header").format(
-                tn_resource.lang_code,
-                bible_books.BOOK_NUMBERS[tn_resource.resource_code].zfill(3),
-                str(chapter_num).zfill(3),
-                chapter_num,
-            )
-        )
-        html.append(chapter_heading)
-
-        # Add the translation notes chapter intro.
-        chapter_intro = _get_chapter_intro(tn_resource, chapter_num)
-        html.append(chapter_intro)
-
-        # Get TN chapter verses
-        tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
-
-        # PEP526 disallows declaration of types in for loops, but allows this.
-        verse_num: model.VerseNum
-        verse: model.HtmlContent
-        # Now let's get all the verse translation notes available.
-        if tn_verses:
-            for verse_num, verse in sorted(tn_verses.items()):
-                tn_verse_content = _format_tn_verse(chapter_num, verse_num, verse)
-                html.extend(tn_verse_content)
-    return model.HtmlContent("\n".join(html))
+#         # PEP526 disallows declaration of types in for
+#         # loops, but allows this.
+#         verse_num: model.VerseRef
+#         verse: model.HtmlContent
+#         # Now append the USFM verses
+#         for verse_num, verse in chapter.chapter_verses.items():
+#             # Add scripture verse header
+#             html.append(
+#                 model.HtmlContent(
+#                     config.get_html_format_string("verse").format(
+#                         chapter_num, verse_num
+#                     )
+#                 )
+#             )
+#             # Add scripture verse
+#             html.append(verse)
+#         # Add scripture footnotes if available
+#         if chapter.chapter_footnotes:
+#             html.append(config.get_html_format_string("footnotes"))
+#             html.append(chapter.chapter_footnotes)
+#     return model.HtmlContent("\n".join(html))
 
 
-def _assemble_tn_tq_tw_content_by_verse(
+# def _assemble_tn_content_by_verse(
+#     usfm_resource: Optional[USFMResource],
+#     tn_resource: Optional[TNResource],
+#     tq_resource: Optional[TQResource],
+#     tw_resource: Optional[TWResource],
+#     ta_resource: Optional[TAResource],
+#     usfm_resource2: Optional[USFMResource],
+#     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
+# ) -> model.HtmlContent:
+#     """
+#     Construct the HTML for a 'by verse' strategy wherein only TN exists.
+#     """
+#     tn_resource = cast(
+#         TNResource, tn_resource
+#     )  # Make mypy happy. We know, due to how we got here, that tn_resource object is not None.
+
+#     _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
+
+#     html: List[model.HtmlContent] = []
+#     book_intro = tn_resource.book_payload.intro_html
+#     book_intro = _adjust_book_intro_headings(book_intro)
+#     html.append(book_intro)
+
+#     # PEP526 disallows declaration of types in for loops, but allows this.
+#     chapter_num: model.ChapterNum
+#     for chapter_num in tn_resource.book_payload.chapters:
+#         # How to get chapter heading for Translation notes when there is
+#         # not USFM requested? For now we'll use non-localized chapter heading.
+#         # Add in the USFM chapter heading.
+#         chapter_heading = model.HtmlContent(
+#             config.get_html_format_string("tn_only_chapter_header").format(
+#                 tn_resource.lang_code,
+#                 bible_books.BOOK_NUMBERS[tn_resource.resource_code].zfill(3),
+#                 str(chapter_num).zfill(3),
+#                 chapter_num,
+#             )
+#         )
+#         html.append(chapter_heading)
+
+#         # Add the translation notes chapter intro.
+#         chapter_intro = _get_chapter_intro(tn_resource, chapter_num)
+#         html.append(chapter_intro)
+
+#         # Get TN chapter verses
+#         tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
+
+#         # PEP526 disallows declaration of types in for loops, but allows this.
+#         verse_num: model.VerseRef
+#         verse: model.HtmlContent
+#         # Now let's get all the verse translation notes available.
+#         if tn_verses:
+#             for verse_num, verse in tn_verses.items():
+#                 tn_verse_content = _format_tn_verse(
+#                     tn_resource.resource_type_name, chapter_num, verse_num, verse
+#                 )
+#                 html.extend(tn_verse_content)
+#     return model.HtmlContent("\n".join(html))
+
+
+def _assemble_tn_as_iterator_content_by_verse(
     usfm_resource: Optional[USFMResource],
     tn_resource: Optional[TNResource],
     tq_resource: Optional[TQResource],
@@ -1059,230 +1588,350 @@ def _assemble_tn_tq_tw_content_by_verse(
     Construct the HTML for a 'by verse' strategy wherein only TN, TQ,
     and TW exists.
     """
-    tn_resource = cast(
-        TNResource, tn_resource
-    )  # Make mypy happy. We know, due to how we got here, that tn_resource object is not None.
-    tq_resource = cast(
-        TQResource, tq_resource
-    )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
-    tw_resource = cast(
-        TWResource, tw_resource
-    )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
-
     _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
 
     html: List[model.HtmlContent] = []
-    book_intro = tn_resource.book_payload.intro_html
-    book_intro = _adjust_book_intro_headings(book_intro)
-    html.append(book_intro)
-
-    # PEP526 disallows declaration of types in for loops, but allows this.
-    chapter_num: model.ChapterNum
-    # Dict keys need to be sorted as their order is not guaranteed.
-    for chapter_num in sorted(tn_resource.book_payload.chapters):
-        # How to get chapter heading for Translation notes when USFM is not
-        # requested? For now we'll use non-localized chapter heading. Add in the
-        # USFM chapter heading.
-        chapter_heading = model.HtmlContent(
-            config.get_html_format_string("tn_only_chapter_header").format(
-                tn_resource.lang_code,
-                bible_books.BOOK_NUMBERS[tn_resource.resource_code].zfill(3),
-                str(chapter_num).zfill(3),
-                chapter_num,
-            )
-        )
-        html.append(chapter_heading)
-
-        # Add the translation notes chapter intro.
-        chapter_intro = _get_chapter_intro(tn_resource, chapter_num)
-        html.append(chapter_intro)
-
-        tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
-        tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
+    if tn_resource:
+        book_intro = tn_resource.book_payload.intro_html
+        book_intro = _adjust_book_intro_headings(book_intro)
+        html.append(book_intro)
 
         # PEP526 disallows declaration of types in for loops, but allows this.
-        verse_num: model.VerseNum
-        verse: model.HtmlContent
-        # Now let's get all the verse level content.
-        iterator = tn_verses or tq_verses
-        if iterator:
-            for verse_num, verse in sorted(iterator.items()):
-                # Add TN verse content, if any
-                if tn_verses and verse_num in tn_verses:
-                    tn_verse_content = _format_tn_verse(
-                        chapter_num, verse_num, tn_verses[verse_num]
-                    )
-                    html.extend(tn_verse_content)
-
-                # Add TQ verse content, if any
-                if tq_verses and verse_num in tq_verses:
-                    tq_verse_content = _format_tq_verse(
-                        chapter_num, verse_num, tq_verses[verse_num]
-                    )
-                    html.extend(tq_verse_content)
-                # Add the translation words links section.
-                translation_word_links_html = tw_resource.get_translation_word_links(
-                    chapter_num, verse_num, verse,
+        chapter_num: model.ChapterNum
+        for chapter_num in tn_resource.book_payload.chapters:
+            # How to get chapter heading for Translation notes when USFM is not
+            # requested? For now we'll use non-localized chapter heading. Add in the
+            # USFM chapter heading.
+            chapter_heading = model.HtmlContent(
+                config.get_html_format_string("tn_only_chapter_header").format(
+                    tn_resource.lang_code,
+                    bible_books.BOOK_NUMBERS[tn_resource.resource_code].zfill(3),
+                    str(chapter_num).zfill(3),
+                    chapter_num,
                 )
-                html.extend(translation_word_links_html)
-    # Add the translation words definition section.
-    linked_translation_words = tw_resource.get_translation_words_section(
-        include_uses_section=False
-    )
-    html.extend(linked_translation_words)
-
-    return model.HtmlContent("\n".join(html))
-
-
-def _assemble_tn_tw_content_by_verse(
-    usfm_resource: Optional[USFMResource],
-    tn_resource: Optional[TNResource],
-    tq_resource: Optional[TQResource],
-    tw_resource: Optional[TWResource],
-    ta_resource: Optional[TAResource],
-    usfm_resource2: Optional[USFMResource],
-    assembly_substrategy_kind: model.AssemblySubstrategyEnum,
-) -> model.HtmlContent:
-    """
-    Construct the HTML for a 'by verse' strategy wherein only TN and
-    TW exists.
-    """
-    tn_resource = cast(
-        TNResource, tn_resource
-    )  # Make mypy happy. We know, due to how we got here, that tn_resource object is not None.
-    tw_resource = cast(
-        TWResource, tw_resource
-    )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
-
-    _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
-
-    html: List[model.HtmlContent] = []
-    book_intro = tn_resource.book_payload.intro_html
-    book_intro = _adjust_book_intro_headings(book_intro)
-    html.append(book_intro)
-
-    # PEP526 disallows declaration of types in for loops, but allows this.
-    chapter_num: model.ChapterNum
-    # Dict keys need to be sorted since their order is otherwise not guaranteed.
-    for chapter_num in sorted(tn_resource.book_payload.chapters):
-        # How to get chapter heading for Translation notes when USFM is not
-        # requested? For now we'll use non-localized chapter heading. Add in the
-        # USFM chapter heading.
-        chapter_heading = model.HtmlContent(
-            config.get_html_format_string("tn_only_chapter_header").format(
-                tn_resource.lang_code,
-                bible_books.BOOK_NUMBERS[tn_resource.resource_code].zfill(3),
-                str(chapter_num).zfill(3),
-                chapter_num,
             )
+            html.append(chapter_heading)
+
+            # Add the translation notes chapter intro.
+            chapter_intro = _get_chapter_intro(tn_resource, chapter_num)
+            html.append(chapter_intro)
+
+            tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
+            if tq_resource:
+                tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
+
+            # PEP526 disallows declaration of types in for loops, but allows this.
+            verse_num: model.VerseRef
+            verse: model.HtmlContent
+            # Now let's get all the verse level content.
+            # iterator = tn_verses or tq_verses
+            # if iterator:
+            if tn_verses:
+                for verse_num, verse in tn_verses.items():
+                    # Add TN verse content, if any
+                    if tn_verses and verse_num in tn_verses:
+                        tn_verse_content = _format_tn_verse(
+                            tn_resource.resource_type_name,
+                            chapter_num,
+                            verse_num,
+                            tn_verses[verse_num],
+                        )
+                        html.extend(tn_verse_content)
+
+                    # Add TQ verse content, if any
+                    if tq_resource and tq_verses and verse_num in tq_verses:
+                        tq_verse_content = _format_tq_verse(
+                            tq_resource.resource_type_name,
+                            chapter_num,
+                            verse_num,
+                            tq_verses[verse_num],
+                        )
+                        html.extend(tq_verse_content)
+                    if tw_resource:
+                        # Add the translation words links section.
+                        translation_word_links_html = tw_resource.get_translation_word_links(
+                            chapter_num, verse_num, verse,
+                        )
+                        html.extend(translation_word_links_html)
+    if tw_resource:
+        # Add the translation words definition section.
+        linked_translation_words = tw_resource.get_translation_words_section(
+            include_uses_section=False
         )
-        html.append(chapter_heading)
-
-        # Add the translation notes chapter intro.
-        chapter_intro = _get_chapter_intro(tn_resource, chapter_num)
-        html.append(chapter_intro)
-
-        # Get TN chapter verses
-        tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
-
-        # PEP526 disallows declaration of types in for loops, but allows this.
-        verse_num: model.VerseNum
-        verse: model.HtmlContent
-        # Now let's get all the verse translation notes available.
-        if tn_verses:
-            for verse_num, verse in sorted(tn_verses.items()):
-                # FIXME See if you can move function to resource module.
-                # Add TN verse content, if any
-                tn_verse_content = _format_tn_verse(chapter_num, verse_num, verse)
-                html.extend(tn_verse_content)
-
-                # Add the translation words links section.
-                translation_word_links_html = tw_resource.get_translation_word_links(
-                    chapter_num, verse_num, verse,
+        html.extend(linked_translation_words)
+    if usfm_resource2:
+        # Add the usfm_resource2, e.g., udb, scripture verses.
+        for chapter_num, chapter in usfm_resource2.chapters_content.items():
+            # Add in the USFM chapter heading.
+            chapter_heading = model.HtmlContent("")
+            chapter_heading = chapter.chapter_content[0]
+            html.append(chapter_heading)
+            # Now let's interleave USFM verse with its translation note, translation
+            # questions, and translation words if available.
+            for verse_num, verse in chapter.chapter_verses.items():
+                # Add header
+                html.append(
+                    model.HtmlContent(
+                        config.get_html_format_string(
+                            "resource_type_name_with_ref"
+                        ).format(
+                            usfm_resource2.resource_type_name, chapter_num, verse_num
+                        )
+                    )
                 )
-                html.extend(translation_word_links_html)
-    # Add the translation words definition section.
-    linked_translation_words = tw_resource.get_translation_words_section(
-        include_uses_section=False
-    )
-    html.extend(linked_translation_words)
+                # Add scripture verse
+                html.append(verse)
     return model.HtmlContent("\n".join(html))
 
 
-def _assemble_tn_tq_content_by_verse(
-    usfm_resource: Optional[USFMResource],
-    tn_resource: Optional[TNResource],
-    tq_resource: Optional[TQResource],
-    tw_resource: Optional[TWResource],
-    ta_resource: Optional[TAResource],
-    usfm_resource2: Optional[USFMResource],
-    assembly_substrategy_kind: model.AssemblySubstrategyEnum,
-) -> model.HtmlContent:
-    """
-    Construct the HTML for a 'by verse' strategy wherein only TN and
-    TQ exists.
-    """
-    tn_resource = cast(
-        TNResource, tn_resource
-    )  # Make mypy happy. We know, due to how we got here, that tn_resource object is not None.
-    tq_resource = cast(
-        TQResource, tq_resource
-    )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
+# def _assemble_tn_tq_tw_content_by_verse(
+#     usfm_resource: Optional[USFMResource],
+#     tn_resource: Optional[TNResource],
+#     tq_resource: Optional[TQResource],
+#     tw_resource: Optional[TWResource],
+#     ta_resource: Optional[TAResource],
+#     usfm_resource2: Optional[USFMResource],
+#     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
+# ) -> model.HtmlContent:
+#     """
+#     Construct the HTML for a 'by verse' strategy wherein only TN, TQ,
+#     and TW exists.
+#     """
+#     tn_resource = cast(
+#         TNResource, tn_resource
+#     )  # Make mypy happy. We know, due to how we got here, that tn_resource object is not None.
+#     tq_resource = cast(
+#         TQResource, tq_resource
+#     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
+#     tw_resource = cast(
+#         TWResource, tw_resource
+#     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
 
-    _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
+#     _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
 
-    html: List[model.HtmlContent] = []
-    book_intro = tn_resource.book_payload.intro_html
-    book_intro = _adjust_book_intro_headings(book_intro)
-    html.append(book_intro)
+#     html: List[model.HtmlContent] = []
+#     book_intro = tn_resource.book_payload.intro_html
+#     book_intro = _adjust_book_intro_headings(book_intro)
+#     html.append(book_intro)
 
-    # PEP526 disallows declaration of types in for loops, but allows this.
-    chapter_num: model.ChapterNum
-    # Dict keys need to be sorted as their order is not guaranteed.
-    for chapter_num in sorted(tn_resource.book_payload.chapters):
-        # How to get chapter heading for Translation notes when USFM is not
-        # requested? For now we'll use non-localized chapter heading. Add in the
-        # USFM chapter heading.
-        chapter_heading = model.HtmlContent(
-            config.get_html_format_string("tn_only_chapter_header").format(
-                tn_resource.lang_code,
-                bible_books.BOOK_NUMBERS[tn_resource.resource_code].zfill(3),
-                str(chapter_num).zfill(3),
-                chapter_num,
-            )
-        )
-        html.append(chapter_heading)
+#     # PEP526 disallows declaration of types in for loops, but allows this.
+#     chapter_num: model.ChapterNum
+#     for chapter_num in tn_resource.book_payload.chapters:
+#         # How to get chapter heading for Translation notes when USFM is not
+#         # requested? For now we'll use non-localized chapter heading. Add in the
+#         # USFM chapter heading.
+#         chapter_heading = model.HtmlContent(
+#             config.get_html_format_string("tn_only_chapter_header").format(
+#                 tn_resource.lang_code,
+#                 bible_books.BOOK_NUMBERS[tn_resource.resource_code].zfill(3),
+#                 str(chapter_num).zfill(3),
+#                 chapter_num,
+#             )
+#         )
+#         html.append(chapter_heading)
 
-        # Add the translation notes chapter intro.
-        chapter_intro = _get_chapter_intro(tn_resource, chapter_num)
-        html.append(chapter_intro)
+#         # Add the translation notes chapter intro.
+#         chapter_intro = _get_chapter_intro(tn_resource, chapter_num)
+#         html.append(chapter_intro)
 
-        # Get TN chapter verses
-        tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
-        tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
+#         tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
+#         tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
 
-        # PEP526 disallows declaration of types in for loops, but allows this.
-        verse_num: model.VerseNum
-        verse: model.HtmlContent
-        # Now let's get all the verse translation notes available.
-        iterator = tn_verses or tq_verses
-        if iterator:
-            for verse_num, verse in sorted(iterator.items()):
-                # FIXME See if you can move function to resource module.
-                # Add TN verse content, if any
-                if tn_verses and verse_num in tn_verses:
-                    tn_verse_content = _format_tn_verse(
-                        chapter_num, verse_num, tn_verses[verse_num]
-                    )
-                    html.extend(tn_verse_content)
+#         # PEP526 disallows declaration of types in for loops, but allows this.
+#         verse_num: model.VerseRef
+#         verse: model.HtmlContent
+#         # Now let's get all the verse level content.
+#         iterator = tn_verses or tq_verses
+#         if iterator:
+#             for verse_num, verse in iterator.items():
+#                 # Add TN verse content, if any
+#                 if tn_verses and verse_num in tn_verses:
+#                     tn_verse_content = _format_tn_verse(
+#                         tn_resource.resource_type_name,
+#                         chapter_num,
+#                         verse_num,
+#                         tn_verses[verse_num],
+#                     )
+#                     html.extend(tn_verse_content)
 
-                # Add TQ verse content, if any
-                if tq_verses and verse_num in tq_verses:
-                    tq_verse_content = _format_tq_verse(
-                        chapter_num, verse_num, tq_verses[verse_num]
-                    )
-                    html.extend(tq_verse_content)
-    return model.HtmlContent("\n".join(html))
+#                 # Add TQ verse content, if any
+#                 if tq_verses and verse_num in tq_verses:
+#                     tq_verse_content = _format_tq_verse(
+#                         tq_resource.resource_type_name,
+#                         chapter_num,
+#                         verse_num,
+#                         tq_verses[verse_num],
+#                     )
+#                     html.extend(tq_verse_content)
+#                 # Add the translation words links section.
+#                 translation_word_links_html = tw_resource.get_translation_word_links(
+#                     chapter_num, verse_num, verse,
+#                 )
+#                 html.extend(translation_word_links_html)
+#     # Add the translation words definition section.
+#     linked_translation_words = tw_resource.get_translation_words_section(
+#         include_uses_section=False
+#     )
+#     html.extend(linked_translation_words)
+
+#     return model.HtmlContent("\n".join(html))
+
+
+# def _assemble_tn_tw_content_by_verse(
+#     usfm_resource: Optional[USFMResource],
+#     tn_resource: Optional[TNResource],
+#     tq_resource: Optional[TQResource],
+#     tw_resource: Optional[TWResource],
+#     ta_resource: Optional[TAResource],
+#     usfm_resource2: Optional[USFMResource],
+#     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
+# ) -> model.HtmlContent:
+#     """
+#     Construct the HTML for a 'by verse' strategy wherein only TN and
+#     TW exists.
+#     """
+#     tn_resource = cast(
+#         TNResource, tn_resource
+#     )  # Make mypy happy. We know, due to how we got here, that tn_resource object is not None.
+#     tw_resource = cast(
+#         TWResource, tw_resource
+#     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
+
+#     _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
+
+#     html: List[model.HtmlContent] = []
+#     book_intro = tn_resource.book_payload.intro_html
+#     book_intro = _adjust_book_intro_headings(book_intro)
+#     html.append(book_intro)
+
+#     # PEP526 disallows declaration of types in for loops, but allows this.
+#     chapter_num: model.ChapterNum
+#     for chapter_num in tn_resource.book_payload.chapters:
+#         # How to get chapter heading for Translation notes when USFM is not
+#         # requested? For now we'll use non-localized chapter heading. Add in the
+#         # USFM chapter heading.
+#         chapter_heading = model.HtmlContent(
+#             config.get_html_format_string("tn_only_chapter_header").format(
+#                 tn_resource.lang_code,
+#                 bible_books.BOOK_NUMBERS[tn_resource.resource_code].zfill(3),
+#                 str(chapter_num).zfill(3),
+#                 chapter_num,
+#             )
+#         )
+#         html.append(chapter_heading)
+
+#         # Add the translation notes chapter intro.
+#         chapter_intro = _get_chapter_intro(tn_resource, chapter_num)
+#         html.append(chapter_intro)
+
+#         # Get TN chapter verses
+#         tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
+
+#         # PEP526 disallows declaration of types in for loops, but allows this.
+#         verse_num: model.VerseRef
+#         verse: model.HtmlContent
+#         # Now let's get all the verse translation notes available.
+#         if tn_verses:
+#             for verse_num, verse in tn_verses.items():
+#                 # FIXME See if you can move function to resource module.
+#                 # Add TN verse content, if any
+#                 tn_verse_content = _format_tn_verse(
+#                     tn_resource.resource_type_name, chapter_num, verse_num, verse
+#                 )
+#                 html.extend(tn_verse_content)
+
+#                 # Add the translation words links section.
+#                 translation_word_links_html = tw_resource.get_translation_word_links(
+#                     chapter_num, verse_num, verse,
+#                 )
+#                 html.extend(translation_word_links_html)
+#     # Add the translation words definition section.
+#     linked_translation_words = tw_resource.get_translation_words_section(
+#         include_uses_section=False
+#     )
+#     html.extend(linked_translation_words)
+#     return model.HtmlContent("\n".join(html))
+
+
+# def _assemble_tn_tq_content_by_verse(
+#     usfm_resource: Optional[USFMResource],
+#     tn_resource: Optional[TNResource],
+#     tq_resource: Optional[TQResource],
+#     tw_resource: Optional[TWResource],
+#     ta_resource: Optional[TAResource],
+#     usfm_resource2: Optional[USFMResource],
+#     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
+# ) -> model.HtmlContent:
+#     """
+#     Construct the HTML for a 'by verse' strategy wherein only TN and
+#     TQ exists.
+#     """
+#     tn_resource = cast(
+#         TNResource, tn_resource
+#     )  # Make mypy happy. We know, due to how we got here, that tn_resource object is not None.
+#     tq_resource = cast(
+#         TQResource, tq_resource
+#     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
+
+#     _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
+
+#     html: List[model.HtmlContent] = []
+#     book_intro = tn_resource.book_payload.intro_html
+#     book_intro = _adjust_book_intro_headings(book_intro)
+#     html.append(book_intro)
+
+#     # PEP526 disallows declaration of types in for loops, but allows this.
+#     chapter_num: model.ChapterNum
+#     for chapter_num in tn_resource.book_payload.chapters:
+#         # How to get chapter heading for Translation notes when USFM is not
+#         # requested? For now we'll use non-localized chapter heading. Add in the
+#         # USFM chapter heading.
+#         chapter_heading = model.HtmlContent(
+#             config.get_html_format_string("tn_only_chapter_header").format(
+#                 tn_resource.lang_code,
+#                 bible_books.BOOK_NUMBERS[tn_resource.resource_code].zfill(3),
+#                 str(chapter_num).zfill(3),
+#                 chapter_num,
+#             )
+#         )
+#         html.append(chapter_heading)
+
+#         # Add the translation notes chapter intro.
+#         chapter_intro = _get_chapter_intro(tn_resource, chapter_num)
+#         html.append(chapter_intro)
+
+#         # Get TN chapter verses
+#         tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
+#         tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
+
+#         # PEP526 disallows declaration of types in for loops, but allows this.
+#         verse_num: model.VerseRef
+#         verse: model.HtmlContent
+#         # Now let's get all the verse translation notes available.
+#         iterator = tn_verses or tq_verses
+#         if iterator:
+#             for verse_num, verse in iterator.items():
+#                 # FIXME See if you can move function to resource module.
+#                 # Add TN verse content, if any
+#                 if tn_verses and verse_num in tn_verses:
+#                     tn_verse_content = _format_tn_verse(
+#                         tn_resource.resource_type_name,
+#                         chapter_num,
+#                         verse_num,
+#                         tn_verses[verse_num],
+#                     )
+#                     html.extend(tn_verse_content)
+
+#                 # Add TQ verse content, if any
+#                 if tq_verses and verse_num in tq_verses:
+#                     tq_verse_content = _format_tq_verse(
+#                         tq_resource.resource_type_name,
+#                         chapter_num,
+#                         verse_num,
+#                         tq_verses[verse_num],
+#                     )
+#                     html.extend(tq_verse_content)
+#     return model.HtmlContent("\n".join(html))
 
 
 def _assemble_tq_content_by_verse(
@@ -1307,8 +1956,7 @@ def _assemble_tq_content_by_verse(
 
     # PEP526 disallows declaration of types in for loops, but allows this.
     chapter_num: model.ChapterNum
-    # Dict keys need to be sorted as their order is not guaranteed.
-    for chapter_num in sorted(tq_resource.book_payload.chapters):
+    for chapter_num in tq_resource.book_payload.chapters:
         # How to get chapter heading for Translation questions when there is
         # not USFM requested? For now we'll use non-localized chapter heading.
         # Add in the USFM chapter heading.
@@ -1326,12 +1974,14 @@ def _assemble_tq_content_by_verse(
         tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
 
         # PEP526 disallows declaration of types in for loops, but allows this.
-        verse_num: model.VerseNum
+        verse_num: model.VerseRef
         verse: model.HtmlContent
         # Now let's get all the verse translation notes available.
         if tq_verses:
-            for verse_num, verse in sorted(tq_verses.items()):
-                tq_verse_content = _format_tq_verse(chapter_num, verse_num, verse)
+            for verse_num, verse in tq_verses.items():
+                tq_verse_content = _format_tq_verse(
+                    tq_resource.resource_type_name, chapter_num, verse_num, verse
+                )
                 html.extend(tq_verse_content)
     return model.HtmlContent("\n".join(html))
 
@@ -1362,8 +2012,7 @@ def _assemble_tq_tw_content_by_verse(
 
     # PEP526 disallows declaration of types in for loops, but allows this.
     chapter_num: model.ChapterNum
-    # Dict keys need to be sorted as their order is not guaranteed.
-    for chapter_num in sorted(tq_resource.book_payload.chapters):
+    for chapter_num in tq_resource.book_payload.chapters:
         # How to get chapter heading for Translation questions when there is
         # not USFM requested? For now we'll use non-localized chapter heading.
         # Add in the USFM chapter heading.
@@ -1381,12 +2030,14 @@ def _assemble_tq_tw_content_by_verse(
         tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
 
         # PEP526 disallows declaration of types in for loops, but allows this.
-        verse_num: model.VerseNum
+        verse_num: model.VerseRef
         verse: model.HtmlContent
         # Now let's get all the verse translation notes available.
         if tq_verses:
-            for verse_num, verse in sorted(tq_verses.items()):
-                tq_verse_content = _format_tq_verse(chapter_num, verse_num, verse)
+            for verse_num, verse in tq_verses.items():
+                tq_verse_content = _format_tq_verse(
+                    tq_resource.resource_type_name, chapter_num, verse_num, verse
+                )
                 html.extend(tq_verse_content)
 
                 # Add the translation words links section.
@@ -1458,7 +2109,10 @@ def _initialize_resources_html(
 
 
 def _format_tn_verse(
-    chapter_num: model.ChapterNum, verse_num: model.VerseNum, verse: model.HtmlContent
+    resource_type_name: str,
+    chapter_num: model.ChapterNum,
+    verse_num: model.VerseRef,
+    verse: model.HtmlContent,
 ) -> List[model.HtmlContent]:
     """
     This is a slightly different form of TNResource.get_tn_verse that is used
@@ -1467,8 +2121,9 @@ def _format_tn_verse(
     html: List[model.HtmlContent] = []
     html.append(
         model.HtmlContent(
-            config.get_html_format_string("translation_note").format(
-                chapter_num, verse_num
+            # config.get_html_format_string("translation_note").format(
+            config.get_html_format_string("resource_type_name_with_ref").format(
+                resource_type_name, chapter_num, verse_num
             )
         )
     )
@@ -1478,7 +2133,10 @@ def _format_tn_verse(
 
 
 def _format_tq_verse(
-    chapter_num: model.ChapterNum, verse_num: model.VerseNum, verse: model.HtmlContent
+    resource_type_name: str,
+    chapter_num: model.ChapterNum,
+    verse_num: model.VerseRef,
+    verse: model.HtmlContent,
 ) -> List[model.HtmlContent]:
     """
     This is a slightly different form of TQResource.get_tq_verse that is used
@@ -1487,7 +2145,16 @@ def _format_tq_verse(
     html: List[model.HtmlContent] = []
     html.append(
         model.HtmlContent(
-            config.get_html_format_string("translation_question").format(
+            config.get_html_format_string("resource_type_name_with_ref").format(
+                resource_type_name, chapter_num, verse_num
+            )
+        )
+    )
+    # Change H1 HTML elements to H4 HTML elements in each translation
+    # question.
+    html.append(model.HtmlContent(re.sub(r"h1", r"h4", verse)))
+    return html
+
                 chapter_num, verse_num
             )
         )
@@ -1498,7 +2165,6 @@ def _format_tq_verse(
     return html
 
 
-def _get_usfm_resource(resources: List[Resource]) -> Optional[USFMResource]:
 def _get_first_usfm_resource(resources: List[Resource]) -> Optional[USFMResource]:
     """
     Return the first USFMResource instance, if any, contained in resources,
@@ -1518,7 +2184,7 @@ def _get_second_usfm_resource(resources: List[Resource]) -> Optional[USFMResourc
     usfm_resources = [
         resource for resource in resources if isinstance(resource, USFMResource)
     ]
-    return usfm_resources[1] if usfm_resources and 1 in usfm_resources else None
+    return usfm_resources[1] if len(usfm_resources) > 1 else None
 
 
 def _get_tn_resource(resources: List[Resource]) -> Optional[TNResource]:
