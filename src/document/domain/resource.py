@@ -78,6 +78,7 @@ class Resource:
 
         # Location/lookup related
         self._lang_name: str
+        self._resource_type_name: str
         self._resource_url: Optional[str] = None
         self._resource_source: str
         self._resource_jsonpath: Optional[str] = None
@@ -157,6 +158,11 @@ class Resource:
         return self._resource_type
 
     @property
+    def resource_type_name(self) -> str:
+        """Provide public interface for other modules."""
+        return self._resource_type_name
+
+    @property
     def resource_code(self) -> str:
         """Provide public interface for other modules."""
         return self._resource_code
@@ -229,6 +235,7 @@ class USFMResource(Resource):
         lookup_svc = resource_lookup.USFMResourceJsonLookup()
         resource_lookup_dto: model.ResourceLookupDto = lookup_svc.lookup(self)
         self._lang_name = resource_lookup_dto.lang_name
+        self._resource_type_name = resource_lookup_dto.resource_type_name
         self._resource_url = resource_lookup_dto.url
         self._resource_source = resource_lookup_dto.source
         self._resource_jsonpath = resource_lookup_dto.jsonpath
@@ -497,6 +504,7 @@ class TResource(Resource):
         lookup_svc = resource_lookup.TResourceJsonLookup()
         resource_lookup_dto: model.ResourceLookupDto = lookup_svc.lookup(self)
         self._lang_name = resource_lookup_dto.lang_name
+        self._resource_type_name = resource_lookup_dto.resource_type_name
         self._resource_url = resource_lookup_dto.url
         self._resource_source = resource_lookup_dto.source
         self._resource_jsonpath = resource_lookup_dto.jsonpath
@@ -979,8 +987,9 @@ class TWResource(TResource):
             # Add header
             html.append(
                 model.HtmlContent(
-                    config.get_html_format_string("translation_words").format(
-                        chapter_num, verse_num
+                    # config.get_html_format_string("translation_words").format(
+                    config.get_html_format_string("resource_type_name_with_ref").format(
+                        self.resource_type_name, chapter_num, verse_num
                     )
                 )
             )
@@ -1009,7 +1018,13 @@ class TWResource(TResource):
         word if include_uses_section is True.
         """
         html: List[model.HtmlContent] = []
-        html.append(config.get_html_format_string("translation_words_section"))
+        html.append(
+            model.HtmlContent(
+                config.get_html_format_string("resource_type_name").format(
+                    self.resource_type_name
+                )
+            )
+        )
 
         for (
             base_filename,

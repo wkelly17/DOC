@@ -133,6 +133,13 @@ def get_resource_lang_name_jsonpath() -> str:
     return "$[?code='{}'].name"
 
 
+def get_resource_type_name_jsonpath() -> str:
+    """
+    The resource type's name.
+    """
+    return "$[?code='{}'].contents[?code='{}'].name"
+
+
 def get_resource_url_level2_jsonpath() -> str:
     """
     The jsonpath location in TRANSLATIONS_JSON_LOCATION file where
@@ -310,6 +317,20 @@ def get_english_git_repo_url(resource_type: str) -> str:
     }[resource_type]
 
 
+def get_english_resource_type_name(resource_type: str) -> str:
+    """
+    This is a hack to compensate for translations.json which only
+    provides information for non-English languages.
+    """
+    return {
+        "ulb-wa": "Unlocked Literal Bible (ULB)",
+        "udb-wa": "Unlocked Dynamic Bible (UDB)",
+        "tn-wa": "ULB Translation Helps",
+        "tq-wa": "ULB Translation Questions",
+        "tw-wa": "ULB Translation Words",
+    }[resource_type]
+
+
 def get_template_path(key: str) -> str:
     """
     Return the path to the requested template give a lookup key.
@@ -366,6 +387,8 @@ def get_html_format_string(lookup_key: str) -> model.HtmlContent:
     """
     html_format_strings: Dict[str, str] = {
         "language": "<h1>Language: {}</h1>",
+        "resource_type_name": "<h2>{}</h2>",
+        "resource_type_name_with_ref": "<h3>{} {}:{}</h3>",
         "book": "<h2>Book: {}</h2>",
         "verse": "<h3>Verse {}:{}</h3>",
         "translation_note": "<h3>Translation note {}:{}</h3>",

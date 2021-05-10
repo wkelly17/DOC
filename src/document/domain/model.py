@@ -152,6 +152,7 @@ class ResourceLookupDto(BaseModel):
     source: str
     jsonpath: Optional[str]
     lang_name: str
+    resource_type_name: str
 
 
 class FinishedDocumentDetails(BaseModel):

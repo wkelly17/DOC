@@ -137,6 +137,7 @@ class ResourceJsonLookup:
             source=model.AssetSourceEnum.GIT,
             jsonpath=None,
             lang_name="English",
+            resource_type_name=config.get_english_resource_type_name(resource.resource_type),
         )
 
     @icontract.require(
@@ -176,11 +177,20 @@ class ResourceJsonLookup:
             lang_name = lang_name_lst[0]
         else:
             lang_name = ""
+        resource_type_name_jsonpath_str = config.get_resource_type_name_jsonpath().format(
+            resource.lang_code, resource.resource_type
+        )
+        resource_type_name_lst: List[str] = self._lookup(resource_type_name_jsonpath_str)
+        if resource_type_name_lst:
+            resource_type_name = resource_type_name_lst[0]
+        else:
+            resource_type_name = ""
         return model.ResourceLookupDto(
             url=url,
             source=model.AssetSourceEnum.GIT,
             jsonpath=jsonpath_str,
             lang_name=lang_name,
+            resource_type_name=resource_type_name,
         )
 
     @icontract.require(
@@ -426,12 +436,20 @@ class USFMResourceJsonLookup(ResourceLookup):
             lang_name = lang_name_lst[0]
         else:
             lang_name = ""
-
+        resource_type_name_jsonpath_str = config.get_resource_type_name_jsonpath().format(
+            resource.lang_code, resource.resource_type
+        )
+        resource_type_name_lst: List[str] = self._lookup(resource_type_name_jsonpath_str)
+        if resource_type_name_lst:
+            resource_type_name = resource_type_name_lst[0]
+        else:
+            resource_type_name = ""
         return model.ResourceLookupDto(
             url=url,
             source=model.AssetSourceEnum.USFM,
             jsonpath=jsonpath_str,
             lang_name=lang_name,
+            resource_type_name=resource_type_name,
         )
 
 
@@ -521,11 +539,20 @@ class TResourceJsonLookup(ResourceLookup):
             lang_name = lang_name_lst[0]
         else:
             lang_name = ""
+        resource_type_name_jsonpath_str = config.get_resource_type_name_jsonpath().format(
+            resource.lang_code, resource.resource_type
+        )
+        resource_type_name_lst: List[str] = self._lookup(resource_type_name_jsonpath_str)
+        if resource_type_name_lst:
+            resource_type_name = resource_type_name_lst[0]
+        else:
+            resource_type_name = ""
         return model.ResourceLookupDto(
             url=url,
             source=model.AssetSourceEnum.ZIP,
             jsonpath=jsonpath_str,
             lang_name=lang_name,
+            resource_type_name=resource_type_name,
         )
 
     @icontract.require(lambda resource: resource.lang_code is not None)
@@ -552,11 +579,20 @@ class TResourceJsonLookup(ResourceLookup):
             lang_name = lang_name_lst[0]
         else:
             lang_name = ""
+        resource_type_name_jsonpath_str = config.get_resource_type_name_jsonpath().format(
+            resource.lang_code, resource.resource_type
+        )
+        resource_type_name_lst: List[str] = self._lookup(resource_type_name_jsonpath_str)
+        if resource_type_name_lst:
+            resource_type_name = resource_type_name_lst[0]
+        else:
+            resource_type_name = ""
         return model.ResourceLookupDto(
             url=url,
             source=model.AssetSourceEnum.ZIP,
             jsonpath=jsonpath_str,
             lang_name=lang_name,
+            resource_type_name=resource_type_name,
         )
 
     @icontract.require(lambda resource: resource.lang_code is not None)
@@ -589,11 +625,20 @@ class TResourceJsonLookup(ResourceLookup):
             lang_name = lang_name_lst[0]
         else:
             lang_name = ""
+        resource_type_name_jsonpath_str = config.get_resource_type_name_jsonpath().format(
+            resource.lang_code, resource.resource_type
+        )
+        resource_type_name_lst: List[str] = self._lookup(resource_type_name_jsonpath_str)
+        if resource_type_name_lst:
+            resource_type_name = resource_type_name_lst[0]
+        else:
+            resource_type_name = ""
         return model.ResourceLookupDto(
             url=url,
             source=model.AssetSourceEnum.ZIP,
             jsonpath=jsonpath_str,
             lang_name=lang_name,
+            resource_type_name=resource_type_name,
         )
 
     @icontract.require(lambda resource: resource.lang_code is not None)
@@ -619,16 +664,25 @@ class TResourceJsonLookup(ResourceLookup):
         lang_name_jsonpath_str = config.get_resource_lang_name_jsonpath().format(
             resource.lang_code
         )
-        lang_name_lst: List[str] = self._lookup(lang_name_jsonpath_str)
-        if lang_name_lst:
-            lang_name = lang_name_lst[0]
+        lang_name_results: List[str] = self._lookup(lang_name_jsonpath_str)
+        if lang_name_results:
+            lang_name = lang_name_results[0]
         else:
             lang_name = ""
+        resource_type_name_jsonpath_str = config.get_resource_type_name_jsonpath().format(
+            resource.lang_code, resource.resource_type
+        )
+        resource_type_name_results: List[str] = self._lookup(resource_type_name_jsonpath_str)
+        if resource_type_name_results:
+            resource_type_name = resource_type_name_results[0]
+        else:
+            resource_type_name = ""
         return model.ResourceLookupDto(
             url=url,
             source=model.AssetSourceEnum.ZIP,
             jsonpath=jsonpath_str,
             lang_name=lang_name,
+            resource_type_name=resource_type_name,
         )
 
 
@@ -723,10 +777,9 @@ class BIELHelperResourceJsonLookup:
             for resource_type_dict in lang["contents"]:
                 try:
                     resource_type = resource_type_dict["code"]
+                    resource_types.append(resource_type)
                 except:
                     resource_type = None
-                if resource_type is not None:
-                    resource_types.append(resource_type)
             lang_codes_names_and_resource_types.append(
                 (lang["code"], lang["name"], resource_types)
             )
