@@ -32,7 +32,6 @@ from document.utils import (
     file_utils,
     html_parsing_utils,
     link_utils,
-    markdown_utils,
     url_utils,
 )
 
@@ -375,13 +374,6 @@ class USFMResource(Resource):
             )
             # Get each verse opening span tag and then the actual verse text for
             # this chapter and enclose them each in a p element.
-            # NOTE Do we really want to enclose each verse in a paragraph element?
-            # I've done it mainly for later display purposes, but I don't think it
-            # is necessary because in 'by verse' interleaving strategy each verse is
-            # sandwiched between HTML header elements anyway. But I do like that it
-            # makes the HTML have more closed tags, though the parser has other open
-            # tags, so perhaps it isn't worth it. It is easy enough to experiment
-            # with removing the enclosing paragraph element and see the result.
             chapter_verse_list = [
                 "<p>{} {}</p>".format(verse, verse.next_sibling)
                 for verse in chapter_verse_tags

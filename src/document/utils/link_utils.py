@@ -130,10 +130,6 @@ def transform_rc_links(text: str) -> str:
           Example:
           rc://en/tn/help/rev/15/07 →
           https://live.door43.org/u/Door43/en_ulb/c0bd11bad0/67-REV.html#066-ch-015-v-007
-        * Convert RC links.
-          Example:
-          rc://en/tn/help/1sa/16/02 →
-          https://git.door43.org/Door43/en_tn/1sa/16/02.md
         * Convert HTTP/HTTPS/FTP URLs to Markdown links if not already.
           Example:
           '([^"\(])((http|https|ftp)://[A-Za-z0-9\/\?&_\.:=#-]+[A-Za-z0-9\/\?&_:=#-])' →
