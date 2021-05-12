@@ -602,9 +602,8 @@ class TNResource(TResource):
             intro_path = intro_paths[0] if intro_paths else None
             intro_html = ""
             if intro_path:
-                with open(intro_path, "r", encoding="utf-8") as fin:
-                    intro_html = fin.read()
-                    intro_html = md.convert(intro_html)
+                intro_html = file_utils.read_file(intro_path)
+                intro_html = md.convert(intro_html)
             # FIXME For some languages, TN assets are stored in .txt files
             # rather of .md files. Handle this.
             verse_paths = sorted(glob("{}/*[0-9]*.md".format(chapter_dir)))
@@ -612,9 +611,8 @@ class TNResource(TResource):
             for filepath in verse_paths:
                 verse_num = int(pathlib.Path(filepath).stem)
                 verse_content = ""
-                with open(filepath, "r", encoding="utf-8") as fin2:
-                    verse_content = fin2.read()
-                    verse_content = md.convert(verse_content)
+                verse_content = file_utils.read_file(filepath)
+                verse_content = md.convert(verse_content)
                 verses_html[verse_num] = verse_content
             chapter_payload = model.TNChapterPayload(
                 intro_html=intro_html, verses_html=verses_html
@@ -628,8 +626,8 @@ class TNResource(TResource):
         )
         book_intro_html = ""
         if book_intro_path:
-            with open(book_intro_path[0], "r", encoding="utf-8") as fin3:
-                book_intro_html = md.convert(fin3.read())
+            book_intro_html = file_utils.read_file(book_intro_path[0])
+            book_intro_html = md.convert(book_intro_html)
         self._book_payload = model.TNBookPayload(
             intro_html=model.HtmlContent(book_intro_html), chapters=chapter_verses
         )
@@ -755,15 +753,15 @@ class TQResource(TResource):
             verses_html: Dict[int, str] = {}
             for filepath in verse_paths:
                 verse_num = int(pathlib.Path(filepath).stem)
-                verse_content = ""
-                with open(filepath, "r", encoding="utf-8") as fin2:
-                    verse_content = fin2.read()
-                    # NOTE I don't think translation questions have a
-                    # 'Links:' section.
-                    # verse_content = markdown_utils.remove_md_section(
-                    #     verse_content, "Links:"
-                    # )
-                    verse_content = md.convert(verse_content)
+                verse_content = file_utils.read_file(filepath)
+                # with open(filepath, "r", encoding="utf-8") as fin2:
+                #     verse_content = fin2.read()
+                # NOTE I don't think translation questions have a
+                # 'Links:' section.
+                # verse_content = markdown_utils.remove_md_section(
+                #     verse_content, "Links:"
+                # )
+                verse_content = md.convert(verse_content)
                 verses_html[verse_num] = verse_content
             chapter_payload = model.TQChapterPayload(verses_html=verses_html)
             chapter_verses[chapter_num] = chapter_payload
@@ -883,53 +881,52 @@ class TWResource(TResource):
         filepaths = TWResource.get_translation_word_filepaths(tw_resource_dir)
         translation_words_dict: Dict[model.BaseFilename, model.TWNameContentPair] = {}
         for translation_word_file in filepaths:
-            with open(translation_word_file, "r") as fin:
-                translation_word_content = fin.read()
-                # Remember that localized word is sometimes capitalized and sometimes
-                # not. So later when we search for the localized word
-                # in translation_word_dict.keys
-                # compared to the verse we'll need to account for that.
-                # For each translation word we encounter in a verse
-                # we'll collect a link into a collection which we'll
-                # display in a translation words section after the
-                # translation questions section for that verse. Later
-                # after all verses we'll display all the translation
-                # words and each will be prepended with its anchor
-                # link. That way the links in verses will point to the
-                # word.
-                #
-                # Translation words are bidirectional. By that I
-                # mean that when you are at a verse there follows,
-                # after translation questions, links to the
-                # translation words that occur in that verse. But then
-                # when you navigate to the word by clicking the link,
-                # at the end of the translation word note there is a
-                # section called 'Uses:' that also has links to the
-                # verses wherein the word occurs. So, we need to
-                # build up a data structure that for every word
-                # collects which verses it occurs in.
-                localized_word = translation_word_content.split("\n")[0].split("# ")[1]
-                html_word_content = md.convert(translation_word_content)
-                # Make adjustments to the HTML here.
-                html_word_content = re.sub(r"h2", r"h4", html_word_content)
-                html_word_content = re.sub(r"h1", r"h3", html_word_content)
-                # We need to store both the word in English, i.e., the filename
-                # sans extension; the localized word; and the associated HTML content.
-                # Thus we'll use the localized word as key so that we can do lookups
-                # against verse content, but for the value, instead of html_word_content
-                # only, we'll store a data structure that takes html_word_content and
-                # also the English word as fields. The reason is that for non-English
-                # languages the word filenames are still in English and we need to have
-                # them to make the inter-document linking work (for
-                # the filenames), e.g., for 'See also' section references.
-                translation_word_base_filename = model.BaseFilename(
-                    pathlib.Path(translation_word_file).stem
-                )
-                translation_words_dict[
-                    translation_word_base_filename
-                ] = model.TWNameContentPair(
-                    localized_word=localized_word, content=html_word_content
-                )
+            translation_word_content = file_utils.read_file(translation_word_file)
+            # Remember that localized word is sometimes capitalized and sometimes
+            # not. So later when we search for the localized word
+            # in translation_word_dict.keys
+            # compared to the verse we'll need to account for that.
+            # For each translation word we encounter in a verse
+            # we'll collect a link into a collection which we'll
+            # display in a translation words section after the
+            # translation questions section for that verse. Later
+            # after all verses we'll display all the translation
+            # words and each will be prepended with its anchor
+            # link. That way the links in verses will point to the
+            # word.
+            #
+            # Translation words are bidirectional. By that I
+            # mean that when you are at a verse there follows,
+            # after translation questions, links to the
+            # translation words that occur in that verse. But then
+            # when you navigate to the word by clicking the link,
+            # at the end of the translation word note there is a
+            # section called 'Uses:' that also has links to the
+            # verses wherein the word occurs. So, we need to
+            # build up a data structure that for every word
+            # collects which verses it occurs in.
+            localized_word = translation_word_content.split("\n")[0].split("# ")[1]
+            html_word_content = md.convert(translation_word_content)
+            # Make adjustments to the HTML here.
+            html_word_content = re.sub(r"h2", r"h4", html_word_content)
+            html_word_content = re.sub(r"h1", r"h3", html_word_content)
+            # We need to store both the word in English, i.e., the filename
+            # sans extension; the localized word; and the associated HTML content.
+            # Thus we'll use the localized word as key so that we can do lookups
+            # against verse content, but for the value, instead of html_word_content
+            # only, we'll store a data structure that takes html_word_content and
+            # also the English word as fields. The reason is that for non-English
+            # languages the word filenames are still in English and we need to have
+            # them to make the inter-document linking work (for
+            # the filenames), e.g., for 'See also' section references.
+            translation_word_base_filename = model.BaseFilename(
+                pathlib.Path(translation_word_file).stem
+            )
+            translation_words_dict[
+                translation_word_base_filename
+            ] = model.TWNameContentPair(
+                localized_word=localized_word, content=html_word_content
+            )
 
         self._language_payload = model.TWLanguagePayload(
             translation_words_dict=translation_words_dict
