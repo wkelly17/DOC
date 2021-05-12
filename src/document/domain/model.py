@@ -265,6 +265,7 @@ class CoverPayload(BaseModel):
     """
 
     title: str
+    unfound: str
     revision_date: DateString
     images: Dict[ImageLookupKey, Union[str, bytes]]
 

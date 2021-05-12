@@ -296,7 +296,21 @@ class DocumentGenerator:
                             resource.lang_name,
                             bible_books.BOOK_NAMES[resource.resource_code],
                         )
-                        for resource in self._resources
+                        for resource in self._found_resources
+                    }
+                )
+            )
+        )
+        unfound = "{}".format(
+            ", ".join(
+                sorted(
+                    {
+                        "{}-{}-{}".format(
+                            resource.lang_code,
+                            resource.resource_type,
+                            resource.resource_code,
+                        )
+                        for resource in self._unfound_resources
                     }
                 )
             )
@@ -331,7 +345,9 @@ class DocumentGenerator:
         # Use Jinja2 to instantiate the cover page.
         cover = config.get_instantiated_template(
             "cover",
-            model.CoverPayload(title=title, revision_date=revision_date, images=images),
+            model.CoverPayload(
+                title=title, unfound=unfound, revision_date=revision_date, images=images
+            ),
         )
         logger.debug("cover: {}".format(cover))
         with open(os.path.join(config.get_working_dir(), "cover.html"), "w") as fout:
