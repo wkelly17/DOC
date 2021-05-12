@@ -69,7 +69,7 @@ def load_json_object(file_name: pathlib.Path) -> List:
 )
 def load_yaml_object(file_name: str) -> Dict:
     """
-    Deserialized YAML file <file_name> into a Python dict.
+    Deserialize YAML file <file_name> into a Python dict.
     :param file_name: The name of the file to read
     """
     return yaml.safe_load(read_file(file_name))

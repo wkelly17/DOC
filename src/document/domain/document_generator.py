@@ -362,7 +362,7 @@ class DocumentGenerator:
         )
         logger.debug("IN_CONTAINER: {}".format(os.environ.get("IN_CONTAINER")))
         if os.environ.get("IN_CONTAINER"):
-            logger.info("About to cp PDF to /output")
+            logger.info("About to cp PDF to Docker bind mount on host")
             logger.debug("Copy PDF command: {}".format(copy_command))
             subprocess.call(copy_command, shell=True)
 
@@ -398,7 +398,7 @@ class DocumentGenerator:
             else:
                 logger.info("{} was not found".format(resource))
                 # Keep a list of unfound resources so that we can use
-                # it for reporting.
+                # it for reporting or retrying.
                 self._unfound_resources.append(resource)
 
     @icontract.require(lambda self: self._found_resources)
@@ -415,8 +415,9 @@ class DocumentGenerator:
         self, document_request: model.DocumentRequest
     ) -> List[Resource]:
         """
-        Given a DocumentRequest instance, return a list of Resource
-        objects.
+        Given a DocumentRequest, return a list of a Resource
+        instances, one for each ResourceRequest in the
+        DocumentRequest.
         """
         resources: List[Resource] = []
         for resource_request in document_request.resource_requests:
