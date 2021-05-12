@@ -139,6 +139,71 @@ def _assembly_sub_strategy_factory(
         ): _assemble_usfm_as_iterator_content_by_verse,
         (
             True,
+            False,
+            True,
+            False,
+            False,
+            True,
+            model.AssemblySubstrategyEnum.VERSE,
+        ): _assemble_usfm_as_iterator_content_by_verse,
+        (
+            True,
+            False,
+            False,
+            True,
+            False,
+            True,
+            model.AssemblySubstrategyEnum.VERSE,
+        ): _assemble_usfm_as_iterator_content_by_verse,
+        (
+            True,
+            True,
+            False,
+            False,
+            False,
+            True,
+            model.AssemblySubstrategyEnum.VERSE,
+        ): _assemble_usfm_as_iterator_content_by_verse,
+        (
+            True,
+            True,
+            False,
+            True,
+            False,
+            True,
+            model.AssemblySubstrategyEnum.VERSE,
+        ): _assemble_usfm_as_iterator_content_by_verse,
+        (
+            True,
+            False,
+            True,
+            True,
+            False,
+            True,
+            model.AssemblySubstrategyEnum.VERSE,
+        ): _assemble_usfm_as_iterator_content_by_verse,
+        (
+            True,
+            False,
+            False,
+            False,
+            False,
+            True,
+            model.AssemblySubstrategyEnum.VERSE,
+            # ): _assemble_usfm_tn_tq_usfm2_content_by_verse,
+        ): _assemble_usfm_as_iterator_content_by_verse,
+        (
+            False,
+            False,
+            False,
+            False,
+            False,
+            True,
+            model.AssemblySubstrategyEnum.VERSE,
+            # ): _assemble_usfm_tn_tq_usfm2_content_by_verse,
+        ): _assemble_usfm_as_iterator_content_by_verse,
+        (
+            True,
             True,
             True,
             True,
@@ -370,7 +435,7 @@ def _assemble_content_by_lang_then_book(
                 )
             )
 
-            # Save grouper generator since it will get exhausted
+            # Save grouper generator values in list since it will get exhausted
             # when used and exhausted generators cannot be reused.
             resources = list(group_by_book)
             usfm_resource: Optional[USFMResource] = _get_first_usfm_resource(resources)
@@ -416,60 +481,83 @@ def _assemble_content_by_lang_then_book(
     return "\n".join(html)
 
 
-########################################################################
-## Assembly sub-strategy implementations
-##
-## Possible combinations with usfm (e.g., ulb, ulb-wa, cuv, nav, etc), tn,
-## tq, tw, usfm2 (e.g., udb):
-##
-# | usfm | tn | tq | tw | usfm2 | combination as string | complete | unit test |
-# |------+----+----+----+-------+-----------------------+----------+-----------|
-# |    0 |  0 |  0 |  0 |     1 | usfm2                 |          |           |
-# |    0 |  0 |  0 |  1 |     0 | tw                    | y        | y         |
-# |    0 |  0 |  0 |  1 |     1 | tw,usfm2              |          |           |
-# |    0 |  0 |  1 |  0 |     0 | tq                    | y        | y         |
-# |    0 |  0 |  1 |  0 |     1 | tq,usfm22             |          |           |
-# |    0 |  0 |  1 |  1 |     0 | tq,tw                 | y        | y         |
-# |    0 |  0 |  1 |  1 |     1 | tq,tw,usfm2           |          |           |
-# |    0 |  1 |  0 |  0 |     0 | tn                    | y        | y         |
-# |    0 |  1 |  0 |  0 |     1 | tn,usfm2              |          |           |
-# |    0 |  1 |  0 |  1 |     0 | tn,tw                 | y        | y         |
-# |    0 |  1 |  0 |  1 |     1 | tn,tw,usfm2           |          |           |
-# |    0 |  1 |  1 |  0 |     0 | tn,tq                 | y        | y         |
-# |    0 |  1 |  1 |  0 |     1 | tn,tq,usfm2           |          |           |
-# |    0 |  1 |  1 |  1 |     0 | tn,tq,tw              | y        | y         |
-# |    0 |  1 |  1 |  1 |     1 | tn,tq,tw,usfm2        |          |           |
-# |    1 |  0 |  0 |  0 |     0 | usfm                  | y        | y         |
-# |    1 |  0 |  0 |  0 |     1 | usfm,usfm2            |          |           |
-# |    1 |  0 |  0 |  1 |     0 | usfm,tw               | y        | y         |
-# |    1 |  0 |  0 |  1 |     1 | usfm,tw,usfm2         |          |           |
-# |    1 |  0 |  1 |  0 |     0 | usfm,tq               | y        | y         |
-# |    1 |  0 |  1 |  0 |     1 | usfm,tq,usfm2         |          |           |
-# |    1 |  0 |  1 |  1 |     0 | usfm,tq,tw            | y        | y         |
-# |    1 |  0 |  1 |  1 |     1 | usfm,tq,tw,usfm2      |          |           |
-# |    1 |  1 |  0 |  0 |     0 | usfm,tn               | y        | y         |
-# |    1 |  1 |  0 |  0 |     1 | usfm,tn,usfm2         |          |           |
-# |    1 |  1 |  0 |  1 |     0 | usfm,tn,tw            | y        | y         |
-# |    1 |  1 |  0 |  1 |     1 | usfm,tn,tw,usfm2      |          |           |
-# |    1 |  1 |  1 |  0 |     0 | usfm,tn,tq            | y        | y         |
-# |    1 |  1 |  1 |  0 |     1 | usfm,tn,tq,usfm2      |          |           |
-# |    1 |  1 |  1 |  1 |     0 | usfm,tn,tq,tw         | y        | y         |
-# |    1 |  1 |  1 |  1 |     1 | usfm,tn,tq,tw,usfm2   | y        | y         |
+#############################################
+# Assembly sub-strategy implementations
+#
+# Possible combinations with usfm (e.g., ulb, ulb-wa, cuv, nav, etc), tn,
+# tq, tw, usfm2 (e.g., udb):
+#
+#
+#  | usfm | tn | tq | tw | usfm2 | combination as string | complete | unit test | comment    |
+#  |------+----+----+----+-------+-----------------------+----------+-----------+------------|
+#  |    0 |  0 |  0 |  0 |     1 | usfm2                 | y        | y         | See note * |
+#  |    0 |  0 |  0 |  1 |     0 | tw                    | y        | y         |            |
+#  |    0 |  0 |  0 |  1 |     1 | tw,usfm2              | y        | y         | See note * |
+#  |    0 |  0 |  1 |  0 |     0 | tq                    | y        | y         |            |
+#  |    0 |  0 |  1 |  0 |     1 | tq,usfm2              | y        | y         | See note * |
+#  |    0 |  0 |  1 |  1 |     0 | tq,tw                 | y        | y         |            |
+#  |    0 |  0 |  1 |  1 |     1 | tq,tw,usfm2           | y        | y         | See note * |
+#  |    0 |  1 |  0 |  0 |     0 | tn                    | y        | y         |            |
+#  |    0 |  1 |  0 |  0 |     1 | tn,usfm2              | y        | y         | See note * |
+#  |    0 |  1 |  0 |  1 |     0 | tn,tw                 | y        | y         |            |
+#  |    0 |  1 |  0 |  1 |     1 | tn,tw,usfm2           | y        | y         | See note * |
+#  |    0 |  1 |  1 |  0 |     0 | tn,tq                 | y        | y         |            |
+#  |    0 |  1 |  1 |  0 |     1 | tn,tq,usfm2           | y        | y         | See note * |
+#  |    0 |  1 |  1 |  1 |     0 | tn,tq,tw              | y        | y         |            |
+#  |    0 |  1 |  1 |  1 |     1 | tn,tq,tw,usfm2        | y        | y         | See note * |
+#  |    1 |  0 |  0 |  0 |     0 | usfm                  | y        | y         |            |
+#  |    1 |  0 |  0 |  0 |     1 | usfm,usfm2            | y        | y         |            |
+#  |    1 |  0 |  0 |  1 |     0 | usfm,tw               | y        | y         |            |
+#  |    1 |  0 |  0 |  1 |     1 | usfm,tw,usfm2         | y        | y         |            |
+#  |    1 |  0 |  1 |  0 |     0 | usfm,tq               | y        | y         |            |
+#  |    1 |  0 |  1 |  0 |     1 | usfm,tq,usfm2         | y        | y         |            |
+#  |    1 |  0 |  1 |  1 |     0 | usfm,tq,tw            | y        | y         |            |
+#  |    1 |  0 |  1 |  1 |     1 | usfm,tq,tw,usfm2      | y        | y         |            |
+#  |    1 |  1 |  0 |  0 |     0 | usfm,tn               | y        | y         |            |
+#  |    1 |  1 |  0 |  0 |     1 | usfm,tn,usfm2         | y        | y         |            |
+#  |    1 |  1 |  0 |  1 |     0 | usfm,tn,tw            | y        | y         |            |
+#  |    1 |  1 |  0 |  1 |     1 | usfm,tn,tw,usfm2      | y        | y         |            |
+#  |    1 |  1 |  1 |  0 |     0 | usfm,tn,tq            | y        | y         |            |
+#  |    1 |  1 |  1 |  0 |     1 | usfm,tn,tq,usfm2      | y        | y         |            |
+#  |    1 |  1 |  1 |  1 |     0 | usfm,tn,tq,tw         | y        | y         |            |
+#  |    1 |  1 |  1 |  1 |     1 | usfm,tn,tq,tw,usfm2   | y        | y         |            |
+#
+# Note *:
+#
+# If there is only one USFM resource requested then the assembly
+# strategy algo, via _get_first_usfm_resource, puts that USFM resource
+# in usfm_resource position rather than usfm_resource2 position. If two
+# USFM resources are requested then the second one in the
+# DocumentRequest gets put in usfm_resource2 position. Only the first
+# USFM resource in the DocumentRequest has any subsequent TN, TQ, TW,
+# and TA resources referencing it. A second USFMResource, e.g., udb,
+# stands alone without referencing resources. This seems to work out
+# fine in practice, but may be changed later by forcing usfm_resource to
+# be of a particular resource_type, e.g., ulb, cuv, nav, and
+# usfm_resource2 to be of another, e.g., udb. This change could be
+# accomplished by modifying _get_first_usfm_resource and
+# _get_second_usfm_resource.
 
-# Experiment: add conditional logic to avoid so many functions
+
 def _assemble_usfm_as_iterator_content_by_verse(
-    usfm_resource: Optional[USFMResource],  # e.g., ulb, cuv, nav, etc.
+    usfm_resource: Optional[USFMResource],
     tn_resource: Optional[TNResource],
     tq_resource: Optional[TQResource],
     tw_resource: Optional[TWResource],
     ta_resource: Optional[TAResource],
-    usfm_resource2: Optional[USFMResource],  # e.g., udb
+    usfm_resource2: Optional[USFMResource],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> model.HtmlContent:
     """
-    Construct the HTML for a 'by verse' strategy wherein USFM (e.g.,
-    ulb, nav, cuv, etc.) exists, and TN, TQ, TW, and a second USFM (e.g.,
-    probably always udb) may exist.
+    Construct the HTML for a 'by verse' strategy wherein at least one
+    USFM resource (e.g., ulb, nav, cuv, etc.) exists, and TN, TQ, TW,
+    and a second USFM (e.g., probably always udb) may exist. If only
+    one USFM exists then it will be used as the first
+    USFM resource even if it is of udb resource type. Non-USFM
+    resources, e.g., TN, TQ, TW, and TA will reference (and link where
+    applicable) the first USFM resource and come after it in the
+    interleaving strategy. The second USFM resource is displayed last
+    in this interleaving strategy.
     """
 
     _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
@@ -560,6 +648,14 @@ def _assemble_usfm_as_iterator_content_by_verse(
             html.extend(linked_translation_words)
 
     if usfm_resource2:
+        # Scripture type for usfm_resource2, e.g., udb
+        html.append(
+            model.HtmlContent(
+                config.get_html_format_string("resource_type_name").format(
+                    usfm_resource2.resource_type_name
+                )
+            )
+        )
         # Add the usfm_resource2, e.g., udb, scripture verses.
         for chapter_num, chapter in usfm_resource2.chapters_content.items():
             # Add in the USFM chapter heading.
@@ -832,85 +928,114 @@ def _assemble_usfm_as_iterator_content_by_verse(
 #     return model.HtmlContent("\n".join(html))
 
 
-    usfm_resource: Optional[USFMResource],
-    tn_resource: Optional[TNResource],
-    tq_resource: Optional[TQResource],
-    tw_resource: Optional[TWResource],
-    ta_resource: Optional[TAResource],
-    usfm_resource2: Optional[USFMResource],
-    assembly_substrategy_kind: model.AssemblySubstrategyEnum,
-) -> model.HtmlContent:
-    """
-    Construct the HTML for a 'by verse' strategy wherein USFM, TN, and
-    TW exist.
-    """
-    usfm_resource = cast(
-        USFMResource, usfm_resource
-    )  # Make mypy happy. We know, due to how we got here, that usfm_resource object is not None.
-    tn_resource = cast(
-        TNResource, tn_resource
-    )  # Make mypy happy. We know, due to how we got here, that tn_resource object is not None.
-    tw_resource = cast(
-        TWResource, tw_resource
-    )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
+# FIXME TA resource support is not correctly implemented, this is just
+# a crude WIP for the future.
+# def _assemble_usfm_tn_tq_tw_ta_content_by_verse(
+#     usfm_resource: Optional[USFMResource],
+#     tn_resource: Optional[TNResource],
+#     tq_resource: Optional[TQResource],
+#     tw_resource: Optional[TWResource],
+#     ta_resource: Optional[TAResource],
+#     usfm_resource2: Optional[USFMResource],
+#     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
+# ) -> model.HtmlContent:
+#     """
+#     Construct the HTML for a 'by verse' strategy wherein USFM, TN, TQ,
+#     TA, and TW exist.
+#     """
+#     usfm_resource = cast(
+#         USFMResource, usfm_resource
+#     )  # Make mypy happy. We know, due to how we got here, that usfm_resource object is not None.
+#     tn_resource = cast(
+#         TNResource, tn_resource
+#     )  # Make mypy happy. We know, due to how we got here, that tn_resource object is not None.
+#     tq_resource = cast(
+#         TQResource, tq_resource
+#     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
+#     tw_resource = cast(
+#         TWResource, tw_resource
+#     )  # Make mypy happy. We know, due to how we got here, that tw_resource object is not None.
+#     ta_resource = cast(
+#         TAResource, ta_resource
+#     )  # Make mypy happy. We know, due to how we got here, that ta_resource object is not None.
 
-    _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
+#     _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
 
-    html: List[model.HtmlContent] = []
-    book_intro = tn_resource.book_payload.intro_html
-    book_intro = _adjust_book_intro_headings(book_intro)
-    html.append(model.HtmlContent(book_intro))
+#     html: List[model.HtmlContent] = []
+#     book_intro = tn_resource.book_payload.intro_html
+#     book_intro = _adjust_book_intro_headings(book_intro)
+#     html.append(model.HtmlContent(book_intro))
 
-    # PEP526 disallows declaration of types in for loops, but allows this.
-    chapter_num: model.ChapterNum
-    chapter: model.USFMChapter
-    # Dict keys need to be sorted as their order is otherwise not guaranteed.
-    for chapter_num, chapter in sorted(usfm_resource.chapters_content.items()):
-        # Add in the USFM chapter heading.
-        chapter_heading = model.HtmlContent("")
-        chapter_heading = chapter.chapter_content[0]
-        html.append(chapter_heading)
-        # Add the translation notes chapter intro.
-        chapter_intro = _get_chapter_intro(tn_resource, chapter_num)
-        html.append(chapter_intro)
+#     # PEP526 disallows declaration of types in for loops, but allows this.
+#     chapter_num: model.ChapterNum
+#     chapter: model.USFMChapter
+#     for chapter_num, chapter in usfm_resource.chapters_content.items():
+#         # Add in the USFM chapter heading.
+#         chapter_heading = model.HtmlContent("")
+#         chapter_heading = chapter.chapter_content[0]
+#         html.append(chapter_heading)
+#         # Add the translation notes chapter intro.
+#         chapter_intro = _get_chapter_intro(tn_resource, chapter_num)
+#         html.append(chapter_intro)
 
-        tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
-        # PEP526 disallows declaration of types in for
-        # loops, but allows this.
-        verse_num: model.VerseNum
-        verse: model.HtmlContent
-        # Now let's interleave USFM verse with its translation note, translation
-        # questions, and translation words if available.
-        for verse_num, verse in sorted(chapter.chapter_verses.items()):
-            # Add header
-            html.append(
-                model.HtmlContent(
-                    config.get_html_format_string("verse").format(
-                        chapter_num, verse_num
-                    )
-                )
-            )
-            # Add verse
-            html.append(verse)
-            # Add TN verse content, if any
-            if tn_verses and verse_num in tn_verses:
-                tn_verse_content = _format_tn_verse(
-                    chapter_num, verse_num, tn_verses[verse_num]
-                )
-                html.extend(tn_verse_content)
-            # Add the translation words links section
-            translation_word_links_html = tw_resource.get_translation_word_links(
-                chapter_num, verse_num, verse,
-            )
-            html.extend(translation_word_links_html)
-        # Add scripture footnotes if available
-        if chapter.chapter_footnotes:
-            html.append(config.get_html_format_string("footnotes"))
-            html.append(chapter.chapter_footnotes)
-    # Add the translation words definition section.
-    linked_translation_words = tw_resource.get_translation_words_section()
-    html.extend(linked_translation_words)
-    return model.HtmlContent("\n".join(html))
+#         tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
+#         tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
+#         ta_verses = ta_resource.get_verses_for_chapter(chapter_num)
+
+#         # PEP526 disallows declaration of types in for
+#         # loops, but allows this.
+#         verse_num: model.VerseRef
+#         verse: model.HtmlContent
+#         # Now let's interleave USFM verse with its translation note, translation
+#         # questions, and translation words if available.
+#         for verse_num, verse in chapter.chapter_verses.items():
+#             # Add header
+#             html.append(
+#                 model.HtmlContent(
+#                     config.get_html_format_string("resource_type_name_with_ref").format(
+#                         usfm_resource.resource_type_name, chapter_num, verse_num
+#                     )
+#                 )
+#             )
+#             # Add scripture verse
+#             html.append(verse)
+#             # Add TN verse content, if any
+#             if tn_verses and verse_num in tn_verses:
+#                 tn_verse_content = _format_tn_verse(
+#                     tn_resource.resource_type_name,
+#                     chapter_num,
+#                     verse_num,
+#                     tn_verses[verse_num],
+#                 )
+#                 html.extend(tn_verse_content)
+#             # Add TQ verse content, if any
+#             if tq_verses and verse_num in tq_verses:
+#                 tq_verse_content = _format_tq_verse(
+#                     tq_resource.resource_type_name,
+#                     chapter_num,
+#                     verse_num,
+#                     tq_verses[verse_num],
+#                 )
+#                 html.extend(tq_verse_content)
+#             if ta_verses and verse_num in ta_verses:
+#                 ta_verse_content = _format_ta_verse(
+#                     chapter_num, verse_num, ta_verses[verse_num]
+#                 )
+#                 html.extend(ta_verse_content)
+
+#             # Add the translation words links section.
+#             translation_word_links_html = tw_resource.get_translation_word_links(
+#                 chapter_num, verse_num, verse,
+#             )
+#             html.extend(translation_word_links_html)
+#         # Add scripture footnotes if available
+#         if chapter.chapter_footnotes:
+#             html.append(config.get_html_format_string("footnotes"))
+#             html.append(chapter.chapter_footnotes)
+#     # Add the translation words definition section.
+#     linked_translation_words = tw_resource.get_translation_words_section()
+#     html.extend(linked_translation_words)
+#     return model.HtmlContent("\n".join(html))
 
 
 # def _assemble_usfm_tn_tq_tw_content_by_verse(
@@ -2106,6 +2231,8 @@ def _initialize_resources_html(
         tn_resource.initialize_verses_html(tw_resource_dir)
     if tq_resource:
         tq_resource.initialize_verses_html(tw_resource_dir)
+    if ta_resource:
+        ta_resource.initialize_verses_html(tw_resource_dir)
 
 
 def _format_tn_verse(
@@ -2155,14 +2282,23 @@ def _format_tq_verse(
     html.append(model.HtmlContent(re.sub(r"h1", r"h4", verse)))
     return html
 
-                chapter_num, verse_num
-            )
-        )
-    )
-    # Change H1 HTML elements to H4 HTML elements in each translation
-    # question.
-    html.append(model.HtmlContent(re.sub(r"h1", r"h4", verse)))
-    return html
+
+# FIXME TA not implemented yet
+# def _format_ta_verse(
+#     chapter_num: model.ChapterNum, verse_num: model.VerseRef, verse: model.HtmlContent
+# ) -> List[model.HtmlContent]:
+#     html: List[model.HtmlContent] = []
+#     html.append(
+#         model.HtmlContent(
+#             config.get_html_format_string("translation_academy").format(
+#                 chapter_num, verse_num
+#             )
+#         )
+#     )
+#     # Change H1 HTML elements to H4 HTML elements in each translation
+#     # question.
+#     html.append(model.HtmlContent(re.sub(r"h1", r"h4", verse)))
+#     return html
 
 
 def _get_first_usfm_resource(resources: List[Resource]) -> Optional[USFMResource]:
@@ -2171,7 +2307,20 @@ def _get_first_usfm_resource(resources: List[Resource]) -> Optional[USFMResource
     else return None.
     """
     usfm_resources = [
-        resource for resource in resources if isinstance(resource, USFMResource)
+        resource
+        for resource in resources
+        if isinstance(resource, USFMResource)
+        # NOTE If you wanted to force only certain USFM resource types
+        # in the usfm_resource position then you could do something
+        # like:
+        # resource for resource in resources if isinstance(resource,
+        # USFMResource) and resource.resource_type in ["ulb", "cuv",
+        # "nav", "ugnt", "uhb", "rsb", "f10", "blv", "ust"]
+        # You'd have to choose which USFM resource types based on
+        # which ones make sense for TN, TQ, TW, and TA to reference
+        # them.
+        # NOTE See note on _get_second_usfm_resource for what else
+        # would need to be done to support this alternative.
     ]
     return usfm_resources[0] if usfm_resources else None
 
@@ -2185,6 +2334,17 @@ def _get_second_usfm_resource(resources: List[Resource]) -> Optional[USFMResourc
         resource for resource in resources if isinstance(resource, USFMResource)
     ]
     return usfm_resources[1] if len(usfm_resources) > 1 else None
+    # NOTE This is just a sketch of what you could do if you wanted to
+    # only allow certain USFM resource types to be in usfm_resource2
+    # position in the interleaving strategy. Currently, the
+    # interleaving strategy shows usfm_resource2 at the end of other
+    # resources in each chapter, i.e., no TN, TQ, TW, or TA resource
+    # referencing it.
+    # usfm_resources = [
+    #     resource for resource in resources if isinstance(resource,
+    #     USFMResource) and resource.resource_type in ["udb"]
+    # ]
+    # return usfm_resources[0] if usfm_resources else None
 
 
 def _get_tn_resource(resources: List[Resource]) -> Optional[TNResource]:
