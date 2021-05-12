@@ -1,6 +1,5 @@
 """This module provides fixtures for e2e tests."""
 
-import json
 import itertools
 import pathlib
 import pytest
@@ -13,8 +12,16 @@ from document.utils import file_utils
 # Good enough for now. May put in config.py later.
 PASSING_NON_ENGLISH_LANG_CODES = ["pt-br", "tl", "es-419", "zh"]
 # PASSING_NON_ENGLISH_LANG_CODES = ["es-419", "zh"]
-FAILING_NON_ENGLISH_LANG_CODES = ["kbt", "aau", "tbg-x-abuhaina", "abz", "abu", "guq"]
-ALL_LANGUAGE_CODES = file_utils.load_json_object(pathlib.Path("./language_codes.json"))
+FAILING_NON_ENGLISH_LANG_CODES = [
+    "kbt",
+    "aau",
+    "tbg-x-abuhaina",
+    "abz",
+    "abu",
+    "guq",
+    "am",
+]
+# ALL_LANGUAGE_CODES = file_utils.load_json_object(pathlib.Path("./language_codes.json"))
 
 
 @pytest.fixture()
