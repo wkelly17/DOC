@@ -380,6 +380,9 @@ class USFMResourceJsonLookup(ResourceLookup):
         if resource_lookup_dto.url is None:
             resource_lookup_dto = self._try_git_repo_location(resource)
 
+        if resource_lookup_dto.url is None:
+            resource_lookup_dto = self._try_level1_location(resource)
+
         return resource_lookup_dto
 
     @icontract.require(
@@ -452,6 +455,75 @@ class USFMResourceJsonLookup(ResourceLookup):
             resource_type_name=resource_type_name,
         )
 
+    @icontract.require(
+        lambda resource: resource.lang_code is not None
+        and resource.resource_type is not None
+        and resource.resource_code is not None
+    )
+    @icontract.ensure(
+        lambda result: result.source == model.AssetSourceEnum.ZIP
+        and result.jsonpath is not None
+        # and result.lang_name
+    )
+    @log_on_start(
+        logging.INFO,
+        "About to look for resource assets URL for zipped USFM file.",
+        logger=logger,
+    )
+    @log_on_end(logging.DEBUG, "model.ResourceLookupDto: {result}", logger=logger)
+    def _try_level1_location(
+        self, resource: Resource
+    ) -> model.ResourceLookupDto:
+        """
+        If successful, return a string containing the URL of USFM
+        file, otherwise None.
+        """
+        # Many languages have a git repo found by
+        # format='Download' that is parallel to the
+        # individual, per book, USFM files.
+        #
+        # There is at least one language, code='ar', that has only
+        # single USFM files. In that particular language all the
+        # individual USFM files per book can also be found in a zip
+        # file,
+        # $[?code='ar'].contents[?code='nav'].links[format='zip'],
+        # which also contains the manifest.yaml file.
+        # That language is the only one with a
+        # contents[?code='nav'].
+        #
+        # Another, yet different, example is the case of
+        # $[?code="avd"] which has format="usfm" without
+        # having a zip containing USFM files at the same level.
+        url: Optional[str] = None
+        jsonpath_str = config.get_resource_url_level1_jsonpath().format(
+            resource.lang_code, resource.resource_type, resource.resource_code,
+        )
+        urls: List[str] = self._lookup(jsonpath_str)
+        if urls:
+            url = urls[0]
+        lang_name_jsonpath_str = config.get_resource_lang_name_jsonpath().format(
+            resource.lang_code
+        )
+        lang_name_lst: List[str] = self._lookup(lang_name_jsonpath_str)
+        if lang_name_lst:
+            lang_name = lang_name_lst[0]
+        else:
+            lang_name = ""
+        resource_type_name_jsonpath_str = config.get_resource_type_name_jsonpath().format(
+            resource.lang_code, resource.resource_type
+        )
+        resource_type_name_lst: List[str] = self._lookup(resource_type_name_jsonpath_str)
+        if resource_type_name_lst:
+            resource_type_name = resource_type_name_lst[0]
+        else:
+            resource_type_name = ""
+        return model.ResourceLookupDto(
+            url=url,
+            source=model.AssetSourceEnum.ZIP,
+            jsonpath=jsonpath_str,
+            lang_name=lang_name,
+            resource_type_name=resource_type_name,
+        )
 
 class TResourceJsonLookup(ResourceLookup):
     """Handle lookup of TN, TA, TQ, TW resources."""
