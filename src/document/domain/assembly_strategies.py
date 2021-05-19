@@ -391,12 +391,6 @@ def _assemble_content_by_lang_then_book(
     delegating more atomic ordering/interleaving to an assembly
     sub-strategy.
     """
-    # NOTE: For now we are ignoring links that may be presented. I
-    # hope to handle their transformations with a Markdown extension
-    # plugin rather than the legacy way of doing regexp search and
-    # replace on markdown content that has been concatenated. So we'll
-    # transform them at the time the markdown is converted to HTML.
-
     # NOTE Each strategy can interleave resource material the way it
     # wants. A user could choose a strategy they want at the front
     # end. Presumably, we could offer the user such strategies from a

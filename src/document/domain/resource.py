@@ -425,8 +425,6 @@ class USFMResource(Resource):
             # Recreate the verse range, now without leading
             # zeroes.
             verse_num = "{}-{}".format(str(verse_num_int), str(verse_num2_int))
-
-            # NOTE Would have to pass in chapter_num to use this.
             logger.debug(
                 "chapter_num: {}, verse_num is a verse range: {}".format(
                     chapter_num, verse_num

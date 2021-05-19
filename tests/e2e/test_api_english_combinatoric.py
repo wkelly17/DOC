@@ -9,15 +9,6 @@ from document.entrypoints.app import app
 ## Long running tests ##
 ########################
 
-# These are set to skip for the default case as
-# they really take a long time to run since they are testing many
-# different combinations of languages, resource types, and resource
-# codes. We run them to ensure combinations work, obviously, but also
-# to unearth combinations that do not work and then add them to a
-# scheme for testing known failure combos together. Such a scheme
-# currently is the use of PASSING_NON_ENGLISH_LANG_CODES and
-# FAILING_NON_ENGLISH_LANG_CODES for example.
-
 
 def test_english_variable_resource_type_combos_for_all_books(
     english_document_request: model.DocumentRequest,

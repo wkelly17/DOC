@@ -180,11 +180,6 @@ def get_icon_url() -> str:
     # return "https://static1.squarespace.com/static/591e003db8a79bd6e6c9ffae/t/5e306da5898d7b14b76889dd/1600444722464/?format=1500w"
 
 
-# def get_markdown_resource_types() -> List[str]:
-#     """ Get the resource types that can have a Markdown file. """
-#     return ["tn", "tq", "tw", "ta", "tn-wa", "tq-wa", "tw-wa", "ta-wa"]
-
-
 # FIXME Fix literal paths now that directory organization has changed
 def get_tex_format_location() -> str:
     """
