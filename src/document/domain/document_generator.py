@@ -376,6 +376,10 @@ class DocumentGenerator:
         """Provide public access method for other modules."""
         return self._document_request_key
 
+    @property
+    def found_resources(self) -> List[Resource]:
+        return self._found_resources
+
     @icontract.require(lambda self: self._resources)
     @icontract.snapshot(
         lambda self: len(self._found_resources), name="len_found_resources"

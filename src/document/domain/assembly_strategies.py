@@ -401,7 +401,7 @@ def _assemble_content_by_lang_then_book(
     # wanted was TN for Swahili and nothing else.
 
     resources_sorted_by_language = sorted(
-        docgen._found_resources, key=lambda resource: resource.lang_name,
+        docgen.found_resources, key=lambda resource: resource.lang_name,
     )
     html = []
     language: str
