@@ -333,6 +333,11 @@ class DocumentGenerator:
             "outline": None,  # Produce an outline
             "outline-depth": "3",  # Only go depth of 3 on the outline
             "enable-internal-links": None,  # enable internal links
+            "header-left": "[section]",
+            "header-right": "[subsection]",
+            "header-line": None,  # Produce a line under the header
+            "footer-center": "[page]",
+            "footer-line": None,  # Produce a line above the footer
         }
         with open(config.get_logo_image_path(), "rb") as fin:
             base64_encoded_logo_image = base64.b64encode(fin.read())
