@@ -350,9 +350,9 @@ class DocumentGenerator:
             ),
         )
         logger.debug("cover: {}".format(cover))
-        with open(os.path.join(config.get_working_dir(), "cover.html"), "w") as fout:
-            fout.write(cover)
         cover_filepath = os.path.join(config.get_working_dir(), "cover.html")
+        with open(cover_filepath, "w") as fout:
+            fout.write(cover)
         pdfkit.from_file(
             html_file_path, output_pdf_file_path, options=options, cover=cover_filepath
         )
