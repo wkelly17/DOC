@@ -322,6 +322,7 @@ class DocumentGenerator:
         output_pdf_file_path = "{}.pdf".format(
             os.path.join(self._working_dir, self._document_request_key)
         )
+        # For options see https://wkhtmltopdf.org/usage/wkhtmltopdf.txt
         options = {
             "page-size": "Letter",
             # 'margin-top': '0.75in',

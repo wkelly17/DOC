@@ -9,6 +9,11 @@ from document.entrypoints.app import app
 ## Randomized combinatoric (wrt languags, resource types, and resource codes  tests) ##
 #######################################################################################
 
+# Useful to unearth combinations that (possibly) do not work (because
+# no test has been run on them until now). Such failing tests can then
+# be added as permanent non-random tests so that regressions are
+# avoided.
+
 
 def test_random_non_english_fixtures(
     random_non_english_document_request: model.DocumentRequest,

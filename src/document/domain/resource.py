@@ -1017,14 +1017,17 @@ class TWResource(TResource):
             base_filename,
             tw_name_content_pair,
         ) in self._language_payload.translation_words_dict.items():
-            # NOTE If we un-comment the commented out if conditional logic
-            # on the next commented line and remove the same conditional logic which
-            # occurs later in this same function, we will only include words in the
+            # NOTE Another approach to including all translation words
+            # would be to only include words in the
             # translation section which occur in current lang_code, book. The
             # problem, I found, with this is that translation note 'See also'
             # sections often refer to translation words that are not part of the
             # lang_code, book combination content and thus those links are dead
             # unless we include them even if they don't have any 'Uses' section.
+            # In other words, by limiting the translation words we
+            # limit the ability of those using the interleaved
+            # document to gain deeper understanding of the
+            # interrelationships of words.
 
             # Make linking work.
             tw_name_content_pair.content = model.HtmlContent(

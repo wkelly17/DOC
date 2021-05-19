@@ -34,6 +34,12 @@ class TranslationWordLinkPreprocessor(Preprocessor):
         self.md = md
         self.lang_code = lang_code
         self.tw_resource_dir = tw_resource_dir
+        # FIXME A conditional on self.tw_resoruce_dir will obviate the
+        # cast for mypy. If you go this route then you can initialize
+        # self.translation_word_filepaths and
+        # self.translation_words_dict to empty data structures first
+        # and then only update them if their dependencies are not
+        # None.
         self.translation_word_filepaths = (
             TWResource.get_translation_word_filepaths(cast(str, self.tw_resource_dir))
             if tw_resource_dir
