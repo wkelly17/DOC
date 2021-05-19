@@ -330,9 +330,9 @@ class DocumentGenerator:
             # 'margin-left': '0.75in',
             "encoding": "UTF-8",
             "load-error-handling": "ignore",
-            "outline": "",  # Produce an outline
+            "outline": None,  # Produce an outline
             "outline-depth": "3",  # Only go depth of 3 on the outline
-            "enable-internal-links": "",  # enable internal links
+            "enable-internal-links": None,  # enable internal links
         }
         with open(config.get_logo_image_path(), "rb") as fin:
             base64_encoded_logo_image = base64.b64encode(fin.read())
