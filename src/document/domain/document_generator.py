@@ -24,7 +24,7 @@ from typing import Callable, Dict, List, Optional, Tuple, Union
 import icontract
 
 from document import config
-from document.domain import assembly_strategies, bible_books, model, resource_lookup
+from document.domain import assembly_strategies, bible_books, model
 from document.domain.resource import (
     resource_factory,
     Resource,
