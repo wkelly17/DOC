@@ -1084,48 +1084,150 @@ class TWResource(TResource):
         return model.HtmlContent("\n".join(html))
 
 
+# FIXME The implementation was just a quick template based off of
+# TQResource, but needs to change a LOT. It is wildly incorrect and
+# just a placeholder.
 class TAResource(TResource):
     """
     This class specializes Resource for the case of a Translation
     Answers resource.
     """
 
+    # @log_on_start(
+    #     logging.INFO, "Processing Translation Academy Markdown...", logger=logger
+    # )
+    # def get_content(self) -> None:
+    #     """See docstring in superclass."""
+    #     self._get_ta_markdown()
+    #     self._transform_content()
+
+    # def _get_ta_markdown(self) -> None:
+    #     # TODO localization
+    #     ta_md = '<a id="ta-{}"/>\n# Translation Topics\n\n'.format(self._book_id)
+    #     sorted_rcs = sorted(
+    #         # resource["my_rcs"],
+    #         # key=lambda k: resource["resource_data"][k]["title"].lower()
+    #         self._my_rcs,
+    #         key=lambda k: self._resource_data[k]["title"].lower(),
+    #     )
+    #     for rc in sorted_rcs:
+    #         if "/ta/" not in rc:
+    #             continue
+    #         # if resource["resource_data"][rc]["text"]:
+    #         if self._resource_data[rc]["text"]:
+    #             # md = resource["resource_data"][rc]["text"]
+    #             md = self._resource_data[rc]["text"]
+    #         else:
+    #             md = ""
+    #         # id_tag = '<a id="{}"/>'.format(resource["resource_data"][rc]["id"])
+    #         id_tag = '<a id="{}"/>'.format(self._resource_data[rc]["id"])
+    #         md = re.compile(r"# ([^\n]+)\n").sub(r"# \1\n{}\n".format(id_tag), md, 1)
+    #         md = markdown_utils.increase_headers(md)
+    #         md += link_utils.get_uses(self._rc_references, rc)
+    #         md += "\n\n"
+    #         ta_md += md
+    #     logger.debug("ta_md is {0}".format(ta_md))
+    #     self._content = ta_md
+    #     # return ta_md
+
+    def __init__(self, *args, **kwargs) -> None:  # type: ignore
+        super().__init__(*args, **kwargs)
+        self._book_payload: model.TABookPayload
+
     @log_on_start(
         logging.INFO, "Processing Translation Academy Markdown...", logger=logger
     )
     def get_content(self) -> None:
-        """See docstring in superclass."""
-        self._get_ta_markdown()
-        self._transform_content()
+        """
+        Get Markdown content from this resource's file assets. Then do
+        some manipulation of said Markdown content according to the
+        needs of the document output. Then convert the Markdown content
+        into HTML content.
+        """
 
-    def _get_ta_markdown(self) -> None:
-        # TODO localization
-        ta_md = '<a id="ta-{}"/>\n# Translation Topics\n\n'.format(self._book_id)
-        sorted_rcs = sorted(
-            # resource["my_rcs"],
-            # key=lambda k: resource["resource_data"][k]["title"].lower()
-            self._my_rcs,
-            key=lambda k: self._resource_data[k]["title"].lower(),
+        self._initialize_from_assets()
+        # self._initialize_verses_html()
+
+    @property
+    def book_payload(self) -> model.TABookPayload:
+        """Provide public interface for other modules."""
+        return self._book_payload
+
+    @log_on_start(
+        logging.DEBUG, "self._resource_dir: {self._resource_dir}", logger=logger
+    )
+    def _initialize_from_assets(self) -> None:
+        """See docstring in superclass."""
+        self._manifest = Manifest(self)
+
+    @log_on_start(
+        logging.INFO,
+        "About to convert TA Markdown to HTML with Markdown extension",
+        logger=logger,
+    )
+    def initialize_verses_html(self, ta_resource_dir: Optional[str]) -> None:
+        """
+        Find translation academy for the verses.
+        """
+        # Create the Markdown instance once and have it use our markdown
+        # extensions.
+        md = markdown.Markdown(
+            extensions=[
+                wikilink_preprocessor.WikiLinkExtension(),
+                remove_section_preprocessor.RemoveSectionExtension(),
+                translation_word_link_preprocessor.TranslationWordLinkExtension(
+                    lang_code={self.lang_code: "Language code for resource"},
+                    tw_resource_dir={
+                        ta_resource_dir: "Paths to translation words markdown files"
+                    },
+                ),
+            ]
         )
-        for rc in sorted_rcs:
-            if "/ta/" not in rc:
-                continue
-            # if resource["resource_data"][rc]["text"]:
-            if self._resource_data[rc]["text"]:
-                # md = resource["resource_data"][rc]["text"]
-                md = self._resource_data[rc]["text"]
-            else:
-                md = ""
-            # id_tag = '<a id="{}"/>'.format(resource["resource_data"][rc]["id"])
-            id_tag = '<a id="{}"/>'.format(self._resource_data[rc]["id"])
-            md = re.compile(r"# ([^\n]+)\n").sub(r"# \1\n{}\n".format(id_tag), md, 1)
-            md = markdown_utils.increase_headers(md)
-            md += link_utils.get_uses(self._rc_references, rc)
-            md += "\n\n"
-            ta_md += md
-        logger.debug("ta_md is {0}".format(ta_md))
-        self._content = ta_md
-        # return ta_md
+        # FIXME We can likely now remove the first '**'
+        chapter_dirs = sorted(
+            glob("{}/**/*{}/*[0-9]*".format(self._resource_dir, self._resource_code))
+        )
+        # Some languages are organized differently on disk (e.g., depending
+        # on if their assets were acquired as a git repo or a zip).
+        # We handle this here.
+        if not chapter_dirs:
+            # FIXME We can likely now remove the first '**'
+            chapter_dirs = sorted(
+                glob("{}/*{}/*[0-9]*".format(self._resource_dir, self._resource_code))
+            )
+        chapter_verses: Dict[int, model.TAChapterPayload] = {}
+        for chapter_dir in chapter_dirs:
+            chapter_num = int(os.path.split(chapter_dir)[-1])
+            # FIXME For some languages, TQ assets are stored in .txt files
+            # rather of .md files. Handle this.
+            verse_paths = sorted(glob("{}/*[0-9]*.md".format(chapter_dir)))
+            verses_html: Dict[int, str] = {}
+            for filepath in verse_paths:
+                verse_num = int(pathlib.Path(filepath).stem)
+                verse_content = file_utils.read_file(filepath)
+                # with open(filepath, "r", encoding="utf-8") as fin2:
+                #     verse_content = fin2.read()
+                # NOTE I don't think translation questions have a
+                # 'Links:' section.
+                # verse_content = markdown_utils.remove_md_section(
+                #     verse_content, "Links:"
+                # )
+                verse_content = md.convert(verse_content)
+                verses_html[verse_num] = verse_content
+            chapter_payload = model.TAChapterPayload(verses_html=verses_html)
+            chapter_verses[chapter_num] = chapter_payload
+        self._book_payload = model.TABookPayload(chapters=chapter_verses)
+
+    def get_verses_for_chapter(
+        self, chapter_num: model.ChapterNum
+    ) -> Optional[Dict[model.VerseRef, model.HtmlContent]]:
+        """
+        Return the HTML for verses in chapter_num.
+        """
+        verses_html = None
+        if chapter_num in self.book_payload.chapters:
+            verses_html = self.book_payload.chapters[chapter_num].verses_html
+        return verses_html
 
 
 def resource_factory(

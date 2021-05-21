@@ -402,6 +402,7 @@ def get_html_format_string(lookup_key: str) -> model.HtmlContent:
         # just TN
         "tn_only_chapter_header": '<h2 class="c-num" id="{}-{}-ch-{}">Chapter {}</h2>',
         "translation_question": "<h3>Translation question {}:{}</h3>",
+        "translation_academy": "<h3>Translation academy {}:{}</h3>",
         "unordered_list_begin": "<ul>",
         "unordered_list_end": "</ul>",
         "translation_word_list_item": '<li><a href="#{}-{}">{}</a></li>',

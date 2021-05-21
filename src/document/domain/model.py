@@ -239,6 +239,24 @@ class TWLanguagePayload(BaseModel):
     uses: Dict[BaseFilename, List[TWUse]] = {}
 
 
+class TAChapterPayload(BaseModel):
+    """
+    A class to hold a list of its verses translation questions HTML
+    content.
+    """
+
+    verses_html: Dict[VerseRef, HtmlContent]
+
+
+class TABookPayload(BaseModel):
+    """
+    A class to hold a list of its chapters translation questions HTML
+    content.
+    """
+
+    chapters: Dict[ChapterNum, TAChapterPayload]
+
+
 class USFMChapter(BaseModel):
     """
     A class to hold the USFM converted to HTML content for a chapter
