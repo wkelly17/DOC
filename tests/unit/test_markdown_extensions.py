@@ -73,6 +73,28 @@ def test_translation_word_link_preprocessor() -> None:
     )
     actual = md.convert(source)
     assert expected == actual
+
+
+def test_translation_word_alt_link_preprocessor() -> None:
+    """
+    Test the translation word link Markdown pre-processor extension.
+    """
+    source = """## Translation Suggestions:
+
+* It is important to translate the terms "apostle" and "disciple" in different ways.
+
+(See also: [[rc://*/tw/dict/bible/kt/authority]], [[rc://*/tw/dict/bible/kt/disciple]])"""
+
+    expected = """<h2>Translation Suggestions:</h2>\n<ul>\n<li>It is important to translate the terms "apostle" and "disciple" in different ways.</li>\n</ul>\n<p>(See also: <a href="#en-authority">authority</a>, <a href="#en-disciple">disciple</a>)</p>"""
+    tw_resource_dir = "working/temp/en_tw-wa/en_tw"
+    md = markdown.Markdown(
+        extensions=[
+            translation_word_link_preprocessor.TranslationWordLinkExtension(
+                # FIXME More parameters are required now
+                lang_code={"en": "Language code for resource."},
+                tw_resource_dir={
+                    tw_resource_dir: "Base directory for paths to translation word markdown files"
+                },
             )
         ],
     )
