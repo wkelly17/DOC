@@ -20,8 +20,6 @@ def test_random_failing_non_english_document_request(
     reasons explained in the fixtures docstring.
     """
     data = random_failing_non_english_document_request.dict()
-    # breakpoint()
-    # with pytest.raises(exceptions.MalformedUsfmError):
     with pytest.raises(icontract.errors.ViolationError):
         with TestClient(app=app, base_url=config.get_api_test_url()) as client:
             response: requests.Response = client.post("/documents", json=data)
