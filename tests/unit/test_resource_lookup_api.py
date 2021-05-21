@@ -1,5 +1,3 @@
-import icontract
-import pytest
 
 from typing import List
 
@@ -73,6 +71,5 @@ def test_lookup_failures() -> None:
         resource = resource_factory(
             config.get_working_dir(), config.get_output_dir(), resource_request,
         )
-        with pytest.raises(icontract.errors.ViolationError):
-            resource.find_location()
+        resource.find_location()
         assert not resource.resource_url
