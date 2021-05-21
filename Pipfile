@@ -37,6 +37,7 @@ pyls-mypy = "*"
 # usfm-tools = {editable = true, path = "./../USFM-Tools"}
 usfm-tools = {ref="develop", git = "git://github.com/linearcombination/USFM-Tools.git"}
 typeguard = "*"
+pytest-datafiles = "*"
 
 [packages]
 PyYAML = "*"
@@ -62,6 +63,7 @@ uvicorn = "*"
 # document = {editable = true, path = "./src"}
 # usfm-tools = {editable = true, path = "./../USFM-Tools"}
 usfm-tools = {ref="develop", git = "git://github.com/linearcombination/USFM-Tools.git"}
+pytest-datafiles = "*"
 
 [requires]
 python_version = "3.8"

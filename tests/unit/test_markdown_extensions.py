@@ -5,8 +5,9 @@ from document.markdown_extensions import (
     wikilink_preprocessor,
     remove_section_preprocessor,
     translation_word_link_preprocessor,
-    # substitution_preprocessor,
 )
+
+TW_RESOURCE_DIR = "tests/unit/test_data/en_tw-wa/en_tw"
 
 
 def test_remove_section_preprocessor() -> None:
@@ -48,10 +49,12 @@ def test_wikilink_preprocessor() -> None:
     assert expected == actual
 
 
-def test_translation_word_link_preprocessor() -> None:
+@pytest.mark.datafiles(TW_RESOURCE_DIR)
+def test_translation_word_link_preprocessor(datafiles) -> None:
     """
     Test the translation word link Markdown pre-processor extension.
     """
+    path = str(datafiles)
     source = """## Translation Suggestions:
 
 * It is important to translate the terms "apostle" and "disciple" in different ways.
@@ -59,14 +62,13 @@ def test_translation_word_link_preprocessor() -> None:
 (See also: [authority](../kt/authority.md), [disciple](../kt/disciple.md), [James (son of Zebedee)](../names/jamessonofzebedee.md), [Paul](../names/paul.md), [the twelve](../kt/thetwelve.md))"""
 
     expected = """<h2>Translation Suggestions:</h2>\n<ul>\n<li>It is important to translate the terms "apostle" and "disciple" in different ways.</li>\n</ul>\n<p>(See also: <a href="#en-authority">authority</a>, <a href="#en-disciple">disciple</a>, <a href="#en-jamessonofzebedee">James (son of Zebedee)</a>, <a href="#en-paul">Paul</a>, <a href="#en-thetwelve">the twelve</a>)</p>"""
-    tw_resource_dir = "working/temp/en_tw-wa/en_tw"
     md = markdown.Markdown(
         extensions=[
             translation_word_link_preprocessor.TranslationWordLinkExtension(
                 # FIXME More parameters are required now
                 lang_code={"en": "Language code for resource."},
                 tw_resource_dir={
-                    tw_resource_dir: "Base directory for paths to translation word markdown files"
+                    path: "Base directory for paths to translation word markdown files"
                 },
             )
         ],
@@ -75,10 +77,12 @@ def test_translation_word_link_preprocessor() -> None:
     assert expected == actual
 
 
-def test_translation_word_alt_link_preprocessor() -> None:
+@pytest.mark.datafiles(TW_RESOURCE_DIR)
+def test_translation_word_alt_link_preprocessor(datafiles) -> None:
     """
     Test the translation word link Markdown pre-processor extension.
     """
+    path = str(datafiles)
     source = """## Translation Suggestions:
 
 * It is important to translate the terms "apostle" and "disciple" in different ways.
@@ -86,14 +90,13 @@ def test_translation_word_alt_link_preprocessor() -> None:
 (See also: [[rc://*/tw/dict/bible/kt/authority]], [[rc://*/tw/dict/bible/kt/disciple]])"""
 
     expected = """<h2>Translation Suggestions:</h2>\n<ul>\n<li>It is important to translate the terms "apostle" and "disciple" in different ways.</li>\n</ul>\n<p>(See also: <a href="#en-authority">authority</a>, <a href="#en-disciple">disciple</a>)</p>"""
-    tw_resource_dir = "working/temp/en_tw-wa/en_tw"
     md = markdown.Markdown(
         extensions=[
             translation_word_link_preprocessor.TranslationWordLinkExtension(
                 # FIXME More parameters are required now
                 lang_code={"en": "Language code for resource."},
                 tw_resource_dir={
-                    tw_resource_dir: "Base directory for paths to translation word markdown files"
+                    path: "Base directory for paths to translation word markdown files"
                 },
             )
         ],
