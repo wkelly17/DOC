@@ -59,11 +59,20 @@ def test_translation_word_link_preprocessor() -> None:
 (See also: [authority](../kt/authority.md), [disciple](../kt/disciple.md), [James (son of Zebedee)](../names/jamessonofzebedee.md), [Paul](../names/paul.md), [the twelve](../kt/thetwelve.md))"""
 
     expected = """<h2>Translation Suggestions:</h2>\n<ul>\n<li>It is important to translate the terms "apostle" and "disciple" in different ways.</li>\n</ul>\n<p>(See also: <a href="#en-authority">authority</a>, <a href="#en-disciple">disciple</a>, <a href="#en-jamessonofzebedee">James (son of Zebedee)</a>, <a href="#en-paul">Paul</a>, <a href="#en-thetwelve">the twelve</a>)</p>"""
+    tw_resource_dir = "working/temp/en_tw-wa/en_tw"
     md = markdown.Markdown(
         extensions=[
             translation_word_link_preprocessor.TranslationWordLinkExtension(
                 # FIXME More parameters are required now
-                lang_code={"en": "Language code for resource."}
+                lang_code={"en": "Language code for resource."},
+                tw_resource_dir={
+                    tw_resource_dir: "Base directory for paths to translation word markdown files"
+                },
+            )
+        ],
+    )
+    actual = md.convert(source)
+    assert expected == actual
             )
         ],
     )

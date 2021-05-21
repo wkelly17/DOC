@@ -1,10 +1,10 @@
-# import logging  # For logdecorator
+import logging  # For logdecorator
 import markdown
 import os
 import pathlib
 import re
 
-# from logdecorator import log_on_end
+from logdecorator import log_on_start  # , log_on_end
 from markdown import Extension
 from markdown.preprocessors import Preprocessor
 from typing import cast, Dict, List, Optional
@@ -17,10 +17,20 @@ logger = config.get_logger(__name__)
 # See https://github.com/Python-Markdown/markdown/wiki/Tutorial-2---Altering-Markdown-Rendering
 # for template to follow.
 
+# Handle [foo](../kt/foo.md) style links.
+TRANSLATION_WORD_LINK_RE = (
+    r"\[(?P<link_text>.*?)\]\(\.+\/(?:kt|names|other)\/(?P<word>.*?)\.md\)"
+)
+
 
 class TranslationWordLinkPreprocessor(Preprocessor):
     """Convert wiki links to Markdown links."""
 
+    @log_on_start(
+        logging.DEBUG,
+        "lang_code: {lang_code}, tw_resource_dir: {tw_resource_dir}",
+        logger=logger,
+    )
     def __init__(
         self, md: markdown.Markdown, lang_code: str, tw_resource_dir: Optional[str],
     ) -> None:
@@ -29,8 +39,6 @@ class TranslationWordLinkPreprocessor(Preprocessor):
         # top of the file.
         from document.domain.resource import TWResource
 
-        logger.debug("lang_code: {}".format(lang_code))
-        logger.debug("tw_resource_dir: {}".format(tw_resource_dir))
         self.md = md
         self.lang_code = lang_code
         self.tw_resource_dir = tw_resource_dir
@@ -63,7 +71,6 @@ class TranslationWordLinkPreprocessor(Preprocessor):
         # )
         super().__init__()
 
-    # @log_on_end(logging.DEBUG, "lines after preprocessor: {result}", logger=logger)
     def run(self, lines: List[str]) -> List[str]:
         """
         Entry point. Convert translation word relative file Markdown links into
@@ -71,50 +78,58 @@ class TranslationWordLinkPreprocessor(Preprocessor):
         translation words section.
         """
         source = "\n".join(lines)
-        # FIXME Some languages do not follow this pattern, so we need
-        # to handle those
-        pattern = r"\[(.*?)\]\(\.+\/(?:kt|names|other)\/(.*?)\.md\)"
-        # This next pattern catches scripture references like
-        # ../col/01/03.md
-        # pattern = r"\[(.*?)\]\(.*?\/(.*?)\.md\)"
-        if m := re.search(pattern, source):
-            # FIXME Refactor into its own method. Then we'll have
-            # another method for scripture links.
-            # FIXME Better name? This might be a 'See:'-style
-            # scripture link rather than a translation word link.
-            filename_sans_suffix = m.groups()[1]
-            # NOTE This extension may be instantiated with self.translation_word_paths set to None in its
-            # constructor. This can be the case when called within a
-            # a non-TWResource. The design will likely change.
+        source = self.transform_translation_word_link(source)
+        return source.split("\n")
+
+    def transform_translation_word_link(self, source: str) -> str:
+        """
+        Transform the translation word relative file link into a link
+        pointing to the anchor link for the translation word
+        definition. If the language is non-English then also localize
+        the translation word link text (we wouldn't want English link
+        text in a non-English language - but this is actually often what
+        exists in the link pointing to the translation word
+        definition).
+        """
+        for match in re.finditer(TRANSLATION_WORD_LINK_RE, source):
+            filename_sans_suffix = match.group(2)
             if filename_sans_suffix in self.translation_words_dict:
-                # Need to localize non-English languages.
                 if self.lang_code != "en":
+                    # Need to localize non-English languages.
                     file_content = file_utils.read_file(
                         self.translation_words_dict[filename_sans_suffix]
                     )
                     # Get the localized name for the translation word
-                    # FIXME Doing the same logic as in TWResource,
-                    # perhaps there is a way to keep things DRY
                     localized_translation_word = file_content.split("\n")[0].split(
                         "# "
                     )[1]
-                    source = re.sub(
-                        pattern,
-                        r"[\1](#{}-{})".format(
-                            self.lang_code, localized_translation_word
+                    # Build the anchor links
+                    source = source.replace(
+                        match.group(0),  # The whole match
+                        r"[{}](#{}-{})".format(
+                            match.group("link_text"),
+                            self.lang_code,
+                            localized_translation_word,
                         ),
-                        source,
                     )
                 else:
-                    # English, no need to localize translation word,
-                    # just create the link.
-                    source = re.sub(
-                        pattern, r"[\1](#{}-\2)".format(self.lang_code), source
+                    # Build the anchor links.
+                    source = source.replace(
+                        match.group(0),
+                        r"[{}](#{}-{})".format(
+                            match.group("link_text"),
+                            self.lang_code,
+                            match.group("word"),
+                        ),
                     )
-            # FIXME Handle non-translation word cases, e.g., scripture links
             else:
-                pass
-        return source.split("\n")
+                logger.info(
+                    "match.group('word'): {} is not in translation words dict".format(
+                        match.group("word")
+                    )
+                )
+
+        return source
 
 
 class TranslationWordLinkExtension(Extension):
