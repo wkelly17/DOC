@@ -8,6 +8,8 @@ from document.markdown_extensions import (
     translation_word_link_preprocessor,
 )
 
+from typing import List
+
 TW_RESOURCE_DIR = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "test_data", "en_tw-wa", "en_tw",
 )
@@ -53,7 +55,7 @@ def test_wikilink_preprocessor() -> None:
 
 
 @pytest.mark.datafiles(TW_RESOURCE_DIR)
-def test_translation_word_link_preprocessor(datafiles) -> None:
+def test_translation_word_link_preprocessor(datafiles: List) -> None:
     """
     Test the translation word link Markdown pre-processor extension.
     """
@@ -81,7 +83,7 @@ def test_translation_word_link_preprocessor(datafiles) -> None:
 
 
 @pytest.mark.datafiles(TW_RESOURCE_DIR)
-def test_translation_word_alt_link_preprocessor(datafiles) -> None:
+def test_translation_word_alt_link_preprocessor(datafiles: List) -> None:
     """
     Test the translation word link Markdown pre-processor extension.
     """
