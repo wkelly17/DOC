@@ -1,4 +1,5 @@
 import markdown
+import os
 import pytest
 
 from document.markdown_extensions import (
@@ -7,7 +8,9 @@ from document.markdown_extensions import (
     translation_word_link_preprocessor,
 )
 
-TW_RESOURCE_DIR = "tests/unit/test_data/en_tw-wa/en_tw"
+TW_RESOURCE_DIR = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)), "test_data", "en_tw-wa", "en_tw",
+)
 
 
 def test_remove_section_preprocessor() -> None:
