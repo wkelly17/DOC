@@ -10,7 +10,6 @@ from typing import Dict, List, NewType, Optional, Union
 
 from pydantic import BaseModel
 
-TranslationWord = NewType("TranslationWord", str)
 BaseFilename = NewType("BaseFilename", str)
 ImageLookupKey = NewType("ImageLookupKey", str)
 DateString = NewType("DateString", str)
@@ -28,7 +27,7 @@ HtmlContent = NewType("HtmlContent", str)
 # request, then we'll again have an abstraction to hang such logic off
 # of.
 ChapterNum = NewType("ChapterNum", int)
-VerseNum = NewType("VerseNum", int)
+VerseRef = NewType("VerseRef", str)
 
 
 # https://blog.meadsteve.dev/programming/2020/02/10/types-at-the-edges-in-python/
@@ -153,11 +152,7 @@ class ResourceLookupDto(BaseModel):
     source: str
     jsonpath: Optional[str]
     lang_name: str
-
-
-
-
-
+    resource_type_name: str
 
 
 class FinishedDocumentDetails(BaseModel):
@@ -183,7 +178,7 @@ class TNChapterPayload(BaseModel):
     """
 
     intro_html: HtmlContent
-    verses_html: Dict[VerseNum, HtmlContent]
+    verses_html: Dict[VerseRef, HtmlContent]
 
 
 class TNBookPayload(BaseModel):
@@ -202,7 +197,7 @@ class TQChapterPayload(BaseModel):
     content.
     """
 
-    verses_html: Dict[VerseNum, HtmlContent]
+    verses_html: Dict[VerseRef, HtmlContent]
 
 
 class TQBookPayload(BaseModel):
@@ -219,9 +214,9 @@ class TWUse(BaseModel):
     book_id: str
     book_name: str
     chapter_num: ChapterNum
-    verse_num: VerseNum
+    verse_num: VerseRef
     base_filename: BaseFilename
-    localized_word: TranslationWord
+    localized_word: str
 
 
 class TWNameContentPair(BaseModel):
@@ -230,7 +225,7 @@ class TWNameContentPair(BaseModel):
     HTML content (which was converted from its Markdown).
     """
 
-    localized_word: TranslationWord
+    localized_word: str
     content: HtmlContent
 
 
@@ -240,10 +235,26 @@ class TWLanguagePayload(BaseModel):
     e.g., abomination, and its TWNameContentPair instance.
     """
 
-    kt_dict: Dict[BaseFilename, TWNameContentPair]
-    names_dict: Dict[BaseFilename, TWNameContentPair]
-    other_dict: Dict[BaseFilename, TWNameContentPair]
+    translation_words_dict: Dict[BaseFilename, TWNameContentPair]
     uses: Dict[BaseFilename, List[TWUse]] = {}
+
+
+class TAChapterPayload(BaseModel):
+    """
+    A class to hold a list of its verses translation questions HTML
+    content.
+    """
+
+    verses_html: Dict[VerseRef, HtmlContent]
+
+
+class TABookPayload(BaseModel):
+    """
+    A class to hold a list of its chapters translation questions HTML
+    content.
+    """
+
+    chapters: Dict[ChapterNum, TAChapterPayload]
 
 
 class USFMChapter(BaseModel):
@@ -261,7 +272,8 @@ class USFMChapter(BaseModel):
     """
 
     chapter_content: List[HtmlContent]
-    chapter_verses: Dict[VerseNum, HtmlContent]
+    chapter_verses: Dict[VerseRef, HtmlContent]
+    chapter_footnotes: HtmlContent
 
 
 class CoverPayload(BaseModel):
@@ -271,6 +283,7 @@ class CoverPayload(BaseModel):
     """
 
     title: str
+    unfound: str
     revision_date: DateString
     images: Dict[ImageLookupKey, Union[str, bytes]]
 

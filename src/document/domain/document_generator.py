@@ -19,12 +19,12 @@ import os
 import pdfkit
 import subprocess
 from logdecorator import log_on_start, log_on_end
-from typing import Callable, Dict, List, Optional, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import icontract
 
 from document import config
-from document.domain import model, bible_books, assembly_strategies
+from document.domain import assembly_strategies, bible_books, model
 from document.domain.resource import (
     resource_factory,
     Resource,
@@ -78,6 +78,7 @@ class DocumentGenerator:
                 Optional[TQResource],
                 Optional[TWResource],
                 Optional[TAResource],
+                Optional[USFMResource],
                 model.AssemblySubstrategyEnum,
             ],
             model.HtmlContent,
@@ -114,26 +115,56 @@ class DocumentGenerator:
         This is the main entry point for this class and the
         backend system.
         """
-        # FIXME icon no longer exists where it used to. I've saved the
+        # icon no longer exists where it used to. I've saved the
         # icon to ./working/temp for now until we find a different
-        # location for the icon that is to be used if we wish to
-        # retrieve it via URL. Otherwise we'll just always get it from
-        # file. Update: for now I am retrieving the legacy icon from
-        # archive.org. I've commented it out again though because
-        # archive.org is sloooow. Besides I don't think we want
-        # something as important as a logo for our PDF cover page to
-        # be missing due to network issues.
+        # location for the icon if we wish to
+        # retrieve it via URL.
         # self._get_unfoldingword_icon()
 
-        # FIXME We could put a cache lookup in place here so as not to
-        # fetch resources if the document has already been requested
-        # and is fresh enough.
-        document_request_html_file_path = os.path.join(
-            self._working_dir, "{}.html".format(self._document_request_key)
-        )
+        # Immediately return pre-built PDF if the document has already been
+        # requested and is fresh enough. In that case, front run all requests to
+        # the cloud including the more low level resource asset caching
+        # mechanism for almost immediate return of PDF.
+        # if self._document_needs_update():
         self._fetch_resources()
         self._initialize_resource_content()
         self._generate_pdf(pdf_generation_method=config.get_pdf_generation_method())
+        # else:
+        #     # FIXME Need to handle case where previous document was
+        #     generated, but it contained fewer than requested
+        #     resources because one of the resources requested had an
+        #     invalid resource type for the language requested, e.g.,
+        #     lang_code: zh, resource_type: ulb. ulb should have been
+        #     cuv for zh.
+        #     self._serve_pdf_document()
+
+    # Front run all requests to the cloud, including the
+    # more low level resource asset caching mechanism for almost immediate
+    # return of PDF.
+    @icontract.require(lambda self: self._working_dir and self._document_request_key)
+    def _document_needs_update(self) -> bool:
+        """
+        Perform caching of PDF document according to the
+        caching policy expressed in
+        file_utils.asset_file_needs_update.
+        """
+        pdf_file_path = os.path.join(
+            self._working_dir, "{}.pdf".format(self._document_request_key)
+        )
+        return file_utils.asset_file_needs_update(pdf_file_path)
+
+    # FIXME implement
+    @log_on_end(
+        logging.INFO, "Called _serve_pdf_document (not yet implemented)", logger=logger
+    )
+    def _serve_pdf_document(self) -> None:
+        """
+        Placeholder for serving PDF document to the user. NOTE Likely we'll
+        hand off the responsibility to a fronting web server like
+        nginx because experience says that OS level send-file support
+        is more stable than doing it through something like Python.
+        """
+        pass
 
     def _assemble_content(self) -> None:
         """
@@ -152,10 +183,12 @@ class DocumentGenerator:
         self._content = self._assembly_strategy(self)
         self._enclose_html_content()
         logger.debug(
-            "About to write HTML to {}".format(self.get_finished_document_filepath())
+            "About to write HTML to {}".format(
+                self.get_finished_html_document_filepath()
+            )
         )
         file_utils.write_file(
-            self.get_finished_document_filepath(), self._content,
+            self.get_finished_html_document_filepath(), self._content,
         )
 
     def _enclose_html_content(self) -> None:
@@ -263,7 +296,21 @@ class DocumentGenerator:
                             resource.lang_name,
                             bible_books.BOOK_NAMES[resource.resource_code],
                         )
-                        for resource in self._resources
+                        for resource in self._found_resources
+                    }
+                )
+            )
+        )
+        unfound = "{}".format(
+            ", ".join(
+                sorted(
+                    {
+                        "{}-{}-{}".format(
+                            resource.lang_code,
+                            resource.resource_type,
+                            resource.resource_code,
+                        )
+                        for resource in self._unfound_resources
                     }
                 )
             )
@@ -271,9 +318,11 @@ class DocumentGenerator:
         html_file_path = "{}.html".format(
             os.path.join(self._working_dir, self._document_request_key)
         )
+        assert os.path.exists(html_file_path)
         output_pdf_file_path = "{}.pdf".format(
             os.path.join(self._working_dir, self._document_request_key)
         )
+        # For options see https://wkhtmltopdf.org/usage/wkhtmltopdf.txt
         options = {
             "page-size": "Letter",
             # 'margin-top': '0.75in',
@@ -282,9 +331,14 @@ class DocumentGenerator:
             # 'margin-left': '0.75in',
             "encoding": "UTF-8",
             "load-error-handling": "ignore",
-            "outline": "",  # Produce an outline
+            "outline": None,  # Produce an outline
             "outline-depth": "3",  # Only go depth of 3 on the outline
-            "enable-internal-links": "",  # enable internal links
+            "enable-internal-links": None,  # enable internal links
+            "header-left": "[section]",
+            "header-right": "[subsection]",
+            "header-line": None,  # Produce a line under the header
+            "footer-center": "[page]",
+            "footer-line": None,  # Produce a line above the footer
         }
         with open(config.get_logo_image_path(), "rb") as fin:
             base64_encoded_logo_image = base64.b64encode(fin.read())
@@ -297,21 +351,24 @@ class DocumentGenerator:
         # Use Jinja2 to instantiate the cover page.
         cover = config.get_instantiated_template(
             "cover",
-            model.CoverPayload(title=title, revision_date=revision_date, images=images),
+            model.CoverPayload(
+                title=title, unfound=unfound, revision_date=revision_date, images=images
+            ),
         )
         logger.debug("cover: {}".format(cover))
-        with open(os.path.join(config.get_working_dir(), "cover.html"), "w") as fout:
-            fout.write(cover)
         cover_filepath = os.path.join(config.get_working_dir(), "cover.html")
+        with open(cover_filepath, "w") as fout:
+            fout.write(cover)
         pdfkit.from_file(
             html_file_path, output_pdf_file_path, options=options, cover=cover_filepath
         )
+        assert os.path.exists(output_pdf_file_path)
         copy_command = "cp {}/{}.pdf {}".format(
             self._output_dir, self._document_request_key, "/output"
         )
         logger.debug("IN_CONTAINER: {}".format(os.environ.get("IN_CONTAINER")))
         if os.environ.get("IN_CONTAINER"):
-            logger.info("About to cp PDF to /output")
+            logger.info("About to cp PDF to Docker bind mount on host")
             logger.debug("Copy PDF command: {}".format(copy_command))
             subprocess.call(copy_command, shell=True)
 
@@ -319,6 +376,10 @@ class DocumentGenerator:
     def document_request_key(self) -> str:
         """Provide public access method for other modules."""
         return self._document_request_key
+
+    @property
+    def found_resources(self) -> List[Resource]:
+        return self._found_resources
 
     @icontract.require(lambda self: self._resources)
     @icontract.snapshot(
@@ -347,7 +408,7 @@ class DocumentGenerator:
             else:
                 logger.info("{} was not found".format(resource))
                 # Keep a list of unfound resources so that we can use
-                # it for reporting.
+                # it for reporting or retrying.
                 self._unfound_resources.append(resource)
 
     @icontract.require(lambda self: self._found_resources)
@@ -364,8 +425,9 @@ class DocumentGenerator:
         self, document_request: model.DocumentRequest
     ) -> List[Resource]:
         """
-        Given a DocumentRequest instance, return a list of Resource
-        objects.
+        Given a DocumentRequest, return a list of a Resource
+        instances, one for each ResourceRequest in the
+        DocumentRequest.
         """
         resources: List[Resource] = []
         for resource_request in document_request.resource_requests:
@@ -400,12 +462,23 @@ class DocumentGenerator:
         )
 
     @icontract.require(lambda self: self._working_dir and self._document_request_key)
-    def get_finished_document_filepath(self) -> str:
+    def get_finished_html_document_filepath(self) -> str:
         """
-        Return the location on disk where the finished document may be
+        Return the location on disk where the HTML finished document may be
         found.
         """
         finished_document_path = "{}.html".format(
+            os.path.join(self._working_dir, self._document_request_key)
+        )
+        return finished_document_path
+
+    @icontract.require(lambda self: self._working_dir and self._document_request_key)
+    def get_finished_document_filepath(self) -> str:
+        """
+        Return the location on disk where the finished PDF document may be
+        found.
+        """
+        finished_document_path = "{}.pdf".format(
             os.path.join(self._working_dir, self._document_request_key)
         )
         return finished_document_path

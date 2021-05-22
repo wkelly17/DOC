@@ -1,11 +1,17 @@
 import markdown
+import os
 import pytest
 
 from document.markdown_extensions import (
     wikilink_preprocessor,
     remove_section_preprocessor,
     translation_word_link_preprocessor,
-    # substitution_preprocessor,
+)
+
+from typing import List
+
+TW_RESOURCE_DIR = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)), "test_data", "en_tw-wa", "en_tw",
 )
 
 
@@ -48,10 +54,12 @@ def test_wikilink_preprocessor() -> None:
     assert expected == actual
 
 
-def test_translation_word_link_preprocessor() -> None:
+@pytest.mark.datafiles(TW_RESOURCE_DIR)
+def test_translation_word_link_preprocessor(datafiles: List) -> None:
     """
     Test the translation word link Markdown pre-processor extension.
     """
+    path = str(datafiles)
     source = """## Translation Suggestions:
 
 * It is important to translate the terms "apostle" and "disciple" in different ways.
@@ -62,7 +70,11 @@ def test_translation_word_link_preprocessor() -> None:
     md = markdown.Markdown(
         extensions=[
             translation_word_link_preprocessor.TranslationWordLinkExtension(
-                lang_code={"en": "Language code for resource."}
+                # FIXME More parameters are required now
+                lang_code={"en": "Language code for resource."},
+                tw_resource_dir={
+                    path: "Base directory for paths to translation word markdown files"
+                },
             )
         ],
     )
@@ -70,28 +82,29 @@ def test_translation_word_link_preprocessor() -> None:
     assert expected == actual
 
 
-# @pytest.mark.skip
-# def test_substitution_preprocessor() -> None:
-#     """
-#     Test the substitution pre-processor extension.
-#     """
-#     source = """## Translation Suggestions:
+@pytest.mark.datafiles(TW_RESOURCE_DIR)
+def test_translation_word_alt_link_preprocessor(datafiles: List) -> None:
+    """
+    Test the translation word link Markdown pre-processor extension.
+    """
+    path = str(datafiles)
+    source = """## Translation Suggestions:
 
-# * It is important to translate the terms "apostle" and "disciple" in different ways.
+* It is important to translate the terms "apostle" and "disciple" in different ways.
 
-# (See also: [authority](../kt/authority.md), [disciple](../kt/disciple.md), [James (son of Zebedee)](../names/jamessonofzebedee.md), [Paul](../names/paul.md), [the twelve](../kt/thetwelve.md))"""
+(See also: [[rc://*/tw/dict/bible/kt/authority]], [[rc://*/tw/dict/bible/kt/disciple]])"""
 
-#     expected = """<h2>Translation suggestions:</h2>\n<ul>\n<li>It is important to translate the terms "apostle" and "disciple" in different ways.<p>(See also: <a href="#en-authority">authority</a>, <a href="#en-disciple">disciple</a>, <a href="#en-jamessonofzebedee">James (son of Zebedee)</a>, <a href="#en-paul">Paul</a>, <a href="#en-thetwelve">the twelve</a></li>\n</ul>"""
-
-#     from collections import OrderedDict
-
-#     # substitutions = OrderedDict(
-#     #     [("Suggestions:", "suggestions:"), ("It is important", "It is smart"),]
-#     # )
-
-#     # subn_extension = SubstitutionExtension(substitutions)
-#     md = markdown.Markdown(
-#         extensions=[substitution_preprocessor.SubstitutionExtension(lang_code="en")]
-#     )
-#     actual = md.convert(source)
-#     assert expected == actual
+    expected = """<h2>Translation Suggestions:</h2>\n<ul>\n<li>It is important to translate the terms "apostle" and "disciple" in different ways.</li>\n</ul>\n<p>(See also: <a href="#en-authority">authority</a>, <a href="#en-disciple">disciple</a>)</p>"""
+    md = markdown.Markdown(
+        extensions=[
+            translation_word_link_preprocessor.TranslationWordLinkExtension(
+                # FIXME More parameters are required now
+                lang_code={"en": "Language code for resource."},
+                tw_resource_dir={
+                    path: "Base directory for paths to translation word markdown files"
+                },
+            )
+        ],
+    )
+    actual = md.convert(source)
+    assert expected == actual

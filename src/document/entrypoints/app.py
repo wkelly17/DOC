@@ -42,12 +42,29 @@ def document_endpoint(
 
     # FIXME Eventually we'll provide a REST GET endpoint from
     # which to retrieve the document in the API
+    finished_document_path = document_generator.get_finished_document_filepath()
+    assert os.path.exists(finished_document_path)
     details = model.FinishedDocumentDetails(
-        finished_document_path=document_generator.get_finished_document_filepath()
+        # FIXME document_generator.get_finished_document_filepath()
+        # will become document_generator.get_finished_document_url()
+        # and will return the URL of the PDF served through FastAPI
+        # FileResponse method.
+        finished_document_path=finished_document_path
     )
 
     logger.debug("details: {}".format(details))
     return details
+
+
+# @app.get(f"{config.get_api_root()}/language_codes_names_and_resource_types")
+@app.get("/language_codes_names_and_resource_types")
+def lang_codes_names_and_resource_types() -> List[Tuple[str, str, List[str]]]:
+    """
+    Return list of tuples of lang_code, lang_name, resource_types for
+    all available language codes.
+    """
+    lookup_svc = resource_lookup.BIELHelperResourceJsonLookup()
+    return lookup_svc.lang_codes_names_and_resource_types()
 
 
 # @app.get(f"{config.get_api_root()}/language_codes")

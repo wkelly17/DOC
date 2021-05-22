@@ -1,206 +1,23 @@
 """This module provides tests for the application's FastAPI API."""
 
-# import itertools
-# import json
+import bs4
 import os
 
-# import pathlib
-
-from typing import Any, List
-
-import pytest
+# import pytest
 import requests
 from fastapi.testclient import TestClient
 
 from document import config
-from document.domain import model
 from document.entrypoints.app import app
 
-# from document.utils import file_utils
+##########################################################################
+## Specific targeted tests (wrt language, resource type, resource code) ##
+##########################################################################
 
 
-def test_english_fixtures(english_document_request: model.DocumentRequest) -> None:
+def test_en_ulb_wa_col_en_tn_wa_col_language_book_order() -> None:
     """
-    Use the fixtures in ./conftest.py for non-English languages to generate random
-    tests.
-    """
-    data = english_document_request.dict()
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
-        response: requests.Response = client.post("/documents", json=data)
-        assert response.ok
-
-
-def test_non_english_fixtures(
-    non_english_document_request: model.DocumentRequest,
-) -> None:
-    """
-    Use the fixtures in ./conftest.py for non-English languages to generate random
-    tests.
-    """
-    data = non_english_document_request.dict()
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
-        response: requests.Response = client.post("/documents", json=data)
-        assert response.ok
-
-
-# def test_single_or_multi_language_multi_resource_documents_language_book_order(
-#     helpers: Any,
-# ) -> None:
-#     """
-#     Produce verse level interleaved documents for different
-#     combinations of resources in resource_fixtures below.
-#     """
-#     resource_fixtures = [
-#         [
-#             # True indicates multi-language fixture
-#             ["en", ["ulb-wa", "tn-wa", "tq-wa", "tw-wa"], "col"],
-#             ["pt-br", ["ulb", "tn"], "tit"],
-#         ],
-#         # False indicates single language fixture
-#         [False, "tl", ["ulb", "tn", "tq", "tw"], "jdg"],
-#         # [
-#         #     True,  # indicates multi-language fixture
-#         #     # ["kbt", ["reg"], "2co"],  # This fails because the USFM does not have the expected, by books.py, 'id' element.
-#         #     # ["aau", ["reg"], "heb"], # This fails because the USFM does not have the expected, by books.py, 'id' element.
-#         #     # ["tbg-x-abuhaina", ["reg"], "2th"], # This fails because the USFM does not have the expected, by books.py, 'id' element.
-#         #     # ["abz", ["reg"], "gal"], # This fails because the USFM does not have the expected, by books.py, 'id' element.
-#         #     # ["abu", ["reg"], "3jn"], # This fails because the USFM does not have the expected, by books.py, 'id' element.
-#         #     # ["guq", ["reg"], "2sa"], # This fails because the USFM does not have the expected, by books.py, 'id' element.
-#         # ],
-#     ]
-
-#     def build_and_send_request(
-#         lang_code: str, resource_type_list: List[str], resource_code: str
-#     ) -> None:
-#         """
-#         Build the json data and then submit the request and check the
-#         result.
-#         """
-#         # Build the json to send.
-#         data = {}
-#         data["assembly_strategy_kind"] = "language_book_order"
-#         data["resource_requests"] = []  # type: ignore
-#         for resource_type in resource_type_list:
-#             resource_dict = {
-#                 "lang_code": lang_code,
-#                 "resource_type": resource_type,
-#                 "resource_code": resource_code,
-#             }
-#             data["resource_requests"].append(resource_dict)  # type: ignore
-
-#         with TestClient(app=app, base_url=config.get_api_test_url()) as client:
-#             response: requests.Response = client.post("/documents", json=data)
-#             format_values = list(
-#                 zip(
-#                     itertools.repeat(lang_code, len(resource_type_list)),
-#                     resource_type_list,
-#                     itertools.repeat(resource_code, len(resource_type_list)),
-#                 )
-#             )
-#             format_flattened_values = "_".join(
-#                 ["-".join(tuple) for tuple in format_values]  # type: ignore
-#             )
-#             finished_document_path = "/working/temp/{}_language_book_order.html".format(
-#                 format_flattened_values
-#             )
-#             finished_document_path = helpers.get_document_filepath_for_testing(
-#                 finished_document_path
-#             )
-#             assert os.path.isfile(finished_document_path)
-#             assert response.json() == {"finished_document_path": finished_document_path}
-
-#     # FIXME This logic is broken.
-#     for resource_fixture in resource_fixtures:
-#         breakpoint()
-#         if len(resource_fixture) > 1:
-#             breakpoint()
-#             for lang in resource_fixture:
-#                 breakpoint()
-#                 for idx in range(len(resource_fixture) - 1):
-#                     breakpoint()
-#                     lang_code = resource_fixture[idx][0]
-#                     resource_type_list = resource_fixture[idx][1]
-#                     resource_code = resource_fixture[idx][2]
-#                     build_and_send_request(lang_code, resource_type_list, resource_code)
-
-#         else:
-#             resource_fixture = resource_fixture[1:]
-#             lang_code = resource_fixture[0]
-#             resource_type_list = resource_fixture[1]
-#             resource_code = resource_fixture[2]
-#             build_and_send_request(lang_code, resource_type_list, resource_code)
-
-
-# @pytest.mark.parametrize("lang_codes", [["en"]])
-# @pytest.mark.parametrize("resource_types", [["ulb-wa", "tn-wa"]])
-# @pytest.mark.parametrize("resource_codes", [["col"]])
-# @pytest.mark.parametrize(
-#     "document_paths", [["en-ulb-wa-col_en-tn-wa-col_language_book_order"]]
-# )
-# NOTE Using Any type is a mypy hack for fixture being passed in. Not
-# ideal, but the way pytest builds its path is not ideal either.
-@pytest.mark.skip
-def test_two_resource_combos_language_book_order(helpers: Any) -> None:
-    """
-    Produce verse level interleaved document for English scripture and
-    translation notes for the book of Colossians.
-    """
-    lang_codes: List[str] = ["en", "pt-br", "tl", "en", "en", "en", "en"]
-    resource_types: List[List[str]] = [
-        ["ulb-wa", "tn-wa"],
-        ["ulb", "tn"],
-        ["ulb", "tn"],
-        ["ulb-wa", "tq-wa"],
-        ["ulb-wa", "tw-wa"],
-        ["tn-wa", "tq-wa"],
-        ["tn-wa", "tw-wa"],
-    ]
-    resource_codes: List[str] = ["col", "tit", "jhn", "rom", "col", "2co", "jhn"]
-
-    assert (
-        len(lang_codes) == len(resource_types) == len(resource_codes)
-    ), "Make sure you have your test data input correctly."
-
-    for lang_code, resource_type, resource_code in zip(
-        lang_codes, resource_types, resource_codes
-    ):
-        data = {
-            "assembly_strategy_kind": "language_book_order",
-            "resource_requests": [
-                {
-                    "lang_code": lang_code,
-                    "resource_type": resource_type[0],
-                    "resource_code": resource_code,
-                },
-                {
-                    "lang_code": lang_code,
-                    "resource_type": resource_type[1],
-                    "resource_code": resource_code,
-                },
-            ],
-        }
-        with TestClient(app=app, base_url=config.get_api_test_url()) as client:
-            response: requests.Response = client.post("/documents", json=data)
-            finished_document_path = "/working/temp/{}-{}-{}_{}-{}-{}_language_book_order.html".format(
-                lang_code,
-                resource_type[0],
-                resource_code,
-                lang_code,
-                resource_type[1],
-                resource_code,
-            )
-            finished_document_path = helpers.get_document_filepath_for_testing(
-                finished_document_path
-            )
-            assert os.path.isfile(finished_document_path)
-            assert response.json() == {"finished_document_path": finished_document_path}
-
-
-# NOTE Using Any type is a mypy hack for fixture being passed in. Not
-# ideal, but the way pytest builds its path is not ideal either.
-def test_verse_interleaved_en_ulb_tn_returns_ok(helpers: Any) -> None:
-    """
-    Produce verse level interleaved document for English scripture and
+    Produce verse interleaved document for English scripture and
     translation notes for the book of Colossians.
     """
     with TestClient(app=app, base_url=config.get_api_test_url()) as client:
@@ -222,19 +39,21 @@ def test_verse_interleaved_en_ulb_tn_returns_ok(helpers: Any) -> None:
                 ],
             },
         )
-
-        finished_document_path = (
-            "/working/temp/en-ulb-wa-col_en-tn-wa-col_language_book_order.html"
+        finished_document_path = "en-ulb-wa-col_en-tn-wa-col_language_book_order.pdf"
+        finished_document_path = os.path.join(
+            config.get_output_dir(), finished_document_path
         )
-        finished_document_path = helpers.get_document_filepath_for_testing(
-            finished_document_path
-        )
-        assert os.path.isfile(finished_document_path)
-        assert response.json() == {"finished_document_path": finished_document_path}
+        assert response.ok
+        # FIXME Serving PDFs is yet to be implemented
+        # assert os.path.exists(finished_document_path)
+        # assert response.json() == {
+        #     "finished_document_path": "{}.pdf".format(
+        #         pathlib.Path(os.path.basename(finished_document_path)).stem
+        #     )
+        # }
 
 
-# @pytest.mark.skip
-def test_verse_interleaved_en_ulb_tn_tq_returns_ok(helpers: Any) -> None:
+def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_language_book_order() -> None:
     """
     Produce verse level interleaved document for English scripture,
     translation notes, and translation questions for the book of Col.
@@ -263,15 +82,23 @@ def test_verse_interleaved_en_ulb_tn_tq_returns_ok(helpers: Any) -> None:
                 ],
             },
         )
-        finished_document_path = "/working/temp/en-ulb-wa-col_en-tn-wa-col_en-tq-wa-col_language_book_order.html"
-        finished_document_path = helpers.get_document_filepath_for_testing(
-            finished_document_path
+        finished_document_path = (
+            "en-ulb-wa-col_en-tn-wa-col_en-tq-wa-col_language_book_order.pdf"
         )
-        assert os.path.isfile(finished_document_path)
-        assert response.json() == {"finished_document_path": finished_document_path}
+        finished_document_path = os.path.join(
+            config.get_output_dir(), finished_document_path
+        )
+        assert response.ok
+        # FIXME Serving PDFs is yet to be implemented
+        # assert os.path.exists(finished_document_path)
+        # assert response.json() == {
+        #     "finished_document_path": "{}.pdf".format(
+        #         pathlib.Path(os.path.basename(finished_document_path)).stem
+        #     )
+        # }
 
 
-def test_verse_interleaved_en_ulb_tn_jud_returns_ok(helpers: Any) -> None:
+def test_en_ulb_wa_tn_wa_jud_language_book_order() -> None:
     """
     Produce verse level interleaved document for English scripture and
     translation notes for the book of Jude.
@@ -295,18 +122,21 @@ def test_verse_interleaved_en_ulb_tn_jud_returns_ok(helpers: Any) -> None:
                 ],
             },
         )
-        finished_document_path = (
-            "/working/temp/en-ulb-wa-jud_en-tn-wa-jud_language_book_order.html"
+        finished_document_path = "en-ulb-wa-jud_en-tn-wa-jud_language_book_order.pdf"
+        finished_document_path = os.path.join(
+            config.get_output_dir(), finished_document_path
         )
-        finished_document_path = helpers.get_document_filepath_for_testing(
-            finished_document_path
-        )
-        assert os.path.isfile(finished_document_path)
-        assert response.json() == {"finished_document_path": finished_document_path}
+        assert response.ok
+        # FIXME Serving PDFs is yet to be implemented
+        # assert os.path.exists(finished_document_path)
+        # assert response.json() == {
+        #     "finished_document_path": "{}.pdf".format(
+        #         pathlib.Path(os.path.basename(finished_document_path)).stem
+        #     )
+        # }
 
 
-# @pytest.mark.skip
-def test_verse_interleaved_ar_ulb_returns_ok(helpers: Any) -> None:
+def test_ar_nav_jud_language_book_order() -> None:
     """
     Produce verse level interleaved document for language, ar, Arabic
     scripture. There are no other resources than USFM available at
@@ -326,17 +156,21 @@ def test_verse_interleaved_ar_ulb_returns_ok(helpers: Any) -> None:
                 ],
             },
         )
-        finished_document_path = "/working/temp/ar-nav-jud_language_book_order.html"
-        finished_document_path = helpers.get_document_filepath_for_testing(
-            finished_document_path
+        finished_document_path = "ar-nav-jud_language_book_order.pdf"
+        finished_document_path = os.path.join(
+            config.get_output_dir(), finished_document_path
         )
-        assert os.path.isfile(finished_document_path)
-        assert response.json() == {"finished_document_path": finished_document_path}
+        assert response.ok
+        # FIXME Serving PDFs is yet to be implemented
+        # assert os.path.exists(finished_document_path)
+        # assert response.json() == {
+        #     "finished_document_path": "{}.pdf".format(
+        #         pathlib.Path(os.path.basename(finished_document_path)).stem
+        #     )
+        # }
 
 
-def test_verse_interleaved_pt_br_ulb_tn_tn_doesnt_exist_for_book_returns_ok(
-    helpers: Any,
-) -> None:
+def test_pt_br_ulb_tn_language_book_order() -> None:
     """
     Produce verse level interleaved document for Brazilian Portuguese scripture and
     translation notes for the book of Genesis.
@@ -360,21 +194,24 @@ def test_verse_interleaved_pt_br_ulb_tn_tn_doesnt_exist_for_book_returns_ok(
                 ],
             },
         )
-        finished_document_path = (
-            "/working/temp/pt-br-ulb-gen_pt-br-tn-gen_language_book_order.html"
+        finished_document_path = "pt-br-ulb-gen_pt-br-tn-gen_language_book_order.pdf"
+        finished_document_path = os.path.join(
+            config.get_output_dir(), finished_document_path
         )
-        finished_document_path = helpers.get_document_filepath_for_testing(
-            finished_document_path
-        )
-        assert os.path.isfile(finished_document_path)
-        assert response.json() == {"finished_document_path": finished_document_path}
+        assert response.ok
+        # FIXME Serving PDFs is yet to be implemented
+        # assert os.path.exists(finished_document_path)
+        # assert response.json() == {
+        #     "finished_document_path": "{}.pdf".format(
+        #         pathlib.Path(os.path.basename(finished_document_path)).stem
+        #     )
+        # }
 
 
-def test_verse_interleaved_en_ulb_tn_pt_br_ulb_tn_returns_ok(helpers: Any) -> None:
+def test_pt_br_ulb_tn_en_ulb_wa_tn_wa_luk_language_book_order() -> None:
     """
-    Produce verse level interleaved document for English and
-    Brazilian Portuguese scripture and translation notes for the book
-    of Luke.
+    Produce verse level interleaved document for Brazilian Portuguese
+    and English scripture and translation notes for the book of Luke.
     """
     with TestClient(app=app, base_url=config.get_api_test_url()) as client:
         response: requests.Response = client.post(
@@ -405,22 +242,21 @@ def test_verse_interleaved_en_ulb_tn_pt_br_ulb_tn_returns_ok(helpers: Any) -> No
                 ],
             },
         )
-        finished_document_path = "/working/temp/pt-br-ulb-luk_pt-br-tn-luk_en-ulb-wa-luk_en-tn-wa-luk_language_book_order.html"
-        finished_document_path = helpers.get_document_filepath_for_testing(
-            finished_document_path
+        finished_document_path = "pt-br-ulb-luk_pt-br-tn-luk_en-ulb-wa-luk_en-tn-wa-luk_language_book_order.pdf"
+        finished_document_path = os.path.join(
+            config.get_output_dir(), finished_document_path
         )
-        assert os.path.isfile(finished_document_path)
-        assert response.json() == {"finished_document_path": finished_document_path}
+        assert response.ok
+        # FIXME Serving PDFs is yet to be implemented
+        # assert response.json() == {
+        # assert os.path.exists(finished_document_path)
+        #     "finished_document_path": "{}.pdf".format(
+        #         pathlib.Path(os.path.basename(finished_document_path)).stem
+        #     )
+        # }
 
 
-def test_verse_interleaved_en_ulb_tn_pt_br_ulb_tn_sw_ulb_tn_returns_ok(
-    helpers: Any,
-) -> None:
-    """
-    Produce verse level interleaved document for English and
-    Brazilian Portuguese scripture and translation notes for the book
-    of Luke.
-    """
+def test_pt_br_ulb_tn_luk_en_ulb_wa_tn_wa_luk_sw_ulb_tn_col_language_book_order() -> None:
     with TestClient(app=app, base_url=config.get_api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
@@ -456,19 +292,487 @@ def test_verse_interleaved_en_ulb_tn_pt_br_ulb_tn_sw_ulb_tn_returns_ok(
                 ],
             },
         )
-        finished_document_path = "/working/temp/pt-br-ulb-luk_pt-br-tn-luk_en-ulb-wa-luk_en-tn-wa-luk_sw-ulb-col_sw-tn-col_language_book_order.html"
-        finished_document_path = helpers.get_document_filepath_for_testing(
-            finished_document_path
+        finished_document_path = "pt-br-ulb-luk_pt-br-tn-luk_en-ulb-wa-luk_en-tn-wa-luk_sw-ulb-col_sw-tn-col_language_book_order.pdf"
+        finished_document_path = os.path.join(
+            config.get_output_dir(), finished_document_path
         )
-        assert os.path.isfile(finished_document_path)
+        html_file = "{}.html".format(finished_document_path.split(".")[0])
+        assert os.path.exists(finished_document_path)
+        # FIXME html_file does not exist
+        assert os.path.exists(html_file)
+        assert response.ok
+        # FIXME Serving PDFs is yet to be implemented
         assert response.json() == {"finished_document_path": finished_document_path}
 
 
-# FIXME This doesn't fail any assertions but the resulting HTML is
-# missing a body of content, so there is possibly an edge case here
-# that needs investigation.
-@pytest.mark.skip
-def test_verse_interleaved_pt_br_ulb_tn_luk_returns_ok(helpers: Any) -> None:
+def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_col_sw_tq_col_sw_tw_col_sw_ulb_tit_sw_tn_tit_sw_tq_tit_sw_tw_tit_language_book_order() -> None:
+    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+        response: requests.Response = client.post(
+            "/documents",
+            json={
+                "assembly_strategy_kind": "language_book_order",
+                "resource_requests": [
+                    {
+                        "lang_code": "en",
+                        "resource_type": "ulb-wa",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "en",
+                        "resource_type": "tn-wa",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "en",
+                        "resource_type": "tq-wa",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "en",
+                        "resource_type": "tw-wa",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "sw",
+                        "resource_type": "ulb",
+                        "resource_code": "col",
+                    },
+                    {"lang_code": "sw", "resource_type": "tn", "resource_code": "col",},
+                    {"lang_code": "sw", "resource_type": "tq", "resource_code": "col",},
+                    {"lang_code": "sw", "resource_type": "tw", "resource_code": "col",},
+                    {"lang_code": "sw", "resource_type": "tn", "resource_code": "tit",},
+                    {"lang_code": "sw", "resource_type": "tq", "resource_code": "tit",},
+                    {"lang_code": "sw", "resource_type": "tw", "resource_code": "tit",},
+                ],
+            },
+        )
+        finished_document_path = "en-ulb-wa-col_en-tn-wa-col_en-tq-wa-col_en-tw-wa-col_sw-ulb-col_sw-tn-col_sw-tq-col_sw-tw-col_sw-tn-tit_sw-tq-tit_sw-tw-tit_language_book_order.pdf"
+        finished_document_path = os.path.join(
+            config.get_output_dir(), finished_document_path
+        )
+        html_file = "{}.html".format(finished_document_path.split(".")[0])
+        assert os.path.exists(finished_document_path)
+        # FIXME HTML_file does not exist? Yet PDF generation
+        # succeeded. Does wkhtmltopdf delete the HTML file after
+        # consuming it? If I run
+        # wkhtmltopdf ../../working/temp/pt-br-ulb-mal_pt-br-tq-mal_pt-br-tw-mal_tl-ulb-1ki_tl-tq-1ki_tl-tw-1ki_language_book_order.html foo.pdf
+        # both foo.pdf and
+        # ../../working/temp/pt-br-ulb-mal_pt-br-tq-mal_pt-br-tw-mal_tl-ulb-1ki_tl-tq-1ki_tl-tw-1ki_language_book_order.html
+        # exist after the command.Therefore, wkhtmltopdf is not
+        # deleting the HTML file after consuming it. Something else is
+        # removing the HTML file. Perhaps it is pdf_kit.from_file.
+        # I'll take a look at the source for pdf_kit.from_file.
+        assert os.path.exists(html_file)
+        assert os.path.isdir("working/temp/en_ulb-wa")
+        assert os.path.isdir("working/temp/en_tn-wa")
+        assert os.path.isdir("working/temp/en_tq-wa")
+        assert os.path.isdir("working/temp/en_tw-wa")
+        assert os.path.isdir("working/temp/sw_ulb")
+        assert os.path.isdir("working/temp/sw_tn")
+        assert os.path.isdir("working/temp/sw_tq")
+        assert os.path.isdir("working/temp/sw_tw")
+        with open(html_file, "r") as fin:
+            html = fin.read()
+            parser = bs4.BeautifulSoup(html, "html.parser")
+            body: bs4.elements.ResultSet = parser.find_all("body")
+            assert body
+            verses_html: bs4.elements.ResultSet = parser.find_all(
+                "span", attrs={"class": "v-num"}
+            )
+            assert verses_html
+        assert response.ok
+
+
+def test_en_ulb_wa_col_en_tn_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_col_sw_tw_col_sw_ulb_tit_sw_tn_tit_sw_tw_tit_language_book_order() -> None:
+    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+        response: requests.Response = client.post(
+            "/documents",
+            json={
+                "assembly_strategy_kind": "language_book_order",
+                "resource_requests": [
+                    {
+                        "lang_code": "en",
+                        "resource_type": "ulb-wa",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "en",
+                        "resource_type": "tn-wa",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "en",
+                        "resource_type": "tw-wa",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "sw",
+                        "resource_type": "ulb",
+                        "resource_code": "col",
+                    },
+                    {"lang_code": "sw", "resource_type": "tn", "resource_code": "col",},
+                    {"lang_code": "sw", "resource_type": "tw", "resource_code": "col",},
+                    {
+                        "lang_code": "sw",
+                        "resource_type": "ulb",
+                        "resource_code": "tit",
+                    },
+                    {"lang_code": "sw", "resource_type": "tn", "resource_code": "tit",},
+                    {"lang_code": "sw", "resource_type": "tw", "resource_code": "tit",},
+                ],
+            },
+        )
+        finished_document_path = "en-ulb-wa-col_en-tn-wa-col_en-tw-wa-col_sw-ulb-col_sw-tn-col_sw-tw-col_sw-ulb-tit_sw-tn-tit_sw-tw-tit_language_book_order.pdf"
+        finished_document_path = os.path.join(
+            config.get_output_dir(), finished_document_path
+        )
+        html_file = "{}.html".format(finished_document_path.split(".")[0])
+        assert os.path.exists(finished_document_path)
+        assert os.path.exists(html_file)
+        assert os.path.isdir("working/temp/sw_ulb")
+        assert os.path.isdir("working/temp/sw_tn")
+        assert os.path.isdir("working/temp/sw_tw")
+        assert response.ok
+        with open(html_file, "r") as fin:
+            html = fin.read()
+            parser = bs4.BeautifulSoup(html, "html.parser")
+            body: bs4.elements.ResultSet = parser.find_all("body")
+            assert body
+            verses_html: bs4.elements.ResultSet = parser.find_all(
+                "span", attrs={"class": "v-num"}
+            )
+            assert verses_html
+
+
+def test_en_ulb_wa_col_en_tw_wa_col_sw_ulb_col_sw_tw_col_sw_ulb_tit_sw_tw_tit_language_book_order() -> None:
+    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+        response: requests.Response = client.post(
+            "/documents",
+            json={
+                "assembly_strategy_kind": "language_book_order",
+                "resource_requests": [
+                    {
+                        "lang_code": "en",
+                        "resource_type": "ulb-wa",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "en",
+                        "resource_type": "tw-wa",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "sw",
+                        "resource_type": "ulb",
+                        "resource_code": "col",
+                    },
+                    {"lang_code": "sw", "resource_type": "tw", "resource_code": "col",},
+                    {
+                        "lang_code": "sw",
+                        "resource_type": "ulb",
+                        "resource_code": "tit",
+                    },
+                    {"lang_code": "sw", "resource_type": "tw", "resource_code": "tit",},
+                ],
+            },
+        )
+        finished_document_path = "en-ulb-wa-col_en-tw-wa-col_sw-ulb-col_sw-tw-col_sw-ulb-tit_sw-tw-tit_language_book_order.pdf"
+        finished_document_path = os.path.join(
+            config.get_output_dir(), finished_document_path
+        )
+        html_file = "{}.html".format(finished_document_path.split(".")[0])
+        assert os.path.exists(finished_document_path)
+        assert os.path.exists(html_file)
+        assert os.path.isdir("working/temp/sw_ulb")
+        assert os.path.isdir("working/temp/sw_tw")
+        assert response.ok
+        with open(html_file, "r") as fin:
+            html = fin.read()
+            parser = bs4.BeautifulSoup(html, "html.parser")
+            body: bs4.elements.ResultSet = parser.find_all("body")
+            assert body
+            verses_html: bs4.elements.ResultSet = parser.find_all(
+                "span", attrs={"class": "v-num"}
+            )
+            assert verses_html
+
+
+def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_sw_ulb_tit_sw_tq_tit_sw_tw_tit_language_book_order() -> None:
+    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+        response: requests.Response = client.post(
+            "/documents",
+            json={
+                "assembly_strategy_kind": "language_book_order",
+                "resource_requests": [
+                    {
+                        "lang_code": "en",
+                        "resource_type": "ulb-wa",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "en",
+                        "resource_type": "tq-wa",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "en",
+                        "resource_type": "tw-wa",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "sw",
+                        "resource_type": "ulb",
+                        "resource_code": "col",
+                    },
+                    {"lang_code": "sw", "resource_type": "tq", "resource_code": "col",},
+                    {"lang_code": "sw", "resource_type": "tw", "resource_code": "col",},
+                    {
+                        "lang_code": "sw",
+                        "resource_type": "ulb",
+                        "resource_code": "tit",
+                    },
+                    {"lang_code": "sw", "resource_type": "tq", "resource_code": "tit",},
+                    {"lang_code": "sw", "resource_type": "tw", "resource_code": "tit",},
+                ],
+            },
+        )
+        finished_document_path = "en-ulb-wa-col_en-tq-wa-col_en-tw-wa-col_sw-ulb-col_sw-tq-col_sw-tw-col_sw-ulb-tit_sw-tq-tit_sw-tw-tit_language_book_order.pdf"
+        finished_document_path = os.path.join(
+            config.get_output_dir(), finished_document_path
+        )
+        html_file = "{}.html".format(finished_document_path.split(".")[0])
+        assert os.path.exists(finished_document_path)
+        assert os.path.exists(html_file)
+        assert os.path.isdir("working/temp/en_ulb-wa")
+        assert os.path.isdir("working/temp/sw_ulb")
+        assert os.path.isdir("working/temp/sw_tq")
+        assert os.path.isdir("working/temp/sw_tw")
+        assert response.ok
+        with open(html_file, "r") as fin:
+            html = fin.read()
+            parser = bs4.BeautifulSoup(html, "html.parser")
+            body: bs4.elements.ResultSet = parser.find_all("body")
+            assert body
+            verses_html: bs4.elements.ResultSet = parser.find_all(
+                "span", attrs={"class": "v-num"}
+            )
+            assert verses_html
+
+
+def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_zh_cuv_tit_sw_tq_tit_sw_tw_tit_language_book_order() -> None:
+    """
+    This test demonstrates the quirk of combining resources for
+    the same books but from different languages.
+    """
+    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+        response: requests.Response = client.post(
+            "/documents",
+            json={
+                "assembly_strategy_kind": "language_book_order",
+                "resource_requests": [
+                    {
+                        "lang_code": "en",
+                        "resource_type": "ulb-wa",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "en",
+                        "resource_type": "tq-wa",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "en",
+                        "resource_type": "tw-wa",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "sw",
+                        "resource_type": "ulb",
+                        "resource_code": "col",
+                    },
+                    {"lang_code": "sw", "resource_type": "tq", "resource_code": "col",},
+                    {"lang_code": "sw", "resource_type": "tw", "resource_code": "col",},
+                    {
+                        "lang_code": "zh",
+                        "resource_type": "cuv",
+                        "resource_code": "tit",
+                    },
+                    {"lang_code": "sw", "resource_type": "tq", "resource_code": "tit",},
+                    {"lang_code": "sw", "resource_type": "tw", "resource_code": "tit",},
+                ],
+            },
+        )
+        finished_document_path = "en-ulb-wa-col_en-tq-wa-col_en-tw-wa-col_sw-ulb-col_sw-tq-col_sw-tw-col_zh-cuv-tit_sw-tq-tit_sw-tw-tit_language_book_order.pdf"
+        finished_document_path = os.path.join(
+            config.get_output_dir(), finished_document_path
+        )
+        html_file = "{}.html".format(finished_document_path.split(".")[0])
+        assert os.path.exists(finished_document_path)
+        assert os.path.exists(html_file)
+        assert os.path.isdir("working/temp/en_ulb-wa")
+        assert os.path.isdir("working/temp/sw_ulb")
+        assert os.path.isdir("working/temp/zh_cuv")
+        assert os.path.isdir("working/temp/sw_tq")
+        assert os.path.isdir("working/temp/sw_tw")
+        assert response.ok
+        with open(html_file, "r") as fin:
+            html = fin.read()
+            parser = bs4.BeautifulSoup(html, "html.parser")
+            body: bs4.elements.ResultSet = parser.find_all("body")
+            assert body
+            verses_html: bs4.elements.ResultSet = parser.find_all(
+                "span", attrs={"class": "v-num"}
+            )
+            assert verses_html
+
+
+###################################################################
+# Tests that originally were randomly chosen and failed
+# using our random combinatoric tests.
+###################################################################
+
+
+def test_zh_ulb_doesnt_exist_jol_zh_tn_jol_language_book_order() -> None:
+    """
+    This shows that resource request for resource type ULB fails for
+    lang_code zh because such a resource type does not exist for zh.
+    Instead, cuv should have been requested. The other resources are
+    found and thus a PDF document is still created, but it lacks the
+    scripture verses.
+    """
+    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+        response: requests.Response = client.post(
+            "/documents",
+            json={
+                "assembly_strategy_kind": "language_book_order",
+                "resource_requests": [
+                    {
+                        "lang_code": "zh",
+                        "resource_type": "ulb",
+                        "resource_code": "jol",
+                    },
+                    {"lang_code": "zh", "resource_type": "tn", "resource_code": "jol",},
+                ],
+            },
+        )
+        finished_document_path = "zh-ulb-jol_zh-tn-jol_language_book_order.pdf"
+        finished_document_path = os.path.join(
+            config.get_output_dir(), finished_document_path
+        )
+        html_file = "{}.html".format(finished_document_path.split(".")[0])
+        assert os.path.exists(finished_document_path)
+        assert os.path.exists(html_file)
+        # This fails because zh does not have a ulb resource type and
+        # thus that resource is not found. The other resources are
+        # found and so the document can still be built.
+        assert not os.path.isdir("working/temp/zh_ulb")
+        assert os.path.isdir("working/temp/zh_tn")
+        # NOTE Still signals ok because ulb itself makes that
+        # resource request an ignored resource, but the overall
+        # document request succeeds.
+        assert response.ok
+        with open(html_file, "r") as fin:
+            html = fin.read()
+            parser = bs4.BeautifulSoup(html, "html.parser")
+            body: bs4.elements.ResultSet = parser.find_all("body")
+            assert body
+            verses_html: bs4.elements.ResultSet = parser.find_all(
+                "span", attrs={"class": "v-num"}
+            )
+            # Since ulb doesn't exist as a resource_type for zh, there
+            # are no verses available in the document.
+            assert not verses_html
+
+
+def test_zh_cuv_jol_zh_tn_jol_language_book_order() -> None:
+    """
+    This test succeeds by correcting the mistake of the document request
+    in the test above it, i.e., ulb -> cuv.
+    """
+    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+        response: requests.Response = client.post(
+            "/documents",
+            json={
+                "assembly_strategy_kind": "language_book_order",
+                "resource_requests": [
+                    {
+                        "lang_code": "zh",
+                        "resource_type": "cuv",
+                        "resource_code": "jol",
+                    },
+                    {"lang_code": "zh", "resource_type": "tn", "resource_code": "jol",},
+                ],
+            },
+        )
+        finished_document_path = "zh-cuv-jol_zh-tn-jol_language_book_order.pdf"
+        finished_document_path = os.path.join(
+            config.get_output_dir(), finished_document_path
+        )
+        html_file = "{}.html".format(finished_document_path.split(".")[0])
+        assert os.path.exists(finished_document_path)
+        assert os.path.exists(html_file)
+        assert os.path.isdir("working/temp/zh_cuv")
+        assert os.path.isdir("working/temp/zh_tn")
+        assert response.ok
+        with open(html_file, "r") as fin:
+            html = fin.read()
+            parser = bs4.BeautifulSoup(html, "html.parser")
+            body: bs4.elements.ResultSet = parser.find_all("body")
+            assert body
+            verses_html: bs4.elements.ResultSet = parser.find_all(
+                "span", attrs={"class": "v-num"}
+            )
+            assert verses_html
+
+
+def test_zh_cuv_jol_zh_tn_jol_zh_tq_jol_zh_tw_jol_language_book_order() -> None:
+    """
+    This test succeeds by correcting the mistake of the document request
+    in the test above it, i.e., ulb -> cuv.
+    """
+    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+        response: requests.Response = client.post(
+            "/documents",
+            json={
+                "assembly_strategy_kind": "language_book_order",
+                "resource_requests": [
+                    {
+                        "lang_code": "zh",
+                        "resource_type": "cuv",
+                        "resource_code": "jol",
+                    },
+                    {"lang_code": "zh", "resource_type": "tn", "resource_code": "jol",},
+                    {"lang_code": "zh", "resource_type": "tq", "resource_code": "jol",},
+                    {"lang_code": "zh", "resource_type": "tw", "resource_code": "jol",},
+                ],
+            },
+        )
+        finished_document_path = (
+            "zh-cuv-jol_zh-tn-jol_zh-tq-jol_zh-tw-jol_language_book_order.pdf"
+        )
+        finished_document_path = os.path.join(
+            config.get_output_dir(), finished_document_path
+        )
+        html_file = "{}.html".format(finished_document_path.split(".")[0])
+        assert os.path.exists(finished_document_path)
+        assert os.path.exists(html_file)
+        assert os.path.isdir("working/temp/zh_cuv")
+        assert os.path.isdir("working/temp/zh_tn")
+        assert os.path.isdir("working/temp/zh_tq")
+        assert os.path.isdir("working/temp/zh_tw")
+        assert response.ok
+        with open(html_file, "r") as fin:
+            html = fin.read()
+            parser = bs4.BeautifulSoup(html, "html.parser")
+            body: bs4.elements.ResultSet = parser.find_all("body")
+            assert body
+            verses_html: bs4.elements.ResultSet = parser.find_all(
+                "span", attrs={"class": "v-num"}
+            )
+            assert verses_html
+
+
+def test_pt_br_ulb_luk_pt_br_tn_luk_language_book_order() -> None:
     """
     Produce verse level interleaved document for Brazilian Portuguese scripture and
     translation notes for the book of Genesis.
@@ -492,10 +796,23 @@ def test_verse_interleaved_pt_br_ulb_tn_luk_returns_ok(helpers: Any) -> None:
                 ],
             },
         )
-        finished_document_path = (
-            "/working/temp/pt-br-ulb-luk_pt-br-tn-luk_language_book_order.html"
+        finished_document_path = "pt-br-ulb-luk_pt-br-tn-luk_language_book_order.pdf"
+        finished_document_path = os.path.join(
+            config.get_output_dir(), finished_document_path
         )
-        if not os.environ.get("IN_CONTAINER"):
-            finished_document_path = finished_document_path[1:]
-        assert os.path.isfile(finished_document_path)
+        html_file = "{}.html".format(finished_document_path.split(".")[0])
+        assert os.path.exists(finished_document_path)
+        # FIXME HTML file is missing when we go to read and parse
+        # HTML? And yet it does exist when checked right after
+        # creating the PDF in document_generator module.
+        assert os.path.exists(html_file)
         assert response.json() == {"finished_document_path": finished_document_path}
+        with open(html_file, "r") as fin:
+            html = fin.read()
+            parser = bs4.BeautifulSoup(html, "html.parser")
+            body: bs4.elements.ResultSet = parser.find_all("body")
+            assert body
+            verses_html: bs4.elements.ResultSet = parser.find_all(
+                "span", attrs={"class": "v-num"}
+            )
+            assert verses_html

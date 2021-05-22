@@ -289,6 +289,25 @@ request data in order to populate its dropdown menu's in =BIEL='s
 document request wizard.
 
 You can see those by looking at ../tests/e2e/test_biel_helper.py
+** Caching design
+The system has two levels of caching:
+1. (WIP) PDF document, and a second lower level caching mechanism:
+2. resource asset file caching
+
+For (1), if the PDF document has previously been requested and built
+and is 'fresh' according to the caching policy expressed in
+file_utils.asset_file_needs_update, then immediately serve the PDF
+document to the requesting user.
+
+For (2), if any of the DocumentRequest instances's ResourceRequest
+instances have been obtained from the cloud before and are 'fresh'
+according to the caching policy expressed in
+file_utils.asset_file_needs_update, then don't fetch said resource asset
+files again, instead reuse the asset files already obtained.
+
+Also, in level (2): translations.json is obtained
+according to the caching policy expressed in
+file_utils.source_file_needs_update.
 ** Oddities - differences from the norm in resources I've found
 These are oddities that are not currently handled, either at all or
 totally, either by the original system or the current system.
@@ -319,3 +338,61 @@ https://github.com/Bible-Translation-Tools/BTT-Writer-Desktop/blob/master/src/js
 
 
 Craig Oliver
+
+** Composition of project in LOC
+#+begin_src shell :results output
+# pip install pygount
+pygount  --folders-to-skip .DS_Store,.git,.mypy_cache,.pytest_cache,GPUCache,pdf_proof,tex,working --format=summary ../
+#+end_src
+
+#+RESULTS:
+#+begin_example
+    Language       Files    %     Code    %     Comment    %
+-----------------  -----  ------  ----  ------  -------  ------
+Python                32   23.19  3917   39.97     4328   97.59
+VimL                   2    1.45  3178   32.43        2    0.05
+HTML                   4    2.90  1376   14.04       58    1.31
+JSON                   6    4.35   575    5.87        0    0.00
+Text only              8    5.80   444    4.53        0    0.00
+TOML                   2    1.45    63    0.64        7    0.16
+HTML+Django/Jinja      2    1.45    61    0.62        4    0.09
+YAML                   2    1.45    60    0.61        4    0.09
+INI                    3    2.17    45    0.46       11    0.25
+Makefile               1    0.72    30    0.31        2    0.05
+Docker                 1    0.72    28    0.29       12    0.27
+markdown               3    2.17    22    0.22        0    0.00
+Bash                   1    0.72     1    0.01        7    0.16
+__unknown__            7    5.07     0    0.00        0    0.00
+__empty__              9    6.52     0    0.00        0    0.00
+__binary__            55   39.86     0    0.00        0    0.00
+-----------------  -----  ------  ----  ------  -------  ------
+Sum total            138          9800             4435
+#+end_example
+
+** Handling links
+Translation notes can have links to translation words.
+
+Translation notes can have links to scripture verses.
+
+Translation words can have links to translation notes.
+
+Translation words can have links to scripture verses.
+
+There may be other such inter-dependencies between resource types.
+
+Problem: A document request may include translation notes, but not
+translation words, or vice versa. What should be done in such cases
+and others like them?
+
+1. Remove such links including the prose leading up to them and
+   following, e.g., (See also: _link_, _link_, _link_ blah blah blah)
+   a. Removing just those links could render the prose that includes
+   them non-sensical, for instance if later prose refers back to the
+   links.
+2. Instead of removing just the non-linkable links, remove the whole section
+   that includes them.
+   a. Loss of commentary - which is undesirable.
+3. Leave the links, they'll render visually, but just won't work as
+   links unless the resource type they reference is also part of the
+   document request. I am leaning toward this at the moment and will
+   likely implement this.

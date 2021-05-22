@@ -69,20 +69,21 @@ def load_json_object(file_name: pathlib.Path) -> List:
 )
 def load_yaml_object(file_name: str) -> Dict:
     """
-    Deserialized YAML file <file_name> into a Python dict.
+    Deserialize YAML file <file_name> into a Python dict.
     :param file_name: The name of the file to read
     """
     return yaml.safe_load(read_file(file_name))
 
 
-# KEEP
 @icontract.require(lambda file_name: os.path.exists(file_name))
-def read_file(file_name: str, encoding: str = "utf-8-sig") -> str:
+def read_file(file_name: str, encoding: str = "utf-8") -> str:
     r"""Read file into content. Change line endings from \r\n to \n."""
+    content = ""
     with codecs.open(file_name, "r", encoding=encoding) as fin:
         content = fin.read()
-    # convert Windows line endings to Linux line endings
-    return content.replace("\r\n", "\n")
+        # convert Windows line endings to Linux line endings
+        content.replace("\r\n", "\n")
+    return content
 
 
 @icontract.require(

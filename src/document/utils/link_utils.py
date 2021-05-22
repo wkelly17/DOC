@@ -10,9 +10,6 @@ from document import config
 from document.domain import bible_books
 from document.utils import file_utils, markdown_utils
 
-if TYPE_CHECKING:
-    from document.domain.resource import USFMResource
-
 
 logger = config.get_logger(__name__)
 
@@ -133,10 +130,6 @@ def transform_rc_links(text: str) -> str:
           Example:
           rc://en/tn/help/rev/15/07 →
           https://live.door43.org/u/Door43/en_ulb/c0bd11bad0/67-REV.html#066-ch-015-v-007
-        * Convert RC links.
-          Example:
-          rc://en/tn/help/1sa/16/02 →
-          https://git.door43.org/Door43/en_tn/1sa/16/02.md
         * Convert HTTP/HTTPS/FTP URLs to Markdown links if not already.
           Example:
           '([^"\(])((http|https|ftp)://[A-Za-z0-9\/\?&_\.:=#-]+[A-Za-z0-9\/\?&_:=#-])' →
@@ -156,7 +149,7 @@ def transform_rc_links(text: str) -> str:
     # rc://en/tn/help/rev/15/07 => https://live.door43.org/u/Door43/en_ulb/c0bd11bad0/67-REV.html#066-ch-015-v-007
     rep[r"rc://[^/]+/tn/help/(?!obs)([^/]+)/(\d+)/(\d+)"] = replace_tn_with_door43_link  # type: ignore
 
-    # Convert RC links.
+    # Convert more TN links.
     # Example: rc://en/tn/help/1sa/16/02 => https://git.door43.org/Door43/en_tn/1sa/16/02.md
     rep[
         r"rc://([^/]+)/(?!tn)([^/]+)/([^/]+)/([^\s\)\]\n$]+)"

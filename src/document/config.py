@@ -1,6 +1,7 @@
 """This module provides configuration values used by the application."""
 
 
+import icontract
 import jinja2
 import logging
 import os
@@ -19,6 +20,7 @@ RESOURCE_TYPES_JSONPATH = "$[*].contents[*].code"
 RESOURCE_CODES_JSONPATH = "$[*].contents[*].subcontents[*].code"
 
 
+@icontract.require(lambda name: name)
 def get_logger(name: str) -> logging.Logger:
     """
     Return a Logger for scope named by name, e.g., module, that can be
@@ -133,6 +135,13 @@ def get_resource_lang_name_jsonpath() -> str:
     return "$[?code='{}'].name"
 
 
+def get_resource_type_name_jsonpath() -> str:
+    """
+    The resource type's name.
+    """
+    return "$[?code='{}'].contents[?code='{}'].name"
+
+
 def get_resource_url_level2_jsonpath() -> str:
     """
     The jsonpath location in TRANSLATIONS_JSON_LOCATION file where
@@ -171,11 +180,6 @@ def get_icon_url() -> str:
     return "https://web.archive.org/web/20160819103903if_/https://unfoldingword.org/assets/img/icon-tn.png"
     # return "https://unfoldingword.org/assets/img/icon-tn.png"
     # return "https://static1.squarespace.com/static/591e003db8a79bd6e6c9ffae/t/5e306da5898d7b14b76889dd/1600444722464/?format=1500w"
-
-
-# def get_markdown_resource_types() -> List[str]:
-#     """ Get the resource types that can have a Markdown file. """
-#     return ["tn", "tq", "tw", "ta", "tn-wa", "tq-wa", "tw-wa", "ta-wa"]
 
 
 # FIXME Fix literal paths now that directory organization has changed
@@ -296,11 +300,11 @@ def get_pandoc_command() -> str:
     return PANDOC_COMMAND
 
 
-def get_english_repos_dict() -> dict:
+@icontract.require(lambda resource_type: resource_type)
+def get_english_git_repo_url(resource_type: str) -> str:
     """
     This is a hack to compensate for translations.json which only
-    provides URLs for PDF assets in the English language. We need USFM
-    and Markdown.
+    provides URLs in non-English languages.
     """
     return {
         "ulb-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_ulb",
@@ -308,9 +312,25 @@ def get_english_repos_dict() -> dict:
         "tn-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_tn",
         "tw-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_tw",
         "tq-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_tq",
-    }
+    }[resource_type]
 
 
+@icontract.require(lambda resource_type: resource_type)
+def get_english_resource_type_name(resource_type: str) -> str:
+    """
+    This is a hack to compensate for translations.json which only
+    provides information for non-English languages.
+    """
+    return {
+        "ulb-wa": "Unlocked Literal Bible (ULB)",
+        "udb-wa": "Unlocked Dynamic Bible (UDB)",
+        "tn-wa": "ULB Translation Helps",
+        "tq-wa": "ULB Translation Questions",
+        "tw-wa": "ULB Translation Words",
+    }[resource_type]
+
+
+@icontract.require(lambda key: key)
 def get_template_path(key: str) -> str:
     """
     Return the path to the requested template give a lookup key.
@@ -329,6 +349,9 @@ def get_template_path(key: str) -> str:
     return path
 
 
+@icontract.require(
+    lambda template_lookup_key, dto: template_lookup_key and dto is not None
+)
 def get_instantiated_template(template_lookup_key: str, dto: pydantic.BaseModel) -> str:
     """
     Instantiate Jinja2 template with dto BaseModel instance. Return
@@ -342,6 +365,7 @@ def get_instantiated_template(template_lookup_key: str, dto: pydantic.BaseModel)
     return env.render(data=dto)
 
 
+@icontract.require(lambda template_lookup_key: template_lookup_key)
 def get_template(template_lookup_key: str) -> str:
     """
     Return template as string.
@@ -360,6 +384,7 @@ def get_pdf_generation_method() -> str:
     return model.PdfGenerationMethodEnum.WEBKIT
 
 
+@icontract.require(lambda lookup_key: lookup_key)
 def get_html_format_string(lookup_key: str) -> model.HtmlContent:
     """
     Return the HTML string associated with its lookup_key. This allows
@@ -367,6 +392,8 @@ def get_html_format_string(lookup_key: str) -> model.HtmlContent:
     """
     html_format_strings: Dict[str, str] = {
         "language": "<h1>Language: {}</h1>",
+        "resource_type_name": "<h2>{}</h2>",
+        "resource_type_name_with_ref": "<h3>{} {}:{}</h3>",
         "book": "<h2>Book: {}</h2>",
         "verse": "<h3>Verse {}:{}</h3>",
         "translation_note": "<h3>Translation note {}:{}</h3>",
@@ -375,6 +402,7 @@ def get_html_format_string(lookup_key: str) -> model.HtmlContent:
         # just TN
         "tn_only_chapter_header": '<h2 class="c-num" id="{}-{}-ch-{}">Chapter {}</h2>',
         "translation_question": "<h3>Translation question {}:{}</h3>",
+        "translation_academy": "<h3>Translation academy {}:{}</h3>",
         "unordered_list_begin": "<ul>",
         "unordered_list_end": "</ul>",
         "translation_word_list_item": '<li><a href="#{}-{}">{}</a></li>',
@@ -382,6 +410,7 @@ def get_html_format_string(lookup_key: str) -> model.HtmlContent:
         "translation_words_section": "<h2>Translation words</h2>",
         "translation_word_verse_section_header": "<h4>Uses:</h4>",
         "translation_word_verse_ref_item": '<li><a href="#{}-{}-ch-{}-v-{}">{} {}:{}</a></li>',
+        "footnotes": "<h3>Footnotes</h3>",
     }
     return model.HtmlContent(html_format_strings[lookup_key])
 
