@@ -30,8 +30,13 @@ TRANSLATION_WORD_LINK_ALT_RE = (
     r"\[\[rc:\/\/\*\/tw\/dict\/bible\/(?:kt|names|other)\/(?P<word>.*?)\]\]"
 )
 
+# FIXME To be implemented. We need to find out what URL to use for obs
+# resources.
+# [21:9](rc://gu/tn/help/obs/21/09)
+TRANSLATION_NOTE_OBS_LINK_RE = r"\[(?P<link_text>.*?)\]\(rc:\/\/.*?\/tn\/help\/obs\/(?P<chapter_num>.*?)\/(?P<verse_ref>.*?)\)"
+
 # Handle [Blah 46: 33-34](rc://gu/tn/help/gen/46/33) style links
-TRANSLATION_NOTE_LINK_RE = r"\[(?P<link_text>.*?)\]\(rc:\/\/.*\/tn\/help\/(?P<book_id>.*?)\/(?P<chapter_num>.*?)\/(?P<verse_ref>.*?)\)"
+TRANSLATION_NOTE_LINK_RE = r"\[(?P<link_text>.*?)\]\(rc:\/\/.*?\/tn\/help\/(?P<book_id>.*?)\/(?P<chapter_num>.*?)\/(?P<verse_ref>.*?)\)"
 
 
 class TranslationWordLinkPreprocessor(Preprocessor):
@@ -93,8 +98,8 @@ class TranslationWordLinkPreprocessor(Preprocessor):
         source = self.transform_translation_word_link(source)
         # Some language book combos use a different link format. Handle those.
         source = self.transform_translation_word_alt_link(source)
-        # FIXME WIP
-        # source = self.transform_translation_note_link(source)
+        # FIXME Finish Implementing
+        source = self.transform_translation_note_link(source)
         return source.split("\n")
 
     def transform_translation_word_link(self, source: str) -> str:
@@ -168,7 +173,9 @@ class TranslationWordLinkPreprocessor(Preprocessor):
         for match in re.finditer(TRANSLATION_WORD_LINK_ALT_RE, source):
             logger.info("there are matches using TRANSLATION_WORD_LINK_ALT_RE")
             filename_sans_suffix = match.group(1)
+            logger.debug("filename_sans_suffix: {}".format(filename_sans_suffix))
             if filename_sans_suffix in self.translation_words_dict:
+                logger.info("filename_sans_suffix is in self.translation_words_dict")
                 if self.lang_code != "en":
                     logger.debug(
                         "About to read file: {}".format(
@@ -187,9 +194,9 @@ class TranslationWordLinkPreprocessor(Preprocessor):
                     source = source.replace(
                         match.group(0),  # The whole match
                         r"[{}](#{}-{})".format(
-                            match.group("word"),
-                            self.lang_code,
                             localized_translation_word,
+                            self.lang_code,
+                            match.group("word"),
                         ),
                     )
                 else:
@@ -215,18 +222,57 @@ class TranslationWordLinkPreprocessor(Preprocessor):
         """
         for match in re.finditer(TRANSLATION_NOTE_LINK_RE, source):
             logger.info("there are matches using TRANSLATION_NOTE_LINK_RE")
-            # Build the anchor links.
-            source = source.replace(
-                match.group(0),
-                # FIXME Implement this correctly. This is just a
-                # start.
-                r"[{}](#{}-c-{}-v-{})".format(
-                    match.group("link_text"),
-                    self.lang_code,
-                    match.group("chapter_num"),
-                    match.group("verse_ref"),
-                ),
-            )
+            book_id = match.group("book_id")
+            if book_id == "obs":
+                # Create link to obs resource
+                # FIXME Implement.
+                # source = source.replace(
+                #     match.group(0),
+                #     r"[{}](#{}-{}-tn-ch-{}-v-{})".format(
+                #         match.group("link_text"),
+                #         self.lang_code,
+                #         # FIXME Make sure book_id is not 'obs' or update
+                #         # the RE so that it doesn't match 'obs' in the
+                #         # book_id position.
+                #         match.group("book_id"),
+                #         match.group("chapter_num").zfill(3),
+                #         match.group("verse_ref").zfill(3),
+                #     ),
+                # )
+                pass
+            else:
+                # Build the link to the translation note resource.
+                # FIXME These type of links can point to any book,
+                # chapter, verse combo for the given language. Of
+                # course, this means that the translation note link
+                # may point to a translation note that is not included
+                # in the current DocumentRequest. In a perfect world,
+                # we would thus build an internal link to any
+                # translation note that is included in this
+                # DocumentRequest and build an external link to any
+                # translation note that is not included in this
+                # DocumentRequest. The problem is that to build
+                # internal links we'd need to pass in the
+                # DocumentRequest instance to this extension in order
+                # to determine if a resource link would be to an
+                # internal (to this DocumentRequest) or external
+                # resource.
+                # if internal link then:
+                source = source.replace(
+                    match.group(0),
+                    r"[{}](#{}-{}-tn-ch-{}-v-{})".format(
+                        match.group("link_text"),
+                        self.lang_code,
+                        # FIXME Make sure book_id is not 'obs' or update
+                        # the RE so that it doesn't match 'obs' in the
+                        # book_id position.
+                        match.group("book_id"),
+                        match.group("chapter_num").zfill(3),
+                        match.group("verse_ref").zfill(3),
+                    ),
+                )
+                # else:
+                # build an external link to the translation note
 
         return source
 

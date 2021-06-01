@@ -10,8 +10,18 @@ from document.markdown_extensions import (
 
 from typing import List
 
-TW_RESOURCE_DIR = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)), "test_data", "en_tw-wa", "en_tw",
+EN_TW_RESOURCE_DIR = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    "test_data",
+    "en_tw-wa",
+    "en_tw",
+)
+
+GU_TW_RESOURCE_DIR = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    "test_data",
+    "gu_tw",
+    "gu_tw",
 )
 
 
@@ -54,7 +64,7 @@ def test_wikilink_preprocessor() -> None:
     assert expected == actual
 
 
-@pytest.mark.datafiles(TW_RESOURCE_DIR)
+@pytest.mark.datafiles(EN_TW_RESOURCE_DIR)
 def test_translation_word_link_preprocessor(datafiles: List) -> None:
     """
     Test the translation word link Markdown pre-processor extension.
@@ -70,8 +80,7 @@ def test_translation_word_link_preprocessor(datafiles: List) -> None:
     md = markdown.Markdown(
         extensions=[
             translation_word_link_preprocessor.TranslationWordLinkExtension(
-                # FIXME More parameters are required now
-                lang_code={"en": "Language code for resource."},
+                lang_code={"en": "Language code for resource"},
                 tw_resource_dir={
                     path: "Base directory for paths to translation word markdown files"
                 },
@@ -82,8 +91,8 @@ def test_translation_word_link_preprocessor(datafiles: List) -> None:
     assert expected == actual
 
 
-@pytest.mark.datafiles(TW_RESOURCE_DIR)
-def test_translation_word_alt_link_preprocessor(datafiles: List) -> None:
+@pytest.mark.datafiles(EN_TW_RESOURCE_DIR)
+def test_translation_word_link_alt_preprocessor(datafiles: List) -> None:
     """
     Test the translation word link Markdown pre-processor extension.
     """
@@ -98,8 +107,59 @@ def test_translation_word_alt_link_preprocessor(datafiles: List) -> None:
     md = markdown.Markdown(
         extensions=[
             translation_word_link_preprocessor.TranslationWordLinkExtension(
-                # FIXME More parameters are required now
                 lang_code={"en": "Language code for resource."},
+                tw_resource_dir={
+                    path: "Base directory for paths to translation word markdown files"
+                },
+            )
+        ],
+    )
+    actual = md.convert(source)
+    assert expected == actual
+
+
+@pytest.mark.datafiles(GU_TW_RESOURCE_DIR)
+def test_translation_word_link_alt_gu_preprocessor(datafiles: List) -> None:
+    """
+    Test the translation word link Markdown pre-processor extension.
+    """
+    path = str(datafiles)
+    source = """દ્રષ્ટાંતો એ એવીવાર્તાઓ છે જે નૈતિક પાઠો શીખવે છે. (જુઓ: [[rc://*/tw/dict/bible/kt/lawofmoses]] અને [[rc://*/tw/dict/bible/kt/disciple]] અને [[rc://*/tw/dict/bible/kt/parable]]"""
+    expected = """<p>દ્રષ્ટાંતો એ એવીવાર્તાઓ છે જે નૈતિક પાઠો શીખવે છે. (જુઓ: <a href="#gu-lawofmoses">નિયમ/કાયદો/કાનૂન</a> અને <a href="#gu-disciple">શિષ્ય</a> અને <a href="#gu-parable">દ્રષ્ટાંત</a></p>"""
+
+    md = markdown.Markdown(
+        extensions=[
+            translation_word_link_preprocessor.TranslationWordLinkExtension(
+                lang_code={"gu": "Language code for resource."},
+                tw_resource_dir={
+                    path: "Base directory for paths to translation word markdown files"
+                },
+            )
+        ],
+    )
+    actual = md.convert(source)
+    assert expected == actual
+
+
+@pytest.mark.datafiles(GU_TW_RESOURCE_DIR)
+def test_translation_note_link_gu_preprocessor(datafiles: List) -> None:
+    """
+    Test the translation note link Markdown pre-processor extension.
+    """
+    path = str(datafiles)
+    source = """* [ઉત્પત્તિ 4:18-19](rc://gu/tn/help/gen/04/18)
+* [ઉત્પત્તિ 4:23-24](rc://gu/tn/help/gen/04/23)
+* [લૂક 3:36-38](rc://gu/tn/help/luk/03/36)"""
+    expected = """<ul>
+<li><a href="#gu-gen-tn-ch-004-v-018">ઉત્પત્તિ 4:18-19</a></li>
+<li><a href="#gu-gen-tn-ch-004-v-023">ઉત્પત્તિ 4:23-24</a></li>
+<li><a href="#gu-luk-tn-ch-003-v-036">લૂક 3:36-38</a></li>
+</ul>"""
+
+    md = markdown.Markdown(
+        extensions=[
+            translation_word_link_preprocessor.TranslationWordLinkExtension(
+                lang_code={"gu": "Language code for resource."},
                 tw_resource_dir={
                     path: "Base directory for paths to translation word markdown files"
                 },
