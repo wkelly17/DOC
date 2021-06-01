@@ -302,22 +302,18 @@ class USFMResource(Resource):
         logger.debug("self._content_files: {}".format(self._content_files))
 
         if self._content_files is not None:
-            # Convert the USFM to HTML and store in file.
-            # TODO USFM-Tools books.py can raise MalformedUsfmError
-            # when the following code is called. If that happens we
-            # want to skip this resource request but continue with
-            # others in the same document request. Catch said exception.
-            try:
-                UsfmTransform.buildSingleHtmlFromFile(
-                    pathlib.Path(self._content_files[0]),
-                    self._output_dir,
-                    self._resource_filename,
-                )
-            except:
-                logger.debug(
-                    "Exception while reading USFM file, skipping this resource and continuing with remaining resource requests, if any."
                 )
                 return None
+            # Convert the USFM to HTML and store in file. USFM-Tools books.py can
+            # raise MalformedUsfmError when the following code is called. The
+            # DocumentGenerator class (in _initilize_resource_content) will catch
+            # that error but continue with other resource requests in the same
+            # document request.
+            UsfmTransform.buildSingleHtmlFromFile(
+                pathlib.Path(self._content_files[0]),
+                self._output_dir,
+                self._resource_filename,
+            )
 
             # Read the HTML file into _content.
             html_file = "{}.html".format(

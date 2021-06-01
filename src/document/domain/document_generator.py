@@ -36,6 +36,7 @@ from document.domain.resource import (
 )
 from document.utils import file_utils
 
+from usfm_tools.support import exceptions
 
 logger = config.get_logger(__name__)
 
@@ -418,7 +419,20 @@ class DocumentGenerator:
         generate their content for later typesetting.
         """
         for resource in self._found_resources:
-            resource.get_content()
+            # usfm_tools parser can throw a MalformedUsfmError parse error if the
+            # USFM for the resource is malformed (from the perspective of the
+            # parser). If that happens keep track of the unloaded resource for
+            # reporting on the cover page of the generated PDF and log the issue,
+            # but continue handling other resources in the document request.
+            try:
+                resource.get_content()
+            except exceptions.MalformedUsfmError:
+                self._unloaded_resources.append(resource)
+                logger.debug(
+                    "Exception while reading USFM file for {}, skipping this resource and continuing with remaining resource requests, if any.".format(
+                        resource
+                    )
+                )
 
     @icontract.require(lambda document_request: document_request is not None)
     def _initialize_resources(
