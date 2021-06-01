@@ -14,6 +14,7 @@ import os
 import pathlib
 import re
 import subprocess
+import time
 from glob import glob
 from logdecorator import log_on_start, log_on_end
 from typing import Any, cast, Dict, FrozenSet, List, Optional, Tuple
@@ -301,8 +302,46 @@ class USFMResource(Resource):
         logger.debug("self._content_files: {}".format(self._content_files))
 
         if self._content_files is not None:
+            # FIXME See if other git repos provide the \id USFM element that the parser expects.
+            # FIXME Some languages, like ndh-x-chindali, provide their USFM files in
+            # a git repo rather than as standalone USFM files. A USFM git repo can
+            # have each USFM chapter in a separate directory and each verse in a
+            # separate file in that directory. However, the parser expects one USFM
+            # file per book, therefore we need to concatenate the book's USFM files
+            # into one USFM file.
+            # FIXME A problem, currently with this WIP, is that USFM
+            # files having the git repo arrangement described above do
+            # not seem to have, at least in ndh-x-chindali's case, the
+            # \id USFM element that the parser expects thus leading to
+            # a MalformedUsfmError. This is unfortunate as the USFM
+            # may otherwise be totally fine. Likely, in a coming
+            # update we'll make modifications to the parser or provide
+            # workarounds that will allow such USFM resources to be
+            # utilized.
+            if len(self._content_files) > 1:
+                # Read the content of each file into a list.
+                markdown_content = []
+                for markdown_file in sorted(self._content_files):
+                    with open(markdown_file, "r") as fin:
+                        markdown_content.append(fin.read())
+                        markdown_content.append(" ")
+                # Write the concatenated markdown content to a
+                # non-clobberable filename.
+                filename = os.path.join(
+                    self.resource_dir,
+                    "{}_{}_{}_{}.md".format(
+                        self.lang_code,
+                        self.resource_type,
+                        self.resource_code,
+                        time.time(),
+                    ),
                 )
-                return None
+                with open(filename, "w") as fout:
+                    fout.write("".join(markdown_content))
+                # Make the temp file our only content file.
+                self._content_files = [filename]
+            logger.debug("self._content_files[0]: {}".format(self._content_files[0]))
+
             # Convert the USFM to HTML and store in file. USFM-Tools books.py can
             # raise MalformedUsfmError when the following code is called. The
             # DocumentGenerator class (in _initilize_resource_content) will catch
