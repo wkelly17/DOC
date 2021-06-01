@@ -136,9 +136,9 @@ def test_en_ulb_wa_tn_wa_jud_language_book_order() -> None:
         # }
 
 
-def test_ar_nav_jud_language_book_order() -> None:
+def test_arb_nav_jud_language_book_order() -> None:
     """
-    Produce verse level interleaved document for language, ar, Arabic
+    Produce verse level interleaved document for language, arb, Arabic
     scripture. There are no other resources than USFM available at
     this time.
     """
@@ -149,14 +149,14 @@ def test_ar_nav_jud_language_book_order() -> None:
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
-                        "lang_code": "ar",
+                        "lang_code": "arb",
                         "resource_type": "nav",
                         "resource_code": "jud",
                     },
                 ],
             },
         )
-        finished_document_path = "ar-nav-jud_language_book_order.pdf"
+        finished_document_path = "arb-nav-jud_language_book_order.pdf"
         finished_document_path = os.path.join(
             config.get_output_dir(), finished_document_path
         )
