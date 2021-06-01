@@ -87,13 +87,11 @@ class TranslationWordLinkPreprocessor(Preprocessor):
 
     def run(self, lines: List[str]) -> List[str]:
         """
-        Entry point. Convert translation word relative file Markdown links into
-        links pointing to the anchor for translation words in the
-        translation words section.
+        Entry point.
         """
         source = "\n".join(lines)
         source = self.transform_translation_word_link(source)
-        # Some language book combos use a link format. Handle those.
+        # Some language book combos use a different link format. Handle those.
         source = self.transform_translation_word_alt_link(source)
         # FIXME WIP
         # source = self.transform_translation_note_link(source)
@@ -101,13 +99,13 @@ class TranslationWordLinkPreprocessor(Preprocessor):
 
     def transform_translation_word_link(self, source: str) -> str:
         """
-        Transform the translation word relative file link into a link
-        pointing to the anchor link for the translation word
-        definition. If the language is non-English then also localize
-        the translation word link text (we wouldn't want English link
-        text in a non-English language - but this is actually often what
-        exists in the link pointing to the translation word
-        definition).
+        Transform the translation word relative file link into a
+        source anchor link pointing to a destination anchor link for
+        the translation word definition. If the language is
+        non-English then also localize the translation word link text
+        (we wouldn't want English link text in a non-English language
+        - but this is actually often what exists in the link pointing
+        to the translation word definition).
         """
         for match in re.finditer(TRANSLATION_WORD_LINK_RE, source):
             filename_sans_suffix = match.group(2)
@@ -151,8 +149,8 @@ class TranslationWordLinkPreprocessor(Preprocessor):
 
     def transform_translation_word_alt_link(self, source: str) -> str:
         """
-        Transform the translation word rc link into a link
-        pointing to the anchor link for the translation word
+        Transform the translation word rc link into source anchor link
+        pointing to a destination anchor link for the translation word
         definition. If the language is non-English then also localize
         the translation word link text (we wouldn't want English link
         text in a non-English language - but this is actually often what
@@ -201,9 +199,6 @@ class TranslationWordLinkPreprocessor(Preprocessor):
 
         return source
 
-    # FIXME Finish implementing. A prerequisite is to have TNResource
-    # create translation note link ids similar to how USFMResource
-    # does in its _get_verse_num_and_verse_content_str.
     def transform_translation_note_link(self, source: str) -> str:
         """
         Transform the translation note rc link into a link pointing to

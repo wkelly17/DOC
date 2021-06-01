@@ -269,7 +269,8 @@ class USFMResource(Resource):
         # to determine if the file is considered usable, i.e.,
         # 'complete' or 'finished', that can also be done by comparing
         # the filtered file(s) against the manifest's 'finished' list
-        # to see if it can be used.
+        # to see if it can be used. Such logic could live
+        # approximately here if desired.
         if usfm_content_files:
             # Only use the content files that match the resource_code
             # in the resource request.
@@ -281,8 +282,7 @@ class USFMResource(Resource):
                 )
             )
         elif txt_content_files:
-            # Only use the content files that match the resource_code
-            # in the resource request.
+            # Only use the content files that match the resource_code.
             self._content_files = list(
                 filter(
                     lambda txt_content_file: self._resource_code.lower()
@@ -581,7 +581,9 @@ class TNResource(TResource):
                 ),
             ]
         )
-        # FIXME We can likely now remove the first '**'
+        # FIXME We can likely now remove the first '**' if we want. It
+        # works as is though, it is just a minor optimization, but I'd
+        # need to fully it test it before making the change.
         chapter_dirs = sorted(
             glob("{}/**/*{}/*[0-9]*".format(self._resource_dir, self._resource_code))
         )
@@ -733,7 +735,8 @@ class TQResource(TResource):
                 ),
             ]
         )
-        # FIXME We can likely now remove the first '**'
+        # FIXME We can likely now remove the first '**' for a tiny
+        # speedup, but I'd need to test thorougly first.
         chapter_dirs = sorted(
             glob("{}/**/*{}/*[0-9]*".format(self._resource_dir, self._resource_code))
         )
@@ -741,7 +744,8 @@ class TQResource(TResource):
         # on if their assets were acquired as a git repo or a zip).
         # We handle this here.
         if not chapter_dirs:
-            # FIXME We can likely now remove the first '**'
+            # FIXME We can likely now remove the first '**' for a tiny
+            # speedup, but I'd need to test thorougly first.
             chapter_dirs = sorted(
                 glob("{}/*{}/*[0-9]*".format(self._resource_dir, self._resource_code))
             )
@@ -943,8 +947,7 @@ class TWResource(TResource):
     ) -> List[model.HtmlContent]:
         """
         Add the translation links section which provides links from words
-        used in the current verse to their definition, i.e., to their
-        translation word content.
+        used in the current verse to their definition.
         """
         html: List[model.HtmlContent] = []
         # Check if any of the kt_dict, names_dict, or other_dict keys appear in
@@ -979,7 +982,6 @@ class TWResource(TResource):
             # Add header
             html.append(
                 model.HtmlContent(
-                    # config.get_html_format_string("translation_words").format(
                     config.get_html_format_string("resource_type_name_with_ref").format(
                         self.resource_type_name, chapter_num, verse_num
                     )
