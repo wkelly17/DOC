@@ -247,24 +247,24 @@ class USFMResource(Resource):
         """See docstring in superclass."""
         self._manifest = Manifest(self)
 
+        usfm_content_files = []
+        txt_content_files = []
+
+        # We don't need a manifest file to find resource assets
+        # on disk. We just use globbing and then filter
+        # down the list found to only include those
+        # files that match the resource code, i.e., book, being requested.
+        # This frees us from some of the brittleness of using manifests
+        # to find files. Some resources do not provide a manifest
+        # anyway.
         usfm_content_files = glob("{}**/*.usfm".format(self._resource_dir))
-        # USFM files sometimes have txt suffix
-        txt_content_files = glob("{}**/*.txt".format(self._resource_dir))
-        # Sometimes the txt USFM files live at another location
-        if not txt_content_files:
-            txt_content_files = glob("{}**/**/*.txt".format(self._resource_dir))
+        if not usfm_content_files:
+            # USFM files sometimes have txt suffix instead of usfm
+            txt_content_files = glob("{}**/*.txt".format(self._resource_dir))
+            # Sometimes the txt USFM files live at another location
+            if not txt_content_files:
+                txt_content_files = glob("{}**/**/*.txt".format(self._resource_dir))
 
-        # logger.debug("usfm_content_files: {}".format(list(usfm_content_files)))
-
-        # NOTE We don't need a manifest file to find resource assets
-        # on disk as fuzzy search does that for us. We just filter
-        # down the list found with fuzzy search to only include those
-        # that match the resource code, i.e., book, being requested.
-        # This frees us from the brittleness of expecting asset files
-        # to be named a certain way for all languages since we are
-        # able to just check that the asset file has the resource code
-        # as a substring.
-        #
         # If desired, in the case where a manifest must be consulted
         # to determine if the file is considered usable, i.e.,
         # 'complete' or 'finished', that can also be done by comparing
@@ -597,17 +597,21 @@ class TNResource(TResource):
         chapter_verses: Dict[int, model.TNChapterPayload] = {}
         for chapter_dir in chapter_dirs:
             chapter_num = int(os.path.split(chapter_dir)[-1])
-            # FIXME For some languages, TN assets are stored in .txt files
-            # rather of .md files. Handle this.
             intro_paths = glob("{}/*intro.md".format(chapter_dir))
+            # For some languages, TN assets are stored in .txt files
+            # rather of .md files.
+            if not intro_paths:
+                glob("{}/*intro.txt".format(chapter_dir))
             intro_path = intro_paths[0] if intro_paths else None
             intro_html = ""
             if intro_path:
                 intro_html = file_utils.read_file(intro_path)
                 intro_html = md.convert(intro_html)
-            # FIXME For some languages, TN assets are stored in .txt files
-            # rather of .md files. Handle this.
             verse_paths = sorted(glob("{}/*[0-9]*.md".format(chapter_dir)))
+            # For some languages, TN assets are stored in .txt files
+            # rather of .md files.
+            if not verse_paths:
+                verse_paths = sorted(glob("{}/*[0-9]*.txt".format(chapter_dir)))
             verses_html: Dict[int, str] = {}
             for filepath in verse_paths:
                 verse_num = int(pathlib.Path(filepath).stem)
@@ -620,11 +624,15 @@ class TNResource(TResource):
             )
             chapter_verses[chapter_num] = chapter_payload
         # Get the book intro if it exists
-        # FIXME For some languages, TN assets are stored in .txt files
-        # rather of .md files. Handle this.
         book_intro_path = glob(
             "{}/*{}/front/intro.md".format(self._resource_dir, self._resource_code)
         )
+        # For some languages, TN assets are stored in .txt files
+        # rather of .md files.
+        if not book_intro_path:
+            book_intro_path = glob(
+                "{}/*{}/front/intro.txt".format(self._resource_dir, self._resource_code)
+            )
         book_intro_html = ""
         if book_intro_path:
             book_intro_html = file_utils.read_file(book_intro_path[0])
@@ -752,9 +760,13 @@ class TQResource(TResource):
         chapter_verses: Dict[int, model.TQChapterPayload] = {}
         for chapter_dir in chapter_dirs:
             chapter_num = int(os.path.split(chapter_dir)[-1])
-            # FIXME For some languages, TQ assets are stored in .txt files
-            # rather of .md files. Handle this.
             verse_paths = sorted(glob("{}/*[0-9]*.md".format(chapter_dir)))
+            # For some languages, TQ assets may be stored in .txt files
+            # rather of .md files.
+            # FIXME This is true of TN assets, but I am not yet sure of TQ assets
+            # that use the TXT suffix.
+            if not verse_paths:
+                verse_paths = sorted(glob("{}/*[0-9]*.txt".format(chapter_dir)))
             verses_html: Dict[int, str] = {}
             for filepath in verse_paths:
                 verse_num = int(pathlib.Path(filepath).stem)
