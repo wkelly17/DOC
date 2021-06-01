@@ -93,6 +93,7 @@ class DocumentGenerator:
         # exist.
         self._unfound_resources: List[Resource] = []
         self._found_resources: List[Resource] = []
+        self._unloaded_resources: List[Resource] = []
 
         if not self._output_dir:
             self._output_dir = self._working_dir
@@ -316,6 +317,21 @@ class DocumentGenerator:
                 )
             )
         )
+        unloaded = "{}".format(
+            ", ".join(
+                sorted(
+                    {
+                        "{}-{}-{}".format(
+                            resource.lang_code,
+                            resource.resource_type,
+                            resource.resource_code,
+                        )
+                        for resource in self._unloaded_resources
+                    }
+                )
+            )
+        )
+        logger.debug("unloaded resources: {}".format(unloaded))
         html_file_path = "{}.html".format(
             os.path.join(self._working_dir, self._document_request_key)
         )
@@ -353,7 +369,11 @@ class DocumentGenerator:
         cover = config.get_instantiated_template(
             "cover",
             model.CoverPayload(
-                title=title, unfound=unfound, revision_date=revision_date, images=images
+                title=title,
+                unfound=unfound,
+                unloaded=unloaded,
+                revision_date=revision_date,
+                images=images,
             ),
         )
         logger.debug("cover: {}".format(cover))
