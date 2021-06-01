@@ -643,31 +643,33 @@ class TNResource(TResource):
         return verses_html
 
     def format_tn_verse(
-        self, chapter_num: model.ChapterNum, verse_num: model.VerseRef,
+        self,
+        chapter_num: model.ChapterNum,
+        verse_num: model.VerseRef,
+        verse: model.HtmlContent,
     ) -> List[model.HtmlContent]:
         """
-        Build and return the content for the translation note for chapter
-        chapter_num and verse verse_num.
+        This is a slightly different form of TNResource.get_tn_verse that is used
+        when no USFM has been requested.
         """
-        chapter_verses = self.get_verses_for_chapter(chapter_num)
-        tn_verse = None
-        if chapter_verses and verse_num in chapter_verses:
-            tn_verse = chapter_verses[verse_num]
-        if tn_verse is None:
-            return [model.HtmlContent("")]
-
         html: List[model.HtmlContent] = []
-        # Add header
         html.append(
             model.HtmlContent(
-                config.get_html_format_string("translation_note").format(
-                    chapter_num, verse_num
+                config.get_html_format_string(
+                    "tn_resource_type_name_with_id_and_ref"
+                ).format(
+                    self.lang_code,
+                    self._book_id,
+                    str(chapter_num).zfill(3),
+                    verse_num.zfill(3),
+                    self.resource_type_name,
+                    chapter_num,
+                    verse_num,
                 )
             )
         )
-        # Change H1 HTML elements to H4 HTML elements in each translation note
-        # so that overall indentation works out.
-        html.append(model.HtmlContent(re.sub(r"h1", r"h4", tn_verse)))
+        # Change H1 HTML elements to H4 HTML elements in each translation note.
+        html.append(model.HtmlContent(re.sub(r"h1", r"h4", verse)))
         return html
 
 

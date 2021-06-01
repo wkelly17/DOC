@@ -609,8 +609,7 @@ def _assemble_usfm_as_iterator_content_by_verse(
                 html.append(verse)
                 # Add TN verse content, if any
                 if tn_resource and tn_verses and verse_num in tn_verses:
-                    tn_verse_content = _format_tn_verse(
-                        tn_resource.resource_type_name,
+                    tn_verse_content = tn_resource.format_tn_verse(
                         chapter_num,
                         verse_num,
                         tn_verses[verse_num],
@@ -1749,8 +1748,7 @@ def _assemble_tn_as_iterator_content_by_verse(
                 for verse_num, verse in tn_verses.items():
                     # Add TN verse content, if any
                     if tn_verses and verse_num in tn_verses:
-                        tn_verse_content = _format_tn_verse(
-                            tn_resource.resource_type_name,
+                        tn_verse_content = tn_resource.format_tn_verse(
                             chapter_num,
                             verse_num,
                             tn_verses[verse_num],
@@ -2229,28 +2227,8 @@ def _initialize_resources_html(
         ta_resource.initialize_verses_html(tw_resource_dir)
 
 
-def _format_tn_verse(
-    resource_type_name: str,
-    chapter_num: model.ChapterNum,
-    verse_num: model.VerseRef,
-    verse: model.HtmlContent,
-) -> List[model.HtmlContent]:
     """
-    This is a slightly different form of TNResource.get_tn_verse that is used
-    when no USFM has been requested.
     """
-    html: List[model.HtmlContent] = []
-    html.append(
-        model.HtmlContent(
-            # config.get_html_format_string("translation_note").format(
-            config.get_html_format_string("resource_type_name_with_ref").format(
-                resource_type_name, chapter_num, verse_num
-            )
-        )
-    )
-    # Change H1 HTML elements to H4 HTML elements in each translation note.
-    html.append(model.HtmlContent(re.sub(r"h1", r"h4", verse)))
-    return html
 
 
 def _format_tq_verse(
