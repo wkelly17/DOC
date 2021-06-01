@@ -6,7 +6,10 @@ There are different classes for each resource type.
 from __future__ import annotations  # https://www.python.org/dev/peps/pep-0563/
 
 import abc
+import bs4
+import icontract
 import logging  # For logdecorator
+import markdown
 import os
 import pathlib
 import re
@@ -15,9 +18,6 @@ from glob import glob
 from logdecorator import log_on_start, log_on_end
 from typing import Any, cast, Dict, FrozenSet, List, Optional, Tuple
 
-import bs4
-import icontract
-import markdown
 from usfm_tools.transform import UsfmTransform
 
 from document import config
