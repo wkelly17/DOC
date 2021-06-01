@@ -401,13 +401,15 @@ def _assemble_content_by_lang_then_book(
     # wanted was TN for Swahili and nothing else.
 
     resources_sorted_by_language = sorted(
-        docgen.found_resources, key=lambda resource: resource.lang_name,
+        docgen.found_resources,
+        key=lambda resource: resource.lang_name,
     )
     html = []
     language: str
     # group_by_lang: itertools._grouper
     for language, group_by_lang in itertools.groupby(
-        resources_sorted_by_language, lambda resource: resource.lang_name,
+        resources_sorted_by_language,
+        lambda resource: resource.lang_name,
     ):
         html.append(config.get_html_format_string("language").format(language))
 
@@ -627,8 +629,12 @@ def _assemble_usfm_as_iterator_content_by_verse(
 
                 if tw_resource:
                     # Add the translation words links section.
-                    translation_word_links_html = tw_resource.get_translation_word_links(
-                        chapter_num, verse_num, verse,
+                    translation_word_links_html = (
+                        tw_resource.get_translation_word_links(
+                            chapter_num,
+                            verse_num,
+                            verse,
+                        )
                     )
                     html.extend(translation_word_links_html)
             # Add scripture footnotes if available
@@ -1279,7 +1285,9 @@ def _assemble_usfm_tq_tw_content_by_verse(
                 html.extend(tq_verse_content)
             # Add the translation words links section
             translation_word_links_html = tw_resource.get_translation_word_links(
-                chapter_num, verse_num, verse,
+                chapter_num,
+                verse_num,
+                verse,
             )
             html.extend(translation_word_links_html)
         # Add scripture footnotes if available
@@ -1344,7 +1352,9 @@ def _assemble_usfm_tw_content_by_verse(
             html.append(verse)
             # Add the translation words links section
             translation_word_links_html = tw_resource.get_translation_word_links(
-                chapter_num, verse_num, verse,
+                chapter_num,
+                verse_num,
+                verse,
             )
             html.extend(translation_word_links_html)
         # Add scripture footnotes if available
@@ -1766,8 +1776,12 @@ def _assemble_tn_as_iterator_content_by_verse(
                         html.extend(tq_verse_content)
                     if tw_resource:
                         # Add the translation words links section.
-                        translation_word_links_html = tw_resource.get_translation_word_links(
-                            chapter_num, verse_num, verse,
+                        translation_word_links_html = (
+                            tw_resource.get_translation_word_links(
+                                chapter_num,
+                                verse_num,
+                                verse,
+                            )
                         )
                         html.extend(translation_word_links_html)
     if tw_resource:
@@ -2159,7 +2173,9 @@ def _assemble_tq_tw_content_by_verse(
 
                 # Add the translation words links section.
                 translation_word_links_html = tw_resource.get_translation_word_links(
-                    chapter_num, verse_num, verse,
+                    chapter_num,
+                    verse_num,
+                    verse,
                 )
                 html.extend(translation_word_links_html)
     # Add the translation words definition section.

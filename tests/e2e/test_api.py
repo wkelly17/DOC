@@ -288,7 +288,11 @@ def test_pt_br_ulb_tn_luk_en_ulb_wa_tn_wa_luk_sw_ulb_tn_col_language_book_order(
                         "resource_type": "ulb",
                         "resource_code": "col",
                     },
-                    {"lang_code": "sw", "resource_type": "tn", "resource_code": "col",},
+                    {
+                        "lang_code": "sw",
+                        "resource_type": "tn",
+                        "resource_code": "col",
+                    },
                 ],
             },
         )
@@ -337,12 +341,36 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_c
                         "resource_type": "ulb",
                         "resource_code": "col",
                     },
-                    {"lang_code": "sw", "resource_type": "tn", "resource_code": "col",},
-                    {"lang_code": "sw", "resource_type": "tq", "resource_code": "col",},
-                    {"lang_code": "sw", "resource_type": "tw", "resource_code": "col",},
-                    {"lang_code": "sw", "resource_type": "tn", "resource_code": "tit",},
-                    {"lang_code": "sw", "resource_type": "tq", "resource_code": "tit",},
-                    {"lang_code": "sw", "resource_type": "tw", "resource_code": "tit",},
+                    {
+                        "lang_code": "sw",
+                        "resource_type": "tn",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "sw",
+                        "resource_type": "tq",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "sw",
+                        "resource_type": "tw",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "sw",
+                        "resource_type": "tn",
+                        "resource_code": "tit",
+                    },
+                    {
+                        "lang_code": "sw",
+                        "resource_type": "tq",
+                        "resource_code": "tit",
+                    },
+                    {
+                        "lang_code": "sw",
+                        "resource_type": "tw",
+                        "resource_code": "tit",
+                    },
                 ],
             },
         )
@@ -410,15 +438,31 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_col_sw_tw_col_
                         "resource_type": "ulb",
                         "resource_code": "col",
                     },
-                    {"lang_code": "sw", "resource_type": "tn", "resource_code": "col",},
-                    {"lang_code": "sw", "resource_type": "tw", "resource_code": "col",},
+                    {
+                        "lang_code": "sw",
+                        "resource_type": "tn",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "sw",
+                        "resource_type": "tw",
+                        "resource_code": "col",
+                    },
                     {
                         "lang_code": "sw",
                         "resource_type": "ulb",
                         "resource_code": "tit",
                     },
-                    {"lang_code": "sw", "resource_type": "tn", "resource_code": "tit",},
-                    {"lang_code": "sw", "resource_type": "tw", "resource_code": "tit",},
+                    {
+                        "lang_code": "sw",
+                        "resource_type": "tn",
+                        "resource_code": "tit",
+                    },
+                    {
+                        "lang_code": "sw",
+                        "resource_type": "tw",
+                        "resource_code": "tit",
+                    },
                 ],
             },
         )
@@ -466,13 +510,21 @@ def test_en_ulb_wa_col_en_tw_wa_col_sw_ulb_col_sw_tw_col_sw_ulb_tit_sw_tw_tit_la
                         "resource_type": "ulb",
                         "resource_code": "col",
                     },
-                    {"lang_code": "sw", "resource_type": "tw", "resource_code": "col",},
+                    {
+                        "lang_code": "sw",
+                        "resource_type": "tw",
+                        "resource_code": "col",
+                    },
                     {
                         "lang_code": "sw",
                         "resource_type": "ulb",
                         "resource_code": "tit",
                     },
-                    {"lang_code": "sw", "resource_type": "tw", "resource_code": "tit",},
+                    {
+                        "lang_code": "sw",
+                        "resource_type": "tw",
+                        "resource_code": "tit",
+                    },
                 ],
             },
         )
@@ -524,15 +576,31 @@ def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_
                         "resource_type": "ulb",
                         "resource_code": "col",
                     },
-                    {"lang_code": "sw", "resource_type": "tq", "resource_code": "col",},
-                    {"lang_code": "sw", "resource_type": "tw", "resource_code": "col",},
+                    {
+                        "lang_code": "sw",
+                        "resource_type": "tq",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "sw",
+                        "resource_type": "tw",
+                        "resource_code": "col",
+                    },
                     {
                         "lang_code": "sw",
                         "resource_type": "ulb",
                         "resource_code": "tit",
                     },
-                    {"lang_code": "sw", "resource_type": "tq", "resource_code": "tit",},
-                    {"lang_code": "sw", "resource_type": "tw", "resource_code": "tit",},
+                    {
+                        "lang_code": "sw",
+                        "resource_type": "tq",
+                        "resource_code": "tit",
+                    },
+                    {
+                        "lang_code": "sw",
+                        "resource_type": "tw",
+                        "resource_code": "tit",
+                    },
                 ],
             },
         )
@@ -590,15 +658,31 @@ def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_
                         "resource_type": "ulb",
                         "resource_code": "col",
                     },
-                    {"lang_code": "sw", "resource_type": "tq", "resource_code": "col",},
-                    {"lang_code": "sw", "resource_type": "tw", "resource_code": "col",},
+                    {
+                        "lang_code": "sw",
+                        "resource_type": "tq",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "sw",
+                        "resource_type": "tw",
+                        "resource_code": "col",
+                    },
                     {
                         "lang_code": "zh",
                         "resource_type": "cuv",
                         "resource_code": "tit",
                     },
-                    {"lang_code": "sw", "resource_type": "tq", "resource_code": "tit",},
-                    {"lang_code": "sw", "resource_type": "tw", "resource_code": "tit",},
+                    {
+                        "lang_code": "sw",
+                        "resource_type": "tq",
+                        "resource_code": "tit",
+                    },
+                    {
+                        "lang_code": "sw",
+                        "resource_type": "tw",
+                        "resource_code": "tit",
+                    },
                 ],
             },
         )
@@ -651,7 +735,11 @@ def test_zh_ulb_doesnt_exist_jol_zh_tn_jol_language_book_order() -> None:
                         "resource_type": "ulb",
                         "resource_code": "jol",
                     },
-                    {"lang_code": "zh", "resource_type": "tn", "resource_code": "jol",},
+                    {
+                        "lang_code": "zh",
+                        "resource_type": "tn",
+                        "resource_code": "jol",
+                    },
                 ],
             },
         )
@@ -700,7 +788,11 @@ def test_zh_cuv_jol_zh_tn_jol_language_book_order() -> None:
                         "resource_type": "cuv",
                         "resource_code": "jol",
                     },
-                    {"lang_code": "zh", "resource_type": "tn", "resource_code": "jol",},
+                    {
+                        "lang_code": "zh",
+                        "resource_type": "tn",
+                        "resource_code": "jol",
+                    },
                 ],
             },
         )
@@ -741,9 +833,21 @@ def test_zh_cuv_jol_zh_tn_jol_zh_tq_jol_zh_tw_jol_language_book_order() -> None:
                         "resource_type": "cuv",
                         "resource_code": "jol",
                     },
-                    {"lang_code": "zh", "resource_type": "tn", "resource_code": "jol",},
-                    {"lang_code": "zh", "resource_type": "tq", "resource_code": "jol",},
-                    {"lang_code": "zh", "resource_type": "tw", "resource_code": "jol",},
+                    {
+                        "lang_code": "zh",
+                        "resource_type": "tn",
+                        "resource_code": "jol",
+                    },
+                    {
+                        "lang_code": "zh",
+                        "resource_type": "tq",
+                        "resource_code": "jol",
+                    },
+                    {
+                        "lang_code": "zh",
+                        "resource_type": "tw",
+                        "resource_code": "jol",
+                    },
                 ],
             },
         )

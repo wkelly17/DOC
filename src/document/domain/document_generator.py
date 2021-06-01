@@ -190,7 +190,8 @@ class DocumentGenerator:
             )
         )
         file_utils.write_file(
-            self.get_finished_html_document_filepath(), self._content,
+            self.get_finished_html_document_filepath(),
+            self._content,
         )
 
     def _enclose_html_content(self) -> None:
@@ -466,7 +467,11 @@ class DocumentGenerator:
         resources: List[Resource] = []
         for resource_request in document_request.resource_requests:
             resources.append(
-                resource_factory(self._working_dir, self._output_dir, resource_request,)
+                resource_factory(
+                    self._working_dir,
+                    self._output_dir,
+                    resource_request,
+                )
             )
         return resources
 
@@ -542,6 +547,7 @@ class DocumentGenerator:
         """Get Unfolding Word's icon for display in generated PDF."""
         if not os.path.isfile(config.get_logo_image_path()):
             command = "curl -o {}/icon-tn.png {}".format(
-                self._working_dir, config.get_icon_url(),
+                self._working_dir,
+                config.get_icon_url(),
             )
             subprocess.call(command, shell=True)

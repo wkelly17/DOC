@@ -43,7 +43,10 @@ class TranslationWordLinkPreprocessor(Preprocessor):
         logger=logger,
     )
     def __init__(
-        self, md: markdown.Markdown, lang_code: str, tw_resource_dir: Optional[str],
+        self,
+        md: markdown.Markdown,
+        lang_code: str,
+        tw_resource_dir: Optional[str],
     ) -> None:
         """Initialize."""
         # Avoid circular reference by importing here instead of the

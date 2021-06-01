@@ -345,7 +345,8 @@ class USFMResource(Resource):
             chapter_num = int(chapter_break.get_text().split()[1])
             chapter_content = html_parsing_utils.tag_elements_between(
                 parser.find(
-                    "h2", text="{} {}".format(localized_chapter_heading, chapter_num),
+                    "h2",
+                    text="{} {}".format(localized_chapter_heading, chapter_num),
                 ),
                 # ).next_sibling,
                 parser.find(
@@ -355,10 +356,11 @@ class USFMResource(Resource):
             )
             chapter_content = [str(tag) for tag in list(chapter_content)]
             chapter_content_parser = bs4.BeautifulSoup(
-                "".join(chapter_content), "html.parser",
+                "".join(chapter_content),
+                "html.parser",
             )
-            chapter_verse_tags: bs4.elements.ResultSet = chapter_content_parser.find_all(
-                "span", attrs={"class": "v-num"}
+            chapter_verse_tags: bs4.elements.ResultSet = (
+                chapter_content_parser.find_all("span", attrs={"class": "v-num"})
             )
             chapter_footnote_tag: bs4.elements.ResultSet = chapter_content_parser.find(
                 "div", attrs={"class": "footnotes"}
@@ -447,11 +449,13 @@ class USFMResource(Resource):
         # content.
         verse_content_tags = html_parsing_utils.tag_elements_between(
             chapter_content_parser.find(
-                "span", attrs={"class": "v-num", "id": lower_id},
+                "span",
+                attrs={"class": "v-num", "id": lower_id},
             ),
             # ).next_sibling,
             chapter_content_parser.find(
-                "span", attrs={"class": "v-num", "id": upper_id},
+                "span",
+                attrs={"class": "v-num", "id": upper_id},
             ),
         )
         verse_content = [str(tag) for tag in list(verse_content_tags)]
@@ -472,7 +476,9 @@ class USFMResource(Resource):
         # multi-language document.
         pattern = r'id="(.+?)-ch-(.+?)-v-(.+?)"'
         verse_content_str = re.sub(
-            pattern, r"id='{}-\1-ch-\2-v-\3'".format(self.lang_code), verse_content_str,
+            pattern,
+            r"id='{}-\1-ch-\2-v-\3'".format(self.lang_code),
+            verse_content_str,
         )
         return model.VerseRef(verse_num), model.HtmlContent(verse_content_str)
 
@@ -775,7 +781,9 @@ class TQResource(TResource):
         return verses_html
 
     def format_tq_verse(
-        self, chapter_num: model.ChapterNum, verse_num: model.VerseRef,
+        self,
+        chapter_num: model.ChapterNum,
+        verse_num: model.VerseRef,
     ) -> List[model.HtmlContent]:
         """
         Build and return the content for the translation question for chapter
@@ -983,7 +991,9 @@ class TWResource(TResource):
             # Append word links.
             uses_list_items = [
                 config.get_html_format_string("translation_word_list_item").format(
-                    self.lang_code, use.base_filename, use.localized_word,
+                    self.lang_code,
+                    use.base_filename,
+                    use.localized_word,
                 )
                 for use in uses
             ]
@@ -993,7 +1003,8 @@ class TWResource(TResource):
         return html
 
     def get_translation_words_section(
-        self, include_uses_section: bool = True,
+        self,
+        include_uses_section: bool = True,
     ) -> List[model.HtmlContent]:
         """
         Build and return the translation words definition section, i.e.,
