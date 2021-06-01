@@ -41,4 +41,6 @@ pyicontract-lint:
 	pyicontract-lint --dont_panic ./src/document/utils
 	pyicontract-lint --dont_panic ./src/document/entrypoints
 
-all: mypy pyicontract-lint down build up test
+all: down build up test
+
+all-plus-linting: mypy pyicontract-lint down build up test
