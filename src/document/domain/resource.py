@@ -1039,11 +1039,11 @@ class TWResource(TResource):
         for key, value in self._language_payload.translation_words_dict.items():
             # This checks that the word occurs as an exact sub-string in
             # the verse.
-            if re.search(r"\b{}\b".format(value.localized_word), verse):
+            if re.search(r"\b{}\b".format(re.escape(value.localized_word)), verse):
                 use = model.TWUse(
                     lang_code=self.lang_code,
                     book_id=self.resource_code,
-                    # FIXME Use localized book name.
+                    # FIXME In a perfect world, we'd use a localized book name.
                     book_name=bible_books.BOOK_NAMES[self.resource_code],
                     chapter_num=chapter_num,
                     verse_num=verse_num,
