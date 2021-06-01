@@ -84,6 +84,17 @@ class DocumentGenerator:
             ],
             model.HtmlContent,
         ]
+        self._assembly_sub_strategy_for_book_then_lang: Callable[
+            [
+                List[USFMResource],
+                List[TNResource],
+                List[TQResource],
+                List[TWResource],
+                List[TAResource],
+                model.AssemblySubstrategyEnum,
+            ],
+            model.HtmlContent,
+        ]
         self._working_dir = working_dir
         self._output_dir = output_dir
         # In the end, prior to PDF generation, this is where the

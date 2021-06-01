@@ -55,18 +55,19 @@ def _assembly_strategy_factory(
     appropriate strategy function to run.
     """
     strategies = {
-        model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER: _assemble_content_by_lang_then_book
+        model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER: _assemble_content_by_lang_then_book,
+        model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER: _assemble_content_by_book_then_lang,
     }
     return strategies[assembly_strategy_kind]
 
 
 def _assembly_sub_strategy_factory(
-    usfm_resource: Optional[USFMResource],  # ulb, nav, cuv, etc.
+    usfm_resource: Optional[USFMResource],
     tn_resource: Optional[TNResource],
     tq_resource: Optional[TQResource],
     tw_resource: Optional[TWResource],
     ta_resource: Optional[TAResource],
-    usfm_resource2: Optional[USFMResource],  # udb
+    usfm_resource2: Optional[USFMResource],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> Callable[
     [
@@ -95,7 +96,9 @@ def _assembly_sub_strategy_factory(
     """
     strategies: Dict[
         Tuple[
-            # Params: usfm_resource_exists, tn_resource_exists, tq_resource_exists, tw_resource_exists, ta_resource_exists, usfm_resource2_exists, assembly_strategy_kind
+            # Params: usfm_resource_exists, tn_resource_exists,
+            # tq_resource_exists, tw_resource_exists, ta_resource_exists,
+            # usfm_resource2_exists, assembly_strategy_kind
             bool,
             bool,
             bool,
@@ -374,13 +377,202 @@ def _assembly_sub_strategy_factory(
     ]
 
 
+def _assembly_sub_strategy_factory_for_book_then_lang(
+    usfm_resources: List[USFMResource],
+    tn_resources: List[TNResource],
+    tq_resources: List[TQResource],
+    tw_resources: List[TWResource],
+    ta_resources: List[TAResource],
+    assembly_substrategy_kind: model.AssemblySubstrategyEnum,
+) -> Callable[
+    [
+        List[USFMResource],
+        List[TNResource],
+        List[TQResource],
+        List[TWResource],
+        List[TAResource],
+        model.AssemblySubstrategyEnum,
+    ],
+    model.HtmlContent,
+]:
+    """
+    Strategy pattern. Given the existence, i.e., exists or emtpy, of each
+    type of the possible resource instances and an
+    assembly sub-strategy kind, returns the appropriate sub-strategy
+    function to run.
+
+    This functions as a lookup table that will select the right
+    assembly function to run. The impetus for it is to avoid messy
+    conditional logic in an otherwise monolithic assembly algorithm
+    that would be checking the existence of each resource.
+    This makes adding new strategies straightforward, if a bit
+    redundant. The redundancy is the cost of comprehension.
+    """
+    strategies: Dict[
+        Tuple[
+            # Params: usfm_resources is non-empty, tn_resources is non-empty, tq_resources is non-empty, tw_resources is non-empty, ta_resources is non-empty, assembly_strategy_kind
+            bool,
+            bool,
+            bool,
+            bool,
+            bool,
+            model.AssemblySubstrategyEnum,
+        ],
+        Callable[
+            [
+                List[USFMResource],
+                List[TNResource],
+                List[TQResource],
+                List[TWResource],
+                List[TAResource],
+                model.AssemblySubstrategyEnum,
+            ],
+            model.HtmlContent,
+        ],
+    ] = {
+        (
+            True,
+            True,
+            True,
+            True,
+            False,
+            model.AssemblySubstrategyEnum.VERSE,
+        ): _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang,
+        (
+            True,
+            True,
+            True,
+            False,
+            False,
+            model.AssemblySubstrategyEnum.VERSE,
+        ): _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang,
+        (
+            True,
+            True,
+            False,
+            True,
+            False,
+            model.AssemblySubstrategyEnum.VERSE,
+        ): _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang,
+        (
+            True,
+            True,
+            False,
+            False,
+            False,
+            model.AssemblySubstrategyEnum.VERSE,
+        ): _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang,
+        (
+            True,
+            False,
+            True,
+            True,
+            False,
+            model.AssemblySubstrategyEnum.VERSE,
+        ): _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang,
+        (
+            True,
+            False,
+            True,
+            False,
+            False,
+            model.AssemblySubstrategyEnum.VERSE,
+        ): _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang,
+        (
+            True,
+            False,
+            False,
+            True,
+            False,
+            model.AssemblySubstrategyEnum.VERSE,
+        ): _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang,
+        (
+            True,
+            False,
+            False,
+            False,
+            False,
+            model.AssemblySubstrategyEnum.VERSE,
+        ): _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang,
+        (
+            False,
+            True,
+            True,
+            True,
+            False,
+            model.AssemblySubstrategyEnum.VERSE,
+        ): _assemble_tn_as_iterator_content_by_verse_for_book_then_lang,
+        (
+            False,
+            True,
+            True,
+            False,
+            False,
+            model.AssemblySubstrategyEnum.VERSE,
+        ): _assemble_tn_as_iterator_content_by_verse_for_book_then_lang,
+        (
+            False,
+            True,
+            False,
+            True,
+            False,
+            model.AssemblySubstrategyEnum.VERSE,
+        ): _assemble_tn_as_iterator_content_by_verse_for_book_then_lang,
+        (
+            False,
+            True,
+            False,
+            False,
+            False,
+            model.AssemblySubstrategyEnum.VERSE,
+        ): _assemble_tn_as_iterator_content_by_verse_for_book_then_lang,
+        (
+            False,
+            False,
+            True,
+            True,
+            False,
+            model.AssemblySubstrategyEnum.VERSE,
+        ): _assemble_tq_as_iterator_content_by_verse_for_book_then_lang,
+        (
+            False,
+            False,
+            True,
+            False,
+            False,
+            model.AssemblySubstrategyEnum.VERSE,
+        ): _assemble_tq_as_iterator_content_by_verse_for_book_then_lang,
+        (
+            False,
+            False,
+            False,
+            True,
+            False,
+            model.AssemblySubstrategyEnum.VERSE,
+        ): _assemble_tw_as_iterator_content_by_verse_for_book_then_lang,
+    }
+    return strategies[
+        (
+            # Turn existence (exists or not) into a boolean for each
+            # instance, the tuple of these together are an immutable,
+            # and thus hashable, dictionary key into our function lookup table.
+            True if usfm_resources else False,
+            True if tn_resources else False,
+            True if tq_resources else False,
+            True if tw_resources else False,
+            True if ta_resources else False,
+            assembly_substrategy_kind,
+        )
+    ]
+
+
 #######################################
 ## Assembly strategy implementations
 
 
 @log_on_start(
     logging.INFO,
-    "Assembling document by interleaving at the verse level using 'verse' strategy.",
+    "Assembling document by interleaving at first by language and then by book.",
     logger=logger,
 )
 def _assemble_content_by_lang_then_book(
@@ -477,8 +669,95 @@ def _assemble_content_by_lang_then_book(
     return "\n".join(html)
 
 
-#############################################
-# Assembly sub-strategy implementations
+@log_on_start(
+    logging.INFO,
+    "Assembling document by interleaving at first by book and then by language.",
+    logger=logger,
+)
+def _assemble_content_by_book_then_lang(
+    docgen: document_generator.DocumentGenerator,
+) -> str:
+    """
+    Assemble by book then by language in lexicographical order before
+    delegating more atomic ordering/interleaving to an assembly
+    sub-strategy.
+    """
+
+    # NOTE Each strategy can interleave resource material the way it
+    # wants. A user could choose a strategy they want at the front
+    # end. Presumably, we could offer the user such strategies from a
+    # dropdown that would be intelligent enough to only present
+    # choices that make sense for the number of languages and
+    # resources they have selected, e.g., we wouldn't bother them with
+    # the choice of interleaving strategy if for instance all they
+    # wanted was TN for Swahili and nothing else.
+
+    resources_sorted_by_book = sorted(
+        # docgen.found_resources, key=lambda resource: resource.lang_name,
+        docgen.found_resources,
+        key=lambda resource: resource.resource_code,
+    )
+    html = []
+    book: str
+    # group_by_book: itertools._grouper
+    for book, group_by_book in itertools.groupby(
+        resources_sorted_by_book,
+        lambda resource: resource.resource_code,
+    ):
+        html.append(
+            config.get_html_format_string("book_as_grouper").format(
+                bible_books.BOOK_NAMES[book]
+            )
+        )
+
+
+        # Save grouper generator values in list since it will get exhausted
+        # when used and exhausted generators cannot be reused.
+        resources = list(group_by_book)
+        # usfm_resource: Optional[USFMResource] = _get_first_usfm_resource(resources)
+        usfm_resources: List[USFMResource] = _get_usfm_resources(resources)
+        tn_resources: List[TNResource] = _get_tn_resources(resources)
+        tq_resources: List[TQResource] = _get_tq_resources(resources)
+        tw_resources: List[TWResource] = _get_tw_resources(resources)
+        ta_resources: List[TAResource] = _get_ta_resources(resources)
+        # usfm_resource2: Optional[USFMResource] = _get_second_usfm_resource(resources)
+
+        # We've got the resources, now we can use the sub-strategy factory
+        # method to choose the right function to use from here on out.
+        docgen._assembly_sub_strategy_for_book_then_lang = (
+            _assembly_sub_strategy_factory_for_book_then_lang(
+                usfm_resources,
+                tn_resources,
+                tq_resources,
+                tw_resources,
+                ta_resources,
+                config.get_default_assembly_substrategy(),
+            )
+        )
+
+        logger.debug(
+            "docgen._assembly_sub_strategy_for_book_then_lang: {}".format(
+                str(docgen._assembly_sub_strategy_for_book_then_lang)
+            )
+        )
+
+        # Now that we have the sub-strategy, let's run it and
+        # generate the HTML output.
+        sub_html: model.HtmlContent = docgen._assembly_sub_strategy_for_book_then_lang(
+            usfm_resources,
+            tn_resources,
+            tq_resources,
+            tw_resources,
+            ta_resources,
+            config.get_default_assembly_substrategy(),
+        )
+        html.append(sub_html)
+
+    return "\n".join(html)
+
+
+#########################################################################
+# Assembly sub-strategy implementations for language then book strategy
 #
 # Possible combinations with usfm (e.g., ulb, ulb-wa, cuv, nav, etc), tn,
 # tq, tw, usfm2 (e.g., udb):
@@ -556,7 +835,7 @@ def _assemble_usfm_as_iterator_content_by_verse(
     in this interleaving strategy.
     """
 
-    _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
+    _initialize_resource_html(tn_resource, tq_resource, tw_resource, ta_resource)
 
     html: List[model.HtmlContent] = []
     if tn_resource:
@@ -1242,7 +1521,7 @@ def _assemble_usfm_tq_tw_content_by_verse(
         TWResource, tw_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
 
-    _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
+    _initialize_resource_html(tn_resource, tq_resource, tw_resource, ta_resource)
 
     html: List[model.HtmlContent] = []
 
@@ -1320,7 +1599,7 @@ def _assemble_usfm_tw_content_by_verse(
         TWResource, tw_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
 
-    _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
+    _initialize_resource_html(tn_resource, tq_resource, tw_resource, ta_resource)
 
     html: List[model.HtmlContent] = []
 
@@ -1473,7 +1752,7 @@ def _assemble_usfm_tq_content_by_verse(
         TQResource, tq_resource
     )  # Make mypy happy. We know, due to how we got here, that usfm_resource object is not None.
 
-    _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
+    _initialize_resource_html(tn_resource, tq_resource, tw_resource, ta_resource)
 
     html: List[model.HtmlContent] = []
 
@@ -1716,7 +1995,7 @@ def _assemble_tn_as_iterator_content_by_verse(
     Construct the HTML for a 'by verse' strategy wherein only TN, TQ,
     and TW exists.
     """
-    _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
+    _initialize_resource_html(tn_resource, tq_resource, tw_resource, ta_resource)
 
     html: List[model.HtmlContent] = []
     if tn_resource:
@@ -2081,7 +2360,7 @@ def _assemble_tq_content_by_verse(
         TQResource, tq_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
 
-    _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
+    _initialize_resource_html(tn_resource, tq_resource, tw_resource, ta_resource)
 
     html: List[model.HtmlContent] = []
 
@@ -2137,7 +2416,7 @@ def _assemble_tq_tw_content_by_verse(
         TWResource, tw_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
 
-    _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
+    _initialize_resource_html(tn_resource, tq_resource, tw_resource, ta_resource)
 
     html: List[model.HtmlContent] = []
 
@@ -2202,7 +2481,7 @@ def _assemble_tw_content_by_verse(
         TWResource, tw_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
 
-    _initialize_resources_html(tn_resource, tq_resource, tw_resource, ta_resource)
+    _initialize_resource_html(tn_resource, tq_resource, tw_resource, ta_resource)
 
     html: List[model.HtmlContent] = []
 
@@ -2214,11 +2493,391 @@ def _assemble_tw_content_by_verse(
     return model.HtmlContent("\n".join(html))
 
 
+#########################################################################
+# Assembly sub-strategy implementations for book then language strategy
+
+
+def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
+    usfm_resources: List[USFMResource],
+    tn_resources: List[TNResource],
+    tq_resources: List[TQResource],
+    tw_resources: List[TWResource],
+    ta_resources: List[TAResource],
+    assembly_substrategy_kind: model.AssemblySubstrategyEnum,
+) -> model.HtmlContent:
+    """
+    Construct the HTML for a 'by verse' strategy wherein at least one
+    USFM resource (e.g., ulb, nav, cuv, etc.) exists, and TN, TQ, and
+    TW may exist.
+    """
+
+    _initialize_resources_html(tn_resources, tq_resources, tw_resources, ta_resources)
+
+    html: List[model.HtmlContent] = []
+
+    # Sort resources by language
+    usfm_resources.sort(key=lambda r: r.lang_code)
+    tn_resources.sort(key=lambda r: r.lang_code)
+    tq_resources.sort(key=lambda r: r.lang_code)
+    tw_resources.sort(key=lambda r: r.lang_code)
+    ta_resources.sort(key=lambda r: r.lang_code)
+
+    # Rough sketch of algo that follows:
+    # English book intro
+    # French book intro
+    # chapter heading, e.g., Chapter 1
+    #     english chapter intro goes here
+    #     french chaptre entre qui
+    #         Unlocked Literal Bible (ULB) 1:1
+    #         a verse goes here
+    #         French ULB 1:1
+    #         voila est es magnifique
+    #         ULB Translation Helps 1:1
+    #         translation notes for English goes here
+    #         French Translation notes 1:1
+    #         translation notes for French goes here
+    #         etc for tq, tw links, footnotes, followed by tw definitions
+
+    # Add book intros for each tn_resource
+    for tn_resource in tn_resources:
+        # Add the book intro
+        book_intro = tn_resource.book_payload.intro_html
+        book_intro = _adjust_book_intro_headings(book_intro)
+        # book_intros.append(book_intro)
+        html.append(model.HtmlContent(book_intro))
+
+    # PEP526 disallows declaration of types in for loops, but allows this.
+    chapter_num: model.ChapterNum
+    chapter: model.USFMChapter
+    # Use the first usfm_resource as a chapter_num pump.
+    for chapter_num, chapter in usfm_resources[0].chapters_content.items():
+        # Add the first USFM resource's chapter heading. We ignore
+        # chapter headings for other usfm_resources because it would
+        # be strange to have more than one chapter heading per chapter
+        # for this assembly sub-strategy.
+        chapter_heading = model.HtmlContent("")
+        chapter_heading = chapter.chapter_content[0]
+        html.append(model.HtmlContent(chapter_heading))
+
+        # Add chapter intro for each language
+        for tn_resource in tn_resources:
+            # Add the translation notes chapter intro.
+            chapter_intro = _get_chapter_intro(tn_resource, chapter_num)
+            html.append(model.HtmlContent(chapter_intro))
+
+        # Use the first usfm_resource as a verse_num pump
+        for verse_num, verse in (
+            usfm_resources[0].chapters_content[chapter_num].chapter_verses.items()
+        ):
+            # Add the interleaved USFM verses
+            for usfm_resource in usfm_resources:
+                if (
+                    verse_num
+                    in usfm_resource.chapters_content[chapter_num].chapter_verses
+                ):
+                    # Add header
+                    html.append(
+                        model.HtmlContent(
+                            config.get_html_format_string(
+                                "resource_type_name_with_ref"
+                            ).format(
+                                usfm_resource.resource_type_name, chapter_num, verse_num
+                            )
+                        )
+                    )
+                    # Add scripture verse
+                    html.append(
+                        usfm_resource.chapters_content[chapter_num].chapter_verses[
+                            verse_num
+                        ]
+                    )
+
+            # Add the interleaved tn verses
+            for tn_resource in tn_resources:
+                tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
+                if tn_verses and verse_num in tn_verses:
+                    tn_verse_content = tn_resource.format_tn_verse(
+                        chapter_num,
+                        verse_num,
+                        tn_verses[verse_num],
+                    )
+                    html.extend(tn_verse_content)
+
+            # Add the interleaved tq verses
+            for tq_resource in tq_resources:
+                tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
+                # Add TQ verse content, if any
+                if tq_verses and verse_num in tq_verses:
+                    tq_verse_content = _format_tq_verse(
+                        tq_resource.resource_type_name,
+                        chapter_num,
+                        verse_num,
+                        tq_verses[verse_num],
+                    )
+                    html.extend(tq_verse_content)
+
+            # Add the interleaved translation word links
+            for idx, tw_resource in enumerate(tw_resources):
+                # FIXME We may want to use a try block to protect
+                # against invalid index access.
+                # Add the translation words links section.
+                translation_word_links_html = tw_resource.get_translation_word_links(
+                    chapter_num,
+                    verse_num,
+                    usfm_resources[idx]
+                    .chapters_content[chapter_num]
+                    .chapter_verses[verse_num],
+                )
+                html.extend(translation_word_links_html)
+
+        # Add the footnotes
+        for usfm_resource in usfm_resources:
+            # Add scripture footnotes for chapter if available
+            if chapter_footnotes := usfm_resource.chapters_content[
+                chapter_num
+            ].chapter_footnotes:
+                html.append(config.get_html_format_string("footnotes"))
+                html.append(chapter_footnotes)
+
+    # Add the translation word definitions
+    for tw_resource in tw_resources:
+        # Add the translation words definition section.
+        linked_translation_words = tw_resource.get_translation_words_section()
+        html.extend(linked_translation_words)
+
+    return model.HtmlContent("\n".join(html))
+
+
+def _assemble_tn_as_iterator_content_by_verse_for_book_then_lang(
+    usfm_resources: List[USFMResource],
+    tn_resources: List[TNResource],
+    tq_resources: List[TQResource],
+    tw_resources: List[TWResource],
+    ta_resources: List[TAResource],
+    assembly_substrategy_kind: model.AssemblySubstrategyEnum,
+) -> model.HtmlContent:
+    """
+    Construct the HTML for a 'by verse' strategy wherein at least
+    tn_resources exists, and TN, TQ, and TW may exist.
+    """
+
+    _initialize_resources_html(tn_resources, tq_resources, tw_resources, ta_resources)
+
+    html: List[model.HtmlContent] = []
+
+    # Sort resources by language
+    usfm_resources.sort(key=lambda r: r.lang_code)
+    tn_resources.sort(key=lambda r: r.lang_code)
+    tq_resources.sort(key=lambda r: r.lang_code)
+    tw_resources.sort(key=lambda r: r.lang_code)
+    ta_resources.sort(key=lambda r: r.lang_code)
+
+    # Rough sketch of algo that follows:
+    # English book intro
+    # French book intro
+    # chapter heading, e.g., Chapter 1
+    #     english chapter intro goes here
+    #     french chapter intro goes here
+    #         ULB Translation Helps 1:1
+    #         translation notes for English goes here
+    #         French Translation notes 1:1
+    #         translation notes for French goes here
+    #         etc for tq, tw links, followed by tw definitions
+
+    # Add book intros for each tn_resource
+    for tn_resource in tn_resources:
+        # Add the book intro
+        book_intro = tn_resource.book_payload.intro_html
+        book_intro = _adjust_book_intro_headings(book_intro)
+        # book_intros.append(book_intro)
+        html.append(model.HtmlContent(book_intro))
+
+    # PEP526 disallows declaration of types in for loops, but allows this.
+    chapter_num: model.ChapterNum
+    chapter: model.TNChapterPayload
+    # Use the first tn_resource as a chapter_num pump.
+    for chapter_num, chapter in tn_resources[0].book_payload.chapters.items():
+        chapter_heading = model.HtmlContent("Chapter {}".format(chapter_num))
+        html.append(model.HtmlContent(chapter_heading))
+
+        # Add chapter intro for each language
+        for tn_resource in tn_resources:
+            # Add the translation notes chapter intro.
+            chapter_intro = _get_chapter_intro(tn_resource, chapter_num)
+            html.append(model.HtmlContent(chapter_intro))
+
+        # Use the first tn_resource as a verse_num pump
+        for verse_num, verse in (
+            tn_resources[0].book_payload.chapters[chapter_num].verses_html.items()
+        ):
+            # Add the interleaved tn verses
+            for tn_resource in tn_resources:
+                tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
+                if tn_verses and verse_num in tn_verses:
+                    tn_verse_content = tn_resource.format_tn_verse(
+                        chapter_num,
+                        verse_num,
+                        tn_verses[verse_num],
+                    )
+                    html.extend(tn_verse_content)
+
+            # Add the interleaved tq verses
+            for tq_resource in tq_resources:
+                tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
+                # Add TQ verse content, if any
+                if tq_verses and verse_num in tq_verses:
+                    tq_verse_content = _format_tq_verse(
+                        tq_resource.resource_type_name,
+                        chapter_num,
+                        verse_num,
+                        tq_verses[verse_num],
+                    )
+                    html.extend(tq_verse_content)
+
+            # Add the interleaved translation word links
+            for idx, tw_resource in enumerate(tw_resources):
+                # Add the translation words links section.
+                if idx in usfm_resources:
+                    translation_word_links_html = (
+                        tw_resource.get_translation_word_links(
+                            chapter_num,
+                            verse_num,
+                            usfm_resources[idx]
+                            .chapters_content[chapter_num]
+                            .chapter_verses[verse_num],
+                        )
+                    )
+                    html.extend(translation_word_links_html)
+
+    # Add the translation word definitions
+    for tw_resource in tw_resources:
+        # Add the translation words definition section.
+        linked_translation_words = tw_resource.get_translation_words_section()
+        html.extend(linked_translation_words)
+
+    return model.HtmlContent("\n".join(html))
+
+
+def _assemble_tq_as_iterator_content_by_verse_for_book_then_lang(
+    usfm_resources: List[USFMResource],
+    tn_resources: List[TNResource],
+    tq_resources: List[TQResource],
+    tw_resources: List[TWResource],
+    ta_resources: List[TAResource],
+    assembly_substrategy_kind: model.AssemblySubstrategyEnum,
+) -> model.HtmlContent:
+    """
+    Construct the HTML for a 'by verse' strategy wherein at least
+    tq_resources exists, and TQ, and TW may exist.
+    """
+
+    _initialize_resources_html(tn_resources, tq_resources, tw_resources, ta_resources)
+
+    html: List[model.HtmlContent] = []
+
+    # Sort resources by language
+    usfm_resources.sort(key=lambda r: r.lang_code)
+    tn_resources.sort(key=lambda r: r.lang_code)
+    tq_resources.sort(key=lambda r: r.lang_code)
+    tw_resources.sort(key=lambda r: r.lang_code)
+    ta_resources.sort(key=lambda r: r.lang_code)
+
+    # Rough sketch of algo that follows:
+    # English book intro
+    # French book intro
+    # chapter heading, e.g., Chapter 1
+    #     english chapter intro goes here
+    #     french chapter intro goes here
+    #         etc for tq, tw links, followed by tw definitions
+
+    # PEP526 disallows declaration of types in for loops, but allows this.
+    chapter_num: model.ChapterNum
+    chapter: model.TQChapterPayload
+    # Use the first tn_resource as a chapter_num pump.
+    for chapter_num, chapter in tq_resources[0].book_payload.chapters.items():
+        chapter_heading = model.HtmlContent("Chapter {}".format(chapter_num))
+        html.append(model.HtmlContent(chapter_heading))
+
+        # Use the first tq_resource as a verse_num pump
+        for verse_num, verse in (
+            tq_resources[0].book_payload.chapters[chapter_num].verses_html.items()
+        ):
+            # Add the interleaved tq verses
+            for tq_resource in tq_resources:
+                tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
+                # Add TQ verse content, if any
+                if tq_verses and verse_num in tq_verses:
+                    tq_verse_content = _format_tq_verse(
+                        tq_resource.resource_type_name,
+                        chapter_num,
+                        verse_num,
+                        tq_verses[verse_num],
+                    )
+                    html.extend(tq_verse_content)
+
+            # Add the interleaved translation word links
+            for idx, tw_resource in enumerate(tw_resources):
+                if idx in usfm_resources:
+                    # Add the translation words links section.
+                    translation_word_links_html = (
+                        tw_resource.get_translation_word_links(
+                            chapter_num,
+                            verse_num,
+                            usfm_resources[idx]
+                            .chapters_content[chapter_num]
+                            .chapter_verses[verse_num],
+                        )
+                    )
+                    html.extend(translation_word_links_html)
+
+    # Add the translation word definitions
+    for tw_resource in tw_resources:
+        # Add the translation words definition section.
+        linked_translation_words = tw_resource.get_translation_words_section()
+        html.extend(linked_translation_words)
+
+    return model.HtmlContent("\n".join(html))
+
+
+def _assemble_tw_as_iterator_content_by_verse_for_book_then_lang(
+    usfm_resources: List[USFMResource],
+    tn_resources: List[TNResource],
+    tq_resources: List[TQResource],
+    tw_resources: List[TWResource],
+    ta_resources: List[TAResource],
+    assembly_substrategy_kind: model.AssemblySubstrategyEnum,
+) -> model.HtmlContent:
+    """
+    Construct the HTML for a only TW.
+    """
+
+    _initialize_resources_html(tn_resources, tq_resources, tw_resources, ta_resources)
+
+    html: List[model.HtmlContent] = []
+
+    # Sort resources by language
+    usfm_resources.sort(key=lambda r: r.lang_code)
+    tn_resources.sort(key=lambda r: r.lang_code)
+    tq_resources.sort(key=lambda r: r.lang_code)
+    tw_resources.sort(key=lambda r: r.lang_code)
+    ta_resources.sort(key=lambda r: r.lang_code)
+
+    # Add the translation word definitions
+    for tw_resource in tw_resources:
+        # Add the translation words definition section.
+        linked_translation_words = tw_resource.get_translation_words_section(
+            include_uses_section=False
+        )
+        html.extend(linked_translation_words)
+
+    return model.HtmlContent("\n".join(html))
+
+
 ######################
 ## Utility functions
 
 
-def _initialize_resources_html(
+def _initialize_resource_html(
     tn_resource: Optional[TNResource],
     tq_resource: Optional[TQResource],
     tw_resource: Optional[TWResource],
@@ -2232,7 +2891,7 @@ def _initialize_resources_html(
         # Pass the tw_resource's resource_dir to other resources which
         # in turn will pass it on to the TranslationWordLinkExtension
         # which will handle transformating links for translation
-        # words.
+        # words that occur within a translation word asset file itself.
         tw_resource_dir = tw_resource.resource_dir
         tw_resource.initialize_verses_html(tw_resource_dir)
     if tn_resource:
@@ -2243,8 +2902,58 @@ def _initialize_resources_html(
         ta_resource.initialize_verses_html(tw_resource_dir)
 
 
+def _initialize_resources_html(
+    tn_resources: List[TNResource],
+    tq_resources: List[TQResource],
+    tw_resources: List[TWResource],
+    ta_resources: List[TAResource],
+) -> None:
     """
+    Call initialize_verses_html for each non-USFM resource.
     """
+    tw_resource_dir = None
+    for tw_resource in tw_resources:
+        # Pass the tw_resource's resource_dir to other resources which
+        # in turn will pass it on to the TranslationWordLinkExtension
+        # which will handle transforming links for translation
+        # words that occur within a translation word asset file itself.
+        tw_resource_dir = tw_resource.resource_dir
+        tw_resource.initialize_verses_html(tw_resource_dir)
+    for tn_resource in tn_resources:
+        tw_resource_dir_list = [
+            tw_resource.resource_dir
+            for tw_resource in tw_resources
+            if tn_resource.lang_code == tw_resource.lang_code
+            and tn_resource.resource_code == tw_resource.resource_code
+        ]
+        if tw_resource_dir_list:
+            tn_resource.initialize_verses_html(tw_resource_dir_list[0])
+        else:
+            tn_resource.initialize_verses_html(None)
+    for tq_resource in tq_resources:
+        tw_resource_dir_list = [
+            tw_resource.resource_dir
+            for tw_resource in tw_resources
+            if tq_resource.lang_code == tw_resource.lang_code
+            and tq_resource.resource_code == tw_resource.resource_code
+        ]
+        if tw_resource_dir_list:
+            tq_resource.initialize_verses_html(tw_resource_dir_list[0])
+        else:
+            tq_resource.initialize_verses_html(None)
+    for ta_resource in tq_resources:
+        tw_resource_dir_list = [
+            tw_resource.resource_dir
+            for tw_resource in tw_resources
+            if ta_resource.lang_code == tw_resource.lang_code
+            and ta_resource.resource_code == tw_resource.resource_code
+        ]
+        if tw_resource_dir_list:
+            ta_resource.initialize_verses_html(tw_resource_dir_list[0])
+        else:
+            ta_resource.initialize_verses_html(None)
+
+
 
 
 def _format_tq_verse(
@@ -2335,6 +3044,16 @@ def _get_second_usfm_resource(resources: List[Resource]) -> Optional[USFMResourc
     # return usfm_resources[0] if usfm_resources else None
 
 
+def _get_usfm_resources(resources: List[Resource]) -> List[USFMResource]:
+    """
+    Return the USFMResource instances, if any, contained in resources.
+    """
+    usfm_resources = [
+        resource for resource in resources if isinstance(resource, USFMResource)
+    ]
+    return usfm_resources
+
+
 def _get_tn_resource(resources: List[Resource]) -> Optional[TNResource]:
     """
     Return the TNResource instance, if any, contained in resources,
@@ -2344,6 +3063,16 @@ def _get_tn_resource(resources: List[Resource]) -> Optional[TNResource]:
         resource for resource in resources if isinstance(resource, TNResource)
     ]
     return tn_resources[0] if tn_resources else None
+
+
+def _get_tn_resources(resources: List[Resource]) -> List[TNResource]:
+    """
+    Return the TNResource instances, if any, contained in resources.
+    """
+    tn_resources = [
+        resource for resource in resources if isinstance(resource, TNResource)
+    ]
+    return tn_resources
 
 
 def _get_tw_resource(resources: List[Resource]) -> Optional[TWResource]:
@@ -2357,6 +3086,16 @@ def _get_tw_resource(resources: List[Resource]) -> Optional[TWResource]:
     return tw_resources[0] if tw_resources else None
 
 
+def _get_tw_resources(resources: List[Resource]) -> List[TWResource]:
+    """
+    Return the TWResource instance, if any, contained in resources.
+    """
+    tw_resources = [
+        resource for resource in resources if isinstance(resource, TWResource)
+    ]
+    return tw_resources
+
+
 def _get_tq_resource(resources: List[Resource]) -> Optional[TQResource]:
     """
     Return the TQResource instance, if any, contained in resources,
@@ -2368,6 +3107,16 @@ def _get_tq_resource(resources: List[Resource]) -> Optional[TQResource]:
     return tq_resources[0] if tq_resources else None
 
 
+def _get_tq_resources(resources: List[Resource]) -> List[TQResource]:
+    """
+    Return the TQResource instance, if any, contained in resources.
+    """
+    tq_resources = [
+        resource for resource in resources if isinstance(resource, TQResource)
+    ]
+    return tq_resources
+
+
 def _get_ta_resource(resources: List[Resource]) -> Optional[TAResource]:
     """
     Return the TAResource instance, if any, contained in resources,
@@ -2377,6 +3126,16 @@ def _get_ta_resource(resources: List[Resource]) -> Optional[TAResource]:
         resource for resource in resources if isinstance(resource, TAResource)
     ]
     return ta_resources[0] if ta_resources else None
+
+
+def _get_ta_resources(resources: List[Resource]) -> List[TAResource]:
+    """
+    Return the TAResource instance, if any, contained in resources.
+    """
+    ta_resources = [
+        resource for resource in resources if isinstance(resource, TAResource)
+    ]
+    return ta_resources
 
 
 def _adjust_book_intro_headings(book_intro: str) -> model.HtmlContent:

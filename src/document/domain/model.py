@@ -58,6 +58,10 @@ class AssemblyStrategyEnum(str, Enum):
       - This enum value signals to use the high level strategy that orders
         by language and then by book before delegating to an assembly
         sub-strategy.
+    * BOOK_LANGUAGE_ORDER
+      - This enum value signals to use the high level strategy that orders
+        by book and then by language  before delegating to an assembly
+        sub-strategy.
 
     NOTE
     We could later add others. As an arbitrary example,
@@ -68,6 +72,7 @@ class AssemblyStrategyEnum(str, Enum):
     """
 
     LANGUAGE_BOOK_ORDER = "language_book_order"
+    BOOK_LANGUAGE_ORDER = "book_language_order"
 
 
 class DocumentRequest(BaseModel):

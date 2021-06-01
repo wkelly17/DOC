@@ -396,6 +396,7 @@ def get_html_format_string(lookup_key: str) -> model.HtmlContent:
         "resource_type_name_with_ref": "<h3>{} {}:{}</h3>",
         "tn_resource_type_name_with_id_and_ref": '<h3 id="{}-{}-tn-ch-{}-v-{}">{} {}:{}</h3>',
         "book": "<h2>Book: {}</h2>",
+        "book_as_grouper": "<h1>Book: {}</h1>",
         "verse": "<h3>Verse {}:{}</h3>",
         "translation_note": "<h3>Translation note {}:{}</h3>",
         # Example: <h2 class="c-num" id="en-042-ch-001">Chapter 1</h2>
