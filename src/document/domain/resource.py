@@ -874,6 +874,33 @@ class TWResource(TResource):
         # is hashable.
         return frozenset(filepaths)
 
+    @staticmethod
+    @icontract.require(lambda translation_word_content: translation_word_content)
+    def get_localized_translation_word(translation_word_content: str) -> str:
+        """
+        Get the localized translation word from the
+        translation_word_content. Sometimes a translation word file has a
+        list of various forms of the word. If that is the case we use the
+        first form of the word in the list.
+        """
+
+        localized_translation_word = translation_word_content.split("\n")[0].split(
+            "# "
+        )[1]
+        logger.debug(
+            "localized_translation_word: {}".format(localized_translation_word)
+        )
+        if "," in localized_translation_word:
+            # The localized word is actually multiple forms of the word separated by
+            # commas, use the first form of the word.
+            localized_translation_word = localized_translation_word.split(",")[0]
+            logger.debug(
+                "Updated localized_translation_word: {}".format(
+                    localized_translation_word
+                )
+            )
+        return localized_translation_word
+
     @log_on_start(
         logging.INFO,
         "About to convert TW Markdown to HTML with Markdown extension",
@@ -924,7 +951,9 @@ class TWResource(TResource):
             # verses wherein the word occurs. So, we need to
             # build up a data structure that for every word
             # collects which verses it occurs in.
-            localized_word = translation_word_content.split("\n")[0].split("# ")[1]
+            localized_translation_word = TWResource.get_localized_translation_word(
+                translation_word_content
+            )
             html_word_content = md.convert(translation_word_content)
             # Make adjustments to the HTML here.
             html_word_content = re.sub(r"h2", r"h4", html_word_content)
@@ -944,7 +973,7 @@ class TWResource(TResource):
             translation_words_dict[
                 translation_word_base_filename
             ] = model.TWNameContentPair(
-                localized_word=localized_word, content=html_word_content
+                localized_word=localized_translation_word, content=html_word_content
             )
 
         self._language_payload = model.TWLanguagePayload(

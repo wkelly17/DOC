@@ -107,6 +107,10 @@ class TranslationWordLinkPreprocessor(Preprocessor):
         - but this is actually often what exists in the link pointing
         to the translation word definition).
         """
+        # Avoid circular reference by importing here instead of the
+        # top of the file.
+        from document.domain.resource import TWResource
+
         for match in re.finditer(TRANSLATION_WORD_LINK_RE, source):
             filename_sans_suffix = match.group(2)
             if filename_sans_suffix in self.translation_words_dict:
@@ -116,9 +120,9 @@ class TranslationWordLinkPreprocessor(Preprocessor):
                         self.translation_words_dict[filename_sans_suffix]
                     )
                     # Get the localized name for the translation word
-                    localized_translation_word = file_content.split("\n")[0].split(
-                        "# "
-                    )[1]
+                    localized_translation_word = (
+                        TWResource.get_localized_translation_word(file_content)
+                    )
                     # Build the anchor links
                     source = source.replace(
                         match.group(0),  # The whole match
@@ -157,6 +161,10 @@ class TranslationWordLinkPreprocessor(Preprocessor):
         exists in the link pointing to the translation word
         definition).
         """
+        # Avoid circular reference by importing here instead of the
+        # top of the file.
+        from document.domain.resource import TWResource
+
         for match in re.finditer(TRANSLATION_WORD_LINK_ALT_RE, source):
             logger.info("there are matches using TRANSLATION_WORD_LINK_ALT_RE")
             filename_sans_suffix = match.group(1)
@@ -172,9 +180,9 @@ class TranslationWordLinkPreprocessor(Preprocessor):
                         self.translation_words_dict[filename_sans_suffix]
                     )
                     # Get the localized name for the translation word
-                    localized_translation_word = file_content.split("\n")[0].split(
-                        "# "
-                    )[1]
+                    localized_translation_word = (
+                        TWResource.get_localized_translation_word(file_content)
+                    )
                     # Build the anchor links
                     source = source.replace(
                         match.group(0),  # The whole match
