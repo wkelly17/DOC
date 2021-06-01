@@ -31,7 +31,6 @@ from document.domain import bible_books, model, resource_lookup
 from document.utils import (
     file_utils,
     html_parsing_utils,
-    link_utils,
     url_utils,
 )
 
@@ -506,18 +505,18 @@ class TResource(Resource):
         """Convert a resource's Markdown to HTML."""
         self._content = markdown.markdown(self._content)
 
-    @log_on_start(logging.INFO, "Converting MD to HTML...", logger=logger)
-    def _transform_content(self) -> None:
-        """
-        If self._content is not empty, go ahead and transform rc
-        resource links and transform content from Markdown to HTML.
-        """
-        if self._content:
-            self._content = link_utils.replace_rc_links(
-                self._my_rcs, self._resource_data, self._content
-            )
-            self._content = link_utils.transform_rc_links(self._content)
-            self._convert_md2html()
+    # @log_on_start(logging.INFO, "Converting MD to HTML...", logger=logger)
+    # def _transform_content(self) -> None:
+    #     """
+    #     If self._content is not empty, go ahead and transform rc
+    #     resource links and transform content from Markdown to HTML.
+    #     """
+    #     if self._content:
+    #         self._content = link_utils.replace_rc_links(
+    #             self._my_rcs, self._resource_data, self._content
+    #         )
+    #         self._content = link_utils.transform_rc_links(self._content)
+    #         self._convert_md2html()
 
 
 class TNResource(TResource):
