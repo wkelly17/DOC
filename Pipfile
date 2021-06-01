@@ -30,7 +30,6 @@ pytest = "*"
 pytest-icdiff = "*"
 pylint = "*"
 pyicontract-lint = "*"
-python-language-server = "*"
 isort = "*"
 pyls-mypy = "*"
 # document = {editable = true, path = "./src"}
