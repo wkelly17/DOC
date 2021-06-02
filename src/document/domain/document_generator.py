@@ -72,7 +72,7 @@ class DocumentGenerator:
     ) -> None:
         self._document_request: model.DocumentRequest = document_request
         self._assembly_strategy: Callable[[DocumentGenerator], str]
-        self._assembly_sub_strategy: Callable[
+        self.assembly_sub_strategy: Callable[
             [
                 Optional[USFMResource],
                 Optional[TNResource],
@@ -84,7 +84,7 @@ class DocumentGenerator:
             ],
             model.HtmlContent,
         ]
-        self._assembly_sub_strategy_for_book_then_lang: Callable[
+        self.assembly_sub_strategy_for_book_then_lang: Callable[
             [
                 List[USFMResource],
                 List[TNResource],
@@ -188,7 +188,7 @@ class DocumentGenerator:
         body content (sans enclosing HTML and body elements) and
         stored it in its _content instance variable.
         """
-        self._assembly_strategy = assembly_strategies._assembly_strategy_factory(
+        self._assembly_strategy = assembly_strategies.assembly_strategy_factory(
             self._document_request.assembly_strategy_kind
         )
         # Pass self as param because the Callable stored in

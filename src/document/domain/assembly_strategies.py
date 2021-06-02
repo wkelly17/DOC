@@ -47,7 +47,7 @@ logger = config.get_logger(__name__)
 ## so-called 'sub strategies', assembly strategies.
 
 
-def _assembly_strategy_factory(
+def assembly_strategy_factory(
     assembly_strategy_kind: model.AssemblyStrategyEnum,
 ) -> Callable[[document_generator.DocumentGenerator], str]:
     """
@@ -61,7 +61,7 @@ def _assembly_strategy_factory(
     return strategies[assembly_strategy_kind]
 
 
-def _assembly_sub_strategy_factory(
+def assembly_sub_strategy_factory(
     usfm_resource: Optional[USFMResource],
     tn_resource: Optional[TNResource],
     tq_resource: Optional[TQResource],
@@ -377,7 +377,7 @@ def _assembly_sub_strategy_factory(
     ]
 
 
-def _assembly_sub_strategy_factory_for_book_then_lang(
+def assembly_sub_strategy_factory_for_book_then_lang(
     usfm_resources: List[USFMResource],
     tn_resources: List[TNResource],
     tq_resources: List[TQResource],
@@ -637,7 +637,7 @@ def _assemble_content_by_lang_then_book(
 
             # We've got the resources, now we can use the sub-strategy factory
             # method to choose the right function to use from here on out.
-            docgen._assembly_sub_strategy = _assembly_sub_strategy_factory(
+            docgen.assembly_sub_strategy = assembly_sub_strategy_factory(
                 usfm_resource,
                 tn_resource,
                 tq_resource,
@@ -649,13 +649,13 @@ def _assemble_content_by_lang_then_book(
 
             logger.debug(
                 "docgen._assembly_sub_strategy: {}".format(
-                    str(docgen._assembly_sub_strategy)
+                    str(docgen.assembly_sub_strategy)
                 )
             )
 
             # Now that we have the sub-strategy, let's run it and
             # generate the HTML output.
-            sub_html: model.HtmlContent = docgen._assembly_sub_strategy(
+            sub_html: model.HtmlContent = docgen.assembly_sub_strategy(
                 usfm_resource,
                 tn_resource,
                 tq_resource,
@@ -710,7 +710,6 @@ def _assemble_content_by_book_then_lang(
             )
         )
 
-
         # Save grouper generator values in list since it will get exhausted
         # when used and exhausted generators cannot be reused.
         resources = list(group_by_book)
@@ -724,8 +723,8 @@ def _assemble_content_by_book_then_lang(
 
         # We've got the resources, now we can use the sub-strategy factory
         # method to choose the right function to use from here on out.
-        docgen._assembly_sub_strategy_for_book_then_lang = (
-            _assembly_sub_strategy_factory_for_book_then_lang(
+        docgen.assembly_sub_strategy_for_book_then_lang = (
+            assembly_sub_strategy_factory_for_book_then_lang(
                 usfm_resources,
                 tn_resources,
                 tq_resources,
@@ -737,13 +736,13 @@ def _assemble_content_by_book_then_lang(
 
         logger.debug(
             "docgen._assembly_sub_strategy_for_book_then_lang: {}".format(
-                str(docgen._assembly_sub_strategy_for_book_then_lang)
+                str(docgen.assembly_sub_strategy_for_book_then_lang)
             )
         )
 
         # Now that we have the sub-strategy, let's run it and
         # generate the HTML output.
-        sub_html: model.HtmlContent = docgen._assembly_sub_strategy_for_book_then_lang(
+        sub_html: model.HtmlContent = docgen.assembly_sub_strategy_for_book_then_lang(
             usfm_resources,
             tn_resources,
             tq_resources,
@@ -2952,8 +2951,6 @@ def _initialize_resources_html(
             ta_resource.initialize_verses_html(tw_resource_dir_list[0])
         else:
             ta_resource.initialize_verses_html(None)
-
-
 
 
 def _format_tq_verse(
