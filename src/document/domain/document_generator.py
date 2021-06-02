@@ -122,6 +122,9 @@ class DocumentGenerator:
         self._document_request_key = self._initialize_document_request_key(
             document_request
         )
+        self._output_filename = os.path.join(
+            self._output_dir, "{}.pdf".format(self._document_request_key)
+        )
 
     def run(self) -> None:
         """
@@ -165,19 +168,6 @@ class DocumentGenerator:
             self._working_dir, "{}.pdf".format(self._document_request_key)
         )
         return file_utils.asset_file_needs_update(pdf_file_path)
-
-    # FIXME implement
-    @log_on_end(
-        logging.INFO, "Called _serve_pdf_document (not yet implemented)", logger=logger
-    )
-    def _serve_pdf_document(self) -> None:
-        """
-        Placeholder for serving PDF document to the user. NOTE Likely we'll
-        hand off the responsibility to a fronting web server like
-        nginx because experience says that OS level send-file support
-        is more stable than doing it through something like Python.
-        """
-        pass
 
     def _assemble_content(self) -> None:
         """
@@ -533,6 +523,16 @@ class DocumentGenerator:
         )
         return finished_document_path
 
+    @icontract.require(lambda self: self._document_request_key)
+    def get_finished_document_request_key(self) -> str:
+        """
+        Return the finished PDF document request key.
+        """
+        finished_document_path = "{}.pdf".format(
+            os.path.join(self._working_dir, self._document_request_key)
+        )
+        return self.document_request_key
+
     def _generate_pdf(
         self, pdf_generation_method: str = model.PdfGenerationMethodEnum.LATEX
     ) -> None:
@@ -540,19 +540,13 @@ class DocumentGenerator:
         If the PDF doesn't yet exist, go ahead and generate it
         using the content for each resource.
         """
-        output_filename: str = os.path.join(
-            self._output_dir, "{}.pdf".format(self._document_request_key)
-        )
-        if not os.path.isfile(output_filename):
+        if not os.path.isfile(self._output_filename):
             self._assemble_content()
             logger.info("Generating PDF...")
             if pdf_generation_method == model.PdfGenerationMethodEnum.LATEX:
                 self._convert_html2pdf()
             else:
                 self._convert_html_to_pdf()
-            # TODO Return json message containing any resources that
-            # we failed to find so that the front end can let the user
-            # know.
 
     def _get_unfoldingword_icon(self) -> None:
         """Get Unfolding Word's icon for display in generated PDF."""

@@ -1,5 +1,6 @@
 import bs4
 import os
+import pathlib
 import pytest
 import re
 import requests
@@ -35,7 +36,9 @@ def test_en_ulb_wa_tit_en_tn_wa_tit_language_book_order() -> None:
             config.get_output_dir(), finished_document_path
         )
         assert os.path.isfile(finished_document_path)
-        assert response.json() == {"finished_document_path": finished_document_path}
+        assert response.json() == {
+            "finished_document_request_key": pathlib.Path(finished_document_path).stem
+        }
 
 
 def test_sw_ulb_col_sw_tn_col_language_book_order() -> None:
@@ -65,7 +68,9 @@ def test_sw_ulb_col_sw_tn_col_language_book_order() -> None:
         html_file = "{}.html".format(finished_document_path.split(".")[0])
         assert os.path.isfile(finished_document_path)
         assert os.path.isfile(html_file)
-        assert response.json() == {"finished_document_path": finished_document_path}
+        assert response.json() == {
+            "finished_document_request_key": pathlib.Path(finished_document_path).stem
+        }
         assert os.path.isdir("working/temp/sw_ulb")
         assert os.path.isdir("working/temp/sw_tn")
         with open(html_file, "r") as fin:
@@ -118,7 +123,9 @@ def test_sw_ulb_col_sw_tn_col_sw_ulb_tit_sw_tn_tit_language_book_order() -> None
         html_file = "{}.html".format(finished_document_path.split(".")[0])
         assert os.path.exists(finished_document_path)
         assert os.path.exists(html_file)
-        assert response.json() == {"finished_document_path": finished_document_path}
+        assert response.json() == {
+            "finished_document_request_key": pathlib.Path(finished_document_path).stem
+        }
         assert os.path.isdir("working/temp/sw_ulb")
         assert os.path.isdir("working/temp/sw_tn")
         with open(html_file, "r") as fin:
@@ -179,7 +186,9 @@ def test_en_ulb_wa_col_en_tn_wa_col_sw_ulb_col_sw_tn_col_sw_ulb_tit_sw_tn_tit_la
         html_file = "{}.html".format(finished_document_path.split(".")[0])
         assert os.path.exists(finished_document_path)
         assert os.path.exists(html_file)
-        assert response.json() == {"finished_document_path": finished_document_path}
+        assert response.json() == {
+            "finished_document_request_key": pathlib.Path(finished_document_path).stem
+        }
         assert os.path.isdir("working/temp/en_ulb-wa")
         assert os.path.isdir("working/temp/en_tn-wa")
         assert os.path.isdir("working/temp/sw_ulb")
@@ -257,7 +266,9 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_sw_ulb_col_sw_tn_col_sw_tq_col_
         html_file = "{}.html".format(finished_document_path.split(".")[0])
         assert os.path.exists(finished_document_path)
         assert os.path.exists(html_file)
-        assert response.json() == {"finished_document_path": finished_document_path}
+        assert response.json() == {
+            "finished_document_request_key": pathlib.Path(finished_document_path).stem
+        }
         assert os.path.isdir("working/temp/en_ulb-wa")
         assert os.path.isdir("working/temp/en_tn-wa")
         assert os.path.isdir("working/temp/sw_ulb")
@@ -320,7 +331,9 @@ def test_en_ulb_wa_col_en_tq_wa_col_sw_ulb_col_sw_tq_col_sw_ulb_tit_sw_tq_tit_la
         html_file = "{}.html".format(finished_document_path.split(".")[0])
         assert os.path.exists(finished_document_path)
         assert os.path.exists(html_file)
-        assert response.json() == {"finished_document_path": finished_document_path}
+        assert response.json() == {
+            "finished_document_request_key": pathlib.Path(finished_document_path).stem
+        }
         assert os.path.isdir("working/temp/en_ulb-wa")
         assert os.path.isdir("working/temp/sw_ulb")
         assert os.path.isdir("working/temp/sw_tq")

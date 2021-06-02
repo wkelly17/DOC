@@ -2,10 +2,12 @@
 
 import logging
 import os
-from typing import Dict, List, Tuple
+import pathlib
+from typing import Dict, List, Optional, Tuple
 
 import yaml
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 
 from document import config
 from document.domain import model, resource_lookup
@@ -40,20 +42,34 @@ def document_endpoint(
     )
     document_generator.run()
 
-    # FIXME Eventually we'll provide a REST GET endpoint from
-    # which to retrieve the document in the API
-    finished_document_path = document_generator.get_finished_document_filepath()
+    finished_document_request_key = (
+        document_generator.get_finished_document_request_key()
+    )
+    finished_document_path = os.path.join(
+        config.get_working_dir(), "{}.pdf".format(finished_document_request_key)
+    )
     assert os.path.exists(finished_document_path)
     details = model.FinishedDocumentDetails(
-        # FIXME document_generator.get_finished_document_filepath()
-        # will become document_generator.get_finished_document_url()
-        # and will return the URL of the PDF served through FastAPI
-        # FileResponse method.
-        finished_document_path=finished_document_path
+        finished_document_request_key=finished_document_request_key
     )
 
     logger.debug("details: {}".format(details))
     return details
+
+
+@app.get("/pdfs/{document_request_key}")
+async def serve_pdf_document(
+    document_request_key: str,
+) -> FileResponse:
+    """
+    Serve the requested PDF document.
+    """
+    path = "{}.pdf".format(os.path.join(config.get_working_dir(), document_request_key))
+    return FileResponse(
+        path=path,
+        filename=pathlib.Path(path).name,
+        headers={"Content-Disposition": "attachment"},
+    )
 
 
 # @app.get(f"{config.get_api_root()}/language_codes_names_and_resource_types")

@@ -167,7 +167,7 @@ class FinishedDocumentDetails(BaseModel):
     dcocument filepath on disk.
     """
 
-    finished_document_path: Optional[str]
+    finished_document_request_key: Optional[str]
 
 
 class TemplateDto(BaseModel):

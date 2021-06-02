@@ -2,6 +2,7 @@
 
 import bs4
 import os
+import pathlib
 
 # import pytest
 import requests
@@ -306,7 +307,9 @@ def test_pt_br_ulb_tn_luk_en_ulb_wa_tn_wa_luk_sw_ulb_tn_col_language_book_order(
         assert os.path.exists(html_file)
         assert response.ok
         # FIXME Serving PDFs is yet to be implemented
-        assert response.json() == {"finished_document_path": finished_document_path}
+        assert response.json() == {
+            "finished_document_request_key": pathlib.Path(finished_document_path).stem
+        }
 
 
 def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_col_sw_tq_col_sw_tw_col_sw_ulb_tit_sw_tn_tit_sw_tq_tit_sw_tw_tit_language_book_order() -> None:
@@ -910,7 +913,9 @@ def test_pt_br_ulb_luk_pt_br_tn_luk_language_book_order() -> None:
         # HTML? And yet it does exist when checked right after
         # creating the PDF in document_generator module.
         assert os.path.exists(html_file)
-        assert response.json() == {"finished_document_path": finished_document_path}
+        assert response.json() == {
+            "finished_document_request_key": pathlib.Path(finished_document_path).stem
+        }
         with open(html_file, "r") as fin:
             html = fin.read()
             parser = bs4.BeautifulSoup(html, "html.parser")
