@@ -10,6 +10,9 @@ up:
 server: up
 	docker-compose run  api
 
+local-server:
+	uvicorn document.entrypoints.app:app --reload --host "127.0.0.1" --port "8000" --app-dir "./src/"
+
 # Among other things, PYTHONOPTIMIZE=1 will turn off icontract checking
 # https://icontract.readthedocs.io/en/latest/usage.html#toggling-contracts
 server_prod: up
