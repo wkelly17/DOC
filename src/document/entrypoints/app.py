@@ -34,7 +34,9 @@ def document_endpoint(
     containing URL of resulting PDF.
     """
     document_generator = DocumentGenerator(
-        document_request, config.get_working_dir(), config.get_output_dir(),
+        document_request,
+        config.get_working_dir(),
+        config.get_output_dir(),
     )
     document_generator.run()
 
