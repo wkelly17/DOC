@@ -14,6 +14,7 @@ and eventually a final document produced.
 
 import base64
 import datetime
+import icontract
 import logging  # For logdecorator
 import os
 import pdfkit
@@ -21,7 +22,6 @@ import subprocess
 from logdecorator import log_on_start, log_on_end
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
-import icontract
 
 from document import config
 from document.domain import assembly_strategies, bible_books, model

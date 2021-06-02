@@ -11,8 +11,6 @@ from document import config
 from document.domain import model, resource_lookup
 from document.domain.document_generator import DocumentGenerator
 
-# import json
-
 
 app = FastAPI()
 
