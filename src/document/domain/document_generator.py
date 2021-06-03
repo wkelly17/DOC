@@ -17,8 +17,11 @@ import datetime
 import icontract
 import logging  # For logdecorator
 import os
+import pathlib
 import pdfkit
 import subprocess
+import urllib
+
 from logdecorator import log_on_start, log_on_end
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
@@ -137,8 +140,8 @@ class DocumentGenerator:
         # retrieve it via URL.
         # self._get_unfoldingword_icon()
 
-        # Immediately return pre-built PDF if the document has already been
-        # requested and is fresh enough. In that case, front run all requests to
+        # Immediately return pre-built PDF if the document previously been
+        # generated and is fresh enough. In that case, front run all requests to
         # the cloud including the more low level resource asset caching
         # mechanism for almost immediate return of PDF.
         # if self._document_needs_update():
@@ -153,6 +156,78 @@ class DocumentGenerator:
         #     lang_code: zh, resource_type: ulb. ulb should have been
         #     cuv for zh.
         #     self._serve_pdf_document()
+        if config.should_send_email():
+            self._send_email_with_pdf_attachment()
+
+    @log_on_start(
+        logging.INFO, "Calling _send_email_with_pdf_attachment", logger=logger
+    )
+    @icontract.require(lambda self: os.path.exists(self._output_filename))
+    # FIXME This should probably be made async so that large PDFs
+    # don't cause the server to block for a long time.
+    def _send_email_with_pdf_attachment(self) -> None:
+        """
+        If PDF exists, and environment configuration allows sending of
+        email, then send an email to the document request
+        recipient's email with the PDF attached.
+        """
+
+        # Using SendGrid's Python Library
+        # https://github.com/sendgrid/sendgrid-python
+        # import os
+        import sendgrid
+        from sendgrid.helpers import mail
+
+        # Get the email HTML body
+        html_content = config.get_instantiated_template(
+            "email",
+            model.EmailPayload(
+                document_request_key=self.document_request_key,
+            ),
+        )
+        logger.debug("instantiated email template: {}".format(html_content))
+
+        # Get PDF file contents
+        with open(self._output_filename, "rb") as fin:
+            data = fin.read()
+
+        # Encode contents of PDF file as Base 64
+        encoded = base64.b64encode(data).decode()
+
+        # Build attachment
+        attachment = mail.Attachment()
+        attachment.file_content = encoded
+        attachment.file_type = "application/pdf"
+        attachment.file_name = pathlib.Path(self._output_filename).name
+        attachment.disposition = "attachment"
+        attachment.content_id = "BIEL PDF file"
+
+        sg = sendgrid.SendGridAPIClient(api_key=config.get_sendgrid_api_key())
+
+        # Build the parts of the email message
+        # FIXME This email will eventually change
+        from_email = mail.From(config.get_from_email_address())
+        to_email = mail.To(self._document_request.email_address)
+        subject = mail.Subject("The BIEL PDF you requested is attached")
+        content = mail.HtmlContent(html_content)
+
+        # Create the mail message and attach the attachment object
+        mail = mail.Mail(from_email, to_email, subject, content)
+        mail.add_attachment(attachment)
+
+        # Send the email
+        try:
+            response = sg.client.mail.send.post(request_body=mail.get())
+            logger.debug("response.status_code: {}".format(response.status_code))
+            # This can really put out alot since it includes the
+            # encoded PDF and if the PDF is a long one, then this will
+            # be too much info.
+            # logger.debug("response.body: {}".format(response.body))
+            logger.debug("response.headers: {}".format(response.headers))
+        except mail.SendGridException as sg_exception:
+            logger.debug("Problem sending email: {}".format(sg_exception))
+        except urllib.error.HTTPError as exception:
+            logger.debug("Problem sending email: {}".format(exception))
 
     # Front run all requests to the cloud, including the
     # more low level resource asset caching mechanism for almost immediate

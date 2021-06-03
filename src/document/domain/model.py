@@ -8,7 +8,7 @@ validation and JSON serialization.
 from enum import Enum
 from typing import Dict, List, NewType, Optional, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 BaseFilename = NewType("BaseFilename", str)
 ImageLookupKey = NewType("ImageLookupKey", str)
@@ -84,6 +84,7 @@ class DocumentRequest(BaseModel):
     free.
     """
 
+    email_address: EmailStr
     assembly_strategy_kind: AssemblyStrategyEnum
     resource_requests: List[ResourceRequest]
 
@@ -292,6 +293,14 @@ class CoverPayload(BaseModel):
     unloaded: str
     revision_date: DateString
     images: Dict[ImageLookupKey, Union[str, bytes]]
+
+
+class EmailPayload(BaseModel):
+    """
+    A class to hold an HTML email body.
+    """
+
+    document_request_key: str
 
 
 class PdfGenerationMethodEnum(str, Enum):

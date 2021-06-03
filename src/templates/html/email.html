@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<html>
+  <head>
+    <!-- <title>{{ data.title }}</title> -->
+    <!-- <link
+         rel="stylesheet"
+         href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+         /> -->
+    <style>
+      .verse {
+        white-space: nowrap;
+        vertical-align: super;
+        font-size: 0.6em;
+        line-height: 0;
+      }
+
+      .heading {
+        font-weight: bold;
+        font-size: 1.4em;
+        text-align: center;
+      }
+
+      .image_center {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      h2 {
+        text-align: center;
+      }
+
+      h3 {
+        text-align: center;
+      }
+    </style>
+  </head>
+
+  <body>
+    <p>Dear BIEL User,</p>
+    <p>The document you have requested:</p>
+    {% if data.document_request_key %} 
+    {{ data.document_request_key }} 
+    {% endif %}
+    <p>is attached to this email.</p>
+  </body>
+</html>

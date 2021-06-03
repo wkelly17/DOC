@@ -25,6 +25,7 @@ def test_en_ulb_wa_col_en_tn_wa_col_language_book_order() -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
@@ -63,6 +64,7 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_language_book_order() -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
@@ -108,6 +110,7 @@ def test_en_ulb_wa_tn_wa_jud_language_book_order() -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
@@ -147,6 +150,7 @@ def test_arb_nav_jud_language_book_order() -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
@@ -180,6 +184,7 @@ def test_pt_br_ulb_tn_language_book_order() -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
@@ -218,6 +223,7 @@ def test_pt_br_ulb_tn_en_ulb_wa_tn_wa_luk_language_book_order() -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
@@ -262,6 +268,7 @@ def test_pt_br_ulb_tn_luk_en_ulb_wa_tn_wa_luk_sw_ulb_tn_col_language_book_order(
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
@@ -317,6 +324,7 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_c
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
@@ -419,6 +427,7 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_col_sw_tw_col_
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
@@ -496,6 +505,7 @@ def test_en_ulb_wa_col_en_tw_wa_col_sw_ulb_col_sw_tw_col_sw_ulb_tit_sw_tw_tit_la
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
@@ -557,6 +567,7 @@ def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
@@ -639,6 +650,7 @@ def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
@@ -731,6 +743,7 @@ def test_zh_ulb_doesnt_exist_jol_zh_tn_jol_language_book_order() -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
@@ -784,6 +797,7 @@ def test_zh_cuv_jol_zh_tn_jol_language_book_order() -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
@@ -829,6 +843,7 @@ def test_zh_cuv_jol_zh_tn_jol_zh_tq_jol_zh_tw_jol_language_book_order() -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
@@ -888,6 +903,7 @@ def test_pt_br_ulb_luk_pt_br_tn_luk_language_book_order() -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {

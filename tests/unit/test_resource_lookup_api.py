@@ -1,4 +1,3 @@
-
 from typing import List
 
 from document import config
@@ -32,6 +31,7 @@ def test_lookup_successes() -> None:
         )
     )
     document_request = model.DocumentRequest(
+        email_address=config.get_from_email_address(),
         assembly_strategy_kind=assembly_strategy_kind,
         resource_requests=resource_requests,
     )
@@ -63,6 +63,7 @@ def test_lookup_failures() -> None:
         model.ResourceRequest(lang_code="zh", resource_type="ulb", resource_code="jol")
     )
     document_request = model.DocumentRequest(
+        email_address=config.get_from_email_address(),
         assembly_strategy_kind=assembly_strategy_kind,
         resource_requests=resource_requests,
     )

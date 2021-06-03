@@ -2,10 +2,12 @@
 
 import itertools
 import pathlib
+import pydantic
 import pytest
 import random
 
 from typing import Any, List, Tuple
+from document import config
 from document.domain import bible_books, model
 from document.utils import file_utils
 
@@ -93,6 +95,11 @@ def random_resource_code2() -> str:
     request."""
     book_ids = list(bible_books.BOOK_NAMES.keys())
     return random.choice(book_ids)
+
+
+@pytest.fixture(params=[config.get_to_email_address()])
+def email_address(request: Any) -> str:
+    return request.param
 
 
 @pytest.fixture(params=[model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER])
@@ -286,6 +293,7 @@ def random_non_english_resource_requests2(
 
 @pytest.fixture()
 def english_document_request(
+    email_address: pydantic.EmailStr,
     assembly_strategy_kind: model.AssemblyStrategyEnum,
     english_resource_requests: List[model.ResourceRequest],
 ) -> model.DocumentRequest:
@@ -298,6 +306,7 @@ def english_document_request(
 
 @pytest.fixture()
 def random_english_document_request(
+    email_address: pydantic.EmailStr,
     assembly_strategy_kind: model.AssemblyStrategyEnum,
     english_resource_requests: List[model.ResourceRequest],
 ) -> model.DocumentRequest:
@@ -317,6 +326,7 @@ def random_english_document_request(
 
 @pytest.fixture()
 def random_non_english_document_request(
+    email_address: pydantic.EmailStr,
     assembly_strategy_kind: model.AssemblyStrategyEnum,
     random_non_english_resource_requests: List[model.ResourceRequest],
     random_resource_code: str,
@@ -337,6 +347,7 @@ def random_non_english_document_request(
     raising of exceptions and their handlers for such failures.
     """
     return model.DocumentRequest(
+        email_address=email_address,
         assembly_strategy_kind=assembly_strategy_kind,
         resource_requests=random_non_english_resource_requests,
     )
@@ -344,6 +355,7 @@ def random_non_english_document_request(
 
 @pytest.fixture()
 def random_failing_non_english_document_request(
+    email_address: pydantic.EmailStr,
     assembly_strategy_kind: model.AssemblyStrategyEnum,
     random_failing_non_english_resource_requests: List[model.ResourceRequest],
     random_resource_code: str,
@@ -379,6 +391,7 @@ def random_failing_non_english_document_request(
 
 @pytest.fixture()
 def random_english_and_non_english_document_request(
+    email_address: pydantic.EmailStr,
     assembly_strategy_kind: model.AssemblyStrategyEnum,
     random_english_resource_requests: List[model.ResourceRequest],
     random_non_english_resource_requests: List[model.ResourceRequest],
@@ -400,6 +413,7 @@ def random_english_and_non_english_document_request(
     """
     random_english_resource_requests.extend(random_non_english_resource_requests)
     return model.DocumentRequest(
+        email_address=email_address,
         assembly_strategy_kind=assembly_strategy_kind,
         resource_requests=random_english_resource_requests,
     )
@@ -407,6 +421,7 @@ def random_english_and_non_english_document_request(
 
 @pytest.fixture()
 def random_two_non_english_languages_document_request(
+    email_address: pydantic.EmailStr,
     assembly_strategy_kind: model.AssemblyStrategyEnum,
     random_non_english_resource_requests: List[model.ResourceRequest],
     random_non_english_resource_requests2: List[model.ResourceRequest],
@@ -418,6 +433,7 @@ def random_two_non_english_languages_document_request(
     """
     random_non_english_resource_requests.extend(random_non_english_resource_requests2)
     return model.DocumentRequest(
+        email_address=email_address,
         assembly_strategy_kind=assembly_strategy_kind,
         resource_requests=random_non_english_resource_requests,
     )

@@ -19,6 +19,7 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_fr_f10_col_fr_tn_c
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -90,6 +91,7 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_pt_br_ulb_col_pt_b
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -161,6 +163,7 @@ def test_pt_br_ulb_col_pt_br_tn_col_pt_br_tq_col_pt_br_tw_col_book_language_orde
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -211,6 +214,7 @@ def test_fr_f10_col_fr_tn_col_fr_tq_col_fr_tw_col_book_language_order() -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -263,6 +267,7 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_tl_ulb_col_tl_tn_c
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -340,6 +345,7 @@ def test_en_ulb_wa_tit_en_tn_wa_tit_book_language_order() -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -370,6 +376,7 @@ def test_sw_ulb_col_sw_tn_col_book_language_order() -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -413,6 +420,7 @@ def test_sw_ulb_col_sw_tn_col_sw_ulb_tit_sw_tn_tit_book_language_order() -> None
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -468,6 +476,7 @@ def test_en_ulb_wa_col_en_tn_wa_col_sw_ulb_col_sw_tn_col_sw_ulb_tit_sw_tn_tit_bo
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -533,6 +542,7 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_sw_ulb_col_sw_tn_col_sw_tq_col_
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -613,6 +623,7 @@ def test_en_ulb_wa_col_en_tq_wa_col_sw_ulb_col_sw_tq_col_sw_ulb_tit_sw_tq_tit_bo
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -677,6 +688,7 @@ def test_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_sw_tn_col_sw_tq_col_sw_tw_col_sw
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -750,6 +762,7 @@ def test_en_tn_wa_col_en_tw_wa_col_sw_tn_col_sw_tw_col_sw_tn_tit_sw_tw_tit_book_
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -807,6 +820,7 @@ def test_en_tq_wa_col_en_tw_wa_col_sw_tq_col_sw_tw_col_sw_tq_tit_sw_tw_tit_book_
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -856,6 +870,7 @@ def test_en_tw_wa_col_sw_tw_col_sw_tw_tit_book_language_order() -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -892,6 +907,7 @@ def test_en_tn_wa_col_en_tq_wa_col_sw_tn_col_sw_tq_col_sw_tn_tit_sw_tq_tit_book_
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -941,6 +957,7 @@ def test_en_tq_wa_col_sw_tq_col_sw_tq_tit_book_language_order() -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -977,6 +994,7 @@ def test_en_tn_wa_col_sw_tn_col_sw_tn_tit_book_language_order() -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1019,6 +1037,7 @@ def test_en_ulb_wa_col_sw_ulb_col_sw_ulb_tit_book_language_order() -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1066,6 +1085,7 @@ def test_gu_ulb_mrk_gu_tn_mrk_gu_tq_mrk_gu_tw_mrk_gu_udb_mrk_book_language_order
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1120,6 +1140,7 @@ def test_mr_ulb_mrk_mr_tn_mrk_mr_tq_mrk_mr_tw_mrk_mr_udb_mrk_book_language_order
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1174,6 +1195,7 @@ def test_mr_ulb_mrk_mr_tn_mrk_mr_tq_mrk_mr_udb_mrk_book_language_order() -> None
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1225,6 +1247,7 @@ def test_mr_ulb_mrk_mr_tn_mrk_mr_tw_mrk_mr_udb_mrk_book_language_order() -> None
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1276,6 +1299,7 @@ def test_mr_ulb_mrk_mr_tn_mrk_mr_udb_mrk_book_language_order() -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1322,6 +1346,7 @@ def test_mr_ulb_mrk_mr_tq_mrk_mr_udb_mrk_book_language_order() -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1369,6 +1394,7 @@ def test_gu_ulb_mic_gu_tn_mic_gu_tq_mic_gu_tw_mic_gu_ta_mic_book_language_order(
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1425,6 +1451,7 @@ def test_tl_ulb_gen_tl_udb_gen_book_language_order() -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1464,6 +1491,7 @@ def test_gu_tn_mat_gu_tq_mat_gu_tw_mat_gu_udb_mat_book_language_order() -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1515,6 +1543,7 @@ def test_gu_tn_mat_gu_tq_mat_gu_udb_mat_book_language_order() -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1561,6 +1590,7 @@ def test_tl_tn_gen_tl_tw_gen_tl_udb_gen_book_language_order() -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1607,6 +1637,7 @@ def test_tl_tq_gen_tl_udb_gen_book_language_order() -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1646,6 +1677,7 @@ def test_tl_tw_gen_tl_udb_gen_book_language_order() -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1685,6 +1717,7 @@ def test_tl_udb_gen_book_language_order() -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1720,6 +1753,7 @@ def test_fr_ulb_rev_fr_tn_rev_fr_tq_rev_fr_tw_rev_fr_udb_rev_book_language_order
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1778,6 +1812,7 @@ def test_fr_ulb_rev_fr_tn_rev_fr_tq_rev_fr_tw_rev_fr_f10_rev_book_language_order
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1836,6 +1871,7 @@ def test_fr_ulb_rev_fr_tq_rev_fr_tw_rev_fr_f10_rev_book_language_order() -> None
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1888,6 +1924,7 @@ def test_fr_ulb_rev_fr_tw_rev_fr_udb_rev_book_language_order() -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1934,6 +1971,7 @@ def test_ndh_x_chindali_reg_mat_ndh_x_chindali_tn_mat_ndh_x_chindali_tq_mat_ndh_
         response: requests.Response = client.post(
             "/documents",
             json={
+                "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {

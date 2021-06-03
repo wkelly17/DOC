@@ -342,6 +342,7 @@ def get_template_path(key: str) -> str:
         "header_enclosing": "src/templates/html/header_enclosing.html",
         "footer_enclosing": "src/templates/html/footer_enclosing.html",
         "cover": "src/templates/html/cover.html",
+        "email": "src/templates/html/email.html",
     }
     path = templates[key]
     # if not os.environ.get("IN_CONTAINER"):
@@ -456,3 +457,41 @@ def get_markdown_sections_to_remove() -> List[str]:
     Python-Markdown remove_section_processor extension should remove.
     """
     return ["Bible References", "Examples from the Bible stories", "Links"]
+
+
+def get_from_email_address() -> str:
+    """
+    Return the from email to use for sending email with generated PDF attachment to
+    document request recipient. Look for the value to use in
+    IRG_FROM_EMAIL environment variable, use default if it doesn't
+    exist.
+    """
+    return os.environ.get("FROM_EMAIL", "no email provided")
+
+
+def get_to_email_address() -> str:
+    """
+    Return the to email to use for sending email with generated PDF attachment to
+    document request recipient. Look for the value to use in
+    IRG_FROM_EMAIL environment variable, use default if it doesn't
+    exist.
+    """
+    return os.environ.get("TO_EMAIL", "no email provided")
+
+
+def get_sendgrid_api_key() -> str:
+    """
+    Return the sendgrid.com API key to use for sending emails.
+    """
+    return os.environ.get("SENDGRID_API_KEY", "no api key provided")
+
+
+def should_send_email() -> bool:
+    """
+    Return boolean representing if the system should execute the
+    action of sending an email when appropriate to do so.
+    """
+    if int(os.environ.get("SEND_EMAIL", "0")) == 1:
+        return True
+    else:
+        return False

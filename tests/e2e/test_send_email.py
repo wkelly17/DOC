@@ -14,7 +14,7 @@ with open(config.get_logging_config_file_path(), "r") as f:
 logger = logging.getLogger(__name__)
 
 
-def test_stream_arb_nav_jud_pdf() -> None:
+def test_send_email_with_arb_nav_jud_pdf() -> None:
     """
     Produce verse level interleaved document for language, arb, Arabic
     scripture. There are no other resources than USFM available at
@@ -36,7 +36,6 @@ def test_stream_arb_nav_jud_pdf() -> None:
                 ],
             },
         )
-        logger.debug("response.content: {}".format(response.json()))
         finished_document_request_key = response.json()["finished_document_request_key"]
         finished_document_path = os.path.join(
             config.get_output_dir(), "{}.pdf".format(finished_document_request_key)
@@ -44,16 +43,3 @@ def test_stream_arb_nav_jud_pdf() -> None:
         logger.debug("finished_document_path: {}".format(finished_document_path))
         assert os.path.exists(finished_document_path)
         assert response.ok
-
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
-        response2: requests.Response = client.get(
-            "/pdfs/{}".format(finished_document_request_key),
-        )
-        logger.debug("response: {}".format(response2))
-        finished_document_path = os.path.join(
-            config.get_output_dir(), "{}.pdf".format(finished_document_request_key)
-        )
-        logger.debug("finished_document_path: {}".format(finished_document_path))
-        assert os.path.exists(finished_document_path)
-
-        assert response2.ok

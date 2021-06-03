@@ -63,7 +63,9 @@ uvicorn = "*"
 # usfm-tools = {editable = true, path = "./../USFM-Tools"}
 usfm-tools = {ref="develop", git = "git://github.com/linearcombination/USFM-Tools.git"}
 pytest-datafiles = "*"
+sendgrid = "*"
 aiofiles = "*"
+email-validator = "*"
 
 [requires]
 python_version = "3.8"
