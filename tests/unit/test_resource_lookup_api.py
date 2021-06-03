@@ -8,7 +8,9 @@ from document.domain.resource import resource_factory
 
 
 def test_lookup_successes() -> None:
-    assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER
+    assembly_strategy_kind: model.AssemblyStrategyEnum = (
+        model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER
+    )
     resource_requests: List[model.ResourceRequest] = []
     resource_requests.append(
         model.ResourceRequest(
@@ -38,7 +40,9 @@ def test_lookup_successes() -> None:
 
     for resource_request in document_request.resource_requests:
         resource = resource_factory(
-            config.get_working_dir(), config.get_output_dir(), resource_request,
+            config.get_working_dir(),
+            config.get_output_dir(),
+            resource_request,
         )
         resource.find_location()
         assert resource.resource_url
@@ -57,7 +61,9 @@ def test_lookup_successes() -> None:
 # should probably always consider lang_code, resource_type,
 # resource_code values together and never standalone.
 def test_lookup_failures() -> None:
-    assembly_strategy_kind: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER
+    assembly_strategy_kind: model.AssemblyStrategyEnum = (
+        model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER
+    )
     resource_requests: List[model.ResourceRequest] = []
     resource_requests.append(
         model.ResourceRequest(lang_code="zh", resource_type="ulb", resource_code="jol")
@@ -70,7 +76,9 @@ def test_lookup_failures() -> None:
 
     for resource_request in document_request.resource_requests:
         resource = resource_factory(
-            config.get_working_dir(), config.get_output_dir(), resource_request,
+            config.get_working_dir(),
+            config.get_output_dir(),
+            resource_request,
         )
         resource.find_location()
         assert not resource.resource_url
