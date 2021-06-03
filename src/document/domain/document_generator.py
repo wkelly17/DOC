@@ -144,18 +144,10 @@ class DocumentGenerator:
         # generated and is fresh enough. In that case, front run all requests to
         # the cloud including the more low level resource asset caching
         # mechanism for almost immediate return of PDF.
-        # if self._document_needs_update():
-        self._fetch_resources()
-        self._initialize_resource_content()
-        self._generate_pdf(pdf_generation_method=config.get_pdf_generation_method())
-        # else:
-        #     # FIXME Need to handle case where previous document was
-        #     generated, but it contained fewer than requested
-        #     resources because one of the resources requested had an
-        #     invalid resource type for the language requested, e.g.,
-        #     lang_code: zh, resource_type: ulb. ulb should have been
-        #     cuv for zh.
-        #     self._serve_pdf_document()
+        if self._document_needs_update():
+            self._fetch_resources()
+            self._initialize_resource_content()
+            self._generate_pdf(pdf_generation_method=config.get_pdf_generation_method())
         if config.should_send_email():
             self._send_email_with_pdf_attachment()
 
