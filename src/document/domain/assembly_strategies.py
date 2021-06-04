@@ -2672,11 +2672,11 @@ def _assemble_tn_as_iterator_content_by_verse_for_book_then_lang(
     html: List[model.HtmlContent] = []
 
     # Sort resources by language
-    usfm_resources.sort(key=lambda r: r.lang_code)
-    tn_resources.sort(key=lambda r: r.lang_code)
-    tq_resources.sort(key=lambda r: r.lang_code)
-    tw_resources.sort(key=lambda r: r.lang_code)
-    ta_resources.sort(key=lambda r: r.lang_code)
+    usfm_resources.sort(key=lambda resource: resource.lang_code)
+    tn_resources.sort(key=lambda resource: resource.lang_code)
+    tq_resources.sort(key=lambda resource: resource.lang_code)
+    tw_resources.sort(key=lambda resource: resource.lang_code)
+    ta_resources.sort(key=lambda resource: resource.lang_code)
 
     # Rough sketch of algo that follows:
     # English book intro
