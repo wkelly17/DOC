@@ -73,8 +73,8 @@ def test_sw_ulb_col_sw_tn_col_language_book_order() -> None:
         assert response.json() == {
             "finished_document_request_key": pathlib.Path(finished_document_path).stem
         }
-        assert os.path.isdir("working/temp/sw_ulb")
-        assert os.path.isdir("working/temp/sw_tn")
+        # assert os.path.isdir("working/temp/sw_ulb")
+        # assert os.path.isdir("working/temp/sw_tn")
         with open(html_file, "r") as fin:
             html = fin.read()
             parser = bs4.BeautifulSoup(html, "html.parser")
@@ -129,8 +129,8 @@ def test_sw_ulb_col_sw_tn_col_sw_ulb_tit_sw_tn_tit_language_book_order() -> None
         assert response.json() == {
             "finished_document_request_key": pathlib.Path(finished_document_path).stem
         }
-        assert os.path.isdir("working/temp/sw_ulb")
-        assert os.path.isdir("working/temp/sw_tn")
+        # assert os.path.isdir("working/temp/sw_ulb")
+        # assert os.path.isdir("working/temp/sw_tn")
         with open(html_file, "r") as fin:
             html = fin.read()
             parser = bs4.BeautifulSoup(html, "html.parser")
@@ -193,10 +193,10 @@ def test_en_ulb_wa_col_en_tn_wa_col_sw_ulb_col_sw_tn_col_sw_ulb_tit_sw_tn_tit_la
         assert response.json() == {
             "finished_document_request_key": pathlib.Path(finished_document_path).stem
         }
-        assert os.path.isdir("working/temp/en_ulb-wa")
-        assert os.path.isdir("working/temp/en_tn-wa")
-        assert os.path.isdir("working/temp/sw_ulb")
-        assert os.path.isdir("working/temp/sw_tn")
+        # assert os.path.isdir("working/temp/en_ulb-wa")
+        # assert os.path.isdir("working/temp/en_tn-wa")
+        # assert os.path.isdir("working/temp/sw_ulb")
+        # assert os.path.isdir("working/temp/sw_tn")
         with open(html_file, "r") as fin:
             html = fin.read()
             parser = bs4.BeautifulSoup(html, "html.parser")
@@ -274,10 +274,10 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_sw_ulb_col_sw_tn_col_sw_tq_col_
         assert response.json() == {
             "finished_document_request_key": pathlib.Path(finished_document_path).stem
         }
-        assert os.path.isdir("working/temp/en_ulb-wa")
-        assert os.path.isdir("working/temp/en_tn-wa")
-        assert os.path.isdir("working/temp/sw_ulb")
-        assert os.path.isdir("working/temp/sw_tn")
+        # assert os.path.isdir("working/temp/en_ulb-wa")
+        # assert os.path.isdir("working/temp/en_tn-wa")
+        # assert os.path.isdir("working/temp/sw_ulb")
+        # assert os.path.isdir("working/temp/sw_tn")
         with open(html_file, "r") as fin:
             html = fin.read()
             parser = bs4.BeautifulSoup(html, "html.parser")
@@ -340,9 +340,9 @@ def test_en_ulb_wa_col_en_tq_wa_col_sw_ulb_col_sw_tq_col_sw_ulb_tit_sw_tq_tit_la
         assert response.json() == {
             "finished_document_request_key": pathlib.Path(finished_document_path).stem
         }
-        assert os.path.isdir("working/temp/en_ulb-wa")
-        assert os.path.isdir("working/temp/sw_ulb")
-        assert os.path.isdir("working/temp/sw_tq")
+        # assert os.path.isdir("working/temp/en_ulb-wa")
+        # assert os.path.isdir("working/temp/sw_ulb")
+        # assert os.path.isdir("working/temp/sw_tq")
         with open(html_file, "r") as fin:
             html = fin.read()
             parser = bs4.BeautifulSoup(html, "html.parser")
@@ -417,9 +417,9 @@ def test_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_sw_tn_col_sw_tq_col_sw_tw_col_sw
         html_file = "{}.html".format(finished_document_path.split(".")[0])
         assert os.path.exists(finished_document_path)
         assert os.path.exists(html_file)
-        assert os.path.isdir("working/temp/sw_tn")
-        assert os.path.isdir("working/temp/sw_tq")
-        assert os.path.isdir("working/temp/sw_tw")
+        # assert os.path.isdir("working/temp/sw_tn")
+        # assert os.path.isdir("working/temp/sw_tq")
+        # assert os.path.isdir("working/temp/sw_tw")
         with open(html_file, "r") as fin:
             html = fin.read()
             parser = bs4.BeautifulSoup(html, "html.parser")
@@ -476,8 +476,8 @@ def test_en_tn_wa_col_en_tw_wa_col_sw_tn_col_sw_tw_col_sw_tn_tit_sw_tw_tit_langu
         html_file = "{}.html".format(finished_document_path.split(".")[0])
         assert os.path.exists(finished_document_path)
         assert os.path.exists(html_file)
-        assert os.path.isdir("working/temp/sw_tn")
-        assert os.path.isdir("working/temp/sw_tw")
+        # assert os.path.isdir("working/temp/sw_tn")
+        # assert os.path.isdir("working/temp/sw_tw")
         with open(html_file, "r") as fin:
             html = fin.read()
             parser = bs4.BeautifulSoup(html, "html.parser")
@@ -526,8 +526,8 @@ def test_en_tq_wa_col_en_tw_wa_col_sw_tq_col_sw_tw_col_sw_tq_tit_sw_tw_tit_langu
         html_file = "{}.html".format(finished_document_path.split(".")[0])
         assert os.path.exists(finished_document_path)
         assert os.path.exists(html_file)
-        assert os.path.isdir("working/temp/sw_tq")
-        assert os.path.isdir("working/temp/sw_tw")
+        # assert os.path.isdir("working/temp/sw_tq")
+        # assert os.path.isdir("working/temp/sw_tw")
         with open(html_file, "r") as fin:
             html = fin.read()
             parser = bs4.BeautifulSoup(html, "html.parser")
@@ -564,7 +564,7 @@ def test_en_tw_wa_col_sw_tw_col_sw_tw_tit_language_book_order() -> None:
         html_file = "{}.html".format(finished_document_path.split(".")[0])
         assert os.path.exists(finished_document_path)
         assert os.path.exists(html_file)
-        assert os.path.isdir("working/temp/sw_tw")
+        # assert os.path.isdir("working/temp/sw_tw")
         with open(html_file, "r") as fin:
             html = fin.read()
             parser = bs4.BeautifulSoup(html, "html.parser")
@@ -613,8 +613,8 @@ def test_en_tn_wa_col_en_tq_wa_col_sw_tn_col_sw_tq_col_sw_tn_tit_sw_tq_tit_langu
         html_file = "{}.html".format(finished_document_path.split(".")[0])
         assert os.path.exists(finished_document_path)
         assert os.path.exists(html_file)
-        assert os.path.isdir("working/temp/sw_tn")
-        assert os.path.isdir("working/temp/sw_tq")
+        # assert os.path.isdir("working/temp/sw_tn")
+        # assert os.path.isdir("working/temp/sw_tq")
         with open(html_file, "r") as fin:
             html = fin.read()
             parser = bs4.BeautifulSoup(html, "html.parser")
@@ -651,7 +651,7 @@ def test_en_tq_wa_col_sw_tq_col_sw_tq_tit_language_book_order() -> None:
         html_file = "{}.html".format(finished_document_path.split(".")[0])
         assert os.path.exists(finished_document_path)
         assert os.path.exists(html_file)
-        assert os.path.isdir("working/temp/sw_tq")
+        # assert os.path.isdir("working/temp/sw_tq")
         with open(html_file, "r") as fin:
             html = fin.read()
             parser = bs4.BeautifulSoup(html, "html.parser")
@@ -695,8 +695,8 @@ def test_en_tn_wa_col_sw_tn_col_sw_tn_tit_language_book_order() -> None:
         html_file = "{}.html".format(finished_document_path.split(".")[0])
         assert os.path.exists(finished_document_path)
         assert os.path.exists(html_file)
-        assert os.path.isdir("working/temp/en_tn-wa")
-        assert os.path.isdir("working/temp/sw_tn")
+        # assert os.path.isdir("working/temp/en_tn-wa")
+        # assert os.path.isdir("working/temp/sw_tn")
         # with open(html_file, "r") as fin:
         #     html = fin.read()
         #     assert re.search(r"ULB Translation Helps", html)
@@ -738,7 +738,7 @@ def test_en_ulb_wa_col_sw_ulb_col_sw_ulb_tit_language_book_order() -> None:
         html_file = "{}.html".format(finished_document_path.split(".")[0])
         assert os.path.exists(finished_document_path)
         assert os.path.exists(html_file)
-        assert os.path.isdir("working/temp/sw_ulb")
+        # assert os.path.isdir("working/temp/sw_ulb")
         with open(html_file, "r") as fin:
             html = fin.read()
             parser = bs4.BeautifulSoup(html, "html.parser")
