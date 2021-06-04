@@ -318,29 +318,30 @@ class USFMResource(Resource):
             # update we'll make modifications to the parser or provide
             # workarounds that will allow such USFM resources to be
             # utilized.
-            if len(self._content_files) > 1:
-                # Read the content of each file into a list.
-                markdown_content = []
-                for markdown_file in sorted(self._content_files):
-                    with open(markdown_file, "r") as fin:
-                        markdown_content.append(fin.read())
-                        markdown_content.append(" ")
-                # Write the concatenated markdown content to a
-                # non-clobberable filename.
-                filename = os.path.join(
-                    self.resource_dir,
-                    "{}_{}_{}_{}.md".format(
-                        self.lang_code,
-                        self.resource_type,
-                        self.resource_code,
-                        time.time(),
-                    ),
-                )
-                with open(filename, "w") as fout:
-                    fout.write("".join(markdown_content))
-                # Make the temp file our only content file.
-                self._content_files = [filename]
-            logger.debug("self._content_files[0]: {}".format(self._content_files[0]))
+            # FIXME
+            # if len(self._content_files) > 1:
+            #     # Read the content of each file into a list.
+            #     markdown_content = []
+            #     for markdown_file in sorted(self._content_files):
+            #         with open(markdown_file, "r") as fin:
+            #             markdown_content.append(fin.read())
+            #             markdown_content.append(" ")
+            #     # Write the concatenated markdown content to a
+            #     # non-clobberable filename.
+            #     filename = os.path.join(
+            #         self.resource_dir,
+            #         "{}_{}_{}_{}.md".format(
+            #             self.lang_code,
+            #             self.resource_type,
+            #             self.resource_code,
+            #             time.time(),
+            #         ),
+            #     )
+            #     with open(filename, "w") as fout:
+            #         fout.write("".join(markdown_content))
+            #     # Make the temp file our only content file.
+            #     self._content_files = [filename]
+            # logger.debug("self._content_files[0]: {}".format(self._content_files[0]))
 
             # Convert the USFM to HTML and store in file. USFM-Tools books.py can
             # raise MalformedUsfmError when the following code is called. The
