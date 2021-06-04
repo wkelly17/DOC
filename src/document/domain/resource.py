@@ -211,7 +211,7 @@ class USFMResource(Resource):
 
     def __init__(self, *args, **kwargs) -> None:  # type: ignore
         super().__init__(*args, **kwargs)
-        self._chapters_content: Dict = {}
+        self._chapters_content: Dict[model.ChapterNum, model.USFMChapter] = {}
 
     # We may want to not enforce the post-condition that the
     # resource URL be found since we have a requirement that not found
@@ -364,7 +364,7 @@ class USFMResource(Resource):
             self._initialize_verses_html()
 
     @property
-    def chapters_content(self) -> Dict:
+    def chapters_content(self) -> Dict[model.ChapterNum, model.USFMChapter]:
         """Provide public interface for other modules."""
         return self._chapters_content
 
@@ -381,7 +381,7 @@ class USFMResource(Resource):
         chapter_breaks = parser.find_all("h2", attrs={"class": "c-num"})
         localized_chapter_heading = chapter_breaks[0].get_text().split()[0]
         for chapter_break in chapter_breaks:
-            chapter_num = int(chapter_break.get_text().split()[1])
+            chapter_num = model.ChapterNum(int(chapter_break.get_text().split()[1]))
             chapter_content = html_parsing_utils.tag_elements_between(
                 parser.find(
                     "h2",
