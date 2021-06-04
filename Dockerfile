@@ -1,16 +1,24 @@
-FROM analyticdelta/python3.8-slim-buster-with-texlive:v1.0
+FROM python:3.9.5-slim-buster
 
 COPY depends /installs
 COPY requirements.txt /installs
 
-RUN apt-get install wget
+RUN apt-get update && apt-get install -y \
+    wget \
+    curl \
+    fonts-noto \
+    fontconfig \
+    git \
+    lmodern \
+    unzip
+
 
 # Get and install Pandoc.
-ARG PANDOC_LOC # Make a build arg available to this Dockerfile
-RUN PANDOC_TEMP="$(mktemp)" && \
-    wget -O "$PANDOC_TEMP" ${PANDOC_LOC} && \
-    dpkg -i "$PANDOC_TEMP" && \
-    rm -f "$PANDOC_TEMP"
+# ARG PANDOC_LOC # Make a build arg available to this Dockerfile
+# RUN PANDOC_TEMP="$(mktemp)" && \
+#     wget -O "$PANDOC_TEMP" ${PANDOC_LOC} && \
+#     dpkg -i "$PANDOC_TEMP" && \
+#     rm -f "$PANDOC_TEMP"
 
 
 # FIXME You could possibly use
@@ -26,7 +34,7 @@ ARG WKHTMLTOX_LOC # Make a build arg available to this Dockerfile
 RUN WKHTMLTOX_TEMP="$(mktemp)" && \
     wget -O "$WKHTMLTOX_TEMP" ${WKHTMLTOX_LOC} && \
     apt-get update && \
-    apt-get -V install -y fontconfig libxrender1 xfonts-75dpi xfonts-base && \
+    apt-get -V install -y fontconfig libxrender1 xfonts-75dpi xfonts-base libjpeg62-turbo && \
     dpkg -i "$WKHTMLTOX_TEMP" && \
     rm -f "$WKHTMLTOX_TEMP"
 
