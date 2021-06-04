@@ -23,6 +23,9 @@ services:
       # - PYTHONDONTWRITEBYTECODE=1 # Incompatible with optimization in production.
       # - PYTHONUNBUFFERED=1  # Not sure we want this.
       # - PYTHONOPTIMIZE=1 # In particular, turn off icontract checks for production.
+      # These emails are just for testing
+      - FROM_EMAIL=foo@example.com
+      - TO_EMAIL=foo@exmaple.com
       - IN_CONTAINER=1
       - ENABLE_ASSET_CACHING=1
     volumes:
