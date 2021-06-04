@@ -299,6 +299,7 @@ def english_document_request(
 ) -> model.DocumentRequest:
     """Build one English language document request."""
     return model.DocumentRequest(
+        email_address=email_address,
         assembly_strategy_kind=assembly_strategy_kind,
         resource_requests=english_resource_requests,
     )
@@ -319,6 +320,7 @@ def random_english_document_request(
     random_resource_code rather than resource_code.
     """
     return model.DocumentRequest(
+        email_address=email_address,
         assembly_strategy_kind=assembly_strategy_kind,
         resource_requests=random_english_resource_requests,
     )
@@ -379,6 +381,7 @@ def random_failing_non_english_document_request(
     handling of such failures.
     """
     return model.DocumentRequest(
+        email_address=email_address,
         assembly_strategy_kind=assembly_strategy_kind,
         resource_requests=random_failing_non_english_resource_requests,
     )
