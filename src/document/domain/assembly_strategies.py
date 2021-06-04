@@ -2571,7 +2571,8 @@ def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
             # Add the interleaved USFM verses
             for usfm_resource in usfm_resources:
                 if (
-                    verse_num
+                    chapter_num in usfm_resource.chapters_content
+                    and verse_num
                     in usfm_resource.chapters_content[chapter_num].chapter_verses
                 ):
                     # Add header
@@ -2631,12 +2632,18 @@ def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
 
         # Add the footnotes
         for usfm_resource in usfm_resources:
-            # Add scripture footnotes for chapter if available
-            if chapter_footnotes := usfm_resource.chapters_content[
-                chapter_num
-            ].chapter_footnotes:
-                html.append(config.get_html_format_string("footnotes"))
-                html.append(chapter_footnotes)
+            try:
+                if chapter_footnotes := usfm_resource.chapters_content[
+                    chapter_num
+                ].chapter_footnotes:
+                    html.append(config.get_html_format_string("footnotes"))
+                    html.append(chapter_footnotes)
+            except KeyError as exception:
+                logger.debug(
+                    "usfm_resource: {}, does not have chapter: {}".format(
+                        usfm_resource, chapter_num
+                    )
+                )
 
     # Add the translation word definitions
     for tw_resource in tw_resources:
