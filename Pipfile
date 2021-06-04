@@ -17,7 +17,7 @@ Markdown = "*"
 parse = "*"
 pathlib = "*"
 pdfkit = "*"
-pydantic = "*"
+pydantic = {extras = ["email"], version = "*"}
 pyparsing = "2.4.5"
 requests = "*"
 uvicorn = "*"
@@ -37,6 +37,7 @@ pyls-mypy = "*"
 usfm-tools = {ref="develop", git = "git://github.com/linearcombination/USFM-Tools.git"}
 typeguard = "*"
 pytest-datafiles = "*"
+email-validator = "*"
 
 [packages]
 PyYAML = "*"
@@ -52,7 +53,7 @@ Markdown = "*"
 parse = "*"
 pathlib = "*"
 pdfkit = "*"
-pydantic = "*"
+pydantic = {extras = ["email"], version = "*"}
 pyparsing = "2.4.5"
 pytest = "*"
 pytest-icdiff = "*"
