@@ -14,9 +14,9 @@ with open(config.get_logging_config_file_path(), "r") as f:
 logger = logging.getLogger(__name__)
 
 
-def test_stream_arb_nav_jud_pdf() -> None:
+def test_stream_ar_nav_jud_pdf() -> None:
     """
-    Produce verse level interleaved document for language, arb, Arabic
+    Produce verse level interleaved document for language, ar, Arabic
     scripture. There are no other resources than USFM available at
     this time.
     """
@@ -29,7 +29,7 @@ def test_stream_arb_nav_jud_pdf() -> None:
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
-                        "lang_code": "arb",
+                        "lang_code": "ar",
                         "resource_type": "nav",
                         "resource_code": "jud",
                     },

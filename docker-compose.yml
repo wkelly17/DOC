@@ -28,6 +28,7 @@ services:
       - TO_EMAIL=foo@exmaple.com
       - IN_CONTAINER=1
       - ENABLE_ASSET_CACHING=1
+      - TRANSLATIONS_JSON_FROM_GIT=1
     volumes:
       - ./src:/src
       - ./tests:/tests

@@ -7,6 +7,15 @@ build-no-cache:
 up:
 	docker-compose up -d
 
+# Deal with instability with upstream translations.json
+use-stable-translations-json:
+ifeq ($(TRANSLATIONS_JSON_FROM_GIT),1)
+	git checkout working/temp/translations.json
+	touch working/temp/translations.json
+else
+	rm working/temp/translations.json
+endif
+
 server: up
 	docker-compose run  api
 
@@ -21,13 +30,13 @@ server_prod: up
 test: up
 	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/unit /tests/integration /tests/e2e
 
-unit-tests:
+unit-tests: up use-stable-translations-json
 	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/unit
 
-integration-tests: up
+integration-tests: up use-stable-translations-json
 	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/integration
 
-e2e-tests: up
+e2e-tests: up use-stable-translations-json
 	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/e2e
 
 down:

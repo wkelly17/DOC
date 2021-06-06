@@ -51,6 +51,7 @@ RUN rm -r /installs && rm -rf /var/lib/apt/lists/*
 # RUN mkdir -p /working/temp
 WORKDIR /working/temp
 COPY icon-tn.png  /working/temp
+COPY working/temp/translations.json /working/temp
 
 WORKDIR /src
 COPY src/ /src/

@@ -139,9 +139,9 @@ def test_en_ulb_wa_tn_wa_jud_language_book_order() -> None:
         # }
 
 
-def test_arb_nav_jud_language_book_order() -> None:
+def test_ar_nav_jud_language_book_order() -> None:
     """
-    Produce verse level interleaved document for language, arb, Arabic
+    Produce verse level interleaved document for language, ar, Arabic
     scripture. There are no other resources than USFM available at
     this time.
     """
@@ -153,14 +153,14 @@ def test_arb_nav_jud_language_book_order() -> None:
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
-                        "lang_code": "arb",
+                        "lang_code": "ar",
                         "resource_type": "nav",
                         "resource_code": "jud",
                     },
                 ],
             },
         )
-        finished_document_path = "arb-nav-jud_language_book_order.pdf"
+        finished_document_path = "ar-nav-jud_language_book_order.pdf"
         finished_document_path = os.path.join(
             config.get_output_dir(), finished_document_path
         )
@@ -731,9 +731,9 @@ def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_
 
 
 # NOTE
-# Jun 3, 2020: a couple days ago translations.json had zh tn, but now
-# it is no longer available for some reason, so let's skip this test.
-@pytest.mark.skip
+# # Jun 3, 2020: a couple days ago translations.json had zh tn, but now
+# # it is no longer available for some reason, so let's skip this test.
+# @pytest.mark.skip
 def test_zh_ulb_doesnt_exist_jol_zh_tn_jol_language_book_order() -> None:
     """
     This shows that resource request for resource type ULB fails for
@@ -794,7 +794,7 @@ def test_zh_ulb_doesnt_exist_jol_zh_tn_jol_language_book_order() -> None:
 # NOTE
 # Jun 3, 2020: a couple days ago translations.json had zh tn, but now
 # it is no longer available for some reason, so let's skip this test.
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_zh_cuv_jol_zh_tn_jol_language_book_order() -> None:
     """
     This test succeeds by correcting the mistake of the document request
@@ -844,7 +844,7 @@ def test_zh_cuv_jol_zh_tn_jol_language_book_order() -> None:
 # NOTE
 # Jun 3, 2020: a couple days ago translations.json had zh tn, but now
 # it is no longer available for some reason, so let's skip this test.
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_zh_cuv_jol_zh_tn_jol_zh_tq_jol_zh_tw_jol_language_book_order() -> None:
     """
     This test succeeds by correcting the mistake of the document request
@@ -908,7 +908,7 @@ def test_zh_cuv_jol_zh_tn_jol_zh_tq_jol_zh_tw_jol_language_book_order() -> None:
 # NOTE
 # Jun 3, 2020: a couple days ago translations.json had zh tn, but now
 # it is no longer available for some reason, so let's skip this test.
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_pt_br_ulb_luk_pt_br_tn_luk_language_book_order() -> None:
     """
     Produce verse level interleaved document for Brazilian Portuguese scripture and
