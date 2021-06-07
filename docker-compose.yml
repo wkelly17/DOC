@@ -22,8 +22,9 @@ services:
       - FASTAPI_PORT=5005
       # - PYTHONDONTWRITEBYTECODE=1 # Incompatible with optimization in production.
       # - PYTHONUNBUFFERED=1  # Not sure we want this.
-      # - PYTHONOPTIMIZE=1 # In particular, turn off icontract checks for production.
-      # These emails are just for testing
+      # - PYTHONOPTIMIZE=1 # In particular, turn off icontract checks for production: https://icontract.readthedocs.io/en/latest/usage.html#toggling-contracts
+      # These emails are just for testing with email turned off, before going live in
+      # production we'll need to change this
       - FROM_EMAIL=foo@example.com
       - TO_EMAIL=foo@exmaple.com
       - IN_CONTAINER=1
