@@ -32,7 +32,7 @@ pylint = "*"
 pyicontract-lint = "*"
 isort = "*"
 pyls-mypy = "*"
-# document = {editable = true, path = "./src"}
+document = {editable = true, path = "./src"}
 # usfm-tools = {editable = true, path = "./../USFM-Tools"}
 usfm-tools = {ref="develop", git = "git://github.com/linearcombination/USFM-Tools.git"}
 typeguard = "*"
@@ -60,7 +60,7 @@ pytest-icdiff = "*"
 requests = "*"
 typeguard = "*"
 uvicorn = "*"
-# document = {editable = true, path = "./src"}
+document = {editable = true, path = "./src"}
 # usfm-tools = {editable = true, path = "./../USFM-Tools"}
 usfm-tools = {ref="develop", git = "git://github.com/linearcombination/USFM-Tools.git"}
 pytest-datafiles = "*"
