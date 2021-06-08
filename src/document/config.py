@@ -182,34 +182,6 @@ def get_icon_url() -> str:
     # return "https://static1.squarespace.com/static/591e003db8a79bd6e6c9ffae/t/5e306da5898d7b14b76889dd/1600444722464/?format=1500w"
 
 
-# FIXME Fix literal paths now that directory organization has changed
-def get_tex_format_location() -> str:
-    """
-    Return the location of where the format.tex file is located
-    that is used in converting the HTML to PDF using pandoc.
-    """
-    filepath = ""
-    if os.getenv("IN_CONTAINER"):
-        filepath = os.environ.get("TEX_FORMAT_FILEPATH", "tex/format.tex")
-    else:
-        filepath = "tex/format.tex"
-    return filepath
-
-
-# FIXME Fix literal paths now that directory organization has changed
-def get_tex_template_location() -> str:
-    """
-    Return the location of where the template.tex file is located
-    that is used in converting the HTML to PDF using pandoc.
-    """
-    filepath = ""
-    if os.getenv("IN_CONTAINER"):
-        filepath = os.environ.get("TEX_TEMPLATE_FILEPATH", "tex/template.tex")
-    else:
-        filepath = "tex/template.tex"
-    return filepath
-
-
 def get_markdown_doc_file_names() -> List[str]:
     """
     Return the file names, excluding suffix, of files that do not
@@ -235,69 +207,6 @@ def get_document_html_footer() -> str:
     all the resources in the document request.
     """
     return get_template("footer_enclosing")
-
-
-# Generate PDF from HTML
-PANDOC_COMMAND = """pandoc \
---verbose \
---pdf-engine="xelatex" \
---template={8} \
---toc \
---toc-depth=2 \
--V documentclass="scrartcl" \
--V classoption="oneside" \
--V geometry='hmargin=2cm' \
--V geometry='vmargin=3cm' \
--V title="{0}" \
--V subtitle="Translation Notes" \
--V logo="{4}/icon-tn.png" \
--V date="{1}" \
--V revision_date="{6}" \
--V version="{2}" \
--V mainfont="Raleway" \
--V sansfont="Raleway" \
--V fontsize="13pt" \
--V urlcolor="Bittersweet" \
--V linkcolor="Bittersweet" \
--H {7} \
--o "{3}/{5}.pdf" \
-"{3}/{5}.html"
-"""
-
-# Generate just LaTeX output so that we can debug LaTeX issues.
-PANDOC_COMMAND2 = """pandoc -f html -t latex \
---verbose \
---template={8} \
---toc \
---toc-depth=2 \
--V documentclass="scrartcl" \
--V classoption="oneside" \
--V geometry='hmargin=2cm' \
--V geometry='vmargin=3cm' \
--V title="{0}" \
--V subtitle="Translation Notes" \
--V logo="{4}/icon-tn.png" \
--V date="{1}" \
--V revision_date="{6}" \
--V version="{2}" \
--V mainfont="Raleway" \
--V sansfont="Raleway" \
--V fontsize="13pt" \
--V urlcolor="Bittersweet" \
--V linkcolor="Bittersweet" \
--H {7} \
--o "{3}/{5}.latex" \
-"{3}/{5}.html"
-"""
-
-
-# FIXME There is some issue with the HTML to LaTeX generation or from
-# the LaTeX to PDF generation. It may be wise to tell pandoc to
-# generate LaTeX from HTML also so that we can debug the LaTeX.
-def get_pandoc_command() -> str:
-    """Return the pandoc command format string."""
-    # return PANDOC_COMMAND2
-    return PANDOC_COMMAND
 
 
 @icontract.require(lambda resource_type: resource_type)
@@ -374,15 +283,6 @@ def get_template(template_lookup_key: str) -> str:
     with open(config.get_template_path(template_lookup_key), "r") as filepath:
         template = filepath.read()
     return template
-
-
-def get_pdf_generation_method() -> str:
-    """
-    Return the current method of PDF generation. This is used by
-    document_generator module to decide which method to call to
-    generate the PDF.
-    """
-    return model.PdfGenerationMethodEnum.WEBKIT
 
 
 @icontract.require(lambda lookup_key: lookup_key)

@@ -10,7 +10,6 @@ services:
       dockerfile: Dockerfile
       args:
         # These come from env_file
-        PANDOC_LOC: ${PANDOC_LOC}
         WKHTMLTOX_LOC: ${WKHTMLTOX_LOC}
     volumes:
       - ./src:/src

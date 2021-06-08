@@ -147,7 +147,7 @@ class DocumentGenerator:
         if self._document_needs_update():
             self._fetch_resources()
             self._initialize_resource_content()
-            self._generate_pdf(pdf_generation_method=config.get_pdf_generation_method())
+            self._generate_pdf()
         if config.should_send_email():
             self._send_email_with_pdf_attachment()
 
@@ -270,84 +270,6 @@ class DocumentGenerator:
         html += self._content
         html += config.get_document_html_footer()
         self._content = html
-
-    @log_on_start(
-        logging.DEBUG, "PDF to be written to: {self._output_dir}", logger=logger
-    )
-    def _convert_html2pdf(self) -> None:
-        """Generate PDF from HTML contained in self.content."""
-        now = datetime.datetime.now()
-        revision_date = "{}-{}-{}".format(now.year, now.month, now.day)
-        # FIXME This should probably be something else, but this will
-        # do for now.
-        title = "Resources: {}".format(
-            ", ".join(
-                sorted(
-                    {
-                        "{}: {}".format(
-                            resource.lang_name,
-                            bible_books.BOOK_NAMES[resource.resource_code],
-                        )
-                        for resource in self._resources
-                    }
-                )
-            )
-        )
-        # FIXME When run locally xelatex chokes because the LaTeX template does
-        # not set the \setmainlanguage{} and \setotherlanguages{} commands of
-        # the polyglossia package to any value. I can comment out that LaTeX
-        # code and then it runs. Or if I manually edit the final latex file to
-        # have these set to English, say, even if more than English is used, and
-        # then run xelatex manually on the file it produces the PDF
-        # successfully. This issue does not arise when the code is run in the
-        # Docker container for some unknown reason.
-        command = config.get_pandoc_command().format(
-            # First hack at a title. Used to be just self.book_title which
-            # doesn't make sense anymore.
-            title,
-            # FIXME Not all resources have a manifest file from which
-            # issued may be initialized. Further, a document request
-            # can include multiple languages and multiple resources
-            # each of which can have a manifest file. So which issued
-            # date would we use? It doesn't really make sense to use
-            # it anymore so I am substituting revision_date instead
-            # for now.
-            # resource._issued if resource._issued else "",
-            revision_date,
-            # FIXME Not all resources have a manifest file from which
-            # version may be initialized. Further, a document request
-            # can include multiple languages and multiple resources
-            # each of which can have a manifest file, depending on
-            # what is requested, and thus a _version; which one would
-            # we use? It doesn't make sense to use this anymore. For
-            # now I am just going to use some meaningless literal
-            # instead of the next commented out line.
-            # resource._version if resource._version else ""
-            "TBD",
-            self._output_dir,
-            self._working_dir,
-            # FIXME A document generation request is composed of theoretically
-            # an infinite number of arbitrarily ordered resources. In this
-            # context using the file location for one resource doesn't make
-            # sense as in the next commented out line of code. Instead we use
-            # the filename unique to the document generation request itself.
-            # resource._filename_base,
-            self._document_request_key,
-            # NOTE Having revision_date likely obviates _issued above.
-            revision_date,
-            config.get_tex_format_location(),
-            config.get_tex_template_location(),
-        )
-        logger.debug("pandoc command: {}".format(command))
-        copy_command = "cp {}/{}.pdf {}".format(
-            self._output_dir, self._document_request_key, "/output"
-        )
-        subprocess.call(command, shell=True)
-        logger.debug("IN_CONTAINER: {}".format(os.environ.get("IN_CONTAINER")))
-        if os.environ.get("IN_CONTAINER"):
-            logger.info("About to cp PDF to /output")
-            logger.debug("Copy PDF command: {}".format(copy_command))
-            subprocess.call(copy_command, shell=True)
 
     @log_on_start(
         logging.DEBUG, "PDF to be written to: {self._output_dir}", logger=logger
@@ -599,9 +521,7 @@ class DocumentGenerator:
         )
         return self.document_request_key
 
-    def _generate_pdf(
-        self, pdf_generation_method: str = model.PdfGenerationMethodEnum.LATEX
-    ) -> None:
+    def _generate_pdf(self) -> None:
         """
         If the PDF doesn't yet exist, go ahead and generate it
         using the content for each resource.
@@ -609,10 +529,7 @@ class DocumentGenerator:
         if not os.path.isfile(self._output_filename):
             self._assemble_content()
             logger.info("Generating PDF...")
-            if pdf_generation_method == model.PdfGenerationMethodEnum.LATEX:
-                self._convert_html2pdf()
-            else:
-                self._convert_html_to_pdf()
+            self._convert_html_to_pdf()
 
     def _get_unfoldingword_icon(self) -> None:
         """Get Unfolding Word's icon for display in generated PDF."""

@@ -13,14 +13,6 @@ RUN apt-get update && apt-get install -y \
     unzip
 
 
-# Get and install Pandoc.
-# ARG PANDOC_LOC # Make a build arg available to this Dockerfile
-# RUN PANDOC_TEMP="$(mktemp)" && \
-#     wget -O "$PANDOC_TEMP" ${PANDOC_LOC} && \
-#     dpkg -i "$PANDOC_TEMP" && \
-#     rm -f "$PANDOC_TEMP"
-
-
 # FIXME You could possibly use
 # gdebi properly handle dependencies.
 # RUN apt-get install gdebi-core
