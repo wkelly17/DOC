@@ -65,11 +65,16 @@ First take down any running containers from previous runs:
 make down
 #+end_src
 
+Note: Sometimes you have to be a bit more forceful with Docker and use
+=docker stop idofimage= and =docker rm idofimage= to clear out the old
+Docker images from a previous run.
+
 then
 
 #+begin_src shell
 make build-no-cache
 #+end_src
+
 
 ***** Run the tests
 #+begin_src shell
@@ -81,7 +86,7 @@ make test
 
 First tell pipenv which python to use:
 #+begin_src shell
-pipenv --python /path/to/python3
+pipenv --python /path/to/python3.9
 #+end_src
 
 then
@@ -280,9 +285,9 @@ I am not bothering myself with this at all right now, just mentioning
 it. There are other architectures that could be used when we get
 there.
 ** (Bonus/optional material) Convenience web service endpoints for BIEL UI to call (if desired)
-In the interest of good user experience, it will be important that
-=BIEL= only request resources that actually exist (as defined by
-=translations.json=).
+In the interest of good user experience, it seems like it will be
+important that =BIEL= only request resources that actually exist (as
+defined by =translations.json=).
 
 I've provided a few web app endpoints from which =BIEL= can
 request data in order to populate its dropdown menu's in =BIEL='s
@@ -291,7 +296,8 @@ document request wizard.
 You can see those by looking at ../tests/e2e/test_biel_helper.py
 ** Caching design
 The system has two levels of caching:
-1. (WIP) PDF document, and a second lower level caching mechanism:
+1. PDF document,
+   and a second lower level caching mechanism:
 2. resource asset file caching
 
 For (1), if the PDF document has previously been requested and built
@@ -394,5 +400,4 @@ and others like them?
    a. Loss of commentary - which is undesirable.
 3. Leave the links, they'll render visually, but just won't work as
    links unless the resource type they reference is also part of the
-   document request. I am leaning toward this at the moment and will
-   likely implement this.
+   document request. This is the choice I have implemented.
