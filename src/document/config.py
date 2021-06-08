@@ -391,6 +391,10 @@ def should_send_email() -> bool:
     Return boolean representing if the system should execute the
     action of sending an email when appropriate to do so.
     """
+    # FIXME Later, add this env var to .env file so that email in Docker runs
+    # is configurable. Left out of .env on purpose for now since if
+    # someone accidentally turns this on it will quickly exhaust our
+    # sendgrid.com's monthly alotment of free emails.
     if int(os.environ.get("SEND_EMAIL", "0")) == 1:
         return True
     else:
