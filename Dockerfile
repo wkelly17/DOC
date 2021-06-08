@@ -12,11 +12,6 @@ RUN apt-get update && apt-get install -y \
     lmodern \
     unzip
 
-
-# FIXME You could possibly use
-# gdebi properly handle dependencies.
-# RUN apt-get install gdebi-core
-
 # Source: https://github.com/wkhtmltopdf/wkhtmltopdf/issues/2037
 # Source: https://gist.github.com/lobermann/ca0e7bb2558b3b08923c6ae2c37a26ce
 # How to get wkhtmltopdf - don't use what Debian provides as it can have
