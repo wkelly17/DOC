@@ -19,6 +19,7 @@ endif
 server: up
 	docker-compose run  api
 
+# Run a local server outside Docker
 local-server:
 	uvicorn document.entrypoints.app:app --reload --host "127.0.0.1" --port "8000" --app-dir "./src/"
 

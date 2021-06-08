@@ -33,7 +33,6 @@ RUN apt-get update && apt-get install -y \
 ARG WKHTMLTOX_LOC # Make a build arg available to this Dockerfile
 RUN WKHTMLTOX_TEMP="$(mktemp)" && \
     wget -O "$WKHTMLTOX_TEMP" ${WKHTMLTOX_LOC} && \
-    apt-get update && \
     apt-get -V install -y fontconfig libxrender1 xfonts-75dpi xfonts-base libjpeg62-turbo && \
     dpkg -i "$WKHTMLTOX_TEMP" && \
     rm -f "$WKHTMLTOX_TEMP"

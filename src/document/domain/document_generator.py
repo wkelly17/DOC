@@ -197,7 +197,6 @@ class DocumentGenerator:
         sg = sendgrid.SendGridAPIClient(api_key=config.get_sendgrid_api_key())
 
         # Build the parts of the email message
-        # FIXME This email will eventually change
         from_email = mail.From(config.get_from_email_address())
         to_email = mail.To(self._document_request.email_address)
         subject = mail.Subject("The BIEL PDF you requested is attached")

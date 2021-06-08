@@ -1,4 +1,4 @@
-version: "2"
+version: "3"
 services:
   api:
     image: document-image
@@ -9,32 +9,15 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
+        # These come from env_file
         PANDOC_LOC: ${PANDOC_LOC}
         WKHTMLTOX_LOC: ${WKHTMLTOX_LOC}
-    environment:
-      - RESOURCE_ASSETS_DIR=/working/temp
-      - DOCUMENT_OUTPUT_DIR=/working/temp
-      - TRANSLATIONS_JSON_LOCATION=http://bibleineverylanguage.org/wp-content/themes/bb-theme-child/data/translations.json
-      - LOGGING_CONFIG=src/document/logging_config.yaml
-      - TEX_FORMAT_FILEPATH=tex/format.tex
-      - TEX_TEMPLATE_FILEPATH=tex/template.tex
-      - FASTAPI_HOST=0.0.0.0
-      - FASTAPI_PORT=5005
-      # - PYTHONDONTWRITEBYTECODE=1 # Incompatible with optimization in production.
-      # - PYTHONUNBUFFERED=1  # Not sure we want this.
-      # - PYTHONOPTIMIZE=1 # In particular, turn off icontract checks for production: https://icontract.readthedocs.io/en/latest/usage.html#toggling-contracts
-      # These emails are just for testing with email turned off, before going live in
-      # production we'll need to change this
-      - FROM_EMAIL=foo@example.com
-      - TO_EMAIL=foo@exmaple.com
-      - IN_CONTAINER=1
-      - ENABLE_ASSET_CACHING=1
-      - TRANSLATIONS_JSON_FROM_GIT=1
     volumes:
       - ./src:/src
       - ./tests:/tests
       - ./docker_pdf_output:/output
     entrypoint:
+      # Configure the server for fastapi, i.e., uvicorn
       - uvicorn
       - --host=0.0.0.0
       - --port=80
