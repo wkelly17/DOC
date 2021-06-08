@@ -6,7 +6,6 @@
 #
 
 -i https://pypi.org/simple
--e ./src
 aiofiles==0.7.0
 asgiref==3.3.4; python_version >= '3.6'
 asttokens==2.0.5
