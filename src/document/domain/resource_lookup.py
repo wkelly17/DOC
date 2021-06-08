@@ -16,33 +16,11 @@ import jsonpath_rw_ext as jp
 
 from document import config
 from document.domain import model
-# from document.domain import exceptions
 from document.utils import file_utils, url_utils
 
-# FIXME Notice the if TYPE_CHECKING expression below. Is it needed
-# anymore because the following line does not cause an error when
-# running Python 3.8. This following line is needed to satisfy
-# typeguard's runtime type # checking during pytest runs.
 from document.domain.resource import Resource
 
 from logdecorator import log_on_start, log_on_end
-
-# https://www.python.org/dev/peps/pep-0563/
-# https://www.stefaanlippens.net/circular-imports-type-hints-python.html
-# Python 3.7 now allows type checks to not be evaluated at function or
-# class definition time which in turn solves the issue of circular
-# imports which using type hinting/checking can create. Circular imports
-# are not always a by-product of bad design but sometimes a by-product,
-# in those cases where bad design is not the issue, of Python's
-# primitive module system (which is quite lacking). So, this PEP
-# allows us to practice better engineering practices: inversion of
-# control for factored and maintainable software with type hints
-# without resorting to putting everything in one module or using
-# function-embedded imports, yuk. Note that you must use the import
-# ___future__ annotations to make this work as of now, Dec 9, 2020.
-# IF you care, here is how Python got here:
-# https://github.com/python/typing/issues/105
-
 
 logger = config.get_logger(__name__)
 
@@ -53,15 +31,6 @@ class ResourceJsonLookup:
     Subclasses of ResourceLookup delegate to this class.
     """
 
-    # FIXME For efficiency sake, I want to get the data from translations.json
-    # once for all ResourceJsonLookup instances. The following commented out
-    # code would do that lazily. I will likely change this design approach
-    # though as it will be hard to understand for a newcomer. I may just get
-    # the data at the instance level since it runs very fast anyway. It'd be
-    # a little less efficient because it will be done per instance rather
-    # than once per class, but the code would be easier to understand since
-    # there would not be interaction between class and instance level
-    # methods.
     _lang_codes_names_and_resource_types: List[Tuple[str, str, List[str]]] = []
 
     @staticmethod
@@ -228,12 +197,14 @@ class ResourceJsonLookup:
         return None
 
 
-# SourceDataFetcher is delegated to from ResourceJsonLookup (or its
-# subclasses) any one of which act as a Fascade for client code.
 class SourceDataFetcher:
     """
     This class obtains the translations.json file, from which we do
     our lookups.
+
+    SourceDataFetcher is delegated to from ResourceJsonLookup (or its
+    subclasses) any one of which act as a Fascade to this class for client
+    code.
     """
 
     def __init__(self, working_dir: str, json_file_url: str) -> None:
@@ -268,15 +239,13 @@ class SourceDataFetcher:
         """Download json data and parse it into equivalent python objects."""
         if file_utils.source_file_needs_update(self._json_file):
             logger.debug("Downloading {}...".format(self._json_file_url))
-            # try:
             url_utils.download_file(self._json_file_url, str(self._json_file.resolve()))
-            # except Exception as exc:
-            #     logger.debug("Exception: {}".format(exc))
-            # finally:
-            #     logger.info("Finished downloading json file.")
 
         if not self._json_data:
             logger.debug("Loading json file {}...".format(self._json_file))
+            # FIXME We may want to catch a possible exception here as
+            # load_json_object and its delegated function do not
+            # handle them.
             # try:
             self._json_data = file_utils.load_json_object(self._json_file)
             # except Exception as exc:

@@ -12,6 +12,10 @@ from document.entrypoints.app import app
 ############################
 
 
+# Some of the FAILING_NON_ENGLISH_LANG_CODES actual succeed if only
+# certain resource types are requested, e.g., am, tq succeeds, but am,
+# ulb fails. For these reasons, I am skipping this test for now.
+@pytest.mark.skip
 def test_random_failing_non_english_document_request(
     random_failing_non_english_document_request: model.DocumentRequest,
 ) -> None:

@@ -464,11 +464,6 @@ class DocumentGenerator:
             )
         return resources
 
-    # FIXME We probably want to make an (md5) hash of the document request key
-    # prior to returning it as otherwise they can get very long if many
-    # languages and books are requested. It would be nice to be able to
-    # reverse engineer the hash though since the hash input is designed to
-    # be a form of documentation of the document request.
     def _initialize_document_request_key(
         self, document_request: model.DocumentRequest
     ) -> str:
