@@ -11,17 +11,7 @@ from typing import Any, Dict, List
 
 # logger = config.get_logger(__name__)
 
-# An experiment to see if we can make processing of links in the
-# interleaved document assets' Markdown content pluggable into the
-# Markdown library. Answer: yes. This has the potential to clean up and
-# better engineer the way links are converted from wikilink to Markdown
-# style, from rc:// to https://, etc.. Plugins or extensions as they are
-# called in Python-Markdown library can be assigned priorities which
-# control their execution/loading order and you can have preprocessors
-# or block processors (and other types too) depending on what superclass
-# you inherit from so you can choose where in the conversion from
-# Markdown to HTNL you want your extension to operate. See
-# https://python-markdown.github.io/extensions/api/ for more details.
+
 class WikiLinkPreprocessor(Preprocessor):
     """Convert wiki links to Markdown links."""
 
