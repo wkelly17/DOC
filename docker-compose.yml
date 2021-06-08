@@ -1,7 +1,7 @@
 version: "3"
 services:
   api:
-    image: document-image
+    image: interleaved-resource-generator
     container_name: "api"
     env_file:
       - .env
