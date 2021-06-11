@@ -14,14 +14,20 @@ and eventually a final document produced.
 
 import base64
 import datetime
+
 import icontract
 import logging  # For logdecorator
 import os
-import pathlib
 import pdfkit
+import smtplib
 import subprocess
+import sys
 import urllib
 
+from email import encoders
+from email.mime.base import MIMEBase
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from logdecorator import log_on_start, log_on_end
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
@@ -42,6 +48,9 @@ from document.utils import file_utils
 from usfm_tools.support import exceptions
 
 logger = config.get_logger(__name__)
+
+COMMASPACE = ", "
+HYPHEN = "-"
 
 
 class DocumentGenerator:
@@ -162,61 +171,68 @@ class DocumentGenerator:
         recipient's email with the PDF attached.
         """
 
-        # Using SendGrid's Python Library
-        # https://github.com/sendgrid/sendgrid-python
-        # import os
-        import sendgrid
-        from sendgrid.helpers import mail
+        sender = config.get_from_email_address()
+        email_password = config.get_smtp_password()
+        recipients = [self._document_request.email_address]
 
-        # Get the email HTML body
-        html_content = config.get_instantiated_template(
+        # Create the enclosing (outer) message
+        outer = MIMEMultipart()
+        outer["Subject"] = config.get_email_send_subject()
+        outer["To"] = COMMASPACE.join(recipients)
+        outer["From"] = sender
+        # outer.preamble = "You will not see this in a MIME-aware mail reader.\n"
+
+        # List of attachments
+        attachments = [self._output_filename]
+
+        # Add the attachments to the message
+        for file in attachments:
+            try:
+                with open(file, "rb") as fp:
+                    msg = MIMEBase("application", "octet-stream")
+                    msg.set_payload(fp.read())
+                encoders.encode_base64(msg)
+                msg.add_header(
+                    "Content-Disposition", "attachment", filename=os.path.basename(file)
+                )
+                outer.attach(msg)
+            except:
+                logger.debug(
+                    "Unable to open one of the attachments. Error: ", sys.exc_info()[0]
+                )
+                raise
+
+        # Get the email body
+        message_body = config.get_instantiated_template(
             "email",
             model.EmailPayload(
                 document_request_key=self.document_request_key,
             ),
         )
-        logger.debug("instantiated email template: {}".format(html_content))
+        logger.debug("instantiated email template: {}".format(message_body))
 
-        # Get PDF file contents
-        with open(self._output_filename, "rb") as fin:
-            data = fin.read()
+        outer.attach(MIMEText(message_body, "plain"))
 
-        # Encode contents of PDF file as Base 64
-        encoded = base64.b64encode(data).decode()
-
-        # Build attachment
-        attachment = mail.Attachment()
-        attachment.file_content = encoded
-        attachment.file_type = "application/pdf"
-        attachment.file_name = pathlib.Path(self._output_filename).name
-        attachment.disposition = "attachment"
-        attachment.content_id = "BIEL PDF file"
-
-        sg = sendgrid.SendGridAPIClient(api_key=config.get_sendgrid_api_key())
-
-        # Build the parts of the email message
-        from_email = mail.From(config.get_from_email_address())
-        to_email = mail.To(self._document_request.email_address)
-        subject = mail.Subject("The BIEL PDF you requested is attached")
-        content = mail.HtmlContent(html_content)
-
-        # Create the mail message and attach the attachment object
-        mail = mail.Mail(from_email, to_email, subject, content)
-        mail.add_attachment(attachment)
+        composed = outer.as_string()
 
         # Send the email
         try:
-            response = sg.client.mail.send.post(request_body=mail.get())
-            logger.debug("response.status_code: {}".format(response.status_code))
-            # This can really put out alot since it includes the
-            # encoded PDF and if the PDF is a long one, then this will
-            # be too much info.
-            # logger.debug("response.body: {}".format(response.body))
-            logger.debug("response.headers: {}".format(response.headers))
-        except mail.SendGridException as sg_exception:
-            logger.debug("Problem sending email: {}".format(sg_exception))
-        except urllib.error.HTTPError as exception:
-            logger.debug("Problem sending email: {}".format(exception))
+            with smtplib.SMTP(
+                config.get_smtp_address(), config.get_smtp_port()
+            ) as s:
+                s.ehlo()
+                s.starttls()
+                s.ehlo()
+                s.login(sender, email_password)
+                s.sendmail(sender, recipients, composed)
+                s.close()
+            logger.info("Email sent!")
+        except:
+            logger.debug(
+                # "Unable to send the email. Error: {}".format(sys.exc_info()[0])
+                "Unable to send the email. Error: {}".format(sys.exc_info())
+            )
+            raise
 
     @icontract.require(lambda self: self._working_dir and self._document_request_key)
     def _document_needs_update(self) -> bool:
@@ -280,7 +296,7 @@ class DocumentGenerator:
         # FIXME This should probably be something else, but this will
         # do for now.
         title = "{}".format(
-            ", ".join(
+            COMMASPACE.join(
                 sorted(
                     {
                         "{}: {}".format(
@@ -293,7 +309,7 @@ class DocumentGenerator:
             )
         )
         unfound = "{}".format(
-            ", ".join(
+            COMMASPACE.join(
                 sorted(
                     {
                         "{}-{}-{}".format(
@@ -307,7 +323,7 @@ class DocumentGenerator:
             )
         )
         unloaded = "{}".format(
-            ", ".join(
+            COMMASPACE.join(
                 sorted(
                     {
                         "{}-{}-{}".format(
@@ -470,14 +486,14 @@ class DocumentGenerator:
         document_request_key = ""
         for resource in document_request.resource_requests:
             document_request_key += (
-                "-".join(
+                HYPHEN.join(
                     [
                         resource.lang_code,
                         resource.resource_type,
                         resource.resource_code,
                     ]
                 )
-                + "_"
+                + HYPHEN
             )
         return "{}_{}".format(
             document_request_key[:-1], document_request.assembly_strategy_kind

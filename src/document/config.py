@@ -380,13 +380,6 @@ def get_to_email_address() -> str:
     return os.environ.get("TO_EMAIL", "no email provided")
 
 
-def get_sendgrid_api_key() -> str:
-    """
-    Return the sendgrid.com API key to use for sending emails.
-    """
-    return os.environ.get("SENDGRID_API_KEY", "no api key provided")
-
-
 def should_send_email() -> bool:
     """
     Return boolean representing if the system should execute the
@@ -400,3 +393,32 @@ def should_send_email() -> bool:
         return True
     else:
         return False
+
+
+def get_email_send_subject() -> str:
+    """
+    Return the subject line for the email sent to BIEL users when
+    sending PDF attachment.
+    """
+    return os.environ.get("EMAIL_SEND_SUBJECT", "no subject provided")
+
+
+def get_smtp_password() -> str:
+    """
+    Return the Office 365 password.
+    """
+    return os.environ.get("EMAIL_PASSWORD", "no api key provided")
+
+
+def get_smtp_address() -> str:
+    """
+    Return the address to use for sending emails via smtp protocol.
+    """
+    return os.environ.get("SMTP_ADDRESS", "no smtp address provided")
+
+
+def get_smtp_port() -> int:
+    """
+    Return the port  to use for sending emails via smtp protocol.
+    """
+    return int(os.environ.get("SMTP_PORT", "587"))
