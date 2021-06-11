@@ -251,7 +251,8 @@ def get_template_path(key: str) -> str:
         "header_enclosing": "src/templates/html/header_enclosing.html",
         "footer_enclosing": "src/templates/html/footer_enclosing.html",
         "cover": "src/templates/html/cover.html",
-        "email": "src/templates/html/email.html",
+        "email-html": "src/templates/html/email.html",
+        "email": "src/templates/text/email.txt",
     }
     path = templates[key]
     # if not os.environ.get("IN_CONTAINER"):

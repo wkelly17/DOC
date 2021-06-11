@@ -1,0 +1,9 @@
+Dear BIEL User,
+
+The document you have requested:
+
+{% if data.document_request_key %}
+{{ data.document_request_key }}
+{% endif %}
+
+is attached to this email.
