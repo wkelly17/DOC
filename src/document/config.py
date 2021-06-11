@@ -361,9 +361,9 @@ def get_markdown_sections_to_remove() -> List[str]:
 
 def get_from_email_address() -> str:
     """
-    Return the from email to use for sending email with generated PDF attachment to
-    document request recipient. Look for the value to use in
-    IRG_FROM_EMAIL environment variable, use default if it doesn't
+    Return the from email to use for sending email with generated PDF
+    attachment to document request recipient. Look for the value to
+    use in FROM_EMAIL environment variable, use default if it doesn't
     exist.
     """
     return os.environ.get("FROM_EMAIL", "no email provided")
@@ -371,10 +371,10 @@ def get_from_email_address() -> str:
 
 def get_to_email_address() -> str:
     """
-    Return the to email to use for sending email with generated PDF attachment to
-    document request recipient. Look for the value to use in
-    IRG_FROM_EMAIL environment variable, use default if it doesn't
-    exist.
+    Return the to email address to use for sending email with
+    generated PDF attachment to document request recipient during
+    testing. Look for the value to use in TO_EMAIL environment
+    variable, use default if it doesn't exist.
     """
     return os.environ.get("TO_EMAIL", "no email provided")
 
@@ -393,8 +393,8 @@ def should_send_email() -> bool:
     """
     # FIXME Later, add this env var to .env file so that email in Docker runs
     # is configurable. Left out of .env on purpose for now since if
-    # someone accidentally turns this on it will quickly exhaust our
-    # sendgrid.com's monthly alotment of free emails.
+    # someone accidentally turns this on it will quickly send nearly
+    # 100 emails if all tests are run.
     if int(os.environ.get("SEND_EMAIL", "0")) == 1:
         return True
     else:

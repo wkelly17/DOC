@@ -155,8 +155,6 @@ class DocumentGenerator:
         logging.INFO, "Calling _send_email_with_pdf_attachment", logger=logger
     )
     @icontract.require(lambda self: os.path.exists(self._output_filename))
-    # FIXME This should probably be made async so that large PDFs
-    # don't cause the server to block for a long time.
     def _send_email_with_pdf_attachment(self) -> None:
         """
         If PDF exists, and environment configuration allows sending of
@@ -220,15 +218,16 @@ class DocumentGenerator:
         except urllib.error.HTTPError as exception:
             logger.debug("Problem sending email: {}".format(exception))
 
-    # Front run all requests to the cloud, including the
-    # more low level resource asset caching mechanism for almost immediate
-    # return of PDF.
     @icontract.require(lambda self: self._working_dir and self._document_request_key)
     def _document_needs_update(self) -> bool:
         """
         Perform caching of PDF document according to the
         caching policy expressed in
         file_utils.asset_file_needs_update.
+
+        Front run all requests to the cloud, including the more low
+        level resource asset caching mechanism for almost immediate
+        return of PDF.
         """
         pdf_file_path = os.path.join(
             self._working_dir, "{}.pdf".format(self._document_request_key)
