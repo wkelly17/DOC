@@ -1,0 +1,19 @@
+-e ./src # document = {editable = true, path = "./src"}
+Markdown
+PyYAML
+aiofiles
+bs4
+fastapi
+git+https://github.com/linearcombination/USFM-Tools.git@develop#egg=USFM-Tools
+icontract
+jinja2
+jsonpath-rw
+jsonpath-rw-ext
+logdecorator
+parse
+pathlib
+pdfkit
+pydantic[email]
+pyparsing
+requests
+uvicorn
