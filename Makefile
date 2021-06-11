@@ -39,6 +39,7 @@ down:
 	docker-compose down --remove-orphans
 
 mypy:
+	mypy --install-types # install all missing stub packages
 	mypy src/document/*.py
 	mypy src/document/**/*.py
 	mypy tests/*.py
