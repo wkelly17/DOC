@@ -82,49 +82,41 @@ make test
 #+end_src
 
 *** Run demo outside Docker container
-**** Install the required python packages. I use pipenv, but you can do it however you prefer.
-
-First tell pipenv which python to use:
-#+begin_src shell
-pipenv --python /path/to/python3.9
-#+end_src
-
-then
+**** Create and activate the virtual environment
 
 #+begin_src shell
-pipenv shell # get in the pipenv, virtualenv, conda, whatever shell
+python3 -m venv venv
+source venv/bin/activate
+# or source venv/bin/activate.fish
 #+end_src
 
-then
+then ...
 
+**** Install pip-tools
 #+begin_src shell
-# You can do just this one if you don't want to bother with virtual
-# envs. With pipenv as you probably know, this will make a virtual env
-# only install of the requirements only accessible after: pipenv
-# shell.
-pipenv install
+pip install pip-tools
 #+end_src
 
-then
+then ...
 
+**** Run quick smoke test
 #+begin_src shell
-pip install -e src/
+make local-smoke-test
 #+end_src
 
-**** Run tests
+then ...
+
+**** Run unit tests
 #+begin_src shell
-pytest
+make local-unit-tests
 #+end_src
 
-**** Or, run tests with caching enabled (for speedup)
+**** Run e2e tests
 #+begin_src shell
-ENABLE_ASSET_CACHING=1 pytest
+make local-e2e-tests
 #+end_src
 
-Obviously this only kicks in according to the caching policy used. See
-=file_utils.asset_caching_enabled()= for the caching policy.
-The default for caching is False.
-** TODO Update this since new code (mostly the same but some changes - more classes): Interactions at a high level
+** (Needs updating) Interactions at a high level
 
 #+begin_src plantuml :file wa_design_sequence_diagram1.png :exports results
 UI_biel -> app.document_endpoint: JSON document resources request
@@ -327,23 +319,6 @@ Examples:
 | erk-x-erakor  | reg           | any           | manifest.json rather than manifest.txt or manifest.yaml.    |
 |               |               |               | manifest.json has different structure and keys.             |
 | en            | tn-wa         | any           | translations.json only lists links to PDFs                  |
-
-** Handling different manifests
-Lang,
-
-In our previous meeting, I mentioned how different repos and projects
-had different manifests, and that they have evolved since the
-beginning of the project.
-
-Here is an example of some code that is version-aware and migrates
-older versions of manifests to the most recent one. I hope it may be
-of some use to you, even if only to highlight what some of the
-differences between the versions are:
-
-https://github.com/Bible-Translation-Tools/BTT-Writer-Desktop/blob/master/src/js/migrator.js
-
-
-Craig Oliver
 
 ** Composition of project in LOC
 #+begin_src shell :results output
