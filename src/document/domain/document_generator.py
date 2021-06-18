@@ -51,6 +51,7 @@ logger = config.get_logger(__name__)
 
 COMMASPACE = ", "
 HYPHEN = "-"
+UNDERSCORE = "_"
 
 
 class DocumentGenerator:
@@ -493,7 +494,7 @@ class DocumentGenerator:
                         resource.resource_code,
                     ]
                 )
-                + HYPHEN
+                + UNDERSCORE
             )
         return "{}_{}".format(
             document_request_key[:-1], document_request.assembly_strategy_kind
