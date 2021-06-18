@@ -365,12 +365,9 @@ class DocumentGenerator:
         }
         with open(config.get_logo_image_path(), "rb") as fin:
             base64_encoded_logo_image = base64.b64encode(fin.read())
-        # FIXME Either or both of the next two expressions could blow
-        # up if we fail to read in and encode the image file
-        # successfully.
-        images: Dict[str, Union[str, bytes]] = {
-            "logo": base64_encoded_logo_image,
-        }
+            images: Dict[str, Union[str, bytes]] = {
+                "logo": base64_encoded_logo_image,
+            }
         # Use Jinja2 to instantiate the cover page.
         cover = config.get_instantiated_template(
             "cover",
