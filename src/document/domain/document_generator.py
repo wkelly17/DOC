@@ -540,12 +540,3 @@ class DocumentGenerator:
             self._assemble_content()
             logger.info("Generating PDF...")
             self._convert_html_to_pdf()
-
-    def _get_unfoldingword_icon(self) -> None:
-        """Get Unfolding Word's icon for display in generated PDF."""
-        if not os.path.isfile(config.get_logo_image_path()):
-            command = "curl -o {}/icon-tn.png {}".format(
-                self._working_dir,
-                config.get_icon_url(),
-            )
-            subprocess.call(command, shell=True)
