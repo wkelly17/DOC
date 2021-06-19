@@ -99,13 +99,29 @@ pip install pip-tools
 
 then ...
 
-**** Run quick smoke test
+**** Install dependencies
+#+begin_src shell
+make local-install-deps-dev
+#+end_src
+
+this will install production and development dependencies for our app.
+
+Then ...
+
+**** Install our app in editable mode
+
+#+begin_src shell
+pip install -e .
+#+end_src
+
+then ...
+
+**** Run a quick smoke test (runs one quick test)
 #+begin_src shell
 make local-smoke-test
 #+end_src
 
 then ...
-
 **** Run unit tests
 #+begin_src shell
 make local-unit-tests

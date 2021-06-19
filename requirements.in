@@ -1,4 +1,5 @@
--e ./src # document = {editable = true, path = "./src"}
+# For production:
+# git+https://github.com/linearcombination/tools@email#egg=document
 Markdown
 PyYAML
 aiofiles

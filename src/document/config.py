@@ -334,7 +334,7 @@ def get_logo_image_path() -> str:
     Get the path to the logo image that will be used on the PDF cover,
     i.e., first, page.
     """
-    return os.path.join(get_working_dir(), "icon-tn.png")
+    return "icon-tn.png"
 
 
 def get_default_assembly_substrategy() -> model.AssemblySubstrategyEnum:

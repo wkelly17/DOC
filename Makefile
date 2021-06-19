@@ -1,7 +1,7 @@
-build:
+build: local-update-deps-dev use-stable-translations-json
 	docker-compose build
 
-build-no-cache:
+build-no-cache: use-stable-translations-json
 	docker-compose build --no-cache
 
 up:
@@ -9,12 +9,14 @@ up:
 
 # Deal with instability with upstream translations.json
 use-stable-translations-json:
-ifeq ($(TRANSLATIONS_JSON_FROM_GIT),1)
 	git checkout working/temp/translations.json
 	touch working/temp/translations.json
-else
-	rm working/temp/translations.json
-endif
+# ifeq ($(TRANSLATIONS_JSON_FROM_GIT),1)
+# 	git checkout working/temp/translations.json
+# 	touch working/temp/translations.json
+# else
+# 	rm working/temp/translations.json
+# endif
 
 server: up
 	docker-compose run  api
@@ -46,9 +48,9 @@ mypy:
 	mypy tests/**/*.py
 
 pyicontract-lint:
-	pyicontract-lint --dont_panic ./src/document/domain
-	pyicontract-lint --dont_panic ./src/document/utils
-	pyicontract-lint --dont_panic ./src/document/entrypoints
+	pyicontract-lint --dont_panic src/document/domain
+	pyicontract-lint --dont_panic src/document/utils
+	pyicontract-lint --dont_panic src/document/entrypoints
 
 all: down build up test
 
@@ -57,45 +59,41 @@ all-plus-linting: mypy pyicontract-lint down build up test
 #########################
 # Local dev
 
+# Just for documentation
 # init:
 # 	python3 -m venv venv
 # 	pip install pip-tools
 
+# Just for documentation, doesn't work
 # venv-bash-shell:
 # 	source venv/bin/activate
 
+# Just for documentation, doesn't work
 # venv-fish-shell:
 # 	fish -c deactivate
 # 	source venv/bin/activate.fish
 
-local-update-deps:
+local-update-deps-prod:
 	pip-compile --upgrade
+
+local-update-deps-dev: local-update-deps-prod
 	pip-compile --upgrade requirements-dev.in
-	# pip-compile --upgrade --generate-hashes
-	# pip-compile --upgrade --generate-hashes requirements-dev.in
 
 pip-warning:
-	RED='\033[0;31m'
-	NC='\033[0m' # No Color
-	echo -e "${RED}If you aren't in your virtual env shell, source venv/bin/activate, then this will install into global package index${NC} World"
+	echo "If you aren't in your virtual env shell, source venv/bin/activate, then this will install into global package index"
 
-local-install-deps-prod: local-update-deps pip-warning
+local-install-deps-prod: local-update-deps-prod pip-warning
 	pip install -r requirements.txt
-	# pip-sync
 
-local-install-deps-dev: local-update-deps pip-warning
+local-install-deps-dev: local-update-deps-dev pip-warning
 	pip install -r requirements.txt
 	pip install -r requirements-dev.txt
-	# pip-sync requirements.txt requirements-dev.txt
 
-local-prepare-for-tests: mypy local-clean-working-temp-dir local-use-stable-translations-json
+local-prepare-for-tests: mypy pyicontract-lint local-clean-working-temp-dir use-stable-translations-json
 
 local-clean-working-temp-dir:
 	find working/temp/ -type f -name "*.html" -exec rm -- {} +
 	find working/temp/ -type f -name "*.pdf" -exec rm -- {} +
-
-local-use-stable-translations-json:
-	git checkout working/temp/translations.json
 
 local-unit-tests: local-install-deps-dev local-prepare-for-tests
 	ENABLE_ASSET_CACHING=1 TRANSLATIONS_JSON_FROM_GIT=1 SEND_EMAIL=0 FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/unit/
@@ -104,8 +102,15 @@ local-e2e-tests: local-install-deps-dev local-prepare-for-tests
 	ENABLE_ASSET_CACHING=1 TRANSLATIONS_JSON_FROM_GIT=1 SEND_EMAIL=0 FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/
 
 # Run one quick test
-local-smoke-test: local-install-deps-dev local-prepare-for-tests
+local-smoke-test: local-prepare-for-tests
 	ENABLE_ASSET_CACHING=1 TRANSLATIONS_JSON_FROM_GIT=1 SEND_EMAIL=0 FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -k test_send_email_with_ar_nav_jud_pdf
 
-local-email-tests: local-install-deps-dev local-prepare-for-tests
+# Test case chosen does not pass email with document request.
+local-smoke-test-with-no-email: local-prepare-for-tests
+	ENABLE_ASSET_CACHING=1 TRANSLATIONS_JSON_FROM_GIT=1 SEND_EMAIL=0 FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -k test_en_ulb_wa_col_en_tn_wa_col_language_book_order_with_no_email
+
+local-smoke-test-with-translation-words: local-prepare-for-tests
+	ENABLE_ASSET_CACHING=1 TRANSLATIONS_JSON_FROM_GIT=1 SEND_EMAIL=0 FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -k test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_pt_br_ulb_col_pt_br_tn_col_pt_br_tq_col_pt_br_tw_col_book_language_order
+
+local-email-tests: local-prepare-for-tests
 	./test_email_DO_NOT_COMMIT.sh

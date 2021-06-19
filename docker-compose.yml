@@ -1,7 +1,7 @@
 version: "3"
 services:
   api:
-    image: interleaved-resource-generator
+    image: document-image
     container_name: "api"
     env_file:
       - .env
@@ -9,11 +9,9 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        # These come from env_file
+        # This comes from .env
         WKHTMLTOX_LOC: ${WKHTMLTOX_LOC}
     volumes:
-      - ./src:/src
-      - ./tests:/tests
       - ./docker_pdf_output:/output
     entrypoint:
       # Configure the server for fastapi, i.e., uvicorn
