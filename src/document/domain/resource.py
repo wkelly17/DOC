@@ -1073,7 +1073,7 @@ class TWResource(TResource):
                     use.base_filename,
                     use.localized_word,
                 )
-                for use in uses
+                for use in sorted(uses, key=lambda use: use.base_filename)
             ]
             html.append(model.HtmlContent("\n".join(uses_list_items)))
             # End list formatting
