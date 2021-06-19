@@ -942,9 +942,7 @@ class TWResource(TResource):
         logger=logger,
     )
     def initialize_verses_html(self, tw_resource_dir: str) -> None:
-        """
-        Find translation words for the verses.
-        """
+        """Find translation words for the verses."""
         # Create the Markdown instance once and have it use our markdown
         # extensions.
         md = markdown.Markdown(
