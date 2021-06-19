@@ -82,17 +82,21 @@ def get_working_dir() -> str:
     generated automatically.
     """
     dirname = ""
-    if os.environ.get("IN_CONTAINER"):
+    if is_in_container():
         dirname = os.environ.get("RESOURCE_ASSETS_DIR", "/working/temp")
     else:
         dirname = os.environ.get("RESOURCE_ASSETS_DIR", "working/temp")
     return dirname
 
 
+def is_in_container() -> bool:
+    return os.environ.get("IN_CONTAINER") is not None
+
+
 def get_output_dir() -> str:
     """The directory where the generated documents are placed."""
     dirname = ""
-    if os.environ.get("IN_CONTAINER"):
+    if is_in_container():
         dirname = os.environ.get("DOCUMENT_OUTPUT_DIR", "/working/temp")
     else:
         dirname = os.environ.get("DOCUMENT_OUTPUT_DIR", "working/temp")
@@ -165,7 +169,7 @@ def get_logging_config_file_path() -> str:
     formatted config file for logging is located.
     """
     filepath = ""
-    if os.environ.get("IN_CONTAINER"):
+    if is_in_container():
         filepath = os.environ.get("LOGGING_CONFIG", "src/document/logging_config.yaml")
     else:
         filepath = "src/document/logging_config.yaml"
