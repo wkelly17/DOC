@@ -158,8 +158,18 @@ class DocumentGenerator:
             self._fetch_resources()
             self._initialize_resource_content()
             self._generate_pdf()
-        if config.should_send_email():
+        if self._should_send_email():
             self._send_email_with_pdf_attachment()
+
+    def _should_send_email(self) -> bool:
+        """
+        Return True if configuration is set to send email and the user
+        has supplied an email address.
+        """
+        return (
+            config.should_send_email()
+            and self._document_request.email_address is not None
+        )
 
     @log_on_start(
         logging.INFO, "Calling _send_email_with_pdf_attachment", logger=logger
@@ -171,69 +181,72 @@ class DocumentGenerator:
         email, then send an email to the document request
         recipient's email with the PDF attached.
         """
+        if self._document_request.email_address:
+            sender = config.get_from_email_address()
+            email_password = config.get_smtp_password()
+            recipients = [self._document_request.email_address]
 
-        sender = config.get_from_email_address()
-        email_password = config.get_smtp_password()
-        recipients = [self._document_request.email_address]
+            # Create the enclosing (outer) message
+            outer = MIMEMultipart()
+            outer["Subject"] = config.get_email_send_subject()
+            outer["To"] = COMMASPACE.join(recipients)
+            outer["From"] = sender
+            # outer.preamble = "You will not see this in a MIME-aware mail reader.\n"
 
-        # Create the enclosing (outer) message
-        outer = MIMEMultipart()
-        outer["Subject"] = config.get_email_send_subject()
-        outer["To"] = COMMASPACE.join(recipients)
-        outer["From"] = sender
-        # outer.preamble = "You will not see this in a MIME-aware mail reader.\n"
+            # List of attachments
+            attachments = [self._output_filename]
 
-        # List of attachments
-        attachments = [self._output_filename]
+            # Add the attachments to the message
+            for file in attachments:
+                try:
+                    with open(file, "rb") as fp:
+                        msg = MIMEBase("application", "octet-stream")
+                        msg.set_payload(fp.read())
+                    encoders.encode_base64(msg)
+                    msg.add_header(
+                        "Content-Disposition",
+                        "attachment",
+                        filename=os.path.basename(file),
+                    )
+                    outer.attach(msg)
+                except:
+                    logger.debug(
+                        "Unable to open one of the attachments. Error: ",
+                        sys.exc_info()[0],
+                    )
+                    raise
 
-        # Add the attachments to the message
-        for file in attachments:
+            # Get the email body
+            message_body = config.get_instantiated_template(
+                "email",
+                model.EmailPayload(
+                    document_request_key=self.document_request_key,
+                ),
+            )
+            logger.debug("instantiated email template: {}".format(message_body))
+
+            outer.attach(MIMEText(message_body, "plain"))
+
+            composed = outer.as_string()
+
+            # Send the email
             try:
-                with open(file, "rb") as fp:
-                    msg = MIMEBase("application", "octet-stream")
-                    msg.set_payload(fp.read())
-                encoders.encode_base64(msg)
-                msg.add_header(
-                    "Content-Disposition", "attachment", filename=os.path.basename(file)
-                )
-                outer.attach(msg)
+                with smtplib.SMTP(
+                    config.get_smtp_address(), config.get_smtp_port()
+                ) as s:
+                    s.ehlo()
+                    s.starttls()
+                    s.ehlo()
+                    s.login(sender, email_password)
+                    s.sendmail(sender, recipients, composed)
+                    s.close()
+                logger.info("Email sent!")
             except:
                 logger.debug(
-                    "Unable to open one of the attachments. Error: ", sys.exc_info()[0]
+                    # "Unable to send the email. Error: {}".format(sys.exc_info()[0])
+                    "Unable to send the email. Error: {}".format(sys.exc_info())
                 )
                 raise
-
-        # Get the email body
-        message_body = config.get_instantiated_template(
-            "email",
-            model.EmailPayload(
-                document_request_key=self.document_request_key,
-            ),
-        )
-        logger.debug("instantiated email template: {}".format(message_body))
-
-        outer.attach(MIMEText(message_body, "plain"))
-
-        composed = outer.as_string()
-
-        # Send the email
-        try:
-            with smtplib.SMTP(
-                config.get_smtp_address(), config.get_smtp_port()
-            ) as s:
-                s.ehlo()
-                s.starttls()
-                s.ehlo()
-                s.login(sender, email_password)
-                s.sendmail(sender, recipients, composed)
-                s.close()
-            logger.info("Email sent!")
-        except:
-            logger.debug(
-                # "Unable to send the email. Error: {}".format(sys.exc_info()[0])
-                "Unable to send the email. Error: {}".format(sys.exc_info())
-            )
-            raise
 
     @icontract.require(lambda self: self._working_dir and self._document_request_key)
     def _document_needs_update(self) -> bool:

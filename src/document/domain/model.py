@@ -84,7 +84,7 @@ class DocumentRequest(BaseModel):
     free.
     """
 
-    email_address: EmailStr
+    email_address: Optional[EmailStr]
     assembly_strategy_kind: AssemblyStrategyEnum
     resource_requests: List[ResourceRequest]
 

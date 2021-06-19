@@ -15,7 +15,7 @@ from document.entrypoints.app import app
 ##########################################################################
 
 
-def test_en_ulb_wa_col_en_tn_wa_col_language_book_order() -> None:
+def test_en_ulb_wa_col_en_tn_wa_col_language_book_order_with_no_email() -> None:
     """
     Produce verse interleaved document for English scripture and
     translation notes for the book of Colossians.
@@ -24,7 +24,7 @@ def test_en_ulb_wa_col_en_tn_wa_col_language_book_order() -> None:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                # "email_address": config.get_to_email_address(),
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
