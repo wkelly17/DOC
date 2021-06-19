@@ -176,16 +176,6 @@ def get_logging_config_file_path() -> str:
     return filepath
 
 
-# FIXME Icon no longer lives at this location since they redesigned
-# their website. For now I can just copy over an old version of the icon
-# into ./working/temp/ or grab it from archive.org as I do here.
-def get_icon_url() -> str:
-    """Get the tn-icon.png from unfolding word."""
-    return "https://web.archive.org/web/20160819103903if_/https://unfoldingword.org/assets/img/icon-tn.png"
-    # return "https://unfoldingword.org/assets/img/icon-tn.png"
-    # return "https://static1.squarespace.com/static/591e003db8a79bd6e6c9ffae/t/5e306da5898d7b14b76889dd/1600444722464/?format=1500w"
-
-
 def get_markdown_doc_file_names() -> List[str]:
     """
     Return the file names, excluding suffix, of files that do not
