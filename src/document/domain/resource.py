@@ -1121,8 +1121,10 @@ class TWResource(TResource):
                 tw_name_content_pair.content.replace(
                     # FIXME Don't use magic strings, move format
                     # string to config.get_html_format_string
-                    "<h3>{}".format(tw_name_content_pair.localized_word),
-                    '<h3 id="{}-{}">{}'.format(
+                    config.get_html_format_string("opening_h3").format(
+                        tw_name_content_pair.localized_word
+                    ),
+                    config.get_html_format_string("opening_h3_with_id").format(
                         self.lang_code,
                         base_filename,
                         tw_name_content_pair.localized_word,

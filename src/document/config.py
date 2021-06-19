@@ -319,6 +319,8 @@ def get_html_format_string(lookup_key: str) -> model.HtmlContent:
         "translation_word_verse_section_header": "<h4>Uses:</h4>",
         "translation_word_verse_ref_item": '<li><a href="#{}-{}-ch-{}-v-{}">{} {}:{}</a></li>',
         "footnotes": "<h3>Footnotes</h3>",
+        "opening_h3": "<h3>{}",
+        "opening_h3_with_id": '<h3 id="{}-{}">{}',
     }
     return model.HtmlContent(html_format_strings[lookup_key])
 
