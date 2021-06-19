@@ -883,7 +883,6 @@ class TWResource(TResource):
         """
 
         self._initialize_from_assets()
-        # self._initialize_verses_html()
 
     @property
     def language_payload(self) -> model.TWLanguagePayload:
