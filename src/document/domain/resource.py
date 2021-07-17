@@ -577,6 +577,8 @@ class TNResource(TResource):
         """
         self._initialize_from_assets()
 
+        # This is called later in assembly strategies because it has a
+        # dependency on another resource
         # self._initialize_verses_html()
 
     @property
@@ -742,6 +744,9 @@ class TQResource(TResource):
         """
 
         self._initialize_from_assets()
+
+        # This is called later in assembly strategies because it has a
+        # dependency on another resource
         # self._initialize_verses_html()
 
     @property
@@ -914,9 +919,9 @@ class TWResource(TResource):
     def get_localized_translation_word(translation_word_content: str) -> str:
         """
         Get the localized translation word from the
-        translation_word_content. Sometimes a translation word file has a
-        list of various forms of the word. If that is the case we use the
-        first form of the word in the list.
+        translation_word_content. Sometimes a translation word file has as its
+        first header a list of various forms of the word. If that is the case
+        we use the first form of the word in the list.
         """
 
         localized_translation_word = translation_word_content.split("\n")[0].split(
@@ -974,16 +979,14 @@ class TWResource(TResource):
             # link. That way the links in verses will point to the
             # word.
             #
-            # Translation words are bidirectional. By that I
-            # mean that when you are at a verse there follows,
-            # after translation questions, links to the
-            # translation words that occur in that verse. But then
-            # when you navigate to the word by clicking the link,
-            # at the end of the translation word note there is a
-            # section called 'Uses:' that also has links to the
-            # verses wherein the word occurs. So, we need to
-            # build up a data structure that for every word
-            # collects which verses it occurs in.
+            # Translation words are bidirectional. By that I mean that when you are
+            # at a verse there follows, after translation questions, links to the
+            # translation words that occur in that verse. But then when you navigate
+            # to the word by clicking such a link, at the end of the resulting
+            # translation word note there is a section called 'Uses:' that also has
+            # links back to the verses wherein the word occurs. So, we need to build
+            # up a data structure that for every word collects which verses it
+            # occurs in.
             localized_translation_word = TWResource.get_localized_translation_word(
                 translation_word_content
             )
@@ -991,15 +994,6 @@ class TWResource(TResource):
             # Make adjustments to the HTML here.
             html_word_content = re.sub(r"h2", r"h4", html_word_content)
             html_word_content = re.sub(r"h1", r"h3", html_word_content)
-            # We need to store both the word in English, i.e., the filename
-            # sans extension; the localized word; and the associated HTML content.
-            # Thus we'll use the localized word as key so that we can do lookups
-            # against verse content, but for the value, instead of html_word_content
-            # only, we'll store a data structure that takes html_word_content and
-            # also the English word as fields. The reason is that for non-English
-            # languages the word filenames are still in English and we need to have
-            # them to make the inter-document linking work (for
-            # the filenames), e.g., for 'See also' section references.
             translation_word_base_filename = model.BaseFilename(
                 pathlib.Path(translation_word_file).stem
             )
@@ -1007,6 +1001,16 @@ class TWResource(TResource):
                 translation_word_base_filename
             ] = model.TWNameContentPair(
                 localized_word=localized_translation_word, content=html_word_content
+            # We need to store both the word in English, i.e., the filename sans
+            # extension; the localized word; and the associated HTML content. Thus
+            # we'll use the localized word as key so that we can do lookups against
+            # verse content, but for the value, instead of html_word_content only,
+            # we'll store a data structure that takes html_word_content and also the
+            # English word as fields (the translation word filename sans suffix is
+            # always in English regardless of language). The reason is that for
+            # non-English languages the word filenames are still in English and we
+            # need to have them to make the inter-document linking work (for the
+            # filenames), e.g., for 'See also' section references.
             )
 
         self._language_payload = model.TWLanguagePayload(
@@ -1113,11 +1117,12 @@ class TWResource(TResource):
             # document to gain deeper understanding of the
             # interrelationships of words.
 
-            # Make linking work.
             tw_name_content_pair.content = model.HtmlContent(
                 tw_name_content_pair.content.replace(
                     # FIXME Don't use magic strings, move format
                     # string to config.get_html_format_string
+            # Make linking work: have to add ID to tags for anchor
+            # links to work.
                     config.get_html_format_string("opening_h3").format(
                         tw_name_content_pair.localized_word
                     ),

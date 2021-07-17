@@ -19,8 +19,8 @@ HtmlContent = NewType("HtmlContent", str)
 # 1. If we wish to constrain chapter or verse numbers to their actual
 # range for any given book then we have an abstraction to hang that
 # validation off of. If that turns out to be a requirement, we'll likely
-# change ChapterNum and VersNum to be subclasses of BaseModel from a
-# NewType and add validation. None of the call sites will have to change
+# change ChapterNum and VerseNum from a NewType to be subclasses of BaseModel
+# Type and add validation. None of the call sites will have to change
 # except if we add exception handling for non-sensical chapter or verse
 # numbers being used.
 # 2. If we accept ranges of chapters or verses instead of whole books as a
