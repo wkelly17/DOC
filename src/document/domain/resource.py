@@ -73,7 +73,7 @@ class Resource:
         # Location/lookup related
         self._lang_name: str
         self._resource_type_name: str
-        self._resource_url: Optional[str] = None
+        self._resource_url: Optional[AnyUrl] = None
         self._resource_source: str
         self._resource_jsonpath: Optional[str] = None
 
@@ -168,13 +168,13 @@ class Resource:
         return self._content
 
     @property
-    def resource_url(self) -> Optional[str]:
+    def resource_url(self) -> Optional[AnyUrl]:
         """Provide public interface for other modules."""
         return self._resource_url
 
     # This method exists to make a mypy cast possible.
     @resource_url.setter
-    def resource_url(self, value: str) -> None:
+    def resource_url(self, value: AnyUrl) -> None:
         """Provide public interface for other modules."""
         self._resource_url = value
 
@@ -1413,7 +1413,7 @@ class ResourceProvisioner:
         """
 
         self._resource.resource_url = cast(
-            str, self._resource.resource_url
+            AnyUrl, self._resource.resource_url
         )  # We know, due to how we got here, that
         # self._resource.resource_url attribute is not None. mypy
         # isn't convinced otherwise without the cast.

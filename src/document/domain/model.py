@@ -8,7 +8,7 @@ validation and JSON serialization.
 from enum import Enum
 from typing import Dict, List, NewType, Optional, Union
 
-from pydantic import BaseModel, EmailStr
+from pydantic import AnyUrl, BaseModel, EmailStr
 
 BaseFilename = NewType("BaseFilename", str)
 ImageLookupKey = NewType("ImageLookupKey", str)
@@ -154,7 +154,7 @@ class ResourceLookupDto(BaseModel):
     the resource.
     """
 
-    url: Optional[str]
+    url: Optional[AnyUrl]
     source: str
     jsonpath: Optional[str]
     lang_name: str
