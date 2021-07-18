@@ -1662,7 +1662,7 @@ class Manifest:
                 if not project["sort"]:
                     project["sort"] = bible_books.BOOK_NUMBERS[project["identifier"]]
                 projects.append(project)
-        return sorted(projects, key=lambda k: k["sort"])
+        return sorted(projects, key=lambda project: project["sort"])
 
     # FIXME Not currently used. Might never be used again.
     @icontract.require(
