@@ -67,8 +67,8 @@ class Resource:
         # i.e., we could get bad data from BIEL.
         # NOTE Maybe we should be stricter at the API level about the value of
         # resource code.
-        self._book_title = bible_books.BOOK_NAMES[self._resource_code]
-        self._book_number = bible_books.BOOK_NUMBERS[self._book_id]
+        self._book_title: str = bible_books.BOOK_NAMES[self._resource_code]
+        self._book_number: str = bible_books.BOOK_NUMBERS[self._book_id]
 
         # Location/lookup related
         self._lang_name: str
