@@ -10,10 +10,14 @@ from typing import Dict, List, NewType, Optional, Union
 
 from pydantic import AnyUrl, BaseModel, EmailStr
 
-BaseFilename = NewType("BaseFilename", str)
+# These NewTypes give us more self-documenting code, but of course
+# aren't strictly necessary. They have been deemed helpful enough to
+# warrant their use.
+LocalizedWord = NewType("LocalizedWord", str)
 ImageLookupKey = NewType("ImageLookupKey", str)
 DateString = NewType("DateString", str)
 HtmlContent = NewType("HtmlContent", str)
+MarkdownContent = NewType("MarkdownContent", str)
 # This might look like overkill, but there are two reasons why we have
 # an abstraction for ChapterNum and VerseNum:
 # 1. If we wish to constrain chapter or verse numbers to their actual
@@ -221,8 +225,7 @@ class TWUse(BaseModel):
     book_name: str
     chapter_num: ChapterNum
     verse_num: VerseRef
-    base_filename: BaseFilename
-    localized_word: str
+    localized_word: LocalizedWord
 
 
 class TWNameContentPair(BaseModel):
@@ -231,7 +234,7 @@ class TWNameContentPair(BaseModel):
     HTML content (which was converted from its Markdown).
     """
 
-    localized_word: str
+    localized_word: LocalizedWord
     content: HtmlContent
 
 
@@ -241,8 +244,8 @@ class TWLanguagePayload(BaseModel):
     e.g., abomination, and its TWNameContentPair instance.
     """
 
-    translation_words_dict: Dict[BaseFilename, TWNameContentPair]
-    uses: Dict[BaseFilename, List[TWUse]] = {}
+    name_content_pairs: List[TWNameContentPair] = []
+    uses: Dict[LocalizedWord, List[TWUse]] = {}
 
 
 class TAChapterPayload(BaseModel):

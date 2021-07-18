@@ -311,6 +311,8 @@ def get_html_format_string(lookup_key: str) -> model.HtmlContent:
         "footnotes": "<h3>Footnotes</h3>",
         "opening_h3": "<h3>{}",
         "opening_h3_with_id": '<h3 id="{}-{}">{}',
+        "translation_word_anchor_link": r"[{}](#{}-{})",
+        "translation_note_anchor_link": r"[{}](#{}-{}-tn-ch-{}-v-{})",
     }
     return model.HtmlContent(html_format_strings[lookup_key])
 

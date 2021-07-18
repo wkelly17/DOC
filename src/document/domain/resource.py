@@ -239,8 +239,8 @@ class USFMResource(Resource):
         """See docstring in superclass."""
         self._manifest = Manifest(self)
 
-        usfm_content_files = []
-        txt_content_files = []
+        usfm_content_files: List[str] = []
+        txt_content_files: List[str] = []
 
         # We don't need a manifest file to find resource assets
         # on disk. We just use globbing and then filter
@@ -911,7 +911,9 @@ class TWResource(TResource):
 
     @staticmethod
     @icontract.require(lambda translation_word_content: translation_word_content)
-    def get_localized_translation_word(translation_word_content: str) -> str:
+    def get_localized_translation_word(
+        translation_word_content: model.MarkdownContent,
+    ) -> model.LocalizedWord:
         """
         Get the localized translation word from the
         translation_word_content. Sometimes a translation word file has as its
@@ -934,7 +936,7 @@ class TWResource(TResource):
                     localized_translation_word
                 )
             )
-        return localized_translation_word
+        return model.LocalizedWord(localized_translation_word)
 
     @log_on_start(
         logging.INFO,
@@ -958,7 +960,9 @@ class TWResource(TResource):
             ]
         )
         filepaths = TWResource.get_translation_word_filepaths(tw_resource_dir)
-        translation_words_dict: Dict[model.BaseFilename, model.TWNameContentPair] = {}
+        # FIXME We might want to push this loop up into a method of
+        # its own that in turn calls TWResource.get_translation_word_filepaths
+        name_content_pairs: List[model.TWNameContentPair] = []
         for translation_word_file in filepaths:
             translation_word_content = file_utils.read_file(translation_word_file)
             # Remember that localized word is sometimes capitalized and sometimes
@@ -989,13 +993,6 @@ class TWResource(TResource):
             # Make adjustments to the HTML here.
             html_word_content = re.sub(r"h2", r"h4", html_word_content)
             html_word_content = re.sub(r"h1", r"h3", html_word_content)
-            translation_word_base_filename = model.BaseFilename(
-                pathlib.Path(translation_word_file).stem
-            )
-            translation_words_dict[
-                translation_word_base_filename
-            ] = model.TWNameContentPair(
-                localized_word=localized_translation_word, content=html_word_content
             # We need to store both the word in English, i.e., the filename sans
             # extension; the localized word; and the associated HTML content. Thus
             # we'll use the localized word as key so that we can do lookups against
@@ -1006,10 +1003,18 @@ class TWResource(TResource):
             # non-English languages the word filenames are still in English and we
             # need to have them to make the inter-document linking work (for the
             # filenames), e.g., for 'See also' section references.
+            name_content_pairs.append(
+                model.TWNameContentPair(
+                    localized_word=localized_translation_word, content=html_word_content
+                )
             )
 
         self._language_payload = model.TWLanguagePayload(
-            translation_words_dict=translation_words_dict
+            # Sort the name content pairs by localized translation word
+            name_content_pairs=sorted(
+                name_content_pairs,
+                key=lambda name_content_pair: name_content_pair.localized_word,
+            )
         )
 
     def get_translation_word_links(
@@ -1027,12 +1032,13 @@ class TWResource(TResource):
         # the current scripture verse. If so make a link to point to the word
         # content which occurs later in the document.
         uses: List[model.TWUse] = []
-        key: model.BaseFilename
-        value: model.TWNameContentPair
-        for key, value in self._language_payload.translation_words_dict.items():
+        name_content_pair: model.TWNameContentPair
+        for name_content_pair in self._language_payload.name_content_pairs:
             # This checks that the word occurs as an exact sub-string in
             # the verse.
-            if re.search(r"\b{}\b".format(re.escape(value.localized_word)), verse):
+            if re.search(
+                r"\b{}\b".format(re.escape(name_content_pair.localized_word)), verse
+            ):
                 use = model.TWUse(
                     lang_code=self.lang_code,
                     book_id=self.resource_code,
@@ -1040,16 +1046,17 @@ class TWResource(TResource):
                     book_name=bible_books.BOOK_NAMES[self.resource_code],
                     chapter_num=chapter_num,
                     verse_num=verse_num,
-                    base_filename=key,
-                    localized_word=value.localized_word,
+                    localized_word=name_content_pair.localized_word,
                 )
                 uses.append(use)
                 # Store reference for use in 'Uses:' section that
                 # comes later.
-                if key in self.language_payload.uses:
-                    self.language_payload.uses[key].append(use)
+                if name_content_pair.localized_word in self.language_payload.uses:
+                    self.language_payload.uses[name_content_pair.localized_word].append(
+                        use
+                    )
                 else:
-                    self.language_payload.uses[key] = [use]
+                    self.language_payload.uses[name_content_pair.localized_word] = [use]
 
         if uses:
             # Add header
@@ -1066,10 +1073,10 @@ class TWResource(TResource):
             uses_list_items = [
                 config.get_html_format_string("translation_word_list_item").format(
                     self.lang_code,
-                    use.base_filename,
+                    use.localized_word,
                     use.localized_word,
                 )
-                for use in sorted(uses, key=lambda use: use.base_filename)
+                for use in uses
             ]
             html.append(model.HtmlContent("\n".join(uses_list_items)))
             # End list formatting
@@ -1096,10 +1103,7 @@ class TWResource(TResource):
             )
         )
 
-        for (
-            base_filename,
-            tw_name_content_pair,
-        ) in self._language_payload.translation_words_dict.items():
+        for name_content_pair in self._language_payload.name_content_pairs:
             # NOTE Another approach to including all translation words
             # would be to only include words in the
             # translation section which occur in current lang_code, book. The
@@ -1112,33 +1116,34 @@ class TWResource(TResource):
             # document to gain deeper understanding of the
             # interrelationships of words.
 
-            tw_name_content_pair.content = model.HtmlContent(
-                tw_name_content_pair.content.replace(
-                    # FIXME Don't use magic strings, move format
-                    # string to config.get_html_format_string
             # Make linking work: have to add ID to tags for anchor
             # links to work.
+            name_content_pair.content = model.HtmlContent(
+                name_content_pair.content.replace(
                     config.get_html_format_string("opening_h3").format(
-                        tw_name_content_pair.localized_word
+                        name_content_pair.localized_word
                     ),
                     config.get_html_format_string("opening_h3_with_id").format(
                         self.lang_code,
-                        base_filename,
-                        tw_name_content_pair.localized_word,
+                        name_content_pair.localized_word,
+                        name_content_pair.localized_word,
                     ),
                 )
             )
             uses_section = model.HtmlContent("")
 
             # See comment above.
-            if include_uses_section and base_filename in self.language_payload.uses:
+            if (
+                include_uses_section
+                and name_content_pair.localized_word in self.language_payload.uses
+            ):
                 uses_section = self._get_uses_section(
-                    self.language_payload.uses[base_filename]
+                    self.language_payload.uses[name_content_pair.localized_word]
                 )
-                tw_name_content_pair.content = model.HtmlContent(
-                    tw_name_content_pair.content + uses_section
+                name_content_pair.content = model.HtmlContent(
+                    name_content_pair.content + uses_section
                 )
-            html.append(tw_name_content_pair.content)
+            html.append(name_content_pair.content)
         return html
 
     def _get_uses_section(self, uses: List[model.TWUse]) -> model.HtmlContent:

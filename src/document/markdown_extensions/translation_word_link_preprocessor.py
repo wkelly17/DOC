@@ -95,14 +95,13 @@ class TranslationWordLinkPreprocessor(Preprocessor):
         Entry point.
         """
         source = "\n".join(lines)
-        source = self.transform_translation_word_link(source)
+        source = self.transform_translation_word_links(source)
         # Some language book combos use a different link format. Handle those.
-        source = self.transform_translation_word_alt_link(source)
-        # FIXME Finish Implementing
-        source = self.transform_translation_note_link(source)
+        source = self.transform_translation_word_alt_links(source)
+        source = self.transform_translation_note_links(source)
         return source.split("\n")
 
-    def transform_translation_word_link(self, source: str) -> str:
+    def transform_translation_word_links(self, source: str) -> str:
         """
         Transform the translation word relative file link into a
         source anchor link pointing to a destination anchor link for
@@ -119,34 +118,47 @@ class TranslationWordLinkPreprocessor(Preprocessor):
         for match in re.finditer(TRANSLATION_WORD_LINK_RE, source):
             filename_sans_suffix = match.group(2)
             if filename_sans_suffix in self.translation_words_dict:
-                if self.lang_code != "en":
-                    # Need to localize non-English languages.
-                    file_content = file_utils.read_file(
-                        self.translation_words_dict[filename_sans_suffix]
-                    )
-                    # Get the localized name for the translation word
-                    localized_translation_word = (
-                        TWResource.get_localized_translation_word(file_content)
-                    )
-                    # Build the anchor links
-                    source = source.replace(
-                        match.group(0),  # The whole match
-                        r"[{}](#{}-{})".format(
-                            match.group("link_text"),
-                            self.lang_code,
-                            localized_translation_word,
-                        ),
-                    )
-                else:
+                if self.lang_code == "en":
                     # Build the anchor links.
-                    source = source.replace(
+                    source = self.transform_links_for_english_language(
                         match.group(0),
-                        r"[{}](#{}-{})".format(
-                            match.group("link_text"),
-                            self.lang_code,
-                            match.group("word"),
-                        ),
+                        match.group("link_text"),
+                        match.group("word"),
+                        source,
                     )
+                    # source = source.replace(
+                    #     match.group(0),
+                    #     config.get_html_format_string(
+                    #         "translation_word_anchor_link"
+                    #     ).format(
+                    #         match.group("link_text"),
+                    #         self.lang_code,
+                    #         match.group("word"),
+                    #     ),
+                    # )
+                else:
+                    source = self.transform_links_for_non_english_languages(
+                        match, source
+                    )
+                    # # Localize non-English languages.
+                    # file_content = file_utils.read_file(
+                    #     self.translation_words_dict[filename_sans_suffix]
+                    # )
+                    # # Get the localized name for the translation word
+                    # localized_translation_word = (
+                    #     TWResource.get_localized_translation_word(file_content)
+                    # )
+                    # # Build the anchor links
+                    # source = source.replace(
+                    #     match.group(0),  # The whole match
+                    #     config.get_html_format_string(
+                    #         "translation_word_anchor_link"
+                    #     ).format(
+                    #         match.group("link_text"),
+                    #         self.lang_code,
+                    #         localized_translation_word,
+                    #     ),
+                    # )
             else:
                 logger.info(
                     "match.group('word'): {} is not in translation words dict".format(
@@ -156,7 +168,7 @@ class TranslationWordLinkPreprocessor(Preprocessor):
 
         return source
 
-    def transform_translation_word_alt_link(self, source: str) -> str:
+    def transform_translation_word_alt_links(self, source: str) -> str:
         """
         Transform the translation word rc link into source anchor link
         pointing to a destination anchor link for the translation word
@@ -168,7 +180,6 @@ class TranslationWordLinkPreprocessor(Preprocessor):
         """
         # Avoid circular reference by importing here instead of the
         # top of the file.
-        from document.domain.resource import TWResource
 
         for match in re.finditer(TRANSLATION_WORD_LINK_ALT_RE, source):
             logger.info("there are matches using TRANSLATION_WORD_LINK_ALT_RE")
@@ -176,36 +187,13 @@ class TranslationWordLinkPreprocessor(Preprocessor):
             logger.debug("filename_sans_suffix: {}".format(filename_sans_suffix))
             if filename_sans_suffix in self.translation_words_dict:
                 logger.info("filename_sans_suffix is in self.translation_words_dict")
-                if self.lang_code != "en":
-                    logger.debug(
-                        "About to read file: {}".format(
-                            self.translation_words_dict[filename_sans_suffix]
-                        )
-                    )
-                    # Need to localize non-English languages.
-                    file_content = file_utils.read_file(
-                        self.translation_words_dict[filename_sans_suffix]
-                    )
-                    # Get the localized name for the translation word
-                    localized_translation_word = (
-                        TWResource.get_localized_translation_word(file_content)
-                    )
-                    # Build the anchor links
-                    source = source.replace(
-                        match.group(0),  # The whole match
-                        r"[{}](#{}-{})".format(
-                            localized_translation_word,
-                            self.lang_code,
-                            match.group("word"),
-                        ),
+                if self.lang_code == "en":
+                    source = self.transform_links_for_english_language(
+                        match.group(0), match.group("word"), match.group("word"), source
                     )
                 else:
-                    # Build the anchor links.
-                    source = source.replace(
-                        match.group(0),
-                        r"[{}](#{}-{})".format(
-                            match.group("word"), self.lang_code, match.group("word")
-                        ),
+                    source = self.transform_links_for_non_english_languages(
+                        match, source
                     )
             else:
                 logger.info(
@@ -214,7 +202,76 @@ class TranslationWordLinkPreprocessor(Preprocessor):
 
         return source
 
-    def transform_translation_note_link(self, source: str) -> str:
+    def transform_links_for_non_english_languages(
+        self, match: re.Match, source: str
+    ) -> str:
+        """
+        Convert Markdown relative links to anchor style links for
+        non-English languages.
+        """
+        from document.domain.resource import TWResource
+
+        filename_sans_suffix = match.group(1)
+        logger.debug(
+            "About to read file: {}".format(
+                self.translation_words_dict[filename_sans_suffix]
+            )
+        )
+        # Need to localize non-English languages.
+        file_content = file_utils.read_file(
+            self.translation_words_dict[filename_sans_suffix]
+        )
+        # Get the localized name for the translation word
+        localized_translation_word = TWResource.get_localized_translation_word(
+            file_content
+        )
+        # Build the anchor links
+        return self._transform_links_for_non_english_languages(
+            match.group(0), localized_translation_word, match.group("word"), source
+        )
+        # return source.replace(
+        #     match.group(0),  # The whole match
+        #     config.get_html_format_string("translation_word_anchor_link").format(
+        #         localized_translation_word,
+        #         self.lang_code,
+        #         match.group("word"),
+        #     ),
+        # )
+
+    def _transform_links_for_non_english_languages(
+        self, match_text: str, link_text: str, anchor_word: str, source: str
+    ) -> str:
+        """
+        Find and replace each Markdown link matching match_text with a
+        Markdown anchor link having link text equal to link_text and
+        its anchor link word component equal to anchor_word.
+        """
+        return source.replace(
+            match_text,  # The whole match
+            config.get_html_format_string("translation_word_anchor_link").format(
+                localized_translation_word,
+                self.lang_code,
+                match.group("word"),
+            ),
+        )
+
+    def transform_links_for_english_language(
+        self, match_text: str, link_text: str, anchor_word: str, source: str
+    ) -> str:
+        """
+        Convert Markdown relative links to anchor style links for the
+        English language.
+        """
+        # Build the anchor links.
+        return source.replace(
+            match_text,
+            config.get_html_format_string("translation_word_anchor_link").format(
+                link_text, self.lang_code, anchor_word
+            ),
+        )
+
+    # FIXME Finish Implementing for obs and more robustness
+    def transform_translation_note_links(self, source: str) -> str:
         """
         Transform the translation note rc link into a link pointing to
         the anchor link for the translation note for chapter verse
@@ -260,7 +317,9 @@ class TranslationWordLinkPreprocessor(Preprocessor):
                 # if internal link then:
                 source = source.replace(
                     match.group(0),
-                    r"[{}](#{}-{}-tn-ch-{}-v-{})".format(
+                    config.get_html_format_string(
+                        "translation_word_anchor_link"
+                    ).format(
                         match.group("link_text"),
                         self.lang_code,
                         # FIXME Make sure book_id is not 'obs' or update
