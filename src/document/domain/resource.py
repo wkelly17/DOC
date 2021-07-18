@@ -18,10 +18,10 @@ import bs4
 import icontract
 import markdown
 from logdecorator import log_on_end, log_on_start
+from pydantic import AnyUrl, DirectoryPath
 from usfm_tools.transform import UsfmTransform
 
 from document import config
-
 from document.domain import bible_books, model, resource_lookup
 from document.markdown_extensions import (
     remove_section_preprocessor,
@@ -41,12 +41,12 @@ class Resource:
 
     def __init__(
         self,
-        working_dir: str,
-        output_dir: str,
+        working_dir: DirectoryPath,
+        output_dir: DirectoryPath,
         resource_request: model.ResourceRequest,
     ) -> None:
-        self._working_dir: str = working_dir
-        self._output_dir: str = output_dir
+        self._working_dir: DirectoryPath = working_dir
+        self._output_dir: DirectoryPath = output_dir
         self._resource_request: model.ResourceRequest = resource_request
 
         self._lang_code: str = resource_request.lang_code
