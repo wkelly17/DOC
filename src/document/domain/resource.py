@@ -292,7 +292,7 @@ class USFMResource(Resource):
 
         logger.debug("self._content_files: {}".format(self._content_files))
 
-        if self._content_files is not None:
+        if self._content_files:
             # FIXME See if other git repos provide the \id USFM element that the parser expects.
             # FIXME Some languages, like ndh-x-chindali, provide their USFM files in
             # a git repo rather than as standalone USFM files. A USFM git repo can
