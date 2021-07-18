@@ -896,6 +896,9 @@ class TWResource(TResource):
         """See docstring in superclass."""
         self._manifest = Manifest(self)
 
+    # NOTE This method is static because the call site where the filepaths
+    # are needed is not always a location where we have a TWResource
+    # instance.
     @staticmethod
     def get_translation_word_filepaths(resource_dir: str) -> FrozenSet[str]:
         """
