@@ -6,34 +6,29 @@ There are different classes for each resource type.
 from __future__ import annotations  # https://www.python.org/dev/peps/pep-0563/
 
 import abc
-import bs4
-import icontract
 import logging  # For logdecorator
-import markdown
 import os
 import pathlib
 import re
 import subprocess
-import time
 from glob import glob
-from logdecorator import log_on_start, log_on_end
-from typing import Any, cast, Dict, FrozenSet, List, Optional, Tuple
+from typing import Any, Dict, FrozenSet, List, Optional, Tuple, cast
 
+import bs4
+import icontract
+import markdown
+from logdecorator import log_on_end, log_on_start
 from usfm_tools.transform import UsfmTransform
 
 from document import config
 
+from document.domain import bible_books, model, resource_lookup
 from document.markdown_extensions import (
-    wikilink_preprocessor,
     remove_section_preprocessor,
     translation_word_link_preprocessor,
+    wikilink_preprocessor,
 )
-from document.domain import bible_books, model, resource_lookup
-from document.utils import (
-    file_utils,
-    html_parsing_utils,
-    url_utils,
-)
+from document.utils import file_utils, html_parsing_utils, url_utils
 
 logger = config.get_logger(__name__)
 
