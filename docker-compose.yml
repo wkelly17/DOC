@@ -12,6 +12,12 @@ services:
         # This comes from .env
         WKHTMLTOX_LOC: ${WKHTMLTOX_LOC}
     volumes:
+      # FIXME Test if all is well without the next two mapped volumes
+      # src and test. I don't think they are needed anymore.
+      # Regardless, the Docker structure will undergoe a radical
+      # change in a future update.
+      - ./src:/src
+      - ./tests:/tests
       - ./docker_pdf_output:/output
     entrypoint:
       # Configure the server for fastapi, i.e., uvicorn

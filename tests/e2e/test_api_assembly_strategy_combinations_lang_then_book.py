@@ -1,13 +1,13 @@
-import bs4
 import os
 import pathlib
-import pytest
 import re
-import requests
-from fastapi.testclient import TestClient
 
+import bs4
+import pytest
+import requests
 from document import config
 from document.entrypoints.app import app
+from fastapi.testclient import TestClient
 
 
 def test_en_ulb_wa_tit_en_tn_wa_tit_language_book_order() -> None:

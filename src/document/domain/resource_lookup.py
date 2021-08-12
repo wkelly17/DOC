@@ -219,7 +219,7 @@ class SourceDataFetcher:
             )
         )
 
-        logger.info("JSON file is {}".format(self._json_file))
+        # logger.info("JSON file is {}".format(self._json_file))
 
         self._json_data: List = []
 

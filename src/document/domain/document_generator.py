@@ -29,7 +29,7 @@ from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from logdecorator import log_on_start, log_on_end
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import Callable, cast, Dict, List, Optional, Tuple, Union
 
 
 from document import config
@@ -72,6 +72,7 @@ class DocumentGenerator:
     # )
     @log_on_start(logging.DEBUG, "document_request: {document_request}", logger=logger)
     @log_on_start(logging.DEBUG, "working_dir: {working_dir}", logger=logger)
+    @log_on_start(logging.DEBUG, "output_dir: {output_dir}", logger=logger)
     @log_on_end(
         logging.DEBUG,
         "self._document_request_key: {self._document_request_key}",
@@ -119,11 +120,6 @@ class DocumentGenerator:
         self._found_resources: List[Resource] = []
         self._unloaded_resources: List[Resource] = []
 
-        if not self._output_dir:
-            self._output_dir = self._working_dir
-
-        self._resources: List[Resource] = self._initialize_resources(document_request)
-
         # Uniquely identifies a document request. A resource request
         # is identified by lang_code, resource_type, and
         # resource_code. This can serve as a cache lookup key also so
@@ -131,10 +127,13 @@ class DocumentGenerator:
         # self._document_request_key can skip processing and simply
         # return the end result document if it still exists and has a
         # modified time of within some arbitrary time window, say, 24
-        # hours.
+        # hours. Needs to be called before _initialize_resources
+        # because the return value is used there.
         self._document_request_key = self._initialize_document_request_key(
             document_request
         )
+        self._resources: List[Resource] = self._initialize_resources(document_request)
+
         self._output_filename = os.path.join(
             self._output_dir, "{}.pdf".format(self._document_request_key)
         )
@@ -352,11 +351,11 @@ class DocumentGenerator:
         )
         logger.debug("unloaded resources: {}".format(unloaded))
         html_file_path = "{}.html".format(
-            os.path.join(self._working_dir, self._document_request_key)
+            os.path.join(self._output_dir, self._document_request_key)
         )
         assert os.path.exists(html_file_path)
         output_pdf_file_path = "{}.pdf".format(
-            os.path.join(self._working_dir, self._document_request_key)
+            os.path.join(self._output_dir, self._document_request_key)
         )
         # For options see https://wkhtmltopdf.org/usage/wkhtmltopdf.txt
         options = {
@@ -475,7 +474,7 @@ class DocumentGenerator:
         self, document_request: model.DocumentRequest
     ) -> List[Resource]:
         """
-        Given a DocumentRequest, return a list of a Resource
+        Given a DocumentRequest, return a list of Resource
         instances, one for each ResourceRequest in the
         DocumentRequest.
         """
@@ -486,6 +485,7 @@ class DocumentGenerator:
                     self._working_dir,
                     self._output_dir,
                     resource_request,
+                    document_request.resource_requests,
                 )
             )
         return resources
@@ -517,7 +517,7 @@ class DocumentGenerator:
         found.
         """
         finished_document_path = "{}.html".format(
-            os.path.join(self._working_dir, self._document_request_key)
+            os.path.join(self._output_dir, self._document_request_key)
         )
         return finished_document_path
 
@@ -528,19 +528,9 @@ class DocumentGenerator:
         found.
         """
         finished_document_path = "{}.pdf".format(
-            os.path.join(self._working_dir, self._document_request_key)
+            os.path.join(self._output_dir, self._document_request_key)
         )
         return finished_document_path
-
-    @icontract.require(lambda self: self._document_request_key)
-    def get_finished_document_request_key(self) -> str:
-        """
-        Return the finished PDF document request key.
-        """
-        finished_document_path = "{}.pdf".format(
-            os.path.join(self._working_dir, self._document_request_key)
-        )
-        return self.document_request_key
 
     def _generate_pdf(self) -> None:
         """

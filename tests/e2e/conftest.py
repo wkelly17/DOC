@@ -32,7 +32,7 @@ def english_lang_code() -> str:
 
 
 @pytest.fixture(params=PASSING_NON_ENGLISH_LANG_CODES)
-# type of request is actually _pytest.fixtures.FixtureRequest
+# Type of request parameter is actually _pytest.fixtures.FixtureRequest
 def non_english_lang_code(request: Any) -> str:
     """
     Get all non-English language codes, but one per request.

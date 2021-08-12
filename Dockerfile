@@ -4,10 +4,12 @@ FROM python:3.9.5-slim-buster
 RUN apt-get update && apt-get install -y \
     wget \
     curl \
-    # fonts-noto \ # Was used by old LaTeX system
+    # FIXME fonts-noto was used by old LaTeX system
+    # fonts-noto \
     fontconfig \
     git \
-    lmodern \ # Not sure this is needed anymore
+    # FIXME Not sure lmodern is needed anymore
+    lmodern \
     unzip \
     # Next packages are for wkhtmltopdf
     libxrender1 \
@@ -26,20 +28,26 @@ RUN WKHTMLTOX_TEMP="$(mktemp)" && \
     dpkg -i "$WKHTMLTOX_TEMP" && \
     rm -f "$WKHTMLTOX_TEMP"
 
-# Temporary workaround for broken translations.json upstream
+# Temporary workaround for broken translations.json upstream. This
+# also has the side effect of creating the /working/temp directory in
+# the container.
 COPY working/temp/translations.json /working/temp/
+# Make the output directory where generated HTML and PDFs are placed.
+RUN mkdir -p /working/output
 
 COPY icon-tn.png .
 COPY requirements.txt .
 COPY requirements-dev.txt .
-COPY setup.cfg .
-COPY pyproject.toml .
 
 RUN pip install -r requirements.txt
 RUN pip install -r requirements-dev.txt
 
 COPY ./src/ /src/
+RUN pip install -e /src
 COPY ./tests /tests
+
+# Temporary workaround for broken translations.json upstream.
+RUN touch /working/temp/translations.json
 
 # Note: for development, first install your app,
 # pip install -e .

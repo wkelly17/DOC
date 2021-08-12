@@ -97,9 +97,9 @@ def get_output_dir() -> str:
     """The directory where the generated documents are placed."""
     dirname = ""
     if is_in_container():
-        dirname = os.environ.get("DOCUMENT_OUTPUT_DIR", "/working/temp")
+        dirname = os.environ.get("DOCUMENT_OUTPUT_DIR", "/working/output")
     else:
-        dirname = os.environ.get("DOCUMENT_OUTPUT_DIR", "working/temp")
+        dirname = os.environ.get("DOCUMENT_OUTPUT_DIR", "working/output")
     return dirname
 
 
@@ -312,6 +312,7 @@ def get_html_format_string(lookup_key: str) -> model.HtmlContent:
         "opening_h3": "<h3>{}",
         "opening_h3_with_id": '<h3 id="{}-{}">{}',
         "translation_word_anchor_link": r"[{}](#{}-{})",
+        "translation_word_prefix_anchor_link": r"({}: [{}](#{}-{}))",
         "translation_note_anchor_link": r"[{}](#{}-{}-tn-ch-{}-v-{})",
     }
     return model.HtmlContent(html_format_strings[lookup_key])
@@ -355,7 +356,7 @@ def get_markdown_sections_to_remove() -> List[str]:
     Return a list of the Markdown section titles that our
     Python-Markdown remove_section_processor extension should remove.
     """
-    return ["Bible References", "Examples from the Bible stories", "Links"]
+    return ["Examples from the Bible stories", "Links"]
 
 
 def get_from_email_address() -> str:

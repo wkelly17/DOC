@@ -42,11 +42,9 @@ def document_endpoint(
     )
     document_generator.run()
 
-    finished_document_request_key = (
-        document_generator.get_finished_document_request_key()
-    )
+    finished_document_request_key = document_generator.document_request_key
     finished_document_path = os.path.join(
-        config.get_working_dir(), "{}.pdf".format(finished_document_request_key)
+        config.get_output_dir(), "{}.pdf".format(finished_document_request_key)
     )
     assert os.path.exists(finished_document_path)
     details = model.FinishedDocumentDetails(
@@ -64,7 +62,7 @@ async def serve_pdf_document(
     """
     Serve the requested PDF document.
     """
-    path = "{}.pdf".format(os.path.join(config.get_working_dir(), document_request_key))
+    path = "{}.pdf".format(os.path.join(config.get_output_dir(), document_request_key))
     return FileResponse(
         path=path,
         filename=pathlib.Path(path).name,

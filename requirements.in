@@ -1,5 +1,5 @@
 # For production:
-# git+https://github.com/linearcombination/tools@email#egg=document
+# git+https://github.com/linearcombination/tools@develop#egg=document
 Markdown
 PyYAML
 aiofiles
@@ -17,4 +17,5 @@ pdfkit
 pydantic[email]
 pyparsing
 requests
+termcolor
 uvicorn

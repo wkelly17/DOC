@@ -12,7 +12,7 @@ import pathlib
 import re
 import subprocess
 from glob import glob
-from typing import Any, Dict, FrozenSet, List, Optional, Tuple, cast
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 import bs4
 import icontract
@@ -25,10 +25,9 @@ from document import config
 from document.domain import bible_books, model, resource_lookup
 from document.markdown_extensions import (
     remove_section_preprocessor,
-    translation_word_link_preprocessor,
-    wikilink_preprocessor,
+    link_transformer_preprocessor,
 )
-from document.utils import file_utils, html_parsing_utils, url_utils
+from document.utils import file_utils, html_parsing_utils, tw_utils, url_utils
 
 logger = config.get_logger(__name__)
 
@@ -41,19 +40,38 @@ class Resource:
 
     def __init__(
         self,
+        # This is where resource asset files get downloaded to and
+        # where generated PDFs are placed.
         working_dir: DirectoryPath,
         output_dir: DirectoryPath,
+        # The resource request that this resource reifies.
         resource_request: model.ResourceRequest,
+        # The resource requests from the document request. This is
+        # not used by Resource instances directly, but is passed
+        # to the LinkTransformerExtension.
+        resource_requests: List[model.ResourceRequest],
     ) -> None:
         self._working_dir: DirectoryPath = working_dir
         self._output_dir: DirectoryPath = output_dir
-        self._resource_request: model.ResourceRequest = resource_request
-
+        # DESIGN-ISSUE Avail the resource of the ResourceRequest instances from
+        # the DocumentRequest so that it can in turn hand thenm to the
+        # LinkTransformerExtension which in turn will use it to determine if
+        # link references in markdown content point at a resource that was
+        # actually requested, i.e., part of the DocumentRequest or not, and can
+        # thus be linked. Design-wise, this is an unfortunate linking together
+        # of of DocumentRequest, Resource, and LinkTransformerExtension that I
+        # tried valiantly to avoid in design until this point.
+        self._resource_requests = resource_requests
+        # E.g., en, gu, fr
         self._lang_code: str = resource_request.lang_code
+        # E.g., tn, tw, tq, tn-wa
         self._resource_type: str = resource_request.resource_type
+        # E.g., col, 1co, gen
         self._resource_code: str = resource_request.resource_code
 
-        self._resource_dir: str = os.path.join(
+        # Directory may not exist yet. If not, this is dealt with later in an
+        # appropriate place.
+        self._resource_dir = os.path.join(
             self._working_dir, "{}_{}".format(self._lang_code, self._resource_type)
         )
 
@@ -62,13 +80,12 @@ class Resource:
         )
 
         # Book attributes
-        self._book_id: str = self._resource_code
         # FIXME Could get KeyError with request for non-existent book,
         # i.e., we could get bad data from BIEL.
         # NOTE Maybe we should be stricter at the API level about the value of
         # resource code.
         self._book_title: str = bible_books.BOOK_NAMES[self._resource_code]
-        self._book_number: str = bible_books.BOOK_NUMBERS[self._book_id]
+        self._book_number: str = bible_books.BOOK_NUMBERS[self._resource_code]
 
         # Location/lookup related
         self._lang_name: str
@@ -177,6 +194,11 @@ class Resource:
     def resource_url(self, value: AnyUrl) -> None:
         """Provide public interface for other modules."""
         self._resource_url = value
+
+    @property
+    def resource_requests(self) -> List[model.ResourceRequest]:
+        """Provide public interface for other modules."""
+        return self._resource_requests
 
     @property
     def resource_dir(self) -> str:
@@ -531,23 +553,43 @@ class TResource(Resource):
         self._resource_source = resource_lookup_dto.source
         self._resource_jsonpath = resource_lookup_dto.jsonpath
 
-    @icontract.require(lambda self: self._content)
-    def _convert_md2html(self) -> None:
-        """Convert a resource's Markdown to HTML."""
-        self._content = markdown.markdown(self._content)
-
-    # @log_on_start(logging.INFO, "Converting MD to HTML...", logger=logger)
-    # def _transform_content(self) -> None:
-    #     """
-    #     If self._content is not empty, go ahead and transform rc
-    #     resource links and transform content from Markdown to HTML.
-    #     """
-    #     if self._content:
-    #         self._content = link_utils.replace_rc_links(
-    #             self._my_rcs, self._resource_data, self._content
-    #         )
-    #         self._content = link_utils.transform_rc_links(self._content)
-    #         self._convert_md2html()
+    @icontract.require(
+        lambda lang_code, resource_requests: lang_code and resource_requests
+    )
+    @icontract.ensure(lambda result: result)
+    def _get_markdown_instance(
+        self,
+        lang_code: str,
+        resource_requests: List[model.ResourceRequest],
+        tw_resource_dir: Optional[str] = None,
+    ) -> markdown.Markdown:
+        """
+        Initialize and return a markdown.Markdown instance that can be
+        used to convert Markdown content to HTML content. This mainly
+        exists to implement the Law of Demeter and to clean up the
+        code of TResource subclasses by DRYing things up.
+        """
+        if not tw_resource_dir:
+            tw_resource_dir = tw_utils.get_tw_resource_dir(lang_code)
+        translation_words_dict: Dict[str, str] = tw_utils.get_translation_words_dict(
+            tw_resource_dir
+        )
+        return markdown.Markdown(
+            extensions=[
+                remove_section_preprocessor.RemoveSectionExtension(),
+                link_transformer_preprocessor.LinkTransformerExtension(
+                    lang_code=[self.lang_code, "Language code for resource"],
+                    resource_requests=[
+                        self.resource_requests,
+                        "The list of resource requests contained in the document request.",
+                    ],
+                    translation_words_dict=[
+                        translation_words_dict,
+                        "Dictionary mapping translation word asset file name sans suffix to translation word asset file path.",
+                    ],
+                ),
+            ]
+        )
 
 
 class TNResource(TResource):
@@ -571,10 +613,7 @@ class TNResource(TResource):
         into HTML content.
         """
         self._initialize_from_assets()
-
-        # This is called later in assembly strategies because it has a
-        # dependency on another resource
-        # self._initialize_verses_html()
+        self._initialize_verses_html()
 
     @property
     def book_payload(self) -> model.TNBookPayload:
@@ -593,26 +632,15 @@ class TNResource(TResource):
         "About to convert TN Markdown to HTML with Markdown extension",
         logger=logger,
     )
-    def initialize_verses_html(self, tw_resource_dir: Optional[str]) -> None:
+    def _initialize_verses_html(self) -> None:
         """
         Find book intro, chapter intros, and then the translation
         notes for the verses themselves.
         """
-        # WIP. Create the Markdown instance once and have it use our markdown
-        # extensions. The first extension changes (See [[rc:foo]]) style links
-        # into [](rc:foo) style links. This is an experiment to supplant legacy
-        # code that makes Markdown transformations on raw Markdown content.
-        md = markdown.Markdown(
-            extensions=[
-                wikilink_preprocessor.WikiLinkExtension(),
-                remove_section_preprocessor.RemoveSectionExtension(),
-                translation_word_link_preprocessor.TranslationWordLinkExtension(
-                    lang_code={self.lang_code: "Language code for resource"},
-                    tw_resource_dir={
-                        tw_resource_dir: "Base directory for paths to translation word markdown files"
-                    },
-                ),
-            ]
+        # Initialize the Python-Markdown extensions that get invoked
+        # when md.convert is called.
+        md: markdown.Markdown = self._get_markdown_instance(
+            self.lang_code, self.resource_requests
         )
         # FIXME We can likely now remove the first '**' if we want. It
         # works as is though, it is just a minor optimization, but I'd
@@ -634,12 +662,13 @@ class TNResource(TResource):
             # For some languages, TN assets are stored in .txt files
             # rather of .md files.
             if not intro_paths:
-                glob("{}/*intro.txt".format(chapter_dir))
+                intro_paths = glob("{}/*intro.txt".format(chapter_dir))
             intro_path = intro_paths[0] if intro_paths else None
+            intro_md = ""
             intro_html = ""
             if intro_path:
-                intro_html = file_utils.read_file(intro_path)
-                intro_html = md.convert(intro_html)
+                intro_md = file_utils.read_file(intro_path)
+                intro_html = md.convert(intro_md)
             verse_paths = sorted(glob("{}/*[0-9]*.md".format(chapter_dir)))
             # For some languages, TN assets are stored in .txt files
             # rather of .md files.
@@ -703,7 +732,7 @@ class TNResource(TResource):
                     "tn_resource_type_name_with_id_and_ref"
                 ).format(
                     self.lang_code,
-                    self._book_id,
+                    bible_books.BOOK_NUMBERS[self._resource_code].zfill(3),
                     str(chapter_num).zfill(3),
                     verse_num.zfill(3),
                     self.resource_type_name,
@@ -739,10 +768,7 @@ class TQResource(TResource):
         """
 
         self._initialize_from_assets()
-
-        # This is called later in assembly strategies because it has a
-        # dependency on another resource
-        # self._initialize_verses_html()
+        self._initialize_verses_html()
 
     @property
     def book_payload(self) -> model.TQBookPayload:
@@ -761,23 +787,14 @@ class TQResource(TResource):
         "About to convert TQ Markdown to HTML with Markdown extension",
         logger=logger,
     )
-    def initialize_verses_html(self, tw_resource_dir: Optional[str]) -> None:
+    def _initialize_verses_html(self) -> None:
         """
         Find translation questions for the verses.
         """
         # Create the Markdown instance once and have it use our markdown
         # extensions.
-        md = markdown.Markdown(
-            extensions=[
-                wikilink_preprocessor.WikiLinkExtension(),
-                remove_section_preprocessor.RemoveSectionExtension(),
-                translation_word_link_preprocessor.TranslationWordLinkExtension(
-                    lang_code={self.lang_code: "Language code for resource"},
-                    tw_resource_dir={
-                        tw_resource_dir: "Paths to translation words markdown files"
-                    },
-                ),
-            ]
+        md: markdown.Markdown = self._get_markdown_instance(
+            self.lang_code, self.resource_requests
         )
         # FIXME We can likely now remove the first '**' for a tiny
         # speedup, but I'd need to test thorougly first.
@@ -883,6 +900,7 @@ class TWResource(TResource):
         """
 
         self._initialize_from_assets()
+        self._initialize_verses_html()
 
     @property
     def language_payload(self) -> model.TWLanguagePayload:
@@ -896,116 +914,42 @@ class TWResource(TResource):
         """See docstring in superclass."""
         self._manifest = Manifest(self)
 
-    # NOTE This method is static because the call site where the filepaths
-    # are needed is not always a location where we have a TWResource
-    # instance.
-    @staticmethod
-    def get_translation_word_filepaths(resource_dir: str) -> FrozenSet[str]:
-        """
-        Get the file paths to the translation word files for the
-        TWResource instance.
-        """
-        filepaths = glob("{}/bible/kt/*.md".format(resource_dir))
-        filepaths.extend(glob("{}/bible/names/*.md".format(resource_dir)))
-        filepaths.extend(glob("{}/bible/other/*.md".format(resource_dir)))
-        # Parameter to Markdown extension must be hashable. FrozenSet
-        # is hashable.
-        return frozenset(filepaths)
-
-    @staticmethod
-    @icontract.require(lambda translation_word_content: translation_word_content)
-    def get_localized_translation_word(
-        translation_word_content: model.MarkdownContent,
-    ) -> model.LocalizedWord:
-        """
-        Get the localized translation word from the
-        translation_word_content. Sometimes a translation word file has as its
-        first header a list of various forms of the word. If that is the case
-        we use the first form of the word in the list.
-        """
-
-        localized_translation_word = translation_word_content.split("\n")[0].split(
-            "# "
-        )[1]
-        logger.debug(
-            "localized_translation_word: {}".format(localized_translation_word)
-        )
-        if "," in localized_translation_word:
-            # The localized word is actually multiple forms of the word separated by
-            # commas, use the first form of the word.
-            localized_translation_word = localized_translation_word.split(",")[0]
-            logger.debug(
-                "Updated localized_translation_word: {}".format(
-                    localized_translation_word
-                )
-            )
-        return model.LocalizedWord(localized_translation_word)
-
     @log_on_start(
         logging.INFO,
         "About to convert TW Markdown to HTML with Markdown extension",
         logger=logger,
     )
-    def initialize_verses_html(self, tw_resource_dir: str) -> None:
+    def _initialize_verses_html(self) -> None:
         """Find translation words for the verses."""
         # Create the Markdown instance once and have it use our markdown
         # extensions.
-        md = markdown.Markdown(
-            extensions=[
-                wikilink_preprocessor.WikiLinkExtension(),
-                remove_section_preprocessor.RemoveSectionExtension(),
-                translation_word_link_preprocessor.TranslationWordLinkExtension(
-                    lang_code={self.lang_code: "Language code for resource."},
-                    tw_resource_dir={
-                        tw_resource_dir: "Base directory for Translation word markdown file paths ."
-                    },
-                ),
-            ]
+        md: markdown.Markdown = self._get_markdown_instance(
+            self.lang_code, self.resource_requests, self.resource_dir
         )
-        filepaths = TWResource.get_translation_word_filepaths(tw_resource_dir)
-        # FIXME We might want to push this loop up into a method of
-        # its own that in turn calls TWResource.get_translation_word_filepaths
+        # FIXME tw_utils.get_translation_word_filepaths is already called in
+        # self._get_markdown_instance implicitly. Could we rearrange the API so
+        # that this doesn't have to be called again here as a special
+        # case for TWResource? It isn't a big deal, but let's revisit
+        # this as a low priority item.
+        translation_word_filepaths = tw_utils.get_translation_word_filepaths(
+            self.resource_dir
+        )
         name_content_pairs: List[model.TWNameContentPair] = []
-        for translation_word_file in filepaths:
-            translation_word_content = file_utils.read_file(translation_word_file)
-            # Remember that localized word is sometimes capitalized and sometimes
-            # not. So later when we search for the localized word
-            # in translation_word_dict.keys
-            # compared to the verse we'll need to account for that.
-            # For each translation word we encounter in a verse
-            # we'll collect a link into a collection which we'll
-            # display in a translation words section after the
-            # translation questions section for that verse. Later
-            # after all verses we'll display all the translation
-            # words and each will be prepended with its anchor
-            # link. That way the links in verses will point to the
-            # word.
-            #
+        for translation_word_filepath in translation_word_filepaths:
+            translation_word_content = file_utils.read_file(translation_word_filepath)
             # Translation words are bidirectional. By that I mean that when you are
             # at a verse there follows, after translation questions, links to the
             # translation words that occur in that verse. But then when you navigate
             # to the word by clicking such a link, at the end of the resulting
             # translation word note there is a section called 'Uses:' that also has
-            # links back to the verses wherein the word occurs. So, we need to build
-            # up a data structure that for every word collects which verses it
-            # occurs in.
-            localized_translation_word = TWResource.get_localized_translation_word(
+            # links back to the verses wherein the word occurs.
+            localized_translation_word = tw_utils.get_localized_translation_word(
                 translation_word_content
             )
             html_word_content = md.convert(translation_word_content)
             # Make adjustments to the HTML here.
             html_word_content = re.sub(r"h2", r"h4", html_word_content)
             html_word_content = re.sub(r"h1", r"h3", html_word_content)
-            # We need to store both the word in English, i.e., the filename sans
-            # extension; the localized word; and the associated HTML content. Thus
-            # we'll use the localized word as key so that we can do lookups against
-            # verse content, but for the value, instead of html_word_content only,
-            # we'll store a data structure that takes html_word_content and also the
-            # English word as fields (the translation word filename sans suffix is
-            # always in English regardless of language). The reason is that for
-            # non-English languages the word filenames are still in English and we
-            # need to have them to make the inter-document linking work (for the
-            # filenames), e.g., for 'See also' section references.
             name_content_pairs.append(
                 model.TWNameContentPair(
                     localized_word=localized_translation_word, content=html_word_content
@@ -1027,13 +971,10 @@ class TWResource(TResource):
         verse: model.HtmlContent,
     ) -> List[model.HtmlContent]:
         """
-        Add the translation links section which provides links from words
+        Add the translation word links section which provides links from words
         used in the current verse to their definition.
         """
         html: List[model.HtmlContent] = []
-        # Check if any of the kt_dict, names_dict, or other_dict keys appear in
-        # the current scripture verse. If so make a link to point to the word
-        # content which occurs later in the document.
         uses: List[model.TWUse] = []
         name_content_pair: model.TWNameContentPair
         for name_content_pair in self._language_payload.name_content_pairs:
@@ -1045,7 +986,6 @@ class TWResource(TResource):
                 use = model.TWUse(
                     lang_code=self.lang_code,
                     book_id=self.resource_code,
-                    # FIXME In a perfect world, we'd use a localized book name.
                     book_name=bible_books.BOOK_NAMES[self.resource_code],
                     chapter_num=chapter_num,
                     verse_num=verse_num,
@@ -1079,7 +1019,7 @@ class TWResource(TResource):
                     use.localized_word,
                     use.localized_word,
                 )
-                for use in uses
+                for use in list(tw_utils.uniq(uses))  # Get the unique uses
             ]
             html.append(model.HtmlContent("\n".join(uses_list_items)))
             # End list formatting
@@ -1107,16 +1047,14 @@ class TWResource(TResource):
         )
 
         for name_content_pair in self._language_payload.name_content_pairs:
-            # NOTE Another approach to including all translation words
-            # would be to only include words in the
-            # translation section which occur in current lang_code, book. The
-            # problem, I found, with this is that translation note 'See also'
-            # sections often refer to translation words that are not part of the
-            # lang_code, book combination content and thus those links are dead
-            # unless we include them even if they don't have any 'Uses' section.
-            # In other words, by limiting the translation words we
-            # limit the ability of those using the interleaved
-            # document to gain deeper understanding of the
+            # NOTE Another approach to including all translation words would be to
+            # only include words in the translation section which occur in current
+            # lang_code, book verses. The problem with this is that translation note
+            # 'See also' sections often refer to translation words that are not part
+            # of the lang_code/book content and thus those links are dead unless we
+            # include them even if they don't have any 'Uses' section. In other
+            # words, by limiting the translation words we limit the ability of those
+            # using the interleaved document to gain deeper understanding of the
             # interrelationships of words.
 
             # Make linking work: have to add ID to tags for anchor
@@ -1240,7 +1178,7 @@ class TAResource(TResource):
         """
 
         self._initialize_from_assets()
-        # self._initialize_verses_html()
+        self._initialize_verses_html()
 
     @property
     def book_payload(self) -> model.TABookPayload:
@@ -1259,25 +1197,13 @@ class TAResource(TResource):
         "About to convert TA Markdown to HTML with Markdown extension",
         logger=logger,
     )
-    def initialize_verses_html(self, ta_resource_dir: Optional[str]) -> None:
-        """
-        Find translation academy for the verses.
-        """
+    def _initialize_verses_html(self) -> None:
+        """Find translation academy for the verses."""
         # Create the Markdown instance once and have it use our markdown
         # extensions.
-        md = markdown.Markdown(
-            extensions=[
-                wikilink_preprocessor.WikiLinkExtension(),
-                remove_section_preprocessor.RemoveSectionExtension(),
-                translation_word_link_preprocessor.TranslationWordLinkExtension(
-                    lang_code={self.lang_code: "Language code for resource"},
-                    tw_resource_dir={
-                        ta_resource_dir: "Paths to translation words markdown files"
-                    },
-                ),
-            ]
+        md: markdown.Markdown = self._get_markdown_instance(
+            self.lang_code, self.resource_requests
         )
-        # FIXME We can likely now remove the first '**'
         chapter_dirs = sorted(
             glob("{}/**/*{}/*[0-9]*".format(self._resource_dir, self._resource_code))
         )
@@ -1328,8 +1254,7 @@ def resource_factory(
     working_dir: str,
     output_dir: str,
     resource_request: model.ResourceRequest,
-    # XXX Resources shouldn't care about assembly strategies.
-    # assembly_strategy_kind: model.AssemblyStrategyEnum,
+    resource_requests: List[model.ResourceRequest],
 ) -> Resource:
     """
     Factory method to create the appropriate Resource subclass for
@@ -1357,7 +1282,10 @@ def resource_factory(
         "ta-wa": TAResource,
     }
     return resources[resource_request.resource_type](
-        working_dir, output_dir, resource_request
+        working_dir,
+        output_dir,
+        resource_request,
+        resource_requests,
     )  # type: ignore
 
 

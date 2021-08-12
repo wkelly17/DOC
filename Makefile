@@ -89,17 +89,21 @@ local-install-deps-dev: local-update-deps-dev pip-warning
 	pip install -r requirements.txt
 	pip install -r requirements-dev.txt
 
-local-prepare-for-tests: mypy pyicontract-lint local-clean-working-temp-dir use-stable-translations-json
+local-prepare-for-tests: mypy pyicontract-lint local-clean-working-output-dir use-stable-translations-json
 
-local-clean-working-temp-dir:
-	find working/temp/ -type f -name "*.html" -exec rm -- {} +
-	find working/temp/ -type f -name "*.pdf" -exec rm -- {} +
+local-prepare-for-tests-without-cleaning: mypy pyicontract-lint  use-stable-translations-json
 
-local-unit-tests: local-install-deps-dev local-prepare-for-tests
-	ENABLE_ASSET_CACHING=1 TRANSLATIONS_JSON_FROM_GIT=1 SEND_EMAIL=0 FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/unit/
+local-clean-working-output-dir:
+	find working/output/ -type f -name "*.html" -exec rm -- {} +
+	find working/output/ -type f -name "*.pdf" -exec rm -- {} +
 
-local-e2e-tests: local-install-deps-dev local-prepare-for-tests
-	ENABLE_ASSET_CACHING=1 TRANSLATIONS_JSON_FROM_GIT=1 SEND_EMAIL=0 FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/
+# local-unit-tests: local-install-deps-dev local-prepare-for-tests
+local-unit-tests:  local-prepare-for-tests
+	ENABLE_ASSET_CACHING=1 TRANSLATIONS_JSON_FROM_GIT=1 SEND_EMAIL=0 FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/unit/ -vv
+
+# local-e2e-tests: local-install-deps-dev local-prepare-for-tests
+local-e2e-tests:  local-prepare-for-tests
+	ENABLE_ASSET_CACHING=1 TRANSLATIONS_JSON_FROM_GIT=1 SEND_EMAIL=0 FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -vv
 
 # Run one quick test
 local-smoke-test: local-prepare-for-tests
@@ -114,3 +118,8 @@ local-smoke-test-with-translation-words: local-prepare-for-tests
 
 local-email-tests: local-prepare-for-tests
 	./test_email_DO_NOT_COMMIT.sh
+
+# This is one to run after running local-e2e-tests or
+# local-smoke-test-with-translation-words
+local-check-anchor-links:
+	python tests/e2e/test_anchor_linking.py

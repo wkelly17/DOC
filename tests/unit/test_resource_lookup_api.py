@@ -45,6 +45,7 @@ def test_lookup_successes() -> None:
             config.get_working_dir(),
             config.get_output_dir(),
             resource_request,
+            document_request.resource_requests,
         )
         resource.find_location()
         assert resource.resource_url
@@ -81,6 +82,7 @@ def test_lookup_failures() -> None:
             config.get_working_dir(),
             config.get_output_dir(),
             resource_request,
+            document_request.resource_requests,
         )
         resource.find_location()
         assert not resource.resource_url

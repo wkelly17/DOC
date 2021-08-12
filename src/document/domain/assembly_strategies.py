@@ -834,8 +834,6 @@ def _assemble_usfm_as_iterator_content_by_verse(
     in this interleaving strategy.
     """
 
-    _initialize_resource_html(tn_resource, tq_resource, tw_resource, ta_resource)
-
     html: List[model.HtmlContent] = []
     if tn_resource:
         book_intro = tn_resource.book_payload.intro_html
@@ -980,8 +978,6 @@ def _assemble_usfm_tq_tw_content_by_verse(
         TWResource, tw_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
 
-    _initialize_resource_html(tn_resource, tq_resource, tw_resource, ta_resource)
-
     html: List[model.HtmlContent] = []
 
     # PEP526 disallows declaration of types in for loops, but allows this.
@@ -1058,8 +1054,6 @@ def _assemble_usfm_tw_content_by_verse(
         TWResource, tw_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
 
-    _initialize_resource_html(tn_resource, tq_resource, tw_resource, ta_resource)
-
     html: List[model.HtmlContent] = []
 
     # PEP526 disallows declaration of types in for loops, but allows this.
@@ -1124,8 +1118,6 @@ def _assemble_usfm_tq_content_by_verse(
         TQResource, tq_resource
     )  # Make mypy happy. We know, due to how we got here, that usfm_resource object is not None.
 
-    _initialize_resource_html(tn_resource, tq_resource, tw_resource, ta_resource)
-
     html: List[model.HtmlContent] = []
 
     # PEP526 disallows declaration of types in for loops, but allows this.
@@ -1185,8 +1177,6 @@ def _assemble_tn_as_iterator_content_by_verse(
     Construct the HTML for a 'by verse' strategy wherein only TN, TQ,
     and TW exists.
     """
-    _initialize_resource_html(tn_resource, tq_resource, tw_resource, ta_resource)
-
     html: List[model.HtmlContent] = []
     if tn_resource:
         book_intro = tn_resource.book_payload.intro_html
@@ -1300,8 +1290,6 @@ def _assemble_tq_content_by_verse(
         TQResource, tq_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
 
-    _initialize_resource_html(tn_resource, tq_resource, tw_resource, ta_resource)
-
     html: List[model.HtmlContent] = []
 
     # PEP526 disallows declaration of types in for loops, but allows this.
@@ -1355,8 +1343,6 @@ def _assemble_tq_tw_content_by_verse(
     tw_resource = cast(
         TWResource, tw_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
-
-    _initialize_resource_html(tn_resource, tq_resource, tw_resource, ta_resource)
 
     html: List[model.HtmlContent] = []
 
@@ -1421,8 +1407,6 @@ def _assemble_tw_content_by_verse(
         TWResource, tw_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
 
-    _initialize_resource_html(tn_resource, tq_resource, tw_resource, ta_resource)
-
     html: List[model.HtmlContent] = []
 
     # Add the translation words definition section.
@@ -1450,8 +1434,6 @@ def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
     USFM resource (e.g., ulb, nav, cuv, etc.) exists, and TN, TQ, and
     TW may exist.
     """
-
-    _initialize_resources_html(tn_resources, tq_resources, tw_resources, ta_resources)
 
     html: List[model.HtmlContent] = []
 
@@ -1608,8 +1590,6 @@ def _assemble_tn_as_iterator_content_by_verse_for_book_then_lang(
     tn_resources exists, and TN, TQ, and TW may exist.
     """
 
-    _initialize_resources_html(tn_resources, tq_resources, tw_resources, ta_resources)
-
     html: List[model.HtmlContent] = []
 
     # Sort resources by language
@@ -1718,8 +1698,6 @@ def _assemble_tq_as_iterator_content_by_verse_for_book_then_lang(
     tq_resources exists, and TQ, and TW may exist.
     """
 
-    _initialize_resources_html(tn_resources, tq_resources, tw_resources, ta_resources)
-
     html: List[model.HtmlContent] = []
 
     # Sort resources by language
@@ -1798,8 +1776,6 @@ def _assemble_tw_as_iterator_content_by_verse_for_book_then_lang(
     Construct the HTML for a only TW.
     """
 
-    _initialize_resources_html(tn_resources, tq_resources, tw_resources, ta_resources)
-
     html: List[model.HtmlContent] = []
 
     # Sort resources by language
@@ -1822,83 +1798,6 @@ def _assemble_tw_as_iterator_content_by_verse_for_book_then_lang(
 
 ######################
 ## Utility functions
-
-
-def _initialize_resource_html(
-    tn_resource: Optional[TNResource],
-    tq_resource: Optional[TQResource],
-    tw_resource: Optional[TWResource],
-    ta_resource: Optional[TAResource],
-) -> None:
-    """
-    Call initialize_verses_html for each non-USFM resource that is not null.
-    """
-    tw_resource_dir = None
-    if tw_resource:
-        # Pass the tw_resource's resource_dir to other resources which
-        # in turn will pass it on to the TranslationWordLinkExtension
-        # which will handle transformating links for translation
-        # words that occur within a translation word asset file itself.
-        tw_resource_dir = tw_resource.resource_dir
-        tw_resource.initialize_verses_html(tw_resource_dir)
-    if tn_resource:
-        tn_resource.initialize_verses_html(tw_resource_dir)
-    if tq_resource:
-        tq_resource.initialize_verses_html(tw_resource_dir)
-    if ta_resource:
-        ta_resource.initialize_verses_html(tw_resource_dir)
-
-
-def _initialize_resources_html(
-    tn_resources: List[TNResource],
-    tq_resources: List[TQResource],
-    tw_resources: List[TWResource],
-    ta_resources: List[TAResource],
-) -> None:
-    """
-    Call initialize_verses_html for each non-USFM resource.
-    """
-    tw_resource_dir = None
-    for tw_resource in tw_resources:
-        # Pass the tw_resource's resource_dir to other resources which
-        # in turn will pass it on to the TranslationWordLinkExtension
-        # which will handle transforming links for translation
-        # words that occur within a translation word asset file itself.
-        tw_resource_dir = tw_resource.resource_dir
-        tw_resource.initialize_verses_html(tw_resource_dir)
-    for tn_resource in tn_resources:
-        tw_resource_dir_list = [
-            tw_resource.resource_dir
-            for tw_resource in tw_resources
-            if tn_resource.lang_code == tw_resource.lang_code
-            and tn_resource.resource_code == tw_resource.resource_code
-        ]
-        if tw_resource_dir_list:
-            tn_resource.initialize_verses_html(tw_resource_dir_list[0])
-        else:
-            tn_resource.initialize_verses_html(None)
-    for tq_resource in tq_resources:
-        tw_resource_dir_list = [
-            tw_resource.resource_dir
-            for tw_resource in tw_resources
-            if tq_resource.lang_code == tw_resource.lang_code
-            and tq_resource.resource_code == tw_resource.resource_code
-        ]
-        if tw_resource_dir_list:
-            tq_resource.initialize_verses_html(tw_resource_dir_list[0])
-        else:
-            tq_resource.initialize_verses_html(None)
-    for ta_resource in tq_resources:
-        tw_resource_dir_list = [
-            tw_resource.resource_dir
-            for tw_resource in tw_resources
-            if ta_resource.lang_code == tw_resource.lang_code
-            and ta_resource.resource_code == tw_resource.resource_code
-        ]
-        if tw_resource_dir_list:
-            ta_resource.initialize_verses_html(tw_resource_dir_list[0])
-        else:
-            ta_resource.initialize_verses_html(None)
 
 
 def _format_tq_verse(
