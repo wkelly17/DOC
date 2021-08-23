@@ -65,7 +65,7 @@ class ResourceJsonLookup:
             config.get_working_dir(), config.get_translations_json_location()
         )
 
-    # Make composition less arduous.
+    # Make OO composition less arduous.
     def __getattr__(self, attribute: str) -> Any:
         """
         Delegate method calls not on self to
@@ -476,7 +476,7 @@ class TResourceJsonLookup(ResourceLookup):
     # def resource_json_lookup(self) -> ResourceJsonLookup:
     #     return self._resource_json_lookup
 
-    # Make composition less arduous.
+    # Make OO composition less arduous.
     def __getattr__(self, attribute: str) -> Any:
         """
         Redirect method lookups that are not on self to
@@ -709,7 +709,7 @@ class BIELHelperResourceJsonLookup:
     # def resource_json_lookup(self) -> ResourceJsonLookup:
     #     return self._resource_json_lookup
 
-    # Make composition less arduous.
+    # Make OO composition less arduous.
     def __getattr__(self, attribute: str) -> Any:
         """
         Redirect method lookups that are not on self to

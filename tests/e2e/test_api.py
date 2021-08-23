@@ -45,7 +45,6 @@ def test_en_ulb_wa_col_en_tn_wa_col_language_book_order_with_no_email() -> None:
             config.get_output_dir(), finished_document_path
         )
         assert response.ok
-        # FIXME Serving PDFs is yet to be implemented
         # assert os.path.exists(finished_document_path)
         # assert response.json() == {
         #     "finished_document_path": "{}.pdf".format(
