@@ -50,5 +50,3 @@ def _download_file(url: str, outfile: str) -> None:
     except IOError as err:
         logger.debug("ERROR retrieving {}".format(url))
         logger.debug(err)
-        # FIXME This should probably be rmeoved
-        sys.exit(1)
