@@ -243,15 +243,10 @@ class SourceDataFetcher:
 
         if not self._json_data:
             logger.debug("Loading json file {}...".format(self._json_file))
-            # FIXME We may want to catch a possible exception here as
-            # load_json_object and its delegated function do not
-            # handle them.
-            # try:
-            self._json_data = file_utils.load_json_object(self._json_file)
-            # except Exception as exc:
-            #     logger.debug("Exception: {}".format(exc))
-            # finally:
-            #     logger.info("Finished loading json file.")
+            try:
+                self._json_data = file_utils.load_json_object(self._json_file)
+            except Exception as exc:
+                logger.debug("Exception: {}".format(exc))
 
 
 class ResourceLookup(abc.ABC):
