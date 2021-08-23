@@ -2028,3 +2028,311 @@ def test_ndh_x_chindali_reg_mat_ndh_x_chindali_tn_mat_ndh_x_chindali_tq_mat_ndh_
             # no html generated
             assert not verses_html
         assert response.ok
+
+
+def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_es_419_ulb_col_es_419_tn_col_es_419_tq_col_es_419_tw_col_book_language_order() -> None:
+    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+        response: requests.Response = client.post(
+            "/documents",
+            json={
+                "email_address": config.get_to_email_address(),
+                "assembly_strategy_kind": "book_language_order",
+                "resource_requests": [
+                    {
+                        "lang_code": "en",
+                        "resource_type": "ulb-wa",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "en",
+                        "resource_type": "tn-wa",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "en",
+                        "resource_type": "tq-wa",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "en",
+                        "resource_type": "tw-wa",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "es-419",
+                        "resource_type": "ulb",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "es-419",
+                        "resource_type": "tn",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "es-419",
+                        "resource_type": "tq",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "es-419",
+                        "resource_type": "tw",
+                        "resource_code": "col",
+                    },
+                ],
+            },
+        )
+        finished_document_path = "en-ulb-wa-col_en-tn-wa-col_en-tq-wa-col_en-tw-wa-col_es-419-ulb-col_es-419-tn-col_es-419-tq-col_es-419-tw-col_book_language_order.pdf"
+        finished_document_path = os.path.join(
+            config.get_output_dir(), finished_document_path
+        )
+        html_file = "{}.html".format(finished_document_path.split(".")[0])
+        assert os.path.exists(finished_document_path)
+        assert os.path.exists(html_file)
+        # assert os.path.isdir("working/temp/en_ulb-wa")
+        # assert os.path.isdir("working/temp/fr_tw")
+        assert response.ok
+        with open(html_file, "r") as fin:
+            html = fin.read()
+            parser = bs4.BeautifulSoup(html, "html.parser")
+            body: bs4.elements.ResultSet = parser.find_all("body")
+            assert body
+            verses_html: bs4.elements.ResultSet = parser.find_all(
+                "span", attrs={"class": "v-num"}
+            )
+            assert verses_html
+
+
+def test_es_ulb_col_es_tn_col_en_tq_col_es_tw_col_book_language_order() -> None:
+    """
+    Ask for a combination of available and unavailable resources.
+    """
+    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+        response: requests.Response = client.post(
+            "/documents",
+            json={
+                "email_address": config.get_to_email_address(),
+                "assembly_strategy_kind": "book_language_order",
+                "resource_requests": [
+                    {
+                        "lang_code": "es",
+                        "resource_type": "ulb",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "es",
+                        "resource_type": "tn",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "es",
+                        "resource_type": "tq",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "es",
+                        "resource_type": "tw",
+                        "resource_code": "col",
+                    },
+                ],
+            },
+        )
+        finished_document_path = (
+            "es-ulb-col_es-tn-col_es-tq-col_es-tw-col_book_language_order.pdf"
+        )
+        finished_document_path = os.path.join(
+            config.get_output_dir(), finished_document_path
+        )
+        html_file = "{}.html".format(finished_document_path.split(".")[0])
+        assert os.path.exists(finished_document_path)
+        assert os.path.exists(html_file)
+        # assert os.path.isdir("working/temp/en_ulb-wa")
+        # assert os.path.isdir("working/temp/fr_tw")
+        assert response.ok
+        with open(html_file, "r") as fin:
+            html = fin.read()
+            parser = bs4.BeautifulSoup(html, "html.parser")
+            body: bs4.elements.ResultSet = parser.find_all("body")
+            assert body
+            verses_html: bs4.elements.ResultSet = parser.find_all(
+                "span", attrs={"class": "v-num"}
+            )
+            assert verses_html
+
+
+def test_llx_ulb_col_llx_tn_col_en_tq_col_llx_tw_col_book_language_order() -> None:
+    """
+    Ask for an unavailable resource and assert that the verses_html is
+    not generated.
+    """
+    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+        response: requests.Response = client.post(
+            "/documents",
+            json={
+                "email_address": config.get_to_email_address(),
+                "assembly_strategy_kind": "book_language_order",
+                "resource_requests": [
+                    {
+                        "lang_code": "llx",
+                        "resource_type": "ulb",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "llx",
+                        "resource_type": "tn",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "llx",
+                        "resource_type": "tq",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "llx",
+                        "resource_type": "tw",
+                        "resource_code": "col",
+                    },
+                ],
+            },
+        )
+        finished_document_path = (
+            "llx-ulb-col_llx-tn-col_llx-tq-col_llx-tw-col_book_language_order.pdf"
+        )
+        finished_document_path = os.path.join(
+            config.get_output_dir(), finished_document_path
+        )
+        html_file = "{}.html".format(finished_document_path.split(".")[0])
+        assert os.path.exists(finished_document_path)
+        assert os.path.exists(html_file)
+        # assert os.path.isdir("working/temp/en_ulb-wa")
+        # assert os.path.isdir("working/temp/fr_tw")
+        assert response.ok
+        with open(html_file, "r") as fin:
+            html = fin.read()
+            parser = bs4.BeautifulSoup(html, "html.parser")
+            body: bs4.elements.ResultSet = parser.find_all("body")
+            assert body
+            verses_html: bs4.elements.ResultSet = parser.find_all(
+                "span", attrs={"class": "v-num"}
+            )
+
+            # Resource requested doesn't exist or isn't available so
+            # we assert that the verses_html was not generated and
+            # thus not present in the document.
+            assert not verses_html
+
+
+def test_llx_reg_col_llx_tn_col_en_tq_col_llx_tw_col_book_language_order() -> None:
+    """
+    Ask for an unavailable resource and assert that the verses_html is
+    not generated.
+    """
+    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+        response: requests.Response = client.post(
+            "/documents",
+            json={
+                "email_address": config.get_to_email_address(),
+                "assembly_strategy_kind": "book_language_order",
+                "resource_requests": [
+                    {
+                        "lang_code": "llx",
+                        "resource_type": "reg",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "llx",
+                        "resource_type": "tn",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "llx",
+                        "resource_type": "tq",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "llx",
+                        "resource_type": "tw",
+                        "resource_code": "col",
+                    },
+                ],
+            },
+        )
+        finished_document_path = (
+            "llx-reg-col_llx-tn-col_llx-tq-col_llx-tw-col_book_language_order.pdf"
+        )
+        finished_document_path = os.path.join(
+            config.get_output_dir(), finished_document_path
+        )
+        html_file = "{}.html".format(finished_document_path.split(".")[0])
+        assert os.path.exists(finished_document_path)
+        assert os.path.exists(html_file)
+        # assert os.path.isdir("working/temp/en_ulb-wa")
+        # assert os.path.isdir("working/temp/fr_tw")
+        assert response.ok
+        with open(html_file, "r") as fin:
+            html = fin.read()
+            parser = bs4.BeautifulSoup(html, "html.parser")
+            body: bs4.elements.ResultSet = parser.find_all("body")
+            assert body
+            verses_html: bs4.elements.ResultSet = parser.find_all(
+                "span", attrs={"class": "v-num"}
+            )
+            # Resource requested doesn't exist or isn't available so
+            # we assert that the verses_html was not generated and
+            # thus not present in the document.
+            assert not verses_html
+
+
+def test_es_419_ulb_col_es_419_tn_col_en_tq_col_es_419_tw_col_book_language_order() -> None:
+    """
+    Ask for an unavailable resource and assert that the verses_html is
+    not generated.
+    """
+    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+        response: requests.Response = client.post(
+            "/documents",
+            json={
+                "email_address": config.get_to_email_address(),
+                "assembly_strategy_kind": "book_language_order",
+                "resource_requests": [
+                    {
+                        "lang_code": "es-419",
+                        "resource_type": "ulb",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "es-419",
+                        "resource_type": "tn",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "es-419",
+                        "resource_type": "tq",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "es-419",
+                        "resource_type": "tw",
+                        "resource_code": "col",
+                    },
+                ],
+            },
+        )
+        finished_document_path = "es-419-ulb-col_es-419-tn-col_es-419-tq-col_es-419-tw-col_book_language_order.pdf"
+        finished_document_path = os.path.join(
+            config.get_output_dir(), finished_document_path
+        )
+        html_file = "{}.html".format(finished_document_path.split(".")[0])
+        assert os.path.exists(finished_document_path)
+        assert os.path.exists(html_file)
+        # assert os.path.isdir("working/temp/en_ulb-wa")
+        # assert os.path.isdir("working/temp/fr_tw")
+        assert response.ok
+        with open(html_file, "r") as fin:
+            html = fin.read()
+            parser = bs4.BeautifulSoup(html, "html.parser")
+            body: bs4.elements.ResultSet = parser.find_all("body")
+            assert body
+            verses_html: bs4.elements.ResultSet = parser.find_all(
+                "span", attrs={"class": "v-num"}
+            )
+            assert verses_html
