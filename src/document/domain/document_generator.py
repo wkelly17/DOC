@@ -222,7 +222,7 @@ class DocumentGenerator:
                     document_request_key=self.document_request_key,
                 ),
             )
-            logger.debug("instantiated email template: {}".format(message_body))
+            logger.debug("instantiated email template: %s", message_body)
 
             outer.attach(MIMEText(message_body, "plain"))
 
@@ -242,8 +242,8 @@ class DocumentGenerator:
                 logger.info("Email sent!")
             except:
                 logger.debug(
-                    # "Unable to send the email. Error: {}".format(sys.exc_info()[0])
-                    "Unable to send the email. Error: {}".format(sys.exc_info())
+                    "Unable to send the email. Error: %s",
+                    sys.exc_info(),
                 )
                 raise
 
@@ -280,9 +280,7 @@ class DocumentGenerator:
         self._content = self._assembly_strategy(self)
         self._enclose_html_content()
         logger.debug(
-            "About to write HTML to {}".format(
-                self.get_finished_html_document_filepath()
-            )
+            "About to write HTML to %s", self.get_finished_html_document_filepath()
         )
         file_utils.write_file(
             self.get_finished_html_document_filepath(),
@@ -391,7 +389,7 @@ class DocumentGenerator:
                 images=images,
             ),
         )
-        logger.debug("cover: {}".format(cover))
+        logger.debug("cover: %s", cover)
         cover_filepath = os.path.join(config.get_working_dir(), "cover.html")
         with open(cover_filepath, "w") as fout:
             fout.write(cover)
@@ -405,7 +403,7 @@ class DocumentGenerator:
         logger.debug("IN_CONTAINER: {}".format(os.environ.get("IN_CONTAINER")))
         if os.environ.get("IN_CONTAINER"):
             logger.info("About to cp PDF to Docker bind mount on host")
-            logger.debug("Copy PDF command: {}".format(copy_command))
+            logger.debug("Copy PDF command: %s", copy_command)
             subprocess.call(copy_command, shell=True)
 
     @property
@@ -468,9 +466,8 @@ class DocumentGenerator:
             except exceptions.MalformedUsfmError:
                 self._unloaded_resources.append(resource)
                 logger.debug(
-                    "Exception while reading USFM file for {}, skipping this resource and continuing with remaining resource requests, if any.".format(
-                        resource
-                    )
+                    "Exception while reading USFM file for %s, skipping this resource and continuing with remaining resource requests, if any.",
+                    resource,
                 )
 
     @icontract.require(lambda document_request: document_request is not None)

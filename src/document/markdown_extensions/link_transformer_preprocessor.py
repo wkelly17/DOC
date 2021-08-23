@@ -123,9 +123,9 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 )
             else:
                 logger.debug(
-                    "TW file for filename_sans_suffix: {} not found for lang_code: {}".format(
-                        filename_sans_suffix, self._lang_code
-                    )
+                    "TW file for filename_sans_suffix: %s not found for lang_code: %s",
+                    filename_sans_suffix,
+                    self._lang_code,
                 )
                 # Search for translation word relative link
                 # and remove it along with any trailing comma from
@@ -180,9 +180,9 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 )
             else:
                 logger.debug(
-                    "TW file for filename_sans_suffix: {} not found for lang_code: {}".format(
-                        filename_sans_suffix, self._lang_code
-                    )
+                    "TW file for filename_sans_suffix: %s not found for lang_code: %s",
+                    filename_sans_suffix,
+                    self._lang_code,
                 )
                 # Search for translation word relative link
                 # and remove it along with any trailing comma from
@@ -237,9 +237,9 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 )
             else:
                 logger.debug(
-                    "TW file for filename_sans_suffix: {} not found for lang_code: {}".format(
-                        filename_sans_suffix, self._lang_code
-                    )
+                    "TW file for filename_sans_suffix: %s not found for lang_code: %s",
+                    filename_sans_suffix,
+                    self._lang_code,
                 )
                 # Search for translation word relative link and remove it along with any
                 # trailing comma from the source text.

@@ -48,5 +48,5 @@ def _download_file(url: str, outfile: str) -> None:
             with open(outfile, "wb") as fp:
                 shutil.copyfileobj(request, fp)
     except IOError as err:
-        logger.debug("ERROR retrieving {}".format(url))
+        logger.debug("ERROR retrieving %s", url)
         logger.debug(err)

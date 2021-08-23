@@ -45,13 +45,13 @@ def get_localized_translation_word(
     localized_translation_word = translation_word_content.split("\n")[0].split("# ")[1]
     if "," in localized_translation_word:
         # logger.debug(
-        #     "localized_translation_word: {}".format(localized_translation_word)
+        #     "localized_translation_word: %s", localized_translation_word
         # )
         # The localized word is actually multiple forms of the word separated by
         # commas, use the first form of the word.
         localized_translation_word = localized_translation_word.split(",")[0]
         # logger.debug(
-        #     "Updated localized_translation_word: {}".format(localized_translation_word)
+        #     "Updated localized_translation_word: %s", localized_translation_word
         # )
     localized_translation_word = str.strip(localized_translation_word)
     return model.LocalizedWord(localized_translation_word)

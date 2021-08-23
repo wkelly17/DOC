@@ -648,9 +648,7 @@ def _assemble_content_by_lang_then_book(
             )
 
             logger.debug(
-                "docgen._assembly_sub_strategy: {}".format(
-                    str(docgen.assembly_sub_strategy)
-                )
+                "docgen._assembly_sub_strategy: %s", str(docgen.assembly_sub_strategy)
             )
 
             # Now that we have the sub-strategy, let's run it and
@@ -735,9 +733,8 @@ def _assemble_content_by_book_then_lang(
         )
 
         logger.debug(
-            "docgen._assembly_sub_strategy_for_book_then_lang: {}".format(
-                str(docgen.assembly_sub_strategy_for_book_then_lang)
-            )
+            "docgen._assembly_sub_strategy_for_book_then_lang: %s",
+            str(docgen.assembly_sub_strategy_for_book_then_lang),
         )
 
         # Now that we have the sub-strategy, let's run it and
@@ -1563,9 +1560,9 @@ def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
                     html.append(chapter_footnotes)
             except KeyError as exception:
                 logger.debug(
-                    "usfm_resource: {}, does not have chapter: {}".format(
-                        usfm_resource, chapter_num
-                    )
+                    "usfm_resource: %s, does not have chapter: %s",
+                    usfm_resource,
+                    chapter_num,
                 )
 
     # Add the translation word definitions

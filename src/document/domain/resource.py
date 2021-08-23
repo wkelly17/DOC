@@ -312,7 +312,7 @@ class USFMResource(Resource):
 
         self._initialize_from_assets()
 
-        logger.debug("self._content_files: {}".format(self._content_files))
+        logger.debug("self._content_files: %s", self._content_files)
 
         if self._content_files:
             # FIXME See if other git repos provide the \id USFM element that the parser expects.
@@ -354,7 +354,7 @@ class USFMResource(Resource):
             #         fout.write("".join(markdown_content))
             #     # Make the temp file our only content file.
             #     self._content_files = [filename]
-            # logger.debug("self._content_files[0]: {}".format(self._content_files[0]))
+            # logger.debug("self._content_files[0]: %s", self._content_files[0])
 
             # Convert the USFM to HTML and store in file. USFM-Tools books.py can
             # raise MalformedUsfmError when the following code is called. The
@@ -476,9 +476,9 @@ class USFMResource(Resource):
             # zeroes.
             verse_num = "{}-{}".format(str(verse_num_int), str(verse_num2_int))
             logger.debug(
-                "chapter_num: {}, verse_num is a verse range: {}".format(
-                    chapter_num, verse_num
-                )
+                "chapter_num: %s, verse_num is a verse range: %s",
+                chapter_num,
+                verse_num,
             )
         else:
             upper_bound_value = int(verse_num) + 1
@@ -1158,7 +1158,7 @@ class TAResource(TResource):
     #         md += link_utils.get_uses(self._rc_references, rc)
     #         md += "\n\n"
     #         ta_md += md
-    #     logger.debug("ta_md is {0}".format(ta_md))
+    #     logger.debug("ta_md is %s", ta_md)
     #     self._content = ta_md
     #     # return ta_md
 
@@ -1318,11 +1318,9 @@ class ResourceProvisioner:
         If it doesn't exist yet, create the directory for the
         resource where it will be downloaded to.
         """
-        logger.debug("os.getcwd(): {}".format(os.getcwd()))
+        logger.debug("os.getcwd(): %s", os.getcwd())
         if not os.path.exists(self._resource.resource_dir):
-            logger.debug(
-                "About to create directory {}".format(self._resource.resource_dir)
-            )
+            logger.debug("About to create directory %s", self._resource.resource_dir)
             try:
                 os.mkdir(self._resource.resource_dir)
             except FileExistsError:
@@ -1330,7 +1328,7 @@ class ResourceProvisioner:
                     "Directory {} already existed".format(self._resource.resource_dir)
                 )
             else:
-                logger.debug("Created directory {}".format(self._resource.resource_dir))
+                logger.debug("Created directory %s", self._resource.resource_dir)
 
     @icontract.require(
         lambda self: self._resource.resource_type
@@ -1368,9 +1366,7 @@ class ResourceProvisioner:
             self._resource.resource_dir,
             self._resource.resource_url.rpartition(os.path.sep)[2],
         )
-        logger.debug(
-            "Using file location, resource_filepath: {}".format(resource_filepath)
-        )
+        logger.debug("Using file location, resource_filepath: %s", resource_filepath)
 
         if self._is_git():
             self._clone_git_repo(resource_filepath)
@@ -1387,13 +1383,13 @@ class ResourceProvisioner:
         command = "git clone --depth=1 '{}' '{}'".format(
             self._resource.resource_url, resource_filepath
         )
-        logger.debug("os.getcwd(): {}".format(os.getcwd()))
-        logger.debug("git command: {}".format(command))
+        logger.debug("os.getcwd(): %s", os.getcwd())
+        logger.debug("git command: %s", command)
         try:
             subprocess.call(command, shell=True)
         except subprocess.SubprocessError:
-            logger.debug("os.getcwd(): {}".format(os.getcwd()))
-            logger.debug("git command: {}".format(command))
+            logger.debug("os.getcwd(): %s", os.getcwd())
+            logger.debug("git command: %s", command)
             logger.debug("git clone failed!")
         else:
             logger.debug("git clone succeeded.")
@@ -1482,20 +1478,18 @@ class Manifest:
         if self._manifest_file_path is not None:
             self._manifest_content = self._load_manifest()
             logger.debug(
-                "manifest dir: {}".format(pathlib.Path(self._manifest_file_path).parent)
+                "manifest dir: %s", pathlib.Path(self._manifest_file_path).parent
             )
 
         if self.manifest_type:
-            logger.debug("self.manifest_type: {}".format(self.manifest_type))
+            logger.debug("self.manifest_type: %s", self.manifest_type)
             if self._is_yaml():
                 version, issued = self._get_manifest_version_and_issued()
                 self._version = version
                 self._issued = issued
-                logger.debug(
-                    "_version: {}, _issued: {}".format(self._version, self._issued)
-                )
+                logger.debug("_version: %s, _issued: %s", self._version, self._issued)
         if self._manifest_content:
-            logger.debug("self._manifest_content: {}".format(self._manifest_content))
+            logger.debug("self._manifest_content: %s", self._manifest_content)
 
     @property
     def manifest_type(self) -> Optional[str]:

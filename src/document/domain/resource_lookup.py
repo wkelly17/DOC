@@ -173,7 +173,7 @@ class ResourceJsonLookup:
         value: List[str] = jp.match(
             json_path, self.json_data,
         )
-        logger.debug("value[:4] from translations.json: {}".format(value[:4]))
+        logger.debug("value[:4] from translations.json: %s", value[:4])
         value_set: Set = set(value)
         return list(value_set)
 
@@ -238,15 +238,15 @@ class SourceDataFetcher:
     def _get_data(self) -> None:
         """Download json data and parse it into equivalent python objects."""
         if file_utils.source_file_needs_update(self._json_file):
-            logger.debug("Downloading {}...".format(self._json_file_url))
+            logger.debug("Downloading %s...", self._json_file_url)
             url_utils.download_file(self._json_file_url, str(self._json_file.resolve()))
 
         if not self._json_data:
-            logger.debug("Loading json file {}...".format(self._json_file))
+            logger.debug("Loading json file %s...", self._json_file)
             try:
                 self._json_data = file_utils.load_json_object(self._json_file)
             except Exception as exc:
-                logger.debug("Exception: {}".format(exc))
+                logger.debug("Exception: %s", exc)
 
 
 class ResourceLookup(abc.ABC):

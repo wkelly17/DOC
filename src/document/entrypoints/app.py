@@ -51,7 +51,7 @@ def document_endpoint(
         finished_document_request_key=finished_document_request_key
     )
 
-    logger.debug("details: {}".format(details))
+    logger.debug("details: %s", details)
     return details
 
 
