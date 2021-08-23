@@ -306,29 +306,6 @@ class USFMResourceJsonLookup(ResourceLookup):
         resource type, e.g., 'ulb-wa', and a resource code, e.g., 'gen',
         return URL for resource.
         """
-
-        # Get a list wherein each element is a tuple comprised of the
-        # language code, language name, and the list of resource types
-        # that are actually available for request for that language.
-        data: List[Tuple[str, str, List[str]]] = ResourceJsonLookup.get_lang_codes_names_and_resource_types()
-        if data:
-            resource_types_for_language = [tuple[2] for tuple in data if tuple[0] == resource.lang_code][0]
-            # Check that resource is requesting a resource type that is
-            # actually available for the language.
-            if not resource.resource_type in resource_types_for_language:
-                # On second thought, let's not raise an
-                # exceptions.IncompatibleREsourceTypeRequestError exception here. For
-                # now, we are better off logging the error and returning a
-                # model.ResourceLookupDto whose instance vars are initialized to None.
-                # raise exceptions.IncompatibleResourceTypeRequestError("{} requested a resource type that is not available for this language. The resource types available are {}".format(resource, resource_types_for_language))
-
-                # Instead of raising an exception let's just make the value proposition
-                # for this code be to log unavailable resource types. Eventually this
-                # could be developed more fully and queries by BIEL to preclude a user
-                # from ever being given the chance to request any resource that does not
-                # exist in the first place.
-                logger.debug("{} requested a resource type that is not available for this language. The resource types available are {}".format(resource, resource_types_for_language))
-
         resource_lookup_dto: model.ResourceLookupDto
 
         # Special case:
