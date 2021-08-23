@@ -447,7 +447,11 @@ class DocumentGenerator:
                 # it for reporting or retrying.
                 self._unfound_resources.append(resource)
 
-    @icontract.require(lambda self: self._found_resources)
+    # NOTE It is possible to have not found any resources due to a
+    # malformed document request, e.g., asking for a resource that
+    # doesn't exist. Thus we can't assert that it always exists as a
+    # non-empty list as an input param.
+    # @icontract.require(lambda self: self._found_resources)
     def _initialize_resource_content(self) -> None:
         """
         Initialize the resources from their found assets and
