@@ -72,7 +72,7 @@ async def serve_pdf_document(
 
 # @app.get(f"{config.get_api_root()}/language_codes_names_and_resource_types")
 @app.get("/language_codes_names_and_resource_types")
-def lang_codes_names_and_resource_types() -> List[Tuple[str, str, List[str]]]:
+def lang_codes_names_and_resource_types() -> List[model.CodeNameTypeTriplet]:
     """
     Return list of tuples of lang_code, lang_name, resource_types for
     all available language codes.

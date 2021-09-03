@@ -31,12 +31,10 @@ class ResourceJsonLookup:
     Subclasses of ResourceLookup delegate to this class.
     """
 
-    _lang_codes_names_and_resource_types: List[Tuple[str, str, List[str]]] = []
+    _lang_codes_names_and_resource_types: List[model.CodeNameTypeTriplet] = []
 
     @staticmethod
-    def _initialize_lang_codes_names_and_resource_types() -> List[
-        Tuple[str, str, List[str]]
-    ]:
+    def _initialize_lang_codes_names_and_resource_types() -> List[model.CodeNameTypeTriplet]:
         """
         Initialize a list of available Tuple[lang_code, lang_name,
         List[resource_type]].
@@ -47,7 +45,7 @@ class ResourceJsonLookup:
     @classmethod
     def get_lang_codes_names_and_resource_types(
         cls,
-    ) -> List[Tuple[str, str, List[str]]]:
+    ) -> List[model.CodeNameTypeTriplet]:
         # if cls._lang_codes_names_and_resource_types is None:
         if not cls._lang_codes_names_and_resource_types:
             # fmt: off
@@ -767,7 +765,7 @@ class BIELHelperResourceJsonLookup:
 
     @icontract.require(lambda self: self.json_data is not None)
     @icontract.ensure(lambda result: result)
-    def lang_codes_names_and_resource_types(self) -> List[Tuple[str, str, List[str]]]:
+    def lang_codes_names_and_resource_types(self) -> List[model.CodeNameTypeTriplet]:
         """
         Convenience method that can be called to get the list
         of all tuples where each tuple consists of language code,
@@ -782,7 +780,7 @@ class BIELHelperResourceJsonLookup:
         [['cuv', 'tn', 'tq', 'tw']]
         """
         self._get_data()
-        lang_codes_names_and_resource_types: List[Tuple[str, str, List[str]]] = []
+        lang_codes_names_and_resource_types: List[model.CodeNameTypeTriplet] = []
         # Using jsonpath in a loop here was prohibitively slow so we
         # use the dictionary in this case.
         for lang in self.json_data:
@@ -794,7 +792,7 @@ class BIELHelperResourceJsonLookup:
                 except:
                     resource_type = None
             lang_codes_names_and_resource_types.append(
-                (lang["code"], lang["name"], resource_types)
+                model.CodeNameTypeTriplet(lang_code=lang["code"], lang_name=lang["name"], resource_types=resource_types)
             )
         return lang_codes_names_and_resource_types
 

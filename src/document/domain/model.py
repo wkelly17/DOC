@@ -304,3 +304,13 @@ class EmailPayload(BaseModel):
     """
 
     document_request_key: str
+
+
+class CodeNameTypeTriplet(BaseModel):
+    """
+    A utility class to provide validation in resource_lookup module.
+    """
+
+    lang_code: str
+    lang_name: str
+    resource_types: List[str]
