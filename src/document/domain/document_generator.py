@@ -447,8 +447,8 @@ class DocumentGenerator:
 
     # NOTE It is possible to have not found any resources due to a
     # malformed document request, e.g., asking for a resource that
-    # doesn't exist. Thus we can't assert that it always exists as a
-    # non-empty list as an input param.
+    # doesn't exist. Thus we can't assert that self._found_resources
+    # has at least one resource.
     # @icontract.require(lambda self: self._found_resources)
     def _initialize_resource_content(self) -> None:
         """
@@ -458,7 +458,7 @@ class DocumentGenerator:
         for resource in self._found_resources:
             # usfm_tools parser can throw a MalformedUsfmError parse error if the
             # USFM for the resource is malformed (from the perspective of the
-            # parser). If that happens keep track of the unloaded resource for
+            # parser). If that happens keep track of said usfm resource for
             # reporting on the cover page of the generated PDF and log the issue,
             # but continue handling other resources in the document request.
             try:

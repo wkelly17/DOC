@@ -110,6 +110,12 @@ class Resource:
             self._lang_code, self._resource_type, self._resource_code
         )
 
+    def __repr__(self) -> str:
+        """Return a printable string representation identifying this instance."""
+        return "Resource(lang_code: {}, resource_type: {}, resource_code: {})".format(
+            self._lang_code, self._resource_type, self._resource_code
+        )
+
     @abc.abstractmethod
     def find_location(self) -> None:
         """
