@@ -39,17 +39,17 @@ def check_anchor_links_have_source_and_destination() -> None:
                     re.escape(match.group("source_ref"))
                 )
                 logger.debug(
-                    "Found anchor source link target: {}, about to test for anchor destination link target regex: {}".format(
-                        match.group("source_ref"), anchor_dest_link
-                    )
+                    "Found anchor source link target: %s, about to test for anchor destination link target regex: %s in file %s",
+                    match.group("source_ref"),
+                    anchor_dest_link,
+                    html_file,
                 )
                 assert re.search(anchor_dest_link, html)
                 logger.debug(
-                    "{} anchor source link target: {}, has matching anchor destination link target found by regex: {}".format(
-                        colored("PASSED", "green"),
-                        match.group("source_ref"),
-                        anchor_dest_link,
-                    )
+                    "%s anchor source link target: %s, has matching anchor destination link target found by regex: %s",
+                    colored("PASSED", "green"),
+                    match.group("source_ref"),
+                    anchor_dest_link,
                 )
 
 

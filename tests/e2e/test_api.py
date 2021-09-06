@@ -10,6 +10,37 @@ from fastapi.testclient import TestClient
 from document import config
 from document.entrypoints.app import app
 
+
+def check_finished_document_with_verses_success(
+    response: requests.Response, finished_document_path: str
+) -> None:
+    """
+    Helper to keep tests DRY.
+
+    Check that the finished_document_path exists and also check that
+    the HTML file associated with it exists and includes verses_html.
+    """
+    finished_document_path = os.path.join(
+        config.get_output_dir(), finished_document_path
+    )
+    assert os.path.isfile(finished_document_path)
+    html_file = "{}.html".format(finished_document_path.split(".")[0])
+    assert os.path.isfile(html_file)
+    assert response.json() == {
+        "finished_document_request_key": pathlib.Path(finished_document_path).stem
+    }
+    with open(html_file, "r") as fin:
+        html = fin.read()
+        parser = bs4.BeautifulSoup(html, "html.parser")
+        body: bs4.elements.ResultSet = parser.find_all("body")
+        assert body
+        verses_html: bs4.elements.ResultSet = parser.find_all(
+            "span", attrs={"class": "v-num"}
+        )
+        assert verses_html
+    assert response.ok
+
+
 ##########################################################################
 ## Specific targeted tests (wrt language, resource type, resource code) ##
 ##########################################################################
@@ -41,16 +72,7 @@ def test_en_ulb_wa_col_en_tn_wa_col_language_book_order_with_no_email() -> None:
             },
         )
         finished_document_path = "en-ulb-wa-col_en-tn-wa-col_language_book_order.pdf"
-        finished_document_path = os.path.join(
-            config.get_output_dir(), finished_document_path
-        )
-        assert response.ok
-        # assert os.path.exists(finished_document_path)
-        # assert response.json() == {
-        #     "finished_document_path": "{}.pdf".format(
-        #         pathlib.Path(os.path.basename(finished_document_path)).stem
-        #     )
-        # }
+        check_finished_document_with_verses_success(response, finished_document_path)
 
 
 def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_language_book_order() -> None:
@@ -86,17 +108,7 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_language_book_order() -> None:
         finished_document_path = (
             "en-ulb-wa-col_en-tn-wa-col_en-tq-wa-col_language_book_order.pdf"
         )
-        finished_document_path = os.path.join(
-            config.get_output_dir(), finished_document_path
-        )
-        assert response.ok
-        # FIXME Serving PDFs is yet to be implemented
-        # assert os.path.exists(finished_document_path)
-        # assert response.json() == {
-        #     "finished_document_path": "{}.pdf".format(
-        #         pathlib.Path(os.path.basename(finished_document_path)).stem
-        #     )
-        # }
+        check_finished_document_with_verses_success(response, finished_document_path)
 
 
 def test_en_ulb_wa_tn_wa_jud_language_book_order() -> None:
@@ -125,17 +137,7 @@ def test_en_ulb_wa_tn_wa_jud_language_book_order() -> None:
             },
         )
         finished_document_path = "en-ulb-wa-jud_en-tn-wa-jud_language_book_order.pdf"
-        finished_document_path = os.path.join(
-            config.get_output_dir(), finished_document_path
-        )
-        assert response.ok
-        # FIXME Serving PDFs is yet to be implemented
-        # assert os.path.exists(finished_document_path)
-        # assert response.json() == {
-        #     "finished_document_path": "{}.pdf".format(
-        #         pathlib.Path(os.path.basename(finished_document_path)).stem
-        #     )
-        # }
+        check_finished_document_with_verses_success(response, finished_document_path)
 
 
 def test_ar_nav_jud_language_book_order() -> None:
@@ -160,17 +162,7 @@ def test_ar_nav_jud_language_book_order() -> None:
             },
         )
         finished_document_path = "ar-nav-jud_language_book_order.pdf"
-        finished_document_path = os.path.join(
-            config.get_output_dir(), finished_document_path
-        )
-        assert response.ok
-        # FIXME Serving PDFs is yet to be implemented
-        # assert os.path.exists(finished_document_path)
-        # assert response.json() == {
-        #     "finished_document_path": "{}.pdf".format(
-        #         pathlib.Path(os.path.basename(finished_document_path)).stem
-        #     )
-        # }
+        check_finished_document_with_verses_success(response, finished_document_path)
 
 
 def test_pt_br_ulb_tn_language_book_order() -> None:
@@ -199,17 +191,7 @@ def test_pt_br_ulb_tn_language_book_order() -> None:
             },
         )
         finished_document_path = "pt-br-ulb-gen_pt-br-tn-gen_language_book_order.pdf"
-        finished_document_path = os.path.join(
-            config.get_output_dir(), finished_document_path
-        )
-        assert response.ok
-        # FIXME Serving PDFs is yet to be implemented
-        # assert os.path.exists(finished_document_path)
-        # assert response.json() == {
-        #     "finished_document_path": "{}.pdf".format(
-        #         pathlib.Path(os.path.basename(finished_document_path)).stem
-        #     )
-        # }
+        check_finished_document_with_verses_success(response, finished_document_path)
 
 
 def test_pt_br_ulb_tn_en_ulb_wa_tn_wa_luk_language_book_order() -> None:
@@ -248,17 +230,7 @@ def test_pt_br_ulb_tn_en_ulb_wa_tn_wa_luk_language_book_order() -> None:
             },
         )
         finished_document_path = "pt-br-ulb-luk_pt-br-tn-luk_en-ulb-wa-luk_en-tn-wa-luk_language_book_order.pdf"
-        finished_document_path = os.path.join(
-            config.get_output_dir(), finished_document_path
-        )
-        assert response.ok
-        # FIXME Serving PDFs is yet to be implemented
-        # assert response.json() == {
-        # assert os.path.exists(finished_document_path)
-        #     "finished_document_path": "{}.pdf".format(
-        #         pathlib.Path(os.path.basename(finished_document_path)).stem
-        #     )
-        # }
+        check_finished_document_with_verses_success(response, finished_document_path)
 
 
 def test_pt_br_ulb_tn_luk_en_ulb_wa_tn_wa_luk_sw_ulb_tn_col_language_book_order() -> None:
@@ -303,18 +275,7 @@ def test_pt_br_ulb_tn_luk_en_ulb_wa_tn_wa_luk_sw_ulb_tn_col_language_book_order(
             },
         )
         finished_document_path = "pt-br-ulb-luk_pt-br-tn-luk_en-ulb-wa-luk_en-tn-wa-luk_sw-ulb-col_sw-tn-col_language_book_order.pdf"
-        finished_document_path = os.path.join(
-            config.get_output_dir(), finished_document_path
-        )
-        html_file = "{}.html".format(finished_document_path.split(".")[0])
-        assert os.path.exists(finished_document_path)
-        # FIXME html_file does not exist
-        assert os.path.exists(html_file)
-        assert response.ok
-        # FIXME Serving PDFs is yet to be implemented
-        assert response.json() == {
-            "finished_document_request_key": pathlib.Path(finished_document_path).stem
-        }
+        check_finished_document_with_verses_success(response, finished_document_path)
 
 
 def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_col_sw_tq_col_sw_tw_col_sw_ulb_tit_sw_tn_tit_sw_tq_tit_sw_tw_tit_language_book_order() -> None:
@@ -384,40 +345,7 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_c
             },
         )
         finished_document_path = "en-ulb-wa-col_en-tn-wa-col_en-tq-wa-col_en-tw-wa-col_sw-ulb-col_sw-tn-col_sw-tq-col_sw-tw-col_sw-tn-tit_sw-tq-tit_sw-tw-tit_language_book_order.pdf"
-        finished_document_path = os.path.join(
-            config.get_output_dir(), finished_document_path
-        )
-        html_file = "{}.html".format(finished_document_path.split(".")[0])
-        assert os.path.exists(finished_document_path)
-        # FIXME HTML_file does not exist? Yet PDF generation
-        # succeeded. Does wkhtmltopdf delete the HTML file after
-        # consuming it? If I run
-        # wkhtmltopdf ../../working/temp/pt-br-ulb-mal_pt-br-tq-mal_pt-br-tw-mal_tl-ulb-1ki_tl-tq-1ki_tl-tw-1ki_language_book_order.html foo.pdf
-        # both foo.pdf and
-        # ../../working/temp/pt-br-ulb-mal_pt-br-tq-mal_pt-br-tw-mal_tl-ulb-1ki_tl-tq-1ki_tl-tw-1ki_language_book_order.html
-        # exist after the command.Therefore, wkhtmltopdf is not
-        # deleting the HTML file after consuming it. Something else is
-        # removing the HTML file. Perhaps it is pdf_kit.from_file.
-        # I'll take a look at the source for pdf_kit.from_file.
-        assert os.path.exists(html_file)
-        # assert os.path.isdir("working/temp/en_ulb-wa")
-        # assert os.path.isdir("working/temp/en_tn-wa")
-        # assert os.path.isdir("working/temp/en_tq-wa")
-        # assert os.path.isdir("working/temp/en_tw-wa")
-        # assert os.path.isdir("working/temp/sw_ulb")
-        # assert os.path.isdir("working/temp/sw_tn")
-        # assert os.path.isdir("working/temp/sw_tq")
-        # assert os.path.isdir("working/temp/sw_tw")
-        with open(html_file, "r") as fin:
-            html = fin.read()
-            parser = bs4.BeautifulSoup(html, "html.parser")
-            body: bs4.elements.ResultSet = parser.find_all("body")
-            assert body
-            verses_html: bs4.elements.ResultSet = parser.find_all(
-                "span", attrs={"class": "v-num"}
-            )
-            assert verses_html
-        assert response.ok
+        check_finished_document_with_verses_success(response, finished_document_path)
 
 
 def test_en_ulb_wa_col_en_tn_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_col_sw_tw_col_sw_ulb_tit_sw_tn_tit_sw_tw_tit_language_book_order() -> None:
@@ -477,25 +405,7 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_col_sw_tw_col_
             },
         )
         finished_document_path = "en-ulb-wa-col_en-tn-wa-col_en-tw-wa-col_sw-ulb-col_sw-tn-col_sw-tw-col_sw-ulb-tit_sw-tn-tit_sw-tw-tit_language_book_order.pdf"
-        finished_document_path = os.path.join(
-            config.get_output_dir(), finished_document_path
-        )
-        html_file = "{}.html".format(finished_document_path.split(".")[0])
-        assert os.path.exists(finished_document_path)
-        assert os.path.exists(html_file)
-        # assert os.path.isdir("working/temp/sw_ulb")
-        # assert os.path.isdir("working/temp/sw_tn")
-        # assert os.path.isdir("working/temp/sw_tw")
-        assert response.ok
-        with open(html_file, "r") as fin:
-            html = fin.read()
-            parser = bs4.BeautifulSoup(html, "html.parser")
-            body: bs4.elements.ResultSet = parser.find_all("body")
-            assert body
-            verses_html: bs4.elements.ResultSet = parser.find_all(
-                "span", attrs={"class": "v-num"}
-            )
-            assert verses_html
+        check_finished_document_with_verses_success(response, finished_document_path)
 
 
 def test_en_ulb_wa_col_en_tw_wa_col_sw_ulb_col_sw_tw_col_sw_ulb_tit_sw_tw_tit_language_book_order() -> None:
@@ -540,24 +450,7 @@ def test_en_ulb_wa_col_en_tw_wa_col_sw_ulb_col_sw_tw_col_sw_ulb_tit_sw_tw_tit_la
             },
         )
         finished_document_path = "en-ulb-wa-col_en-tw-wa-col_sw-ulb-col_sw-tw-col_sw-ulb-tit_sw-tw-tit_language_book_order.pdf"
-        finished_document_path = os.path.join(
-            config.get_output_dir(), finished_document_path
-        )
-        html_file = "{}.html".format(finished_document_path.split(".")[0])
-        assert os.path.exists(finished_document_path)
-        assert os.path.exists(html_file)
-        # assert os.path.isdir("working/temp/sw_ulb")
-        # assert os.path.isdir("working/temp/sw_tw")
-        assert response.ok
-        with open(html_file, "r") as fin:
-            html = fin.read()
-            parser = bs4.BeautifulSoup(html, "html.parser")
-            body: bs4.elements.ResultSet = parser.find_all("body")
-            assert body
-            verses_html: bs4.elements.ResultSet = parser.find_all(
-                "span", attrs={"class": "v-num"}
-            )
-            assert verses_html
+        check_finished_document_with_verses_success(response, finished_document_path)
 
 
 def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_sw_ulb_tit_sw_tq_tit_sw_tw_tit_language_book_order() -> None:
@@ -617,26 +510,7 @@ def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_
             },
         )
         finished_document_path = "en-ulb-wa-col_en-tq-wa-col_en-tw-wa-col_sw-ulb-col_sw-tq-col_sw-tw-col_sw-ulb-tit_sw-tq-tit_sw-tw-tit_language_book_order.pdf"
-        finished_document_path = os.path.join(
-            config.get_output_dir(), finished_document_path
-        )
-        html_file = "{}.html".format(finished_document_path.split(".")[0])
-        assert os.path.exists(finished_document_path)
-        assert os.path.exists(html_file)
-        # assert os.path.isdir("working/temp/en_ulb-wa")
-        # assert os.path.isdir("working/temp/sw_ulb")
-        # assert os.path.isdir("working/temp/sw_tq")
-        # assert os.path.isdir("working/temp/sw_tw")
-        assert response.ok
-        with open(html_file, "r") as fin:
-            html = fin.read()
-            parser = bs4.BeautifulSoup(html, "html.parser")
-            body: bs4.elements.ResultSet = parser.find_all("body")
-            assert body
-            verses_html: bs4.elements.ResultSet = parser.find_all(
-                "span", attrs={"class": "v-num"}
-            )
-            assert verses_html
+        check_finished_document_with_verses_success(response, finished_document_path)
 
 
 def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_zh_cuv_tit_sw_tq_tit_sw_tw_tit_language_book_order() -> None:
@@ -700,27 +574,7 @@ def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_
             },
         )
         finished_document_path = "en-ulb-wa-col_en-tq-wa-col_en-tw-wa-col_sw-ulb-col_sw-tq-col_sw-tw-col_zh-cuv-tit_sw-tq-tit_sw-tw-tit_language_book_order.pdf"
-        finished_document_path = os.path.join(
-            config.get_output_dir(), finished_document_path
-        )
-        html_file = "{}.html".format(finished_document_path.split(".")[0])
-        assert os.path.exists(finished_document_path)
-        assert os.path.exists(html_file)
-        # assert os.path.isdir("working/temp/en_ulb-wa")
-        # assert os.path.isdir("working/temp/sw_ulb")
-        # assert os.path.isdir("working/temp/zh_cuv")
-        # assert os.path.isdir("working/temp/sw_tq")
-        # assert os.path.isdir("working/temp/sw_tw")
-        assert response.ok
-        with open(html_file, "r") as fin:
-            html = fin.read()
-            parser = bs4.BeautifulSoup(html, "html.parser")
-            body: bs4.elements.ResultSet = parser.find_all("body")
-            assert body
-            verses_html: bs4.elements.ResultSet = parser.find_all(
-                "span", attrs={"class": "v-num"}
-            )
-            assert verses_html
+        check_finished_document_with_verses_success(response, finished_document_path)
 
 
 ###################################################################
@@ -729,10 +583,6 @@ def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_
 ###################################################################
 
 
-# NOTE
-# # Jun 3, 2020: a couple days ago translations.json had zh tn, but now
-# # it is no longer available for some reason, so let's skip this test.
-# @pytest.mark.skip
 def test_zh_ulb_doesnt_exist_jol_zh_tn_jol_language_book_order() -> None:
     """
     This shows that resource request for resource type ULB fails for
@@ -790,10 +640,6 @@ def test_zh_ulb_doesnt_exist_jol_zh_tn_jol_language_book_order() -> None:
             assert not verses_html
 
 
-# NOTE
-# Jun 3, 2020: a couple days ago translations.json had zh tn, but now
-# it is no longer available for some reason, so let's skip this test.
-# @pytest.mark.skip
 def test_zh_cuv_jol_zh_tn_jol_language_book_order() -> None:
     """
     This test succeeds by correcting the mistake of the document request
@@ -820,30 +666,9 @@ def test_zh_cuv_jol_zh_tn_jol_language_book_order() -> None:
             },
         )
         finished_document_path = "zh-cuv-jol_zh-tn-jol_language_book_order.pdf"
-        finished_document_path = os.path.join(
-            config.get_output_dir(), finished_document_path
-        )
-        html_file = "{}.html".format(finished_document_path.split(".")[0])
-        assert os.path.exists(finished_document_path)
-        assert os.path.exists(html_file)
-        # assert os.path.isdir("working/temp/zh_cuv")
-        # assert os.path.isdir("working/temp/zh_tn")
-        assert response.ok
-        with open(html_file, "r") as fin:
-            html = fin.read()
-            parser = bs4.BeautifulSoup(html, "html.parser")
-            body: bs4.elements.ResultSet = parser.find_all("body")
-            assert body
-            verses_html: bs4.elements.ResultSet = parser.find_all(
-                "span", attrs={"class": "v-num"}
-            )
-            assert verses_html
+        check_finished_document_with_verses_success(response, finished_document_path)
 
 
-# NOTE
-# Jun 3, 2020: a couple days ago translations.json had zh tn, but now
-# it is no longer available for some reason, so let's skip this test.
-# @pytest.mark.skip
 def test_zh_cuv_jol_zh_tn_jol_zh_tq_jol_zh_tw_jol_language_book_order() -> None:
     """
     This test succeeds by correcting the mistake of the document request
@@ -882,32 +707,9 @@ def test_zh_cuv_jol_zh_tn_jol_zh_tq_jol_zh_tw_jol_language_book_order() -> None:
         finished_document_path = (
             "zh-cuv-jol_zh-tn-jol_zh-tq-jol_zh-tw-jol_language_book_order.pdf"
         )
-        finished_document_path = os.path.join(
-            config.get_output_dir(), finished_document_path
-        )
-        html_file = "{}.html".format(finished_document_path.split(".")[0])
-        assert os.path.exists(finished_document_path)
-        assert os.path.exists(html_file)
-        # assert os.path.isdir("working/temp/zh_cuv")
-        # assert os.path.isdir("working/temp/zh_tn")
-        # assert os.path.isdir("working/temp/zh_tq")
-        # assert os.path.isdir("working/temp/zh_tw")
-        assert response.ok
-        with open(html_file, "r") as fin:
-            html = fin.read()
-            parser = bs4.BeautifulSoup(html, "html.parser")
-            body: bs4.elements.ResultSet = parser.find_all("body")
-            assert body
-            verses_html: bs4.elements.ResultSet = parser.find_all(
-                "span", attrs={"class": "v-num"}
-            )
-            assert verses_html
+        check_finished_document_with_verses_success(response, finished_document_path)
 
 
-# NOTE
-# Jun 3, 2020: a couple days ago translations.json had zh tn, but now
-# it is no longer available for some reason, so let's skip this test.
-# @pytest.mark.skip
 def test_pt_br_ulb_luk_pt_br_tn_luk_language_book_order() -> None:
     """
     Produce verse level interleaved document for Brazilian Portuguese scripture and
@@ -934,24 +736,4 @@ def test_pt_br_ulb_luk_pt_br_tn_luk_language_book_order() -> None:
             },
         )
         finished_document_path = "pt-br-ulb-luk_pt-br-tn-luk_language_book_order.pdf"
-        finished_document_path = os.path.join(
-            config.get_output_dir(), finished_document_path
-        )
-        html_file = "{}.html".format(finished_document_path.split(".")[0])
-        assert os.path.exists(finished_document_path)
-        # FIXME HTML file is missing when we go to read and parse
-        # HTML? And yet it does exist when checked right after
-        # creating the PDF in document_generator module.
-        assert os.path.exists(html_file)
-        assert response.json() == {
-            "finished_document_request_key": pathlib.Path(finished_document_path).stem
-        }
-        with open(html_file, "r") as fin:
-            html = fin.read()
-            parser = bs4.BeautifulSoup(html, "html.parser")
-            body: bs4.elements.ResultSet = parser.find_all("body")
-            assert body
-            verses_html: bs4.elements.ResultSet = parser.find_all(
-                "span", attrs={"class": "v-num"}
-            )
-            assert verses_html
+        check_finished_document_with_verses_success(response, finished_document_path)

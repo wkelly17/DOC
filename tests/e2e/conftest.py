@@ -12,8 +12,21 @@ from document.domain import bible_books, model
 from document.utils import file_utils
 
 # Good enough for now. May put in config.py later.
-PASSING_NON_ENGLISH_LANG_CODES = ["pt-br", "tl", "es-419", "zh"]
-# PASSING_NON_ENGLISH_LANG_CODES = ["es-419", "zh"]
+# By passing we mean that some combinations involving these lang_codes
+# hav succeeded. There could be combinations of resource_type and
+# resource_code for these these fail in isolation or in combination
+# though. The more lang_codes we add here the longer the e2e tests will
+# take to complete.
+PASSING_NON_ENGLISH_LANG_CODES = [
+    "es-419",
+    "f10",
+    "gu",
+    "mr",
+    "pt-br",
+    "sw",
+    "tl",
+    "zh",
+]
 FAILING_NON_ENGLISH_LANG_CODES = [
     "kbt",
     "aau",
@@ -23,7 +36,13 @@ FAILING_NON_ENGLISH_LANG_CODES = [
     "guq",
     "am",
 ]
-# ALL_LANGUAGE_CODES = file_utils.load_json_object(pathlib.Path("./language_codes.json"))
+# Every once in a while it is good to un-comment the next two
+# expressions so that more combinations can be tested.
+if False:
+    ALL_LANGUAGE_CODES = file_utils.load_json_object(
+        pathlib.Path("../../language_codes.json")
+    )
+    PASSING_NON_ENGLISH_LANG_CODES = ALL_LANGUAGE_CODES
 
 
 @pytest.fixture()
