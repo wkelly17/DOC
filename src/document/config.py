@@ -1,19 +1,19 @@
 """This module provides configuration values used by the application."""
 
 
-import icontract
-import jinja2
 import logging
 import os
-import pydantic
+import types
 from logging import config as lc
 from typing import Dict, List
 
+import icontract
+import jinja2
+import pydantic
 import yaml
 
 from document import config
 from document.domain import model
-
 
 REPO_URL_DICT_KEY = "../download-scripture?repo_url"
 RESOURCE_TYPES_JSONPATH = "$[*].contents[*].code"
@@ -115,6 +115,40 @@ def get_output_dir() -> str:
     else:
         dirname = os.environ.get("DOCUMENT_OUTPUT_DIR", "working/output")
     return dirname
+
+
+def get_resource_type_lookup_map() -> types.MappingProxyType[str, Any]:
+    """
+    Return an immutable dictionary, MappingProxyType, of mappings
+    between resource_type and Resource subclass instance.
+    """
+    # Lazy import to avoid circular import.
+    from document.domain.resource import (Resource, TAResource, TNResource,
+                                          TQResource, TWResource, USFMResource)
+
+    # resource_type is key, Resource subclass is value
+    return types.MappingProxyType(
+        {
+            "usfm": USFMResource,
+            "ulb": USFMResource,
+            "ulb-wa": USFMResource,
+            "udb": USFMResource,
+            "udb-wa": USFMResource,
+            "nav": USFMResource,
+            "reg": USFMResource,
+            "cuv": USFMResource,
+            "udb": USFMResource,
+            "f10": USFMResource,
+            "tn": TNResource,
+            "tn-wa": TNResource,
+            "tq": TQResource,
+            "tq-wa": TQResource,
+            "tw": TWResource,
+            "tw-wa": TWResource,
+            "ta": TAResource,
+            "ta-wa": TAResource,
+        }
+    )
 
 
 def get_translations_json_location() -> str:

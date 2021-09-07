@@ -1266,28 +1266,7 @@ def resource_factory(
     Factory method to create the appropriate Resource subclass for
     a given ResourceRequest instance.
     """
-    # resource_type is key, Resource subclass is value
-    resources = {
-        "usfm": USFMResource,
-        "ulb": USFMResource,
-        "ulb-wa": USFMResource,
-        "udb": USFMResource,
-        "udb-wa": USFMResource,
-        "nav": USFMResource,
-        "reg": USFMResource,
-        "cuv": USFMResource,
-        "udb": USFMResource,
-        "f10": USFMResource,
-        "tn": TNResource,
-        "tn-wa": TNResource,
-        "tq": TQResource,
-        "tq-wa": TQResource,
-        "tw": TWResource,
-        "tw-wa": TWResource,
-        "ta": TAResource,
-        "ta-wa": TAResource,
-    }
-    return resources[resource_request.resource_type](
+    return config.get_resource_type_lookup_map()[resource_request.resource_type](
         working_dir,
         output_dir,
         resource_request,

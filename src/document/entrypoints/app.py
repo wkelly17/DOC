@@ -5,13 +5,14 @@ import os
 import pathlib
 from typing import Dict, List, Optional, Tuple
 
+import icontract
 import yaml
-from fastapi import FastAPI
-from fastapi.responses import FileResponse
 
 from document import config
-from document.domain import model, resource_lookup
+from document.domain import bible_books, model, resource_lookup
 from document.domain.document_generator import DocumentGenerator
+from fastapi import FastAPI
+from fastapi.responses import FileResponse
 
 
 app = FastAPI()
@@ -23,8 +24,21 @@ with open(config.get_logging_config_file_path(), "r") as f:
 logger = logging.getLogger(__name__)
 
 
-# FIXME This could be async def, see
-# ~/.ghq/github.com/hogeline/sample_fastapi/code/main.py, instead of synchronous.
+# NOTE Consider async for slow post and put REST methods async def, see
+# https://github.com/hogeline/sample_fastapi/blob/4c1c7eebaa5e48d3153ece7c481f2b6883f4296f/code/main.py#L36
+# @icontract.require(
+#     lambda document_request: document_request
+#     and document_request.resource_requests
+#     and [
+#         resource_request2
+#         for resource_request2 in document_request.resource_requests
+#         if resource_request2.resource_type
+#         in config.get_resource_type_lookup_map().keys()
+#         and resource_request2.lang_code
+#         and resource_request2.resource_code in bible_books.BOOK_NAMES.keys()
+#     ]
+# )  # The document request must request at least one resource
+# FIXME Put endpoint behind a versioned url
 # @app.post(f"{config.get_api_root()}/document")
 @app.post("/documents", response_model=model.FinishedDocumentDetails)
 def document_endpoint(
