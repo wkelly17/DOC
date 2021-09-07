@@ -52,6 +52,19 @@ pyicontract-lint:
 	pyicontract-lint --dont_panic src/document/utils
 	pyicontract-lint --dont_panic src/document/entrypoints
 
+# https://radon.readthedocs.io/en/latest/commandline.html
+radon-cyclomatic-complexity:
+	radon cc src/document/**/*.py
+
+radon-raw-stats:
+	radon raw src/document/**/*.py
+
+radon-maintainability-index:
+	radon mi src/document/**/*.py
+
+radon-halstead-complexity:
+	radon hal src/document/**/*.py
+
 all: down build up test
 
 all-plus-linting: mypy pyicontract-lint down build up test

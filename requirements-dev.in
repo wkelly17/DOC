@@ -10,5 +10,6 @@ pyls-mypy
 pytest
 pytest-datafiles
 pytest-icdiff
+radon
 typeguard
 wemake-python-styleguide
