@@ -34,6 +34,8 @@ RUN WKHTMLTOX_TEMP="$(mktemp)" && \
 COPY working/temp/translations.json /working/temp/
 # Make the output directory where generated HTML and PDFs are placed.
 RUN mkdir -p /working/output
+# Make the directory where logs are written to.
+RUN mkdir -p /logs
 
 COPY icon-tn.png .
 COPY requirements.txt .

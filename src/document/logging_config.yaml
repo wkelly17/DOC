@@ -2,18 +2,29 @@ version: 1
 disable_existing_loggers: False
 formatters:
   simple:
-    format: '%(asctime)s %(levelname)5s %(name)18s %(funcName)18s %(lineno)3s:  %(message)s'
+    format: "%(asctime)s %(levelname)5s %(name)18s %(funcName)18s %(lineno)3s:  %(message)s"
 handlers:
   console:
     class: logging.StreamHandler
     level: DEBUG
     formatter: simple
     stream: ext://sys.stdout
+  file:
+    # class: logging.handlers.TimedRotatingFileHandler
+    # when: "midnight"
+    # utc: True
+    class: logging.handlers.RotatingFileHandler
+    level: DEBUG
+    formatter: simple
+    maxBytes: 10485750 # 10MB = 10 * 1024 * 1024
+    backupCount: 10
+    encoding: utf8
+    filename: logs/irg_log.log
 loggers:
   sampleLogger:
     level: DEBUG
-    handlers: [console]
+    handlers: [console, file]
     propagate: False
 root:
   level: DEBUG
-  handlers: [console]
+  handlers: [console, file]

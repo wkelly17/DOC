@@ -20,6 +20,20 @@ RESOURCE_TYPES_JSONPATH = "$[*].contents[*].code"
 RESOURCE_CODES_JSONPATH = "$[*].contents[*].subcontents[*].code"
 
 
+@icontract.ensure(lambda result: result)
+def get_logging_config_file_path() -> str:
+    """
+    The file path location where the dictConfig-style yaml
+    formatted config file for logging is located.
+    """
+    filepath = ""
+    if is_in_container():
+        filepath = os.environ.get("LOGGING_CONFIG", "src/document/logging_config.yaml")
+    else:
+        filepath = "src/document/logging_config.yaml"
+    return filepath
+
+
 @icontract.require(lambda name: name)
 def get_logger(name: str) -> logging.Logger:
     """
@@ -161,19 +175,6 @@ def get_resource_download_format_jsonpath() -> str:
     resource git repo may be found.
     """
     return "$[?code='{}'].contents[?code='{}'].subcontents[?code='{}'].links[?format='Download'].url"
-
-
-def get_logging_config_file_path() -> str:
-    """
-    The file path location where the dictConfig-style yaml
-    formatted config file for logging is located.
-    """
-    filepath = ""
-    if is_in_container():
-        filepath = os.environ.get("LOGGING_CONFIG", "src/document/logging_config.yaml")
-    else:
-        filepath = "src/document/logging_config.yaml"
-    return filepath
 
 
 def get_markdown_doc_file_names() -> List[str]:
