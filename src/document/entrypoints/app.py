@@ -46,24 +46,39 @@ def document_endpoint(
 ) -> model.FinishedDocumentDetails:
     """
     Get the document request and hand it off to the document_generator
-    module for processing. Return FinishedDocumentDetails instance
-    containing URL of resulting PDF.
+    module for processing. Return model.FinishedDocumentDetails instance
+    containing URL of resulting PDF, or, None in the case of failure plus a
+    message to return to the UI.
     """
     document_generator = DocumentGenerator(
         document_request,
         config.get_working_dir(),
         config.get_output_dir(),
     )
-    document_generator.run()
-
-    finished_document_request_key = document_generator.document_request_key
-    finished_document_path = os.path.join(
-        config.get_output_dir(), "{}.pdf".format(finished_document_request_key)
-    )
-    assert os.path.exists(finished_document_path)
-    details = model.FinishedDocumentDetails(
-        finished_document_request_key=finished_document_request_key
-    )
+    # Top level exception handler
+    try:
+        document_generator.run()
+        finished_document_request_key = document_generator.document_request_key
+        finished_document_path = os.path.join(
+            config.get_output_dir(), "{}.pdf".format(finished_document_request_key)
+        )
+        assert os.path.exists(finished_document_path)
+        details = model.FinishedDocumentDetails(
+            finished_document_request_key=finished_document_request_key,
+            message=config.get_success_message(),
+        )
+    except Exception:
+        # This is the same as logger.error("...", exc_info=True)
+        logger.exception(
+            "The document request could not be fulfilled. Likely reason is the following exception:"
+        )
+        details = model.FinishedDocumentDetails(
+            finished_document_request_key=None,
+            # Provide an appropriate message back to the UI that can
+            # be shared with the user when the document request cannot
+            # be fulfilled for some reason.
+            message=config.get_failure_message(),
+        )
 
     logger.debug("details: %s", details)
     return details

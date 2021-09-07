@@ -4,8 +4,9 @@
 import logging
 import os
 import types
+
 from logging import config as lc
-from typing import Dict, List
+from typing import Any, Dict, List
 
 import icontract
 import jinja2
@@ -123,8 +124,14 @@ def get_resource_type_lookup_map() -> types.MappingProxyType[str, Any]:
     between resource_type and Resource subclass instance.
     """
     # Lazy import to avoid circular import.
-    from document.domain.resource import (Resource, TAResource, TNResource,
-                                          TQResource, TWResource, USFMResource)
+    from document.domain.resource import (
+        Resource,
+        TAResource,
+        TNResource,
+        TQResource,
+        TWResource,
+        USFMResource,
+    )
 
     # resource_type is key, Resource subclass is value
     return types.MappingProxyType(
@@ -149,6 +156,21 @@ def get_resource_type_lookup_map() -> types.MappingProxyType[str, Any]:
             "ta-wa": TAResource,
         }
     )
+
+
+def get_success_message() -> str:
+    """
+    Return the message to show to user on successful generation of
+    PDF.
+    """
+    return "Success! Please retrieve your generated document using a GET REST request to /pdf/{document_request_key} where document_request_key is the finished_document_request_key in this payload."
+
+
+def get_failure_message() -> str:
+    """
+    Return the message to show to user on failure generating PDF.
+    """
+    return "The document request could not be fulfilled either because the resources requested are not available either currently or at all or because the system does not yet support the resources requested."
 
 
 def get_translations_json_location() -> str:

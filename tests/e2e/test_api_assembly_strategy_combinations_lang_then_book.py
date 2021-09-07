@@ -26,7 +26,8 @@ def check_finished_document_with_verses_success(
     html_file = "{}.html".format(finished_document_path.split(".")[0])
     assert os.path.isfile(html_file)
     assert response.json() == {
-        "finished_document_request_key": pathlib.Path(finished_document_path).stem
+        "finished_document_request_key": pathlib.Path(finished_document_path).stem,
+        "message": config.get_success_message(),
     }
     with open(html_file, "r") as fin:
         html = fin.read()
@@ -56,7 +57,8 @@ def check_finished_document_without_verses_success(
     html_file = "{}.html".format(finished_document_path.split(".")[0])
     assert os.path.isfile(html_file)
     assert response.json() == {
-        "finished_document_request_key": pathlib.Path(finished_document_path).stem
+        "finished_document_request_key": pathlib.Path(finished_document_path).stem,
+        "message": config.get_success_message(),
     }
     with open(html_file, "r") as fin:
         html = fin.read()

@@ -469,6 +469,7 @@ class DocumentGenerator:
                     "Exception while reading USFM file for %s, skipping this resource and continuing with remaining resource requests, if any.",
                     resource,
                 )
+                logger.exception("Caught exception:")
 
     @icontract.require(lambda document_request: document_request is not None)
     def _initialize_resources(

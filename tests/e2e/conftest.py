@@ -28,13 +28,14 @@ PASSING_NON_ENGLISH_LANG_CODES = [
     "zh",
 ]
 FAILING_NON_ENGLISH_LANG_CODES = [
-    "kbt",
     "aau",
-    "tbg-x-abuhaina",
-    "abz",
     "abu",
-    "guq",
+    "abz",
     "am",
+    "guq",
+    "kbt",
+    "ndh-x-chindali",
+    "tbg-x-abuhaina",
 ]
 # Every once in a while it is good to un-comment the next two
 # expressions so that more combinations can be tested.

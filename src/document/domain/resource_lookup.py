@@ -789,7 +789,7 @@ class BIELHelperResourceJsonLookup:
                 try:
                     resource_type = resource_type_dict["code"]
                     resource_types.append(resource_type)
-                except:
+                except Exception:
                     resource_type = None
             lang_codes_names_and_resource_types.append(
                 model.CodeNameTypeTriplet(lang_code=lang["code"], lang_name=lang["name"], resource_types=resource_types)
@@ -848,7 +848,7 @@ class BIELHelperResourceJsonLookup:
                 # 2co
                 try:
                     resource_type = resource_type_dict["code"]
-                except:
+                except Exception:
                     resource_type = None
                 resource_codes_list = resource_type_dict["subcontents"]
                 resource_codes: List[str] = []
@@ -905,7 +905,7 @@ class BIELHelperResourceJsonLookup:
         for d in self.json_data:
             try:
                 contents_code = d["contents"][0]["code"]
-            except:
+            except Exception:
                 contents_code = "nil"
             lang_codes_names_and_contents_codes.append(
                 (d["code"], d["name"], contents_code)

@@ -173,6 +173,7 @@ class FinishedDocumentDetails(BaseModel):
     """
 
     finished_document_request_key: Optional[str]
+    message: str
 
 
 class TemplateDto(BaseModel):

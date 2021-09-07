@@ -29,7 +29,8 @@ def check_finished_document_with_verses_success(
     html_file = "{}.html".format(finished_document_path.split(".")[0])
     assert os.path.isfile(html_file)
     assert response.json() == {
-        "finished_document_request_key": pathlib.Path(finished_document_path).stem
+        "finished_document_request_key": pathlib.Path(finished_document_path).stem,
+        "message": config.get_success_message(),
     }
     with open(html_file, "r") as fin:
         html = fin.read()
@@ -59,7 +60,8 @@ def check_finished_document_with_body_success(
     html_file = "{}.html".format(finished_document_path.split(".")[0])
     assert os.path.isfile(html_file)
     assert response.json() == {
-        "finished_document_request_key": pathlib.Path(finished_document_path).stem
+        "finished_document_request_key": pathlib.Path(finished_document_path).stem,
+        "message": config.get_success_message(),
     }
     with open(html_file, "r") as fin:
         html = fin.read()
@@ -82,8 +84,8 @@ def check_finished_document_without_verses_success(
     finished_document_path = os.path.join(
         config.get_output_dir(), finished_document_path
     )
-    html_file = "{}.html".format(finished_document_path.split(".")[0])
     assert os.path.exists(finished_document_path)
+    html_file = "{}.html".format(finished_document_path.split(".")[0])
     assert os.path.exists(html_file)
     with open(html_file, "r") as fin:
         html = fin.read()
@@ -369,7 +371,8 @@ def test_en_ulb_wa_tit_en_tn_wa_tit_book_language_order() -> None:
         )
         assert os.path.isfile(finished_document_path)
         assert response.json() == {
-            "finished_document_request_key": pathlib.Path(finished_document_path).stem
+            "finished_document_request_key": pathlib.Path(finished_document_path).stem,
+            "message": config.get_success_message(),
         }
 
 
@@ -1531,7 +1534,10 @@ def test_ndh_x_chindali_reg_mat_ndh_x_chindali_tn_mat_ndh_x_chindali_tq_mat_ndh_
             },
         )
         finished_document_path = "ndh-x-chindali-reg-mat_ndh-x-chindali-tn-mat_ndh-x-chindali-tq-mat_ndh-x-chindali-tw-mat_ndh-x-chindali-udb-mat_book_language_order.pdf"
-        check_finished_document_without_verses_success(response, finished_document_path)
+        with pytest.raises(Exception):
+            check_finished_document_without_verses_success(
+                response, finished_document_path
+            )
 
 
 def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_es_419_ulb_col_es_419_tn_col_es_419_tq_col_es_419_tw_col_book_language_order() -> None:

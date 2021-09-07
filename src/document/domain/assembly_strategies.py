@@ -1564,6 +1564,7 @@ def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
                     usfm_resource,
                     chapter_num,
                 )
+                logger.exception("Caught exception:")
 
     # Add the translation word definitions
     for tw_resource in tw_resources:
