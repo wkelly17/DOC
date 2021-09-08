@@ -82,10 +82,8 @@ class ResourceJsonLookup:
     # def _get_data(self) -> None:
     #     self._source_data_fetcher._get_data()
 
-    @icontract.require(lambda resource: resource.lang_code == "en")
-    @icontract.require(lambda resource: resource.resource_type is not None)
-    @icontract.ensure(lambda result: result.source == model.AssetSourceEnum.GIT)
-    @icontract.ensure(lambda result: result.url is not None)
+    @icontract.require(lambda resource: resource.lang_code == "en" and resource.resource_type)
+    @icontract.ensure(lambda result: result and result.url and result.source == model.AssetSourceEnum.GIT)
     @log_on_start(
         logging.INFO,
         "About to look for English resource assets URL for git repo",
@@ -463,6 +461,7 @@ class USFMResourceJsonLookup(ResourceLookup):
             lang_name=lang_name,
             resource_type_name=resource_type_name,
         )
+
 
 class TResourceJsonLookup(ResourceLookup):
     """Handle lookup of TN, TA, TQ, TW resources."""
