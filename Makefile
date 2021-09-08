@@ -23,7 +23,7 @@ server: up
 
 # Run a local server outside Docker
 local-server:
-	uvicorn document.entrypoints.app:app --reload --host "127.0.0.1" --port "8000" --app-dir "./src/"
+	uvicorn document.entrypoints.app:app --reload --host "127.0.0.1" --port "5005" --app-dir "./src/"
 
 test: up
 	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/unit /tests/integration /tests/e2e
@@ -134,6 +134,7 @@ local-icontract-hypothesis-tests: local-prepare-for-tests
 
 local-icontract-hypothesis-tests2: local-prepare-for-tests
 	ENABLE_ASSET_CACHING=1 TRANSLATIONS_JSON_FROM_GIT=1 SEND_EMAIL=0 FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pyicontract-hypothesis test -p src/document/entrypoints/app.py
+
 local-email-tests: local-prepare-for-tests
 	./test_email_DO_NOT_COMMIT.sh
 
