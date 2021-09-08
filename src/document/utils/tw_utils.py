@@ -47,8 +47,8 @@ def get_localized_translation_word(
         # logger.debug(
         #     "localized_translation_word: %s", localized_translation_word
         # )
-        # The localized word is actually multiple forms of the word separated by
-        # commas, use the first form of the word.
+        # In this case, the localized word is actually multiple forms of the
+        # word separated by commas, use the first form of the word.
         localized_translation_word = localized_translation_word.split(",")[0]
         # logger.debug(
         #     "Updated localized_translation_word: %s", localized_translation_word
@@ -62,18 +62,18 @@ def get_localized_translation_word(
 def get_tw_resource_dir(lang_code: str) -> str:
     """
     Return the location of the TW resource asset directory given the
-    lang_code of the language under consideration. The location is based on
-    an established convention for the directory structure that the
-    system either retains or manipulates (in the case of git repo
-    clones) to be consistent across lang_code, resource_type, and
-    resource_code combinations.
+    lang_code of the language under consideration. The location is
+    based on an established convention for the directory structure to
+    be consistent across lang_code, resource_type, and resource_code
+    combinations.
     """
-    # This is a bit hacky to "know" the actual directory path file
-    # pattern/convention to expect and use it literally, albeit with some
-    # globbing fuzziness. However, if we don't do this then we passing the
-    # TWResource instance's resource_dir property value to them so that they
-    # can pass it to the markdown extension. That end up causing design
-    # issues which couple TWResource to other Resource subclass instances.
+    # This is a bit hacky to "know" how to derive the actual directory path
+    # file pattern/convention to expect and use it literally. But, Being
+    # able to derive the tw_resource_dir location from only a lang_code a
+    # constant, TW, and a convention allows us to decouple TWResource from
+    # other Resource subclass instances. They'd be coupled if we had
+    # to pass the value of TWResource's resource_dir to Resource
+    # subclasses otherwise. It is a design tradeoff.
     tw_resource_dir_candidates = glob(
         "{}/{}_{}*/{}_{}*".format(
             config.get_working_dir(), lang_code, TW, lang_code, TW
@@ -81,29 +81,26 @@ def get_tw_resource_dir(lang_code: str) -> str:
     )
     # If tw_resource_dir_candidates is empty it is because the user
     # did not request a TW resource as part of their document request
-    # which is a valid state of affairs of course.
     return tw_resource_dir_candidates[0] if tw_resource_dir_candidates else ""
+    # which is a valid state of affairs of course. We return the empty
+    # string in such cases.
 
 
 # Some document requests don't include a resource request for
-# translation words. In such cases there wouldn't be a
-# tw_resource_dir.
+# translation words. In such cases there wouldn't be a tw_resource_dir
+# associated with the request (though there could be the actual TW
+# resource asset files on disk from a previous document request - we
+# wouldn't make the assumption that such files were there however)
+# therefore we can't require tw_resource_dir as a precondition.
 # @icontract.require(lambda tw_resource_dir: tw_resource_dir)
 # @icontract.ensure(lambda result: result)
 def get_translation_words_dict(tw_resource_dir: str) -> Dict[str, str]:
     """
     Given the path to the TW resource asset files, return a dictionary
-    of translation word to translation word filepath mappings.
+    of translation word to translation word filepath mappings,
+    otherwise return an empty dictionary.
     """
     if tw_resource_dir:
-        # FIXME For style, to avoid the preceding conditional, it would be nicer
-        # if get_translation_word_filepaths would make tw_resource_dir Optional.
-        # Really the fact that get_translation_word_filepaths globs for its
-        # results means that if tw_resource_dir is the empty string we just back
-        # back an empty list for translation_word_filepaths. If we go
-        # that route, i.e., empty tw_resource_dir param ok, then we'll
-        # want to comment out the icontract contracts on
-        # get_translation_word_filepaths.
         translation_word_filepaths = get_translation_word_filepaths(tw_resource_dir)
         return {
             pathlib.Path(os.path.basename(word_filepath)).stem: word_filepath

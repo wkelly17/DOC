@@ -12,12 +12,13 @@ services:
         # This comes from .env
         WKHTMLTOX_LOC: ${WKHTMLTOX_LOC}
     volumes:
-      # FIXME Test if all is well without the next two mapped volumes
-      # src and test. I don't think they are needed anymore.
-      # Regardless, the Docker structure will undergoe a radical
-      # change in a future update.
+      #       FIXME src and test volume maps may no longer be needed anymore,
+      #       need to test by removing them and running tests.
       - ./src:/src
       - ./tests:/tests
+      #       IRG writes generated PDFs to /output. Map that directory to the
+      #       ./docker_pdf_output host directory in order to be able to view
+      #       generated PDFs from Docker run in local file system.
       - ./docker_pdf_output:/output
       #       IRG container writes logs rotated logs to its /logs directory.
       #       Map that directory to the ./logs directory on host so that we

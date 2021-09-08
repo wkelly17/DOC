@@ -59,7 +59,7 @@ class Resource:
         # link references in markdown content point at a resource that was
         # actually requested, i.e., part of the DocumentRequest or not, and can
         # thus be linked. Design-wise, this is an unfortunate linking together
-        # of of DocumentRequest, Resource, and LinkTransformerExtension that I
+        # of DocumentRequest, Resource, and LinkTransformerExtension that I
         # tried valiantly to avoid in design until this point.
         self._resource_requests = resource_requests
         # E.g., en, gu, fr
@@ -247,9 +247,6 @@ class USFMResource(Resource):
     )
     def find_location(self) -> None:
         """See docstring in superclass."""
-        # FIXME For better flexibility, the lookup class could be
-        # looked up in a table, i.e., dict, that has the key as self
-        # classname and the value as the lookup subclass.
         lookup_svc = resource_lookup.USFMResourceJsonLookup()
         resource_lookup_dto: model.ResourceLookupDto = lookup_svc.lookup(self)
         self._lang_name = resource_lookup_dto.lang_name
@@ -811,8 +808,6 @@ class TQResource(TResource):
         # on if their assets were acquired as a git repo or a zip).
         # We handle this here.
         if not chapter_dirs:
-            # FIXME We can likely now remove the first '**' for a tiny
-            # speedup, but I'd need to test thorougly first.
             chapter_dirs = sorted(
                 glob("{}/*{}/*[0-9]*".format(self._resource_dir, self._resource_code))
             )
@@ -1337,16 +1332,12 @@ class ResourceProvisioner:
         # self._resource.resource_url attribute is not None. mypy
         # isn't convinced otherwise without the cast.
 
-        # FIXME To ensure consistent directory naming for later discovery, let's
-        # consider not using the url.rpartition(os.path.sep)[2]. Instead let's
-        # use a directory built from the parameters of the (updated) resource:
-        # os.path.join(resource.resource_dir, resource.resource_type)
         # FIXME We'll have to see if this is the best approach for consistency
         # across different resources' assets in different languages. So far it
         # adheres to the most consistent pattern I've seen in translations.json,
         # but my analysis of translations.json has not been exhaustive. That
-        # being said, it has worked fine for several languages and books so far
-        # though.
+        # being said, it has worked fine for several languages and
+        # books so far.
         resource_filepath = os.path.join(
             self._resource.resource_dir,
             self._resource.resource_url.rpartition(os.path.sep)[2],

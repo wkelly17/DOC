@@ -41,7 +41,7 @@ logger = config.get_logger(__name__)
 ## strategies work together in the following way: the higher level
 ## constrains the assembly algorithm by some criteria, e.g., by
 ## language, and then the lower level further organizes the assembly
-## within those constraints, .e.g., by superimposing an order to when
+## within those constraints, e.g., by superimposing an order to when
 ## resource's are interleaved. It is possible to have both multiple
 ## higher level, so-called 'assembly strategies' and lower level,
 ## so-called 'sub strategies', assembly strategies.
@@ -83,9 +83,9 @@ def assembly_sub_strategy_factory(
 ]:
     """
     Strategy pattern. Given the existence, i.e., exists or None, of each
-    type of the possible resource instances and an
-    assembly sub-strategy kind, returns the appropriate sub-strategy
-    function to run.
+    type of the possible resource instances (i.e., the *_resource params
+    above) and an assembly sub-strategy kind, returns the appropriate
+    sub-strategy function to run.
 
     This functions as a lookup table that will select the right
     assembly function to run. The impetus for it is to avoid messy
@@ -96,16 +96,13 @@ def assembly_sub_strategy_factory(
     """
     strategies: Dict[
         Tuple[
-            # Params: usfm_resource_exists, tn_resource_exists,
-            # tq_resource_exists, tw_resource_exists, ta_resource_exists,
-            # usfm_resource2_exists, assembly_strategy_kind
-            bool,
-            bool,
-            bool,
-            bool,
-            bool,
-            bool,
-            model.AssemblySubstrategyEnum,
+            bool,  # usfm_resource_exists
+            bool,  # tn_resource_exists
+            bool,  # tq_resource_exists
+            bool,  # tw_resource_exists
+            bool,  # ta_resource_exists
+            bool,  # usfm_resource2_exists
+            model.AssemblySubstrategyEnum,  # assembly_strategy_kind
         ],
         Callable[
             [
@@ -128,7 +125,6 @@ def assembly_sub_strategy_factory(
             False,
             True,
             model.AssemblySubstrategyEnum.VERSE,
-            # ): _assemble_usfm_tn_tq_tw_usfm2_content_by_verse,
         ): _assemble_usfm_as_iterator_content_by_verse,
         (
             True,
@@ -138,7 +134,6 @@ def assembly_sub_strategy_factory(
             False,
             True,
             model.AssemblySubstrategyEnum.VERSE,
-            # ): _assemble_usfm_tn_tq_usfm2_content_by_verse,
         ): _assemble_usfm_as_iterator_content_by_verse,
         (
             True,
@@ -193,7 +188,6 @@ def assembly_sub_strategy_factory(
             False,
             True,
             model.AssemblySubstrategyEnum.VERSE,
-            # ): _assemble_usfm_tn_tq_usfm2_content_by_verse,
         ): _assemble_usfm_as_iterator_content_by_verse,
         (
             False,
@@ -203,7 +197,6 @@ def assembly_sub_strategy_factory(
             False,
             True,
             model.AssemblySubstrategyEnum.VERSE,
-            # ): _assemble_usfm_tn_tq_usfm2_content_by_verse,
         ): _assemble_usfm_as_iterator_content_by_verse,
         # (
         #     True,
@@ -223,7 +216,6 @@ def assembly_sub_strategy_factory(
             False,
             False,
             model.AssemblySubstrategyEnum.VERSE,
-            # ): _assemble_usfm_tn_tq_tw_content_by_verse,
         ): _assemble_usfm_as_iterator_content_by_verse,
         (
             True,
@@ -233,7 +225,6 @@ def assembly_sub_strategy_factory(
             False,
             False,
             model.AssemblySubstrategyEnum.VERSE,
-            # ): _assemble_usfm_tn_tw_content_by_verse,
         ): _assemble_usfm_as_iterator_content_by_verse,
         (
             True,
@@ -244,7 +235,6 @@ def assembly_sub_strategy_factory(
             False,
             model.AssemblySubstrategyEnum.VERSE,
         ): _assemble_usfm_tq_tw_content_by_verse,
-        # ): _assemble_usfm_as_iterator_content_by_verse,
         (
             True,
             False,
@@ -262,7 +252,6 @@ def assembly_sub_strategy_factory(
             False,
             False,
             model.AssemblySubstrategyEnum.VERSE,
-            # ): _assemble_usfm_tn_tq_content_by_verse,
         ): _assemble_usfm_as_iterator_content_by_verse,
         (
             True,
@@ -281,7 +270,6 @@ def assembly_sub_strategy_factory(
             False,
             False,
             model.AssemblySubstrategyEnum.VERSE,
-            # ): _assemble_usfm_tn_content_by_verse,
         ): _assemble_usfm_as_iterator_content_by_verse,
         (
             False,
@@ -291,7 +279,6 @@ def assembly_sub_strategy_factory(
             False,
             False,
             model.AssemblySubstrategyEnum.VERSE,
-            # ): _assemble_tn_tq_tw_content_by_verse,
         ): _assemble_tn_as_iterator_content_by_verse,
         (
             False,
@@ -301,7 +288,6 @@ def assembly_sub_strategy_factory(
             False,
             False,
             model.AssemblySubstrategyEnum.VERSE,
-            # ): _assemble_tn_tw_content_by_verse,
         ): _assemble_tn_as_iterator_content_by_verse,
         (
             False,
@@ -311,7 +297,6 @@ def assembly_sub_strategy_factory(
             False,
             False,
             model.AssemblySubstrategyEnum.VERSE,
-            # ): _assemble_tn_tq_content_by_verse,
         ): _assemble_tn_as_iterator_content_by_verse,
         (
             False,
@@ -348,7 +333,6 @@ def assembly_sub_strategy_factory(
             False,
             False,
             model.AssemblySubstrategyEnum.VERSE,
-            # ): _assemble_usfm_content_by_verse,
         ): _assemble_usfm_as_iterator_content_by_verse,
         (
             False,
@@ -358,7 +342,6 @@ def assembly_sub_strategy_factory(
             False,
             False,
             model.AssemblySubstrategyEnum.VERSE,
-            # ): _assemble_tn_content_by_verse,
         ): _assemble_tn_as_iterator_content_by_verse,
     }
     return strategies[
@@ -410,13 +393,12 @@ def assembly_sub_strategy_factory_for_book_then_lang(
     """
     strategies: Dict[
         Tuple[
-            # Params: usfm_resources is non-empty, tn_resources is non-empty, tq_resources is non-empty, tw_resources is non-empty, ta_resources is non-empty, assembly_strategy_kind
-            bool,
-            bool,
-            bool,
-            bool,
-            bool,
-            model.AssemblySubstrategyEnum,
+            bool,  # usfm_resources is non-empty
+            bool,  # tn_resources is non-empty
+            bool,  # tq_resources is non-empty
+            bool,  # tw_resources is non-empty
+            bool,  # ta_resources is non-empty
+            model.AssemblySubstrategyEnum,  # assembly_strategy_kind
         ],
         Callable[
             [
@@ -644,6 +626,9 @@ def _assemble_content_by_lang_then_book(
                 tw_resource,
                 ta_resource,
                 usfm_resource2,
+                # Currently there is only one sub-strategy so we just get it from a
+                # config value. If we get more later then we'll thread the user's choice
+                # as a param through method/functions.
                 config.get_default_assembly_substrategy(),
             )
 
@@ -660,6 +645,9 @@ def _assemble_content_by_lang_then_book(
                 tw_resource,
                 ta_resource,
                 usfm_resource2,
+                # Currently there is only one sub-strategy so we just get it from a
+                # config value. If we get more later then we'll thread the user's choice
+                # as a param through method/functions.
                 config.get_default_assembly_substrategy(),
             )
             html.append(sub_html)
@@ -676,19 +664,18 @@ def _assemble_content_by_book_then_lang(
     docgen: document_generator.DocumentGenerator,
 ) -> str:
     """
-    Assemble by book then by language in lexicographical order before
+    Assemble by book then by language in alphabetic order before
     delegating more atomic ordering/interleaving to an assembly
     sub-strategy.
     """
 
-    # NOTE Each strategy can interleave resource material the way it
-    # wants. A user could choose a strategy they want at the front
-    # end. Presumably, we could offer the user such strategies from a
-    # dropdown that would be intelligent enough to only present
-    # choices that make sense for the number of languages and
-    # resources they have selected, e.g., we wouldn't bother them with
-    # the choice of interleaving strategy if for instance all they
-    # wanted was TN for Swahili and nothing else.
+    # NOTE Each strategy can interleave resource material the way it wants.
+    # A user could choose a strategy they want at the front end. Presumably,
+    # we could offer the user such strategies from a drop-down that would be
+    # intelligent enough to only present choices that make sense for the
+    # number of languages and resources they have been selected, e.g., we
+    # wouldn't bother them with the choice of interleaving strategy if for
+    # instance all they wanted was TN for Swahili and nothing else.
 
     resources_sorted_by_book = sorted(
         # docgen.found_resources, key=lambda resource: resource.lang_name,
@@ -697,7 +684,7 @@ def _assemble_content_by_book_then_lang(
     )
     html = []
     book: str
-    # group_by_book: itertools._grouper
+    # group_by_book: itertools._grouper # mypy doesn't like this type, though it is correct, hence it is commented out - just for documentation.
     for book, group_by_book in itertools.groupby(
         resources_sorted_by_book,
         lambda resource: resource.resource_code,
@@ -711,25 +698,24 @@ def _assemble_content_by_book_then_lang(
         # Save grouper generator values in list since it will get exhausted
         # when used and exhausted generators cannot be reused.
         resources = list(group_by_book)
-        # usfm_resource: Optional[USFMResource] = _get_first_usfm_resource(resources)
         usfm_resources: List[USFMResource] = _get_usfm_resources(resources)
         tn_resources: List[TNResource] = _get_tn_resources(resources)
         tq_resources: List[TQResource] = _get_tq_resources(resources)
         tw_resources: List[TWResource] = _get_tw_resources(resources)
         ta_resources: List[TAResource] = _get_ta_resources(resources)
-        # usfm_resource2: Optional[USFMResource] = _get_second_usfm_resource(resources)
 
         # We've got the resources, now we can use the sub-strategy factory
         # method to choose the right function to use from here on out.
-        docgen.assembly_sub_strategy_for_book_then_lang = (
-            assembly_sub_strategy_factory_for_book_then_lang(
-                usfm_resources,
-                tn_resources,
-                tq_resources,
-                tw_resources,
-                ta_resources,
-                config.get_default_assembly_substrategy(),
-            )
+        docgen.assembly_sub_strategy_for_book_then_lang = assembly_sub_strategy_factory_for_book_then_lang(
+            usfm_resources,
+            tn_resources,
+            tq_resources,
+            tw_resources,
+            ta_resources,
+            # Currently there is only one sub-strategy so we just get it from a
+            # config value. If we get more later then we'll thread the user's choice
+            # as a param through method/functions.
+            config.get_default_assembly_substrategy(),
         )
 
         logger.debug(
@@ -745,6 +731,9 @@ def _assemble_content_by_book_then_lang(
             tq_resources,
             tw_resources,
             ta_resources,
+            # Currently there is only one sub-strategy so we just get it from a
+            # config value. If we get more later then we'll thread the user's choice
+            # as a param through method/functions.
             config.get_default_assembly_substrategy(),
         )
         html.append(sub_html)
@@ -830,7 +819,6 @@ def _assemble_usfm_as_iterator_content_by_verse(
     interleaving strategy. The second USFM resource is displayed last
     in this interleaving strategy.
     """
-
     html: List[model.HtmlContent] = []
     if tn_resource:
         book_intro = tn_resource.book_payload.intro_html
@@ -838,7 +826,7 @@ def _assemble_usfm_as_iterator_content_by_verse(
         html.append(model.HtmlContent(book_intro))
 
     if usfm_resource:
-        # Scripture type for usfm_resource, e.g., ulb, cuv, nav, etc.
+        # Scripture type for usfm_resource, e.g., ulb, cuv, nav, reg, etc.
         html.append(
             model.HtmlContent(
                 config.get_html_format_string("resource_type_name").format(
@@ -846,7 +834,7 @@ def _assemble_usfm_as_iterator_content_by_verse(
                 )
             )
         )
-        # PEP526 disallows declaration of types in for loops, but allows this.
+        # PEP526 disallows declaration of types in for loops.
         chapter_num: model.ChapterNum
         chapter: model.USFMChapter
         for chapter_num, chapter in usfm_resource.chapters_content.items():
@@ -863,8 +851,7 @@ def _assemble_usfm_as_iterator_content_by_verse(
             if tq_resource:
                 tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
 
-            # PEP526 disallows declaration of types in for
-            # loops, but allows this.
+            # PEP526 disallows declaration of types in for loops.
             verse_num: model.VerseRef
             verse: model.HtmlContent
             # Now let's interleave USFM verse with its translation note, translation
@@ -977,7 +964,7 @@ def _assemble_usfm_tq_tw_content_by_verse(
 
     html: List[model.HtmlContent] = []
 
-    # PEP526 disallows declaration of types in for loops, but allows this.
+    # PEP526 disallows declaration of types in for loops.
     chapter_num: model.ChapterNum
     chapter: model.USFMChapter
     for chapter_num, chapter in usfm_resource.chapters_content.items():
@@ -988,8 +975,7 @@ def _assemble_usfm_tq_tw_content_by_verse(
 
         tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
 
-        # PEP526 disallows declaration of types in for
-        # loops, but allows this.
+        # PEP526 disallows declaration of types in for loops.
         verse_num: model.VerseRef
         verse: model.HtmlContent
         # Now let's interleave USFM verse with its translation note, translation
@@ -1180,7 +1166,7 @@ def _assemble_tn_as_iterator_content_by_verse(
         book_intro = _adjust_book_intro_headings(book_intro)
         html.append(book_intro)
 
-        # PEP526 disallows declaration of types in for loops, but allows this.
+        # PEP526 disallows declaration of types in for loops.
         chapter_num: model.ChapterNum
         for chapter_num in tn_resource.book_payload.chapters:
             # How to get chapter heading for Translation notes when USFM is not
@@ -1450,7 +1436,7 @@ def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
     #         Unlocked Literal Bible (ULB) 1:1
     #         a verse goes here
     #         French ULB 1:1
-    #         voila est es magnifique
+    #         a verse goes here
     #         ULB Translation Helps 1:1
     #         translation notes for English goes here
     #         French Translation notes 1:1
@@ -1462,14 +1448,44 @@ def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
         # Add the book intro
         book_intro = tn_resource.book_payload.intro_html
         book_intro = _adjust_book_intro_headings(book_intro)
-        # book_intros.append(book_intro)
         html.append(model.HtmlContent(book_intro))
 
-    # PEP526 disallows declaration of types in for loops, but allows this.
+    # NOTE A note regarding chapter and verse pumps used in loops
+    # below:
+    #
+    # Instead of usfm_resources[0] being used by default as the chapter and
+    # verse pump in the next loop, we could use the usfm_resource with the
+    # most chapters or verses for the chapter_num or verse_num pump
+    # respectively:
+    #
+    # usfm_with_most_chapters = max(
+    #     usfm_resources,
+    #     key=lambda usfm_resource: usfm_resource.chapter_content
+    # )
+    #
+    # and:
+    #
+    # usfm_with_most_verses = max(
+    #     usfm_resources,
+    #     key=lambda usfm_resource: usfm_resource.chapter_content[
+    #         chapter_num
+    #     ].chapter_verses.items(),
+    # )
+    #
+    # Care would need to be taken with subsequent logic if this is used. Why
+    # even consider such a change? A: In order to realize the most amount of
+    # content displayed to user.
+
+    # PEP526 disallows declaration of types in for loops.
     chapter_num: model.ChapterNum
     chapter: model.USFMChapter
-    # Use the first usfm_resource as a chapter_num pump.
     for chapter_num, chapter in usfm_resources[0].chapters_content.items():
+    # NOTE Assumption (which may need to change): usfm_resources[0] is the
+    # right usfm_resource instance to use for chapter_num pump. However, if
+    # usfm_resource[n] where n is not 0 has more chapters then it should
+    # probably be used instead. Still thinking about this one. Hasn't been
+    # an issue in practice so far. See note above about
+    # usfm_with_most_chapters for a possible different approach.
         # Add the first USFM resource's chapter heading. We ignore
         # chapter headings for other usfm_resources because it would
         # be strange to have more than one chapter heading per chapter
@@ -1484,6 +1500,8 @@ def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
             chapter_intro = _get_chapter_intro(tn_resource, chapter_num)
             html.append(model.HtmlContent(chapter_intro))
 
+        # NOTE If we add macro-weave feature, it would go here, see
+        # notes for code.
         # Use the first usfm_resource as a verse_num pump
         for verse_num, verse in (
             usfm_resources[0].chapters_content[chapter_num].chapter_verses.items()
@@ -1512,7 +1530,7 @@ def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
                         ]
                     )
 
-            # Add the interleaved tn verses
+            # Add the interleaved tn notes
             for tn_resource in tn_resources:
                 tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
                 if tn_verses and verse_num in tn_verses:
@@ -1523,7 +1541,7 @@ def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
                     )
                     html.extend(tn_verse_content)
 
-            # Add the interleaved tq verses
+            # Add the interleaved tq questions
             for tq_resource in tq_resources:
                 tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
                 # Add TQ verse content, if any
@@ -1635,7 +1653,7 @@ def _assemble_tn_as_iterator_content_by_verse_for_book_then_lang(
         for verse_num, verse in (
             tn_resources[0].book_payload.chapters[chapter_num].verses_html.items()
         ):
-            # Add the interleaved tn verses
+            # Add the interleaved tn notes
             for tn_resource in tn_resources:
                 tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
                 if tn_verses and verse_num in tn_verses:
@@ -1646,7 +1664,7 @@ def _assemble_tn_as_iterator_content_by_verse_for_book_then_lang(
                     )
                     html.extend(tn_verse_content)
 
-            # Add the interleaved tq verses
+            # Add the interleaved tq questions
             for tq_resource in tq_resources:
                 tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
                 # Add TQ verse content, if any
@@ -1725,7 +1743,7 @@ def _assemble_tq_as_iterator_content_by_verse_for_book_then_lang(
         for verse_num, verse in (
             tq_resources[0].book_payload.chapters[chapter_num].verses_html.items()
         ):
-            # Add the interleaved tq verses
+            # Add the interleaved tq questions
             for tq_resource in tq_resources:
                 tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
                 # Add TQ verse content, if any

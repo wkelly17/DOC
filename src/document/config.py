@@ -56,7 +56,7 @@ def get_api_root() -> str:
     """
     Get API prefix. Useful to have a prefix for versioning of the
     API. TODO Fastapi probably provides a better way of specifying an
-    API prefix.
+    API prefix in a router.
     """
     return os.environ.get("API_ROOT", "/api/v1")
 
@@ -82,13 +82,6 @@ def get_api_url() -> str:
     # return f"http://{host}:{port}"
 
 
-# FIXME Proper setting of working_dir is currently being handled by
-# convert_html2pdf method of document_generator instance.
-# NOTE This should be using RESOURCE_ASSETS_DIR if it is set in the shell,
-# but this presupposes that the call to python -m test_flask on the
-# tools repo is being called on the same shell as Docker container is
-# being run in. But until now, I've been running tools in a fish shell
-# and Docker container in a zshell.
 def get_working_dir() -> str:
     """
     The directory where the resources will be placed once

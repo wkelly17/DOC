@@ -775,7 +775,7 @@ class BIELHelperResourceJsonLookup:
         Example usage in repl:
         >>> from document.domain import resource_lookup
         >>> data = resource_lookup.BIELHelperResourceJsonLookup().lang_codes_names_and_resource_types()
-        # Lookup the resource type available for zh
+        Lookup the resource types available for zh
         >>> [pair[2] for pair in data if pair[0] == "zh"]
         [['cuv', 'tn', 'tq', 'tw']]
         """
@@ -811,7 +811,7 @@ class BIELHelperResourceJsonLookup:
         Example usage in repl:
         >>> from document.domain import resource_lookup
         >>> data = resource_lookup.BIELHelperResourceJsonLookup().lang_codes_names_resource_types_and_resource_codes()
-        # Lookup the resource type available for zh
+        Lookup the resource type available for zh
         >>> [pair[2] for pair in data if pair[0] == "zh"]
         [[('cuv', ['gen', 'exo', 'lev', 'num', 'deu', 'jos', 'jdg', 'rut',
         '1sa', '2sa', '1ki', '2ki', '1ch', '2ch', 'ezr', 'neh', 'est',
@@ -870,7 +870,20 @@ class BIELHelperResourceJsonLookup:
         """
         Convenience test method that can be called to get the set
         of all language code, language name, contents level code as
-        tuples.
+        tuples. Contents level code is a reference to the structure of
+        translations.json, e.g.:
+
+        [
+          {
+            "name": "Abadi",
+            "code": "kbt",
+            "direction": "ltr",
+            "contents": [
+            {
+                "name": "Bible",
+                "code": "reg",    <---- contents > code
+                "subcontents": [
+                ...
 
         Example usage in repl:
         >>> from document.domain import resource_lookup
@@ -894,8 +907,7 @@ class BIELHelperResourceJsonLookup:
         >>> for resource_type in [tuple[0] for tuple in list(itertools.groupby(data, key=lambda tuple: tuple[2]))]:
         ...   [(resource_type, pair[0], pair[1]) for pair in data if pair[2] == resource_type]
         ...
-        # See <project
-        dir>/lang_codes_names_and_contents_codes_groups.json for
+        # See <project dir>/lang_codes_names_and_contents_codes_groups.json for
         output dumped to json format.
         """
         self._get_data()

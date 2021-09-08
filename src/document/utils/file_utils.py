@@ -131,9 +131,6 @@ def write_file(
 
 
 @icontract.require(lambda file_path: file_path is not None)
-# @log_on_start(
-#     logging.DEBUG, "About to check if {file_path} needs update.", logger=logger
-# )
 @log_on_end(logging.DEBUG, "{file_path} needs update: {result}.", logger=logger)
 def source_file_needs_update(file_path: Union[str, pathlib.Path]) -> bool:
     """
@@ -145,9 +142,6 @@ def source_file_needs_update(file_path: Union[str, pathlib.Path]) -> bool:
 
 
 @icontract.require(lambda file_path: file_path is not None)
-# @log_on_start(
-#     logging.DEBUG, "About to check if {file_path} needs update.", logger=logger
-# )
 @log_on_end(logging.DEBUG, "{file_path} needs update: {result}.", logger=logger)
 def asset_file_needs_update(file_path: Union[str, pathlib.Path]) -> bool:
     """
