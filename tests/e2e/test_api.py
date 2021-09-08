@@ -163,7 +163,10 @@ def test_ar_nav_jud_language_book_order() -> None:
             },
         )
         finished_document_path = "ar-nav-jud_language_book_order.pdf"
-        check_finished_document_with_verses_success(response, finished_document_path)
+        with pytest.raises(Exception):
+            check_finished_document_with_verses_success(
+                response, finished_document_path
+            )
 
 
 def test_pt_br_ulb_tn_language_book_order() -> None:
