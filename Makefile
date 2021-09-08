@@ -129,6 +129,11 @@ local-smoke-test-with-no-email: local-prepare-for-tests
 local-smoke-test-with-translation-words: local-prepare-for-tests
 	ENABLE_ASSET_CACHING=1 TRANSLATIONS_JSON_FROM_GIT=1 SEND_EMAIL=0 FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -k test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_pt_br_ulb_col_pt_br_tn_col_pt_br_tq_col_pt_br_tw_col_book_language_order
 
+local-icontract-hypothesis-tests: local-prepare-for-tests
+	ENABLE_ASSET_CACHING=1 TRANSLATIONS_JSON_FROM_GIT=1 SEND_EMAIL=0 FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pyicontract-hypothesis test -p src/document/domain/resource.py
+
+local-icontract-hypothesis-tests2: local-prepare-for-tests
+	ENABLE_ASSET_CACHING=1 TRANSLATIONS_JSON_FROM_GIT=1 SEND_EMAIL=0 FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pyicontract-hypothesis test -p src/document/entrypoints/app.py
 local-email-tests: local-prepare-for-tests
 	./test_email_DO_NOT_COMMIT.sh
 
