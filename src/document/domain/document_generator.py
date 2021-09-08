@@ -61,6 +61,20 @@ class DocumentGenerator:
     document.
     """
 
+    @icontract.require(
+        lambda working_dir, output_dir, document_request: working_dir
+        and output_dir
+        and document_request
+        and document_request.resource_requests
+        and [
+            resource_request
+            for resource_request in document_request.resource_requests
+            if resource_request.lang_code
+            and resource_request.resource_type
+            in config.get_resource_type_lookup_map().keys()
+            and resource_request.resource_code in bible_books.BOOK_NAMES.keys()
+        ]
+    )
     @log_on_start(logging.DEBUG, "document_request: {document_request}", logger=logger)
     @log_on_start(logging.DEBUG, "working_dir: {working_dir}", logger=logger)
     @log_on_start(logging.DEBUG, "output_dir: {output_dir}", logger=logger)

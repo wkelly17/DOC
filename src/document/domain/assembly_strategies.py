@@ -15,6 +15,7 @@ import itertools
 import logging  # For logdecorator
 import re
 
+import icontract
 from logdecorator import log_on_start
 from typing import Callable, cast, Dict, List, Optional, Tuple
 
@@ -1404,6 +1405,10 @@ def _assemble_tw_content_by_verse(
 # Assembly sub-strategy implementations for book then language strategy
 
 
+@icontract.require(
+    lambda usfm_resources: usfm_resources
+)  # precondition: There must be at least one usfm_resource
+@icontract.ensure(lambda result: result)
 def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
     usfm_resources: List[USFMResource],
     tn_resources: List[TNResource],

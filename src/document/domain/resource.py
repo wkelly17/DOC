@@ -38,6 +38,12 @@ class Resource:
     fortified with additional state as instance variables.
     """
 
+    @icontract.require(
+        lambda working_dir, output_dir, resource_request, resource_requests: working_dir
+        and output_dir
+        and resource_request
+        and resource_requests
+    )
     def __init__(
         self,
         # This is where resource asset files get downloaded to and
@@ -1251,6 +1257,15 @@ class TAResource(TResource):
         return verses_html
 
 
+@icontract.require(
+    lambda working_dir, output_dir, resource_request, resource_requests: working_dir
+    and output_dir
+    and resource_request
+    and resource_request.lang_code
+    and resource_request.resource_type
+    and resource_request.resource_code
+)
+@icontract.ensure(lambda result: result)
 def resource_factory(
     working_dir: str,
     output_dir: str,
