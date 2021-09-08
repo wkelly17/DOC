@@ -4,18 +4,22 @@ FROM python:3.9.7-slim-buster
 RUN apt-get update && apt-get install -y \
     wget \
     curl \
-    # FIXME fonts-noto was used by old LaTeX system
-    # fonts-noto \
     fontconfig \
+    fonts-noto-cjk \
     git \
-    # FIXME Not sure lmodern is needed anymore
-    lmodern \
     unzip \
     # Next packages are for wkhtmltopdf
     libxrender1 \
     xfonts-75dpi \
     xfonts-base \
     libjpeg62-turbo
+
+# Get and install needed fonts.
+RUN cd /tmp \
+    && git clone --depth 1 https://github.com/Bible-Translation-Tools/ScriptureAppBuilder-pipeline \
+    && cp /tmp/ScriptureAppBuilder-pipeline/ContainerImage/home/fonts/*.ttf /usr/share/fonts/
+# Refresh system font cache.
+RUN fc-cache -f -v
 
 # Install wkhtmltopdf
 # Source: https://github.com/wkhtmltopdf/wkhtmltopdf/issues/2037
