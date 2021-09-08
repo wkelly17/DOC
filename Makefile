@@ -1,7 +1,7 @@
-build: local-update-deps-dev use-stable-translations-json
+build: local-update-deps-dev # use-stable-translations-json
 	docker-compose build
 
-build-no-cache: use-stable-translations-json
+build-no-cache: # use-stable-translations-json
 	docker-compose build --no-cache
 
 up:
@@ -28,13 +28,13 @@ local-server:
 test: up
 	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/unit /tests/integration /tests/e2e
 
-unit-tests: up use-stable-translations-json
+unit-tests: up # use-stable-translations-json
 	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/unit
 
-integration-tests: up use-stable-translations-json
+integration-tests: up # use-stable-translations-json
 	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/integration
 
-e2e-tests: up use-stable-translations-json
+e2e-tests: up # use-stable-translations-json
 	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/e2e
 
 down:
@@ -102,9 +102,9 @@ local-install-deps-dev: local-update-deps-dev pip-warning
 	pip install -r requirements.txt
 	pip install -r requirements-dev.txt
 
-local-prepare-for-tests: mypy pyicontract-lint local-clean-working-output-dir use-stable-translations-json
+local-prepare-for-tests: mypy pyicontract-lint local-clean-working-output-dir # use-stable-translations-json
 
-local-prepare-for-tests-without-cleaning: mypy pyicontract-lint  use-stable-translations-json
+local-prepare-for-tests-without-cleaning: mypy pyicontract-lint  # use-stable-translations-json
 
 local-clean-working-output-dir:
 	find working/output/ -type f -name "*.html" -exec rm -- {} +
