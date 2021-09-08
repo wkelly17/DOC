@@ -18,7 +18,7 @@ import bs4
 import icontract
 import markdown
 from logdecorator import log_on_end, log_on_start
-from pydantic import AnyUrl, DirectoryPath
+from pydantic import AnyUrl
 from usfm_tools.transform import UsfmTransform
 
 from document import config
@@ -42,8 +42,8 @@ class Resource:
         self,
         # This is where resource asset files get downloaded to and
         # where generated PDFs are placed.
-        working_dir: DirectoryPath,
-        output_dir: DirectoryPath,
+        working_dir: str,
+        output_dir: str,
         # The resource request that this resource reifies.
         resource_request: model.ResourceRequest,
         # The resource requests from the document request. This is
@@ -51,8 +51,8 @@ class Resource:
         # to the LinkTransformerExtension.
         resource_requests: List[model.ResourceRequest],
     ) -> None:
-        self._working_dir: DirectoryPath = working_dir
-        self._output_dir: DirectoryPath = output_dir
+        self._working_dir = working_dir
+        self._output_dir = output_dir
         # DESIGN-ISSUE Avail the resource of the ResourceRequest instances from
         # the DocumentRequest so that it can in turn hand thenm to the
         # LinkTransformerExtension which in turn will use it to determine if
