@@ -1952,3 +1952,26 @@ def test_en_ulb_wa_jon_en_tn_wa_jon_en_tq_wa_jon_en_tw_wa_jon_es_419_ulb_rom_es_
         )
         finished_document_path = "en-ulb-wa-jon_en-tn-wa-jon_en-tq-wa-jon_en-tw-wa-jon_es-419-ulb-rom_es-419-tn-rom_es-419-tq-rom_es-419-tw-rom_book_language_order.pdf"
         check_finished_document_with_verses_success(response, finished_document_path)
+
+
+def test_invalid_document_request() -> None:
+    with pytest.raises(Exception):
+        with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+            response: requests.Response = client.post(
+                "/documents",
+                json={
+                    "email_address": config.get_to_email_address(),
+                    "assembly_strategy_kind": "book_language_order",
+                    "resource_requests": [
+                        {
+                            "lang_code": "",
+                            "resource_type": "xxx",
+                            "resource_code": "blah",
+                        },
+                    ],
+                },
+            )
+            finished_document_path = "invalid_file_that_doesnt_exist.pdf"
+            check_finished_document_with_verses_success(
+                response, finished_document_path
+            )
