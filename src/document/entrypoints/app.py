@@ -85,7 +85,7 @@ def document_endpoint(
 
 
 @app.get("/pdfs/{document_request_key}")
-async def serve_pdf_document(
+def serve_pdf_document(
     document_request_key: str,
 ) -> FileResponse:
     """
