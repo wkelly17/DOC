@@ -1576,7 +1576,7 @@ def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
                 ].chapter_footnotes:
                     html.append(config.get_html_format_string("footnotes"))
                     html.append(chapter_footnotes)
-            except KeyError as exception:
+            except KeyError:
                 logger.debug(
                     "usfm_resource: %s, does not have chapter: %s",
                     usfm_resource,
