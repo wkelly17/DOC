@@ -315,3 +315,22 @@ class CodeNameTypeTriplet(BaseModel):
     lang_code: str
     lang_name: str
     resource_types: List[str]
+
+
+class MarkdownLink(BaseModel):
+    """
+    Reify a markdown link for use in link_transformer_preprocessor
+    module.
+    """
+
+    url: str  # AnyUrl
+    link_text: str
+
+
+class WikiLink(BaseModel):
+    """
+    Reify a wiki link for use in link_transformer_preprocessor
+    module.
+    """
+
+    url: str  # AnyUrl

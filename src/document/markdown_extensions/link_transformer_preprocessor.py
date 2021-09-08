@@ -55,6 +55,9 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
         # phrase, e.g., you could be left with (Veja: ) or (See: ) or
         # (Blah blah blah: ).
 
+        for wiki_link in wiki_link_parser(source):
+            source = self.transform_tw_rc_link(wiki_link, source)
+
         # Handle links pointing at TW resource assets
         source = self.transform_tw_wiki_prefixed_rc_links(source)
         source = self.transform_tw_wiki_rc_links(source)
@@ -76,10 +79,69 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
         # includes the resource_code, e.g., col, rather than leave it
         # out. If they did provide the resource_code then this case
         # would be picked up by self.transform_tn_markdown_links.
-        # source = transform_tn_missing_resource_code_markdown_links(source)
+        source = self.transform_tn_missing_resource_code_markdown_links(source)
         source = self.transform_tn_obs_markdown_links(source)
         return source.split("\n")
 
+    @icontract.require(lambda source: source)
+    @icontract.ensure(lambda result: result)
+    def transform_tw_rc_link(self, wikilink: model.WikiLink, source: str) -> str:
+        """
+        Transform the translation word rc wikilink into a Markdown
+        source anchor link pointing to a destination anchor link for
+        the translation word definition if it exists or replace the
+        link with the non-localized word if it doesn't.
+        """
+        match = re.search(link_regexes.TW_RC_LINK_RE, wikilink.url)
+        if match:
+            # Determine if resource_type TW was one of the requested
+            # resources.
+            url = wikilink.url
+            tw_resources_requests = [
+                resource_request
+                for resource_request in self._resource_requests
+                if TW in resource_request.resource_type
+            ]
+            filename_sans_suffix = match.group("word")
+            # Check that there are translation word asset files
+            # available for this resource _and_ that the document
+            # request included a request for them. The check is
+            # necessary because TW resource asset files might be
+            # available on disk from a previous document request but
+            # the current document request may not have requested them
+            # - if it hasn't requested the TW resource in this
+            # document request then we should not make links to TW
+            # word definitions. Hence the need to also check
+            # tw_resources_requests.
+            if (
+                filename_sans_suffix in self._translation_words_dict
+                and tw_resources_requests
+            ):
+                # Localize the translation word.
+                file_content = file_utils.read_file(
+                    self._translation_words_dict[filename_sans_suffix]
+                )
+                # Get the localized name for the translation word.
+                localized_translation_word = tw_utils.get_localized_translation_word(
+                    file_content
+                )
+                # Build the anchor link.
+                url = url.replace(
+                    match.group(0),  # The whole match
+                    config.get_html_format_string(
+                        "translation_word_anchor_link"
+                    ).format(
+                        localized_translation_word,
+                        self._lang_code,
+                        localized_translation_word,
+                    ),
+                )
+            else:
+                url = url.replace(match.group(0), filename_sans_suffix)
+
+            for match2 in re.finditer(r"\[\[{}\]\]".format(wikilink.url), source):
+                source = source.replace(match2.group(0), url)
+        return source
     @icontract.require(lambda source: source)
     @icontract.ensure(lambda result: result)
     def transform_tw_markdown_links(self, source: str) -> str:
@@ -488,47 +550,21 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
             link_regexes.TN_MARKDOWN_RELATIVE_TO_CURRENT_BOOK_SCRIPTURE_LINK_RE, source
         ):
             scripture_ref = match.group("scripture_ref")
-            # resource_code = match.group("resource_code")
             chapter_num = match.group("chapter_num")
             verse_ref = match.group("verse_ref")
 
-            # FIXME There are at least two ways you could do this:
-            # 1. See if the match is immediately preceded by a
-            # translation note anchor link destination within some
-            # reasonable range of source text and extract the
-            # book_num, e.g., 051, from said anchor link
-            # destination id and then use bible_books.BOOK_NUMBERS to
-            # get the resource_code, e.g., col.
-            #
-            # 2. Use self._resource_requests and self._lang_code
-            # to construct and then search for anchor
-            # destination links that match. If such a match occurs
-            # then transform the link to point to it.
-            #
-            # What follows is method #1:
-            #
-            # Figure out the resource_code from the surrounding
-            # context above
-            resource_code_match = re.search(
-                link_regexes.TRANSLATION_NOTE_VERSE_ID_REGEX,
-                source,
-            )
-            if resource_code_match and resource_code_match.group("book_num"):
-                resource_code = resource_code_match.group("book_num")
-                breakpoint()
-
-            # NOTE See id:check_for_resource_request above
             matching_resource_requests: List[model.ResourceRequest] = [
                 resource_request
                 for resource_request in self._resource_requests
                 if resource_request.lang_code == self._lang_code
                 and TN in resource_request.resource_type
-                and resource_request.resource_code == resource_code
             ]
+            resource_code = ""
             if matching_resource_requests:
                 matching_resource_request: model.ResourceRequest = (
                     matching_resource_requests[0]
                 )
+                resource_code = matching_resource_request.resource_code
                 # Build a file path to the TN note being requested.
                 first_resource_path_segment = "{}_{}".format(
                     matching_resource_request.lang_code,
@@ -615,3 +651,32 @@ class LinkTransformerExtension(markdown.Extension):
             "link_transformer",
             32,
         )
+
+
+def markdown_link_parser(source: str) -> List[model.MarkdownLink]:
+    """
+    Return a list of all Markdown links in source.
+    """
+    links: List[model.MarkdownLink] = []
+    for link in re.finditer(link_regexes.MARKDOWN_LINK_RE, source):
+        links.append(
+            model.MarkdownLink(
+                link_text=link.group("link_text"),
+                url=link.group("url"),
+            )
+        )
+    return links
+
+
+def wiki_link_parser(source: str) -> List[model.WikiLink]:
+    """
+    Return a list of all Wiki links in source.
+    """
+    links: List[model.WikiLink] = []
+    for link in re.finditer(link_regexes.WIKI_LINK_RE, source):
+        links.append(
+            model.WikiLink(
+                url=link.group("url"),
+            )
+        )
+    return links

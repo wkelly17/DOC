@@ -3,6 +3,16 @@ Link regular expressions used by link_transformer_preprocessor module.
 """
 import re
 
+# Handle TW wikilink inner text
+TW_RC_LINK_RE = re.compile(
+    (
+        r"rc:\/\/"
+        r"(?P<lang_code>.+?)"
+        r"\/tw\/dict\/bible\/(?:kt|names|other)\/"
+        r"(?P<word>.+?)$"
+    )
+)
+
 # Handle wiki style rc links.
 # e.g., [[rc://*/tw/dict/bible/kt/foo.md]]
 # NOTE(id:regex_transformation_order) Ensure this doesn't interfere with
@@ -15,34 +25,34 @@ import re
 # TW_WIKI_RC_SEE_LINK_RE regex transformations first. The same is true
 # for the TA and TN regexes below.
 TW_WIKI_RC_LINK_RE = (
-    r"\[\[rc:\/\/\*\/tw\/dict\/bible\/(?:kt|names|other)\/(?P<word>.+?)\]\]"
+    r"\[\[rc:\/\/\*\/tw\/dict\/bible\/(?:kt|names|other)\/(?P<word>[^\]]+?)\]\]"
 )
 
-# TW rc wikilink regex
+# TW prefixed rc wikilink regex
 # (See: [[rc://en/tw/dict/bible/kt/reveal]])
-TW_WIKI_PREFIXED_RC_LINK_RE = r"\((?P<prefix_text>.+?):* *\[\[rc://(?P<lang_code>.+?)\/tw\/dict\/bible\/(?:kt|names|other)\/(?P<word>.+?)\]\]\)"
+TW_WIKI_PREFIXED_RC_LINK_RE = r"\((?P<prefix_text>.+?):* *\[\[rc://(?P<lang_code>[^\[\]]+?)\/tw\/dict\/bible\/(?:kt|names|other)\/(?P<word>[^\[\]]+?)\]\]\)*"
 
+# TW prefixed rc wikilink with no close parens regex
+# (See: [[rc://en/tw/dict/bible/kt/reveal]])
+# E.g., The first link in (See: [[rc://en/tw/dict/bible/kt/justice]] and [[rc://en/tw/dict/bible/kt/lawofmoses]])
+TW_WIKI_PREFIXED_RC_LINK_NO_CLOSE_PAREN_RE = r"\((?P<prefix_text>.+?):* *\[\[rc://(?P<lang_code>[^\[\]]+?)\/tw\/dict\/bible\/(?:kt|names|other)\/(?P<word>[^)\[\]]+?)\]\][^)]"
 
 # TW markdown link regex
-# e.g., [foo](../kt/foo.md) style links.
+# e.g., [foo](../kt/foo.md) links.
 # NOTE See id:regex_transformation_order above
-TW_MARKDOWN_LINK_RE = (
-    r"\[(?P<link_text>.+?)\]\(\.+\/(?:kt|names|other)\/(?P<word>.+?)\.md\)"
-)
+TW_MARKDOWN_LINK_RE = r"\[(?P<link_text>[^\[\]\(\)]+?)\]\(\.+\/(?:kt|names|other)\/(?P<word>[^\[\]\(\)]+?)\.md\)"
 
 
 # TA rc wikilink prepended by open paren and text regex
 # e.g., (See: [[rc://en/ta/man/jit/translate-names]])
-TA_WIKI_PREFIXED_RC_LINK_RE = r"\((?P<prefix_text>.+?):* *\[\[rc://(?P<lang_code>.+?)\/ta\/man\/\w+?\/(?P<word>.+?)\]\]*\)"
+TA_WIKI_PREFIXED_RC_LINK_RE = r"\((?P<prefix_text>.+?):* *\[\[rc://(?P<lang_code>[^\[\]\(\)]+?)\/ta\/man\/.+?\/(?P<word>[^\[\]]+?)\]\]\)"
 
 # There can be malformed TA wikilinks of this form. Ideally, they
 # should be fixed in the source text.
-# e.g., , [[rc://en/ta/man/jit/figs-metaphor]] Notice the leading
+# e.g., [[rc://en/ta/man/jit/figs-metaphor]] Notice the leading
 # comma and space.
 # NOTE See id:regex_transformation_order above
-TA_WIKI_RC_LINK_RE = (
-    r",* *\[\[rc://(?P<lang_code>.+?)\/ta\/man\/\w+?\/(?P<word>.+?)\]\]\)*"
-)
+TA_WIKI_RC_LINK_RE = r",* *\[\[rc://(?P<lang_code>[^\[\]\(\)]+?)\/ta\/man\/\w+?\/(?P<word>[^\[\]]+?)\]\]\)*"
 
 
 # TA markdown style links
@@ -56,7 +66,7 @@ TA_WIKI_RC_LINK_RE = (
 # suffix which may be malformed and may need to be fixed in markdown
 # source by translators):
 # e.g., (See: [synecdoche](rc://pt-br/ta/man/translate/figs-synecdoche) )
-TA_PREFIXED_MARKDOWN_LINK_RE = r"\(.+?:* *\[(?P<link_text>.*?)\] *\(rc:\/\/(?P<lang_code>.+?)\/ta\/man\/translate\/(?P<word>.+?)(.md)*\) *\),*.*"
+TA_PREFIXED_MARKDOWN_LINK_RE = r"\(.+?:* *\[(?P<link_text>[^\[\]\(\)]*?)\] *\(rc:\/\/(?P<lang_code>[^\[\]\(\)]+?)\/ta\/man\/translate\/(?P<word>[^\[\]\(\)]+?)(.md)*\) *\),*.*"
 
 
 # TA markdown https style see link regex
@@ -84,19 +94,27 @@ TA_MARKDOWN_HTTPS_LINK_RE = r"\[(?P<link_text>.*?)\] *\(https:\/\/(?P<domain>.+?
 # NOTE See id:regex_transformation_order above
 TN_MARKDOWN_SCRIPTURE_LINK_RE = r"\[(?P<scripture_ref>.+?)\]\(rc:\/\/(?P<lang_code>.+?)\/tn\/help\/(?P<resource_code>(?!obs).+?)\/(?P<chapter_num>\d+?)\/(?P<verse_ref>.+?)\)"
 
+MARKDOWN_LINK_RE = r"(?<!\\)\[(?P<link_text>.+?)\]\((?P<url>.+?)\)"
+
+# WIKI_LINK_RE = r"\[\[(?:[^|\]]*\|)?([^\]]+)\]\]"
+WIKI_LINK_RE = r"\[\[(?P<url>[^\]]+)\]\]"
+
 # TN markdown relative file path scripture link regex
 # e.g., ([Colossians 1:24](../../col/01/24.md))
 # e.g., in intro to Colossians chapter 1
 #
 # NOTE See id:regex_transformation_order above
-TN_MARKDOWN_RELATIVE_SCRIPTURE_LINK_RE = r"\(\[(?P<scripture_ref>.+?)\]\(\.\.\/\.\.\/(?P<resource_code>\w+?)\/(?P<chapter_num>\d+?)\/(?P<verse_ref>.+?).md\)\)"
+TN_MARKDOWN_RELATIVE_SCRIPTURE_LINK_RE = r"\(\[(?P<scripture_ref>.+?)\]\((\.\.\/)+(?P<resource_code>\w+?)\/(?P<chapter_num>\d+?)\/(?P<verse_ref>.+?).md\)\)"
 
 
 # FIXME Handle ([Colossians 1:7](../01/07.md)) and
 # [Colossians 2:8](../02/08.md) still show up, but
 # this is because technically the link is malformed as it is missing
 # the resource_code, i.e., the book_id: col.
-TN_MARKDOWN_RELATIVE_TO_CURRENT_BOOK_SCRIPTURE_LINK_RE = r"\(\[(?P<scripture_ref>.+?)\]\(\.\.\/(?P<chapter_num>\d+?)\/(?P<verse_ref>.+?).md\)\)"
+# TN_MARKDOWN_RELATIVE_TO_CURRENT_BOOK_SCRIPTURE_LINK_RE = r"\[(?P<scripture_ref>.+?)\]\((?:\.\.\/)+(?P<chapter_num>.+?)\/(?P<verse_ref>.+?).md\)"
+TN_MARKDOWN_RELATIVE_TO_CURRENT_BOOK_SCRIPTURE_LINK_RE = r"\(\[(?P<scripture_ref>.+?)\]\((?:\.\.\/)+(?P<chapter_num>\d+?)\/(?P<verse_ref>.+?).md\)\)"
+
+# TN_MARKDOWN_RELATIVE_TO_CURRENT_CHAPTER_SCRIPTURE_LINK_RE = r"\(\[(?P<scripture_ref>.+?)\]\((?:\.\.\/)+(?P<chapter_num>\d+?)\/(?P<verse_ref>.+?).md\)\)"
 
 # TN OBS markdown link regex
 # NOTE Not currently used since TN bible reference and OBS bible
@@ -107,4 +125,4 @@ TN_MARKDOWN_RELATIVE_TO_CURRENT_BOOK_SCRIPTURE_LINK_RE = r"\(\[(?P<scripture_ref
 # __[14:02](rc://en/tn/help/obs/14/02)__
 TN_OBS_MARKDOWN_LINK_RE = r"\[(?P<link_text>.+?)\] *\(rc:\/\/(?P<lang_code>.+?)\/tn\/help\/obs\/(?P<chapter_num>.+?)\/(?P<verse_ref>.+?)\)"
 
-TRANSLATION_NOTE_VERSE_ID_REGEX = r"id=\"(?<lang_code>.*?)-(?P<book_num>.*?)-tn-ch-(?P<chapter_num>.*?)-v-(?P<verse_ref>.*?)\""
+# TN_VERSE_ID_REGEX = r"id=\"(?P<lang_code>.*?)-(?P<book_num>.*?)-tn-ch-(?P<chapter_num>.*?)-v-(?P<verse_ref>.*?)\""
