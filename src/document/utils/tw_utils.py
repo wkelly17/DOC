@@ -8,7 +8,7 @@ import os
 import pathlib
 
 from glob import glob
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from document import config
 from document.domain import model
@@ -58,8 +58,7 @@ def get_localized_translation_word(
 
 
 @icontract.require(lambda lang_code: lang_code)
-# @icontract.ensure(lambda result: result)
-def get_tw_resource_dir(lang_code: str) -> str:
+def get_tw_resource_dir(lang_code: str) -> Optional[str]:
     """
     Return the location of the TW resource asset directory given the
     lang_code of the language under consideration. The location is
@@ -81,9 +80,9 @@ def get_tw_resource_dir(lang_code: str) -> str:
     )
     # If tw_resource_dir_candidates is empty it is because the user
     # did not request a TW resource as part of their document request
-    return tw_resource_dir_candidates[0] if tw_resource_dir_candidates else ""
     # which is a valid state of affairs of course. We return the empty
     # string in such cases.
+    return tw_resource_dir_candidates[0] if tw_resource_dir_candidates else None
 
 
 # Some document requests don't include a resource request for
@@ -94,13 +93,13 @@ def get_tw_resource_dir(lang_code: str) -> str:
 # therefore we can't require tw_resource_dir as a precondition.
 # @icontract.require(lambda tw_resource_dir: tw_resource_dir)
 # @icontract.ensure(lambda result: result)
-def get_translation_words_dict(tw_resource_dir: str) -> Dict[str, str]:
+def get_translation_words_dict(tw_resource_dir: Optional[str]) -> Dict[str, str]:
     """
     Given the path to the TW resource asset files, return a dictionary
     of translation word to translation word filepath mappings,
     otherwise return an empty dictionary.
     """
-    if tw_resource_dir:
+    if tw_resource_dir is not None:
         translation_word_filepaths = get_translation_word_filepaths(tw_resource_dir)
         return {
             pathlib.Path(os.path.basename(word_filepath)).stem: word_filepath
