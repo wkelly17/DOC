@@ -1568,18 +1568,45 @@ def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
                     html.extend(tq_verse_content)
 
             # Add the interleaved translation word links
-            for idx, tw_resource in enumerate(tw_resources):
-                # FIXME We may want to use a try block to protect
-                # against invalid index access.
+            for tw_resource in tw_resources:
+                # Get the usfm_resource instance associated with the
+                # tw_resource, i.e., having same lang_code and
+                # resource_code.
+                usfm_resource2: Optional[USFMResource]
+                usfm_resource_lst = [
+                    usfm_resource
+                    for usfm_resource in usfm_resources
+                    if usfm_resource.lang_code == tw_resource.lang_code
+                    and usfm_resource.resource_code == tw_resource.resource_code
+                ]
+                if usfm_resource_lst:
+                    usfm_resource2 = usfm_resource_lst[0]
+                else:
+                    usfm_resource2 = None
                 # Add the translation words links section.
-                translation_word_links_html = tw_resource.get_translation_word_links(
-                    chapter_num,
-                    verse_num,
-                    usfm_resources[idx]
-                    .chapters_content[chapter_num]
-                    .chapter_verses[verse_num],
-                )
-                html.extend(translation_word_links_html)
+                if (
+                    usfm_resource2 is not None
+                    and verse_num
+                    in usfm_resource2.chapter_content[chapter_num].chapter_verses
+                ):
+                    translation_word_links_html = (
+                        tw_resource.get_translation_word_links(
+                            chapter_num,
+                            verse_num,
+                            usfm_resource2.chapter_content[chapter_num].chapter_verses[
+                                verse_num
+                            ],
+                        )
+                    )
+                    html.extend(translation_word_links_html)
+                else:
+                    logger.debug(
+                        "usfm for chapter %s, verse %s is likely not provided in the source document for language %s and book %s",
+                        chapter_num,
+                        verse_num,
+                        tw_resource.lang_code,
+                        tw_resource.resource_code,
+                    )
 
         # Add the footnotes
         for usfm_resource in usfm_resources:
@@ -1691,9 +1718,27 @@ def _assemble_tn_as_iterator_content_by_verse_for_book_then_lang(
                     html.extend(tq_verse_content)
 
             # Add the interleaved translation word links
-            for idx, tw_resource in enumerate(tw_resources):
+            for tw_resource in tw_resources:
+                # Get the usfm_resource instance associated with the
+                # tw_resource, i.e., having same lang_code and
+                # resource_code.
+                usfm_resource2: Optional[USFMResource]
+                usfm_resource_lst = [
+                    usfm_resource
+                    for usfm_resource in usfm_resources
+                    if usfm_resource.lang_code == tw_resource.lang_code
+                    and usfm_resource.resource_code == tw_resource.resource_code
+                ]
+                if usfm_resource_lst:
+                    usfm_resource2 = usfm_resource_lst[0]
+                else:
+                    usfm_resource2 = None
                 # Add the translation words links section.
-                if idx in usfm_resources:
+                if (
+                    usfm_resource2 is not None
+                    and verse_num
+                    in usfm_resource2.chapter_content[chapter_num].chapter_verses
+                ):
                     translation_word_links_html = (
                         tw_resource.get_translation_word_links(
                             chapter_num,
@@ -1704,6 +1749,14 @@ def _assemble_tn_as_iterator_content_by_verse_for_book_then_lang(
                         )
                     )
                     html.extend(translation_word_links_html)
+                else:
+                    logger.debug(
+                        "usfm for chapter %s, verse %s is likely not provided in the source document for language %s and book %s",
+                        chapter_num,
+                        verse_num,
+                        tw_resource.lang_code,
+                        tw_resource.resource_code,
+                    )
 
     # Add the translation word definitions
     for tw_resource in tw_resources:
@@ -1770,9 +1823,27 @@ def _assemble_tq_as_iterator_content_by_verse_for_book_then_lang(
                     html.extend(tq_verse_content)
 
             # Add the interleaved translation word links
-            for idx, tw_resource in enumerate(tw_resources):
-                if idx in usfm_resources:
-                    # Add the translation words links section.
+            for tw_resource in tw_resources:
+                # Get the usfm_resource instance associated with the
+                # tw_resource, i.e., having same lang_code and
+                # resource_code.
+                usfm_resource2: Optional[USFMResource]
+                usfm_resource_lst = [
+                    usfm_resource
+                    for usfm_resource in usfm_resources
+                    if usfm_resource.lang_code == tw_resource.lang_code
+                    and usfm_resource.resource_code == tw_resource.resource_code
+                ]
+                if usfm_resource_lst:
+                    usfm_resource2 = usfm_resource_lst[0]
+                else:
+                    usfm_resource2 = None
+                # Add the translation words links section.
+                if (
+                    usfm_resource2 is not None
+                    and verse_num
+                    in usfm_resource2.chapter_content[chapter_num].chapter_verses
+                ):
                     translation_word_links_html = (
                         tw_resource.get_translation_word_links(
                             chapter_num,
@@ -1783,6 +1854,14 @@ def _assemble_tq_as_iterator_content_by_verse_for_book_then_lang(
                         )
                     )
                     html.extend(translation_word_links_html)
+                else:
+                    logger.debug(
+                        "usfm for chapter %s, verse %s is likely not provided in the source document for language %s and book %s",
+                        chapter_num,
+                        verse_num,
+                        tw_resource.lang_code,
+                        tw_resource.resource_code,
+                    )
 
     # Add the translation word definitions
     for tw_resource in tw_resources:
