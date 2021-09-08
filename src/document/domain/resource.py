@@ -236,7 +236,7 @@ class USFMResource(Resource):
 
     def __init__(self, *args, **kwargs) -> None:  # type: ignore
         super().__init__(*args, **kwargs)
-        self._chapters_content: Dict[model.ChapterNum, model.USFMChapter] = {}
+        self._chapter_content: Dict[model.ChapterNum, model.USFMChapter] = {}
 
     # We may want to not enforce the post-condition that the
     # resource URL be found since we have a requirement that not found
@@ -386,12 +386,12 @@ class USFMResource(Resource):
             self._initialize_verses_html()
 
     @property
-    def chapters_content(self) -> Dict[model.ChapterNum, model.USFMChapter]:
+    def chapter_content(self) -> Dict[model.ChapterNum, model.USFMChapter]:
         """Provide public interface for other modules."""
-        return self._chapters_content
+        return self._chapter_content
 
     @icontract.require(lambda self: self._content)
-    @icontract.ensure(lambda self: self._chapters_content)
+    @icontract.ensure(lambda self: self._chapter_content)
     def _initialize_verses_html(self) -> None:
         """
         Break apart the USFM HTML content into HTML chapter and verse
@@ -447,7 +447,7 @@ class USFMResource(Resource):
                     chapter_num, chapter_content_parser, verse_element
                 )
                 chapter_verses[verse_num] = verse_content_str
-            self._chapters_content[chapter_num] = model.USFMChapter(
+            self._chapter_content[chapter_num] = model.USFMChapter(
                 chapter_content=chapter_content,
                 chapter_verses=chapter_verses,
                 chapter_footnotes=chapter_footnotes,

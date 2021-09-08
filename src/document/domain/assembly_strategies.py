@@ -838,7 +838,7 @@ def _assemble_usfm_as_iterator_content_by_verse(
         # PEP526 disallows declaration of types in for loops.
         chapter_num: model.ChapterNum
         chapter: model.USFMChapter
-        for chapter_num, chapter in usfm_resource.chapters_content.items():
+        for chapter_num, chapter in usfm_resource.chapter_content.items():
             # Add in the USFM chapter heading.
             chapter_heading = model.HtmlContent("")
             chapter_heading = chapter.chapter_content[0]
@@ -917,7 +917,7 @@ def _assemble_usfm_as_iterator_content_by_verse(
             )
         )
         # Add the usfm_resource2, e.g., udb, scripture verses.
-        for chapter_num, chapter in usfm_resource2.chapters_content.items():
+        for chapter_num, chapter in usfm_resource2.chapter_content.items():
             # Add in the USFM chapter heading.
             chapter_heading = model.HtmlContent("")
             chapter_heading = chapter.chapter_content[0]
@@ -968,7 +968,7 @@ def _assemble_usfm_tq_tw_content_by_verse(
     # PEP526 disallows declaration of types in for loops.
     chapter_num: model.ChapterNum
     chapter: model.USFMChapter
-    for chapter_num, chapter in usfm_resource.chapters_content.items():
+    for chapter_num, chapter in usfm_resource.chapter_content.items():
         # Add in the USFM chapter heading.
         chapter_heading = model.HtmlContent("")
         chapter_heading = chapter.chapter_content[0]
@@ -1043,7 +1043,7 @@ def _assemble_usfm_tw_content_by_verse(
     # PEP526 disallows declaration of types in for loops, but allows this.
     chapter_num: model.ChapterNum
     chapter: model.USFMChapter
-    for chapter_num, chapter in usfm_resource.chapters_content.items():
+    for chapter_num, chapter in usfm_resource.chapter_content.items():
         # Add in the USFM chapter heading.
         chapter_heading = model.HtmlContent("")
         chapter_heading = chapter.chapter_content[0]
@@ -1107,7 +1107,7 @@ def _assemble_usfm_tq_content_by_verse(
     # PEP526 disallows declaration of types in for loops, but allows this.
     chapter_num: model.ChapterNum
     chapter: model.USFMChapter
-    for chapter_num, chapter in usfm_resource.chapters_content.items():
+    for chapter_num, chapter in usfm_resource.chapter_content.items():
         # Add in the USFM chapter heading.
         chapter_heading = model.HtmlContent("")
         chapter_heading = chapter.chapter_content[0]
@@ -1235,7 +1235,7 @@ def _assemble_tn_as_iterator_content_by_verse(
         html.extend(linked_translation_words)
     if usfm_resource2:
         # Add the usfm_resource2, e.g., udb, scripture verses.
-        for chapter_num, chapter in usfm_resource2.chapters_content.items():
+        for chapter_num, chapter in usfm_resource2.chapter_content.items():
             # Add in the USFM chapter heading.
             chapter_heading = model.HtmlContent("")
             chapter_heading = chapter.chapter_content[0]
@@ -1484,13 +1484,13 @@ def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
     # PEP526 disallows declaration of types in for loops.
     chapter_num: model.ChapterNum
     chapter: model.USFMChapter
-    for chapter_num, chapter in usfm_resources[0].chapters_content.items():
     # NOTE Assumption (which may need to change): usfm_resources[0] is the
     # right usfm_resource instance to use for chapter_num pump. However, if
     # usfm_resource[n] where n is not 0 has more chapters then it should
     # probably be used instead. Still thinking about this one. Hasn't been
     # an issue in practice so far. See note above about
     # usfm_with_most_chapters for a possible different approach.
+    for chapter_num, chapter in usfm_resources[0].chapter_content.items():
         # Add the first USFM resource's chapter heading. We ignore
         # chapter headings for other usfm_resources because it would
         # be strange to have more than one chapter heading per chapter
@@ -1509,28 +1509,36 @@ def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
         # notes for code.
         # Use the first usfm_resource as a verse_num pump
         for verse_num, verse in (
-            usfm_resources[0].chapters_content[chapter_num].chapter_verses.items()
+            usfm_resources[0]
+            .chapter_content[chapter_num]
+            .chapter_verses.items()
+            # See note above about usfm_with_most_verses for why this
+            # is here. Here for possible future use.
+            # usfm_with_most_verses.chapter_content[chapter_num].chapter_verses.items()
         ):
             # Add the interleaved USFM verses
             for usfm_resource in usfm_resources:
                 if (
-                    chapter_num in usfm_resource.chapters_content
+                    chapter_num in usfm_resource.chapter_content
                     and verse_num
-                    in usfm_resource.chapters_content[chapter_num].chapter_verses
+                    in usfm_resource.chapter_content[chapter_num].chapter_verses
                 ):
+
                     # Add header
                     html.append(
                         model.HtmlContent(
                             config.get_html_format_string(
                                 "resource_type_name_with_ref"
                             ).format(
-                                usfm_resource.resource_type_name, chapter_num, verse_num
+                                usfm_resource.resource_type_name,
+                                chapter_num,
+                                verse_num,
                             )
                         )
                     )
                     # Add scripture verse
                     html.append(
-                        usfm_resource.chapters_content[chapter_num].chapter_verses[
+                        usfm_resource.chapter_content[chapter_num].chapter_verses[
                             verse_num
                         ]
                     )
@@ -1576,7 +1584,7 @@ def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
         # Add the footnotes
         for usfm_resource in usfm_resources:
             try:
-                if chapter_footnotes := usfm_resource.chapters_content[
+                if chapter_footnotes := usfm_resource.chapter_content[
                     chapter_num
                 ].chapter_footnotes:
                     html.append(config.get_html_format_string("footnotes"))
@@ -1690,9 +1698,9 @@ def _assemble_tn_as_iterator_content_by_verse_for_book_then_lang(
                         tw_resource.get_translation_word_links(
                             chapter_num,
                             verse_num,
-                            usfm_resources[idx]
-                            .chapters_content[chapter_num]
-                            .chapter_verses[verse_num],
+                            usfm_resource2.chapter_content[chapter_num].chapter_verses[
+                                verse_num
+                            ],
                         )
                     )
                     html.extend(translation_word_links_html)
@@ -1769,9 +1777,9 @@ def _assemble_tq_as_iterator_content_by_verse_for_book_then_lang(
                         tw_resource.get_translation_word_links(
                             chapter_num,
                             verse_num,
-                            usfm_resources[idx]
-                            .chapters_content[chapter_num]
-                            .chapter_verses[verse_num],
+                            usfm_resource2.chapter_content[chapter_num].chapter_verses[
+                                verse_num
+                            ],
                         )
                     )
                     html.extend(translation_word_links_html)
