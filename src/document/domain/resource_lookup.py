@@ -20,7 +20,7 @@ from document.utils import file_utils, url_utils
 
 from document.domain.resource import Resource
 
-from logdecorator import log_on_start, log_on_end
+from logdecorator import log_on_end, log_on_start
 
 logger = config.get_logger(__name__)
 

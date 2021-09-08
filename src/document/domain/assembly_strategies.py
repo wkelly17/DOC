@@ -14,10 +14,10 @@ from __future__ import annotations  # https://www.python.org/dev/peps/pep-0563/
 import itertools
 import logging  # For logdecorator
 import re
+from typing import Callable, Dict, List, Optional, Tuple, cast
 
 import icontract
 from logdecorator import log_on_start
-from typing import Callable, cast, Dict, List, Optional, Tuple
 
 from document import config
 from document.domain import bible_books, document_generator, model
