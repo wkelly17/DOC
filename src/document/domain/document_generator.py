@@ -462,7 +462,6 @@ class DocumentGenerator:
                 )
                 logger.exception("Caught exception:")
 
-    @icontract.require(lambda document_request: document_request is not None)
     def _initialize_resources(
         self, document_request: model.DocumentRequest
     ) -> List[Resource]:
