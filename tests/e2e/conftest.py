@@ -7,7 +7,7 @@ import pytest
 import random
 
 from typing import Any, List, Tuple
-from document import config
+from document.config import settings
 from document.domain import bible_books, model
 from document.utils import file_utils
 
@@ -117,7 +117,7 @@ def random_resource_code2() -> str:
     return random.choice(book_ids)
 
 
-@pytest.fixture(params=[config.get_to_email_address()])
+@pytest.fixture(params=[settings.TO_EMAIL_ADDRESS])
 def email_address(request: Any) -> str:
     return request.param
 

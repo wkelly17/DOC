@@ -5,18 +5,14 @@ from typing import Dict, List
 
 import icontract
 import markdown
-from logdecorator import log_on_start  # , log_on_end
-from document import config
+from document.config import settings
 from document.domain import bible_books, model
 from document.markdown_extensions import link_regexes
 from document.utils import file_utils, tw_utils
+from logdecorator import log_on_start
 
-logger = config.get_logger(__name__)
+logger = settings.get_logger(__name__)
 
-# See https://github.com/Python-Markdown/markdown/wiki/Tutorial-2---Altering-Markdown-Rendering
-# for an additional coding template, besides this module, to follow/understand.
-
-# Constants
 TN = "tn"
 TW = "tw"
 
@@ -128,9 +124,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 # Build the anchor link.
                 url = url.replace(
                     match.group(0),  # The whole match
-                    config.get_html_format_string(
-                        "translation_word_anchor_link"
-                    ).format(
+                    settings.TRANSLATION_WORD_ANCHOR_LINK_FMT_STR.format(
                         localized_translation_word,
                         self._lang_code,
                         localized_translation_word,
@@ -142,6 +136,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
             for match2 in re.finditer(r"\[\[{}\]\]".format(wikilink.url), source):
                 source = source.replace(match2.group(0), url)
         return source
+
     @icontract.require(lambda source: source)
     @icontract.ensure(lambda result: result)
     def transform_tw_markdown_links(self, source: str) -> str:
@@ -175,9 +170,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 # Build the anchor links
                 source = source.replace(
                     match_text,
-                    config.get_html_format_string(
-                        "translation_word_anchor_link"
-                    ).format(
+                    settings.TRANSLATION_WORD_ANCHOR_LINK_FMT_STR.format(
                         localized_translation_word,
                         self._lang_code,
                         localized_translation_word,
@@ -232,9 +225,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 # Build the anchor links
                 source = source.replace(
                     match.group(0),  # The whole match
-                    config.get_html_format_string(
-                        "translation_word_anchor_link"
-                    ).format(
+                    settings.TRANSLATION_WORD_ANCHOR_LINK_FMT_STR.format(
                         localized_translation_word,
                         self._lang_code,
                         localized_translation_word,
@@ -288,9 +279,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 # Build the anchor links
                 source = source.replace(
                     match.group(0),  # The whole match
-                    config.get_html_format_string(
-                        "translation_word_prefix_anchor_link"
-                    ).format(
+                    settings.TRANSLATION_WORD_PREFIX_ANCHOR_LINK_FMT_STR.format(
                         match.group("prefix_text"),
                         localized_translation_word,
                         self._lang_code,
@@ -426,7 +415,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 )
                 path = "{}.md".format(
                     os.path.join(
-                        config.get_working_dir(),
+                        settings.working_dir(),
                         first_resource_path_segment,
                         second_resource_path_segment,
                         resource_code,
@@ -436,9 +425,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 )
                 if os.path.exists(path):  # file path to TN note exists
                     # Create anchor link to translation note
-                    new_link = config.get_html_format_string(
-                        "translation_note_anchor_link"
-                    ).format(
+                    new_link = settings.TRANSLATION_NOTE_ANCHOR_LINK_FMT_STR.format(
                         scripture_ref,
                         matching_resource_request.lang_code,
                         bible_books.BOOK_NUMBERS[
@@ -499,7 +486,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 )
                 path = "{}.md".format(
                     os.path.join(
-                        config.get_working_dir(),
+                        settings.working_dir(),
                         first_resource_path_segment,
                         second_resource_path_segment,
                         resource_code,
@@ -509,9 +496,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 )
                 if os.path.exists(path):  # file path to TN note exists
                     # Create anchor link to translation note
-                    new_link = config.get_html_format_string(
-                        "translation_note_anchor_link"
-                    ).format(
+                    new_link = settings.TRANSLATION_NOTE_ANCHOR_LINK_FMT_STR.format(
                         scripture_ref,
                         self._lang_code,
                         bible_books.BOOK_NUMBERS[resource_code].zfill(3),
@@ -575,7 +560,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 )
                 path = "{}.md".format(
                     os.path.join(
-                        config.get_working_dir(),
+                        settings.working_dir(),
                         first_resource_path_segment,
                         second_resource_path_segment,
                         resource_code,
@@ -585,9 +570,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 )
                 if os.path.exists(path):  # file path to TN note exists
                     # Create anchor link to translation note
-                    new_link = config.get_html_format_string(
-                        "translation_note_anchor_link"
-                    ).format(
+                    new_link = settings.TRANSLATION_NOTE_ANCHOR_LINK_FMT_STR.format(
                         scripture_ref,
                         self._lang_code,
                         bible_books.BOOK_NUMBERS[resource_code].zfill(3),

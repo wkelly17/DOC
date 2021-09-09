@@ -221,6 +221,11 @@ class TQBookPayload(BaseModel):
 
 
 class TWUse(BaseModel):
+    """
+    A class to hold a reify a reference to a translation word occurring
+    in a USFM verse.
+    """
+
     lang_code: str
     book_id: str
     book_name: str
@@ -300,17 +305,13 @@ class CoverPayload(BaseModel):
 
 
 class EmailPayload(BaseModel):
-    """
-    A class to hold an HTML email body.
-    """
+    """A class to hold an HTML email body."""
 
     document_request_key: str
 
 
 class CodeNameTypeTriplet(BaseModel):
-    """
-    A utility class to provide validation in resource_lookup module.
-    """
+    """A utility class to provide validation in resource_lookup module."""
 
     lang_code: str
     lang_name: str

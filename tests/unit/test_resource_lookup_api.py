@@ -1,6 +1,6 @@
 from typing import List
 
-from document import config
+from document.config import settings
 from document.domain import model
 from document.domain.resource import resource_factory
 
@@ -35,15 +35,15 @@ def test_lookup_successes() -> None:
         )
     )
     document_request = model.DocumentRequest(
-        email_address=config.get_from_email_address(),
+        email_address=settings.FROM_EMAIL_ADDRESS,
         assembly_strategy_kind=assembly_strategy_kind,
         resource_requests=resource_requests,
     )
 
     for resource_request in document_request.resource_requests:
         resource = resource_factory(
-            config.get_working_dir(),
-            config.get_output_dir(),
+            settings.working_dir(),
+            settings.output_dir(),
             resource_request,
             document_request.resource_requests,
         )
@@ -72,15 +72,15 @@ def test_lookup_failures() -> None:
         model.ResourceRequest(lang_code="zh", resource_type="ulb", resource_code="jol")
     )
     document_request = model.DocumentRequest(
-        email_address=config.get_from_email_address(),
+        email_address=settings.FROM_EMAIL_ADDRESS,
         assembly_strategy_kind=assembly_strategy_kind,
         resource_requests=resource_requests,
     )
 
     for resource_request in document_request.resource_requests:
         resource = resource_factory(
-            config.get_working_dir(),
-            config.get_output_dir(),
+            settings.working_dir(),
+            settings.output_dir(),
             resource_request,
             document_request.resource_requests,
         )

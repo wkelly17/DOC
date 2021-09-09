@@ -1,15 +1,13 @@
-"""
-Link regular expressions used by link_transformer_preprocessor module.
-"""
+"""Link regular expressions used by link_transformer_preprocessor module."""
 import re
 
 # Handle TW wikilink inner text
 TW_RC_LINK_RE = re.compile(
     (
         r"rc:\/\/"
-        r"(?P<lang_code>.+?)"
+        r"(?P<lang_code>[^\[\]\(\)]+?)"
         r"\/tw\/dict\/bible\/(?:kt|names|other)\/"
-        r"(?P<word>.+?)$"
+        r"(?P<word>[^\[\]\(\)]+?)$"
     )
 )
 

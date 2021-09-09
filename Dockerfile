@@ -32,10 +32,8 @@ RUN WKHTMLTOX_TEMP="$(mktemp)" && \
     dpkg -i "$WKHTMLTOX_TEMP" && \
     rm -f "$WKHTMLTOX_TEMP"
 
-# Temporary workaround for broken translations.json upstream. This
-# also has the side effect of creating the /working/temp directory in
-# the container.
-# COPY working/temp/translations.json /working/temp/
+# Make the output directory where resource asset files are cloned or
+# downloaded and unzipped.
 RUN mkdir -p /working/temp
 # Make the output directory where generated HTML and PDFs are placed.
 RUN mkdir -p /working/output
@@ -52,9 +50,6 @@ RUN pip install -r requirements-dev.txt
 COPY ./src/ /src/
 RUN pip install -e /src
 COPY ./tests /tests
-
-# Temporary workaround for broken translations.json upstream.
-# RUN touch /working/temp/translations.json
 
 # Note: for development, first install your app,
 # pip install -e .

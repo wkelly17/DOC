@@ -8,10 +8,10 @@ in the HTML and thus in the PDF.
 import glob
 import re
 
-from document import config
+from document.config import settings
 from termcolor import colored
 
-logger = config.get_logger(__name__)
+logger = settings.get_logger(__name__)
 
 ANCHOR_SOURCE_LINK_REGEX = r"\<a.*href=\"\#(?P<source_ref>.*?)\"\>"
 ANCHOR_DESTINATION_LINK = r' id=(?:"|\'){}(?:"|\')'
@@ -29,7 +29,7 @@ def check_anchor_links_have_source_and_destination() -> None:
     automated way of checking for dead links rather than clicking in
     PDF files.
     """
-    generated_html_files = glob.glob("{}/*.html".format(config.get_output_dir()))
+    generated_html_files = glob.glob("{}/*.html".format(settings.output_dir()))
     for html_file in generated_html_files:
         logger.debug("Checking anchor links in html_file: {}".format(html_file))
         with open(html_file, "r") as fin:

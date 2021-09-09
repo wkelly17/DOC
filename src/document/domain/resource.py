@@ -17,19 +17,20 @@ from typing import Any, Dict, List, Optional, Tuple, cast
 import bs4
 import icontract
 import markdown
+from document.config import settings
+from document.domain import bible_books, model, resource_lookup
+from document.markdown_extensions import (
+    link_transformer_preprocessor,
+    remove_section_preprocessor,
+)
+from document.utils import file_utils, html_parsing_utils, tw_utils, url_utils
 from logdecorator import log_on_end, log_on_start
 from pydantic import AnyUrl
 from usfm_tools.transform import UsfmTransform
 
-from document import config
-from document.domain import bible_books, model, resource_lookup
-from document.markdown_extensions import (
-    remove_section_preprocessor,
-    link_transformer_preprocessor,
-)
-from document.utils import file_utils, html_parsing_utils, tw_utils, url_utils
+logger = settings.get_logger(__name__)
 
-logger = config.get_logger(__name__)
+H1, H2, H3, H4 = "h1", "h2", "h3", "h4"
 
 
 class Resource:
@@ -132,7 +133,7 @@ class Resource:
         """
         raise NotImplementedError
 
-    def get_files(self) -> None:
+    def provision_asset_files(self) -> None:
         """
         Using the resource's remote location, download the resource's file
         assets to disk.
@@ -149,7 +150,7 @@ class Resource:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_content(self) -> None:
+    def update_resource_with_asset_content(self) -> None:
         """
         Initialize resource with content found in resource's asset files.
 
@@ -316,7 +317,7 @@ class USFMResource(Resource):
 
     @icontract.require(lambda self: self._content_files is not None)
     @icontract.ensure(lambda self: self._resource_filename is not None)
-    def get_content(self) -> None:
+    def update_resource_with_asset_content(self) -> None:
         """See docstring in superclass."""
 
         self._initialize_from_assets()
@@ -535,10 +536,10 @@ class USFMResource(Resource):
         # At this point we alter verse_content_str span's ID by prepending the
         # lang_code to ensure unique verse references within language scope in a
         # multi-language document.
-        pattern = r'id="(.+?)-ch-(.+?)-v-(.+?)"'
+        pattern = settings.VERSE_ANCHOR_ID_FMT_STR
         verse_content_str = re.sub(
             pattern,
-            r"id='{}-\1-ch-\2-v-\3'".format(self.lang_code),
+            settings.VERSE_ANCHOR_ID_SUBSTITUTION_FMT_STR.format(self.lang_code),
             verse_content_str,
         )
         return model.VerseRef(verse_num), model.HtmlContent(verse_content_str)
@@ -580,7 +581,7 @@ class TResource(Resource):
         """
         if not tw_resource_dir:
             tw_resource_dir = tw_utils.get_tw_resource_dir(lang_code)
-        translation_words_dict: Dict[str, str] = tw_utils.get_translation_words_dict(
+        translation_words_dict: Dict[str, str] = tw_utils.translation_words_dict(
             tw_resource_dir
         )
         return markdown.Markdown(
@@ -614,7 +615,7 @@ class TNResource(TResource):
     @log_on_start(
         logging.INFO, "Processing Translation Notes Markdown...", logger=logger
     )
-    def get_content(self) -> None:
+    def update_resource_with_asset_content(self) -> None:
         """
         Get Markdown content from this resource's file assets. Then do
         some manipulation of said Markdown content according to the
@@ -737,9 +738,7 @@ class TNResource(TResource):
         html: List[model.HtmlContent] = []
         html.append(
             model.HtmlContent(
-                config.get_html_format_string(
-                    "tn_resource_type_name_with_id_and_ref"
-                ).format(
+                settings.TN_RESOURCE_TYPE_NAME_WITH_ID_AND_REF_FMT_STR.format(
                     self.lang_code,
                     bible_books.BOOK_NUMBERS[self._resource_code].zfill(3),
                     str(chapter_num).zfill(3),
@@ -751,7 +750,7 @@ class TNResource(TResource):
             )
         )
         # Change H1 HTML elements to H4 HTML elements in each translation note.
-        html.append(model.HtmlContent(re.sub(r"h1", r"h4", verse)))
+        html.append(model.HtmlContent(re.sub(H1, H4, verse)))
         return html
 
 
@@ -768,7 +767,7 @@ class TQResource(TResource):
     @log_on_start(
         logging.INFO, "Processing Translation Questions Markdown...", logger=logger
     )
-    def get_content(self) -> None:
+    def update_resource_with_asset_content(self) -> None:
         """
         Get Markdown content from this resource's file assets. Then do
         some manipulation of said Markdown content according to the
@@ -797,9 +796,7 @@ class TQResource(TResource):
         logger=logger,
     )
     def _initialize_verses_html(self) -> None:
-        """
-        Find translation questions for the verses.
-        """
+        """Find translation questions for the verses."""
         # Create the Markdown instance once and have it use our markdown
         # extensions.
         md: markdown.Markdown = self._get_markdown_instance(
@@ -847,9 +844,7 @@ class TQResource(TResource):
     def get_verses_for_chapter(
         self, chapter_num: model.ChapterNum
     ) -> Optional[Dict[model.VerseRef, model.HtmlContent]]:
-        """
-        Return the HTML for verses in chapter_num.
-        """
+        """Return the HTML for verses in chapter_num."""
         verses_html = None
         if chapter_num in self.book_payload.chapters:
             verses_html = self.book_payload.chapters[chapter_num].verses_html
@@ -874,14 +869,12 @@ class TQResource(TResource):
         html: List[model.HtmlContent] = []
         html.append(
             model.HtmlContent(
-                config.get_html_format_string("translation_question").format(
-                    chapter_num, verse_num
-                )
+                settings.TRANSLATION_QUESTION_FMT_STR.format(chapter_num, verse_num)
             )
         )
         # Change H1 HTML elements to H4 HTML elements in each translation question
         # so that overall indentation works out.
-        html.append(model.HtmlContent(re.sub(r"h1", r"h4", tq_verse)))
+        html.append(model.HtmlContent(re.sub(H1, H4, tq_verse)))
         return html
 
 
@@ -898,7 +891,7 @@ class TWResource(TResource):
     @log_on_start(
         logging.INFO, "Processing Translation Words Markdown...", logger=logger
     )
-    def get_content(self) -> None:
+    def update_resource_with_asset_content(self) -> None:
         """
         Get Markdown content from this resource's file assets. Then do
         some manipulation of said Markdown content according to the
@@ -955,8 +948,8 @@ class TWResource(TResource):
             )
             html_word_content = md.convert(translation_word_content)
             # Make adjustments to the HTML here.
-            html_word_content = re.sub(r"h2", r"h4", html_word_content)
-            html_word_content = re.sub(r"h1", r"h3", html_word_content)
+            html_word_content = re.sub(H2, H4, html_word_content)
+            html_word_content = re.sub(H1, H3, html_word_content)
             name_content_pairs.append(
                 model.TWNameContentPair(
                     localized_word=localized_translation_word, content=html_word_content
@@ -1012,16 +1005,16 @@ class TWResource(TResource):
             # Add header
             html.append(
                 model.HtmlContent(
-                    config.get_html_format_string("resource_type_name_with_ref").format(
+                    settings.RESOURCE_TYPE_NAME_WITH_REF_FMT_STR.format(
                         self.resource_type_name, chapter_num, verse_num
                     )
                 )
             )
             # Start list formatting
-            html.append(config.get_html_format_string("unordered_list_begin"))
+            html.append(settings.UNORDERED_LIST_BEGIN_STR)
             # Append word links.
             uses_list_items = [
-                config.get_html_format_string("translation_word_list_item").format(
+                settings.TRANSLATION_WORD_LIST_ITEM_FMT_STR.format(
                     self.lang_code,
                     use.localized_word,
                     use.localized_word,
@@ -1030,7 +1023,7 @@ class TWResource(TResource):
             ]
             html.append(model.HtmlContent("\n".join(uses_list_items)))
             # End list formatting
-            html.append(config.get_html_format_string("unordered_list_end"))
+            html.append(settings.UNORDERED_LIST_END_STR)
         return html
 
     def get_translation_words_section(
@@ -1047,9 +1040,7 @@ class TWResource(TResource):
         html: List[model.HtmlContent] = []
         html.append(
             model.HtmlContent(
-                config.get_html_format_string("resource_type_name").format(
-                    self.resource_type_name
-                )
+                settings.RESOURCE_TYPE_NAME_FMT_STR.format(self.resource_type_name)
             )
         )
 
@@ -1068,10 +1059,10 @@ class TWResource(TResource):
             # links to work.
             name_content_pair.content = model.HtmlContent(
                 name_content_pair.content.replace(
-                    config.get_html_format_string("opening_h3").format(
+                    settings.OPENING_H3_FMT_STR.format(
                         name_content_pair.localized_word
                     ),
-                    config.get_html_format_string("opening_h3_with_id").format(
+                    settings.OPENING_H3_WITH_ID_FMT_STR.format(
                         self.lang_code,
                         name_content_pair.localized_word,
                         name_content_pair.localized_word,
@@ -1102,13 +1093,11 @@ class TWResource(TResource):
         verse_num) wherein the word occurs.
         """
         html: List[model.HtmlContent] = []
-        html.append(
-            config.get_html_format_string("translation_word_verse_section_header")
-        )
-        html.append(config.get_html_format_string("unordered_list_begin"))
+        html.append(settings.TRANSLATION_WORD_VERSE_SECTION_HEADER_STR)
+        html.append(settings.UNORDERED_LIST_BEGIN_STR)
         for use in uses:
             html_content_str = model.HtmlContent(
-                config.get_html_format_string("translation_word_verse_ref_item").format(
+                settings.TRANSLATION_WORD_VERSE_REF_ITEM_FMT_STR.format(
                     use.lang_code,
                     bible_books.BOOK_NUMBERS[use.book_id].zfill(3),
                     str(use.chapter_num).zfill(3),
@@ -1119,7 +1108,7 @@ class TWResource(TResource):
                 )
             )
             html.append(html_content_str)
-        html.append(config.get_html_format_string("unordered_list_end"))
+        html.append(settings.UNORDERED_LIST_END_STR)
         return model.HtmlContent("\n".join(html))
 
 
@@ -1176,7 +1165,7 @@ class TAResource(TResource):
     @log_on_start(
         logging.INFO, "Processing Translation Academy Markdown...", logger=logger
     )
-    def get_content(self) -> None:
+    def update_resource_with_asset_content(self) -> None:
         """
         Get Markdown content from this resource's file assets. Then do
         some manipulation of said Markdown content according to the
@@ -1248,9 +1237,7 @@ class TAResource(TResource):
     def get_verses_for_chapter(
         self, chapter_num: model.ChapterNum
     ) -> Optional[Dict[model.VerseRef, model.HtmlContent]]:
-        """
-        Return the HTML for verses in chapter_num.
-        """
+        """Return the HTML for verses in chapter_num."""
         verses_html = None
         if chapter_num in self.book_payload.chapters:
             verses_html = self.book_payload.chapters[chapter_num].verses_html
@@ -1276,7 +1263,7 @@ def resource_factory(
     Factory method to create the appropriate Resource subclass for
     a given ResourceRequest instance.
     """
-    return config.get_resource_type_lookup_map()[resource_request.resource_type](
+    return settings.resource_type_lookup_map()[resource_request.resource_type](
         working_dir,
         output_dir,
         resource_request,
@@ -1368,9 +1355,7 @@ class ResourceProvisioner:
             self._unzip_asset(resource_filepath)
 
     def _clone_git_repo(self, resource_filepath: str) -> None:
-        """
-        Clone the git reop.
-        """
+        """Clone the git reop."""
         command = "git clone --depth=1 '{}' '{}'".format(
             self._resource.resource_url, resource_filepath
         )
@@ -1397,10 +1382,9 @@ class ResourceProvisioner:
         """Download the asset."""
         if file_utils.asset_file_needs_update(resource_filepath):
             # FIXME Might want to retry after some acceptable interval if there is a
-            # failure here due to network issues. It has happened very
-            # occasionally during testing that there has been a hiccup
-            # with the network at this point but succeeded on retry of
-            # the same test.
+            # failure here due to network issues. It has happened very occasionally
+            # during testing that there has been a hiccup with the network at this
+            # point but succeeded on retry of the same test.
             url_utils.download_file(self._resource.resource_url, resource_filepath)
 
     @log_on_start(

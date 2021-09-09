@@ -10,7 +10,7 @@ asgiref==3.4.1
     # via uvicorn
 asttokens==2.0.5
     # via icontract
-beautifulsoup4==4.9.3
+beautifulsoup4==4.10.0
     # via bs4
 bs4==0.0.1
     # via -r requirements.in
@@ -62,7 +62,7 @@ pdfkit==0.6.1
     # via -r requirements.in
 ply==3.11
     # via jsonpath-rw
-pydantic[email]==1.8.2
+pydantic[dotenv,email]==1.8.2
     # via
     #   -r requirements.in
     #   fastapi
@@ -70,6 +70,8 @@ pyparsing==2.4.5
     # via
     #   -r requirements.in
     #   usfm-tools
+python-dotenv==0.19.0
+    # via pydantic
 pyyaml==5.4.1
     # via -r requirements.in
 requests==2.26.0

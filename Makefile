@@ -1,22 +1,11 @@
-build: local-update-deps-dev # use-stable-translations-json
+build: local-update-deps-dev
 	docker-compose build
 
-build-no-cache: # use-stable-translations-json
+build-no-cache:
 	docker-compose build --no-cache
 
 up:
 	docker-compose up -d
-
-# Deal with instability with upstream translations.json
-use-stable-translations-json:
-	git checkout working/temp/translations.json
-	touch working/temp/translations.json
-# ifeq ($(TRANSLATIONS_JSON_FROM_GIT),1)
-# 	git checkout working/temp/translations.json
-# 	touch working/temp/translations.json
-# else
-# 	rm working/temp/translations.json
-# endif
 
 server: up
 	docker-compose run  api
@@ -28,13 +17,13 @@ local-server:
 test: up
 	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/unit /tests/integration /tests/e2e
 
-unit-tests: up # use-stable-translations-json
+unit-tests: up
 	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/unit
 
-integration-tests: up # use-stable-translations-json
+integration-tests: up
 	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/integration
 
-e2e-tests: up # use-stable-translations-json
+e2e-tests: up
 	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/e2e
 
 down:
@@ -87,10 +76,11 @@ all-plus-linting: mypy pyicontract-lint down build up test
 # 	source venv/bin/activate.fish
 
 local-update-deps-prod:
-	pip-compile --upgrade
+	pip-compile # --upgrade
 
 local-update-deps-dev: local-update-deps-prod
-	pip-compile --upgrade requirements-dev.in
+	pip-compile requirements-dev.in
+	# pip-compile --upgrade requirements-dev.in
 
 pip-warning:
 	echo "If you aren't in your virtual env shell, source venv/bin/activate, then this will install into global package index"
@@ -102,9 +92,9 @@ local-install-deps-dev: local-update-deps-dev pip-warning
 	pip install -r requirements.txt
 	pip install -r requirements-dev.txt
 
-local-prepare-for-tests: mypy pyicontract-lint local-clean-working-output-dir # use-stable-translations-json
+local-prepare-for-tests: mypy pyicontract-lint local-clean-working-output-dir
 
-local-prepare-for-tests-without-cleaning: mypy pyicontract-lint  # use-stable-translations-json
+local-prepare-for-tests-without-cleaning: mypy pyicontract-lint
 
 local-clean-working-output-dir:
 	find working/output/ -type f -name "*.html" -exec rm -- {} +
@@ -112,33 +102,36 @@ local-clean-working-output-dir:
 
 # local-unit-tests: local-install-deps-dev local-prepare-for-tests
 local-unit-tests:  local-prepare-for-tests
-	ENABLE_ASSET_CACHING=1 TRANSLATIONS_JSON_FROM_GIT=1 SEND_EMAIL=0 FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/unit/ -vv
+	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=0 FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/unit/ -vv
 
 # local-e2e-tests: local-install-deps-dev local-prepare-for-tests
 local-e2e-tests:  local-prepare-for-tests
-	ENABLE_ASSET_CACHING=1 TRANSLATIONS_JSON_FROM_GIT=1 SEND_EMAIL=0 FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -vv
+	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=0 FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -vv
 
 # Run one quick test
 local-smoke-test: local-prepare-for-tests
-	ENABLE_ASSET_CACHING=1 TRANSLATIONS_JSON_FROM_GIT=1 SEND_EMAIL=0 FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -k test_send_email_with_ar_nav_jud_pdf
+	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=0 FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -k test_send_email_with_ar_nav_jud_pdf
 
 # Test case chosen does not pass email with document request.
 local-smoke-test-with-no-email: local-prepare-for-tests
-	ENABLE_ASSET_CACHING=1 TRANSLATIONS_JSON_FROM_GIT=1 SEND_EMAIL=0 FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -k test_en_ulb_wa_col_en_tn_wa_col_language_book_order_with_no_email
+	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=0 FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -k test_en_ulb_wa_col_en_tn_wa_col_language_book_order_with_no_email
 
 local-smoke-test-with-translation-words: local-prepare-for-tests
-	ENABLE_ASSET_CACHING=1 TRANSLATIONS_JSON_FROM_GIT=1 SEND_EMAIL=0 FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -k test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_pt_br_ulb_col_pt_br_tn_col_pt_br_tq_col_pt_br_tw_col_book_language_order
+	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=0 FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -k test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_pt_br_ulb_col_pt_br_tn_col_pt_br_tq_col_pt_br_tw_col_book_language_order
+
+local-smoke-test-with-translation-words2: local-prepare-for-tests
+	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=0 FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -k test_en_ulb_wa_rom_en_tn_wa_rom_en_tq_wa_rom_en_tw_wa_rom_es_419_ulb_rom_es_419_tn_rom_en_tq_rom_es_419_tw_rom_book_language_order
 
 local-icontract-hypothesis-tests: local-prepare-for-tests
-	ENABLE_ASSET_CACHING=1 TRANSLATIONS_JSON_FROM_GIT=1 SEND_EMAIL=0 FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pyicontract-hypothesis test -p src/document/domain/resource.py
+	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=0 FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pyicontract-hypothesis test -p src/document/domain/resource.py
 
 local-icontract-hypothesis-tests2: local-prepare-for-tests
-	ENABLE_ASSET_CACHING=1 TRANSLATIONS_JSON_FROM_GIT=1 SEND_EMAIL=0 FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pyicontract-hypothesis test -p src/document/entrypoints/app.py
+	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=0 FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pyicontract-hypothesis test -p src/document/entrypoints/app.py
 
 local-email-tests: local-prepare-for-tests
-	./test_email_DO_NOT_COMMIT.sh
+	IN_CONTAINER=false ./test_email_DO_NOT_COMMIT.sh
 
 # This is one to run after running local-e2e-tests or
 # local-smoke-test-with-translation-words
 local-check-anchor-links:
-	python tests/e2e/test_anchor_linking.py
+	IN_CONTAINER=false python tests/e2e/test_anchor_linking.py

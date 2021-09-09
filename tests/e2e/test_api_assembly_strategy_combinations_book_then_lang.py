@@ -5,7 +5,7 @@ import re
 import bs4
 import pytest
 import requests
-from document import config
+from document.config import settings
 from document.entrypoints.app import app
 from fastapi.testclient import TestClient
 
@@ -22,15 +22,13 @@ def check_finished_document_with_verses_success(
     Check that the finished_document_path exists and also check that
     the HTML file associated with it exists and includes verses_html.
     """
-    finished_document_path = os.path.join(
-        config.get_output_dir(), finished_document_path
-    )
+    finished_document_path = os.path.join(settings.output_dir(), finished_document_path)
     assert os.path.isfile(finished_document_path)
     html_file = "{}.html".format(finished_document_path.split(".")[0])
     assert os.path.isfile(html_file)
     assert response.json() == {
         "finished_document_request_key": pathlib.Path(finished_document_path).stem,
-        "message": config.get_success_message(),
+        "message": settings.SUCCESS_MESSAGE,
     }
     with open(html_file, "r") as fin:
         html = fin.read()
@@ -53,15 +51,13 @@ def check_finished_document_with_body_success(
     Check that the finished_document_path exists and also check that
     the HTML file associated with it exists and includes body.
     """
-    finished_document_path = os.path.join(
-        config.get_output_dir(), finished_document_path
-    )
+    finished_document_path = os.path.join(settings.output_dir(), finished_document_path)
     assert os.path.isfile(finished_document_path)
     html_file = "{}.html".format(finished_document_path.split(".")[0])
     assert os.path.isfile(html_file)
     assert response.json() == {
         "finished_document_request_key": pathlib.Path(finished_document_path).stem,
-        "message": config.get_success_message(),
+        "message": settings.SUCCESS_MESSAGE,
     }
     with open(html_file, "r") as fin:
         html = fin.read()
@@ -81,9 +77,7 @@ def check_finished_document_without_verses_success(
     the HTML file associated with it exists and includes body but not
     verses_html.
     """
-    finished_document_path = os.path.join(
-        config.get_output_dir(), finished_document_path
-    )
+    finished_document_path = os.path.join(settings.output_dir(), finished_document_path)
     assert os.path.exists(finished_document_path)
     html_file = "{}.html".format(finished_document_path.split(".")[0])
     assert os.path.exists(html_file)
@@ -102,11 +96,11 @@ def check_finished_document_without_verses_success(
 
 
 def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_fr_f10_col_fr_tn_col_fr_tq_col_fr_tw_col_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -157,11 +151,11 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_fr_f10_col_fr_tn_c
 
 
 def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_pt_br_ulb_col_pt_br_tn_col_pt_br_tq_col_pt_br_tw_col_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -212,11 +206,11 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_pt_br_ulb_col_pt_b
 
 
 def test_pt_br_ulb_col_pt_br_tn_col_pt_br_tq_col_pt_br_tw_col_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -247,11 +241,11 @@ def test_pt_br_ulb_col_pt_br_tn_col_pt_br_tq_col_pt_br_tw_col_book_language_orde
 
 
 def test_fr_f10_col_fr_tn_col_fr_tq_col_fr_tw_col_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -284,11 +278,11 @@ def test_fr_f10_col_fr_tn_col_fr_tq_col_fr_tw_col_book_language_order() -> None:
 
 
 def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_tl_ulb_col_tl_tn_col_tl_tq_col_tl_tw_col_tl_udb_col_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -345,11 +339,11 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_tl_ulb_col_tl_tn_c
 
 def test_en_ulb_wa_tit_en_tn_wa_tit_book_language_order() -> None:
     "English ulb-wa and tn-wa for book of Timothy."
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -367,21 +361,21 @@ def test_en_ulb_wa_tit_en_tn_wa_tit_book_language_order() -> None:
         )
         finished_document_path = "en-ulb-wa-tit_en-tn-wa-tit_book_language_order.pdf"
         finished_document_path = os.path.join(
-            config.get_output_dir(), finished_document_path
+            settings.output_dir(), finished_document_path
         )
         assert os.path.isfile(finished_document_path)
         assert response.json() == {
             "finished_document_request_key": pathlib.Path(finished_document_path).stem,
-            "message": config.get_success_message(),
+            "message": settings.SUCCESS_MESSAGE,
         }
 
 
 def test_sw_ulb_col_sw_tn_col_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -402,11 +396,11 @@ def test_sw_ulb_col_sw_tn_col_book_language_order() -> None:
 
 
 def test_sw_ulb_col_sw_tn_col_sw_ulb_tit_sw_tn_tit_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -439,11 +433,11 @@ def test_sw_ulb_col_sw_tn_col_sw_ulb_tit_sw_tn_tit_book_language_order() -> None
 
 
 def test_en_ulb_wa_col_en_tn_wa_col_sw_ulb_col_sw_tn_col_sw_ulb_tit_sw_tn_tit_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -484,11 +478,11 @@ def test_en_ulb_wa_col_en_tn_wa_col_sw_ulb_col_sw_tn_col_sw_ulb_tit_sw_tn_tit_bo
 
 
 def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_sw_ulb_col_sw_tn_col_sw_tq_col_sw_ulb_tit_sw_tn_tit_sw_tq_tit_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -544,11 +538,11 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_sw_ulb_col_sw_tn_col_sw_tq_col_
 
 
 def test_en_ulb_wa_col_en_tq_wa_col_sw_ulb_col_sw_tq_col_sw_ulb_tit_sw_tq_tit_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -589,11 +583,11 @@ def test_en_ulb_wa_col_en_tq_wa_col_sw_ulb_col_sw_tq_col_sw_ulb_tit_sw_tq_tit_bo
 
 
 def test_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_sw_tn_col_sw_tq_col_sw_tw_col_sw_tn_tit_sw_tq_tit_sw_tw_tit_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -649,11 +643,11 @@ def test_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_sw_tn_col_sw_tq_col_sw_tw_col_sw
 
 
 def test_en_tn_wa_col_en_tw_wa_col_sw_tn_col_sw_tw_col_sw_tn_tit_sw_tw_tit_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -694,11 +688,11 @@ def test_en_tn_wa_col_en_tw_wa_col_sw_tn_col_sw_tw_col_sw_tn_tit_sw_tw_tit_book_
 
 
 def test_en_tq_wa_col_en_tw_wa_col_sw_tq_col_sw_tw_col_sw_tq_tit_sw_tw_tit_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -731,11 +725,11 @@ def test_en_tq_wa_col_en_tw_wa_col_sw_tq_col_sw_tw_col_sw_tq_tit_sw_tw_tit_book_
 
 
 def test_en_tw_wa_col_sw_tw_col_sw_tw_tit_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -756,11 +750,11 @@ def test_en_tw_wa_col_sw_tw_col_sw_tw_tit_book_language_order() -> None:
 
 
 def test_en_tn_wa_col_en_tq_wa_col_sw_tn_col_sw_tq_col_sw_tn_tit_sw_tq_tit_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -793,11 +787,11 @@ def test_en_tn_wa_col_en_tq_wa_col_sw_tn_col_sw_tq_col_sw_tn_tit_sw_tq_tit_book_
 
 
 def test_en_tq_wa_col_sw_tq_col_sw_tq_tit_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -818,11 +812,11 @@ def test_en_tq_wa_col_sw_tq_col_sw_tq_tit_book_language_order() -> None:
 
 
 def test_en_tn_wa_col_sw_tn_col_sw_tn_tit_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -850,11 +844,11 @@ def test_en_tn_wa_col_sw_tn_col_sw_tn_tit_book_language_order() -> None:
 
 
 def test_en_ulb_wa_col_sw_ulb_col_sw_ulb_tit_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -882,11 +876,11 @@ def test_en_ulb_wa_col_sw_ulb_col_sw_ulb_tit_book_language_order() -> None:
 
 
 def test_gu_ulb_mrk_gu_tn_mrk_gu_tq_mrk_gu_tw_mrk_gu_udb_mrk_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -922,11 +916,11 @@ def test_gu_ulb_mrk_gu_tn_mrk_gu_tq_mrk_gu_tw_mrk_gu_udb_mrk_book_language_order
 
 
 def test_mr_ulb_mrk_mr_tn_mrk_mr_tq_mrk_mr_tw_mrk_mr_udb_mrk_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -962,11 +956,11 @@ def test_mr_ulb_mrk_mr_tn_mrk_mr_tq_mrk_mr_tw_mrk_mr_udb_mrk_book_language_order
 
 
 def test_mr_ulb_mrk_mr_tn_mrk_mr_tq_mrk_mr_udb_mrk_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -999,11 +993,11 @@ def test_mr_ulb_mrk_mr_tn_mrk_mr_tq_mrk_mr_udb_mrk_book_language_order() -> None
 
 
 def test_mr_ulb_mrk_mr_tn_mrk_mr_tw_mrk_mr_udb_mrk_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1036,11 +1030,11 @@ def test_mr_ulb_mrk_mr_tn_mrk_mr_tw_mrk_mr_udb_mrk_book_language_order() -> None
 
 
 def test_mr_ulb_mrk_mr_tn_mrk_mr_udb_mrk_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1068,11 +1062,11 @@ def test_mr_ulb_mrk_mr_tn_mrk_mr_udb_mrk_book_language_order() -> None:
 
 
 def test_mr_ulb_mrk_mr_tq_mrk_mr_udb_mrk_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1101,11 +1095,11 @@ def test_mr_ulb_mrk_mr_tq_mrk_mr_udb_mrk_book_language_order() -> None:
 
 @pytest.mark.skip
 def test_gu_ulb_mic_gu_tn_mic_gu_tq_mic_gu_tw_mic_gu_ta_mic_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1143,11 +1137,11 @@ def test_gu_ulb_mic_gu_tn_mic_gu_tq_mic_gu_tw_mic_gu_ta_mic_book_language_order(
 
 
 def test_tl_ulb_gen_tl_udb_gen_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1168,11 +1162,11 @@ def test_tl_ulb_gen_tl_udb_gen_book_language_order() -> None:
 
 
 def test_gu_tn_mat_gu_tq_mat_gu_tw_mat_gu_udb_mat_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1205,11 +1199,11 @@ def test_gu_tn_mat_gu_tq_mat_gu_tw_mat_gu_udb_mat_book_language_order() -> None:
 
 
 def test_gu_tn_mat_gu_tq_mat_gu_udb_mat_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1237,11 +1231,11 @@ def test_gu_tn_mat_gu_tq_mat_gu_udb_mat_book_language_order() -> None:
 
 
 def test_tl_tn_gen_tl_tw_gen_tl_udb_gen_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1269,11 +1263,11 @@ def test_tl_tn_gen_tl_tw_gen_tl_udb_gen_book_language_order() -> None:
 
 
 def test_tl_tq_gen_tl_udb_gen_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1294,11 +1288,11 @@ def test_tl_tq_gen_tl_udb_gen_book_language_order() -> None:
 
 
 def test_tl_tw_gen_tl_udb_gen_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1319,11 +1313,11 @@ def test_tl_tw_gen_tl_udb_gen_book_language_order() -> None:
 
 
 def test_tl_udb_gen_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1340,11 +1334,11 @@ def test_tl_udb_gen_book_language_order() -> None:
 
 def test_fr_ulb_rev_fr_tn_rev_fr_tq_rev_fr_tw_rev_fr_udb_rev_book_language_order() -> None:
     """Demonstrate listing unfound resources, in this case fr-udb-rev"""
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1384,11 +1378,11 @@ def test_fr_ulb_rev_fr_tn_rev_fr_tq_rev_fr_tw_rev_fr_f10_rev_book_language_order
     Demonstrate two USFM resources, French, and use of a special
     USFM resource: f10.
     """
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1428,11 +1422,11 @@ def test_fr_ulb_rev_fr_tq_rev_fr_tw_rev_fr_f10_rev_book_language_order() -> None
     Demonstrate two USFM resources, French, and use of a special
     USFM resource: f10.
     """
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1466,11 +1460,11 @@ def test_fr_ulb_rev_fr_tq_rev_fr_tw_rev_fr_f10_rev_book_language_order() -> None
 
 def test_fr_ulb_rev_fr_tw_rev_fr_udb_rev_book_language_order() -> None:
     """Demonstrate listing unfound resources, in this case fr-udb-rev"""
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1498,11 +1492,11 @@ def test_fr_ulb_rev_fr_tw_rev_fr_udb_rev_book_language_order() -> None:
 
 
 def test_ndh_x_chindali_reg_mat_ndh_x_chindali_tn_mat_ndh_x_chindali_tq_mat_ndh_x_chindali_tw_mat_ndh_x_chindali_udb_mat_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1541,11 +1535,11 @@ def test_ndh_x_chindali_reg_mat_ndh_x_chindali_tn_mat_ndh_x_chindali_tq_mat_ndh_
 
 
 def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_es_419_ulb_col_es_419_tn_col_es_419_tq_col_es_419_tw_col_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1599,11 +1593,11 @@ def test_es_ulb_col_es_tn_col_en_tq_col_es_tw_col_book_language_order() -> None:
     """
     Ask for a combination of available and unavailable resources.
     """
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1640,11 +1634,11 @@ def test_llx_ulb_col_llx_tn_col_en_tq_col_llx_tw_col_book_language_order() -> No
     Ask for an unavailable resource and assert that the verses_html is
     not generated.
     """
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1681,11 +1675,11 @@ def test_llx_reg_col_llx_tn_col_en_tq_col_llx_tw_col_book_language_order() -> No
     Ask for an unavailable resource and assert that the verses_html is
     not generated.
     """
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1715,13 +1709,11 @@ def test_llx_reg_col_llx_tn_col_en_tq_col_llx_tw_col_book_language_order() -> No
             "llx-reg-col_llx-tn-col_llx-tq-col_llx-tw-col_book_language_order.pdf"
         )
         finished_document_path = os.path.join(
-            config.get_output_dir(), finished_document_path
+            settings.output_dir(), finished_document_path
         )
         html_file = "{}.html".format(finished_document_path.split(".")[0])
         assert os.path.exists(finished_document_path)
         assert os.path.exists(html_file)
-        # assert os.path.isdir("working/temp/en_ulb-wa")
-        # assert os.path.isdir("working/temp/fr_tw")
         assert response.ok
         with open(html_file, "r") as fin:
             html = fin.read()
@@ -1738,11 +1730,11 @@ def test_llx_reg_col_llx_tn_col_en_tq_col_llx_tw_col_book_language_order() -> No
 
 
 def test_es_419_ulb_col_es_419_tn_col_en_tq_col_es_419_tw_col_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1773,11 +1765,11 @@ def test_es_419_ulb_col_es_419_tn_col_en_tq_col_es_419_tw_col_book_language_orde
 
 
 def test_es_419_ulb_rom_es_419_tn_rom_en_tq_rom_es_419_tw_rom_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1808,11 +1800,11 @@ def test_es_419_ulb_rom_es_419_tn_rom_en_tq_rom_es_419_tw_rom_book_language_orde
 
 
 def test_en_ulb_wa_rom_en_tn_wa_rom_en_tq_wa_rom_en_tw_wa_rom_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1845,11 +1837,11 @@ def test_en_ulb_wa_rom_en_tn_wa_rom_en_tq_wa_rom_en_tw_wa_rom_book_language_orde
 # BUG See output in ~/.ghq/bitbucket.org/foobar77/timesheets/worklog3.org [[id:6F839365-1C34-4F36-B056-A91B8E5E92B5][Logs]]
 # @pytest.mark.skip
 def test_en_ulb_wa_rom_en_tn_wa_rom_en_tq_wa_rom_en_tw_wa_rom_es_419_ulb_rom_es_419_tn_rom_en_tq_rom_es_419_tw_rom_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1900,11 +1892,11 @@ def test_en_ulb_wa_rom_en_tn_wa_rom_en_tq_wa_rom_en_tw_wa_rom_es_419_ulb_rom_es_
 
 
 def test_en_ulb_wa_jon_en_tn_wa_jon_en_tq_wa_jon_en_tw_wa_jon_es_419_ulb_rom_es_419_tn_rom_en_tq_rom_es_419_tw_rom_book_language_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "book_language_order",
                 "resource_requests": [
                     {
@@ -1956,11 +1948,11 @@ def test_en_ulb_wa_jon_en_tn_wa_jon_en_tq_wa_jon_en_tw_wa_jon_es_419_ulb_rom_es_
 
 def test_invalid_document_request() -> None:
     with pytest.raises(Exception):
-        with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+        with TestClient(app=app, base_url=settings.api_test_url()) as client:
             response: requests.Response = client.post(
                 "/documents",
                 json={
-                    "email_address": config.get_to_email_address(),
+                    "email_address": settings.TO_EMAIL_ADDRESS,
                     "assembly_strategy_kind": "book_language_order",
                     "resource_requests": [
                         {

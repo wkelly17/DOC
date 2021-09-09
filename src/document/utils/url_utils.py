@@ -1,13 +1,10 @@
-import json
 import shutil
-import sys
 from contextlib import closing
-from typing import List
 from urllib.request import urlopen
 
-from document import config
+from document.config import settings
 
-logger = config.get_logger(__name__)
+logger = settings.get_logger(__name__)
 
 
 def get_url(url: str, catch_exception: bool = False) -> str:
@@ -18,13 +15,14 @@ def get_url(url: str, catch_exception: bool = False) -> str:
     return _get_url(url, catch_exception)
 
 
+# FIXME Improve this legacy code
 def _get_url(url: str, catch_exception: bool) -> str:
     if catch_exception:
         # noinspection PyBroadException
         try:
             with closing(urlopen(url)) as request:
                 response = request.read()
-        except:
+        except Exception:
             response = False
     else:
         with closing(urlopen(url)) as request:

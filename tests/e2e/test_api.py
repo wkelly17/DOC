@@ -7,7 +7,7 @@ import pytest
 import requests
 from fastapi.testclient import TestClient
 
-from document import config
+from document.config import settings
 from document.entrypoints.app import app
 
 
@@ -20,15 +20,13 @@ def check_finished_document_with_verses_success(
     Check that the finished_document_path exists and also check that
     the HTML file associated with it exists and includes verses_html.
     """
-    finished_document_path = os.path.join(
-        config.get_output_dir(), finished_document_path
-    )
+    finished_document_path = os.path.join(settings.output_dir(), finished_document_path)
     assert os.path.isfile(finished_document_path)
     html_file = "{}.html".format(finished_document_path.split(".")[0])
     assert os.path.isfile(html_file)
     assert response.json() == {
         "finished_document_request_key": pathlib.Path(finished_document_path).stem,
-        "message": config.get_success_message(),
+        "message": settings.SUCCESS_MESSAGE,
     }
     with open(html_file, "r") as fin:
         html = fin.read()
@@ -52,11 +50,11 @@ def test_en_ulb_wa_col_en_tn_wa_col_language_book_order_with_no_email() -> None:
     Produce verse interleaved document for English scripture and
     translation notes for the book of Colossians.
     """
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                # "email_address": config.get_to_email_address(),
+                # "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
@@ -81,11 +79,11 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_language_book_order() -> None:
     Produce verse level interleaved document for English scripture,
     translation notes, and translation questions for the book of Col.
     """
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
@@ -117,11 +115,11 @@ def test_en_ulb_wa_tn_wa_jud_language_book_order() -> None:
     Produce verse level interleaved document for English scripture and
     translation notes for the book of Jude.
     """
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
@@ -147,11 +145,11 @@ def test_ar_nav_jud_language_book_order() -> None:
     scripture. There are no other resources than USFM available at
     this time.
     """
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
@@ -174,11 +172,11 @@ def test_pt_br_ulb_tn_language_book_order() -> None:
     Produce verse level interleaved document for Brazilian Portuguese scripture and
     translation notes for the book of Genesis.
     """
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
@@ -203,11 +201,11 @@ def test_pt_br_ulb_tn_en_ulb_wa_tn_wa_luk_language_book_order() -> None:
     Produce verse level interleaved document for Brazilian Portuguese
     and English scripture and translation notes for the book of Luke.
     """
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
@@ -238,11 +236,11 @@ def test_pt_br_ulb_tn_en_ulb_wa_tn_wa_luk_language_book_order() -> None:
 
 
 def test_pt_br_ulb_tn_luk_en_ulb_wa_tn_wa_luk_sw_ulb_tn_col_language_book_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
@@ -283,11 +281,11 @@ def test_pt_br_ulb_tn_luk_en_ulb_wa_tn_wa_luk_sw_ulb_tn_col_language_book_order(
 
 
 def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_col_sw_tq_col_sw_tw_col_sw_ulb_tit_sw_tn_tit_sw_tq_tit_sw_tw_tit_language_book_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
@@ -353,11 +351,11 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_c
 
 
 def test_en_ulb_wa_col_en_tn_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_col_sw_tw_col_sw_ulb_tit_sw_tn_tit_sw_tw_tit_language_book_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
@@ -413,11 +411,11 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_col_sw_tw_col_
 
 
 def test_en_ulb_wa_col_en_tw_wa_col_sw_ulb_col_sw_tw_col_sw_ulb_tit_sw_tw_tit_language_book_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
@@ -458,11 +456,11 @@ def test_en_ulb_wa_col_en_tw_wa_col_sw_ulb_col_sw_tw_col_sw_ulb_tit_sw_tw_tit_la
 
 
 def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_sw_ulb_tit_sw_tq_tit_sw_tw_tit_language_book_order() -> None:
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
@@ -522,11 +520,11 @@ def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_
     This test demonstrates the quirk of combining resources for
     the same books but from different languages.
     """
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
@@ -595,11 +593,11 @@ def test_zh_ulb_doesnt_exist_jol_zh_tn_jol_language_book_order() -> None:
     found and thus a PDF document is still created, but it lacks the
     scripture verses.
     """
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
@@ -617,7 +615,7 @@ def test_zh_ulb_doesnt_exist_jol_zh_tn_jol_language_book_order() -> None:
         )
         finished_document_path = "zh-ulb-jol_zh-tn-jol_language_book_order.pdf"
         finished_document_path = os.path.join(
-            config.get_output_dir(), finished_document_path
+            settings.output_dir(), finished_document_path
         )
         html_file = "{}.html".format(finished_document_path.split(".")[0])
         assert os.path.exists(finished_document_path)
@@ -649,11 +647,11 @@ def test_zh_cuv_jol_zh_tn_jol_language_book_order() -> None:
     This test succeeds by correcting the mistake of the document request
     in the test above it, i.e., ulb -> cuv.
     """
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
@@ -678,11 +676,11 @@ def test_zh_cuv_jol_zh_tn_jol_zh_tq_jol_zh_tw_jol_language_book_order() -> None:
     This test succeeds by correcting the mistake of the document request
     in the test above it, i.e., ulb -> cuv.
     """
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {
@@ -719,11 +717,11 @@ def test_pt_br_ulb_luk_pt_br_tn_luk_language_book_order() -> None:
     Produce verse level interleaved document for Brazilian Portuguese scripture and
     translation notes for the book of Genesis.
     """
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
             "/documents",
             json={
-                "email_address": config.get_to_email_address(),
+                "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": "language_book_order",
                 "resource_requests": [
                     {

@@ -2,7 +2,7 @@ import pytest
 import requests
 from fastapi.testclient import TestClient
 
-from document import config
+from document.config import settings
 from document.domain import model
 from document.entrypoints.app import app
 
@@ -28,7 +28,7 @@ def test_random_non_english_fixtures(
     generate a random document request each time this is run.
     """
     data = random_non_english_document_request.dict()
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post("/documents", json=data)
         assert response.ok
 
@@ -45,7 +45,7 @@ def test_random_english_and_non_english_combo_document_request(
     generate a random multi-language document request each time this is run.
     """
     data = random_english_and_non_english_document_request.dict()
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post("/documents", json=data)
         assert response.ok
 
@@ -62,6 +62,6 @@ def test_random_two_non_english_languages_combo_document_request(
     generate a random multi-language document request each time this is run.
     """
     data = random_two_non_english_languages_document_request.dict()
-    with TestClient(app=app, base_url=config.get_api_test_url()) as client:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post("/documents", json=data)
         assert response.ok

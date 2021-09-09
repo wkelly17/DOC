@@ -3,131 +3,157 @@
 
 import logging
 import os
-import types
 from logging import config as lc
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
 
 import icontract
 import jinja2
-import pydantic
 import yaml
+from pydantic import (
+    AnyHttpUrl,
+    BaseModel,
+    BaseSettings,
+    EmailStr,
+    HttpUrl,
+    validator,
+)
+from typeguard.importhook import install_import_hook
 
-from document import config
-from document.domain import model
-
-REPO_URL_DICT_KEY = "../download-scripture?repo_url"
-RESOURCE_TYPES_JSONPATH = "$[*].contents[*].code"
-RESOURCE_CODES_JSONPATH = "$[*].contents[*].subcontents[*].code"
+with install_import_hook("document.domain"):
+    from document.domain import model
 
 
-@icontract.ensure(lambda result: result)
-def get_logging_config_file_path() -> str:
+class Settings(BaseSettings):
     """
-    The file path location where the dictConfig-style yaml
-    formatted config file for logging is located.
+    BaseSettings subclasses allow values of constants to be overridden
+    by environment variables and env files, e.g., ../../.env
     """
-    filepath = ""
-    if is_in_container():
-        filepath = os.environ.get("LOGGING_CONFIG", "src/document/logging_config.yaml")
-    else:
-        filepath = "src/document/logging_config.yaml"
-    return filepath
 
+    REPO_URL_DICT_KEY: str = "../download-scripture?repo_url"
+    RESOURCE_TYPES_JSONPATH: str = "$[*].contents[*].code"
+    RESOURCE_CODES_JSONPATH: str = "$[*].contents[*].subcontents[*].code"
 
-@icontract.require(lambda name: name)
-def get_logger(name: str) -> logging.Logger:
-    """
-    Return a Logger for scope named by name, e.g., module, that can be
-    used for logging.
-    """
-    with open(config.get_logging_config_file_path(), "r") as fin:
-        logging_config = yaml.safe_load(fin.read())
-        lc.dictConfig(logging_config)
-    return logging.getLogger(name)
+    LANGUAGE_FMT_STR: str = "<h1>Language: {}</h1>"
+    RESOURCE_TYPE_NAME_FMT_STR: str = "<h2>{}</h2>"
+    RESOURCE_TYPE_NAME_WITH_REF_FMT_STR: str = "<h3>{} {}:{}</h3>"
+    TN_RESOURCE_TYPE_NAME_WITH_ID_AND_REF_FMT_STR: str = (
+        '<h3 id="{}-{}-tn-ch-{}-v-{}">{} {}:{}</h3>'
+    )
+    BOOK_FMT_STR: str = "<h2>Book: {}</h2>"
+    BOOK_AS_GROUPER_FMT_STR: str = "<h1>Book: {}</h1>"
+    VERSE_FMT_STR: str = "<h3>Verse {}:{}</h3>"
+    TRANSLATION_NOTE_FMT_STR: str = "<h3>Translation note {}:{}</h3>"
+    # Example: <h2 class="c-num" id="en-042-ch-001">Chapter 1</h2>
+    # FIXME Should rename since it is used in more cases than
+    # just TN
+    TN_ONLY_CHAPTER_HEADER_FMT_STR: str = (
+        '<h2 class="c-num" id="{}-{}-ch-{}">Chapter {}</h2>'
+    )
+    TRANSLATION_QUESTION_FMT_STR: str = "<h3>Translation question {}:{}</h3>"
+    TRANSLATION_ACADEMY_FMT_STR: str = "<h3>Translation academy {}:{}</h3>"
+    UNORDERED_LIST_BEGIN_STR: model.HtmlContent = model.HtmlContent("<ul>")
+    UNORDERED_LIST_END_STR: model.HtmlContent = model.HtmlContent("</ul>")
+    TRANSLATION_WORD_LIST_ITEM_FMT_STR: model.HtmlContent = model.HtmlContent(
+        '<li><a href="#{}-{}">{}</a></li>'
+    )
+    TRANSLATION_WORDS_FMT_STR: str = "<h3>Translation words {}:{}</h3>"
+    TRANSLATION_WORDS_SECTION_STR: str = "<h2>Translation words</h2>"
+    TRANSLATION_WORD_VERSE_SECTION_HEADER_STR: model.HtmlContent = model.HtmlContent(
+        "<h4>Uses:</h4>"
+    )
+    TRANSLATION_WORD_VERSE_REF_ITEM_FMT_STR: str = (
+        '<li><a href="#{}-{}-ch-{}-v-{}">{} {}:{}</a></li>'
+    )
+    FOOTNOTES_HEADING: model.HtmlContent = model.HtmlContent("<h3>Footnotes</h3>")
+    OPENING_H3_FMT_STR: str = "<h3>{}"
+    OPENING_H3_WITH_ID_FMT_STR: str = '<h3 id="{}-{}">{}'
+    TRANSLATION_WORD_ANCHOR_LINK_FMT_STR: str = r"[{}](#{}-{})"
+    TRANSLATION_WORD_PREFIX_ANCHOR_LINK_FMT_STR: str = r"({}: [{}](#{}-{}))"
+    TRANSLATION_NOTE_ANCHOR_LINK_FMT_STR: str = r"[{}](#{}-{}-tn-ch-{}-v-{})"
+    # FIXME Tighten up the '.' usage in the following regex
+    VERSE_ANCHOR_ID_FMT_STR: str = r'id="(.+?)-ch-(.+?)-v-(.+?)"'
+    VERSE_ANCHOR_ID_SUBSTITUTION_FMT_STR: str = r"id='{}-\1-ch-\2-v-\3'"
 
+    LOGGING_CONFIG_FILE_PATH: str = "src/document/logging_config.yaml"
 
-def get_api_test_url() -> str:
-    """Non-secure local URL for running the Fastapi server for testing."""
-    return "http://localhost:{}".format(get_api_local_port())
+    @icontract.require(lambda name: name)
+    def get_logger(self, name: str) -> logging.Logger:
+        """
+        Return a Logger for scope named by name, e.g., module, that can be
+        used for logging.
+        """
+        with open(self.LOGGING_CONFIG_FILE_PATH, "r") as fin:
+            logging_config = yaml.safe_load(fin.read())
+            lc.dictConfig(logging_config)
+        return logging.getLogger(name)
 
+    def api_test_url(self) -> str:
+        """Non-secure local URL for running the Fastapi server for testing."""
+        return "http://localhost:{}".format(self.API_LOCAL_PORT)
 
-def get_api_root() -> str:
-    """
-    Get API prefix. Useful to have a prefix for versioning of the
-    API. TODO Fastapi probably provides a better way of specifying an
-    API prefix in a router.
-    """
-    return os.environ.get("API_ROOT", "/api/v1")
+    # Get API prefix. Useful to have a prefix for versioning of the API.
+    # TODO Consider using API_ROOT in router prefix
+    API_ROOT: str
 
+    API_LOCAL_PORT: int
+    API_REMOTE_PORT: int
 
-def get_api_local_port() -> str:
-    """Get port where the Fastapi server runs locally."""
-    return os.environ.get("API_LOCAL_PORT", "5005")
-
-
-def get_api_remote_port() -> str:
-    """Get port where the Fastapi server runs remotely in the Docker container."""
-    return os.environ.get("API_REMOTE_PORT", "80")
-
-
-def get_api_url() -> str:
-    """Return the full base URL of the Fastapi server."""
-    host = os.environ.get("API_HOST", "localhost")
-    port = get_api_local_port() if host == "localhost" else get_api_remote_port()
-    root = get_api_root()
     # FIXME HTTPS shouldn't be hardcoded. fastapi will have a sane way
     # to deal with this that I've yet to research.
-    return "https://{}:{}{}".format(host, port, root)
-    # return f"http://{host}:{port}"
+    def api_url(self) -> str:
+        """Return the full base URL of the Fastapi server."""
+        host = os.environ.get("API_HOST", "localhost")
+        port = self.API_LOCAL_PORT if host == "localhost" else self.API_REMOTE_PORT
+        root = self.API_ROOT
+        return "https://{}:{}{}".format(host, port, root)
 
+    # Location where resource assets will be downloaded.
+    RESOURCE_ASSETS_DIR: str
 
-def get_working_dir() -> str:
-    """
-    The directory where the resources will be placed once
-    acquired. RESOURCE_ASSETS_DIR is provided when running in a docker
-    environment. Otherwise a suitable temporary local directory is
-    generated automatically.
-    """
-    dirname = ""
-    if is_in_container():
-        dirname = os.environ.get("RESOURCE_ASSETS_DIR", "/working/temp")
-    else:
-        dirname = os.environ.get("RESOURCE_ASSETS_DIR", "working/temp")
-    return dirname
+    # Indicate whether running in Docker container.
+    IN_CONTAINER: bool = False
 
+    def working_dir(self) -> str:
+        """
+        The directory where the resources will be placed once
+        acquired. RESOURCE_ASSETS_DIR is used when running in a docker
+        environment. Otherwise a suitable local path.
+        """
+        dirname = ""
+        if self.IN_CONTAINER:
+            dirname = self.RESOURCE_ASSETS_DIR
+        else:
+            dirname = "working/temp"
+        return dirname
 
-def is_in_container() -> bool:
-    return os.environ.get("IN_CONTAINER") is not None
+    # Location where generated PDFs will be written to.
+    DOCUMENT_OUTPUT_DIR: str
 
+    def output_dir(self) -> str:
+        """The directory where the generated documents are placed."""
+        dirname = ""
+        if self.IN_CONTAINER:
+            dirname = self.DOCUMENT_OUTPUT_DIR
+        else:
+            dirname = "working/output"
+        return dirname
 
-def get_output_dir() -> str:
-    """The directory where the generated documents are placed."""
-    dirname = ""
-    if is_in_container():
-        dirname = os.environ.get("DOCUMENT_OUTPUT_DIR", "/working/output")
-    else:
-        dirname = os.environ.get("DOCUMENT_OUTPUT_DIR", "working/output")
-    return dirname
+    def resource_type_lookup_map(self) -> Dict[str, Any]:
+        """
+        Return an immutable dictionary, MappingProxyType, of mappings
+        between resource_type and Resource subclass instance.
+        """
+        # Lazy import to avoid circular import.
+        from document.domain.resource import (
+            # Resource,
+            TAResource,
+            TNResource,
+            TQResource,
+            TWResource,
+            USFMResource,
+        )
 
-
-def get_resource_type_lookup_map() -> types.MappingProxyType[str, Any]:
-    """
-    Return an immutable dictionary, MappingProxyType, of mappings
-    between resource_type and Resource subclass instance.
-    """
-    # Lazy import to avoid circular import.
-    from document.domain.resource import (
-        Resource,
-        TAResource,
-        TNResource,
-        TQResource,
-        TWResource,
-        USFMResource,
-    )
-
-    # resource_type is key, Resource subclass is value
-    return types.MappingProxyType(
-        {
+        resource_type_to_resource_class_map: Dict[str, Any] = {
             "usfm": USFMResource,
             "ulb": USFMResource,
             "ulb-wa": USFMResource,
@@ -136,7 +162,6 @@ def get_resource_type_lookup_map() -> types.MappingProxyType[str, Any]:
             "nav": USFMResource,
             "reg": USFMResource,
             "cuv": USFMResource,
-            "udb": USFMResource,
             "f10": USFMResource,
             "tn": TNResource,
             "tn-wa": TNResource,
@@ -147,149 +172,114 @@ def get_resource_type_lookup_map() -> types.MappingProxyType[str, Any]:
             "ta": TAResource,
             "ta-wa": TAResource,
         }
+
+        # resource_type is key, Resource subclass is value
+        return resource_type_to_resource_class_map
+
+    # Return the message to show to user on successful generation of
+    # PDF.
+    SUCCESS_MESSAGE: str = "Success! Please retrieve your generated document using a GET REST request to /pdf/{document_request_key} where document_request_key is the finished_document_request_key in this payload."
+
+    # Return the message to show to user on failure generating PDF.
+    FAILURE_MESSAGE: str = "The document request could not be fulfilled either because the resources requested are not available either currently or at all or because the system does not yet support the resources requested."
+
+    # The location where the JSON data file that we use to lookup
+    # location of resources is located.
+    TRANSLATIONS_JSON_LOCATION: HttpUrl
+
+    # The jsonpath location in TRANSLATIONS_JSON_LOCATION file where
+    # individual USFM files (per bible book) may be found.
+    INDIVIDUAL_USFM_URL_JSONPATH: str = "$[?code='{}'].contents[?code='{}'].subcontents[?code='{}'].links[?format='usfm'].url"
+
+    # The jsonpath location in TRANSLATIONS_JSON_LOCATION file where
+    # resource URL, e.g., tn, tq, tw, ta, obs, ulb, udb, etc., may normally
+    # be found.
+    RESOURCE_URL_LEVEL1_JSONPATH: str = (
+        "$[?code='{}'].contents[?code='{}'].links[?format='zip'].url"
     )
 
+    # The json path to the language's name.
+    RESOURCE_LANG_NAME_JSONPATH: str = "$[?code='{}'].name"
 
-def get_success_message() -> str:
-    """
-    Return the message to show to user on successful generation of
-    PDF.
-    """
-    return "Success! Please retrieve your generated document using a GET REST request to /pdf/{document_request_key} where document_request_key is the finished_document_request_key in this payload."
+    #  The json path to the resource type's name.
+    RESOURCE_TYPE_NAME_JSONPATH: str = "$[?code='{}'].contents[?code='{}'].name"
 
-
-def get_failure_message() -> str:
-    """
-    Return the message to show to user on failure generating PDF.
-    """
-    return "The document request could not be fulfilled either because the resources requested are not available either currently or at all or because the system does not yet support the resources requested."
-
-
-def get_translations_json_location() -> str:
-    """
-    The location where the JSON data file that we use to lookup
-    location of resources is located.
-    """
-    loc = os.environ.get(
-        "TRANSLATIONS_JSON_LOCATION",
-        "http://bibleineverylanguage.org/wp-content/themes/bb-theme-child/data/translations.json",
+    # The jsonpath location in TRANSLATIONS_JSON_LOCATION file where
+    # resource URL, e.g., tn, tq, tw, ta, obs, ulb, udb, etc., may
+    # additionally/alternatively be found.
+    RESOURCE_URL_LEVEL2_JSONPATH: str = (
+        "$[?code='{}'].contents[*].subcontents[?code='{}'].links[?format='zip'].url"
     )
-    return loc
 
+    # The jsonpath location in TRANSLATIONS_JSON_LOCATION file where
+    # resource git repo may be found.
+    RESOURCE_DOWNLOAD_FORMAT_JSONPATH: str = "$[?code='{}'].contents[?code='{}'].subcontents[?code='{}'].links[?format='Download'].url"
 
-def get_individual_usfm_url_jsonpath() -> str:
-    """
-    The jsonpath location in TRANSLATIONS_JSON_LOCATION file where
-    individual USFM files (per bible book) may be found.
-    """
-    return "$[?code='{}'].contents[?code='{}'].subcontents[?code='{}'].links[?format='usfm'].url"
+    # BACKEND_CORS_ORIGINS is a JSON-formatted list of origins
+    # e.g: '["http://localhost", "http://localhost:4200",
+    # "http://localhost:8000"]'
+    BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
 
+    @validator("BACKEND_CORS_ORIGINS", pre=True)
+    def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:
+        if isinstance(v, str) and not v.startswith("["):
+            return [i.strip() for i in v.split(",")]
+        elif isinstance(v, (list, str)):
+            return v
+        raise ValueError(v)
 
-def get_resource_url_level1_jsonpath() -> str:
-    """
-    The jsonpath location in TRANSLATIONS_JSON_LOCATION file where
-    resource URL, e.g., tn, tq, tw, ta, obs, ulb, udb, etc., may normally
-    be found.
-    """
-    return "$[?code='{}'].contents[?code='{}'].links[?format='zip'].url"
+    # Return the file names, excluding suffix, of files that do not
+    # contain content but which may be in the same directory or
+    # subdirectories of a resource's acquired files.
+    MARKDOWN_DOC_FILE_NAMES: List[str] = ["readme", "license"]
 
+    def document_html_header(self) -> str:
+        """
+        Return the enclosing HTML and body element format string used
+        to enclose the document's HTML content which was aggregated from
+        all the resources in the document request.
+        """
+        return self.template("header_enclosing")
 
-def get_resource_lang_name_jsonpath() -> str:
-    """
-    The language's name.
-    """
-    return "$[?code='{}'].name"
+    def document_html_footer(self) -> str:
+        """
+        Return the enclosing HTML and body element format string used
+        to enclose the document's HTML content which was aggregated from
+        all the resources in the document request.
+        """
+        return self.template("footer_enclosing")
 
-
-def get_resource_type_name_jsonpath() -> str:
-    """
-    The resource type's name.
-    """
-    return "$[?code='{}'].contents[?code='{}'].name"
-
-
-def get_resource_url_level2_jsonpath() -> str:
-    """
-    The jsonpath location in TRANSLATIONS_JSON_LOCATION file where
-    resource URL, e.g., tn, tq, tw, ta, obs, ulb, udb, etc., may
-    additionally/alternatively be found.
-    """
-    return "$[?code='{}'].contents[*].subcontents[?code='{}'].links[?format='zip'].url"
-
-
-def get_resource_download_format_jsonpath() -> str:
-    """
-    The jsonpath location in TRANSLATIONS_JSON_LOCATION file where
-    resource git repo may be found.
-    """
-    return "$[?code='{}'].contents[?code='{}'].subcontents[?code='{}'].links[?format='Download'].url"
-
-
-def get_markdown_doc_file_names() -> List[str]:
-    """
-    Return the file names, excluding suffix, of files that do not
-    contain content but which may be in the same directory or
-    subdirectories of a resource's acquired files.
-    """
-    return ["readme", "license"]
-
-
-def get_document_html_header() -> str:
-    """
-    Return the enclosing HTML and body element format string used
-    to enclose the document's HTML content which was aggregated from
-    all the resources in the document request.
-    """
-    return get_template("header_enclosing")
-
-
-def get_document_html_footer() -> str:
-    """
-    Return the enclosing HTML and body element format string used
-    to enclose the document's HTML content which was aggregated from
-    all the resources in the document request.
-    """
-    return get_template("footer_enclosing")
-
-
-@icontract.require(lambda resource_type: resource_type)
-def get_english_git_repo_url(resource_type: str) -> str:
-    """
-    This is a hack to compensate for translations.json which only
-    provides URLs in non-English languages.
-    """
-    return {
+    ENGLISH_GIT_REPO_MAP: Dict[str, str] = {
         "ulb-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_ulb",
         "udb-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_udb",
         "tn-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_tn",
         "tw-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_tw",
         "tq-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_tq",
-    }[resource_type]
+    }
 
+    def english_git_repo_url(self, resource_type: str) -> str:
+        """
+        This is a hack to compensate for translations.json which only
+        provides URLs in non-English languages.
+        """
+        return self.ENGLISH_GIT_REPO_MAP[resource_type]
 
-@icontract.require(lambda resource_type: resource_type)
-def get_english_resource_type_name(resource_type: str) -> str:
-    """
-    This is a hack to compensate for translations.json which only
-    provides information for non-English languages.
-    """
-    return {
+    ENGLISH_RESOURCE_TYPE_MAP: Dict[str, str] = {
         "ulb-wa": "Unlocked Literal Bible (ULB)",
         "udb-wa": "Unlocked Dynamic Bible (UDB)",
         "tn-wa": "ULB Translation Helps",
         "tq-wa": "ULB Translation Questions",
         "tw-wa": "ULB Translation Words",
-    }[resource_type]
+    }
 
+    def english_resource_type_name(self, resource_type: str) -> str:
+        """
+        This is a hack to compensate for translations.json which only
+        provides information for non-English languages.
+        """
+        return self.ENGLISH_RESOURCE_TYPE_MAP[resource_type]
 
-@icontract.require(lambda key: key)
-def get_template_path(key: str) -> str:
-    """
-    Return the path to the requested template give a lookup key.
-    Return a different path if the code is running inside the Docker
-    container.
-    """
-    templates = {
+    TEMPLATE_PATHS_MAP: Dict[str, str] = {
         "book_intro": "src/templates/tn/book_intro_template.md",
         "header_enclosing": "src/templates/html/header_enclosing.html",
         "footer_enclosing": "src/templates/html/footer_enclosing.html",
@@ -297,176 +287,90 @@ def get_template_path(key: str) -> str:
         "email-html": "src/templates/html/email.html",
         "email": "src/templates/text/email.txt",
     }
-    path = templates[key]
-    # if not os.environ.get("IN_CONTAINER"):
-    #     path = "src/{}".format(path)
-    return path
+
+    def template_path(self, key: str) -> str:
+        """
+        Return the path to the requested template give a lookup key.
+        Return a different path if the code is running inside the Docker
+        container.
+        """
+        return self.TEMPLATE_PATHS_MAP[key]
+
+    @icontract.require(
+        lambda template_lookup_key, dto: template_lookup_key and dto is not None
+    )
+    def instantiated_template(self, template_lookup_key: str, dto: BaseModel) -> str:
+        """
+        Instantiate Jinja2 template with dto BaseModel instance. Return
+        instantiated template as string.
+        """
+        # FIXME Maybe use jinja2.PackageLoader here instead: https://github.com/tfbf/usfm/blob/master/usfm/html.py
+        with open(self.template_path(template_lookup_key), "r") as filepath:
+            template = filepath.read()
+        # FIXME Handle exceptions
+        env = jinja2.Environment().from_string(template)
+        return env.render(data=dto)
+
+    @icontract.require(lambda template_lookup_key: template_lookup_key)
+    def template(self, template_lookup_key: str) -> str:
+        """
+        Return template as string.
+        """
+        with open(self.template_path(template_lookup_key), "r") as filepath:
+            template = filepath.read()
+        return template
+
+    # Return boolean indicating if caching of generated document's should be
+    # cached.
+    ASSET_CACHING_ENABLED: bool = True
+
+    # Get the path to the logo image that will be used on the PDF cover,
+    # i.e., first, page.
+    LOGO_IMAGE_PATH: str = "icon-tn.png"
+
+    # It doesn't yet make sense to offer the (high level)
+    # assembly strategy _and_ the assembly sub-strategy to the end user
+    # as a document request parameter so we'll just choose an arbitrary
+    # sub-strategy here. This means that we can write code for multiple
+    # sub-strategies and choose one to put in play at a time here.
+    DEFAULT_ASSEMBLY_SUBSTRATEGY: model.AssemblySubstrategyEnum = (
+        model.AssemblySubstrategyEnum.VERSE
+    )
+
+    # Return a list of the Markdown section titles that our
+    # Python-Markdown remove_section_processor extension should remove.
+    MARKDOWN_SECTIONS_TO_REMOVE: List[str] = [
+        "Examples from the Bible stories",
+        "Links",
+    ]
+
+    #  Return the from email to use for sending email with generated PDF
+    #  attachment to document request recipient. Look for the value to
+    #  use in FROM_EMAIL environment variable, use default if it doesn't
+    #  exist.
+    FROM_EMAIL_ADDRESS: EmailStr
+
+    # The to-email address to use for sending email with generated
+    # PDF attachment to document request recipient during testing - in
+    # production the to-email address is supplied by the user.
+    TO_EMAIL_ADDRESS: EmailStr
+    EMAIL_SEND_SUBJECT: str
+
+    # Return boolean representing if the system should execute the
+    # action of sending an email when appropriate to do so.
+    SEND_EMAIL: bool
+
+    @validator("SEND_EMAIL")
+    def get_send_email(cls, v: bool, values: Dict[str, Any]) -> bool:
+        return bool(values.get("SEND_EMAIL"))
+
+    SMTP_PASSWORD: str
+    SMTP_HOST: str
+    SMTP_PORT: int
+
+    class Config:
+        env_file = ".env"
+        case_sensitive = True
 
 
-@icontract.require(
-    lambda template_lookup_key, dto: template_lookup_key and dto is not None
-)
-def get_instantiated_template(template_lookup_key: str, dto: pydantic.BaseModel) -> str:
-    """
-    Instantiate Jinja2 template with dto BaseModel instance. Return
-    instantiated template as string.
-    """
-    # FIXME Maybe use jinja2.PackageLoader here instead: https://github.com/tfbf/usfm/blob/master/usfm/html.py
-    with open(config.get_template_path(template_lookup_key), "r") as filepath:
-        template = filepath.read()
-    # FIXME Handle exceptions
-    env = jinja2.Environment().from_string(template)
-    return env.render(data=dto)
-
-
-@icontract.require(lambda template_lookup_key: template_lookup_key)
-def get_template(template_lookup_key: str) -> str:
-    """
-    Return template as string.
-    """
-    with open(config.get_template_path(template_lookup_key), "r") as filepath:
-        template = filepath.read()
-    return template
-
-
-@icontract.require(lambda lookup_key: lookup_key)
-def get_html_format_string(lookup_key: str) -> model.HtmlContent:
-    """
-    Return the HTML string associated with its lookup_key. This allows
-    changes to the HTML output without having to spelunk into code.
-    """
-    html_format_strings: Dict[str, str] = {
-        "language": "<h1>Language: {}</h1>",
-        "resource_type_name": "<h2>{}</h2>",
-        "resource_type_name_with_ref": "<h3>{} {}:{}</h3>",
-        "tn_resource_type_name_with_id_and_ref": '<h3 id="{}-{}-tn-ch-{}-v-{}">{} {}:{}</h3>',
-        "book": "<h2>Book: {}</h2>",
-        "book_as_grouper": "<h1>Book: {}</h1>",
-        "verse": "<h3>Verse {}:{}</h3>",
-        "translation_note": "<h3>Translation note {}:{}</h3>",
-        # Example: <h2 class="c-num" id="en-042-ch-001">Chapter 1</h2>
-        # FIXME Should rename key since it is used in more cases than
-        # just TN
-        "tn_only_chapter_header": '<h2 class="c-num" id="{}-{}-ch-{}">Chapter {}</h2>',
-        "translation_question": "<h3>Translation question {}:{}</h3>",
-        "translation_academy": "<h3>Translation academy {}:{}</h3>",
-        "unordered_list_begin": "<ul>",
-        "unordered_list_end": "</ul>",
-        "translation_word_list_item": '<li><a href="#{}-{}">{}</a></li>',
-        "translation_words": "<h3>Translation words {}:{}</h3>",
-        "translation_words_section": "<h2>Translation words</h2>",
-        "translation_word_verse_section_header": "<h4>Uses:</h4>",
-        "translation_word_verse_ref_item": '<li><a href="#{}-{}-ch-{}-v-{}">{} {}:{}</a></li>',
-        "footnotes": "<h3>Footnotes</h3>",
-        "opening_h3": "<h3>{}",
-        "opening_h3_with_id": '<h3 id="{}-{}">{}',
-        "translation_word_anchor_link": r"[{}](#{}-{})",
-        "translation_word_prefix_anchor_link": r"({}: [{}](#{}-{}))",
-        "translation_note_anchor_link": r"[{}](#{}-{}-tn-ch-{}-v-{})",
-    }
-    return model.HtmlContent(html_format_strings[lookup_key])
-
-
-def asset_caching_enabled() -> bool:
-    """
-    Return boolean indicating if caching of generated document's
-    should be cached. The default is to not cache, but can be enabled
-    by setting the environment variable ENABLE_ASSET_CACHING=1 in
-    the shell (Docker or otherwise) environment where Python is
-    executing.
-    """
-    if int(os.environ.get("ENABLE_ASSET_CACHING", "0")) == 1:
-        return True
-    else:
-        return False
-
-
-def get_logo_image_path() -> str:
-    """
-    Get the path to the logo image that will be used on the PDF cover,
-    i.e., first, page.
-    """
-    return "icon-tn.png"
-
-
-def get_default_assembly_substrategy() -> model.AssemblySubstrategyEnum:
-    """
-    It doesn't yet make sense to offer the (high level)
-    assembly strategy _and_ the assembly sub-strategy to the end user
-    as a document request parameter so we'll just choose an arbitrary
-    sub-strategy here. This means that we can write code for multiple
-    sub-strategies and choose one to put in play at a time here.
-    """
-    return model.AssemblySubstrategyEnum.VERSE
-
-
-def get_markdown_sections_to_remove() -> List[str]:
-    """
-    Return a list of the Markdown section titles that our
-    Python-Markdown remove_section_processor extension should remove.
-    """
-    return ["Examples from the Bible stories", "Links"]
-
-
-def get_from_email_address() -> str:
-    """
-    Return the from email to use for sending email with generated PDF
-    attachment to document request recipient. Look for the value to
-    use in FROM_EMAIL environment variable, use default if it doesn't
-    exist.
-    """
-    return os.environ.get("FROM_EMAIL", "no email provided")
-
-
-def get_to_email_address() -> str:
-    """
-    Return the to email address to use for sending email with
-    generated PDF attachment to document request recipient during
-    testing. Look for the value to use in TO_EMAIL environment
-    variable, use default if it doesn't exist.
-    """
-    return os.environ.get("TO_EMAIL", "no email provided")
-
-
-def should_send_email() -> bool:
-    """
-    Return boolean representing if the system should execute the
-    action of sending an email when appropriate to do so.
-    """
-    # FIXME Later, add this env var to .env file so that email in Docker runs
-    # is configurable. Left out of .env on purpose for now since if
-    # someone accidentally turns this on it will quickly send nearly
-    # 100 emails if all tests are run.
-    if int(os.environ.get("SEND_EMAIL", "0")) == 1:
-        return True
-    else:
-        return False
-
-
-def get_email_send_subject() -> str:
-    """
-    Return the subject line for the email sent to BIEL users when
-    sending PDF attachment.
-    """
-    return os.environ.get("EMAIL_SEND_SUBJECT", "no subject provided")
-
-
-def get_smtp_password() -> str:
-    """
-    Return the Office 365 password.
-    """
-    return os.environ.get("EMAIL_PASSWORD", "no api key provided")
-
-
-def get_smtp_address() -> str:
-    """
-    Return the address to use for sending emails via smtp protocol.
-    """
-    return os.environ.get("SMTP_ADDRESS", "no smtp address provided")
-
-
-def get_smtp_port() -> int:
-    """
-    Return the port  to use for sending emails via smtp protocol.
-    """
-    return int(os.environ.get("SMTP_PORT", "587"))
+settings = Settings()

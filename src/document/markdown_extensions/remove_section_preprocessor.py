@@ -1,15 +1,13 @@
-# import logging  # For logdecorator
 import markdown
 import re
 
-# from logdecorator import log_on_end
 from markdown import Extension
 from markdown.preprocessors import Preprocessor
 from typing import Any, Dict, List
 
-from document import config
+from document.config import settings
 
-# logger = config.get_logger(__name__)
+logger = settings.get_logger(__name__)
 
 
 class RemoveSectionPreprocessor(Preprocessor):
@@ -20,14 +18,11 @@ class RemoveSectionPreprocessor(Preprocessor):
         # Example use of config. See __init__ for RemoveSectionExtension
         # below for initialization.
         # self.encoding = config.get("encoding")
-        super(RemoveSectionPreprocessor, self).__init__()
+        super().__init__()
 
-    # @log_on_end(logging.DEBUG, "lines after preprocessor: {result}", logger=logger)
     def remove_sections(self, md: str) -> List[str]:
-        """
-        Remove various markdown sections.
-        """
-        for section in config.get_markdown_sections_to_remove():
+        """Remove various markdown sections."""
+        for section in settings.MARKDOWN_SECTIONS_TO_REMOVE:
             md = self.remove_md_section(md, section)
         return md.split("\n")
 
@@ -70,7 +65,7 @@ class RemoveSectionExtension(Extension):
             # ships with Python-Markdown library.
             # "encoding": ["utf-8", 'Encoding of snippets - Default: "utf-8"'],
         }
-        super(RemoveSectionExtension, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def extendMarkdown(self, md: markdown.Markdown) -> None:
         """Register the extension."""

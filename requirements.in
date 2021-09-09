@@ -14,7 +14,7 @@ logdecorator
 parse
 pathlib
 pdfkit
-pydantic[email]
+pydantic[email,dotenv]
 pyparsing
 requests
 termcolor

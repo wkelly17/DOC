@@ -1,6 +1,4 @@
-"""
-This module provides various file utilities.
-"""
+"""This module provides various file utilities."""
 
 import codecs
 import icontract
@@ -11,11 +9,11 @@ import pathlib
 import yaml
 import zipfile
 from datetime import datetime, timedelta
-from document import config
-from logdecorator import log_on_end, log_on_start
+from document.config import settings
+from logdecorator import log_on_end
 from typing import Any, Dict, List, Optional, Union
 
-logger = config.get_logger(__name__)
+logger = settings.get_logger(__name__)
 
 
 @icontract.require(lambda source_file, destination_dir: source_file and destination_dir)
@@ -119,17 +117,6 @@ def write_file(
         out_file.write(text_to_write)
 
 
-# NOTE Might want this later
-# def remove(file_path, ignore_errors=True):
-#     if ignore_errors:
-#         try:
-#             os.remove(file_path)
-#         except OSError:
-#             pass
-#     else:
-#         os.remove(file_path)
-
-
 @icontract.require(lambda file_path: file_path is not None)
 @log_on_end(logging.DEBUG, "{file_path} needs update: {result}.", logger=logger)
 def source_file_needs_update(file_path: Union[str, pathlib.Path]) -> bool:
@@ -145,13 +132,13 @@ def source_file_needs_update(file_path: Union[str, pathlib.Path]) -> bool:
 @log_on_end(logging.DEBUG, "{file_path} needs update: {result}.", logger=logger)
 def asset_file_needs_update(file_path: Union[str, pathlib.Path]) -> bool:
     """
-    Return True if config.asset_caching_enabled() is False or if
+    Return True if settings.ASSET_CACHING_ENABLED is False or if
     file_path either does not exist or does exist and has not been
     updated within 24 hours. This function is to be used to test a
     resource asset file, typically a zip file at a location like
     working/temp/sw_tn/tn.zip.
     """
-    if not config.asset_caching_enabled():
+    if not settings.ASSET_CACHING_ENABLED:
         return True
     return __file_needs_update(file_path)
 

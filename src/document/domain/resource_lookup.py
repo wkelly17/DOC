@@ -13,16 +13,13 @@ from urllib import parse as urllib_parse
 
 import icontract
 import jsonpath_rw_ext as jp
-
-from document import config
+from document.config import settings
 from document.domain import model
-from document.utils import file_utils, url_utils
-
 from document.domain.resource import Resource
-
+from document.utils import file_utils, url_utils
 from logdecorator import log_on_end, log_on_start
 
-logger = config.get_logger(__name__)
+logger = settings.get_logger(__name__)
 
 
 class ResourceJsonLookup:
@@ -43,7 +40,7 @@ class ResourceJsonLookup:
         return BIELHelperResourceJsonLookup().lang_codes_names_and_resource_types()
 
     @classmethod
-    def get_lang_codes_names_and_resource_types(
+    def lang_codes_names_and_resource_types(
         cls,
     ) -> List[model.CodeNameTypeTriplet]:
         # if cls._lang_codes_names_and_resource_types is None:
@@ -60,7 +57,7 @@ class ResourceJsonLookup:
         """
         # NOTE This could be modified to be a Singleton
         self._source_data_fetcher = SourceDataFetcher(
-            config.get_working_dir(), config.get_translations_json_location()
+            settings.working_dir(), settings.TRANSLATIONS_JSON_LOCATION
         )
 
     # Make OO composition less arduous.
@@ -96,13 +93,13 @@ class ResourceJsonLookup:
         If successful, return a string containing the URL of repo,
         otherwise return None.
         """
-        url: str = config.get_english_git_repo_url(resource.resource_type)
+        url: str = settings.english_git_repo_url(resource.resource_type)
         return model.ResourceLookupDto(
             url=url,
             source=model.AssetSourceEnum.GIT,
             jsonpath=None,
             lang_name="English",
-            resource_type_name=config.get_english_resource_type_name(resource.resource_type),
+            resource_type_name=settings.english_resource_type_name(resource.resource_type),
         )
 
     @icontract.require(
@@ -126,7 +123,7 @@ class ResourceJsonLookup:
         repo, otherwise return None.
         """
         url: Optional[str] = None
-        jsonpath_str = config.get_resource_download_format_jsonpath().format(
+        jsonpath_str = settings.RESOURCE_DOWNLOAD_FORMAT_JSONPATH.format(
             resource.lang_code, resource.resource_type, resource.resource_code,
         )
         urls: List[str] = self._lookup(jsonpath_str)
@@ -134,7 +131,7 @@ class ResourceJsonLookup:
             # Get the portion of the query string that gives
             # the repo URL
             url = self._parse_repo_url_from_json_url(urls[0])
-        lang_name_jsonpath_str = config.get_resource_lang_name_jsonpath().format(
+        lang_name_jsonpath_str = settings.RESOURCE_LANG_NAME_JSONPATH.format(
             resource.lang_code
         )
         lang_name_lst: List[str] = self._lookup(lang_name_jsonpath_str)
@@ -142,7 +139,7 @@ class ResourceJsonLookup:
             lang_name = lang_name_lst[0]
         else:
             lang_name = ""
-        resource_type_name_jsonpath_str = config.get_resource_type_name_jsonpath().format(
+        resource_type_name_jsonpath_str = settings.RESOURCE_TYPE_NAME_JSONPATH.format(
             resource.lang_code, resource.resource_type
         )
         resource_type_name_lst: List[str] = self._lookup(resource_type_name_jsonpath_str)
@@ -175,7 +172,7 @@ class ResourceJsonLookup:
 
     @icontract.require(lambda url, repo_url_dict_key: url and repo_url_dict_key)
     def _parse_repo_url_from_json_url(
-        self, url: Optional[str], repo_url_dict_key: str = config.REPO_URL_DICT_KEY,
+        self, url: Optional[str], repo_url_dict_key: str = settings.REPO_URL_DICT_KEY,
     ) -> Optional[str]:
         """
         Given a URL of the form
@@ -241,8 +238,8 @@ class SourceDataFetcher:
             logger.debug("Loading json file %s...", self._json_file)
             try:
                 self._json_data = file_utils.load_json_object(self._json_file)
-            except Exception as exc:
-                logger.debug("Exception: %s", exc)
+            except Exception:
+                logger.exception("Caught exception: ")
 
 
 class ResourceLookup(abc.ABC):
@@ -362,13 +359,13 @@ class USFMResourceJsonLookup(ResourceLookup):
         # $[?code="avd"] which has format="usfm" without
         # having a zip containing USFM files at the same level.
         url: Optional[str] = None
-        jsonpath_str = config.get_individual_usfm_url_jsonpath().format(
+        jsonpath_str = settings.INDIVIDUAL_USFM_URL_JSONPATH.format(
             resource.lang_code, resource.resource_type, resource.resource_code,
         )
         urls: List[str] = self._lookup(jsonpath_str)
         if urls:
             url = urls[0]
-        lang_name_jsonpath_str = config.get_resource_lang_name_jsonpath().format(
+        lang_name_jsonpath_str = settings.RESOURCE_LANG_NAME_JSONPATH.format(
             resource.lang_code
         )
         lang_name_lst: List[str] = self._lookup(lang_name_jsonpath_str)
@@ -376,7 +373,7 @@ class USFMResourceJsonLookup(ResourceLookup):
             lang_name = lang_name_lst[0]
         else:
             lang_name = ""
-        resource_type_name_jsonpath_str = config.get_resource_type_name_jsonpath().format(
+        resource_type_name_jsonpath_str = settings.RESOURCE_TYPE_NAME_JSONPATH.format(
             resource.lang_code, resource.resource_type
         )
         resource_type_name_lst: List[str] = self._lookup(resource_type_name_jsonpath_str)
@@ -432,13 +429,13 @@ class USFMResourceJsonLookup(ResourceLookup):
         # $[?code="avd"] which has format="usfm" without
         # having a zip containing USFM files at the same level.
         url: Optional[str] = None
-        jsonpath_str = config.get_resource_url_level1_jsonpath().format(
+        jsonpath_str = settings.RESOURCE_URL_LEVEL1_JSONPATH.format(
             resource.lang_code, resource.resource_type, resource.resource_code,
         )
         urls: List[str] = self._lookup(jsonpath_str)
         if urls:
             url = urls[0]
-        lang_name_jsonpath_str = config.get_resource_lang_name_jsonpath().format(
+        lang_name_jsonpath_str = settings.RESOURCE_LANG_NAME_JSONPATH.format(
             resource.lang_code
         )
         lang_name_lst: List[str] = self._lookup(lang_name_jsonpath_str)
@@ -446,7 +443,7 @@ class USFMResourceJsonLookup(ResourceLookup):
             lang_name = lang_name_lst[0]
         else:
             lang_name = ""
-        resource_type_name_jsonpath_str = config.get_resource_type_name_jsonpath().format(
+        resource_type_name_jsonpath_str = settings.RESOURCE_TYPE_NAME_JSONPATH.format(
             resource.lang_code, resource.resource_type
         )
         resource_type_name_lst: List[str] = self._lookup(resource_type_name_jsonpath_str)
@@ -535,13 +532,13 @@ class TResourceJsonLookup(ResourceLookup):
         resource_type.
         """
         url: Optional[str] = None
-        jsonpath_str = config.get_resource_url_level1_jsonpath().format(
+        jsonpath_str = settings.RESOURCE_URL_LEVEL1_JSONPATH.format(
             resource.lang_code, resource.resource_type,
         )
         urls: List[str] = self._lookup(jsonpath_str)
         if urls:
             url = urls[0]
-        lang_name_jsonpath_str = config.get_resource_lang_name_jsonpath().format(
+        lang_name_jsonpath_str = settings.RESOURCE_LANG_NAME_JSONPATH.format(
             resource.lang_code
         )
         lang_name_lst: List[str] = self._lookup(lang_name_jsonpath_str)
@@ -549,7 +546,7 @@ class TResourceJsonLookup(ResourceLookup):
             lang_name = lang_name_lst[0]
         else:
             lang_name = ""
-        resource_type_name_jsonpath_str = config.get_resource_type_name_jsonpath().format(
+        resource_type_name_jsonpath_str = settings.RESOURCE_TYPE_NAME_JSONPATH.format(
             resource.lang_code, resource.resource_type
         )
         resource_type_name_lst: List[str] = self._lookup(resource_type_name_jsonpath_str)
@@ -575,13 +572,13 @@ class TResourceJsonLookup(ResourceLookup):
         zip file, otherwise return None.
         """
         url: Optional[str] = None
-        jsonpath_str = config.get_resource_url_level2_jsonpath().format(
+        jsonpath_str = settings.RESOURCE_URL_LEVEL2_JSONPATH.format(
             resource.lang_code, resource.resource_type,
         )
         urls: List[str] = self._lookup(jsonpath_str)
         if urls:
             url = urls[0]
-        lang_name_jsonpath_str = config.get_resource_lang_name_jsonpath().format(
+        lang_name_jsonpath_str = settings.RESOURCE_LANG_NAME_JSONPATH.format(
             resource.lang_code
         )
         lang_name_lst: List[str] = self._lookup(lang_name_jsonpath_str)
@@ -589,7 +586,7 @@ class TResourceJsonLookup(ResourceLookup):
             lang_name = lang_name_lst[0]
         else:
             lang_name = ""
-        resource_type_name_jsonpath_str = config.get_resource_type_name_jsonpath().format(
+        resource_type_name_jsonpath_str = settings.RESOURCE_TYPE_NAME_JSONPATH.format(
             resource.lang_code, resource.resource_type
         )
         resource_type_name_lst: List[str] = self._lookup(resource_type_name_jsonpath_str)
@@ -621,13 +618,13 @@ class TResourceJsonLookup(ResourceLookup):
         # one zip file which is found at the book level, but not at
         # the chapter level of the translations.json file.
         url: Optional[str] = None
-        jsonpath_str = config.get_resource_url_level1_jsonpath().format(
+        jsonpath_str = settings.RESOURCE_URL_LEVEL1_JSONPATH.format(
             resource.lang_code, resource.resource_type,
         )
         urls: List[str] = self._lookup(jsonpath_str)
         if urls:
             url = urls[0]
-        lang_name_jsonpath_str = config.get_resource_lang_name_jsonpath().format(
+        lang_name_jsonpath_str = settings.RESOURCE_LANG_NAME_JSONPATH.format(
             resource.lang_code
         )
         lang_name_lst: List[str] = self._lookup(lang_name_jsonpath_str)
@@ -635,7 +632,7 @@ class TResourceJsonLookup(ResourceLookup):
             lang_name = lang_name_lst[0]
         else:
             lang_name = ""
-        resource_type_name_jsonpath_str = config.get_resource_type_name_jsonpath().format(
+        resource_type_name_jsonpath_str = settings.RESOURCE_TYPE_NAME_JSONPATH.format(
             resource.lang_code, resource.resource_type
         )
         resource_type_name_lst: List[str] = self._lookup(resource_type_name_jsonpath_str)
@@ -665,13 +662,13 @@ class TResourceJsonLookup(ResourceLookup):
         otherwise return None.
         """
         url: Optional[str] = None
-        jsonpath_str = config.get_resource_url_level2_jsonpath().format(
+        jsonpath_str = settings.RESOURCE_URL_LEVEL2_JSONPATH.format(
             resource.lang_code, resource.resource_type,
         )
         urls: List[str] = self._lookup(jsonpath_str)
         if urls:
             url = urls[0]
-        lang_name_jsonpath_str = config.get_resource_lang_name_jsonpath().format(
+        lang_name_jsonpath_str = settings.RESOURCE_LANG_NAME_JSONPATH.format(
             resource.lang_code
         )
         lang_name_results: List[str] = self._lookup(lang_name_jsonpath_str)
@@ -679,7 +676,7 @@ class TResourceJsonLookup(ResourceLookup):
             lang_name = lang_name_results[0]
         else:
             lang_name = ""
-        resource_type_name_jsonpath_str = config.get_resource_type_name_jsonpath().format(
+        resource_type_name_jsonpath_str = settings.RESOURCE_TYPE_NAME_JSONPATH.format(
             resource.lang_code, resource.resource_type
         )
         resource_type_name_results: List[str] = self._lookup(resource_type_name_jsonpath_str)
@@ -751,7 +748,7 @@ class BIELHelperResourceJsonLookup:
         get the set of all resource types.
         """
         self._get_data()
-        return self._lookup(config.RESOURCE_TYPES_JSONPATH)
+        return self._lookup(settings.RESOURCE_TYPES_JSONPATH)
 
     @icontract.ensure(lambda result: result)
     def resource_codes(self) -> List[str]:
@@ -760,7 +757,7 @@ class BIELHelperResourceJsonLookup:
         get the set of all resource codes.
         """
         self._get_data()
-        return self._lookup(config.RESOURCE_CODES_JSONPATH)
+        return self._lookup(settings.RESOURCE_CODES_JSONPATH)
 
     @icontract.require(lambda self: self.json_data is not None)
     @icontract.ensure(lambda result: result)

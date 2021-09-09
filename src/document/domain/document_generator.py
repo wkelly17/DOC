@@ -1,15 +1,15 @@
-#
+"""
+Entrypoint for backend. Here incoming document requests are processed
+and eventually a final document produced.
+"""
+
+
 #  Copyright (c) 2017 unfoldingWord
 #  http://creativecommons.org/licenses/MIT/
 #  See LICENSE file for details.
 #
 #  Contributors:
 #  Richard Mahn <richard_mahn@wycliffeassociates.org>
-
-"""
-Entrypoint for backend. Here incoming document requests are processed
-and eventually a final document produced.
-"""
 
 
 import base64
@@ -21,18 +21,16 @@ import os
 import pdfkit
 import smtplib
 import subprocess
-import sys
-import urllib
 
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from logdecorator import log_on_start, log_on_end
-from typing import Callable, cast, Dict, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Union
 
 
-from document import config
+from document.config import settings
 from document.domain import assembly_strategies, bible_books, model
 from document.domain.resource import (
     resource_factory,
@@ -47,7 +45,7 @@ from document.utils import file_utils
 
 from usfm_tools.support import exceptions
 
-logger = config.get_logger(__name__)
+logger = settings.get_logger(__name__)
 
 COMMASPACE = ", "
 HYPHEN = "-"
@@ -71,7 +69,7 @@ class DocumentGenerator:
             for resource_request in document_request.resource_requests
             if resource_request.lang_code
             and resource_request.resource_type
-            in config.get_resource_type_lookup_map().keys()
+            in settings.resource_type_lookup_map().keys()
             and resource_request.resource_code in bible_books.BOOK_NAMES.keys()
         ]
     )
@@ -170,10 +168,7 @@ class DocumentGenerator:
         Return True if configuration is set to send email and the user
         has supplied an email address.
         """
-        return (
-            config.should_send_email()
-            and self._document_request.email_address is not None
-        )
+        return settings.SEND_EMAIL and self._document_request.email_address is not None
 
     @log_on_start(
         logging.INFO, "Calling _send_email_with_pdf_attachment", logger=logger
@@ -186,13 +181,13 @@ class DocumentGenerator:
         recipient's email with the PDF attached.
         """
         if self._document_request.email_address:
-            sender = config.get_from_email_address()
-            email_password = config.get_smtp_password()
+            sender = settings.FROM_EMAIL_ADDRESS
+            email_password = settings.SMTP_PASSWORD
             recipients = [self._document_request.email_address]
 
             # Create the enclosing (outer) message
             outer = MIMEMultipart()
-            outer["Subject"] = config.get_email_send_subject()
+            outer["Subject"] = settings.EMAIL_SEND_SUBJECT
             outer["To"] = COMMASPACE.join(recipients)
             outer["From"] = sender
             # outer.preamble = "You will not see this in a MIME-aware mail reader.\n"
@@ -213,15 +208,13 @@ class DocumentGenerator:
                         filename=os.path.basename(file),
                     )
                     outer.attach(msg)
-                except:
-                    logger.debug(
-                        "Unable to open one of the attachments. Error: ",
-                        sys.exc_info()[0],
+                except Exception:
+                    logger.exception(
+                        "Unable to open one of the attachments. Caught exception: "
                     )
-                    raise
 
             # Get the email body
-            message_body = config.get_instantiated_template(
+            message_body = settings.instantiated_template(
                 "email",
                 model.EmailPayload(
                     document_request_key=self.document_request_key,
@@ -235,22 +228,16 @@ class DocumentGenerator:
 
             # Send the email
             try:
-                with smtplib.SMTP(
-                    config.get_smtp_address(), config.get_smtp_port()
-                ) as s:
-                    s.ehlo()
-                    s.starttls()
-                    s.ehlo()
-                    s.login(sender, email_password)
-                    s.sendmail(sender, recipients, composed)
-                    s.close()
+                with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as smtp:
+                    smtp.ehlo()
+                    smtp.starttls()
+                    smtp.ehlo()
+                    smtp.login(sender, email_password)
+                    smtp.sendmail(sender, recipients, composed)
+                    smtp.close()
                 logger.info("Email sent!")
-            except:
-                logger.debug(
-                    "Unable to send the email. Error: %s",
-                    sys.exc_info(),
-                )
-                raise
+            except Exception:
+                logger.exception("Unable to send the email. Caught exception: ")
 
     @icontract.require(lambda self: self._working_dir and self._document_request_key)
     def _document_needs_update(self) -> bool:
@@ -285,10 +272,10 @@ class DocumentGenerator:
         self._content = self._assembly_strategy(self)
         self._enclose_html_content()
         logger.debug(
-            "About to write HTML to %s", self.get_finished_html_document_filepath()
+            "About to write HTML to %s", self.finished_html_document_filepath()
         )
         file_utils.write_file(
-            self.get_finished_html_document_filepath(),
+            self.finished_html_document_filepath(),
             self._content,
         )
 
@@ -297,10 +284,11 @@ class DocumentGenerator:
         Write the enclosing HTML and body elements around the HTML
         body content for the document.
         """
-        html = config.get_document_html_header()
-        html += self._content
-        html += config.get_document_html_footer()
-        self._content = html
+        html = []
+        html.append(settings.document_html_header())
+        html.append(self._content)
+        html.append(settings.document_html_footer())
+        self._content = "".join(html)
 
     @log_on_start(
         logging.DEBUG, "PDF to be written to: {self._output_dir}", logger=logger
@@ -378,13 +366,13 @@ class DocumentGenerator:
             "footer-center": "[page]",
             "footer-line": None,  # Produce a line above the footer
         }
-        with open(config.get_logo_image_path(), "rb") as fin:
+        with open(settings.LOGO_IMAGE_PATH, "rb") as fin:
             base64_encoded_logo_image = base64.b64encode(fin.read())
             images: Dict[str, Union[str, bytes]] = {
                 "logo": base64_encoded_logo_image,
             }
         # Use Jinja2 to instantiate the cover page.
-        cover = config.get_instantiated_template(
+        cover = settings.instantiated_template(
             "cover",
             model.CoverPayload(
                 title=title,
@@ -394,8 +382,9 @@ class DocumentGenerator:
                 images=images,
             ),
         )
-        logger.debug("cover: %s", cover)
-        cover_filepath = os.path.join(config.get_working_dir(), "cover.html")
+        # logger.debug("cover: %s", cover)
+        logger.info("Generating cover...")
+        cover_filepath = os.path.join(settings.working_dir(), "cover.html")
         with open(cover_filepath, "w") as fout:
             fout.write(cover)
         pdfkit.from_file(
@@ -418,6 +407,7 @@ class DocumentGenerator:
 
     @property
     def found_resources(self) -> List[Resource]:
+        """Provide public access method for other modules."""
         return self._found_resources
 
     @icontract.require(lambda self: self._resources)
@@ -443,7 +433,7 @@ class DocumentGenerator:
                 # Keep a list of resources that were found, we'll use
                 # it soon.
                 self._found_resources.append(resource)
-                resource.get_files()
+                resource.provision_asset_files()
             else:
                 logger.info("{} was not found".format(resource))
                 # Keep a list of unfound resources so that we can use
@@ -467,7 +457,7 @@ class DocumentGenerator:
             # reporting on the cover page of the generated PDF and log the issue,
             # but continue handling other resources in the document request.
             try:
-                resource.get_content()
+                resource.update_resource_with_asset_content()
             except exceptions.MalformedUsfmError:
                 self._unloaded_resources.append(resource)
                 logger.debug(
@@ -517,26 +507,24 @@ class DocumentGenerator:
         )
 
     @icontract.require(lambda self: self._working_dir and self._document_request_key)
-    def get_finished_html_document_filepath(self) -> str:
+    def finished_html_document_filepath(self) -> str:
         """
         Return the location on disk where the HTML finished document may be
         found.
         """
-        finished_document_path = "{}.html".format(
+        return "{}.html".format(
             os.path.join(self._output_dir, self._document_request_key)
         )
-        return finished_document_path
 
     @icontract.require(lambda self: self._working_dir and self._document_request_key)
-    def get_finished_document_filepath(self) -> str:
+    def finished_document_filepath(self) -> str:
         """
         Return the location on disk where the finished PDF document may be
         found.
         """
-        finished_document_path = "{}.pdf".format(
+        return "{}.pdf".format(
             os.path.join(self._output_dir, self._document_request_key)
         )
-        return finished_document_path
 
     def _generate_pdf(self) -> None:
         """

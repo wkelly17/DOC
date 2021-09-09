@@ -19,19 +19,22 @@ from typing import Callable, Dict, List, Optional, Tuple, cast
 import icontract
 from logdecorator import log_on_start
 
-from document import config
+from document.config import settings
 from document.domain import bible_books, document_generator, model
 from document.domain.resource import (
     Resource,
-    USFMResource,
-    TNResource,
-    TWResource,
-    TQResource,
     TAResource,
+    TNResource,
+    TQResource,
+    TWResource,
+    USFMResource,
 )
 
+logger = settings.get_logger(__name__)
 
-logger = config.get_logger(__name__)
+
+H1, H2, H3, H4, H5, H6 = "h1", "h2", "h3", "h4", "h5", "h6"
+
 
 ########################################################################
 ## Asseembly strategy and sub-strategy factories
@@ -84,7 +87,7 @@ def assembly_sub_strategy_factory(
 ]:
     """
     Strategy pattern. Given the existence, i.e., exists or None, of each
-    type of the possible resource instances (i.e., the *_resource params
+    type of the possible resource instances (i.e., the resource parameters
     above) and an assembly sub-strategy kind, returns the appropriate
     sub-strategy function to run.
 
@@ -535,10 +538,10 @@ def assembly_sub_strategy_factory_for_book_then_lang(
         ): _assemble_tw_as_iterator_content_by_verse_for_book_then_lang,
     }
     return strategies[
+        # Turn existence (exists or not) into a boolean for each
+        # instance, the tuple of these together are an immutable,
+        # and hashable dictionary key into our function lookup table.
         (
-            # Turn existence (exists or not) into a boolean for each
-            # instance, the tuple of these together are an immutable,
-            # and thus hashable, dictionary key into our function lookup table.
             True if usfm_resources else False,
             True if tn_resources else False,
             True if tq_resources else False,
@@ -586,7 +589,7 @@ def _assemble_content_by_lang_then_book(
         resources_sorted_by_language,
         lambda resource: resource.lang_name,
     ):
-        html.append(config.get_html_format_string("language").format(language))
+        html.append(settings.LANGUAGE_FMT_STR.format(language))
 
         # For groupby's sake, we need to first sort
         # group_by_lang before doing a groupby operation on it so that
@@ -600,7 +603,7 @@ def _assemble_content_by_lang_then_book(
             resources_sorted_by_book, lambda resource: resource.resource_code
         ):
             html.append(
-                config.get_html_format_string("book").format(
+                settings.BOOK_FMT_STR.format(
                     # FIXME Use localized book name
                     bible_books.BOOK_NAMES[book]
                 )
@@ -630,7 +633,7 @@ def _assemble_content_by_lang_then_book(
                 # Currently there is only one sub-strategy so we just get it from a
                 # config value. If we get more later then we'll thread the user's choice
                 # as a param through method/functions.
-                config.get_default_assembly_substrategy(),
+                settings.DEFAULT_ASSEMBLY_SUBSTRATEGY,
             )
 
             logger.debug(
@@ -649,7 +652,7 @@ def _assemble_content_by_lang_then_book(
                 # Currently there is only one sub-strategy so we just get it from a
                 # config value. If we get more later then we'll thread the user's choice
                 # as a param through method/functions.
-                config.get_default_assembly_substrategy(),
+                settings.DEFAULT_ASSEMBLY_SUBSTRATEGY,
             )
             html.append(sub_html)
 
@@ -691,9 +694,7 @@ def _assemble_content_by_book_then_lang(
         lambda resource: resource.resource_code,
     ):
         html.append(
-            config.get_html_format_string("book_as_grouper").format(
-                bible_books.BOOK_NAMES[book]
-            )
+            settings.BOOK_AS_GROUPER_FMT_STR.format(bible_books.BOOK_NAMES[book])
         )
 
         # Save grouper generator values in list since it will get exhausted
@@ -716,7 +717,7 @@ def _assemble_content_by_book_then_lang(
             # Currently there is only one sub-strategy so we just get it from a
             # config value. If we get more later then we'll thread the user's choice
             # as a param through method/functions.
-            config.get_default_assembly_substrategy(),
+            settings.DEFAULT_ASSEMBLY_SUBSTRATEGY,
         )
 
         logger.debug(
@@ -735,7 +736,7 @@ def _assemble_content_by_book_then_lang(
             # Currently there is only one sub-strategy so we just get it from a
             # config value. If we get more later then we'll thread the user's choice
             # as a param through method/functions.
-            config.get_default_assembly_substrategy(),
+            settings.DEFAULT_ASSEMBLY_SUBSTRATEGY,
         )
         html.append(sub_html)
 
@@ -830,7 +831,7 @@ def _assemble_usfm_as_iterator_content_by_verse(
         # Scripture type for usfm_resource, e.g., ulb, cuv, nav, reg, etc.
         html.append(
             model.HtmlContent(
-                config.get_html_format_string("resource_type_name").format(
+                settings.RESOURCE_TYPE_NAME_FMT_STR.format(
                     usfm_resource.resource_type_name
                 )
             )
@@ -861,9 +862,7 @@ def _assemble_usfm_as_iterator_content_by_verse(
                 # Add header
                 html.append(
                     model.HtmlContent(
-                        config.get_html_format_string(
-                            "resource_type_name_with_ref"
-                        ).format(
+                        settings.RESOURCE_TYPE_NAME_WITH_REF_FMT_STR.format(
                             usfm_resource.resource_type_name, chapter_num, verse_num
                         )
                     )
@@ -900,7 +899,7 @@ def _assemble_usfm_as_iterator_content_by_verse(
                     html.extend(translation_word_links_html)
             # Add scripture footnotes if available
             if chapter.chapter_footnotes:
-                html.append(config.get_html_format_string("footnotes"))
+                html.append(settings.FOOTNOTES_HEADING)
                 html.append(chapter.chapter_footnotes)
         if tw_resource:
             # Add the translation words definition section.
@@ -911,7 +910,7 @@ def _assemble_usfm_as_iterator_content_by_verse(
         # Scripture type for usfm_resource2, e.g., udb
         html.append(
             model.HtmlContent(
-                config.get_html_format_string("resource_type_name").format(
+                settings.RESOURCE_TYPE_NAME_FMT_STR.format(
                     usfm_resource2.resource_type_name
                 )
             )
@@ -928,9 +927,7 @@ def _assemble_usfm_as_iterator_content_by_verse(
                 # Add header
                 html.append(
                     model.HtmlContent(
-                        config.get_html_format_string(
-                            "resource_type_name_with_ref"
-                        ).format(
+                        settings.RESOURCE_TYPE_NAME_WITH_REF_FMT_STR.format(
                             usfm_resource2.resource_type_name, chapter_num, verse_num
                         )
                     )
@@ -985,7 +982,7 @@ def _assemble_usfm_tq_tw_content_by_verse(
             # Add header
             html.append(
                 model.HtmlContent(
-                    config.get_html_format_string("resource_type_name_with_ref").format(
+                    settings.RESOURCE_TYPE_NAME_WITH_REF_FMT_STR.format(
                         usfm_resource.resource_type_name, chapter_num, verse_num
                     )
                 )
@@ -1010,7 +1007,7 @@ def _assemble_usfm_tq_tw_content_by_verse(
             html.extend(translation_word_links_html)
         # Add scripture footnotes if available
         if chapter.chapter_footnotes:
-            html.append(config.get_html_format_string("footnotes"))
+            html.append(settings.FOOTNOTES_HEADING)
             html.append(chapter.chapter_footnotes)
     # Add the translation words definition section.
     linked_translation_words = tw_resource.get_translation_words_section()
@@ -1059,7 +1056,7 @@ def _assemble_usfm_tw_content_by_verse(
             # Add scripture verse header
             html.append(
                 model.HtmlContent(
-                    config.get_html_format_string("resource_type_name_with_ref").format(
+                    settings.RESOURCE_TYPE_NAME_WITH_REF_FMT_STR.format(
                         usfm_resource.resource_type_name, chapter_num, verse_num
                     )
                 )
@@ -1075,7 +1072,7 @@ def _assemble_usfm_tw_content_by_verse(
             html.extend(translation_word_links_html)
         # Add scripture footnotes if available
         if chapter.chapter_footnotes:
-            html.append(config.get_html_format_string("footnotes"))
+            html.append(settings.FOOTNOTES_HEADING)
             html.append(chapter.chapter_footnotes)
     # Add the translation words definition section.
     linked_translation_words = tw_resource.get_translation_words_section()
@@ -1092,9 +1089,7 @@ def _assemble_usfm_tq_content_by_verse(
     usfm_resource2: Optional[USFMResource],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> model.HtmlContent:
-    """
-    Construct the HTML for a 'by verse' strategy wherein only USFM and TQ exist.
-    """
+    """Construct the HTML for a 'by verse' strategy wherein only USFM and TQ exist."""
     usfm_resource = cast(
         USFMResource, usfm_resource
     )  # Make mypy happy. We know, due to how we got here, that usfm_resource object is not None.
@@ -1125,7 +1120,7 @@ def _assemble_usfm_tq_content_by_verse(
             # Add scripture verse heading
             html.append(
                 model.HtmlContent(
-                    config.get_html_format_string("resource_type_name_with_ref").format(
+                    settings.RESOURCE_TYPE_NAME_WITH_REF_FMT_STR.format(
                         usfm_resource.resource_type_name, chapter_num, verse_num
                     )
                 )
@@ -1143,7 +1138,7 @@ def _assemble_usfm_tq_content_by_verse(
                 html.extend(tq_verse_content)
         # Add scripture footnotes if available
         if chapter.chapter_footnotes:
-            html.append(config.get_html_format_string("footnotes"))
+            html.append(settings.FOOTNOTES_HEADING)
             html.append(chapter.chapter_footnotes)
     return model.HtmlContent("\n".join(html))
 
@@ -1174,7 +1169,7 @@ def _assemble_tn_as_iterator_content_by_verse(
             # requested? For now we'll use non-localized chapter heading. Add in the
             # USFM chapter heading.
             chapter_heading = model.HtmlContent(
-                config.get_html_format_string("tn_only_chapter_header").format(
+                settings.TN_ONLY_CHAPTER_HEADER_FMT_STR.format(
                     tn_resource.lang_code,
                     bible_books.BOOK_NUMBERS[tn_resource.resource_code].zfill(3),
                     str(chapter_num).zfill(3),
@@ -1246,9 +1241,7 @@ def _assemble_tn_as_iterator_content_by_verse(
                 # Add header
                 html.append(
                     model.HtmlContent(
-                        config.get_html_format_string(
-                            "resource_type_name_with_ref"
-                        ).format(
+                        settings.RESOURCE_TYPE_NAME_WITH_REF_FMT_STR.format(
                             usfm_resource2.resource_type_name, chapter_num, verse_num
                         )
                     )
@@ -1267,9 +1260,7 @@ def _assemble_tq_content_by_verse(
     usfm_resource2: Optional[USFMResource],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> model.HtmlContent:
-    """
-    Construct the HTML for a 'by verse' strategy wherein only TQ exists.
-    """
+    """Construct the HTML for a 'by verse' strategy wherein only TQ exists."""
     tq_resource = cast(
         TQResource, tq_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
@@ -1283,7 +1274,7 @@ def _assemble_tq_content_by_verse(
         # not USFM requested? For now we'll use non-localized chapter heading.
         # Add in the USFM chapter heading.
         chapter_heading = model.HtmlContent(
-            config.get_html_format_string("tn_only_chapter_header").format(
+            settings.TN_ONLY_CHAPTER_HEADER_FMT_STR.format(
                 tq_resource.lang_code,
                 bible_books.BOOK_NUMBERS[tq_resource.resource_code].zfill(3),
                 str(chapter_num).zfill(3),
@@ -1337,7 +1328,7 @@ def _assemble_tq_tw_content_by_verse(
         # not USFM requested? For now we'll use non-localized chapter heading.
         # Add in the USFM chapter heading.
         chapter_heading = model.HtmlContent(
-            config.get_html_format_string("tn_only_chapter_header").format(
+            settings.TN_ONLY_CHAPTER_HEADER_FMT_STR.format(
                 tq_resource.lang_code,
                 bible_books.BOOK_NUMBERS[tq_resource.resource_code].zfill(3),
                 str(chapter_num).zfill(3),
@@ -1384,9 +1375,7 @@ def _assemble_tw_content_by_verse(
     usfm_resource2: Optional[USFMResource],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> model.HtmlContent:
-    """
-    Construct the HTML for a 'by verse' strategy wherein only TW exists.
-    """
+    """Construct the HTML for a 'by verse' strategy wherein only TW exists."""
     tw_resource = cast(
         TWResource, tw_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
@@ -1426,11 +1415,12 @@ def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
     html: List[model.HtmlContent] = []
 
     # Sort resources by language
-    usfm_resources.sort(key=lambda r: r.lang_code)
-    tn_resources.sort(key=lambda r: r.lang_code)
-    tq_resources.sort(key=lambda r: r.lang_code)
-    tw_resources.sort(key=lambda r: r.lang_code)
-    ta_resources.sort(key=lambda r: r.lang_code)
+    key = lambda resource: resource.lang_code
+    usfm_resources.sort(key=key)
+    tn_resources.sort(key=key)
+    tq_resources.sort(key=key)
+    tw_resources.sort(key=key)
+    ta_resources.sort(key=key)
 
     # Rough sketch of algo that follows:
     # English book intro
@@ -1508,10 +1498,10 @@ def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
         # NOTE If we add macro-weave feature, it would go here, see
         # notes for code.
         # Use the first usfm_resource as a verse_num pump
-        for verse_num, verse in (
+        for verse_num in (
             usfm_resources[0]
             .chapter_content[chapter_num]
-            .chapter_verses.items()
+            .chapter_verses.keys()
             # See note above about usfm_with_most_verses for why this
             # is here. Here for possible future use.
             # usfm_with_most_verses.chapter_content[chapter_num].chapter_verses.items()
@@ -1527,9 +1517,7 @@ def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
                     # Add header
                     html.append(
                         model.HtmlContent(
-                            config.get_html_format_string(
-                                "resource_type_name_with_ref"
-                            ).format(
+                            settings.RESOURCE_TYPE_NAME_WITH_REF_FMT_STR.format(
                                 usfm_resource.resource_type_name,
                                 chapter_num,
                                 verse_num,
@@ -1611,10 +1599,11 @@ def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
         # Add the footnotes
         for usfm_resource in usfm_resources:
             try:
-                if chapter_footnotes := usfm_resource.chapter_content[
+                chapter_footnotes = usfm_resource.chapter_content[
                     chapter_num
-                ].chapter_footnotes:
-                    html.append(config.get_html_format_string("footnotes"))
+                ].chapter_footnotes
+                if chapter_footnotes:
+                    html.append(settings.FOOTNOTES_HEADING)
                     html.append(chapter_footnotes)
             except KeyError:
                 logger.debug(
@@ -1649,11 +1638,12 @@ def _assemble_tn_as_iterator_content_by_verse_for_book_then_lang(
     html: List[model.HtmlContent] = []
 
     # Sort resources by language
-    usfm_resources.sort(key=lambda resource: resource.lang_code)
-    tn_resources.sort(key=lambda resource: resource.lang_code)
-    tq_resources.sort(key=lambda resource: resource.lang_code)
-    tw_resources.sort(key=lambda resource: resource.lang_code)
-    ta_resources.sort(key=lambda resource: resource.lang_code)
+    key = lambda resource: resource.lang_code
+    usfm_resources.sort(key=key)
+    tn_resources.sort(key=key)
+    tq_resources.sort(key=key)
+    tw_resources.sort(key=key)
+    ta_resources.sort(key=key)
 
     # Rough sketch of algo that follows:
     # English book intro
@@ -1679,7 +1669,7 @@ def _assemble_tn_as_iterator_content_by_verse_for_book_then_lang(
     chapter_num: model.ChapterNum
     chapter: model.TNChapterPayload
     # Use the first tn_resource as a chapter_num pump.
-    for chapter_num, chapter in tn_resources[0].book_payload.chapters.items():
+    for chapter_num in tn_resources[0].book_payload.chapters.keys():
         chapter_heading = model.HtmlContent("Chapter {}".format(chapter_num))
         html.append(model.HtmlContent(chapter_heading))
 
@@ -1690,8 +1680,8 @@ def _assemble_tn_as_iterator_content_by_verse_for_book_then_lang(
             html.append(model.HtmlContent(chapter_intro))
 
         # Use the first tn_resource as a verse_num pump
-        for verse_num, verse in (
-            tn_resources[0].book_payload.chapters[chapter_num].verses_html.items()
+        for verse_num in (
+            tn_resources[0].book_payload.chapters[chapter_num].verses_html.keys()
         ):
             # Add the interleaved tn notes
             for tn_resource in tn_resources:
@@ -1783,11 +1773,12 @@ def _assemble_tq_as_iterator_content_by_verse_for_book_then_lang(
     html: List[model.HtmlContent] = []
 
     # Sort resources by language
-    usfm_resources.sort(key=lambda r: r.lang_code)
-    tn_resources.sort(key=lambda r: r.lang_code)
-    tq_resources.sort(key=lambda r: r.lang_code)
-    tw_resources.sort(key=lambda r: r.lang_code)
-    ta_resources.sort(key=lambda r: r.lang_code)
+    key = lambda resource: resource.lang_code
+    usfm_resources.sort(key=key)
+    tn_resources.sort(key=key)
+    tq_resources.sort(key=key)
+    tw_resources.sort(key=key)
+    ta_resources.sort(key=key)
 
     # Rough sketch of algo that follows:
     # English book intro
@@ -1801,13 +1792,13 @@ def _assemble_tq_as_iterator_content_by_verse_for_book_then_lang(
     chapter_num: model.ChapterNum
     chapter: model.TQChapterPayload
     # Use the first tn_resource as a chapter_num pump.
-    for chapter_num, chapter in tq_resources[0].book_payload.chapters.items():
+    for chapter_num in tq_resources[0].book_payload.chapters.keys():
         chapter_heading = model.HtmlContent("Chapter {}".format(chapter_num))
         html.append(model.HtmlContent(chapter_heading))
 
         # Use the first tq_resource as a verse_num pump
-        for verse_num, verse in (
-            tq_resources[0].book_payload.chapters[chapter_num].verses_html.items()
+        for verse_num in (
+            tq_resources[0].book_payload.chapters[chapter_num].verses_html.keys()
         ):
             # Add the interleaved tq questions
             for tq_resource in tq_resources:
@@ -1880,18 +1871,17 @@ def _assemble_tw_as_iterator_content_by_verse_for_book_then_lang(
     ta_resources: List[TAResource],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> model.HtmlContent:
-    """
-    Construct the HTML for a only TW.
-    """
+    """Construct the HTML for a only TW."""
 
     html: List[model.HtmlContent] = []
 
     # Sort resources by language
-    usfm_resources.sort(key=lambda r: r.lang_code)
-    tn_resources.sort(key=lambda r: r.lang_code)
-    tq_resources.sort(key=lambda r: r.lang_code)
-    tw_resources.sort(key=lambda r: r.lang_code)
-    ta_resources.sort(key=lambda r: r.lang_code)
+    key = lambda resource: resource.lang_code
+    usfm_resources.sort(key=key)
+    tn_resources.sort(key=key)
+    tq_resources.sort(key=key)
+    tw_resources.sort(key=key)
+    ta_resources.sort(key=key)
 
     # Add the translation word definitions
     for tw_resource in tw_resources:
@@ -1921,14 +1911,14 @@ def _format_tq_verse(
     html: List[model.HtmlContent] = []
     html.append(
         model.HtmlContent(
-            config.get_html_format_string("resource_type_name_with_ref").format(
+            settings.RESOURCE_TYPE_NAME_WITH_REF_FMT_STR.format(
                 resource_type_name, chapter_num, verse_num
             )
         )
     )
     # Change H1 HTML elements to H4 HTML elements in each translation
     # question.
-    html.append(model.HtmlContent(re.sub(r"h1", r"h4", verse)))
+    html.append(model.HtmlContent(re.sub(H1, H4, verse)))
     return html
 
 
@@ -1939,7 +1929,7 @@ def _format_tq_verse(
 #     html: List[model.HtmlContent] = []
 #     html.append(
 #         model.HtmlContent(
-#             config.get_html_format_string("translation_academy").format(
+#             settings.TRANSLATION_ACADEMY_FMT_STR.format(
 #                 chapter_num, verse_num
 #             )
 #         )
@@ -1997,13 +1987,8 @@ def _get_second_usfm_resource(resources: List[Resource]) -> Optional[USFMResourc
 
 
 def _get_usfm_resources(resources: List[Resource]) -> List[USFMResource]:
-    """
-    Return the USFMResource instances, if any, contained in resources.
-    """
-    usfm_resources = [
-        resource for resource in resources if isinstance(resource, USFMResource)
-    ]
-    return usfm_resources
+    """Return the USFMResource instances, if any, contained in resources."""
+    return [resource for resource in resources if isinstance(resource, USFMResource)]
 
 
 def _get_tn_resource(resources: List[Resource]) -> Optional[TNResource]:
@@ -2018,13 +2003,8 @@ def _get_tn_resource(resources: List[Resource]) -> Optional[TNResource]:
 
 
 def _get_tn_resources(resources: List[Resource]) -> List[TNResource]:
-    """
-    Return the TNResource instances, if any, contained in resources.
-    """
-    tn_resources = [
-        resource for resource in resources if isinstance(resource, TNResource)
-    ]
-    return tn_resources
+    """Return the TNResource instances, if any, contained in resources."""
+    return [resource for resource in resources if isinstance(resource, TNResource)]
 
 
 def _get_tw_resource(resources: List[Resource]) -> Optional[TWResource]:
@@ -2039,13 +2019,8 @@ def _get_tw_resource(resources: List[Resource]) -> Optional[TWResource]:
 
 
 def _get_tw_resources(resources: List[Resource]) -> List[TWResource]:
-    """
-    Return the TWResource instance, if any, contained in resources.
-    """
-    tw_resources = [
-        resource for resource in resources if isinstance(resource, TWResource)
-    ]
-    return tw_resources
+    """Return the TWResource instance, if any, contained in resources."""
+    return [resource for resource in resources if isinstance(resource, TWResource)]
 
 
 def _get_tq_resource(resources: List[Resource]) -> Optional[TQResource]:
@@ -2060,13 +2035,8 @@ def _get_tq_resource(resources: List[Resource]) -> Optional[TQResource]:
 
 
 def _get_tq_resources(resources: List[Resource]) -> List[TQResource]:
-    """
-    Return the TQResource instance, if any, contained in resources.
-    """
-    tq_resources = [
-        resource for resource in resources if isinstance(resource, TQResource)
-    ]
-    return tq_resources
+    """Return the TQResource instance, if any, contained in resources."""
+    return [resource for resource in resources if isinstance(resource, TQResource)]
 
 
 def _get_ta_resource(resources: List[Resource]) -> Optional[TAResource]:
@@ -2081,34 +2051,29 @@ def _get_ta_resource(resources: List[Resource]) -> Optional[TAResource]:
 
 
 def _get_ta_resources(resources: List[Resource]) -> List[TAResource]:
-    """
-    Return the TAResource instance, if any, contained in resources.
-    """
-    ta_resources = [
-        resource for resource in resources if isinstance(resource, TAResource)
-    ]
-    return ta_resources
+    """Return the TAResource instance, if any, contained in resources."""
+    return [resource for resource in resources if isinstance(resource, TAResource)]
 
 
 def _adjust_book_intro_headings(book_intro: str) -> model.HtmlContent:
     """Change levels on headings."""
     # Move the H2 out of the way, we'll deal with it last.
-    book_intro = re.sub(r"h2", r"h6", book_intro)
-    book_intro = re.sub(r"h1", r"h2", book_intro)
-    book_intro = re.sub(r"h3", r"h4", book_intro)
+    book_intro = re.sub(H2, H6, book_intro)
+    book_intro = re.sub(H1, H2, book_intro)
+    book_intro = re.sub(H3, H4, book_intro)
     # Now adjust the temporary H6s.
-    return model.HtmlContent(re.sub(r"h6", r"h3", book_intro))
+    return model.HtmlContent(re.sub(H6, H3, book_intro))
 
 
 def _adjust_chapter_intro_headings(chapter_intro: str) -> model.HtmlContent:
     """Change levels on headings."""
     # Move the H4 out of the way, we'll deal with it last.
-    chapter_intro = re.sub(r"h4", r"h6", chapter_intro)
-    chapter_intro = re.sub(r"h3", r"h4", chapter_intro)
-    chapter_intro = re.sub(r"h1", r"h3", chapter_intro)
-    chapter_intro = re.sub(r"h2", r"h4", chapter_intro)
+    chapter_intro = re.sub(H4, H6, chapter_intro)
+    chapter_intro = re.sub(H3, H4, chapter_intro)
+    chapter_intro = re.sub(H1, H3, chapter_intro)
+    chapter_intro = re.sub(H2, H4, chapter_intro)
     # Now adjust the temporary H6s.
-    return model.HtmlContent(re.sub(r"h6", r"h5", chapter_intro))
+    return model.HtmlContent(re.sub(H6, H5, chapter_intro))
 
 
 def _get_chapter_intro(
