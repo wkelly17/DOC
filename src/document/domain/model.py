@@ -176,12 +176,6 @@ class FinishedDocumentDetails(BaseModel):
     message: str
 
 
-class TemplateDto(BaseModel):
-    """Pydantic model that we use as HTML template data holder."""
-
-    data: Dict
-
-
 class TNChapterPayload(BaseModel):
     """
     A class to hold a chapter's intro translation notes and a list
