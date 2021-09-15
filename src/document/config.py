@@ -67,11 +67,11 @@ class Settings(BaseSettings):
     FOOTNOTES_HEADING: model.HtmlContent = model.HtmlContent("<h3>Footnotes</h3>")
     OPENING_H3_FMT_STR: str = "<h3>{}"
     OPENING_H3_WITH_ID_FMT_STR: str = '<h3 id="{}-{}">{}'
-    TRANSLATION_WORD_ANCHOR_LINK_FMT_STR: str = r"[{}](#{}-{})"
-    TRANSLATION_WORD_PREFIX_ANCHOR_LINK_FMT_STR: str = r"({}: [{}](#{}-{}))"
-    TRANSLATION_NOTE_ANCHOR_LINK_FMT_STR: str = r"[{}](#{}-{}-tn-ch-{}-v-{})"
+    TRANSLATION_WORD_ANCHOR_LINK_FMT_STR: str = "[{}](#{}-{})"
+    TRANSLATION_WORD_PREFIX_ANCHOR_LINK_FMT_STR: str = "({}: [{}](#{}-{}))"
+    TRANSLATION_NOTE_ANCHOR_LINK_FMT_STR: str = "[{}](#{}-{}-tn-ch-{}-v-{})"
     # FIXME Tighten up the '.' usage in the following regex
-    VERSE_ANCHOR_ID_FMT_STR: str = r'id="(.+?)-ch-(.+?)-v-(.+?)"'
+    VERSE_ANCHOR_ID_FMT_STR: str = 'id="(.+?)-ch-(.+?)-v-(.+?)"'
     VERSE_ANCHOR_ID_SUBSTITUTION_FMT_STR: str = r"id='{}-\1-ch-\2-v-\3'"
 
     LOGGING_CONFIG_FILE_PATH: str = "src/document/logging_config.yaml"
