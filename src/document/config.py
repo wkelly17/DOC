@@ -153,7 +153,8 @@ class Settings(BaseSettings):
             USFMResource,
         )
 
-        resource_type_to_resource_class_map: Dict[str, Any] = {
+        # resource_type is key, Resource subclass is value
+        return {
             "usfm": USFMResource,
             "ulb": USFMResource,
             "ulb-wa": USFMResource,
@@ -172,9 +173,6 @@ class Settings(BaseSettings):
             "ta": TAResource,
             "ta-wa": TAResource,
         }
-
-        # resource_type is key, Resource subclass is value
-        return resource_type_to_resource_class_map
 
     # Return the message to show to user on successful generation of
     # PDF.
