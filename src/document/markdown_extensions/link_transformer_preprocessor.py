@@ -637,9 +637,7 @@ class LinkTransformerExtension(markdown.Extension):
 
 
 def markdown_link_parser(source: str) -> List[model.MarkdownLink]:
-    """
-    Return a list of all Markdown links in source.
-    """
+    """Return a list of all Markdown links in source."""
     links: List[model.MarkdownLink] = []
     for link in re.finditer(link_regexes.MARKDOWN_LINK_RE, source):
         links.append(
@@ -652,9 +650,7 @@ def markdown_link_parser(source: str) -> List[model.MarkdownLink]:
 
 
 def wiki_link_parser(source: str) -> List[model.WikiLink]:
-    """
-    Return a list of all Wiki links in source.
-    """
+    """Return a list of all Wiki links in source."""
     links: List[model.WikiLink] = []
     for link in re.finditer(link_regexes.WIKI_LINK_RE, source):
         links.append(

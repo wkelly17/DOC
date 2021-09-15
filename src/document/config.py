@@ -311,9 +311,7 @@ class Settings(BaseSettings):
 
     @icontract.require(lambda template_lookup_key: template_lookup_key)
     def template(self, template_lookup_key: str) -> str:
-        """
-        Return template as string.
-        """
+        """Return template as string."""
         with open(self.template_path(template_lookup_key), "r") as filepath:
             template = filepath.read()
         return template
