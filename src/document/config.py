@@ -319,6 +319,11 @@ class Settings(BaseSettings):
     # Return boolean indicating if caching of generated document's should be
     # cached.
     ASSET_CACHING_ENABLED: bool = True
+    # Caching window of time in which asset
+    # files on disk are considered fresh rather than re-acquiring (in
+    # the case of resource asset files) or re-generating them (in the
+    # case of the final PDF). In hours.
+    ASSET_CACHING_PERIOD: int
 
     # Get the path to the logo image that will be used on the PDF cover,
     # i.e., first, page.

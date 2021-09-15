@@ -155,7 +155,7 @@ class DocumentGenerator:
         # Immediately return pre-built PDF if the document previously been
         # generated and is fresh enough. In that case, front run all requests to
         # the cloud including the more low level resource asset caching
-        # mechanism for almost immediate return of PDF.
+        # mechanism for comparatively immediate return of PDF.
         if self._document_needs_update():
             self._fetch_resources()
             self._initialize_resource_content()
@@ -253,7 +253,7 @@ class DocumentGenerator:
         return of PDF.
         """
         pdf_file_path = os.path.join(
-            self._working_dir, "{}.pdf".format(self._document_request_key)
+            self._output_dir, "{}.pdf".format(self._document_request_key)
         )
         return file_utils.asset_file_needs_update(pdf_file_path)
 

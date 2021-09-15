@@ -120,24 +120,14 @@ def write_file(
 @icontract.require(lambda file_path: file_path is not None)
 @log_on_end(logging.DEBUG, "{file_path} needs update: {result}.", logger=logger)
 def source_file_needs_update(file_path: Union[str, pathlib.Path]) -> bool:
-    """
-    Given the file path to the data source file, e.g.,
-    working/temp/translations.json, return true if it either does not
-    exist or does exist and has not been updated within 24 hours.
-    """
+    """See docstring in __file_needs_update."""
     return __file_needs_update(file_path)
 
 
 @icontract.require(lambda file_path: file_path is not None)
 @log_on_end(logging.DEBUG, "{file_path} needs update: {result}.", logger=logger)
 def asset_file_needs_update(file_path: Union[str, pathlib.Path]) -> bool:
-    """
-    Return True if settings.ASSET_CACHING_ENABLED is False or if
-    file_path either does not exist or does exist and has not been
-    updated within 24 hours. This function is to be used to test a
-    resource asset file, typically a zip file at a location like
-    working/temp/sw_tn/tn.zip.
-    """
+    """See docstring in __file_needs_update."""
     if not settings.ASSET_CACHING_ENABLED:
         return True
     return __file_needs_update(file_path)
@@ -146,15 +136,14 @@ def asset_file_needs_update(file_path: Union[str, pathlib.Path]) -> bool:
 @icontract.require(lambda file_path: file_path is not None)
 def __file_needs_update(file_path: Union[str, pathlib.Path]) -> bool:
     """
-    Return True if file_path either does not exist or does exist and
-    has not been updated within 24 hours. Used by
-    source_file_needs_update and asset_file_needs_update. Don't call
-    directly.
+    Return True if settings.ASSET_CACHING_ENABLED is False or if
+    file_path either does not exist or does exist and has not been
+    updated within settings.ASSET_CACHING_PERIOD hours.
     """
     if not os.path.isfile(file_path):
         return True
     file_mod_time: datetime = datetime.fromtimestamp(os.stat(file_path).st_mtime)
     now: datetime = datetime.today()
-    max_delay: timedelta = timedelta(minutes=60 * 24)
-    # Has it been more than 24 hours since last modification time?
+    max_delay: timedelta = timedelta(minutes=60 * settings.ASSET_CACHING_PERIOD)
+    # Has it been more than settings.ASSET_CACHING_PERIOD hours since last modification time?
     return now - file_mod_time > max_delay
