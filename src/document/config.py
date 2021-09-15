@@ -357,8 +357,8 @@ class Settings(BaseSettings):
     SEND_EMAIL: bool
 
     @validator("SEND_EMAIL")
-    def get_send_email(cls, v: bool, values: Dict[str, Any]) -> bool:
-        return bool(values.get("SEND_EMAIL"))
+    def get_send_email(cls, v: bool) -> bool:
+        return bool(v)
 
     SMTP_PASSWORD: str
     SMTP_HOST: str

@@ -180,10 +180,12 @@ class DocumentGenerator:
         email, then send an email to the document request
         recipient's email with the PDF attached.
         """
-        if self._document_request.email_address:
+        if self._document_request.email_address:  # make mypy happy though redundant
             sender = settings.FROM_EMAIL_ADDRESS
             email_password = settings.SMTP_PASSWORD
             recipients = [self._document_request.email_address]
+
+            logger.debug("Email sender %s, recipients: %s", sender, recipients)
 
             # Create the enclosing (outer) message
             outer = MIMEMultipart()
