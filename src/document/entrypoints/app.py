@@ -4,7 +4,6 @@ import os
 import pathlib
 from typing import Dict, List, Tuple
 
-
 from document.config import settings
 from document.domain import bible_books, model, resource_lookup
 from document.domain.document_generator import DocumentGenerator
@@ -14,9 +13,12 @@ from fastapi.responses import FileResponse
 
 app = FastAPI()
 
+logger = settings.get_logger(__name__)
+
 # CORS configuration to allow frontend to talk to backend
 origins = settings.BACKEND_CORS_ORIGINS
 
+logger.debug("CORS origins: %s", origins)
 
 app.add_middleware(
     CORSMiddleware,
@@ -25,9 +27,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-logger = settings.get_logger(__name__)
 
 
 @app.post("/documents", response_model=model.FinishedDocumentDetails)
