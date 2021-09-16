@@ -336,7 +336,7 @@ class DocumentGenerator:
                 )
             )
         )
-        logger.debug("unloaded resources: {}".format(unloaded))
+        logger.debug("Resources that could not be loaded: {}".format(unloaded))
         html_file_path = "{}.html".format(
             os.path.join(self._output_dir, self._document_request_key)
         )
@@ -379,7 +379,6 @@ class DocumentGenerator:
             ),
         )
         # logger.debug("cover: %s", cover)
-        logger.info("Generating cover...")
         cover_filepath = os.path.join(settings.working_dir(), "cover.html")
         with open(cover_filepath, "w") as fout:
             fout.write(cover)
