@@ -10,10 +10,6 @@ up:
 server: up
 	docker-compose run  api
 
-# Run a local server outside Docker
-local-server:
-	uvicorn document.entrypoints.app:app --reload --host "127.0.0.1" --port "5005" --app-dir "./src/"
-
 test: up
 	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/unit /tests/integration /tests/e2e
 
@@ -74,6 +70,10 @@ all-plus-linting: mypy pyicontract-lint down build up test
 # venv-fish-shell:
 # 	fish -c deactivate
 # 	source venv/bin/activate.fish
+
+# Run a local server outside Docker
+local-server:
+	uvicorn document.entrypoints.app:app --reload --host "127.0.0.1" --port "5005" --app-dir "./src/"
 
 local-update-deps-prod:
 	pip-compile # --upgrade
