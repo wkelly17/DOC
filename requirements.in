@@ -1,11 +1,10 @@
-# For production:
-# git+https://github.com/linearcombination/tools@develop#egg=document
 Markdown
 PyYAML
 aiofiles
 bs4
 fastapi
 git+https://github.com/linearcombination/USFM-Tools.git@develop#egg=USFM-Tools
+gunicorn
 icontract
 jinja2
 jsonpath-rw

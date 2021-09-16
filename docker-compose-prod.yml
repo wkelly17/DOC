@@ -1,0 +1,28 @@
+version: "3"
+services:
+  api:
+    image: danparisd/InterleavedResourcesGenerator
+    env_file:
+      - .env
+    environment:
+      FROM_EMAIL_ADDRESS: ${FROM_EMAIL_ADDRESS}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      TO_EMAIL_ADDRESS: ${TO_EMAIL_ADDRESS}
+      SMTP_HOST: ${SMTP_HOST}
+    volumes:
+      - docker_pdf_output:/output
+    entrypoint:
+      - gunicorn
+      - --name IRG
+      - --worker-class uvicorn.workers.UvicornWorker
+      - --conf ./gunicorn.conf.py
+      - document.entrypoints.app:app
+  web:
+    build: ./web
+    ports:
+      - "8089:80"
+    volumes:
+      - docker_pdf_output:/srv/content
+
+volumes:
+  docker_pdf_output:

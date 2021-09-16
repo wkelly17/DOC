@@ -12,29 +12,18 @@ services:
         # This comes from .env
         WKHTMLTOX_LOC: ${WKHTMLTOX_LOC}
     volumes:
-      #       FIXME src and test volume maps may no longer be needed anymore,
-      #       need to test by removing them and running tests.
-      - ./src:/src
-      - ./tests:/tests
-      #       IRG writes generated PDFs to /output. Map that directory to the
-      #       ./docker_pdf_output host directory in order to be able to view
-      #       generated PDFs from Docker run in local file system.
+      # IRG writes generated PDFs to /output. Map that directory to the
+      # ./docker_pdf_output host directory in order to be able to view
+      # generated PDFs in the host file system.
       - ./docker_pdf_output:/output
-      #       IRG container writes logs rotated logs to its /logs directory.
-      #       Map that directory to the ./logs directory on host so that we
-      #       can access the logs for analysis.
-      - ./logs:/logs
     entrypoint:
-      # Configure the server for fastapi, i.e., uvicorn
-      - uvicorn
-      - --host=0.0.0.0
-      - --port=80
-      - --reload
+      - gunicorn
+      - --name IRG
+      - --worker-class uvicorn.workers.UvicornWorker
+      - --conf ./gunicorn.conf.py
       - document.entrypoints.app:app
     networks:
       - local-net
-    ports:
-      - "5005:80"
 
 # Network bridge for communication between containers
 networks:

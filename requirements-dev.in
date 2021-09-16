@@ -1,7 +1,13 @@
 -c requirements.txt
 black
+cohesion
+dlint
 flake8
+flake8-bandit
+flake8-eradicate
+flake8-fixme
 flake8-mypy
+flake8-todo
 icontract-hypothesis
 isort
 mypy
@@ -13,4 +19,5 @@ pytest-datafiles
 pytest-icdiff
 radon
 typeguard
+vulture
 wemake-python-styleguide

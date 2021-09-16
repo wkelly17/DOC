@@ -1,6 +1,5 @@
 FROM python:3.9.7-slim-buster
 
-
 RUN apt-get update && apt-get install -y \
     wget \
     curl \
@@ -38,26 +37,21 @@ RUN mkdir -p /working/temp
 # Make the output directory where generated HTML and PDFs are placed.
 RUN mkdir -p /working/output
 # Make the directory where logs are written to.
-RUN mkdir -p /logs
 
 COPY icon-tn.png .
+COPY gunicorn.conf.py .
+
+# See https://pythonspeed.com/articles/activate-virtualenv-dockerfile/
+ENV VIRTUAL_ENV=/opt/venv
+RUN python -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
 COPY requirements.txt .
 COPY requirements-dev.txt .
-
 RUN pip install -r requirements.txt
 RUN pip install -r requirements-dev.txt
 
 COPY ./src/ /src/
-RUN pip install -e /src
 COPY ./tests /tests
 
-# Note: for development, first install your app,
-# pip install -e .
-# before running your Docker commands, e.g., make unit-tests.
-
-# Note: For production the requirements.in will be modified to include
-# this project's remote git repo using the git+https pip-install
-# format. See the entry in requirements.in for USFM-Tools as an example.
-
-# Note: For development or production, you'll also need to provide the
-# required environment variables as found in the .env file.
+ENV PYTHONPATH=/src:/tests
