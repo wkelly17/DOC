@@ -1739,14 +1739,6 @@ def _assemble_tn_as_iterator_content_by_verse_for_book_then_lang(
                         )
                     )
                     html.extend(translation_word_links_html)
-                else:
-                    logger.debug(
-                        "usfm for chapter %s, verse %s is likely not provided in the source document for language %s and book %s",
-                        chapter_num,
-                        verse_num,
-                        tw_resource.lang_code,
-                        tw_resource.resource_code,
-                    )
 
     # Add the translation word definitions
     for tw_resource in tw_resources:
@@ -1845,14 +1837,6 @@ def _assemble_tq_as_iterator_content_by_verse_for_book_then_lang(
                         )
                     )
                     html.extend(translation_word_links_html)
-                else:
-                    logger.debug(
-                        "usfm for chapter %s, verse %s is likely not provided in the source document for language %s and book %s",
-                        chapter_num,
-                        verse_num,
-                        tw_resource.lang_code,
-                        tw_resource.resource_code,
-                    )
 
     # Add the translation word definitions
     for tw_resource in tw_resources:
