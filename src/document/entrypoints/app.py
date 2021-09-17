@@ -68,7 +68,7 @@ def document_endpoint(
             message=settings.FAILURE_MESSAGE,
         )
 
-    logger.debug("details: %s", details)
+    logger.debug("FinishedDocumentDetails: %s", details)
     return details
 
 
