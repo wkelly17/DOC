@@ -407,18 +407,18 @@ class USFMResource(Resource):
         """
         parser = bs4.BeautifulSoup(self._content, "html.parser")
 
-        chapter_breaks = parser.find_all("h2", attrs={"class": "c-num"})
+        chapter_breaks = parser.find_all(H2, attrs={"class": "c-num"})
         localized_chapter_heading = chapter_breaks[0].get_text().split()[0]
         for chapter_break in chapter_breaks:
             chapter_num = model.ChapterNum(int(chapter_break.get_text().split()[1]))
             chapter_content = html_parsing_utils.tag_elements_between(
                 parser.find(
-                    "h2",
+                    H2,
                     text="{} {}".format(localized_chapter_heading, chapter_num),
                 ),
                 # ).next_sibling,
                 parser.find(
-                    "h2",
+                    H2,
                     text="{} {}".format(localized_chapter_heading, chapter_num + 1),
                 ),
             )
