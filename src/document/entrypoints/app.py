@@ -57,7 +57,6 @@ def document_endpoint(
             message=settings.SUCCESS_MESSAGE,
         )
     except Exception:
-        # This is the same as logger.error("...", exc_info=True)
         logger.exception(
             "The document request could not be fulfilled. Likely reason is the following exception:"
         )
