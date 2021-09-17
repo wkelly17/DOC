@@ -6,7 +6,7 @@ validation and JSON serialization.
 """
 
 from enum import Enum
-from typing import Dict, List, NewType, Optional, Union
+from typing import NewType, Optional, Union
 
 from pydantic import AnyUrl, BaseModel, EmailStr
 
@@ -90,7 +90,7 @@ class DocumentRequest(BaseModel):
 
     email_address: Optional[EmailStr]
     assembly_strategy_kind: AssemblyStrategyEnum
-    resource_requests: List[ResourceRequest]
+    resource_requests: list[ResourceRequest]
 
 
 class AssemblySubstrategyEnum(str, Enum):
@@ -183,7 +183,7 @@ class TNChapterPayload(BaseModel):
     """
 
     intro_html: HtmlContent
-    verses_html: Dict[VerseRef, HtmlContent]
+    verses_html: dict[VerseRef, HtmlContent]
 
 
 class TNBookPayload(BaseModel):
@@ -193,7 +193,7 @@ class TNBookPayload(BaseModel):
     """
 
     intro_html: HtmlContent
-    chapters: Dict[ChapterNum, TNChapterPayload]
+    chapters: dict[ChapterNum, TNChapterPayload]
 
 
 class TQChapterPayload(BaseModel):
@@ -202,7 +202,7 @@ class TQChapterPayload(BaseModel):
     content.
     """
 
-    verses_html: Dict[VerseRef, HtmlContent]
+    verses_html: dict[VerseRef, HtmlContent]
 
 
 class TQBookPayload(BaseModel):
@@ -211,7 +211,7 @@ class TQBookPayload(BaseModel):
     content.
     """
 
-    chapters: Dict[ChapterNum, TQChapterPayload]
+    chapters: dict[ChapterNum, TQChapterPayload]
 
 
 class TWUse(BaseModel):
@@ -244,8 +244,8 @@ class TWLanguagePayload(BaseModel):
     e.g., abomination, and its TWNameContentPair instance.
     """
 
-    name_content_pairs: List[TWNameContentPair] = []
-    uses: Dict[LocalizedWord, List[TWUse]] = {}
+    name_content_pairs: list[TWNameContentPair] = []
+    uses: dict[LocalizedWord, list[TWUse]] = {}
 
 
 class TAChapterPayload(BaseModel):
@@ -254,7 +254,7 @@ class TAChapterPayload(BaseModel):
     content.
     """
 
-    verses_html: Dict[VerseRef, HtmlContent]
+    verses_html: dict[VerseRef, HtmlContent]
 
 
 class TABookPayload(BaseModel):
@@ -263,7 +263,7 @@ class TABookPayload(BaseModel):
     content.
     """
 
-    chapters: Dict[ChapterNum, TAChapterPayload]
+    chapters: dict[ChapterNum, TAChapterPayload]
 
 
 class USFMChapter(BaseModel):
@@ -280,8 +280,8 @@ class USFMChapter(BaseModel):
     system desire to do so.
     """
 
-    chapter_content: List[HtmlContent]
-    chapter_verses: Dict[VerseRef, HtmlContent]
+    chapter_content: list[HtmlContent]
+    chapter_verses: dict[VerseRef, HtmlContent]
     chapter_footnotes: HtmlContent
 
 
@@ -295,7 +295,7 @@ class CoverPayload(BaseModel):
     unfound: str
     unloaded: str
     revision_date: DateString
-    images: Dict[ImageLookupKey, Union[str, bytes]]
+    images: dict[ImageLookupKey, Union[str, bytes]]
 
 
 class EmailPayload(BaseModel):
@@ -309,7 +309,7 @@ class CodeNameTypeTriplet(BaseModel):
 
     lang_code: str
     lang_name: str
-    resource_types: List[str]
+    resource_types: list[str]
 
 
 class MarkdownLink(BaseModel):

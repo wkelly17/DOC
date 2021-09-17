@@ -6,15 +6,14 @@ form.
 Assembly strategies utilize the Strategy pattern:
 https://github.com/faif/python-patterns/blob/master/patterns/behavioral/strategy.py
 """
-
-
 # Handle circular import issue with document_generator module.
 from __future__ import annotations  # https://www.python.org/dev/peps/pep-0563/
 
 import itertools
 import logging  # For logdecorator
 import re
-from typing import Callable, Dict, List, Optional, Tuple, cast
+from collections.abc import Callable, Mapping
+from typing import Optional, cast
 
 import icontract
 from logdecorator import log_on_start
@@ -98,8 +97,8 @@ def assembly_sub_strategy_factory(
     This makes adding new strategies straightforward, if a bit
     redundant. The redundancy is the cost of comprehension.
     """
-    strategies: Dict[
-        Tuple[
+    strategies: Mapping[
+        tuple[
             bool,  # usfm_resource_exists
             bool,  # tn_resource_exists
             bool,  # tq_resource_exists
@@ -365,19 +364,19 @@ def assembly_sub_strategy_factory(
 
 
 def assembly_sub_strategy_factory_for_book_then_lang(
-    usfm_resources: List[USFMResource],
-    tn_resources: List[TNResource],
-    tq_resources: List[TQResource],
-    tw_resources: List[TWResource],
-    ta_resources: List[TAResource],
+    usfm_resources: list[USFMResource],
+    tn_resources: list[TNResource],
+    tq_resources: list[TQResource],
+    tw_resources: list[TWResource],
+    ta_resources: list[TAResource],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> Callable[
     [
-        List[USFMResource],
-        List[TNResource],
-        List[TQResource],
-        List[TWResource],
-        List[TAResource],
+        list[USFMResource],
+        list[TNResource],
+        list[TQResource],
+        list[TWResource],
+        list[TAResource],
         model.AssemblySubstrategyEnum,
     ],
     model.HtmlContent,
@@ -395,8 +394,8 @@ def assembly_sub_strategy_factory_for_book_then_lang(
     This makes adding new strategies straightforward, if a bit
     redundant. The redundancy is the cost of comprehension.
     """
-    strategies: Dict[
-        Tuple[
+    strategies: Mapping[
+        tuple[
             bool,  # usfm_resources is non-empty
             bool,  # tn_resources is non-empty
             bool,  # tq_resources is non-empty
@@ -406,11 +405,11 @@ def assembly_sub_strategy_factory_for_book_then_lang(
         ],
         Callable[
             [
-                List[USFMResource],
-                List[TNResource],
-                List[TQResource],
-                List[TWResource],
-                List[TAResource],
+                list[USFMResource],
+                list[TNResource],
+                list[TQResource],
+                list[TWResource],
+                list[TAResource],
                 model.AssemblySubstrategyEnum,
             ],
             model.HtmlContent,
@@ -700,11 +699,11 @@ def _assemble_content_by_book_then_lang(
         # Save grouper generator values in list since it will get exhausted
         # when used and exhausted generators cannot be reused.
         resources = list(group_by_book)
-        usfm_resources: List[USFMResource] = _get_usfm_resources(resources)
-        tn_resources: List[TNResource] = _get_tn_resources(resources)
-        tq_resources: List[TQResource] = _get_tq_resources(resources)
-        tw_resources: List[TWResource] = _get_tw_resources(resources)
-        ta_resources: List[TAResource] = _get_ta_resources(resources)
+        usfm_resources: list[USFMResource] = _get_usfm_resources(resources)
+        tn_resources: list[TNResource] = _get_tn_resources(resources)
+        tq_resources: list[TQResource] = _get_tq_resources(resources)
+        tw_resources: list[TWResource] = _get_tw_resources(resources)
+        ta_resources: list[TAResource] = _get_ta_resources(resources)
 
         # We've got the resources, now we can use the sub-strategy factory
         # method to choose the right function to use from here on out.
@@ -821,7 +820,7 @@ def _assemble_usfm_as_iterator_content_by_verse(
     interleaving strategy. The second USFM resource is displayed last
     in this interleaving strategy.
     """
-    html: List[model.HtmlContent] = []
+    html: list[model.HtmlContent] = []
     if tn_resource:
         book_intro = tn_resource.book_payload.intro_html
         book_intro = _adjust_book_intro_headings(book_intro)
@@ -960,7 +959,7 @@ def _assemble_usfm_tq_tw_content_by_verse(
         TWResource, tw_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
 
-    html: List[model.HtmlContent] = []
+    html: list[model.HtmlContent] = []
 
     # PEP526 disallows declaration of types in for loops.
     chapter_num: model.ChapterNum
@@ -1035,7 +1034,7 @@ def _assemble_usfm_tw_content_by_verse(
         TWResource, tw_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
 
-    html: List[model.HtmlContent] = []
+    html: list[model.HtmlContent] = []
 
     # PEP526 disallows declaration of types in for loops, but allows this.
     chapter_num: model.ChapterNum
@@ -1097,7 +1096,7 @@ def _assemble_usfm_tq_content_by_verse(
         TQResource, tq_resource
     )  # Make mypy happy. We know, due to how we got here, that usfm_resource object is not None.
 
-    html: List[model.HtmlContent] = []
+    html: list[model.HtmlContent] = []
 
     # PEP526 disallows declaration of types in for loops, but allows this.
     chapter_num: model.ChapterNum
@@ -1156,7 +1155,7 @@ def _assemble_tn_as_iterator_content_by_verse(
     Construct the HTML for a 'by verse' strategy wherein only TN, TQ,
     and TW exists.
     """
-    html: List[model.HtmlContent] = []
+    html: list[model.HtmlContent] = []
     if tn_resource:
         book_intro = tn_resource.book_payload.intro_html
         book_intro = _adjust_book_intro_headings(book_intro)
@@ -1265,7 +1264,7 @@ def _assemble_tq_content_by_verse(
         TQResource, tq_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
 
-    html: List[model.HtmlContent] = []
+    html: list[model.HtmlContent] = []
 
     # PEP526 disallows declaration of types in for loops, but allows this.
     chapter_num: model.ChapterNum
@@ -1319,7 +1318,7 @@ def _assemble_tq_tw_content_by_verse(
         TWResource, tw_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
 
-    html: List[model.HtmlContent] = []
+    html: list[model.HtmlContent] = []
 
     # PEP526 disallows declaration of types in for loops, but allows this.
     chapter_num: model.ChapterNum
@@ -1380,7 +1379,7 @@ def _assemble_tw_content_by_verse(
         TWResource, tw_resource
     )  # Make mypy happy. We know, due to how we got here, that tq_resource object is not None.
 
-    html: List[model.HtmlContent] = []
+    html: list[model.HtmlContent] = []
 
     # Add the translation words definition section.
     linked_translation_words = tw_resource.get_translation_words_section(
@@ -1399,11 +1398,11 @@ def _assemble_tw_content_by_verse(
 )  # precondition: There must be at least one usfm_resource
 @icontract.ensure(lambda result: result)
 def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
-    usfm_resources: List[USFMResource],
-    tn_resources: List[TNResource],
-    tq_resources: List[TQResource],
-    tw_resources: List[TWResource],
-    ta_resources: List[TAResource],
+    usfm_resources: list[USFMResource],
+    tn_resources: list[TNResource],
+    tq_resources: list[TQResource],
+    tw_resources: list[TWResource],
+    ta_resources: list[TAResource],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> model.HtmlContent:
     """
@@ -1412,7 +1411,7 @@ def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
     TW may exist.
     """
 
-    html: List[model.HtmlContent] = []
+    html: list[model.HtmlContent] = []
 
     # Sort resources by language
     key = lambda resource: resource.lang_code
@@ -1623,11 +1622,11 @@ def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
 
 
 def _assemble_tn_as_iterator_content_by_verse_for_book_then_lang(
-    usfm_resources: List[USFMResource],
-    tn_resources: List[TNResource],
-    tq_resources: List[TQResource],
-    tw_resources: List[TWResource],
-    ta_resources: List[TAResource],
+    usfm_resources: list[USFMResource],
+    tn_resources: list[TNResource],
+    tq_resources: list[TQResource],
+    tw_resources: list[TWResource],
+    ta_resources: list[TAResource],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> model.HtmlContent:
     """
@@ -1635,7 +1634,7 @@ def _assemble_tn_as_iterator_content_by_verse_for_book_then_lang(
     tn_resources exists, and TN, TQ, and TW may exist.
     """
 
-    html: List[model.HtmlContent] = []
+    html: list[model.HtmlContent] = []
 
     # Sort resources by language
     key = lambda resource: resource.lang_code
@@ -1750,11 +1749,11 @@ def _assemble_tn_as_iterator_content_by_verse_for_book_then_lang(
 
 
 def _assemble_tq_as_iterator_content_by_verse_for_book_then_lang(
-    usfm_resources: List[USFMResource],
-    tn_resources: List[TNResource],
-    tq_resources: List[TQResource],
-    tw_resources: List[TWResource],
-    ta_resources: List[TAResource],
+    usfm_resources: list[USFMResource],
+    tn_resources: list[TNResource],
+    tq_resources: list[TQResource],
+    tw_resources: list[TWResource],
+    ta_resources: list[TAResource],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> model.HtmlContent:
     """
@@ -1762,7 +1761,7 @@ def _assemble_tq_as_iterator_content_by_verse_for_book_then_lang(
     tq_resources exists, and TQ, and TW may exist.
     """
 
-    html: List[model.HtmlContent] = []
+    html: list[model.HtmlContent] = []
 
     # Sort resources by language
     key = lambda resource: resource.lang_code
@@ -1848,16 +1847,16 @@ def _assemble_tq_as_iterator_content_by_verse_for_book_then_lang(
 
 
 def _assemble_tw_as_iterator_content_by_verse_for_book_then_lang(
-    usfm_resources: List[USFMResource],
-    tn_resources: List[TNResource],
-    tq_resources: List[TQResource],
-    tw_resources: List[TWResource],
-    ta_resources: List[TAResource],
+    usfm_resources: list[USFMResource],
+    tn_resources: list[TNResource],
+    tq_resources: list[TQResource],
+    tw_resources: list[TWResource],
+    ta_resources: list[TAResource],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> model.HtmlContent:
     """Construct the HTML for a only TW."""
 
-    html: List[model.HtmlContent] = []
+    html: list[model.HtmlContent] = []
 
     # Sort resources by language
     key = lambda resource: resource.lang_code
@@ -1887,12 +1886,12 @@ def _format_tq_verse(
     chapter_num: model.ChapterNum,
     verse_num: model.VerseRef,
     verse: model.HtmlContent,
-) -> List[model.HtmlContent]:
+) -> list[model.HtmlContent]:
     """
     This is a slightly different form of TQResource.get_tq_verse that is used
     when no USFM or TN has been requested.
     """
-    html: List[model.HtmlContent] = []
+    html: list[model.HtmlContent] = []
     html.append(
         model.HtmlContent(
             settings.RESOURCE_TYPE_NAME_WITH_REF_FMT_STR.format(
@@ -1924,7 +1923,7 @@ def _format_tq_verse(
 #     return html
 
 
-def _get_first_usfm_resource(resources: List[Resource]) -> Optional[USFMResource]:
+def _get_first_usfm_resource(resources: list[Resource]) -> Optional[USFMResource]:
     """
     Return the first USFMResource instance, if any, contained in resources,
     else return None.
@@ -1948,7 +1947,7 @@ def _get_first_usfm_resource(resources: List[Resource]) -> Optional[USFMResource
     return usfm_resources[0] if usfm_resources else None
 
 
-def _get_second_usfm_resource(resources: List[Resource]) -> Optional[USFMResource]:
+def _get_second_usfm_resource(resources: list[Resource]) -> Optional[USFMResource]:
     """
     Return the second USFMResource instance, if any, contained in resources,
     else return None.
@@ -1970,12 +1969,12 @@ def _get_second_usfm_resource(resources: List[Resource]) -> Optional[USFMResourc
     # return usfm_resources[0] if usfm_resources else None
 
 
-def _get_usfm_resources(resources: List[Resource]) -> List[USFMResource]:
+def _get_usfm_resources(resources: list[Resource]) -> list[USFMResource]:
     """Return the USFMResource instances, if any, contained in resources."""
     return [resource for resource in resources if isinstance(resource, USFMResource)]
 
 
-def _get_tn_resource(resources: List[Resource]) -> Optional[TNResource]:
+def _get_tn_resource(resources: list[Resource]) -> Optional[TNResource]:
     """
     Return the TNResource instance, if any, contained in resources,
     else return None.
@@ -1986,12 +1985,12 @@ def _get_tn_resource(resources: List[Resource]) -> Optional[TNResource]:
     return tn_resources[0] if tn_resources else None
 
 
-def _get_tn_resources(resources: List[Resource]) -> List[TNResource]:
+def _get_tn_resources(resources: list[Resource]) -> list[TNResource]:
     """Return the TNResource instances, if any, contained in resources."""
     return [resource for resource in resources if isinstance(resource, TNResource)]
 
 
-def _get_tw_resource(resources: List[Resource]) -> Optional[TWResource]:
+def _get_tw_resource(resources: list[Resource]) -> Optional[TWResource]:
     """
     Return the TWResource instance, if any, contained in resources,
     else return None.
@@ -2002,12 +2001,12 @@ def _get_tw_resource(resources: List[Resource]) -> Optional[TWResource]:
     return tw_resources[0] if tw_resources else None
 
 
-def _get_tw_resources(resources: List[Resource]) -> List[TWResource]:
+def _get_tw_resources(resources: list[Resource]) -> list[TWResource]:
     """Return the TWResource instance, if any, contained in resources."""
     return [resource for resource in resources if isinstance(resource, TWResource)]
 
 
-def _get_tq_resource(resources: List[Resource]) -> Optional[TQResource]:
+def _get_tq_resource(resources: list[Resource]) -> Optional[TQResource]:
     """
     Return the TQResource instance, if any, contained in resources,
     else return None.
@@ -2018,12 +2017,12 @@ def _get_tq_resource(resources: List[Resource]) -> Optional[TQResource]:
     return tq_resources[0] if tq_resources else None
 
 
-def _get_tq_resources(resources: List[Resource]) -> List[TQResource]:
+def _get_tq_resources(resources: list[Resource]) -> list[TQResource]:
     """Return the TQResource instance, if any, contained in resources."""
     return [resource for resource in resources if isinstance(resource, TQResource)]
 
 
-def _get_ta_resource(resources: List[Resource]) -> Optional[TAResource]:
+def _get_ta_resource(resources: list[Resource]) -> Optional[TAResource]:
     """
     Return the TAResource instance, if any, contained in resources,
     else return None.
@@ -2034,7 +2033,7 @@ def _get_ta_resource(resources: List[Resource]) -> Optional[TAResource]:
     return ta_resources[0] if ta_resources else None
 
 
-def _get_ta_resources(resources: List[Resource]) -> List[TAResource]:
+def _get_ta_resources(resources: list[Resource]) -> list[TAResource]:
     """Return the TAResource instance, if any, contained in resources."""
     return [resource for resource in resources if isinstance(resource, TAResource)]
 

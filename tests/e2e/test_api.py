@@ -1,8 +1,9 @@
 """This module provides tests for the application's FastAPI API."""
 
-import bs4
 import os
 import pathlib
+
+import bs4
 import pytest
 import requests
 from fastapi.testclient import TestClient

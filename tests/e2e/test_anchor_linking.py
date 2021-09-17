@@ -8,8 +8,9 @@ in the HTML and thus in the PDF.
 import glob
 import re
 
-from document.config import settings
 from termcolor import colored
+
+from document.config import settings
 
 logger = settings.get_logger(__name__)
 

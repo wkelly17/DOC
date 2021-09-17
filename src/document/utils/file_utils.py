@@ -1,17 +1,19 @@
 """This module provides various file utilities."""
 
 import codecs
-import icontract
 import json
 import logging  # For logdecorator
 import os
 import pathlib
-import yaml
 import zipfile
 from datetime import datetime, timedelta
-from document.config import settings
+from typing import Any, Optional, Union
+
+import icontract
+import yaml
 from logdecorator import log_on_end
-from typing import Any, Dict, List, Optional, Union
+
+from document.config import settings
 
 logger = settings.get_logger(__name__)
 
@@ -54,7 +56,7 @@ def make_dir(
 @icontract.require(
     lambda file_name: file_name is not None and os.path.exists(file_name)
 )
-def load_json_object(file_name: pathlib.Path) -> List:
+def load_json_object(file_name: pathlib.Path) -> list:
     """
     Deserialized JSON file <file_name> into a Python dict.
     :param file_name: The name of the file to read
@@ -65,7 +67,7 @@ def load_json_object(file_name: pathlib.Path) -> List:
 @icontract.require(
     lambda file_name: file_name is not None and os.path.exists(file_name)
 )
-def load_yaml_object(file_name: str) -> Dict:
+def load_yaml_object(file_name: str) -> dict:
     """
     Deserialize YAML file <file_name> into a Python dict.
     :param file_name: The name of the file to read

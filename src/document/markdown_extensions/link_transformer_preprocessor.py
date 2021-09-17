@@ -1,15 +1,15 @@
 import logging  # For logdecorator
 import os
 import re
-from typing import Dict, List
 
 import icontract
 import markdown
+from logdecorator import log_on_start
+
 from document.config import settings
 from document.domain import bible_books, model
 from document.markdown_extensions import link_regexes
 from document.utils import file_utils, tw_utils
-from logdecorator import log_on_start
 
 logger = settings.get_logger(__name__)
 
@@ -29,19 +29,19 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
         self,
         md: markdown.Markdown,
         lang_code: str,
-        resource_requests: List[model.ResourceRequest],
-        translation_words_dict: Dict[str, str],
+        resource_requests: list[model.ResourceRequest],
+        translation_words_dict: dict[str, str],
     ) -> None:
         """Initialize."""
         self._md: markdown.Markdown = md
         self._lang_code: str = lang_code
-        self._resource_requests: List[model.ResourceRequest] = resource_requests
-        self._translation_words_dict: Dict[str, str] = translation_words_dict
+        self._resource_requests: list[model.ResourceRequest] = resource_requests
+        self._translation_words_dict: dict[str, str] = translation_words_dict
         super().__init__()
 
     @icontract.require(lambda lines: lines)
     @icontract.ensure(lambda result: result)
-    def run(self, lines: List[str]) -> List[str]:
+    def run(self, lines: list[str]) -> list[str]:
         """This is automatically called in super class."""
         source = "\n".join(lines)
 
@@ -394,7 +394,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
             # asset file referenced in the matched link we must know that said TN
             # resource identified by the lang_code/resource_type/resource_code combo
             # in the link has been requested by the user in the DocumentRequest.
-            matching_resource_requests: List[model.ResourceRequest] = [
+            matching_resource_requests: list[model.ResourceRequest] = [
                 resource_request
                 for resource_request in self._resource_requests
                 if resource_request.lang_code == lang_code
@@ -465,7 +465,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
             verse_ref = match.group("verse_ref")
 
             # NOTE See id:check_for_resource_request above
-            matching_resource_requests: List[model.ResourceRequest] = [
+            matching_resource_requests: list[model.ResourceRequest] = [
                 resource_request
                 for resource_request in self._resource_requests
                 if resource_request.lang_code == self._lang_code
@@ -538,7 +538,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
             chapter_num = match.group("chapter_num")
             verse_ref = match.group("verse_ref")
 
-            matching_resource_requests: List[model.ResourceRequest] = [
+            matching_resource_requests: list[model.ResourceRequest] = [
                 resource_request
                 for resource_request in self._resource_requests
                 if resource_request.lang_code == self._lang_code
@@ -636,9 +636,9 @@ class LinkTransformerExtension(markdown.Extension):
         )
 
 
-def markdown_link_parser(source: str) -> List[model.MarkdownLink]:
+def markdown_link_parser(source: str) -> list[model.MarkdownLink]:
     """Return a list of all Markdown links in source."""
-    links: List[model.MarkdownLink] = []
+    links: list[model.MarkdownLink] = []
     for link in re.finditer(link_regexes.MARKDOWN_LINK_RE, source):
         links.append(
             model.MarkdownLink(
@@ -649,9 +649,9 @@ def markdown_link_parser(source: str) -> List[model.MarkdownLink]:
     return links
 
 
-def wiki_link_parser(source: str) -> List[model.WikiLink]:
+def wiki_link_parser(source: str) -> list[model.WikiLink]:
     """Return a list of all Wiki links in source."""
-    links: List[model.WikiLink] = []
+    links: list[model.WikiLink] = []
     for link in re.finditer(link_regexes.WIKI_LINK_RE, source):
         links.append(
             model.WikiLink(

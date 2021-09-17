@@ -1,5 +1,3 @@
-from typing import List
-
 from document.config import settings
 from document.domain import model
 from document.domain.resource import resource_factory
@@ -11,7 +9,7 @@ def test_lookup_successes() -> None:
     assembly_strategy_kind: model.AssemblyStrategyEnum = (
         model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER
     )
-    resource_requests: List[model.ResourceRequest] = []
+    resource_requests: list[model.ResourceRequest] = []
     resource_requests.append(
         model.ResourceRequest(
             lang_code="en", resource_type="ulb-wa", resource_code="gen"
@@ -67,7 +65,7 @@ def test_lookup_failures() -> None:
     assembly_strategy_kind: model.AssemblyStrategyEnum = (
         model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER
     )
-    resource_requests: List[model.ResourceRequest] = []
+    resource_requests: list[model.ResourceRequest] = []
     resource_requests.append(
         model.ResourceRequest(lang_code="zh", resource_type="ulb", resource_code="jol")
     )

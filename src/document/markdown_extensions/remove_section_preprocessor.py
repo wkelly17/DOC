@@ -1,9 +1,9 @@
-import markdown
 import re
+from typing import Any
 
+import markdown
 from markdown import Extension
 from markdown.preprocessors import Preprocessor
-from typing import Any, Dict, List
 
 from document.config import settings
 
@@ -13,14 +13,14 @@ logger = settings.get_logger(__name__)
 class RemoveSectionPreprocessor(Preprocessor):
     """Remove arbitrary Markdown sections."""
 
-    def __init__(self, config: Dict, md: markdown.Markdown) -> None:
+    def __init__(self, config: dict, md: markdown.Markdown) -> None:
         """Initialize."""
         # Example use of config. See __init__ for RemoveSectionExtension
         # below for initialization.
         # self.encoding = config.get("encoding")
         super().__init__()
 
-    def remove_sections(self, md: str) -> List[str]:
+    def remove_sections(self, md: str) -> list[str]:
         """Remove various markdown sections."""
         for section in settings.MARKDOWN_SECTIONS_TO_REMOVE:
             md = self.remove_md_section(md, section)
@@ -49,7 +49,7 @@ class RemoveSectionPreprocessor(Preprocessor):
                     out_md = "{}{}\n".format(out_md, line)
         return out_md
 
-    def run(self, lines: List[str]) -> List[str]:
+    def run(self, lines: list[str]) -> list[str]:
         """Entrypoint."""
         source = "\n".join(lines)
         return self.remove_sections(source)

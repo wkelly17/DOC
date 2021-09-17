@@ -5,9 +5,10 @@ import re
 import bs4
 import pytest
 import requests
+from fastapi.testclient import TestClient
+
 from document.config import settings
 from document.entrypoints.app import app
-from fastapi.testclient import TestClient
 
 ##################################################
 ## Tests for assembly strategy book -hen-language

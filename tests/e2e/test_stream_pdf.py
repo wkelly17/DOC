@@ -1,12 +1,12 @@
 import logging
 import os
+
 import requests
 import yaml
 from fastapi.testclient import TestClient
 
 from document.config import settings
 from document.entrypoints.app import app
-
 
 logger = settings.get_logger(__name__)
 

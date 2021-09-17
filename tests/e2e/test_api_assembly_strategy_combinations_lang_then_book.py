@@ -5,9 +5,10 @@ import re
 import bs4
 import pytest
 import requests
+from fastapi.testclient import TestClient
+
 from document.config import settings
 from document.entrypoints.app import app
-from fastapi.testclient import TestClient
 
 
 def check_finished_document_with_verses_success(

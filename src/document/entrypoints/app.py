@@ -2,14 +2,14 @@
 
 import os
 import pathlib
-from typing import Dict, List, Tuple
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 
 from document.config import settings
 from document.domain import bible_books, model, resource_lookup
 from document.domain.document_generator import DocumentGenerator
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
 
 app = FastAPI()
 
@@ -87,7 +87,7 @@ def serve_pdf_document(
 
 # @app.get(f"{settings.API_ROOT}/language_codes_names_and_resource_types")
 @app.get("/language_codes_names_and_resource_types")
-def lang_codes_names_and_resource_types() -> List[model.CodeNameTypeTriplet]:
+def lang_codes_names_and_resource_types() -> list[model.CodeNameTypeTriplet]:
     """
     Return list of tuples of lang_code, lang_name, resource_types for
     all available language codes.
@@ -98,7 +98,7 @@ def lang_codes_names_and_resource_types() -> List[model.CodeNameTypeTriplet]:
 
 # @app.get(f"{settings.API_ROOT}/language_codes")
 @app.get("/language_codes")
-def lang_codes() -> List[str]:
+def lang_codes() -> list[str]:
     """Return list of all available language codes."""
     lookup_svc = resource_lookup.BIELHelperResourceJsonLookup()
     return lookup_svc.lang_codes()
@@ -106,7 +106,7 @@ def lang_codes() -> List[str]:
 
 # @app.get(f"{settings.API_ROOT}/language_codes_and_names")
 @app.get("/language_codes_and_names")
-def lang_codes_and_names() -> List[Tuple[str, str]]:
+def lang_codes_and_names() -> list[tuple[str, str]]:
     """Return list of all available language code, name tuples."""
     lookup_svc = resource_lookup.BIELHelperResourceJsonLookup()
     return lookup_svc.lang_codes_and_names()
@@ -114,7 +114,7 @@ def lang_codes_and_names() -> List[Tuple[str, str]]:
 
 # @app.get(f"{settings.API_ROOT}/resource_types")
 @app.get("/resource_types")
-def resource_types() -> List[str]:
+def resource_types() -> list[str]:
     """Return list of all available resource types."""
     lookup_svc = resource_lookup.BIELHelperResourceJsonLookup()
     return lookup_svc.resource_types()
@@ -122,13 +122,13 @@ def resource_types() -> List[str]:
 
 # @app.get(f"{settings.API_ROOT}/resource_codes")
 @app.get("/resource_codes")
-def resource_codes() -> List[str]:
+def resource_codes() -> list[str]:
     """Return list of all available resource codes."""
     lookup_svc = resource_lookup.BIELHelperResourceJsonLookup()
     return lookup_svc.resource_codes()
 
 
 @app.get("/health/status")
-def health_status() -> Tuple[Dict, int]:
+def health_status() -> tuple[dict, int]:
     """Ping-able server endpoint."""
     return {"status": "ok"}, 200

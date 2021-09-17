@@ -1,22 +1,14 @@
 """This module provides configuration values used by the application."""
-
-
 import logging
 import os
+from collections.abc import Mapping
 from logging import config as lc
-from typing import Any, List, Mapping, Optional, Union
+from typing import Any, Optional, Union
 
 import icontract
 import jinja2
 import yaml
-from pydantic import (
-    AnyHttpUrl,
-    BaseModel,
-    BaseSettings,
-    EmailStr,
-    HttpUrl,
-    validator,
-)
+from pydantic import AnyHttpUrl, BaseModel, BaseSettings, EmailStr, HttpUrl, validator
 from typeguard.importhook import install_import_hook
 
 with install_import_hook("document.domain"):
@@ -231,10 +223,10 @@ class Settings(BaseSettings):
     # BACKEND_CORS_ORIGINS is a JSON-formatted list of origins
     # e.g: '["http://localhost", "http://localhost:4200",
     # "http://localhost:8000"]'
-    BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
+    BACKEND_CORS_ORIGINS: list[AnyHttpUrl] = []
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)
-    def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:
+    def assemble_cors_origins(cls, v: Union[str, list[str]]) -> Union[list[str], str]:
         if isinstance(v, str) and not v.startswith("["):
             return [i.strip() for i in v.split(",")]
         elif isinstance(v, (list, str)):
@@ -244,7 +236,7 @@ class Settings(BaseSettings):
     # Return the file names, excluding suffix, of files that do not
     # contain content but which may be in the same directory or
     # subdirectories of a resource's acquired files.
-    MARKDOWN_DOC_FILE_NAMES: List[str] = ["readme", "license"]
+    MARKDOWN_DOC_FILE_NAMES: list[str] = ["readme", "license"]
 
     def document_html_header(self) -> str:
         """
@@ -355,7 +347,7 @@ class Settings(BaseSettings):
 
     # Return a list of the Markdown section titles that our
     # Python-Markdown remove_section_processor extension should remove.
-    MARKDOWN_SECTIONS_TO_REMOVE: List[str] = [
+    MARKDOWN_SECTIONS_TO_REMOVE: list[str] = [
         "Examples from the Bible stories",
         "Links",
     ]

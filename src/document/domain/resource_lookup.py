@@ -8,16 +8,17 @@ import abc
 import logging  # For logdecorator
 import os
 import pathlib
-from typing import Any, List, Optional, Set, Tuple
+from typing import Any, Optional
 from urllib import parse as urllib_parse
 
 import icontract
 import jsonpath_rw_ext as jp
+from logdecorator import log_on_end, log_on_start
+
 from document.config import settings
 from document.domain import model
 from document.domain.resource import Resource
 from document.utils import file_utils, url_utils
-from logdecorator import log_on_end, log_on_start
 
 logger = settings.get_logger(__name__)
 
@@ -28,10 +29,10 @@ class ResourceJsonLookup:
     Subclasses of ResourceLookup delegate to this class.
     """
 
-    _lang_codes_names_and_resource_types: List[model.CodeNameTypeTriplet] = []
+    _lang_codes_names_and_resource_types: list[model.CodeNameTypeTriplet] = []
 
     @staticmethod
-    def _initialize_lang_codes_names_and_resource_types() -> List[model.CodeNameTypeTriplet]:
+    def _initialize_lang_codes_names_and_resource_types() -> list[model.CodeNameTypeTriplet]:
         """
         Initialize a list of available Tuple[lang_code, lang_name,
         List[resource_type]].
@@ -42,7 +43,7 @@ class ResourceJsonLookup:
     @classmethod
     def lang_codes_names_and_resource_types(
         cls,
-    ) -> List[model.CodeNameTypeTriplet]:
+    ) -> list[model.CodeNameTypeTriplet]:
         # if cls._lang_codes_names_and_resource_types is None:
         if not cls._lang_codes_names_and_resource_types:
             # fmt: off
@@ -126,7 +127,7 @@ class ResourceJsonLookup:
         jsonpath_str = settings.RESOURCE_DOWNLOAD_FORMAT_JSONPATH.format(
             resource.lang_code, resource.resource_type, resource.resource_code,
         )
-        urls: List[str] = self._lookup(jsonpath_str)
+        urls: list[str] = self._lookup(jsonpath_str)
         if urls:
             # Get the portion of the query string that gives
             # the repo URL
@@ -134,7 +135,7 @@ class ResourceJsonLookup:
         lang_name_jsonpath_str = settings.RESOURCE_LANG_NAME_JSONPATH.format(
             resource.lang_code
         )
-        lang_name_lst: List[str] = self._lookup(lang_name_jsonpath_str)
+        lang_name_lst: list[str] = self._lookup(lang_name_jsonpath_str)
         if lang_name_lst:
             lang_name = lang_name_lst[0]
         else:
@@ -142,7 +143,7 @@ class ResourceJsonLookup:
         resource_type_name_jsonpath_str = settings.RESOURCE_TYPE_NAME_JSONPATH.format(
             resource.lang_code, resource.resource_type
         )
-        resource_type_name_lst: List[str] = self._lookup(resource_type_name_jsonpath_str)
+        resource_type_name_lst: list[str] = self._lookup(resource_type_name_jsonpath_str)
         if resource_type_name_lst:
             resource_type_name = resource_type_name_lst[0]
         else:
@@ -160,14 +161,14 @@ class ResourceJsonLookup:
     )
     @icontract.ensure(lambda result: result is not None)
     @log_on_start(logging.DEBUG, "json_path: {json_path}")
-    def _lookup(self, json_path: str) -> List[str]:
+    def _lookup(self, json_path: str) -> list[str]:
         """Return jsonpath value or empty list if JSON node doesn't exist."""
         self._get_data()
-        value: List[str] = jp.match(
+        value: list[str] = jp.match(
             json_path, self.json_data,
         )
         logger.debug("value[:4] from translations.json: %s", value[:4])
-        value_set: Set = set(value)
+        value_set: set = set(value)
         return list(value_set)
 
     @icontract.require(lambda url, repo_url_dict_key: url and repo_url_dict_key)
@@ -184,7 +185,7 @@ class ResourceJsonLookup:
         if url is None:
             return None
         result: dict = urllib_parse.parse_qs(url)
-        result_lst: List = result[repo_url_dict_key]
+        result_lst: list = result[repo_url_dict_key]
         if result_lst:
             return result_lst[0]
         return None
@@ -214,10 +215,10 @@ class SourceDataFetcher:
 
         # logger.info("JSON file is {}".format(self._json_file))
 
-        self._json_data: List = []
+        self._json_data: list = []
 
     @property
-    def json_data(self) -> List:
+    def json_data(self) -> list:
         """Provide public method for other modules to access."""
         return self._json_data
 
@@ -362,13 +363,13 @@ class USFMResourceJsonLookup(ResourceLookup):
         jsonpath_str = settings.INDIVIDUAL_USFM_URL_JSONPATH.format(
             resource.lang_code, resource.resource_type, resource.resource_code,
         )
-        urls: List[str] = self._lookup(jsonpath_str)
+        urls: list[str] = self._lookup(jsonpath_str)
         if urls:
             url = urls[0]
         lang_name_jsonpath_str = settings.RESOURCE_LANG_NAME_JSONPATH.format(
             resource.lang_code
         )
-        lang_name_lst: List[str] = self._lookup(lang_name_jsonpath_str)
+        lang_name_lst: list[str] = self._lookup(lang_name_jsonpath_str)
         if lang_name_lst:
             lang_name = lang_name_lst[0]
         else:
@@ -376,7 +377,7 @@ class USFMResourceJsonLookup(ResourceLookup):
         resource_type_name_jsonpath_str = settings.RESOURCE_TYPE_NAME_JSONPATH.format(
             resource.lang_code, resource.resource_type
         )
-        resource_type_name_lst: List[str] = self._lookup(resource_type_name_jsonpath_str)
+        resource_type_name_lst: list[str] = self._lookup(resource_type_name_jsonpath_str)
         if resource_type_name_lst:
             resource_type_name = resource_type_name_lst[0]
         else:
@@ -432,13 +433,13 @@ class USFMResourceJsonLookup(ResourceLookup):
         jsonpath_str = settings.RESOURCE_URL_LEVEL1_JSONPATH.format(
             resource.lang_code, resource.resource_type, resource.resource_code,
         )
-        urls: List[str] = self._lookup(jsonpath_str)
+        urls: list[str] = self._lookup(jsonpath_str)
         if urls:
             url = urls[0]
         lang_name_jsonpath_str = settings.RESOURCE_LANG_NAME_JSONPATH.format(
             resource.lang_code
         )
-        lang_name_lst: List[str] = self._lookup(lang_name_jsonpath_str)
+        lang_name_lst: list[str] = self._lookup(lang_name_jsonpath_str)
         if lang_name_lst:
             lang_name = lang_name_lst[0]
         else:
@@ -446,7 +447,7 @@ class USFMResourceJsonLookup(ResourceLookup):
         resource_type_name_jsonpath_str = settings.RESOURCE_TYPE_NAME_JSONPATH.format(
             resource.lang_code, resource.resource_type
         )
-        resource_type_name_lst: List[str] = self._lookup(resource_type_name_jsonpath_str)
+        resource_type_name_lst: list[str] = self._lookup(resource_type_name_jsonpath_str)
         if resource_type_name_lst:
             resource_type_name = resource_type_name_lst[0]
         else:
@@ -535,13 +536,13 @@ class TResourceJsonLookup(ResourceLookup):
         jsonpath_str = settings.RESOURCE_URL_LEVEL1_JSONPATH.format(
             resource.lang_code, resource.resource_type,
         )
-        urls: List[str] = self._lookup(jsonpath_str)
+        urls: list[str] = self._lookup(jsonpath_str)
         if urls:
             url = urls[0]
         lang_name_jsonpath_str = settings.RESOURCE_LANG_NAME_JSONPATH.format(
             resource.lang_code
         )
-        lang_name_lst: List[str] = self._lookup(lang_name_jsonpath_str)
+        lang_name_lst: list[str] = self._lookup(lang_name_jsonpath_str)
         if lang_name_lst:
             lang_name = lang_name_lst[0]
         else:
@@ -549,7 +550,7 @@ class TResourceJsonLookup(ResourceLookup):
         resource_type_name_jsonpath_str = settings.RESOURCE_TYPE_NAME_JSONPATH.format(
             resource.lang_code, resource.resource_type
         )
-        resource_type_name_lst: List[str] = self._lookup(resource_type_name_jsonpath_str)
+        resource_type_name_lst: list[str] = self._lookup(resource_type_name_jsonpath_str)
         if resource_type_name_lst:
             resource_type_name = resource_type_name_lst[0]
         else:
@@ -575,13 +576,13 @@ class TResourceJsonLookup(ResourceLookup):
         jsonpath_str = settings.RESOURCE_URL_LEVEL2_JSONPATH.format(
             resource.lang_code, resource.resource_type,
         )
-        urls: List[str] = self._lookup(jsonpath_str)
+        urls: list[str] = self._lookup(jsonpath_str)
         if urls:
             url = urls[0]
         lang_name_jsonpath_str = settings.RESOURCE_LANG_NAME_JSONPATH.format(
             resource.lang_code
         )
-        lang_name_lst: List[str] = self._lookup(lang_name_jsonpath_str)
+        lang_name_lst: list[str] = self._lookup(lang_name_jsonpath_str)
         if lang_name_lst:
             lang_name = lang_name_lst[0]
         else:
@@ -589,7 +590,7 @@ class TResourceJsonLookup(ResourceLookup):
         resource_type_name_jsonpath_str = settings.RESOURCE_TYPE_NAME_JSONPATH.format(
             resource.lang_code, resource.resource_type
         )
-        resource_type_name_lst: List[str] = self._lookup(resource_type_name_jsonpath_str)
+        resource_type_name_lst: list[str] = self._lookup(resource_type_name_jsonpath_str)
         if resource_type_name_lst:
             resource_type_name = resource_type_name_lst[0]
         else:
@@ -621,13 +622,13 @@ class TResourceJsonLookup(ResourceLookup):
         jsonpath_str = settings.RESOURCE_URL_LEVEL1_JSONPATH.format(
             resource.lang_code, resource.resource_type,
         )
-        urls: List[str] = self._lookup(jsonpath_str)
+        urls: list[str] = self._lookup(jsonpath_str)
         if urls:
             url = urls[0]
         lang_name_jsonpath_str = settings.RESOURCE_LANG_NAME_JSONPATH.format(
             resource.lang_code
         )
-        lang_name_lst: List[str] = self._lookup(lang_name_jsonpath_str)
+        lang_name_lst: list[str] = self._lookup(lang_name_jsonpath_str)
         if lang_name_lst:
             lang_name = lang_name_lst[0]
         else:
@@ -635,7 +636,7 @@ class TResourceJsonLookup(ResourceLookup):
         resource_type_name_jsonpath_str = settings.RESOURCE_TYPE_NAME_JSONPATH.format(
             resource.lang_code, resource.resource_type
         )
-        resource_type_name_lst: List[str] = self._lookup(resource_type_name_jsonpath_str)
+        resource_type_name_lst: list[str] = self._lookup(resource_type_name_jsonpath_str)
         if resource_type_name_lst:
             resource_type_name = resource_type_name_lst[0]
         else:
@@ -665,13 +666,13 @@ class TResourceJsonLookup(ResourceLookup):
         jsonpath_str = settings.RESOURCE_URL_LEVEL2_JSONPATH.format(
             resource.lang_code, resource.resource_type,
         )
-        urls: List[str] = self._lookup(jsonpath_str)
+        urls: list[str] = self._lookup(jsonpath_str)
         if urls:
             url = urls[0]
         lang_name_jsonpath_str = settings.RESOURCE_LANG_NAME_JSONPATH.format(
             resource.lang_code
         )
-        lang_name_results: List[str] = self._lookup(lang_name_jsonpath_str)
+        lang_name_results: list[str] = self._lookup(lang_name_jsonpath_str)
         if lang_name_results:
             lang_name = lang_name_results[0]
         else:
@@ -679,7 +680,7 @@ class TResourceJsonLookup(ResourceLookup):
         resource_type_name_jsonpath_str = settings.RESOURCE_TYPE_NAME_JSONPATH.format(
             resource.lang_code, resource.resource_type
         )
-        resource_type_name_results: List[str] = self._lookup(resource_type_name_jsonpath_str)
+        resource_type_name_results: list[str] = self._lookup(resource_type_name_jsonpath_str)
         if resource_type_name_results:
             resource_type_name = resource_type_name_results[0]
         else:
@@ -713,13 +714,13 @@ class BIELHelperResourceJsonLookup:
 
     @icontract.require(lambda self: self.json_data is not None)
     @icontract.ensure(lambda result: result)
-    def lang_codes(self) -> List[str]:
+    def lang_codes(self) -> list[str]:
         """
         Convenience method that can be called from UI to get the set
         of all language codes available through API. Presumably this
         could be called to populate a drop-down menu.
         """
-        codes: List[str] = []
+        codes: list[str] = []
         self._get_data()
         for lang in self.json_data:
             codes.append(lang["code"])
@@ -727,14 +728,14 @@ class BIELHelperResourceJsonLookup:
 
     @icontract.require(lambda self: self.json_data is not None)
     @icontract.ensure(lambda result: result)
-    def lang_codes_and_names(self) -> List[Tuple[str, str]]:
+    def lang_codes_and_names(self) -> list[tuple[str, str]]:
         """
         Convenience method that can be called from UI to get the set
         of all language code, name tuples available through API.
         Presumably this could be called to populate a drop-down menu.
         """
         self._get_data()
-        codes_and_names: List[Tuple[str, str]] = []
+        codes_and_names: list[tuple[str, str]] = []
         # Using jsonpath in a loop here was prohibitively slow so we
         # use the dictionary in this case.
         for d in self.json_data:
@@ -742,7 +743,7 @@ class BIELHelperResourceJsonLookup:
         return codes_and_names
 
     @icontract.ensure(lambda result: result)
-    def resource_types(self) -> List[str]:
+    def resource_types(self) -> list[str]:
         """
         Convenience method that can be called, e.g., from the UI, to
         get the set of all resource types.
@@ -751,7 +752,7 @@ class BIELHelperResourceJsonLookup:
         return self._lookup(settings.RESOURCE_TYPES_JSONPATH)
 
     @icontract.ensure(lambda result: result)
-    def resource_codes(self) -> List[str]:
+    def resource_codes(self) -> list[str]:
         """
         Convenience method that can be called, e.g., from the UI, to
         get the set of all resource codes.
@@ -761,7 +762,7 @@ class BIELHelperResourceJsonLookup:
 
     @icontract.require(lambda self: self.json_data is not None)
     @icontract.ensure(lambda result: result)
-    def lang_codes_names_and_resource_types(self) -> List[model.CodeNameTypeTriplet]:
+    def lang_codes_names_and_resource_types(self) -> list[model.CodeNameTypeTriplet]:
         """
         Convenience method that can be called to get the list
         of all tuples where each tuple consists of language code,
@@ -776,11 +777,11 @@ class BIELHelperResourceJsonLookup:
         [['cuv', 'tn', 'tq', 'tw']]
         """
         self._get_data()
-        lang_codes_names_and_resource_types: List[model.CodeNameTypeTriplet] = []
+        lang_codes_names_and_resource_types: list[model.CodeNameTypeTriplet] = []
         # Using jsonpath in a loop here was prohibitively slow so we
         # use the dictionary in this case.
         for lang in self.json_data:
-            resource_types: List[str] = []
+            resource_types: list[str] = []
             for resource_type_dict in lang["contents"]:
                 try:
                     resource_type = resource_type_dict["code"]
@@ -796,7 +797,7 @@ class BIELHelperResourceJsonLookup:
     @icontract.ensure(lambda result: result)
     def lang_codes_names_resource_types_and_resource_codes(
         self,
-    ) -> List[Tuple[str, str, List[Tuple[str, List[str]]]]]:
+    ) -> list[tuple[str, str, list[tuple[str, list[str]]]]]:
         """
         Convenience method that can be called to get the set
         of all tuples where each tuple consists of language code,
@@ -820,13 +821,13 @@ class BIELHelperResourceJsonLookup:
         [])]]
         """
         self._get_data()
-        lang_codes_names_resource_types_and_resource_codes: List[
-            Tuple[str, str, List[Tuple[str, List[str]]]]
+        lang_codes_names_resource_types_and_resource_codes: list[
+            tuple[str, str, list[tuple[str, list[str]]]]
         ] = []
         # Using jsonpath in a loop here was prohibitively slow so we
         # use the dictionary in this case.
         for lang in self.json_data:
-            resource_types: List[Tuple[str, List[str]]] = []
+            resource_types: list[tuple[str, list[str]]] = []
             for resource_type_dict in lang["contents"]:
                 # breakpoint()
                 # Usage of dpath at this point:
@@ -847,7 +848,7 @@ class BIELHelperResourceJsonLookup:
                 except Exception:
                     resource_type = None
                 resource_codes_list = resource_type_dict["subcontents"]
-                resource_codes: List[str] = []
+                resource_codes: list[str] = []
                 for resource_code_dict in resource_codes_list:
                     resource_code = resource_code_dict["code"]
                     resource_codes.append(resource_code)
@@ -862,7 +863,7 @@ class BIELHelperResourceJsonLookup:
     # API.
     @icontract.require(lambda self: self.json_data is not None)
     @icontract.ensure(lambda result: result)
-    def lang_codes_names_and_contents_codes(self) -> List[Tuple[str, str, str]]:
+    def lang_codes_names_and_contents_codes(self) -> list[tuple[str, str, str]]:
         """
         Convenience test method that can be called to get the set
         of all language code, language name, contents level code as
@@ -907,7 +908,7 @@ class BIELHelperResourceJsonLookup:
         output dumped to json format.
         """
         self._get_data()
-        lang_codes_names_and_contents_codes: List[Tuple[str, str, str]] = []
+        lang_codes_names_and_contents_codes: list[tuple[str, str, str]] = []
         # Using jsonpath in a loop here was prohibitively slow so we
         # use the dictionary in this case.
         for d in self.json_data:

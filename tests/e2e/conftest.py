@@ -2,11 +2,12 @@
 
 import itertools
 import pathlib
+import random
+from typing import Any
+
 import pydantic
 import pytest
-import random
 
-from typing import Any, List, Tuple
 from document.config import settings
 from document.domain import bible_books, model
 from document.utils import file_utils
@@ -128,19 +129,19 @@ def assembly_strategy_kind(request: Any) -> str:
 
 
 @pytest.fixture()
-def english_resource_types() -> List[str]:
+def english_resource_types() -> list[str]:
     """All the English resource types."""
     return ["ulb-wa", "tn-wa", "tq-wa", "tw-wa"]
 
 
 @pytest.fixture()
-def non_english_resource_types() -> List[str]:
+def non_english_resource_types() -> list[str]:
     """All the non-English resource types."""
     return ["ulb", "tn", "tq", "tw"]
 
 
 @pytest.fixture()
-def english_resource_type_combos(english_resource_types: List[str]) -> List[Tuple]:
+def english_resource_type_combos(english_resource_types: list[str]) -> list[tuple]:
     """
     All possible combinations, in the mathematical sense, of
     English resource types. See documentation for
@@ -156,8 +157,8 @@ def english_resource_type_combos(english_resource_types: List[str]) -> List[Tupl
 
 @pytest.fixture()
 def non_english_resource_type_combos(
-    non_english_resource_types: List[str],
-) -> List[Tuple]:
+    non_english_resource_types: list[str],
+) -> list[tuple]:
     """
     All possible combinations, in the mathematical sense, of
     non-English resource types. See documentation for
@@ -173,8 +174,8 @@ def non_english_resource_type_combos(
 
 @pytest.fixture()
 def random_english_resource_type_combo(
-    english_resource_type_combos: List[List[str]],
-) -> List[str]:
+    english_resource_type_combos: list[list[str]],
+) -> list[str]:
     """
     A random choice of one set of all possible English resource type
     combination sets, e.g., ulb-wa, tn-wa, tw-wa; or, ulb-wa, tn-wa,
@@ -185,8 +186,8 @@ def random_english_resource_type_combo(
 
 @pytest.fixture()
 def random_non_english_resource_type_combo(
-    non_english_resource_type_combos: List[List[str]],
-) -> List[str]:
+    non_english_resource_type_combos: list[list[str]],
+) -> list[str]:
     """
     A random choice of one set of all possible non-English resource type
     combination sets, e.g., ulb, tn, tw; or, ulb, tn, tw; or ulb, tn,
@@ -198,9 +199,9 @@ def random_non_english_resource_type_combo(
 @pytest.fixture()
 def english_resource_requests(
     english_lang_code: str,
-    random_english_resource_type_combo: List[str],
+    random_english_resource_type_combo: list[str],
     resource_code: str,
-) -> List[model.ResourceRequest]:
+) -> list[model.ResourceRequest]:
     """
     Build a list of resource request instances for the set of English
     resource types passed in as a parameter and a resource_code. This
@@ -221,9 +222,9 @@ def english_resource_requests(
 @pytest.fixture()
 def random_english_resource_requests(
     english_lang_code: str,
-    random_english_resource_type_combo: List[str],
+    random_english_resource_type_combo: list[str],
     random_resource_code: str,
-) -> List[model.ResourceRequest]:
+) -> list[model.ResourceRequest]:
     """
     Build a list of resource request instances for the set of English
     resource types passed in as a parameter and a randomly chosen
@@ -244,9 +245,9 @@ def random_english_resource_requests(
 @pytest.fixture()
 def random_non_english_resource_requests(
     random_non_english_lang_code: str,
-    random_non_english_resource_type_combo: List[str],
+    random_non_english_resource_type_combo: list[str],
     random_resource_code2: str,
-) -> List[model.ResourceRequest]:
+) -> list[model.ResourceRequest]:
     """
     Build a list of resource request instances for a randomly chosen
     non-English lang_code, the set of non-English resource types
@@ -267,9 +268,9 @@ def random_non_english_resource_requests(
 @pytest.fixture()
 def random_failing_non_english_resource_requests(
     random_failing_non_english_lang_code: str,
-    random_non_english_resource_type_combo: List[str],
+    random_non_english_resource_type_combo: list[str],
     random_resource_code2: str,
-) -> List[model.ResourceRequest]:
+) -> list[model.ResourceRequest]:
     """
     Build a list of resource request instances for a randomly chosen
     non-English lang_code that has ill-formed USFM and thus can fail
@@ -291,9 +292,9 @@ def random_failing_non_english_resource_requests(
 @pytest.fixture()
 def random_non_english_resource_requests2(
     random_non_english_lang_code2: str,
-    random_non_english_resource_type_combo: List[str],
+    random_non_english_resource_type_combo: list[str],
     random_resource_code: str,
-) -> List[model.ResourceRequest]:
+) -> list[model.ResourceRequest]:
     """
     Build a list of resource request instances for a randomly chosen
     non-English lang_code, the set of non-English resource types
@@ -315,7 +316,7 @@ def random_non_english_resource_requests2(
 def english_document_request(
     email_address: pydantic.EmailStr,
     assembly_strategy_kind: model.AssemblyStrategyEnum,
-    english_resource_requests: List[model.ResourceRequest],
+    english_resource_requests: list[model.ResourceRequest],
 ) -> model.DocumentRequest:
     """Build one English language document request."""
     return model.DocumentRequest(
@@ -329,7 +330,7 @@ def english_document_request(
 def random_english_document_request(
     email_address: pydantic.EmailStr,
     assembly_strategy_kind: model.AssemblyStrategyEnum,
-    english_resource_requests: List[model.ResourceRequest],
+    english_resource_requests: list[model.ResourceRequest],
 ) -> model.DocumentRequest:
     """
     Build one randomly chosen English language document request. This
@@ -350,7 +351,7 @@ def random_english_document_request(
 def random_non_english_document_request(
     email_address: pydantic.EmailStr,
     assembly_strategy_kind: model.AssemblyStrategyEnum,
-    random_non_english_resource_requests: List[model.ResourceRequest],
+    random_non_english_resource_requests: list[model.ResourceRequest],
     random_resource_code: str,
 ) -> model.DocumentRequest:
     """
@@ -379,7 +380,7 @@ def random_non_english_document_request(
 def random_failing_non_english_document_request(
     email_address: pydantic.EmailStr,
     assembly_strategy_kind: model.AssemblyStrategyEnum,
-    random_failing_non_english_resource_requests: List[model.ResourceRequest],
+    random_failing_non_english_resource_requests: list[model.ResourceRequest],
     random_resource_code: str,
 ) -> model.DocumentRequest:
     """
@@ -416,8 +417,8 @@ def random_failing_non_english_document_request(
 def random_english_and_non_english_document_request(
     email_address: pydantic.EmailStr,
     assembly_strategy_kind: model.AssemblyStrategyEnum,
-    random_english_resource_requests: List[model.ResourceRequest],
-    random_non_english_resource_requests: List[model.ResourceRequest],
+    random_english_resource_requests: list[model.ResourceRequest],
+    random_non_english_resource_requests: list[model.ResourceRequest],
 ) -> model.DocumentRequest:
     """
     Build one non-English language document request for each
@@ -446,8 +447,8 @@ def random_english_and_non_english_document_request(
 def random_two_non_english_languages_document_request(
     email_address: pydantic.EmailStr,
     assembly_strategy_kind: model.AssemblyStrategyEnum,
-    random_non_english_resource_requests: List[model.ResourceRequest],
-    random_non_english_resource_requests2: List[model.ResourceRequest],
+    random_non_english_resource_requests: list[model.ResourceRequest],
+    random_non_english_resource_requests2: list[model.ResourceRequest],
 ) -> model.DocumentRequest:
     """
     Build one non-English language document request with two

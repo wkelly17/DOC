@@ -12,11 +12,15 @@ import pathlib
 import re
 import subprocess
 from glob import glob
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
 import bs4
 import icontract
 import markdown
+from logdecorator import log_on_end, log_on_start
+from pydantic import AnyUrl
+from usfm_tools.transform import UsfmTransform
+
 from document.config import settings
 from document.domain import bible_books, model, resource_lookup
 from document.markdown_extensions import (
@@ -24,9 +28,6 @@ from document.markdown_extensions import (
     remove_section_preprocessor,
 )
 from document.utils import file_utils, html_parsing_utils, tw_utils, url_utils
-from logdecorator import log_on_end, log_on_start
-from pydantic import AnyUrl
-from usfm_tools.transform import UsfmTransform
 
 logger = settings.get_logger(__name__)
 
@@ -56,7 +57,7 @@ class Resource:
         # The resource requests from the document request. This is
         # not used by Resource instances directly, but is passed
         # to the LinkTransformerExtension.
-        resource_requests: List[model.ResourceRequest],
+        resource_requests: list[model.ResourceRequest],
     ) -> None:
         self._working_dir = working_dir
         self._output_dir = output_dir
@@ -104,9 +105,9 @@ class Resource:
         self._manifest: Manifest
 
         # Content related instance vars
-        self._content_files: List[str] = []
+        self._content_files: list[str] = []
         self._content: str
-        self._verses_html: List[str] = []
+        self._verses_html: list[str] = []
 
         # Link related
         self._resource_data: dict = {}
@@ -192,7 +193,7 @@ class Resource:
         return self._resource_code
 
     @property
-    def verses_html(self) -> List[str]:
+    def verses_html(self) -> list[str]:
         """Provide public interface for other modules."""
         return self._verses_html
 
@@ -213,7 +214,7 @@ class Resource:
         self._resource_url = value
 
     @property
-    def resource_requests(self) -> List[model.ResourceRequest]:
+    def resource_requests(self) -> list[model.ResourceRequest]:
         """Provide public interface for other modules."""
         return self._resource_requests
 
@@ -241,7 +242,7 @@ class USFMResource(Resource):
 
     def __init__(self, *args, **kwargs) -> None:  # type: ignore
         super().__init__(*args, **kwargs)
-        self._chapter_content: Dict[model.ChapterNum, model.USFMChapter] = {}
+        self._chapter_content: dict[model.ChapterNum, model.USFMChapter] = {}
 
     # We may want to not enforce the post-condition that the
     # resource URL be found since we have a requirement that not found
@@ -276,8 +277,8 @@ class USFMResource(Resource):
         """See docstring in superclass."""
         self._manifest = Manifest(self)
 
-        usfm_content_files: List[str] = []
-        txt_content_files: List[str] = []
+        usfm_content_files: list[str] = []
+        txt_content_files: list[str] = []
 
         # We don't need a manifest file to find resource assets
         # on disk. We just use globbing and then filter
@@ -392,7 +393,7 @@ class USFMResource(Resource):
             self._initialize_verses_html()
 
     @property
-    def chapter_content(self) -> Dict[model.ChapterNum, model.USFMChapter]:
+    def chapter_content(self) -> dict[model.ChapterNum, model.USFMChapter]:
         """Provide public interface for other modules."""
         return self._chapter_content
 
@@ -444,7 +445,7 @@ class USFMResource(Resource):
                 for verse in chapter_verse_tags
             ]
             # Dictionary to hold verse number, verse value pairs.
-            chapter_verses: Dict[str, str] = {}
+            chapter_verses: dict[str, str] = {}
             for verse_element in chapter_verse_list:
                 (
                     verse_num,
@@ -464,7 +465,7 @@ class USFMResource(Resource):
         chapter_num: int,
         chapter_content_parser: bs4.BeautifulSoup,
         verse_element: str,
-    ) -> Tuple[model.VerseRef, model.HtmlContent]:
+    ) -> tuple[model.VerseRef, model.HtmlContent]:
         """
         Handle some messy initialization and return the
         chapter_num and verse_content_str.
@@ -576,7 +577,7 @@ class TResource(Resource):
     def _get_markdown_instance(
         self,
         lang_code: str,
-        resource_requests: List[model.ResourceRequest],
+        resource_requests: list[model.ResourceRequest],
         tw_resource_dir: Optional[str] = None,
     ) -> markdown.Markdown:
         """
@@ -587,7 +588,7 @@ class TResource(Resource):
         """
         if not tw_resource_dir:
             tw_resource_dir = tw_utils.get_tw_resource_dir(lang_code)
-        translation_words_dict: Dict[str, str] = tw_utils.translation_words_dict(
+        translation_words_dict: dict[str, str] = tw_utils.translation_words_dict(
             tw_resource_dir
         )
         return markdown.Markdown(
@@ -671,7 +672,7 @@ class TNResource(TResource):
             chapter_dirs = sorted(
                 glob("{}/*{}/*[0-9]*".format(self._resource_dir, self._resource_code))
             )
-        chapter_verses: Dict[int, model.TNChapterPayload] = {}
+        chapter_verses: dict[int, model.TNChapterPayload] = {}
         for chapter_dir in chapter_dirs:
             chapter_num = int(os.path.split(chapter_dir)[-1])
             intro_paths = glob("{}/*intro.md".format(chapter_dir))
@@ -690,7 +691,7 @@ class TNResource(TResource):
             # rather of .md files.
             if not verse_paths:
                 verse_paths = sorted(glob("{}/*[0-9]*.txt".format(chapter_dir)))
-            verses_html: Dict[int, str] = {}
+            verses_html: dict[int, str] = {}
             for filepath in verse_paths:
                 verse_num = int(pathlib.Path(filepath).stem)
                 verse_content = ""
@@ -721,7 +722,7 @@ class TNResource(TResource):
 
     def get_verses_for_chapter(
         self, chapter_num: model.ChapterNum
-    ) -> Optional[Dict[model.VerseRef, model.HtmlContent]]:
+    ) -> Optional[dict[model.VerseRef, model.HtmlContent]]:
         """
         Return the HTML for verses that are in the chapter with
         chapter_num.
@@ -736,12 +737,12 @@ class TNResource(TResource):
         chapter_num: model.ChapterNum,
         verse_num: model.VerseRef,
         verse: model.HtmlContent,
-    ) -> List[model.HtmlContent]:
+    ) -> list[model.HtmlContent]:
         """
         This is a slightly different form of TNResource.get_tn_verse that is used
         when no USFM has been requested.
         """
-        html: List[model.HtmlContent] = []
+        html: list[model.HtmlContent] = []
         html.append(
             model.HtmlContent(
                 settings.TN_RESOURCE_TYPE_NAME_WITH_ID_AND_REF_FMT_STR.format(
@@ -820,7 +821,7 @@ class TQResource(TResource):
             chapter_dirs = sorted(
                 glob("{}/*{}/*[0-9]*".format(self._resource_dir, self._resource_code))
             )
-        chapter_verses: Dict[int, model.TQChapterPayload] = {}
+        chapter_verses: dict[int, model.TQChapterPayload] = {}
         for chapter_dir in chapter_dirs:
             chapter_num = int(os.path.split(chapter_dir)[-1])
             verse_paths = sorted(glob("{}/*[0-9]*.md".format(chapter_dir)))
@@ -830,7 +831,7 @@ class TQResource(TResource):
             # that use the TXT suffix.
             if not verse_paths:
                 verse_paths = sorted(glob("{}/*[0-9]*.txt".format(chapter_dir)))
-            verses_html: Dict[int, str] = {}
+            verses_html: dict[int, str] = {}
             for filepath in verse_paths:
                 verse_num = int(pathlib.Path(filepath).stem)
                 verse_content = file_utils.read_file(filepath)
@@ -849,7 +850,7 @@ class TQResource(TResource):
 
     def get_verses_for_chapter(
         self, chapter_num: model.ChapterNum
-    ) -> Optional[Dict[model.VerseRef, model.HtmlContent]]:
+    ) -> Optional[dict[model.VerseRef, model.HtmlContent]]:
         """Return the HTML for verses in chapter_num."""
         verses_html = None
         if chapter_num in self.book_payload.chapters:
@@ -860,7 +861,7 @@ class TQResource(TResource):
         self,
         chapter_num: model.ChapterNum,
         verse_num: model.VerseRef,
-    ) -> List[model.HtmlContent]:
+    ) -> list[model.HtmlContent]:
         """
         Build and return the content for the translation question for chapter
         chapter_num and verse verse_num.
@@ -872,7 +873,7 @@ class TQResource(TResource):
         if tq_verse is None:
             return [model.HtmlContent("")]
 
-        html: List[model.HtmlContent] = []
+        html: list[model.HtmlContent] = []
         html.append(
             model.HtmlContent(
                 settings.TRANSLATION_QUESTION_FMT_STR.format(chapter_num, verse_num)
@@ -940,7 +941,7 @@ class TWResource(TResource):
         translation_word_filepaths = tw_utils.get_translation_word_filepaths(
             self.resource_dir
         )
-        name_content_pairs: List[model.TWNameContentPair] = []
+        name_content_pairs: list[model.TWNameContentPair] = []
         for translation_word_filepath in translation_word_filepaths:
             translation_word_content = file_utils.read_file(translation_word_filepath)
             # Translation words are bidirectional. By that I mean that when you are
@@ -975,13 +976,13 @@ class TWResource(TResource):
         chapter_num: model.ChapterNum,
         verse_num: model.VerseRef,
         verse: model.HtmlContent,
-    ) -> List[model.HtmlContent]:
+    ) -> list[model.HtmlContent]:
         """
         Add the translation word links section which provides links from words
         used in the current verse to their definition.
         """
-        html: List[model.HtmlContent] = []
-        uses: List[model.TWUse] = []
+        html: list[model.HtmlContent] = []
+        uses: list[model.TWUse] = []
         name_content_pair: model.TWNameContentPair
         for name_content_pair in self._language_payload.name_content_pairs:
             # This checks that the word occurs as an exact sub-string in
@@ -1035,7 +1036,7 @@ class TWResource(TResource):
     def get_translation_words_section(
         self,
         include_uses_section: bool = True,
-    ) -> List[model.HtmlContent]:
+    ) -> list[model.HtmlContent]:
         """
         Build and return the translation words definition section, i.e.,
         the list of all translation words for this language, book
@@ -1043,7 +1044,7 @@ class TWResource(TResource):
         translation word back to the verses which include the translation
         word if include_uses_section is True.
         """
-        html: List[model.HtmlContent] = []
+        html: list[model.HtmlContent] = []
         html.append(
             model.HtmlContent(
                 settings.RESOURCE_TYPE_NAME_FMT_STR.format(self.resource_type_name)
@@ -1091,14 +1092,14 @@ class TWResource(TResource):
             html.append(name_content_pair.content)
         return html
 
-    def _get_uses_section(self, uses: List[model.TWUse]) -> model.HtmlContent:
+    def _get_uses_section(self, uses: list[model.TWUse]) -> model.HtmlContent:
         """
         Construct and return the 'Uses:' section which comes at the end of
         a translation word definition and wherein each item points to
         verses (as targeted by lang_code, book_id, chapter_num, and
         verse_num) wherein the word occurs.
         """
-        html: List[model.HtmlContent] = []
+        html: list[model.HtmlContent] = []
         html.append(settings.TRANSLATION_WORD_VERSE_SECTION_HEADER_STR)
         html.append(settings.UNORDERED_LIST_BEGIN_STR)
         for use in uses:
@@ -1217,13 +1218,13 @@ class TAResource(TResource):
             chapter_dirs = sorted(
                 glob("{}/*{}/*[0-9]*".format(self._resource_dir, self._resource_code))
             )
-        chapter_verses: Dict[int, model.TAChapterPayload] = {}
+        chapter_verses: dict[int, model.TAChapterPayload] = {}
         for chapter_dir in chapter_dirs:
             chapter_num = int(os.path.split(chapter_dir)[-1])
             # FIXME For some languages, TQ assets are stored in .txt files
             # rather of .md files. Handle this.
             verse_paths = sorted(glob("{}/*[0-9]*.md".format(chapter_dir)))
-            verses_html: Dict[int, str] = {}
+            verses_html: dict[int, str] = {}
             for filepath in verse_paths:
                 verse_num = int(pathlib.Path(filepath).stem)
                 verse_content = file_utils.read_file(filepath)
@@ -1242,7 +1243,7 @@ class TAResource(TResource):
 
     def get_verses_for_chapter(
         self, chapter_num: model.ChapterNum
-    ) -> Optional[Dict[model.VerseRef, model.HtmlContent]]:
+    ) -> Optional[dict[model.VerseRef, model.HtmlContent]]:
         """Return the HTML for verses in chapter_num."""
         verses_html = None
         if chapter_num in self.book_payload.chapters:
@@ -1263,7 +1264,7 @@ def resource_factory(
     working_dir: str,
     output_dir: str,
     resource_request: model.ResourceRequest,
-    resource_requests: List[model.ResourceRequest],
+    resource_requests: list[model.ResourceRequest],
 ) -> Resource:
     """
     Factory method to create the appropriate Resource subclass for
@@ -1452,7 +1453,7 @@ class Manifest:
 
     def __init__(self, resource: Resource) -> None:
         self._resource = resource
-        self._manifest_content: Dict
+        self._manifest_content: dict
         # self._manifest_file_path: Optional[pathlib.PurePath] = None
         self._manifest_file_path: Optional[str] = None
         self._version: Optional[str] = None
@@ -1507,7 +1508,7 @@ class Manifest:
         return manifest
 
     @icontract.require(lambda self: self._manifest_content)
-    def _get_manifest_version_and_issued(self) -> Tuple[str, str]:
+    def _get_manifest_version_and_issued(self) -> tuple[str, str]:
         """Return the manifest's version and issued values."""
         version = ""
         issued = ""
@@ -1569,12 +1570,12 @@ class Manifest:
         lambda self: self._manifest_content and "projects" in self._manifest_content
     )
     @icontract.ensure(lambda result: result)
-    def _get_book_projects_from_yaml(self) -> List[Dict[Any, Any]]:
+    def _get_book_projects_from_yaml(self) -> list[dict[Any, Any]]:
         """
         Return the sorted list of projects that are found in the
         manifest file for the resource.
         """
-        projects: List[Dict[Any, Any]] = []
+        projects: list[dict[Any, Any]] = []
         # if (
         #     self._manifest_content and "projects" in self._manifest_content
         # ):
@@ -1596,12 +1597,12 @@ class Manifest:
         and "finished_chunks" in self._manifest_content
     )
     @icontract.ensure(lambda result: result)
-    def _get_book_projects_from_json(self) -> List:
+    def _get_book_projects_from_json(self) -> list:
         """
         Return the sorted list of projects that are found in the
         manifest file for the resource.
         """
-        projects: List[Dict[Any, Any]] = []
+        projects: list[dict[Any, Any]] = []
         for project in self._manifest_content["finished_chunks"]:
             # TODO In resource_lookup, self._resource_code is used
             # determine jsonpath for lookup. Some resources don't

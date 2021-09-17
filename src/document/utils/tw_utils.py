@@ -3,12 +3,12 @@ Useful functions that are not class or instance specific for TW
 resources that we use in multiple places.
 """
 
-import icontract
 import os
 import pathlib
-
 from glob import glob
-from typing import Dict, List, Optional
+from typing import Optional
+
+import icontract
 
 from document.config import settings
 from document.domain import model
@@ -20,7 +20,7 @@ TW = "tw"
 
 @icontract.require(lambda resource_dir: resource_dir)
 @icontract.ensure(lambda result: result)
-def get_translation_word_filepaths(resource_dir: str) -> List[str]:
+def get_translation_word_filepaths(resource_dir: str) -> list[str]:
     """
     Get the file paths to the translation word files for the
     TWResource instance.
@@ -91,13 +91,13 @@ def get_tw_resource_dir(lang_code: str) -> Optional[str]:
 # therefore we can't require tw_resource_dir as a precondition.
 # @icontract.require(lambda tw_resource_dir: tw_resource_dir)
 # @icontract.ensure(lambda result: result)
-def translation_words_dict(tw_resource_dir: Optional[str]) -> Dict[str, str]:
+def translation_words_dict(tw_resource_dir: Optional[str]) -> dict[str, str]:
     """
     Given the path to the TW resource asset files, return a dictionary
     of translation word to translation word filepath mappings,
     otherwise return an empty dictionary.
     """
-    translation_words_dict: Dict[str, str] = {}
+    translation_words_dict: dict[str, str] = {}
     if tw_resource_dir is not None:
         translation_word_filepaths = get_translation_word_filepaths(tw_resource_dir)
         translation_words_dict = {

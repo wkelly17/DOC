@@ -2,48 +2,36 @@
 Entrypoint for backend. Here incoming document requests are processed
 and eventually a final document produced.
 """
-
-
-#  Copyright (c) 2017 unfoldingWord
-#  http://creativecommons.org/licenses/MIT/
-#  See LICENSE file for details.
-#
-#  Contributors:
-#  Richard Mahn <richard_mahn@wycliffeassociates.org>
-
-
 import base64
 import datetime
-
-import icontract
 import logging  # For logdecorator
 import os
-import pdfkit
 import smtplib
 import subprocess
-
+from collections.abc import Callable
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from logdecorator import log_on_start, log_on_end
-from typing import Callable, Dict, List, Optional, Union
+from typing import Optional, Union
 
+import icontract
+import pdfkit
+from logdecorator import log_on_end, log_on_start
+from usfm_tools.support import exceptions
 
 from document.config import settings
 from document.domain import assembly_strategies, bible_books, model
 from document.domain.resource import (
-    resource_factory,
     Resource,
-    USFMResource,
-    TNResource,
-    TWResource,
-    TQResource,
     TAResource,
+    TNResource,
+    TQResource,
+    TWResource,
+    USFMResource,
+    resource_factory,
 )
 from document.utils import file_utils
-
-from usfm_tools.support import exceptions
 
 logger = settings.get_logger(__name__)
 
@@ -103,11 +91,11 @@ class DocumentGenerator:
         ]
         self.assembly_sub_strategy_for_book_then_lang: Callable[
             [
-                List[USFMResource],
-                List[TNResource],
-                List[TQResource],
-                List[TWResource],
-                List[TAResource],
+                list[USFMResource],
+                list[TNResource],
+                list[TQResource],
+                list[TWResource],
+                list[TAResource],
                 model.AssemblySubstrategyEnum,
             ],
             model.HtmlContent,
@@ -119,9 +107,9 @@ class DocumentGenerator:
         self._content = ""
         # Store resource requests that were requested, but do not
         # exist.
-        self._unfound_resources: List[Resource] = []
-        self._found_resources: List[Resource] = []
-        self._unloaded_resources: List[Resource] = []
+        self._unfound_resources: list[Resource] = []
+        self._found_resources: list[Resource] = []
+        self._unloaded_resources: list[Resource] = []
 
         # Uniquely identifies a document request. A resource request
         # is identified by lang_code, resource_type, and
@@ -135,7 +123,7 @@ class DocumentGenerator:
         self._document_request_key = self._initialize_document_request_key(
             document_request
         )
-        self._resources: List[Resource] = self._initialize_resources(document_request)
+        self._resources: list[Resource] = self._initialize_resources(document_request)
 
         self._output_filename = os.path.join(
             self._output_dir, "{}.pdf".format(self._document_request_key)
@@ -346,7 +334,7 @@ class DocumentGenerator:
         )
         with open(settings.LOGO_IMAGE_PATH, "rb") as fin:
             base64_encoded_logo_image = base64.b64encode(fin.read())
-            images: Dict[str, Union[str, bytes]] = {
+            images: dict[str, Union[str, bytes]] = {
                 "logo": base64_encoded_logo_image,
             }
         # Use Jinja2 to instantiate the cover page.
@@ -388,7 +376,7 @@ class DocumentGenerator:
         return self._document_request_key
 
     @property
-    def found_resources(self) -> List[Resource]:
+    def found_resources(self) -> list[Resource]:
         """Provide public access method for other modules."""
         return self._found_resources
 
@@ -449,13 +437,13 @@ class DocumentGenerator:
 
     def _initialize_resources(
         self, document_request: model.DocumentRequest
-    ) -> List[Resource]:
+    ) -> list[Resource]:
         """
         Given a DocumentRequest, return a list of Resource
         instances, one for each ResourceRequest in the
         DocumentRequest.
         """
-        resources: List[Resource] = []
+        resources: list[Resource] = []
         for resource_request in document_request.resource_requests:
             resources.append(
                 resource_factory(
