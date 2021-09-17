@@ -9,10 +9,8 @@ import icontract
 import jinja2
 import yaml
 from pydantic import AnyHttpUrl, BaseModel, BaseSettings, EmailStr, HttpUrl, validator
-from typeguard.importhook import install_import_hook
 
-with install_import_hook("document.domain"):
-    from document.domain import model
+from document.domain import model
 
 
 class Settings(BaseSettings):
@@ -133,7 +131,6 @@ class Settings(BaseSettings):
         """
         # Lazy import to avoid circular import.
         from document.domain.resource import (
-            # Resource,
             TAResource,
             TNResource,
             TQResource,
