@@ -344,24 +344,6 @@ class DocumentGenerator:
         output_pdf_file_path = "{}.pdf".format(
             os.path.join(self._output_dir, self._document_request_key)
         )
-        # For options see https://wkhtmltopdf.org/usage/wkhtmltopdf.txt
-        options = {
-            "page-size": "Letter",
-            # 'margin-top': '0.75in',
-            # 'margin-right': '0.75in',
-            # 'margin-bottom': '0.75in',
-            # 'margin-left': '0.75in',
-            "encoding": "UTF-8",
-            "load-error-handling": "ignore",
-            "outline": None,  # Produce an outline
-            "outline-depth": "3",  # Only go depth of 3 on the outline
-            "enable-internal-links": None,  # enable internal links
-            "header-left": "[section]",
-            "header-right": "[subsection]",
-            "header-line": None,  # Produce a line under the header
-            "footer-center": "[page]",
-            "footer-line": None,  # Produce a line above the footer
-        }
         with open(settings.LOGO_IMAGE_PATH, "rb") as fin:
             base64_encoded_logo_image = base64.b64encode(fin.read())
             images: Dict[str, Union[str, bytes]] = {
@@ -383,14 +365,19 @@ class DocumentGenerator:
         with open(cover_filepath, "w") as fout:
             fout.write(cover)
         pdfkit.from_file(
-            html_file_path, output_pdf_file_path, options=options, cover=cover_filepath
+            html_file_path,
+            output_pdf_file_path,
+            options=settings.WKHTMLTOPDF_OPTIONS,
+            cover=cover_filepath,
         )
         assert os.path.exists(output_pdf_file_path)
         copy_command = "cp {}/{}.pdf {}".format(
-            self._output_dir, self._document_request_key, "/output"
+            self._output_dir,
+            self._document_request_key,
+            settings.DOCKER_CONTAINER_PDF_OUTPUT_DIR,
         )
-        logger.debug("IN_CONTAINER: {}".format(os.environ.get("IN_CONTAINER")))
-        if os.environ.get("IN_CONTAINER"):
+        logger.debug("IN_CONTAINER: {}".format(settings.IN_CONTAINER))
+        if settings.IN_CONTAINER:
             logger.info("About to cp PDF to Docker bind mount on host")
             logger.debug("Copy PDF command: %s", copy_command)
             subprocess.call(copy_command, shell=True)

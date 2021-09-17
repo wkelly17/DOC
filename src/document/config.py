@@ -4,7 +4,7 @@
 import logging
 import os
 from logging import config as lc
-from typing import Any, Dict, List, Union
+from typing import Any, List, Mapping, Optional, Union
 
 import icontract
 import jinja2
@@ -43,12 +43,7 @@ class Settings(BaseSettings):
     BOOK_AS_GROUPER_FMT_STR: str = "<h1>Book: {}</h1>"
     VERSE_FMT_STR: str = "<h3>Verse {}:{}</h3>"
     TRANSLATION_NOTE_FMT_STR: str = "<h3>Translation note {}:{}</h3>"
-    # Example: <h2 class="c-num" id="en-042-ch-001">Chapter 1</h2>
-    # FIXME Should rename since it is used in more cases than
-    # just TN
-    TN_ONLY_CHAPTER_HEADER_FMT_STR: str = (
-        '<h2 class="c-num" id="{}-{}-ch-{}">Chapter {}</h2>'
-    )
+    CHAPTER_HEADER_FMT_STR: str = '<h2 class="c-num" id="{}-{}-ch-{}">Chapter {}</h2>'
     TRANSLATION_QUESTION_FMT_STR: str = "<h3>Translation question {}:{}</h3>"
     TRANSLATION_ACADEMY_FMT_STR: str = "<h3>Translation academy {}:{}</h3>"
     UNORDERED_LIST_BEGIN_STR: model.HtmlContent = model.HtmlContent("<ul>")
@@ -75,6 +70,7 @@ class Settings(BaseSettings):
     VERSE_ANCHOR_ID_SUBSTITUTION_FMT_STR: str = r"id='{}-\1-ch-\2-v-\3'"
 
     LOGGING_CONFIG_FILE_PATH: str = "src/document/logging_config.yaml"
+    DOCKER_CONTAINER_PDF_OUTPUT_DIR = "/output"
 
     @icontract.require(lambda name: name)
     def get_logger(self, name: str) -> logging.Logger:
@@ -138,7 +134,7 @@ class Settings(BaseSettings):
             dirname = "working/output"
         return dirname
 
-    def resource_type_lookup_map(self) -> Dict[str, Any]:
+    def resource_type_lookup_map(self) -> Mapping[str, Any]:
         """
         Return an immutable dictionary, MappingProxyType, of mappings
         between resource_type and Resource subclass instance.
@@ -173,6 +169,25 @@ class Settings(BaseSettings):
             "ta": TAResource,
             "ta-wa": TAResource,
         }
+
+    # For options see https://wkhtmltopdf.org/usage/wkhtmltopdf.txt
+    WKHTMLTOPDF_OPTIONS: Mapping[str, Optional[str]] = {
+        "page-size": "Letter",
+        # 'margin-top': '0.75in',
+        # 'margin-right': '0.75in',
+        # 'margin-bottom': '0.75in',
+        # 'margin-left': '0.75in',
+        "encoding": "UTF-8",
+        "load-error-handling": "ignore",
+        "outline": None,  # Produce an outline
+        "outline-depth": "3",  # Only go depth of 3 on the outline
+        "enable-internal-links": None,  # enable internal links
+        "header-left": "[section]",
+        "header-right": "[subsection]",
+        "header-line": None,  # Produce a line under the header
+        "footer-center": "[page]",
+        "footer-line": None,  # Produce a line above the footer
+    }
 
     # Return the message to show to user on successful generation of
     # PDF.
@@ -247,7 +262,7 @@ class Settings(BaseSettings):
         """
         return self.template("footer_enclosing")
 
-    ENGLISH_GIT_REPO_MAP: Dict[str, str] = {
+    ENGLISH_GIT_REPO_MAP: Mapping[str, str] = {
         "ulb-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_ulb",
         "udb-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_udb",
         "tn-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_tn",
@@ -262,7 +277,7 @@ class Settings(BaseSettings):
         """
         return self.ENGLISH_GIT_REPO_MAP[resource_type]
 
-    ENGLISH_RESOURCE_TYPE_MAP: Dict[str, str] = {
+    ENGLISH_RESOURCE_TYPE_MAP: Mapping[str, str] = {
         "ulb-wa": "Unlocked Literal Bible (ULB)",
         "udb-wa": "Unlocked Dynamic Bible (UDB)",
         "tn-wa": "ULB Translation Helps",
@@ -277,7 +292,7 @@ class Settings(BaseSettings):
         """
         return self.ENGLISH_RESOURCE_TYPE_MAP[resource_type]
 
-    TEMPLATE_PATHS_MAP: Dict[str, str] = {
+    TEMPLATE_PATHS_MAP: Mapping[str, str] = {
         "book_intro": "src/templates/tn/book_intro_template.md",
         "header_enclosing": "src/templates/html/header_enclosing.html",
         "footer_enclosing": "src/templates/html/footer_enclosing.html",

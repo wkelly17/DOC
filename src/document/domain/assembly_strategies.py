@@ -1169,7 +1169,7 @@ def _assemble_tn_as_iterator_content_by_verse(
             # requested? For now we'll use non-localized chapter heading. Add in the
             # USFM chapter heading.
             chapter_heading = model.HtmlContent(
-                settings.TN_ONLY_CHAPTER_HEADER_FMT_STR.format(
+                settings.CHAPTER_HEADER_FMT_STR.format(
                     tn_resource.lang_code,
                     bible_books.BOOK_NUMBERS[tn_resource.resource_code].zfill(3),
                     str(chapter_num).zfill(3),
@@ -1274,7 +1274,7 @@ def _assemble_tq_content_by_verse(
         # not USFM requested? For now we'll use non-localized chapter heading.
         # Add in the USFM chapter heading.
         chapter_heading = model.HtmlContent(
-            settings.TN_ONLY_CHAPTER_HEADER_FMT_STR.format(
+            settings.CHAPTER_HEADER_FMT_STR.format(
                 tq_resource.lang_code,
                 bible_books.BOOK_NUMBERS[tq_resource.resource_code].zfill(3),
                 str(chapter_num).zfill(3),
@@ -1328,7 +1328,7 @@ def _assemble_tq_tw_content_by_verse(
         # not USFM requested? For now we'll use non-localized chapter heading.
         # Add in the USFM chapter heading.
         chapter_heading = model.HtmlContent(
-            settings.TN_ONLY_CHAPTER_HEADER_FMT_STR.format(
+            settings.CHAPTER_HEADER_FMT_STR.format(
                 tq_resource.lang_code,
                 bible_books.BOOK_NUMBERS[tq_resource.resource_code].zfill(3),
                 str(chapter_num).zfill(3),
