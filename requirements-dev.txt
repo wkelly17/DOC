@@ -22,10 +22,14 @@ attrs==21.2.0
     #   hypothesis
     #   pytest
     #   wemake-python-styleguide
+backports.entry-points-selectable==1.1.0
+    # via virtualenv
 bandit==1.7.0
     # via flake8-bandit
 black==21.8b0
     # via -r requirements-dev.in
+cfgv==3.3.1
+    # via pre-commit
 click==8.0.1
     # via
     #   -c requirements.txt
@@ -36,12 +40,16 @@ colorama==0.4.4
     # via radon
 darglint==1.8.0
     # via wemake-python-styleguide
+distlib==0.3.2
+    # via virtualenv
 dlint==0.11.0
     # via -r requirements-dev.in
 docutils==0.17.1
     # via restructuredtext-lint
 eradicate==2.0.0
     # via flake8-eradicate
+filelock==3.0.12
+    # via virtualenv
 flake8==3.9.2
     # via
     #   -r requirements-dev.in
@@ -118,6 +126,8 @@ icontract==2.5.4
     #   pyicontract-lint
 icontract-hypothesis==1.1.7
     # via -r requirements-dev.in
+identify==2.2.14
+    # via pre-commit
 iniconfig==1.1.1
     # via pytest
 isort==5.9.3
@@ -144,6 +154,8 @@ mypy-extensions==0.4.3
     # via
     #   black
     #   mypy
+nodeenv==1.6.0
+    # via pre-commit
 packaging==21.0
     # via pytest
 parso==0.7.1
@@ -160,12 +172,15 @@ platformdirs==2.3.0
     # via
     #   black
     #   pylint
+    #   virtualenv
 pluggy==1.0.0
     # via
     #   pytest
     #   python-language-server
 pprintpp==0.4.0
     # via pytest-icdiff
+pre-commit==2.15.0
+    # via -r requirements-dev.in
 py==1.10.0
     # via
     #   pytest
@@ -211,6 +226,7 @@ pyyaml==5.4.1
     # via
     #   -c requirements.txt
     #   bandit
+    #   pre-commit
 radon==5.1.0
     # via -r requirements-dev.in
 regex==2021.8.28
@@ -224,6 +240,7 @@ six==1.16.0
     #   bandit
     #   flake8-debugger
     #   mando
+    #   virtualenv
 smmap==4.0.0
     # via gitdb
 snowballstemmer==2.1.0
@@ -237,6 +254,7 @@ testfixtures==6.18.1
 toml==0.10.2
     # via
     #   mypy
+    #   pre-commit
     #   pylint
     #   pytest
     #   vulture
@@ -255,6 +273,8 @@ ujson==4.1.0
     # via
     #   python-jsonrpc-server
     #   python-language-server
+virtualenv==20.8.0
+    # via pre-commit
 vulture==2.3
     # via -r requirements-dev.in
 wemake-python-styleguide==0.15.3
