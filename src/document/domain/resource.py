@@ -1306,7 +1306,6 @@ class ResourceProvisioner:
         If it doesn't exist yet, create the directory for the
         resource where it will be downloaded to.
         """
-        logger.debug("os.getcwd(): %s", os.getcwd())
         if not os.path.exists(self._resource.resource_dir):
             logger.debug("About to create directory %s", self._resource.resource_dir)
             try:
