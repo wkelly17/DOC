@@ -1361,7 +1361,23 @@ class ResourceProvisioner:
                 self._unzip_asset(resource_filepath)
 
     def _clone_git_repo(self, resource_filepath: str) -> None:
-        """Clone the git reop."""
+        """
+        Clone the git repo. If the repo was previously cloned but
+        the ASSET_CACHING_PERIOD has expired then delete the repo and
+        clone it again to get updates.
+        """
+        if file_utils.asset_file_needs_update(resource_filepath):
+            logger.debug(
+                "About to delete pre-existing git repo %s in order to recreate it.",
+                resource_filepath,
+            )
+            try:
+                os.rmdir(resource_filepath)
+            except OSError:
+                logger.debug(
+                    "Directory %s was not removed due to an error.", resource_filepath
+                )
+                logger.exception("Caught exception: ")
         command = "git clone --depth=1 '{}' '{}'".format(
             self._resource.resource_url, resource_filepath
         )
