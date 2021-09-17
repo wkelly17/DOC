@@ -124,10 +124,18 @@ class Resource:
         )
 
     @abc.abstractmethod
-    def find_location(self) -> None:
+    def find_location(self) -> bool:
         """
-        Find the remote location where a the resource's file assets
-        may be found.
+        Initialize:
+
+        self._lang_name
+        self._resource_type_name
+        self._resource_url
+        self._resource_source
+        self._resource_jsonpath
+
+        Return True if resource URL was found and initialized, False
+        otherwise.
 
         Subclasses override this method.
         """
@@ -157,10 +165,6 @@ class Resource:
         Subclasses override.
         """
         raise NotImplementedError
-
-    def is_found(self) -> bool:
-        """Return true if resource's URL location was found."""
-        return self._resource_url is not None
 
     @property
     def lang_code(self) -> str:
@@ -252,7 +256,7 @@ class USFMResource(Resource):
         "self._resource_url = {self._resource_url} for {self}",
         logger=logger,
     )
-    def find_location(self) -> None:
+    def find_location(self) -> bool:
         """See docstring in superclass."""
         lookup_svc = resource_lookup.USFMResourceJsonLookup()
         resource_lookup_dto: model.ResourceLookupDto = lookup_svc.lookup(self)
@@ -261,6 +265,7 @@ class USFMResource(Resource):
         self._resource_url = resource_lookup_dto.url
         self._resource_source = resource_lookup_dto.source
         self._resource_jsonpath = resource_lookup_dto.jsonpath
+        return self._resource_url is not None
 
     @log_on_end(
         logging.DEBUG,
@@ -553,8 +558,8 @@ class TResource(Resource):
         "self._resource_url: {self._resource_url} for {self}",
         logger=logger,
     )
-    def find_location(self) -> None:
-        """Find the URL where the resource's assets are located."""
+    def find_location(self) -> bool:
+        """See docstring in superclass."""
         lookup_svc = resource_lookup.TResourceJsonLookup()
         resource_lookup_dto: model.ResourceLookupDto = lookup_svc.lookup(self)
         self._lang_name = resource_lookup_dto.lang_name
@@ -562,6 +567,7 @@ class TResource(Resource):
         self._resource_url = resource_lookup_dto.url
         self._resource_source = resource_lookup_dto.source
         self._resource_jsonpath = resource_lookup_dto.jsonpath
+        return self._resource_url is not None
 
     @icontract.require(
         lambda lang_code, resource_requests: lang_code and resource_requests

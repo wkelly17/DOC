@@ -410,8 +410,7 @@ class DocumentGenerator:
         not found add to self.unfound_resources.
         """
         for resource in self._resources:
-            resource.find_location()
-            if resource.is_found():
+            if resource.find_location():
                 # Keep a list of resources that were found, we'll use
                 # it soon.
                 self._found_resources.append(resource)
