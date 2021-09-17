@@ -12,7 +12,7 @@ import pathlib
 import re
 import subprocess
 from glob import glob
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, Dict, List, Optional, Tuple
 
 import bs4
 import icontract
@@ -1334,31 +1334,31 @@ class ResourceProvisioner:
         is a zip file.
         """
 
-        self._resource.resource_url = cast(
-            AnyUrl, self._resource.resource_url
-        )  # We know, due to how we got here, that
-        # self._resource.resource_url attribute is not None. mypy
-        # isn't convinced otherwise without the cast.
+        if (
+            self._resource.resource_url
+        ):  # We know that resource_url is not None because of how we got here, but mypy isn't convinced. Let's convince mypy.
 
-        # FIXME We'll have to see if this is the best approach for consistency
-        # across different resources' assets in different languages. So far it
-        # adheres to the most consistent pattern I've seen in translations.json,
-        # but my analysis of translations.json has not been exhaustive. That
-        # being said, it has worked fine for several languages and
-        # books so far.
-        resource_filepath = os.path.join(
-            self._resource.resource_dir,
-            self._resource.resource_url.rpartition(os.path.sep)[2],
-        )
-        logger.debug("Using file location, resource_filepath: %s", resource_filepath)
+            # FIXME We'll have to see if this is the best approach for consistency
+            # across different resources' assets in different languages. So far it
+            # adheres to the most consistent pattern I've seen in translations.json,
+            # but my analysis of translations.json has not been exhaustive. That
+            # being said, it has worked fine for several languages and
+            # books so far.
+            resource_filepath = os.path.join(
+                self._resource.resource_dir,
+                self._resource.resource_url.rpartition(os.path.sep)[2],
+            )
+            logger.debug(
+                "Using file location, resource_filepath: %s", resource_filepath
+            )
 
-        if self._is_git():
-            self._clone_git_repo(resource_filepath)
-        else:
-            self._download_asset(resource_filepath)
+            if self._is_git():
+                self._clone_git_repo(resource_filepath)
+            else:
+                self._download_asset(resource_filepath)
 
-        if self._is_zip():
-            self._unzip_asset(resource_filepath)
+            if self._is_zip():
+                self._unzip_asset(resource_filepath)
 
     def _clone_git_repo(self, resource_filepath: str) -> None:
         """Clone the git reop."""
