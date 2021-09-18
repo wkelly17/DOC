@@ -13,7 +13,7 @@ from document.domain.document_generator import DocumentGenerator
 
 app = FastAPI()
 
-logger = settings.get_logger(__name__)
+logger = settings.logger(__name__)
 
 # CORS configuration to allow frontend to talk to backend
 origins = settings.BACKEND_CORS_ORIGINS

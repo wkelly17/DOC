@@ -15,7 +15,7 @@ from logdecorator import log_on_end
 
 from document.config import settings
 
-logger = settings.get_logger(__name__)
+logger = settings.logger(__name__)
 
 
 @icontract.require(lambda source_file, destination_dir: source_file and destination_dir)

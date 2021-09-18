@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 from document.config import settings
 from document.entrypoints.app import app
 
-logger = settings.get_logger(__name__)
+logger = settings.logger(__name__)
 
 
 def test_send_email_with_ar_nav_jud_pdf() -> None:

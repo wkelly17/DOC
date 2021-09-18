@@ -63,7 +63,7 @@ class Settings(BaseSettings):
     DOCKER_CONTAINER_PDF_OUTPUT_DIR = "/output"
 
     @icontract.require(lambda name: name)
-    def get_logger(self, name: str) -> logging.Logger:
+    def logger(self, name: str) -> logging.Logger:
         """
         Return a Logger for scope named by name, e.g., module, that can be
         used for logging.
@@ -366,7 +366,7 @@ class Settings(BaseSettings):
     SEND_EMAIL: bool
 
     @validator("SEND_EMAIL")
-    def get_send_email(cls, v: bool) -> bool:
+    def send_email(cls, v: bool) -> bool:
         return bool(v)
 
     SMTP_PASSWORD: str

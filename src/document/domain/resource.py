@@ -29,7 +29,7 @@ from document.markdown_extensions import (
 )
 from document.utils import file_utils, html_parsing_utils, tw_utils, url_utils
 
-logger = settings.get_logger(__name__)
+logger = settings.logger(__name__)
 
 H1, H2, H3, H4 = "h1", "h2", "h3", "h4"
 
@@ -390,165 +390,12 @@ class USFMResource(Resource):
             assert os.path.exists(html_file)
             self._content = file_utils.read_file(html_file)
 
-            self._initialize_verses_html()
+            USFMHtmlInitializer(self)()
 
     @property
     def chapter_content(self) -> dict[model.ChapterNum, model.USFMChapter]:
         """Provide public interface for other modules."""
         return self._chapter_content
-
-    @icontract.require(lambda self: self._content)
-    @icontract.ensure(lambda self: self._chapter_content)
-    def _initialize_verses_html(self) -> None:
-        """
-        Break apart the USFM HTML content into HTML chapter and verse
-        chunks, augment HTML output with additional HTML elements and
-        store in an instance variable.
-        """
-        parser = bs4.BeautifulSoup(self._content, "html.parser")
-
-        chapter_breaks = parser.find_all(H2, attrs={"class": "c-num"})
-        localized_chapter_heading = chapter_breaks[0].get_text().split()[0]
-        for chapter_break in chapter_breaks:
-            chapter_num = model.ChapterNum(int(chapter_break.get_text().split()[1]))
-            chapter_content = html_parsing_utils.tag_elements_between(
-                parser.find(
-                    H2,
-                    text="{} {}".format(localized_chapter_heading, chapter_num),
-                ),
-                # ).next_sibling,
-                parser.find(
-                    H2,
-                    text="{} {}".format(localized_chapter_heading, chapter_num + 1),
-                ),
-            )
-            chapter_content = [str(tag) for tag in list(chapter_content)]
-            chapter_content_parser = bs4.BeautifulSoup(
-                "".join(chapter_content),
-                "html.parser",
-            )
-            chapter_verse_tags: bs4.elements.ResultSet = (
-                chapter_content_parser.find_all("span", attrs={"class": "v-num"})
-            )
-            chapter_footnote_tag: bs4.elements.ResultSet = chapter_content_parser.find(
-                "div", attrs={"class": "footnotes"}
-            )
-            chapter_footnotes = (
-                model.HtmlContent(str(chapter_footnote_tag))
-                if chapter_footnote_tag
-                else model.HtmlContent("")
-            )
-            # Get each verse opening span tag and then the actual verse text for
-            # this chapter and enclose them each in a p element.
-            chapter_verse_list = [
-                "<p>{} {}</p>".format(verse, verse.next_sibling)
-                for verse in chapter_verse_tags
-            ]
-            # Dictionary to hold verse number, verse value pairs.
-            chapter_verses: dict[str, str] = {}
-            for verse_element in chapter_verse_list:
-                (
-                    verse_num,
-                    verse_content_str,
-                ) = self._get_verse_num_and_verse_content_str(
-                    chapter_num, chapter_content_parser, verse_element
-                )
-                chapter_verses[verse_num] = verse_content_str
-            self._chapter_content[chapter_num] = model.USFMChapter(
-                chapter_content=chapter_content,
-                chapter_verses=chapter_verses,
-                chapter_footnotes=chapter_footnotes,
-            )
-
-    def _get_verse_num_and_verse_content_str(
-        self,
-        chapter_num: int,
-        chapter_content_parser: bs4.BeautifulSoup,
-        verse_element: str,
-    ) -> tuple[model.VerseRef, model.HtmlContent]:
-        """
-        Handle some messy initialization and return the
-        chapter_num and verse_content_str.
-        """
-        # Rather than a single verse num, the item in
-        # verse_num may be a verse range, e.g., 1-2.
-        # See test_mr_ulb_mrk_mr_tn_mrk_mr_tq_mrk_mr_tw_mrk_mr_udb_mrk_language_book_order
-        # for test that triggers this situation.
-        # Get the verse num from the verse HTML tag's id value.
-        # split is more performant than re.
-        # See https://stackoverflow.com/questions/7501609/python-re-split-vs-split
-        verse_num = str(verse_element).split("-v-")[1].split('"')[0]
-        # Check for hyphen in the range
-        verse_num_components = verse_num.split("-")
-        if len(verse_num_components) > 1:
-            upper_bound_value = int(verse_num_components[1]) + 1
-            # Get rid of leading zeroes on first verse number
-            # in range.
-            verse_num_int = int(verse_num_components[0])
-            # Get rid of leading zeroes on second verse number
-            # in range.
-            verse_num2_int = int(verse_num_components[1])
-            # Recreate the verse range, now without leading
-            # zeroes.
-            verse_num = "{}-{}".format(str(verse_num_int), str(verse_num2_int))
-            logger.debug(
-                "chapter_num: %s, verse_num is a verse range: %s",
-                chapter_num,
-                verse_num,
-            )
-        else:
-            upper_bound_value = int(verse_num) + 1
-            # Get rid of leading zeroes.
-            verse_num = str(int(verse_num))
-
-        # Create the lower and upper search bounds for the
-        # BeautifulSoup HTML parser.
-        lower_id = "{}-ch-{}-v-{}".format(
-            str(self._book_number).zfill(3),
-            str(chapter_num).zfill(3),
-            verse_num.zfill(3),
-        )
-        upper_id = "{}-ch-{}-v-{}".format(
-            str(self._book_number).zfill(3),
-            str(chapter_num).zfill(3),
-            str(upper_bound_value).zfill(3),
-        )
-        # Using the upper and lower parse a verse worth of HTML
-        # content.
-        verse_content_tags = html_parsing_utils.tag_elements_between(
-            chapter_content_parser.find(
-                "span",
-                attrs={"class": "v-num", "id": lower_id},
-            ),
-            # ).next_sibling,
-            chapter_content_parser.find(
-                "span",
-                attrs={"class": "v-num", "id": upper_id},
-            ),
-        )
-        verse_content = [str(tag) for tag in list(verse_content_tags)]
-        # Hacky way to remove some redundant parsing results due to recursion in
-        # BeautifulSoup. Perhaps there is bs4 mway to avoid this. But
-        # this does work and produces the desired result in the end.
-        del verse_content[1:4]
-        verse_content_str = "".join(verse_content)
-        # HACK "Fix" BeautifulSoup parsing issue wherein sometimes a verse
-        # contains its content but also includes a subsequent verse or verses or
-        # a recapitulation of all previous verses. This does fix the problem
-        # though and gives the desired result:
-        verse_content_str = (
-            '<span class="v-num"' + verse_content_str.split('<span class="v-num"')[1]
-        )
-        # At this point we alter verse_content_str span's ID by prepending the
-        # lang_code to ensure unique verse references within language scope in a
-        # multi-language document.
-        pattern = settings.VERSE_ANCHOR_ID_FMT_STR
-        verse_content_str = re.sub(
-            pattern,
-            settings.VERSE_ANCHOR_ID_SUBSTITUTION_FMT_STR.format(self.lang_code),
-            verse_content_str,
-        )
-        return model.VerseRef(verse_num), model.HtmlContent(verse_content_str)
 
 
 class TResource(Resource):
@@ -574,7 +421,7 @@ class TResource(Resource):
         lambda lang_code, resource_requests: lang_code and resource_requests
     )
     @icontract.ensure(lambda result: result)
-    def _get_markdown_instance(
+    def _markdown_instance(
         self,
         lang_code: str,
         resource_requests: list[model.ResourceRequest],
@@ -587,7 +434,7 @@ class TResource(Resource):
         code of TResource subclasses by DRYing things up.
         """
         if not tw_resource_dir:
-            tw_resource_dir = tw_utils.get_tw_resource_dir(lang_code)
+            tw_resource_dir = tw_utils.tw_resource_dir(lang_code)
         translation_words_dict: dict[str, str] = tw_utils.translation_words_dict(
             tw_resource_dir
         )
@@ -630,7 +477,7 @@ class TNResource(TResource):
         into HTML content.
         """
         self._initialize_from_assets()
-        self._initialize_verses_html()
+        TNHtmlInitializer(self)()
 
     @property
     def book_payload(self) -> model.TNBookPayload:
@@ -644,83 +491,7 @@ class TNResource(TResource):
         """See docstring in superclass."""
         self._manifest = Manifest(self)
 
-    @log_on_start(
-        logging.INFO,
-        "About to convert TN Markdown to HTML with Markdown extension",
-        logger=logger,
-    )
-    def _initialize_verses_html(self) -> None:
-        """
-        Find book intro, chapter intros, and then the translation
-        notes for the verses themselves.
-        """
-        # Initialize the Python-Markdown extensions that get invoked
-        # when md.convert is called.
-        md: markdown.Markdown = self._get_markdown_instance(
-            self.lang_code, self.resource_requests
-        )
-        # FIXME We can likely now remove the first '**' if we want. It
-        # works as is though, it is just a minor optimization, but I'd
-        # need to fully it test it before making the change.
-        chapter_dirs = sorted(
-            glob("{}/**/*{}/*[0-9]*".format(self._resource_dir, self._resource_code))
-        )
-        # Some languages are organized differently on disk (e.g., depending
-        # on if their assets were acquired as a git repo or a zip).
-        # We handle this here.
-        if not chapter_dirs:
-            chapter_dirs = sorted(
-                glob("{}/*{}/*[0-9]*".format(self._resource_dir, self._resource_code))
-            )
-        chapter_verses: dict[int, model.TNChapterPayload] = {}
-        for chapter_dir in chapter_dirs:
-            chapter_num = int(os.path.split(chapter_dir)[-1])
-            intro_paths = glob("{}/*intro.md".format(chapter_dir))
-            # For some languages, TN assets are stored in .txt files
-            # rather of .md files.
-            if not intro_paths:
-                intro_paths = glob("{}/*intro.txt".format(chapter_dir))
-            intro_path = intro_paths[0] if intro_paths else None
-            intro_md = ""
-            intro_html = ""
-            if intro_path:
-                intro_md = file_utils.read_file(intro_path)
-                intro_html = md.convert(intro_md)
-            verse_paths = sorted(glob("{}/*[0-9]*.md".format(chapter_dir)))
-            # For some languages, TN assets are stored in .txt files
-            # rather of .md files.
-            if not verse_paths:
-                verse_paths = sorted(glob("{}/*[0-9]*.txt".format(chapter_dir)))
-            verses_html: dict[int, str] = {}
-            for filepath in verse_paths:
-                verse_num = int(pathlib.Path(filepath).stem)
-                verse_content = ""
-                verse_content = file_utils.read_file(filepath)
-                verse_content = md.convert(verse_content)
-                verses_html[verse_num] = verse_content
-            chapter_payload = model.TNChapterPayload(
-                intro_html=intro_html, verses_html=verses_html
-            )
-            chapter_verses[chapter_num] = chapter_payload
-        # Get the book intro if it exists
-        book_intro_path = glob(
-            "{}/*{}/front/intro.md".format(self._resource_dir, self._resource_code)
-        )
-        # For some languages, TN assets are stored in .txt files
-        # rather of .md files.
-        if not book_intro_path:
-            book_intro_path = glob(
-                "{}/*{}/front/intro.txt".format(self._resource_dir, self._resource_code)
-            )
-        book_intro_html = ""
-        if book_intro_path:
-            book_intro_html = file_utils.read_file(book_intro_path[0])
-            book_intro_html = md.convert(book_intro_html)
-        self._book_payload = model.TNBookPayload(
-            intro_html=model.HtmlContent(book_intro_html), chapters=chapter_verses
-        )
-
-    def get_verses_for_chapter(
+    def verses_for_chapter(
         self, chapter_num: model.ChapterNum
     ) -> Optional[dict[model.VerseRef, model.HtmlContent]]:
         """
@@ -739,7 +510,7 @@ class TNResource(TResource):
         verse: model.HtmlContent,
     ) -> list[model.HtmlContent]:
         """
-        This is a slightly different form of TNResource.get_tn_verse that is used
+        This is a slightly different form of TNResource.tn_verse that is used
         when no USFM has been requested.
         """
         html: list[model.HtmlContent] = []
@@ -783,7 +554,7 @@ class TQResource(TResource):
         """
 
         self._initialize_from_assets()
-        self._initialize_verses_html()
+        TQHtmlInitializer(self)()
 
     @property
     def book_payload(self) -> model.TQBookPayload:
@@ -797,58 +568,7 @@ class TQResource(TResource):
         """See docstring in superclass."""
         self._manifest = Manifest(self)
 
-    @log_on_start(
-        logging.INFO,
-        "About to convert TQ Markdown to HTML with Markdown extension",
-        logger=logger,
-    )
-    def _initialize_verses_html(self) -> None:
-        """Find translation questions for the verses."""
-        # Create the Markdown instance once and have it use our markdown
-        # extensions.
-        md: markdown.Markdown = self._get_markdown_instance(
-            self.lang_code, self.resource_requests
-        )
-        # FIXME We can likely now remove the first '**' for a tiny
-        # speedup, but I'd need to test thorougly first.
-        chapter_dirs = sorted(
-            glob("{}/**/*{}/*[0-9]*".format(self._resource_dir, self._resource_code))
-        )
-        # Some languages are organized differently on disk (e.g., depending
-        # on if their assets were acquired as a git repo or a zip).
-        # We handle this here.
-        if not chapter_dirs:
-            chapter_dirs = sorted(
-                glob("{}/*{}/*[0-9]*".format(self._resource_dir, self._resource_code))
-            )
-        chapter_verses: dict[int, model.TQChapterPayload] = {}
-        for chapter_dir in chapter_dirs:
-            chapter_num = int(os.path.split(chapter_dir)[-1])
-            verse_paths = sorted(glob("{}/*[0-9]*.md".format(chapter_dir)))
-            # For some languages, TQ assets may be stored in .txt files
-            # rather of .md files.
-            # FIXME This is true of TN assets, but I am not yet sure of TQ assets
-            # that use the TXT suffix.
-            if not verse_paths:
-                verse_paths = sorted(glob("{}/*[0-9]*.txt".format(chapter_dir)))
-            verses_html: dict[int, str] = {}
-            for filepath in verse_paths:
-                verse_num = int(pathlib.Path(filepath).stem)
-                verse_content = file_utils.read_file(filepath)
-                # with open(filepath, "r", encoding="utf-8") as fin2:
-                #     verse_content = fin2.read()
-                # NOTE I don't think translation questions have a
-                # 'Links:' section.
-                # verse_content = markdown_utils.remove_md_section(
-                #     verse_content, "Links:"
-                # )
-                verse_content = md.convert(verse_content)
-                verses_html[verse_num] = verse_content
-            chapter_payload = model.TQChapterPayload(verses_html=verses_html)
-            chapter_verses[chapter_num] = chapter_payload
-        self._book_payload = model.TQBookPayload(chapters=chapter_verses)
-
-    def get_verses_for_chapter(
+    def verses_for_chapter(
         self, chapter_num: model.ChapterNum
     ) -> Optional[dict[model.VerseRef, model.HtmlContent]]:
         """Return the HTML for verses in chapter_num."""
@@ -866,7 +586,7 @@ class TQResource(TResource):
         Build and return the content for the translation question for chapter
         chapter_num and verse verse_num.
         """
-        chapter_verses = self.get_verses_for_chapter(chapter_num)
+        chapter_verses = self.verses_for_chapter(chapter_num)
         tq_verse = None
         if chapter_verses and verse_num in chapter_verses:
             tq_verse = chapter_verses[verse_num]
@@ -907,7 +627,7 @@ class TWResource(TResource):
         """
 
         self._initialize_from_assets()
-        self._initialize_verses_html()
+        TWHtmlInitializer(self)()
 
     @property
     def language_payload(self) -> model.TWLanguagePayload:
@@ -921,57 +641,7 @@ class TWResource(TResource):
         """See docstring in superclass."""
         self._manifest = Manifest(self)
 
-    @log_on_start(
-        logging.INFO,
-        "About to convert TW Markdown to HTML with Markdown extension",
-        logger=logger,
-    )
-    def _initialize_verses_html(self) -> None:
-        """Find translation words for the verses."""
-        # Create the Markdown instance once and have it use our markdown
-        # extensions.
-        md: markdown.Markdown = self._get_markdown_instance(
-            self.lang_code, self.resource_requests, self.resource_dir
-        )
-        # FIXME tw_utils.get_translation_word_filepaths is already called in
-        # self._get_markdown_instance implicitly. Could we rearrange the API so
-        # that this doesn't have to be called again here as a special
-        # case for TWResource? It isn't a big deal, but let's revisit
-        # this as a low priority item.
-        translation_word_filepaths = tw_utils.get_translation_word_filepaths(
-            self.resource_dir
-        )
-        name_content_pairs: list[model.TWNameContentPair] = []
-        for translation_word_filepath in translation_word_filepaths:
-            translation_word_content = file_utils.read_file(translation_word_filepath)
-            # Translation words are bidirectional. By that I mean that when you are
-            # at a verse there follows, after translation questions, links to the
-            # translation words that occur in that verse. But then when you navigate
-            # to the word by clicking such a link, at the end of the resulting
-            # translation word note there is a section called 'Uses:' that also has
-            # links back to the verses wherein the word occurs.
-            localized_translation_word = tw_utils.get_localized_translation_word(
-                translation_word_content
-            )
-            html_word_content = md.convert(translation_word_content)
-            # Make adjustments to the HTML here.
-            html_word_content = re.sub(H2, H4, html_word_content)
-            html_word_content = re.sub(H1, H3, html_word_content)
-            name_content_pairs.append(
-                model.TWNameContentPair(
-                    localized_word=localized_translation_word, content=html_word_content
-                )
-            )
-
-        self._language_payload = model.TWLanguagePayload(
-            # Sort the name content pairs by localized translation word
-            name_content_pairs=sorted(
-                name_content_pairs,
-                key=lambda name_content_pair: name_content_pair.localized_word,
-            )
-        )
-
-    def get_translation_word_links(
+    def translation_word_links(
         self,
         chapter_num: model.ChapterNum,
         verse_num: model.VerseRef,
@@ -1033,7 +703,7 @@ class TWResource(TResource):
             html.append(settings.UNORDERED_LIST_END_STR)
         return html
 
-    def get_translation_words_section(
+    def translation_words_section(
         self,
         include_uses_section: bool = True,
     ) -> list[model.HtmlContent]:
@@ -1083,7 +753,7 @@ class TWResource(TResource):
                 include_uses_section
                 and name_content_pair.localized_word in self.language_payload.uses
             ):
-                uses_section = self._get_uses_section(
+                uses_section = self._uses_section(
                     self.language_payload.uses[name_content_pair.localized_word]
                 )
                 name_content_pair.content = model.HtmlContent(
@@ -1092,7 +762,7 @@ class TWResource(TResource):
             html.append(name_content_pair.content)
         return html
 
-    def _get_uses_section(self, uses: list[model.TWUse]) -> model.HtmlContent:
+    def _uses_section(self, uses: list[model.TWUse]) -> model.HtmlContent:
         """
         Construct and return the 'Uses:' section which comes at the end of
         a translation word definition and wherein each item points to
@@ -1181,7 +851,7 @@ class TAResource(TResource):
         """
 
         self._initialize_from_assets()
-        self._initialize_verses_html()
+        TAHtmlInitializer(self)()
 
     @property
     def book_payload(self) -> model.TABookPayload:
@@ -1195,53 +865,7 @@ class TAResource(TResource):
         """See docstring in superclass."""
         self._manifest = Manifest(self)
 
-    @log_on_start(
-        logging.INFO,
-        "About to convert TA Markdown to HTML with Markdown extension",
-        logger=logger,
-    )
-    def _initialize_verses_html(self) -> None:
-        """Find translation academy for the verses."""
-        # Create the Markdown instance once and have it use our markdown
-        # extensions.
-        md: markdown.Markdown = self._get_markdown_instance(
-            self.lang_code, self.resource_requests
-        )
-        chapter_dirs = sorted(
-            glob("{}/**/*{}/*[0-9]*".format(self._resource_dir, self._resource_code))
-        )
-        # Some languages are organized differently on disk (e.g., depending
-        # on if their assets were acquired as a git repo or a zip).
-        # We handle this here.
-        if not chapter_dirs:
-            # FIXME We can likely now remove the first '**'
-            chapter_dirs = sorted(
-                glob("{}/*{}/*[0-9]*".format(self._resource_dir, self._resource_code))
-            )
-        chapter_verses: dict[int, model.TAChapterPayload] = {}
-        for chapter_dir in chapter_dirs:
-            chapter_num = int(os.path.split(chapter_dir)[-1])
-            # FIXME For some languages, TQ assets are stored in .txt files
-            # rather of .md files. Handle this.
-            verse_paths = sorted(glob("{}/*[0-9]*.md".format(chapter_dir)))
-            verses_html: dict[int, str] = {}
-            for filepath in verse_paths:
-                verse_num = int(pathlib.Path(filepath).stem)
-                verse_content = file_utils.read_file(filepath)
-                # with open(filepath, "r", encoding="utf-8") as fin2:
-                #     verse_content = fin2.read()
-                # NOTE I don't think translation questions have a
-                # 'Links:' section.
-                # verse_content = markdown_utils.remove_md_section(
-                #     verse_content, "Links:"
-                # )
-                verse_content = md.convert(verse_content)
-                verses_html[verse_num] = verse_content
-            chapter_payload = model.TAChapterPayload(verses_html=verses_html)
-            chapter_verses[chapter_num] = chapter_payload
-        self._book_payload = model.TABookPayload(chapters=chapter_verses)
-
-    def get_verses_for_chapter(
+    def verses_for_chapter(
         self, chapter_num: model.ChapterNum
     ) -> Optional[dict[model.VerseRef, model.HtmlContent]]:
         """Return the HTML for verses in chapter_num."""
@@ -1445,6 +1069,506 @@ class ResourceProvisioner:
         return self._resource.resource_source == model.AssetSourceEnum.ZIP
 
 
+class USFMHtmlInitializer:
+    """
+    This class's purpose is to break apart the USFMResource's HTML
+    content into HTML chapter and verse chunks, augment HTML output with
+    additional HTML elements and store in an instance variable.
+    """
+
+    def __init__(self, resource: USFMResource):
+        self._resource = resource
+
+    def __call__(self) -> None:
+        """See docstring for this class."""
+        self._initialize_verses_html()
+
+    def __str__(self) -> str:
+        """Return a printable string identifying this instance."""
+        return "USFMHtmlInitializer(resource: {})".format(self._resource)
+
+    @icontract.require(lambda self: self._resource._content)
+    @icontract.ensure(lambda self: self._resource._chapter_content)
+    def _initialize_verses_html(self) -> None:
+        """
+        Break apart the USFM HTML content into HTML chapter and verse
+        chunks, augment HTML output with additional HTML elements and
+        store in an instance variable.
+        """
+        parser = bs4.BeautifulSoup(self._resource._content, "html.parser")
+
+        chapter_breaks = parser.find_all(H2, attrs={"class": "c-num"})
+        localized_chapter_heading = chapter_breaks[0].get_text().split()[0]
+        for chapter_break in chapter_breaks:
+            chapter_num = model.ChapterNum(int(chapter_break.get_text().split()[1]))
+            chapter_content = html_parsing_utils.tag_elements_between(
+                parser.find(
+                    H2,
+                    text="{} {}".format(localized_chapter_heading, chapter_num),
+                ),
+                # ).next_sibling,
+                parser.find(
+                    H2,
+                    text="{} {}".format(localized_chapter_heading, chapter_num + 1),
+                ),
+            )
+            chapter_content = [str(tag) for tag in list(chapter_content)]
+            chapter_content_parser = bs4.BeautifulSoup(
+                "".join(chapter_content),
+                "html.parser",
+            )
+            chapter_verse_tags: bs4.elements.ResultSet = (
+                chapter_content_parser.find_all("span", attrs={"class": "v-num"})
+            )
+            chapter_footnote_tag: bs4.elements.ResultSet = chapter_content_parser.find(
+                "div", attrs={"class": "footnotes"}
+            )
+            chapter_footnotes = (
+                model.HtmlContent(str(chapter_footnote_tag))
+                if chapter_footnote_tag
+                else model.HtmlContent("")
+            )
+            # Get each verse opening span tag and then the actual verse text for
+            # this chapter and enclose them each in a p element.
+            chapter_verse_list = [
+                "<p>{} {}</p>".format(verse, verse.next_sibling)
+                for verse in chapter_verse_tags
+            ]
+            # Dictionary to hold verse number, verse value pairs.
+            chapter_verses: dict[str, str] = {}
+            for verse_element in chapter_verse_list:
+                (verse_num, verse_content_str,) = self._verse_num_and_verse_content_str(
+                    chapter_num, chapter_content_parser, verse_element
+                )
+                chapter_verses[verse_num] = verse_content_str
+            self._resource._chapter_content[chapter_num] = model.USFMChapter(
+                chapter_content=chapter_content,
+                chapter_verses=chapter_verses,
+                chapter_footnotes=chapter_footnotes,
+            )
+
+    def _verse_num_and_verse_content_str(
+        self,
+        chapter_num: int,
+        chapter_content_parser: bs4.BeautifulSoup,
+        verse_element: str,
+    ) -> tuple[model.VerseRef, model.HtmlContent]:
+        """
+        Handle some messy initialization and return the
+        chapter_num and verse_content_str.
+        """
+        # Rather than a single verse num, the item in
+        # verse_num may be a verse range, e.g., 1-2.
+        # See test_mr_ulb_mrk_mr_tn_mrk_mr_tq_mrk_mr_tw_mrk_mr_udb_mrk_language_book_order
+        # for test that triggers this situation.
+        # Get the verse num from the verse HTML tag's id value.
+        # split is more performant than re.
+        # See https://stackoverflow.com/questions/7501609/python-re-split-vs-split
+        verse_num = str(verse_element).split("-v-")[1].split('"')[0]
+        # Check for hyphen in the range
+        verse_num_components = verse_num.split("-")
+        if len(verse_num_components) > 1:
+            upper_bound_value = int(verse_num_components[1]) + 1
+            # Get rid of leading zeroes on first verse number
+            # in range.
+            verse_num_int = int(verse_num_components[0])
+            # Get rid of leading zeroes on second verse number
+            # in range.
+            verse_num2_int = int(verse_num_components[1])
+            # Recreate the verse range, now without leading
+            # zeroes.
+            verse_num = "{}-{}".format(str(verse_num_int), str(verse_num2_int))
+            logger.debug(
+                "chapter_num: %s, verse_num is a verse range: %s",
+                chapter_num,
+                verse_num,
+            )
+        else:
+            upper_bound_value = int(verse_num) + 1
+            # Get rid of leading zeroes.
+            verse_num = str(int(verse_num))
+
+        # Create the lower and upper search bounds for the
+        # BeautifulSoup HTML parser.
+        lower_id = "{}-ch-{}-v-{}".format(
+            str(self._resource._book_number).zfill(3),
+            str(chapter_num).zfill(3),
+            verse_num.zfill(3),
+        )
+        upper_id = "{}-ch-{}-v-{}".format(
+            str(self._resource._book_number).zfill(3),
+            str(chapter_num).zfill(3),
+            str(upper_bound_value).zfill(3),
+        )
+        # Using the upper and lower parse a verse worth of HTML
+        # content.
+        verse_content_tags = html_parsing_utils.tag_elements_between(
+            chapter_content_parser.find(
+                "span",
+                attrs={"class": "v-num", "id": lower_id},
+            ),
+            # ).next_sibling,
+            chapter_content_parser.find(
+                "span",
+                attrs={"class": "v-num", "id": upper_id},
+            ),
+        )
+        verse_content = [str(tag) for tag in list(verse_content_tags)]
+        # Hacky way to remove some redundant parsing results due to recursion in
+        # BeautifulSoup. Perhaps there is bs4 mway to avoid this. But
+        # this does work and produces the desired result in the end.
+        del verse_content[1:4]
+        verse_content_str = "".join(verse_content)
+        # HACK "Fix" BeautifulSoup parsing issue wherein sometimes a verse
+        # contains its content but also includes a subsequent verse or verses or
+        # a recapitulation of all previous verses. This does fix the problem
+        # though and gives the desired result:
+        verse_content_str = (
+            '<span class="v-num"' + verse_content_str.split('<span class="v-num"')[1]
+        )
+        # At this point we alter verse_content_str span's ID by prepending the
+        # lang_code to ensure unique verse references within language scope in a
+        # multi-language document.
+        pattern = settings.VERSE_ANCHOR_ID_FMT_STR
+        verse_content_str = re.sub(
+            pattern,
+            settings.VERSE_ANCHOR_ID_SUBSTITUTION_FMT_STR.format(
+                self._resource.lang_code
+            ),
+            verse_content_str,
+        )
+        return model.VerseRef(verse_num), model.HtmlContent(verse_content_str)
+
+
+class TNHtmlInitializer:
+    """
+    This class's purpose is to break apart the TNResource's HTML
+    content into HTML chapter and verse chunks, augment HTML output with
+    additional HTML elements and store in an instance variable.
+    """
+
+    def __init__(self, resource: TNResource):
+        self._resource = resource
+
+    def __call__(self) -> None:
+        """See docstring for this class."""
+        self._initialize_verses_html()
+
+    def __str__(self) -> str:
+        """Return a printable string identifying this instance."""
+        return "TNHtmlInitializer(resource: {})".format(self._resource)
+
+    @log_on_start(
+        logging.INFO,
+        "About to convert TN Markdown to HTML with Markdown extension",
+        logger=logger,
+    )
+    def _initialize_verses_html(self) -> None:
+        """
+        Find book intro, chapter intros, and then the translation
+        notes for the verses themselves.
+        """
+        # Initialize the Python-Markdown extensions that get invoked
+        # when md.convert is called.
+        md: markdown.Markdown = self._resource._markdown_instance(
+            self._resource.lang_code, self._resource.resource_requests
+        )
+        # FIXME We can likely now remove the first '**' if we want. It
+        # works as is though, it is just a minor optimization, but I'd
+        # need to fully it test it before making the change.
+        chapter_dirs = sorted(
+            glob(
+                "{}/**/*{}/*[0-9]*".format(
+                    self._resource._resource_dir, self._resource._resource_code
+                )
+            )
+        )
+        # Some languages are organized differently on disk (e.g., depending
+        # on if their assets were acquired as a git repo or a zip).
+        # We handle this here.
+        if not chapter_dirs:
+            chapter_dirs = sorted(
+                glob(
+                    "{}/*{}/*[0-9]*".format(
+                        self._resource._resource_dir, self._resource._resource_code
+                    )
+                )
+            )
+        chapter_verses: dict[int, model.TNChapterPayload] = {}
+        for chapter_dir in chapter_dirs:
+            chapter_num = int(os.path.split(chapter_dir)[-1])
+            intro_paths = glob("{}/*intro.md".format(chapter_dir))
+            # For some languages, TN assets are stored in .txt files
+            # rather of .md files.
+            if not intro_paths:
+                intro_paths = glob("{}/*intro.txt".format(chapter_dir))
+            intro_path = intro_paths[0] if intro_paths else None
+            intro_md = ""
+            intro_html = ""
+            if intro_path:
+                intro_md = file_utils.read_file(intro_path)
+                intro_html = md.convert(intro_md)
+            verse_paths = sorted(glob("{}/*[0-9]*.md".format(chapter_dir)))
+            # For some languages, TN assets are stored in .txt files
+            # rather of .md files.
+            if not verse_paths:
+                verse_paths = sorted(glob("{}/*[0-9]*.txt".format(chapter_dir)))
+            verses_html: dict[int, str] = {}
+            for filepath in verse_paths:
+                verse_num = int(pathlib.Path(filepath).stem)
+                verse_content = ""
+                verse_content = file_utils.read_file(filepath)
+                verse_content = md.convert(verse_content)
+                verses_html[verse_num] = verse_content
+            chapter_payload = model.TNChapterPayload(
+                intro_html=intro_html, verses_html=verses_html
+            )
+            chapter_verses[chapter_num] = chapter_payload
+        # Get the book intro if it exists
+        book_intro_path = glob(
+            "{}/*{}/front/intro.md".format(
+                self._resource._resource_dir, self._resource._resource_code
+            )
+        )
+        # For some languages, TN assets are stored in .txt files
+        # rather of .md files.
+        if not book_intro_path:
+            book_intro_path = glob(
+                "{}/*{}/front/intro.txt".format(
+                    self._resource._resource_dir, self._resource._resource_code
+                )
+            )
+        book_intro_html = ""
+        if book_intro_path:
+            book_intro_html = file_utils.read_file(book_intro_path[0])
+            book_intro_html = md.convert(book_intro_html)
+        self._resource._book_payload = model.TNBookPayload(
+            intro_html=model.HtmlContent(book_intro_html), chapters=chapter_verses
+        )
+
+
+class TQHtmlInitializer:
+    """
+    This class's purpose is to break apart the TQResource's HTML
+    content into HTML chapter and verse chunks, augment HTML output with
+    additional HTML elements and store in an instance variable.
+    """
+
+    def __init__(self, resource: TQResource):
+        self._resource = resource
+
+    def __call__(self) -> None:
+        """See docstring for this class."""
+        self._initialize_verses_html()
+
+    def __str__(self) -> str:
+        """Return a printable string identifying this instance."""
+        return "TQHtmlInitializer(resource: {})".format(self._resource)
+
+    @log_on_start(
+        logging.INFO,
+        "About to convert TQ Markdown to HTML with Markdown extension",
+        logger=logger,
+    )
+    def _initialize_verses_html(self) -> None:
+        """Find translation questions for the verses."""
+        # Create the Markdown instance once and have it use our markdown
+        # extensions.
+        md: markdown.Markdown = self._resource._markdown_instance(
+            self._resource.lang_code, self._resource.resource_requests
+        )
+        # FIXME We can likely now remove the first '**' for a tiny
+        # speedup, but I'd need to test thorougly first.
+        chapter_dirs = sorted(
+            glob(
+                "{}/**/*{}/*[0-9]*".format(
+                    self._resource._resource_dir, self._resource._resource_code
+                )
+            )
+        )
+        # Some languages are organized differently on disk (e.g., depending
+        # on if their assets were acquired as a git repo or a zip).
+        # We handle this here.
+        if not chapter_dirs:
+            chapter_dirs = sorted(
+                glob(
+                    "{}/*{}/*[0-9]*".format(
+                        self._resource._resource_dir, self._resource._resource_code
+                    )
+                )
+            )
+        chapter_verses: dict[int, model.TQChapterPayload] = {}
+        for chapter_dir in chapter_dirs:
+            chapter_num = int(os.path.split(chapter_dir)[-1])
+            verse_paths = sorted(glob("{}/*[0-9]*.md".format(chapter_dir)))
+            # For some languages, TQ assets may be stored in .txt files
+            # rather of .md files.
+            # FIXME This is true of TN assets, but I am not yet sure of TQ assets
+            # that use the TXT suffix.
+            if not verse_paths:
+                verse_paths = sorted(glob("{}/*[0-9]*.txt".format(chapter_dir)))
+            verses_html: dict[int, str] = {}
+            for filepath in verse_paths:
+                verse_num = int(pathlib.Path(filepath).stem)
+                verse_content = file_utils.read_file(filepath)
+                # with open(filepath, "r", encoding="utf-8") as fin2:
+                #     verse_content = fin2.read()
+                # NOTE I don't think translation questions have a
+                # 'Links:' section.
+                # verse_content = markdown_utils.remove_md_section(
+                #     verse_content, "Links:"
+                # )
+                verse_content = md.convert(verse_content)
+                verses_html[verse_num] = verse_content
+            chapter_payload = model.TQChapterPayload(verses_html=verses_html)
+            chapter_verses[chapter_num] = chapter_payload
+        self._resource._book_payload = model.TQBookPayload(chapters=chapter_verses)
+
+
+class TWHtmlInitializer:
+    """
+    This class's purpose is to break apart the TWResource's HTML
+    content into HTML chapter and verse chunks, augment HTML output with
+    additional HTML elements and store in an instance variable.
+    """
+
+    def __init__(self, resource: TWResource):
+        self._resource = resource
+
+    def __call__(self) -> None:
+        """See docstring for this class."""
+        self._initialize_verses_html()
+
+    def __str__(self) -> str:
+        """Return a printable string identifying this instance."""
+        return "TWHtmlInitializer(resource: {})".format(self._resource)
+
+    @log_on_start(
+        logging.INFO,
+        "About to convert TW Markdown to HTML with Markdown extension",
+        logger=logger,
+    )
+    def _initialize_verses_html(self) -> None:
+        """Find translation words for the verses."""
+        # Create the Markdown instance once and have it use our markdown
+        # extensions.
+        md: markdown.Markdown = self._resource._markdown_instance(
+            self._resource.lang_code,
+            self._resource.resource_requests,
+            self._resource.resource_dir,
+        )
+        # FIXME tw_utils.get_translation_word_filepaths is already called in
+        # self._get_markdown_instance implicitly. Could we rearrange the API so
+        # that this doesn't have to be called again here as a special
+        # case for TWResource? It isn't a big deal, but let's revisit
+        # this as a low priority item.
+        translation_word_filepaths = tw_utils.translation_word_filepaths(
+            self._resource.resource_dir
+        )
+        name_content_pairs: list[model.TWNameContentPair] = []
+        for translation_word_filepath in translation_word_filepaths:
+            translation_word_content = file_utils.read_file(translation_word_filepath)
+            # Translation words are bidirectional. By that I mean that when you are
+            # at a verse there follows, after translation questions, links to the
+            # translation words that occur in that verse. But then when you navigate
+            # to the word by clicking such a link, at the end of the resulting
+            # translation word note there is a section called 'Uses:' that also has
+            # links back to the verses wherein the word occurs.
+            localized_translation_word = tw_utils.localized_translation_word(
+                translation_word_content
+            )
+            html_word_content = md.convert(translation_word_content)
+            # Make adjustments to the HTML here.
+            html_word_content = re.sub(H2, H4, html_word_content)
+            html_word_content = re.sub(H1, H3, html_word_content)
+            name_content_pairs.append(
+                model.TWNameContentPair(
+                    localized_word=localized_translation_word, content=html_word_content
+                )
+            )
+
+        self._resource._language_payload = model.TWLanguagePayload(
+            # Sort the name content pairs by localized translation word
+            name_content_pairs=sorted(
+                name_content_pairs,
+                key=lambda name_content_pair: name_content_pair.localized_word,
+            )
+        )
+
+
+class TAHtmlInitializer:
+    """
+    This class's purpose is to break apart the TAResource's HTML
+    content into HTML chapter and verse chunks, augment HTML output with
+    additional HTML elements and store in an instance variable.
+    """
+
+    def __init__(self, resource: TAResource):
+        self._resource = resource
+
+    def __call__(self) -> None:
+        """See docstring for this class."""
+        self._initialize_verses_html()
+
+    def __str__(self) -> str:
+        """Return a printable string identifying this instance."""
+        return "TAHtmlInitializer(resource: {})".format(self._resource)
+
+    @log_on_start(
+        logging.INFO,
+        "About to convert TA Markdown to HTML with Markdown extension",
+        logger=logger,
+    )
+    def _initialize_verses_html(self) -> None:
+        """Find translation academy for the verses."""
+        # Create the Markdown instance once and have it use our markdown
+        # extensions.
+        md: markdown.Markdown = self._resource._markdown_instance(
+            self._resource.lang_code, self._resource.resource_requests
+        )
+        chapter_dirs = sorted(
+            glob(
+                "{}/**/*{}/*[0-9]*".format(
+                    self._resource._resource_dir, self._resource._resource_code
+                )
+            )
+        )
+        # Some languages are organized differently on disk (e.g., depending
+        # on if their assets were acquired as a git repo or a zip).
+        # We handle this here.
+        if not chapter_dirs:
+            # FIXME We can likely now remove the first '**'
+            chapter_dirs = sorted(
+                glob(
+                    "{}/*{}/*[0-9]*".format(
+                        self._resource._resource_dir, self._resource._resource_code
+                    )
+                )
+            )
+        chapter_verses: dict[int, model.TAChapterPayload] = {}
+        for chapter_dir in chapter_dirs:
+            chapter_num = int(os.path.split(chapter_dir)[-1])
+            # FIXME For some languages, TQ assets are stored in .txt files
+            # rather of .md files. Handle this.
+            verse_paths = sorted(glob("{}/*[0-9]*.md".format(chapter_dir)))
+            verses_html: dict[int, str] = {}
+            for filepath in verse_paths:
+                verse_num = int(pathlib.Path(filepath).stem)
+                verse_content = file_utils.read_file(filepath)
+                # with open(filepath, "r", encoding="utf-8") as fin2:
+                #     verse_content = fin2.read()
+                # NOTE I don't think translation questions have a
+                # 'Links:' section.
+                # verse_content = markdown_utils.remove_md_section(
+                #     verse_content, "Links:"
+                # )
+                verse_content = md.convert(verse_content)
+                verses_html[verse_num] = verse_content
+            chapter_payload = model.TAChapterPayload(verses_html=verses_html)
+            chapter_verses[chapter_num] = chapter_payload
+        self._resource._book_payload = model.TABookPayload(chapters=chapter_verses)
+
+
 class Manifest:
     """
     This class handles finding, loading, and converting manifest
@@ -1481,7 +1605,7 @@ class Manifest:
         if self.manifest_type:
             logger.debug("self.manifest_type: %s", self.manifest_type)
             if self._is_yaml():
-                version, issued = self._get_manifest_version_and_issued()
+                version, issued = self._manifest_version_and_issued()
                 self._version = version
                 self._issued = issued
                 logger.debug("_version: %s, _issued: %s", self._version, self._issued)
@@ -1508,17 +1632,17 @@ class Manifest:
         return manifest
 
     @icontract.require(lambda self: self._manifest_content)
-    def _get_manifest_version_and_issued(self) -> tuple[str, str]:
+    def _manifest_version_and_issued(self) -> tuple[str, str]:
         """Return the manifest's version and issued values."""
         version = ""
         issued = ""
         # NOTE manifest.txt files do not have 'dublin_core' or
         # 'version' keys.
-        version = self._get_manifest_version()
+        version = self._manifest_version()
         issued = self._manifest_content["dublin_core"]["issued"]
         return (version, issued)
 
-    def _get_manifest_version(self) -> str:
+    def _manifest_version(self) -> str:
         version = ""
         try:
             version = self._manifest_content[0]["dublin_core"]["version"]
@@ -1549,7 +1673,7 @@ class Manifest:
         lambda self: self._manifest_content and "projects" in self._manifest_content
     )
     @icontract.ensure(lambda result: result)
-    def _get_book_project_from_yaml(self) -> Optional[dict]:
+    def _book_project_from_yaml(self) -> Optional[dict]:
         """
         Return the project that was requested if it matches that found
         in the manifest file for the resource otherwise return an
@@ -1570,7 +1694,7 @@ class Manifest:
         lambda self: self._manifest_content and "projects" in self._manifest_content
     )
     @icontract.ensure(lambda result: result)
-    def _get_book_projects_from_yaml(self) -> list[dict[Any, Any]]:
+    def _book_projects_from_yaml(self) -> list[dict[Any, Any]]:
         """
         Return the sorted list of projects that are found in the
         manifest file for the resource.
@@ -1597,7 +1721,7 @@ class Manifest:
         and "finished_chunks" in self._manifest_content
     )
     @icontract.ensure(lambda result: result)
-    def _get_book_projects_from_json(self) -> list:
+    def _book_projects_from_json(self) -> list:
         """
         Return the sorted list of projects that are found in the
         manifest file for the resource.

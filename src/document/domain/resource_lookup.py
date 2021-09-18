@@ -20,7 +20,7 @@ from document.domain import model
 from document.domain.resource import Resource
 from document.utils import file_utils, url_utils
 
-logger = settings.get_logger(__name__)
+logger = settings.logger(__name__)
 
 
 class ResourceJsonLookup:
@@ -213,8 +213,6 @@ class SourceDataFetcher:
             )
         )
 
-        # logger.info("JSON file is {}".format(self._json_file))
-
         self._json_data: list = []
 
     @property
@@ -226,10 +224,7 @@ class SourceDataFetcher:
         lambda self: self._json_file_url is not None and self._json_file is not None
     )
     @icontract.ensure(lambda self: self._json_data is not None)
-    @log_on_start(
-        logging.INFO, "About to check if we need new translations.json", logger=logger
-    )
-    def _get_data(self) -> None:
+    def __call__(self) -> None:
         """Download json data and parse it into equivalent python objects."""
         if file_utils.source_file_needs_update(self._json_file):
             logger.debug("Downloading %s...", self._json_file_url)
@@ -748,7 +743,6 @@ class BIELHelperResourceJsonLookup:
         Convenience method that can be called, e.g., from the UI, to
         get the set of all resource types.
         """
-        self._get_data()
         return self._lookup(settings.RESOURCE_TYPES_JSONPATH)
 
     @icontract.ensure(lambda result: result)
@@ -757,7 +751,6 @@ class BIELHelperResourceJsonLookup:
         Convenience method that can be called, e.g., from the UI, to
         get the set of all resource codes.
         """
-        self._get_data()
         return self._lookup(settings.RESOURCE_CODES_JSONPATH)
 
     @icontract.require(lambda self: self.json_data is not None)
@@ -776,7 +769,6 @@ class BIELHelperResourceJsonLookup:
         >>> [pair[2] for pair in data if pair[0] == "zh"]
         [['cuv', 'tn', 'tq', 'tw']]
         """
-        self._get_data()
         lang_codes_names_and_resource_types: list[model.CodeNameTypeTriplet] = []
         # Using jsonpath in a loop here was prohibitively slow so we
         # use the dictionary in this case.
@@ -820,7 +812,6 @@ class BIELHelperResourceJsonLookup:
         '2jn', '3jn', 'jud', 'rev']), ('tn', []), ('tq', []), ('tw',
         [])]]
         """
-        self._get_data()
         lang_codes_names_resource_types_and_resource_codes: list[
             tuple[str, str, list[tuple[str, list[str]]]]
         ] = []
@@ -829,7 +820,6 @@ class BIELHelperResourceJsonLookup:
         for lang in self.json_data:
             resource_types: list[tuple[str, list[str]]] = []
             for resource_type_dict in lang["contents"]:
-                # breakpoint()
                 # Usage of dpath at this point:
                 # (Pdb) import dpath.util
                 # (Pdb) dpath.util.search(resource_type_dict, "subcontents/0/code")
@@ -907,7 +897,6 @@ class BIELHelperResourceJsonLookup:
         # See <project dir>/lang_codes_names_and_contents_codes_groups.json for
         output dumped to json format.
         """
-        self._get_data()
         lang_codes_names_and_contents_codes: list[tuple[str, str, str]] = []
         # Using jsonpath in a loop here was prohibitively slow so we
         # use the dictionary in this case.
@@ -919,5 +908,4 @@ class BIELHelperResourceJsonLookup:
             lang_codes_names_and_contents_codes.append(
                 (d["code"], d["name"], contents_code)
             )
-        # breakpoint()
         return lang_codes_names_and_contents_codes

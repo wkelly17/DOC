@@ -29,7 +29,7 @@ from document.domain.resource import (
     USFMResource,
 )
 
-logger = settings.get_logger(__name__)
+logger = settings.logger(__name__)
 
 
 H1, H2, H3, H4, H5, H6 = "h1", "h2", "h3", "h4", "h5", "h6"
@@ -611,14 +611,12 @@ def _assemble_content_by_lang_then_book(
             # Save grouper generator values in list since it will get exhausted
             # when used and exhausted generators cannot be reused.
             resources = list(group_by_book)
-            usfm_resource: Optional[USFMResource] = _get_first_usfm_resource(resources)
-            tn_resource: Optional[TNResource] = _get_tn_resource(resources)
-            tq_resource: Optional[TQResource] = _get_tq_resource(resources)
-            tw_resource: Optional[TWResource] = _get_tw_resource(resources)
-            ta_resource: Optional[TAResource] = _get_ta_resource(resources)
-            usfm_resource2: Optional[USFMResource] = _get_second_usfm_resource(
-                resources
-            )
+            usfm_resource: Optional[USFMResource] = _first_usfm_resource(resources)
+            tn_resource: Optional[TNResource] = _tn_resource(resources)
+            tq_resource: Optional[TQResource] = _tq_resource(resources)
+            tw_resource: Optional[TWResource] = _tw_resource(resources)
+            ta_resource: Optional[TAResource] = _ta_resource(resources)
+            usfm_resource2: Optional[USFMResource] = _second_usfm_resource(resources)
 
             # We've got the resources, now we can use the sub-strategy factory
             # method to choose the right function to use from here on out.
@@ -699,11 +697,11 @@ def _assemble_content_by_book_then_lang(
         # Save grouper generator values in list since it will get exhausted
         # when used and exhausted generators cannot be reused.
         resources = list(group_by_book)
-        usfm_resources: list[USFMResource] = _get_usfm_resources(resources)
-        tn_resources: list[TNResource] = _get_tn_resources(resources)
-        tq_resources: list[TQResource] = _get_tq_resources(resources)
-        tw_resources: list[TWResource] = _get_tw_resources(resources)
-        ta_resources: list[TAResource] = _get_ta_resources(resources)
+        usfm_resources: list[USFMResource] = _usfm_resources(resources)
+        tn_resources: list[TNResource] = _tn_resources(resources)
+        tq_resources: list[TQResource] = _tq_resources(resources)
+        tw_resources: list[TWResource] = _tw_resources(resources)
+        ta_resources: list[TAResource] = _ta_resources(resources)
 
         # We've got the resources, now we can use the sub-strategy factory
         # method to choose the right function to use from here on out.
@@ -786,7 +784,7 @@ def _assemble_content_by_book_then_lang(
 # Note *:
 #
 # If there is only one USFM resource requested then the assembly
-# strategy algo, via _get_first_usfm_resource, puts that USFM resource
+# strategy algo, via _first_usfm_resource, puts that USFM resource
 # in usfm_resource position rather than usfm_resource2 position. If two
 # USFM resources are requested then the second one in the
 # DocumentRequest gets put in usfm_resource2 position. Only the first
@@ -796,8 +794,8 @@ def _assemble_content_by_book_then_lang(
 # fine in practice, but may be changed later by forcing usfm_resource to
 # be of a particular resource_type, e.g., ulb, cuv, nav, and
 # usfm_resource2 to be of another, e.g., udb. This change could be
-# accomplished by modifying _get_first_usfm_resource and
-# _get_second_usfm_resource.
+# accomplished by modifying _first_usfm_resource and
+# _second_usfm_resource.
 
 
 def _assemble_usfm_as_iterator_content_by_verse(
@@ -845,12 +843,12 @@ def _assemble_usfm_as_iterator_content_by_verse(
             html.append(chapter_heading)
             if tn_resource:
                 # Add the translation notes chapter intro.
-                chapter_intro = _get_chapter_intro(tn_resource, chapter_num)
+                chapter_intro = _chapter_intro(tn_resource, chapter_num)
                 html.append(chapter_intro)
 
-                tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
+                tn_verses = tn_resource.verses_for_chapter(chapter_num)
             if tq_resource:
-                tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
+                tq_verses = tq_resource.verses_for_chapter(chapter_num)
 
             # PEP526 disallows declaration of types in for loops.
             verse_num: model.VerseRef
@@ -888,12 +886,10 @@ def _assemble_usfm_as_iterator_content_by_verse(
 
                 if tw_resource:
                     # Add the translation words links section.
-                    translation_word_links_html = (
-                        tw_resource.get_translation_word_links(
-                            chapter_num,
-                            verse_num,
-                            verse,
-                        )
+                    translation_word_links_html = tw_resource.translation_word_links(
+                        chapter_num,
+                        verse_num,
+                        verse,
                     )
                     html.extend(translation_word_links_html)
             # Add scripture footnotes if available
@@ -902,7 +898,7 @@ def _assemble_usfm_as_iterator_content_by_verse(
                 html.append(chapter.chapter_footnotes)
         if tw_resource:
             # Add the translation words definition section.
-            linked_translation_words = tw_resource.get_translation_words_section()
+            linked_translation_words = tw_resource.translation_words_section()
             html.extend(linked_translation_words)
 
     if usfm_resource2:
@@ -970,7 +966,7 @@ def _assemble_usfm_tq_tw_content_by_verse(
         chapter_heading = chapter.chapter_content[0]
         html.append(chapter_heading)
 
-        tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
+        tq_verses = tq_resource.verses_for_chapter(chapter_num)
 
         # PEP526 disallows declaration of types in for loops.
         verse_num: model.VerseRef
@@ -998,7 +994,7 @@ def _assemble_usfm_tq_tw_content_by_verse(
                 )
                 html.extend(tq_verse_content)
             # Add the translation words links section
-            translation_word_links_html = tw_resource.get_translation_word_links(
+            translation_word_links_html = tw_resource.translation_word_links(
                 chapter_num,
                 verse_num,
                 verse,
@@ -1009,7 +1005,7 @@ def _assemble_usfm_tq_tw_content_by_verse(
             html.append(settings.FOOTNOTES_HEADING)
             html.append(chapter.chapter_footnotes)
     # Add the translation words definition section.
-    linked_translation_words = tw_resource.get_translation_words_section()
+    linked_translation_words = tw_resource.translation_words_section()
     html.extend(linked_translation_words)
     return model.HtmlContent("\n".join(html))
 
@@ -1063,7 +1059,7 @@ def _assemble_usfm_tw_content_by_verse(
             # Add scripture verse
             html.append(verse)
             # Add the translation words links section
-            translation_word_links_html = tw_resource.get_translation_word_links(
+            translation_word_links_html = tw_resource.translation_word_links(
                 chapter_num,
                 verse_num,
                 verse,
@@ -1074,7 +1070,7 @@ def _assemble_usfm_tw_content_by_verse(
             html.append(settings.FOOTNOTES_HEADING)
             html.append(chapter.chapter_footnotes)
     # Add the translation words definition section.
-    linked_translation_words = tw_resource.get_translation_words_section()
+    linked_translation_words = tw_resource.translation_words_section()
     html.extend(linked_translation_words)
     return model.HtmlContent("\n".join(html))
 
@@ -1107,7 +1103,7 @@ def _assemble_usfm_tq_content_by_verse(
         chapter_heading = chapter.chapter_content[0]
         html.append(chapter_heading)
 
-        tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
+        tq_verses = tq_resource.verses_for_chapter(chapter_num)
 
         # PEP526 disallows declaration of types in for
         # loops, but allows this.
@@ -1178,12 +1174,12 @@ def _assemble_tn_as_iterator_content_by_verse(
             html.append(chapter_heading)
 
             # Add the translation notes chapter intro.
-            chapter_intro = _get_chapter_intro(tn_resource, chapter_num)
+            chapter_intro = _chapter_intro(tn_resource, chapter_num)
             html.append(chapter_intro)
 
-            tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
+            tn_verses = tn_resource.verses_for_chapter(chapter_num)
             if tq_resource:
-                tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
+                tq_verses = tq_resource.verses_for_chapter(chapter_num)
 
             # PEP526 disallows declaration of types in for loops, but allows this.
             verse_num: model.VerseRef
@@ -1214,7 +1210,7 @@ def _assemble_tn_as_iterator_content_by_verse(
                     if tw_resource:
                         # Add the translation words links section.
                         translation_word_links_html = (
-                            tw_resource.get_translation_word_links(
+                            tw_resource.translation_word_links(
                                 chapter_num,
                                 verse_num,
                                 verse,
@@ -1223,7 +1219,7 @@ def _assemble_tn_as_iterator_content_by_verse(
                         html.extend(translation_word_links_html)
     if tw_resource:
         # Add the translation words definition section.
-        linked_translation_words = tw_resource.get_translation_words_section(
+        linked_translation_words = tw_resource.translation_words_section(
             include_uses_section=False
         )
         html.extend(linked_translation_words)
@@ -1283,7 +1279,7 @@ def _assemble_tq_content_by_verse(
         html.append(chapter_heading)
 
         # Get TQ chapter verses
-        tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
+        tq_verses = tq_resource.verses_for_chapter(chapter_num)
 
         # PEP526 disallows declaration of types in for loops, but allows this.
         verse_num: model.VerseRef
@@ -1337,7 +1333,7 @@ def _assemble_tq_tw_content_by_verse(
         html.append(chapter_heading)
 
         # Get TQ chapter verses
-        tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
+        tq_verses = tq_resource.verses_for_chapter(chapter_num)
 
         # PEP526 disallows declaration of types in for loops, but allows this.
         verse_num: model.VerseRef
@@ -1351,14 +1347,14 @@ def _assemble_tq_tw_content_by_verse(
                 html.extend(tq_verse_content)
 
                 # Add the translation words links section.
-                translation_word_links_html = tw_resource.get_translation_word_links(
+                translation_word_links_html = tw_resource.translation_word_links(
                     chapter_num,
                     verse_num,
                     verse,
                 )
                 html.extend(translation_word_links_html)
     # Add the translation words definition section.
-    linked_translation_words = tw_resource.get_translation_words_section(
+    linked_translation_words = tw_resource.translation_words_section(
         include_uses_section=False
     )
     html.extend(linked_translation_words)
@@ -1382,7 +1378,7 @@ def _assemble_tw_content_by_verse(
     html: list[model.HtmlContent] = []
 
     # Add the translation words definition section.
-    linked_translation_words = tw_resource.get_translation_words_section(
+    linked_translation_words = tw_resource.translation_words_section(
         include_uses_section=False
     )
     html.extend(linked_translation_words)
@@ -1491,7 +1487,7 @@ def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
         # Add chapter intro for each language
         for tn_resource in tn_resources:
             # Add the translation notes chapter intro.
-            chapter_intro = _get_chapter_intro(tn_resource, chapter_num)
+            chapter_intro = _chapter_intro(tn_resource, chapter_num)
             html.append(model.HtmlContent(chapter_intro))
 
         # NOTE If we add macro-weave feature, it would go here, see
@@ -1532,7 +1528,7 @@ def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
 
             # Add the interleaved tn notes
             for tn_resource in tn_resources:
-                tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
+                tn_verses = tn_resource.verses_for_chapter(chapter_num)
                 if tn_verses and verse_num in tn_verses:
                     tn_verse_content = tn_resource.format_tn_verse(
                         chapter_num,
@@ -1543,7 +1539,7 @@ def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
 
             # Add the interleaved tq questions
             for tq_resource in tq_resources:
-                tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
+                tq_verses = tq_resource.verses_for_chapter(chapter_num)
                 # Add TQ verse content, if any
                 if tq_verses and verse_num in tq_verses:
                     tq_verse_content = _format_tq_verse(
@@ -1576,14 +1572,12 @@ def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
                     and verse_num
                     in usfm_resource2.chapter_content[chapter_num].chapter_verses
                 ):
-                    translation_word_links_html = (
-                        tw_resource.get_translation_word_links(
-                            chapter_num,
-                            verse_num,
-                            usfm_resource2.chapter_content[chapter_num].chapter_verses[
-                                verse_num
-                            ],
-                        )
+                    translation_word_links_html = tw_resource.translation_word_links(
+                        chapter_num,
+                        verse_num,
+                        usfm_resource2.chapter_content[chapter_num].chapter_verses[
+                            verse_num
+                        ],
                     )
                     html.extend(translation_word_links_html)
                 else:
@@ -1615,7 +1609,7 @@ def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
     # Add the translation word definitions
     for tw_resource in tw_resources:
         # Add the translation words definition section.
-        linked_translation_words = tw_resource.get_translation_words_section()
+        linked_translation_words = tw_resource.translation_words_section()
         html.extend(linked_translation_words)
 
     return model.HtmlContent("\n".join(html))
@@ -1675,7 +1669,7 @@ def _assemble_tn_as_iterator_content_by_verse_for_book_then_lang(
         # Add chapter intro for each language
         for tn_resource in tn_resources:
             # Add the translation notes chapter intro.
-            chapter_intro = _get_chapter_intro(tn_resource, chapter_num)
+            chapter_intro = _chapter_intro(tn_resource, chapter_num)
             html.append(model.HtmlContent(chapter_intro))
 
         # Use the first tn_resource as a verse_num pump
@@ -1684,7 +1678,7 @@ def _assemble_tn_as_iterator_content_by_verse_for_book_then_lang(
         ):
             # Add the interleaved tn notes
             for tn_resource in tn_resources:
-                tn_verses = tn_resource.get_verses_for_chapter(chapter_num)
+                tn_verses = tn_resource.verses_for_chapter(chapter_num)
                 if tn_verses and verse_num in tn_verses:
                     tn_verse_content = tn_resource.format_tn_verse(
                         chapter_num,
@@ -1695,7 +1689,7 @@ def _assemble_tn_as_iterator_content_by_verse_for_book_then_lang(
 
             # Add the interleaved tq questions
             for tq_resource in tq_resources:
-                tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
+                tq_verses = tq_resource.verses_for_chapter(chapter_num)
                 # Add TQ verse content, if any
                 if tq_verses and verse_num in tq_verses:
                     tq_verse_content = _format_tq_verse(
@@ -1728,21 +1722,19 @@ def _assemble_tn_as_iterator_content_by_verse_for_book_then_lang(
                     and verse_num
                     in usfm_resource2.chapter_content[chapter_num].chapter_verses
                 ):
-                    translation_word_links_html = (
-                        tw_resource.get_translation_word_links(
-                            chapter_num,
-                            verse_num,
-                            usfm_resource2.chapter_content[chapter_num].chapter_verses[
-                                verse_num
-                            ],
-                        )
+                    translation_word_links_html = tw_resource.translation_word_links(
+                        chapter_num,
+                        verse_num,
+                        usfm_resource2.chapter_content[chapter_num].chapter_verses[
+                            verse_num
+                        ],
                     )
                     html.extend(translation_word_links_html)
 
     # Add the translation word definitions
     for tw_resource in tw_resources:
         # Add the translation words definition section.
-        linked_translation_words = tw_resource.get_translation_words_section()
+        linked_translation_words = tw_resource.translation_words_section()
         html.extend(linked_translation_words)
 
     return model.HtmlContent("\n".join(html))
@@ -1793,7 +1785,7 @@ def _assemble_tq_as_iterator_content_by_verse_for_book_then_lang(
         ):
             # Add the interleaved tq questions
             for tq_resource in tq_resources:
-                tq_verses = tq_resource.get_verses_for_chapter(chapter_num)
+                tq_verses = tq_resource.verses_for_chapter(chapter_num)
                 # Add TQ verse content, if any
                 if tq_verses and verse_num in tq_verses:
                     tq_verse_content = _format_tq_verse(
@@ -1826,21 +1818,19 @@ def _assemble_tq_as_iterator_content_by_verse_for_book_then_lang(
                     and verse_num
                     in usfm_resource2.chapter_content[chapter_num].chapter_verses
                 ):
-                    translation_word_links_html = (
-                        tw_resource.get_translation_word_links(
-                            chapter_num,
-                            verse_num,
-                            usfm_resource2.chapter_content[chapter_num].chapter_verses[
-                                verse_num
-                            ],
-                        )
+                    translation_word_links_html = tw_resource.translation_word_links(
+                        chapter_num,
+                        verse_num,
+                        usfm_resource2.chapter_content[chapter_num].chapter_verses[
+                            verse_num
+                        ],
                     )
                     html.extend(translation_word_links_html)
 
     # Add the translation word definitions
     for tw_resource in tw_resources:
         # Add the translation words definition section.
-        linked_translation_words = tw_resource.get_translation_words_section()
+        linked_translation_words = tw_resource.translation_words_section()
         html.extend(linked_translation_words)
 
     return model.HtmlContent("\n".join(html))
@@ -1869,7 +1859,7 @@ def _assemble_tw_as_iterator_content_by_verse_for_book_then_lang(
     # Add the translation word definitions
     for tw_resource in tw_resources:
         # Add the translation words definition section.
-        linked_translation_words = tw_resource.get_translation_words_section(
+        linked_translation_words = tw_resource.translation_words_section(
             include_uses_section=False
         )
         html.extend(linked_translation_words)
@@ -1888,7 +1878,7 @@ def _format_tq_verse(
     verse: model.HtmlContent,
 ) -> list[model.HtmlContent]:
     """
-    This is a slightly different form of TQResource.get_tq_verse that is used
+    This is a slightly different form of TQResource.tq_verse that is used
     when no USFM or TN has been requested.
     """
     html: list[model.HtmlContent] = []
@@ -1923,7 +1913,7 @@ def _format_tq_verse(
 #     return html
 
 
-def _get_first_usfm_resource(resources: list[Resource]) -> Optional[USFMResource]:
+def _first_usfm_resource(resources: list[Resource]) -> Optional[USFMResource]:
     """
     Return the first USFMResource instance, if any, contained in resources,
     else return None.
@@ -1941,13 +1931,13 @@ def _get_first_usfm_resource(resources: list[Resource]) -> Optional[USFMResource
         # You'd have to choose which USFM resource types based on
         # which ones make sense for TN, TQ, TW, and TA to reference
         # them.
-        # NOTE See note on _get_second_usfm_resource for what else
+        # NOTE See note on _second_usfm_resource for what else
         # would need to be done to support this alternative.
     ]
     return usfm_resources[0] if usfm_resources else None
 
 
-def _get_second_usfm_resource(resources: list[Resource]) -> Optional[USFMResource]:
+def _second_usfm_resource(resources: list[Resource]) -> Optional[USFMResource]:
     """
     Return the second USFMResource instance, if any, contained in resources,
     else return None.
@@ -1969,12 +1959,12 @@ def _get_second_usfm_resource(resources: list[Resource]) -> Optional[USFMResourc
     # return usfm_resources[0] if usfm_resources else None
 
 
-def _get_usfm_resources(resources: list[Resource]) -> list[USFMResource]:
+def _usfm_resources(resources: list[Resource]) -> list[USFMResource]:
     """Return the USFMResource instances, if any, contained in resources."""
     return [resource for resource in resources if isinstance(resource, USFMResource)]
 
 
-def _get_tn_resource(resources: list[Resource]) -> Optional[TNResource]:
+def _tn_resource(resources: list[Resource]) -> Optional[TNResource]:
     """
     Return the TNResource instance, if any, contained in resources,
     else return None.
@@ -1985,12 +1975,12 @@ def _get_tn_resource(resources: list[Resource]) -> Optional[TNResource]:
     return tn_resources[0] if tn_resources else None
 
 
-def _get_tn_resources(resources: list[Resource]) -> list[TNResource]:
+def _tn_resources(resources: list[Resource]) -> list[TNResource]:
     """Return the TNResource instances, if any, contained in resources."""
     return [resource for resource in resources if isinstance(resource, TNResource)]
 
 
-def _get_tw_resource(resources: list[Resource]) -> Optional[TWResource]:
+def _tw_resource(resources: list[Resource]) -> Optional[TWResource]:
     """
     Return the TWResource instance, if any, contained in resources,
     else return None.
@@ -2001,12 +1991,12 @@ def _get_tw_resource(resources: list[Resource]) -> Optional[TWResource]:
     return tw_resources[0] if tw_resources else None
 
 
-def _get_tw_resources(resources: list[Resource]) -> list[TWResource]:
+def _tw_resources(resources: list[Resource]) -> list[TWResource]:
     """Return the TWResource instance, if any, contained in resources."""
     return [resource for resource in resources if isinstance(resource, TWResource)]
 
 
-def _get_tq_resource(resources: list[Resource]) -> Optional[TQResource]:
+def _tq_resource(resources: list[Resource]) -> Optional[TQResource]:
     """
     Return the TQResource instance, if any, contained in resources,
     else return None.
@@ -2017,12 +2007,12 @@ def _get_tq_resource(resources: list[Resource]) -> Optional[TQResource]:
     return tq_resources[0] if tq_resources else None
 
 
-def _get_tq_resources(resources: list[Resource]) -> list[TQResource]:
+def _tq_resources(resources: list[Resource]) -> list[TQResource]:
     """Return the TQResource instance, if any, contained in resources."""
     return [resource for resource in resources if isinstance(resource, TQResource)]
 
 
-def _get_ta_resource(resources: list[Resource]) -> Optional[TAResource]:
+def _ta_resource(resources: list[Resource]) -> Optional[TAResource]:
     """
     Return the TAResource instance, if any, contained in resources,
     else return None.
@@ -2033,7 +2023,7 @@ def _get_ta_resource(resources: list[Resource]) -> Optional[TAResource]:
     return ta_resources[0] if ta_resources else None
 
 
-def _get_ta_resources(resources: list[Resource]) -> list[TAResource]:
+def _ta_resources(resources: list[Resource]) -> list[TAResource]:
     """Return the TAResource instance, if any, contained in resources."""
     return [resource for resource in resources if isinstance(resource, TAResource)]
 
@@ -2059,7 +2049,7 @@ def _adjust_chapter_intro_headings(chapter_intro: str) -> model.HtmlContent:
     return model.HtmlContent(re.sub(H6, H5, chapter_intro))
 
 
-def _get_chapter_intro(
+def _chapter_intro(
     tn_resource: TNResource, chapter_num: model.ChapterNum
 ) -> model.HtmlContent:
     """Get the chapter intro."""

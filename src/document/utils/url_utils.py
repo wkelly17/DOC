@@ -4,19 +4,19 @@ from urllib.request import urlopen
 
 from document.config import settings
 
-logger = settings.get_logger(__name__)
+logger = settings.logger(__name__)
 
 
-def get_url(url: str, catch_exception: bool = False) -> str:
+def url(url: str, catch_exception: bool = False) -> str:
     """
     :param str|unicode url: URL to open
     :param bool catch_exception: If <True> catches all exceptions and returns <False>
     """
-    return _get_url(url, catch_exception)
+    return _url(url, catch_exception)
 
 
 # FIXME Improve this legacy code
-def _get_url(url: str, catch_exception: bool) -> str:
+def _url(url: str, catch_exception: bool) -> str:
     if catch_exception:
         # noinspection PyBroadException
         try:

@@ -13,14 +13,14 @@ import icontract
 from document.config import settings
 from document.domain import model
 
-logger = settings.get_logger(__name__)
+logger = settings.logger(__name__)
 
 TW = "tw"
 
 
 @icontract.require(lambda resource_dir: resource_dir)
 @icontract.ensure(lambda result: result)
-def get_translation_word_filepaths(resource_dir: str) -> list[str]:
+def translation_word_filepaths(resource_dir: str) -> list[str]:
     """
     Get the file paths to the translation word files for the
     TWResource instance.
@@ -33,7 +33,7 @@ def get_translation_word_filepaths(resource_dir: str) -> list[str]:
 
 @icontract.require(lambda translation_word_content: translation_word_content)
 @icontract.ensure(lambda result: result)
-def get_localized_translation_word(
+def localized_translation_word(
     translation_word_content: model.MarkdownContent,
 ) -> model.LocalizedWord:
     """
@@ -58,7 +58,7 @@ def get_localized_translation_word(
 
 
 @icontract.require(lambda lang_code: lang_code)
-def get_tw_resource_dir(lang_code: str) -> Optional[str]:
+def tw_resource_dir(lang_code: str) -> Optional[str]:
     """
     Return the location of the TW resource asset directory given the
     lang_code of the language under consideration. The location is
@@ -99,10 +99,10 @@ def translation_words_dict(tw_resource_dir: Optional[str]) -> dict[str, str]:
     """
     translation_words_dict: dict[str, str] = {}
     if tw_resource_dir is not None:
-        translation_word_filepaths = get_translation_word_filepaths(tw_resource_dir)
+        filepaths = translation_word_filepaths(tw_resource_dir)
         translation_words_dict = {
             pathlib.Path(os.path.basename(word_filepath)).stem: word_filepath
-            for word_filepath in translation_word_filepaths
+            for word_filepath in filepaths
         }
     return translation_words_dict
 

@@ -1835,8 +1835,6 @@ def test_en_ulb_wa_rom_en_tn_wa_rom_en_tq_wa_rom_en_tw_wa_rom_book_language_orde
         check_finished_document_with_verses_success(response, finished_document_path)
 
 
-# BUG See output in ~/.ghq/bitbucket.org/foobar77/timesheets/worklog3.org [[id:6F839365-1C34-4F36-B056-A91B8E5E92B5][Logs]]
-# @pytest.mark.skip
 def test_en_ulb_wa_rom_en_tn_wa_rom_en_tq_wa_rom_en_tw_wa_rom_es_419_ulb_rom_es_419_tn_rom_en_tq_rom_es_419_tw_rom_book_language_order() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(

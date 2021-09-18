@@ -11,7 +11,7 @@ from document.domain import bible_books, model
 from document.markdown_extensions import link_regexes
 from document.utils import file_utils, tw_utils
 
-logger = settings.get_logger(__name__)
+logger = settings.logger(__name__)
 
 TN = "tn"
 TW = "tw"
@@ -118,7 +118,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                     self._translation_words_dict[filename_sans_suffix]
                 )
                 # Get the localized name for the translation word.
-                localized_translation_word = tw_utils.get_localized_translation_word(
+                localized_translation_word = tw_utils.localized_translation_word(
                     file_content
                 )
                 # Build the anchor link.
@@ -164,7 +164,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                     self._translation_words_dict[filename_sans_suffix]
                 )
                 # Get the localized name for the translation word
-                localized_translation_word = tw_utils.get_localized_translation_word(
+                localized_translation_word = tw_utils.localized_translation_word(
                     file_content
                 )
                 # Build the anchor links
@@ -219,7 +219,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                     self._translation_words_dict[filename_sans_suffix]
                 )
                 # Get the localized name for the translation word
-                localized_translation_word = tw_utils.get_localized_translation_word(
+                localized_translation_word = tw_utils.localized_translation_word(
                     file_content
                 )
                 # Build the anchor links
@@ -273,7 +273,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                     self._translation_words_dict[filename_sans_suffix]
                 )
                 # Get the localized name for the translation word
-                localized_translation_word = tw_utils.get_localized_translation_word(
+                localized_translation_word = tw_utils.localized_translation_word(
                     file_content
                 )
                 # Build the anchor links

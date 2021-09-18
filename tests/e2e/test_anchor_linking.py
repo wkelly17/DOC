@@ -12,7 +12,7 @@ from termcolor import colored
 
 from document.config import settings
 
-logger = settings.get_logger(__name__)
+logger = settings.logger(__name__)
 
 ANCHOR_SOURCE_LINK_REGEX = r"\<a.*href=\"\#(?P<source_ref>.*?)\"\>"
 ANCHOR_DESTINATION_LINK = r' id=(?:"|\'){}(?:"|\')'

@@ -33,7 +33,7 @@ from document.domain.resource import (
 )
 from document.utils import file_utils
 
-logger = settings.get_logger(__name__)
+logger = settings.logger(__name__)
 
 COMMASPACE = ", "
 HYPHEN = "-"

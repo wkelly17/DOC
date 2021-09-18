@@ -7,7 +7,7 @@ from markdown.preprocessors import Preprocessor
 
 from document.config import settings
 
-logger = settings.get_logger(__name__)
+logger = settings.logger(__name__)
 
 
 class RemoveSectionPreprocessor(Preprocessor):
