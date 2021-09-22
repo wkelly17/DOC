@@ -17,7 +17,6 @@ from logdecorator import log_on_end, log_on_start
 
 from document.config import settings
 from document.domain import model
-from document.domain.resource import Resource
 from document.utils import file_utils, url_utils
 
 logger = settings.logger(__name__)
@@ -80,52 +79,25 @@ class ResourceJsonLookup:
     # def _get_data(self) -> None:
     #     self._source_data_fetcher._get_data()
 
-    @icontract.require(lambda resource: resource.lang_code == "en" and resource.resource_type)
-    @icontract.ensure(lambda result: result and result.url and result.source == model.AssetSourceEnum.GIT)
-    @log_on_start(
-        logging.INFO,
-        "About to look for English resource assets URL for git repo",
-        logger=logger,
-    )
-    def _get_english_git_repo_location(
-        self, resource: Resource
-    ) -> model.ResourceLookupDto:
-        """
-        If successful, return a string containing the URL of repo,
-        otherwise return None.
-        """
-        url: str = settings.english_git_repo_url(resource.resource_type)
-        return model.ResourceLookupDto(
-            url=url,
-            source=model.AssetSourceEnum.GIT,
-            jsonpath=None,
-            lang_name="English",
-            resource_type_name=settings.english_resource_type_name(resource.resource_type),
-        )
 
     @icontract.require(
-        lambda resource: resource.lang_code is not None
-        and resource.resource_type is not None
-        and resource.resource_code is not None
+        lambda lang_code, resource_type, resource_code: lang_code is not None
+        and resource_type is not None
+        and resource_code is not None
     )
     @icontract.ensure(
         lambda result: result.source == model.AssetSourceEnum.GIT
         and result.jsonpath is not None
         # and result.lang_name
     )
-    @log_on_start(
-        logging.INFO,
-        "About to look for resource assets URL for git repo.",
-        logger=logger,
-    )
-    def _try_git_repo_location(self, resource: Resource) -> model.ResourceLookupDto:
+    def _try_git_repo_location(self, lang_code: str, resource_type: str, resource_code: str) -> model.ResourceLookupDto:
         """
         If successful, return a string containing the URL of USFM
         repo, otherwise return None.
         """
         url: Optional[str] = None
         jsonpath_str = settings.RESOURCE_DOWNLOAD_FORMAT_JSONPATH.format(
-            resource.lang_code, resource.resource_type, resource.resource_code,
+            lang_code, resource_type, resource_code,
         )
         urls: list[str] = self._lookup(jsonpath_str)
         if urls:
@@ -133,7 +105,7 @@ class ResourceJsonLookup:
             # the repo URL
             url = self._parse_repo_url_from_json_url(urls[0])
         lang_name_jsonpath_str = settings.RESOURCE_LANG_NAME_JSONPATH.format(
-            resource.lang_code
+            lang_code
         )
         lang_name_lst: list[str] = self._lookup(lang_name_jsonpath_str)
         if lang_name_lst:
@@ -141,7 +113,7 @@ class ResourceJsonLookup:
         else:
             lang_name = ""
         resource_type_name_jsonpath_str = settings.RESOURCE_TYPE_NAME_JSONPATH.format(
-            resource.lang_code, resource.resource_type
+            lang_code, resource_type
         )
         resource_type_name_lst: list[str] = self._lookup(resource_type_name_jsonpath_str)
         if resource_type_name_lst:
@@ -156,20 +128,6 @@ class ResourceJsonLookup:
             resource_type_name=resource_type_name,
         )
 
-    @icontract.require(
-        lambda self, json_path: self.json_data is not None and json_path is not None
-    )
-    @icontract.ensure(lambda result: result is not None)
-    @log_on_start(logging.DEBUG, "json_path: {json_path}")
-    def _lookup(self, json_path: str) -> list[str]:
-        """Return jsonpath value or empty list if JSON node doesn't exist."""
-        self._get_data()
-        value: list[str] = jp.match(
-            json_path, self.json_data,
-        )
-        logger.debug("value[:4] from translations.json: %s", value[:4])
-        value_set: set = set(value)
-        return list(value_set)
 
     @icontract.require(lambda url, repo_url_dict_key: url and repo_url_dict_key)
     def _parse_repo_url_from_json_url(
@@ -190,6 +148,39 @@ class ResourceJsonLookup:
             return result_lst[0]
         return None
 
+
+    @icontract.require(
+        lambda self, json_path: self.json_data is not None and json_path is not None
+    )
+    @icontract.ensure(lambda result: result is not None)
+    @log_on_start(logging.DEBUG, "json_path: {json_path}")
+    def _lookup(self, json_path: str) -> list[str]:
+        """Return jsonpath value or empty list if JSON node doesn't exist."""
+        # self._data()
+        value: list[str] = jp.match(
+            json_path, self.json_data,
+        )
+        logger.debug("value[:4] from translations.json: %s", value[:4])
+        value_set: set = set(value)
+        return list(value_set)
+
+@icontract.require(lambda resource_type: resource_type)
+@icontract.ensure(lambda result: result and result.url and result.source == model.AssetSourceEnum.GIT)
+def _english_git_repo_location(
+    resource_type: str
+) -> model.ResourceLookupDto:
+    """
+    If successful, return a string containing the URL of repo,
+    otherwise return None.
+    """
+    url: str = settings.english_git_repo_url(resource_type)
+    return model.ResourceLookupDto(
+        url=url,
+        source=model.AssetSourceEnum.GIT,
+        jsonpath=None,
+        lang_name="English",
+        resource_type_name=settings.english_resource_type_name(resource_type),
+    )
 
 class SourceDataFetcher:
     """
@@ -246,7 +237,6 @@ class ResourceLookup(abc.ABC):
     """
 
     @abc.abstractmethod
-    def lookup(self, resource: Resource) -> model.ResourceLookupDto:
         """
         Given a resource, comprised of language code, e.g., 'en', a
         resource type, e.g., 'ulb-wa', and a resource code, e.g., 'gen',
@@ -255,6 +245,7 @@ class ResourceLookup(abc.ABC):
         Subclasses implement.
         """
         raise NotImplementedError
+    def lookup(self, lang_code: str, resource_type: str, resource_code: str) -> model.ResourceLookupDto: ...
 
 
 class USFMResourceJsonLookup(ResourceLookup):
@@ -278,13 +269,13 @@ class USFMResourceJsonLookup(ResourceLookup):
 
     @icontract.require(lambda self: self.json_data is not None)
     @icontract.require(
-        lambda resource: resource.lang_code is not None
-        and resource.resource_type is not None
-        and resource.resource_code is not None
+        lambda lang_code, resource_type, resource_code: lang_code is not None
+        and resource_type is not None
+        and resource_code is not None
     )
     @icontract.ensure(lambda result: result is not None)
     @log_on_end(logging.DEBUG, "model.ResourceLookupDto: {result}", logger=logger)
-    def lookup(self, resource: Resource) -> model.ResourceLookupDto:
+    def lookup(self, lang_code: str, resource_type: str, resource_code: str) -> model.ResourceLookupDto:
         """
         Given a resource, comprised of language code, e.g., 'en', a
         resource type, e.g., 'ulb-wa', and a resource code, e.g., 'gen',
@@ -298,45 +289,40 @@ class USFMResourceJsonLookup(ResourceLookup):
         # our purposes. Therefore, we have this guard to handle
         # English resource requests separately and outside of
         # translations.json by retrieving them from their git repos.
-        if resource.lang_code == "en":
-            return self._get_english_git_repo_location(resource)
+        if lang_code == "en":
+            return _english_git_repo_location(resource_type)
 
         # Prefer getting USFM files individually rather than
         # introducing the latency of cloning a git repo.
-        resource_lookup_dto = self._try_individual_usfm_location(resource)
+        resource_lookup_dto = self._try_individual_usfm_location(lang_code, resource_type, resource_code)
 
         # Individual USFM file was not available, now try getting it
         # from a git repo.
         if resource_lookup_dto.url is None:
-            resource_lookup_dto = self._try_git_repo_location(resource)
+            resource_lookup_dto = self._try_git_repo_location(lang_code, resource_type, resource_code)
 
         if resource_lookup_dto.url is None:
-            resource_lookup_dto = self._try_level1_location(resource)
+            resource_lookup_dto = self._try_level1_location(lang_code, resource_type, resource_code)
 
         return resource_lookup_dto
 
     @icontract.require(
-        lambda resource: resource.lang_code is not None
-        and resource.resource_type is not None
-        and resource.resource_code is not None
+        lambda lang_code, resource_type, resource_code: lang_code is not None
+        and resource_type is not None
+        and resource_code is not None
     )
     @icontract.ensure(
         lambda result: result.source == model.AssetSourceEnum.USFM
         and result.jsonpath is not None
         # and result.lang_name
     )
-    @log_on_start(
-        logging.INFO,
-        "About to look for resource assets URL for individual USFM file.",
-        logger=logger,
-    )
     @log_on_end(logging.DEBUG, "model.ResourceLookupDto: {result}", logger=logger)
     def _try_individual_usfm_location(
-        self, resource: Resource
+            self, lang_code: str, resource_type: str, resource_code: str
     ) -> model.ResourceLookupDto:
         """
-        If successful, return a string containing the URL of USFM
-        file, otherwise None.
+        If successful, return a model.ResourceLookupDto subclass
+        instance.
         """
         # Many languages have a git repo found by
         # format='Download' that is parallel to the
@@ -356,13 +342,13 @@ class USFMResourceJsonLookup(ResourceLookup):
         # having a zip containing USFM files at the same level.
         url: Optional[str] = None
         jsonpath_str = settings.INDIVIDUAL_USFM_URL_JSONPATH.format(
-            resource.lang_code, resource.resource_type, resource.resource_code,
+            lang_code, resource_type, resource_code,
         )
         urls: list[str] = self._lookup(jsonpath_str)
         if urls:
             url = urls[0]
         lang_name_jsonpath_str = settings.RESOURCE_LANG_NAME_JSONPATH.format(
-            resource.lang_code
+            lang_code
         )
         lang_name_lst: list[str] = self._lookup(lang_name_jsonpath_str)
         if lang_name_lst:
@@ -370,7 +356,7 @@ class USFMResourceJsonLookup(ResourceLookup):
         else:
             lang_name = ""
         resource_type_name_jsonpath_str = settings.RESOURCE_TYPE_NAME_JSONPATH.format(
-            resource.lang_code, resource.resource_type
+            lang_code, resource_type
         )
         resource_type_name_lst: list[str] = self._lookup(resource_type_name_jsonpath_str)
         if resource_type_name_lst:
@@ -386,23 +372,18 @@ class USFMResourceJsonLookup(ResourceLookup):
         )
 
     @icontract.require(
-        lambda resource: resource.lang_code is not None
-        and resource.resource_type is not None
-        and resource.resource_code is not None
+        lambda lang_code, resource_type, resource_code: lang_code is not None
+        and resource_type is not None
+        and resource_code is not None
     )
     @icontract.ensure(
         lambda result: result.source == model.AssetSourceEnum.ZIP
         and result.jsonpath is not None
         # and result.lang_name
     )
-    @log_on_start(
-        logging.INFO,
-        "About to look for resource assets URL for zipped USFM file.",
-        logger=logger,
-    )
     @log_on_end(logging.DEBUG, "model.ResourceLookupDto: {result}", logger=logger)
     def _try_level1_location(
-        self, resource: Resource
+            self, lang_code: str, resource_type: str, resource_code: str
     ) -> model.ResourceLookupDto:
         """
         If successful, return a string containing the URL of USFM
@@ -426,13 +407,13 @@ class USFMResourceJsonLookup(ResourceLookup):
         # having a zip containing USFM files at the same level.
         url: Optional[str] = None
         jsonpath_str = settings.RESOURCE_URL_LEVEL1_JSONPATH.format(
-            resource.lang_code, resource.resource_type, resource.resource_code,
+            lang_code, resource_type, resource_code,
         )
         urls: list[str] = self._lookup(jsonpath_str)
         if urls:
             url = urls[0]
         lang_name_jsonpath_str = settings.RESOURCE_LANG_NAME_JSONPATH.format(
-            resource.lang_code
+            lang_code
         )
         lang_name_lst: list[str] = self._lookup(lang_name_jsonpath_str)
         if lang_name_lst:
@@ -440,7 +421,7 @@ class USFMResourceJsonLookup(ResourceLookup):
         else:
             lang_name = ""
         resource_type_name_jsonpath_str = settings.RESOURCE_TYPE_NAME_JSONPATH.format(
-            resource.lang_code, resource.resource_type
+            lang_code, resource_type
         )
         resource_type_name_lst: list[str] = self._lookup(resource_type_name_jsonpath_str)
         if resource_type_name_lst:
@@ -476,16 +457,16 @@ class TResourceJsonLookup(ResourceLookup):
 
     @icontract.require(lambda self: self.json_data is not None)
     @icontract.require(
-        lambda resource: resource.lang_code is not None
-        and resource.resource_type is not None
-        and resource.resource_code is not None
+        lambda lang_code, resource_type, resource_code: lang_code is not None
+        and resource_type is not None
+        and resource_code is not None
     )
     @icontract.ensure(lambda result: result is not None)
-    def lookup(self, resource: Resource) -> model.ResourceLookupDto:
+    def lookup(self, lang_code: str, resource_type: str, resource_code: str) -> model.ResourceLookupDto:
         """
         Given a resource, comprised of language code, e.g., 'wum', a
         resource type, e.g., 'tn', and a resource code, e.g., 'gen',
-        return URL for resource.
+        return model.ResourceLookupDto instance for resource.
         """
         resource_lookup_dto: model.ResourceLookupDto
 
@@ -494,30 +475,30 @@ class TResourceJsonLookup(ResourceLookup):
         # our purposes. Therefore, we have this guard to handle
         # English resource requests separately outside of
         # translations.json.
-        if resource.lang_code == "en":
-            return self._get_english_git_repo_location(resource)
+        if lang_code == "en":
+            return _english_git_repo_location(resource_type)
 
-        resource_lookup_dto = self._try_level1_location(resource)
+        resource_lookup_dto = self._try_level1_location(lang_code, resource_type)
         if resource_lookup_dto.url is None:
-            resource_lookup_dto = self._try_level2_location(resource)
-
-        if resource_lookup_dto.url is None:
-            resource_lookup_dto = self._try_level1_sans_resource_code_location(resource)
+            resource_lookup_dto = self._try_level2_location(lang_code, resource_type)
 
         if resource_lookup_dto.url is None:
-            resource_lookup_dto = self._try_level2_sans_resource_code_location(resource)
+            resource_lookup_dto = self._try_level1_sans_resource_code_location(lang_code, resource_type)
+
+        if resource_lookup_dto.url is None:
+            resource_lookup_dto = self._try_level2_sans_resource_code_location(lang_code, resource_type)
 
         return resource_lookup_dto
 
     @icontract.require(
-        lambda resource: resource.lang_code is not None
-        and resource.resource_type is not None
+        lambda lang_code, resource_type: lang_code is not None
+        and resource_type is not None
     )
     @icontract.ensure(
         lambda result: result.source == model.AssetSourceEnum.ZIP
         and result.jsonpath is not None
     )
-    def _try_level1_location(self, resource: Resource) -> model.ResourceLookupDto:
+    def _try_level1_location(self, lang_code: str, resource_type: str) -> model.ResourceLookupDto:
         """
         If successful, return a string containing the URL of Markdown
         zip file, otherwise return None. Some resources bundle all
@@ -529,13 +510,13 @@ class TResourceJsonLookup(ResourceLookup):
         """
         url: Optional[str] = None
         jsonpath_str = settings.RESOURCE_URL_LEVEL1_JSONPATH.format(
-            resource.lang_code, resource.resource_type,
+            lang_code, resource_type,
         )
         urls: list[str] = self._lookup(jsonpath_str)
         if urls:
             url = urls[0]
         lang_name_jsonpath_str = settings.RESOURCE_LANG_NAME_JSONPATH.format(
-            resource.lang_code
+            lang_code
         )
         lang_name_lst: list[str] = self._lookup(lang_name_jsonpath_str)
         if lang_name_lst:
@@ -543,7 +524,7 @@ class TResourceJsonLookup(ResourceLookup):
         else:
             lang_name = ""
         resource_type_name_jsonpath_str = settings.RESOURCE_TYPE_NAME_JSONPATH.format(
-            resource.lang_code, resource.resource_type
+            lang_code, resource_type
         )
         resource_type_name_lst: list[str] = self._lookup(resource_type_name_jsonpath_str)
         if resource_type_name_lst:
@@ -558,24 +539,23 @@ class TResourceJsonLookup(ResourceLookup):
             resource_type_name=resource_type_name,
         )
 
-    @icontract.require(lambda resource: resource.lang_code is not None)
-    @icontract.require(lambda resource: resource.resource_type is not None)
+    @icontract.require(lambda lang_code, resource_type: lang_code is not None and resource_type is not None)
     @icontract.ensure(lambda result: result.source == model.AssetSourceEnum.ZIP)
     @icontract.ensure(lambda result: result.jsonpath is not None)
-    def _try_level2_location(self, resource: Resource) -> model.ResourceLookupDto:
+    def _try_level2_location(self, lang_code: str, resource_type: str) -> model.ResourceLookupDto:
         """
         If successful, return a string containing the URL of Markdown
         zip file, otherwise return None.
         """
         url: Optional[str] = None
         jsonpath_str = settings.RESOURCE_URL_LEVEL2_JSONPATH.format(
-            resource.lang_code, resource.resource_type,
+            lang_code, resource_type,
         )
         urls: list[str] = self._lookup(jsonpath_str)
         if urls:
             url = urls[0]
         lang_name_jsonpath_str = settings.RESOURCE_LANG_NAME_JSONPATH.format(
-            resource.lang_code
+            lang_code
         )
         lang_name_lst: list[str] = self._lookup(lang_name_jsonpath_str)
         if lang_name_lst:
@@ -583,7 +563,7 @@ class TResourceJsonLookup(ResourceLookup):
         else:
             lang_name = ""
         resource_type_name_jsonpath_str = settings.RESOURCE_TYPE_NAME_JSONPATH.format(
-            resource.lang_code, resource.resource_type
+            lang_code, resource_type
         )
         resource_type_name_lst: list[str] = self._lookup(resource_type_name_jsonpath_str)
         if resource_type_name_lst:
@@ -598,12 +578,11 @@ class TResourceJsonLookup(ResourceLookup):
             resource_type_name=resource_type_name,
         )
 
-    @icontract.require(lambda resource: resource.lang_code is not None)
-    @icontract.require(lambda resource: resource.resource_type is not None)
+    @icontract.require(lambda lang_code, resource_type: lang_code is not None and resource_type is not None)
     @icontract.ensure(lambda result: result.source == model.AssetSourceEnum.ZIP)
     @icontract.ensure(lambda result: result.jsonpath is not None)
     def _try_level1_sans_resource_code_location(
-        self, resource: Resource
+            self, lang_code: str, resource_type: str
     ) -> model.ResourceLookupDto:
         """
         If successful, return a string containing the URL of the
@@ -615,13 +594,13 @@ class TResourceJsonLookup(ResourceLookup):
         # the chapter level of the translations.json file.
         url: Optional[str] = None
         jsonpath_str = settings.RESOURCE_URL_LEVEL1_JSONPATH.format(
-            resource.lang_code, resource.resource_type,
+            lang_code, resource_type,
         )
         urls: list[str] = self._lookup(jsonpath_str)
         if urls:
             url = urls[0]
         lang_name_jsonpath_str = settings.RESOURCE_LANG_NAME_JSONPATH.format(
-            resource.lang_code
+            lang_code
         )
         lang_name_lst: list[str] = self._lookup(lang_name_jsonpath_str)
         if lang_name_lst:
@@ -629,7 +608,7 @@ class TResourceJsonLookup(ResourceLookup):
         else:
             lang_name = ""
         resource_type_name_jsonpath_str = settings.RESOURCE_TYPE_NAME_JSONPATH.format(
-            resource.lang_code, resource.resource_type
+            lang_code, resource_type
         )
         resource_type_name_lst: list[str] = self._lookup(resource_type_name_jsonpath_str)
         if resource_type_name_lst:
@@ -644,12 +623,11 @@ class TResourceJsonLookup(ResourceLookup):
             resource_type_name=resource_type_name,
         )
 
-    @icontract.require(lambda resource: resource.lang_code is not None)
-    @icontract.require(lambda resource: resource.resource_type is not None)
+    @icontract.require(lambda lang_code, resource_type: lang_code is not None and resource_type is not None)
     @icontract.ensure(lambda result: result.source == model.AssetSourceEnum.ZIP)
     @icontract.ensure(lambda result: result.jsonpath is not None)
     def _try_level2_sans_resource_code_location(
-        self, resource: Resource
+            self, lang_code: str, resource_type: str
     ) -> model.ResourceLookupDto:
         """
         For the language in question, the resource is apparently at
@@ -659,13 +637,13 @@ class TResourceJsonLookup(ResourceLookup):
         """
         url: Optional[str] = None
         jsonpath_str = settings.RESOURCE_URL_LEVEL2_JSONPATH.format(
-            resource.lang_code, resource.resource_type,
+            lang_code, resource_type,
         )
         urls: list[str] = self._lookup(jsonpath_str)
         if urls:
             url = urls[0]
         lang_name_jsonpath_str = settings.RESOURCE_LANG_NAME_JSONPATH.format(
-            resource.lang_code
+            lang_code
         )
         lang_name_results: list[str] = self._lookup(lang_name_jsonpath_str)
         if lang_name_results:
@@ -673,7 +651,7 @@ class TResourceJsonLookup(ResourceLookup):
         else:
             lang_name = ""
         resource_type_name_jsonpath_str = settings.RESOURCE_TYPE_NAME_JSONPATH.format(
-            resource.lang_code, resource.resource_type
+            lang_code, resource_type
         )
         resource_type_name_results: list[str] = self._lookup(resource_type_name_jsonpath_str)
         if resource_type_name_results:
