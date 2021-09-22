@@ -7,18 +7,13 @@ from document.config import settings
 logger = settings.logger(__name__)
 
 
+# FIXME Improve this legacy code
 def url(url: str, catch_exception: bool = False) -> str:
     """
     :param str|unicode url: URL to open
     :param bool catch_exception: If <True> catches all exceptions and returns <False>
     """
-    return _url(url, catch_exception)
-
-
-# FIXME Improve this legacy code
-def _url(url: str, catch_exception: bool) -> str:
     if catch_exception:
-        # noinspection PyBroadException
         try:
             with closing(urlopen(url)) as request:
                 response = request.read()
@@ -28,8 +23,7 @@ def _url(url: str, catch_exception: bool) -> str:
         with closing(urlopen(url)) as request:
             response = request.read()
 
-    # convert bytes to str (Python 3.5)
-    # if type(response) is bytes:
+    # Convert bytes to str (
     if isinstance(response, bytes):
         return response.decode("utf-8")
     return response
@@ -37,10 +31,6 @@ def _url(url: str, catch_exception: bool) -> str:
 
 def download_file(url: str, outfile: str) -> None:
     """Downloads a file and saves it."""
-    _download_file(url, outfile)
-
-
-def _download_file(url: str, outfile: str) -> None:
     try:
         with closing(urlopen(url)) as request:
             with open(outfile, "wb") as fp:

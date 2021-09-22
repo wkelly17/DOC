@@ -394,24 +394,22 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
             # asset file referenced in the matched link we must know that said TN
             # resource identified by the lang_code/resource_type/resource_code combo
             # in the link has been requested by the user in the DocumentRequest.
-            matching_resource_requests: list[model.ResourceRequest] = [
+            tn_resource_requests: list[model.ResourceRequest] = [
                 resource_request
                 for resource_request in self._resource_requests
                 if resource_request.lang_code == lang_code
                 and TN in resource_request.resource_type
                 and resource_request.resource_code == resource_code
             ]
-            if matching_resource_requests:
-                matching_resource_request: model.ResourceRequest = (
-                    matching_resource_requests[0]
-                )
+            if tn_resource_requests:
+                tn_resource_request: model.ResourceRequest = tn_resource_requests[0]
                 # Build a file path to the TN note being requested.
                 first_resource_path_segment = "{}_{}".format(
-                    matching_resource_request.lang_code,
-                    matching_resource_request.resource_type,
+                    tn_resource_request.lang_code,
+                    tn_resource_request.resource_type,
                 )
                 second_resource_path_segment = "{}_tn".format(
-                    matching_resource_request.lang_code
+                    tn_resource_request.lang_code
                 )
                 path = "{}.md".format(
                     os.path.join(
@@ -427,9 +425,9 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                     # Create anchor link to translation note
                     new_link = settings.TRANSLATION_NOTE_ANCHOR_LINK_FMT_STR.format(
                         scripture_ref,
-                        matching_resource_request.lang_code,
+                        tn_resource_request.lang_code,
                         bible_books.BOOK_NUMBERS[
-                            matching_resource_request.resource_code
+                            tn_resource_request.resource_code
                         ].zfill(3),
                         chapter_num.zfill(3),
                         verse_ref.zfill(3),

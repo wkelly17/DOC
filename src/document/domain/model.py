@@ -39,7 +39,7 @@ VerseRef = NewType("VerseRef", str)
 class ResourceRequest(BaseModel):
     """
     This class is used to encode a request for a resource, e.g.,
-    language 'English', resource type 'ulb', resource code, i.e.,
+    language 'English', en, resource type 'ulb', resource code, i.e.,
     book, 'gen'. A document request composes n of these resource
     request instances. Because this class inherits from pydantic's
     BaseModel we get validation and JSON serialization for free.

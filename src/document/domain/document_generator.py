@@ -70,42 +70,42 @@ def _update_found_resources_with_content(
     return unloaded_resources
 
 
-def _document_request_key(document_request: model.DocumentRequest) -> str:
+def _document_request_key(
+    resource_requests: list[model.ResourceRequest], assembly_strategy_kind: str
+) -> str:
     """
     Create and return the document_request_key. The
     document_request_key uniquely identifies a document request.
     """
     document_request_key = ""
-    for resource in document_request.resource_requests:
+    for resource_request in resource_requests:
         document_request_key += (
             HYPHEN.join(
                 [
-                    resource.lang_code,
-                    resource.resource_type,
-                    resource.resource_code,
+                    resource_request.lang_code,
+                    resource_request.resource_type,
+                    resource_request.resource_code,
                 ]
             )
             + UNDERSCORE
         )
-    return "{}_{}".format(
-        document_request_key[:-1], document_request.assembly_strategy_kind
-    )
+    return "{}_{}".format(document_request_key[:-1], assembly_strategy_kind)
 
 
-def _initialize_resources(
-    document_request: model.DocumentRequest,
+def _resources_from(
+    resource_requests: list[model.ResourceRequest],
 ) -> Generator[Resource, None, None]:
     """
     Given a DocumentRequest, return a list of Resource
     instances, one for each ResourceRequest in the
     DocumentRequest.
     """
-    for resource_request in document_request.resource_requests:
+    for resource_request in resource_requests:
         yield resource_factory(
             settings.working_dir(),
             settings.output_dir(),
             resource_request,
-            document_request.resource_requests,
+            resource_requests,
         )
 
 
@@ -370,8 +370,10 @@ def run(document_request: model.DocumentRequest) -> tuple[str, str]:
     This is the main entry point for this module and the
     backend system as a whole.
     """
-    resources = _initialize_resources(document_request)
-    document_request_key = _document_request_key(document_request)
+    resources = _resources_from(document_request.resource_requests)
+    document_request_key = _document_request_key(
+        document_request.resource_requests, document_request.assembly_strategy_kind
+    )
     output_filename = _pdf_output_filename(document_request_key)
 
     # Immediately return pre-built PDF if the document previously been
@@ -382,6 +384,8 @@ def run(document_request: model.DocumentRequest) -> tuple[str, str]:
         unfound_resources, found_resources = partition(
             lambda resource: resource.find_location(), resources
         )
+        # Need to use items produced by these two generators again so
+        # materialize them into a list.
         found_resources_list = list(found_resources)
         unfound_resources_list = list(unfound_resources)
 

@@ -19,7 +19,7 @@ TW = "tw"
 
 
 @icontract.require(lambda resource_dir: resource_dir)
-@icontract.ensure(lambda result: result)
+@icontract.ensure(lambda result: result is not None)
 def translation_word_filepaths(resource_dir: str) -> list[str]:
     """
     Get the file paths to the translation word files for the

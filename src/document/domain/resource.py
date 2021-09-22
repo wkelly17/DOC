@@ -10,9 +10,10 @@ import logging  # For logdecorator
 import os
 import pathlib
 import re
+import shutil
 import subprocess
 from glob import glob
-from typing import Any, Optional
+from typing import Any, Optional, Protocol
 
 import bs4
 import icontract
@@ -36,16 +37,10 @@ H1, H2, H3, H4 = "h1", "h2", "h3", "h4"
 
 class Resource:
     """
-    Reification of the incoming document resource request
+    Built from the incoming document resource request
     fortified with additional state as instance variables.
     """
 
-    @icontract.require(
-        lambda working_dir, output_dir, resource_request, resource_requests: working_dir
-        and output_dir
-        and resource_request
-        and resource_requests
-    )
     def __init__(
         self,
         # This is where resource asset files get downloaded to and
@@ -61,100 +56,67 @@ class Resource:
     ) -> None:
         self._working_dir = working_dir
         self._output_dir = output_dir
-        # DESIGN-ISSUE Avail the resource of the ResourceRequest instances from
+        # DESIGN-ISSUE Avail the resource of the ResourceRequest instances in
         # the DocumentRequest so that it can in turn hand thenm to the
         # LinkTransformerExtension which in turn will use it to determine if
         # link references in markdown content point at a resource that was
         # actually requested, i.e., part of the DocumentRequest or not, and can
         # thus be linked. Design-wise, this is an unfortunate linking together
         # of DocumentRequest, Resource, and LinkTransformerExtension that I
-        # tried valiantly to avoid in design until this point.
+        # tried to avoid in design until this point.
         self._resource_requests = resource_requests
-        # E.g., en, gu, fr
-        self._lang_code: str = resource_request.lang_code
-        # E.g., tn, tw, tq, tn-wa
-        self._resource_type: str = resource_request.resource_type
-        # E.g., col, 1co, gen
-        self._resource_code: str = resource_request.resource_code
+        self._resource_request = resource_request
 
         # Directory may not exist yet. If not, this is dealt with later in an
-        # appropriate place.
+        # appropriate place later on.
         self._resource_dir = os.path.join(
-            self._working_dir, "{}_{}".format(self._lang_code, self._resource_type)
+            self._working_dir, "{}_{}".format(self.lang_code, self.resource_type)
         )
 
         self._resource_filename = "{}_{}_{}".format(
-            self._lang_code, self._resource_type, self._resource_code
+            self.lang_code, self.resource_type, self.resource_code
         )
 
         # Book attributes
-        # FIXME Could get KeyError with request for non-existent book,
-        # i.e., we could get bad data from BIEL.
-        # NOTE Maybe we should be stricter at the API level about the value of
-        # resource code.
-        self._book_title: str = bible_books.BOOK_NAMES[self._resource_code]
-        self._book_number: str = bible_books.BOOK_NUMBERS[self._resource_code]
+        self._book_title: str = bible_books.BOOK_NAMES[self.resource_code]
+        self._book_number: str = bible_books.BOOK_NUMBERS[self.resource_code]
 
         # Location/lookup related
-        self._lang_name: str
-        self._resource_type_name: str
-        self._resource_url: Optional[AnyUrl] = None
-        self._resource_source: str
-        self._resource_jsonpath: Optional[str] = None
-
-        self._manifest: Manifest
+        self._resource_lookup_dto: model.ResourceLookupDto
 
         # Content related instance vars
         self._content_files: list[str] = []
         self._content: str
         self._verses_html: list[str] = []
 
-        # Link related
-        self._resource_data: dict = {}
-
     def __str__(self) -> str:
         """Return a printable string identifying this instance."""
         return "Resource(lang_code: {}, resource_type: {}, resource_code: {})".format(
-            self._lang_code, self._resource_type, self._resource_code
+            self.lang_code, self.resource_type, self.resource_code
         )
 
     def __repr__(self) -> str:
         """Return a printable string representation identifying this instance."""
         return "Resource(lang_code: {}, resource_type: {}, resource_code: {})".format(
-            self._lang_code, self._resource_type, self._resource_code
+            self.lang_code, self.resource_type, self.resource_code
         )
 
     @abc.abstractmethod
     def find_location(self) -> bool:
         """
-        Initialize:
-
-        self._lang_name
-        self._resource_type_name
-        self._resource_url
-        self._resource_source
-        self._resource_jsonpath
-
-        Return True if resource URL was found and initialized, False
-        otherwise.
+        Initialize self._resource_lookup_dto and return True if
+        self._resource_lookup_dto.url was initialized to not None,
+        False otherwise.
 
         Subclasses override this method.
         """
         raise NotImplementedError
 
+    @abc.abstractmethod
     def provision_asset_files(self) -> None:
         """
         Using the resource's remote location, download the resource's file
         assets to disk.
-        """
-        ResourceProvisioner(self)()
-
-    @abc.abstractmethod
-    def _initialize_from_assets(self) -> None:
-        """
-        Find and load resource asset files that were downloaded to disk.
-
-        Subclasses override.
         """
         raise NotImplementedError
 
@@ -170,32 +132,22 @@ class Resource:
     @property
     def lang_code(self) -> str:
         """Provide public interface for other modules."""
-        return self._lang_code
-
-    @property
-    def lang_name(self) -> str:
-        """Provide public interface for other modules."""
-        return self._lang_name
+        return self._resource_request.lang_code
 
     @property
     def resource_type(self) -> str:
         """Provide public interface for other modules."""
-        return self._resource_type
+        return self._resource_request.resource_type
 
     @property
     def resource_type_name(self) -> str:
         """Provide public interface for other modules."""
-        return self._resource_type_name
+        return self._resource_lookup_dto.resource_type_name
 
     @property
     def resource_code(self) -> str:
         """Provide public interface for other modules."""
-        return self._resource_code
-
-    @property
-    def verses_html(self) -> list[str]:
-        """Provide public interface for other modules."""
-        return self._verses_html
+        return self._resource_request.resource_code
 
     @property
     def content(self) -> str:
@@ -203,15 +155,25 @@ class Resource:
         return self._content
 
     @property
+    def lang_name(self) -> str:
+        """Provide public interface for other modules."""
+        return self._resource_lookup_dto.lang_name
+
+    @property
     def resource_url(self) -> Optional[AnyUrl]:
         """Provide public interface for other modules."""
-        return self._resource_url
+        return self._resource_lookup_dto.url
 
     # This method exists to make a mypy cast possible.
     @resource_url.setter
     def resource_url(self, value: AnyUrl) -> None:
         """Provide public interface for other modules."""
-        self._resource_url = value
+        self._resource_lookup_dto.url = value
+
+    @property
+    def resource_source(self) -> str:
+        """Provide public interface for other modules."""
+        return self._resource_lookup_dto.source
 
     @property
     def resource_requests(self) -> list[model.ResourceRequest]:
@@ -228,11 +190,6 @@ class Resource:
         """Provide public interface for other modules."""
         self._resource_dir = value
 
-    @property
-    def resource_source(self) -> str:
-        """Provide public interface for other modules."""
-        return self._resource_source
-
 
 class USFMResource(Resource):
     """
@@ -243,39 +200,51 @@ class USFMResource(Resource):
     def __init__(self, *args, **kwargs) -> None:  # type: ignore
         super().__init__(*args, **kwargs)
         self._chapter_content: dict[model.ChapterNum, model.USFMChapter] = {}
+        self._html_initializer = USFMHtmlInitializer(self)
+        self._finder: resource_lookup.USFMResourceJsonLookup = (
+            resource_lookup.USFMResourceJsonLookup()
+        )
 
-    # We may want to not enforce the post-condition that the
-    # resource URL be found since we have a requirement that not found
-    # resources are to be handled gracefully. I.e., if we fail to find
-    # a ResourceRequest instance we should continue to try to find a
-    # DocumentRequest instances's other ResourceRequests instances.
-    # @icontract.ensure(
-    #     lambda self: self._resource_url is not None and self._lang_name is not None
-    # )
+    # Not-found resources are to be handled gracefully. I.e., if we fail to
+    # find a location for a ResourceRequest instance we should continue to
+    # try to find a DocumentRequest instances's other ResourceRequests
+    # instances. That is why we do not have a post-condition that would
+    # request a resource URL be found for every resource.
     @log_on_end(
         logging.DEBUG,
-        "self._resource_url = {self._resource_url} for {self}",
+        "self._resource_lookup_dto.url = {self._resource_lookup_dto.url} for {self}",
         logger=logger,
     )
     def find_location(self) -> bool:
         """See docstring in superclass."""
-        lookup_svc = resource_lookup.USFMResourceJsonLookup()
-        resource_lookup_dto: model.ResourceLookupDto = lookup_svc.lookup(self)
-        self._lang_name = resource_lookup_dto.lang_name
-        self._resource_type_name = resource_lookup_dto.resource_type_name
-        self._resource_url = resource_lookup_dto.url
-        self._resource_source = resource_lookup_dto.source
-        self._resource_jsonpath = resource_lookup_dto.jsonpath
-        return self._resource_url is not None
+        resource_lookup_dto: model.ResourceLookupDto = self._finder.lookup(
+            self.lang_code, self.resource_type, self.resource_code
+        )
+        self._resource_lookup_dto = resource_lookup_dto
+        return self._resource_lookup_dto.url is not None
 
-    @log_on_end(
-        logging.DEBUG,
-        "self._content_files for {self._resource_code}: {self._content_files}",
-        logger=logger,
-    )
-    def _initialize_from_assets(self) -> None:
+    def _update_resource_dir(self) -> None:
+        """Update resource_dir."""
+        subdirs = [f.path for f in os.scandir(self.resource_dir) if f.is_dir()]
+
+        if subdirs:
+            self._resource_dir = subdirs[0]
+            logger.debug(
+                "self._resource.resource_dir updated: %s",
+                self.resource_dir,
+            )
+
+    def provision_asset_files(self) -> None:
+        """
+        Using the resource's remote location, download the resource's file
+        assets to disk.
+        """
+        ResourceProvisioner(self)()
+
+    @log_on_start(logging.DEBUG, "self._resource_dir: {self._resource_dir}")
+    @icontract.ensure(lambda self: self._resource_filename is not None)
+    def update_resource_with_asset_content(self) -> None:
         """See docstring in superclass."""
-        self._manifest = Manifest(self)
 
         usfm_content_files: list[str] = []
         txt_content_files: list[str] = []
@@ -306,7 +275,7 @@ class USFMResource(Resource):
             # in the resource request.
             self._content_files = list(
                 filter(
-                    lambda usfm_content_file: self._resource_code.lower()
+                    lambda usfm_content_file: self._resource_request.resource_code.lower()
                     in str(usfm_content_file).lower(),
                     usfm_content_files,
                 )
@@ -315,23 +284,15 @@ class USFMResource(Resource):
             # Only use the content files that match the resource_code.
             self._content_files = list(
                 filter(
-                    lambda txt_content_file: self._resource_code.lower()
+                    lambda txt_content_file: self._resource_request.resource_code.lower()
                     in str(txt_content_file).lower(),
                     txt_content_files,
                 )
             )
 
-    @icontract.require(lambda self: self._content_files is not None)
-    @icontract.ensure(lambda self: self._resource_filename is not None)
-    def update_resource_with_asset_content(self) -> None:
-        """See docstring in superclass."""
-
-        self._initialize_from_assets()
-
         logger.debug("self._content_files: %s", self._content_files)
 
         if self._content_files:
-            # FIXME See if other git repos provide the \id USFM element that the parser expects.
             # FIXME Some languages, like ndh-x-chindali, provide their USFM files in
             # a git repo rather than as standalone USFM files. A USFM git repo can
             # have each USFM chapter in a separate directory and each verse in a
@@ -347,7 +308,8 @@ class USFMResource(Resource):
             # update we'll make modifications to the parser or provide
             # workarounds that will allow such USFM resources to be
             # utilized.
-            # FIXME
+            # FIXME An unfinished prototype approach for handling the
+            # git ndh-x-chindali repo type case:
             # if len(self._content_files) > 1:
             #     # Read the content of each file into a list.
             #     markdown_content = []
@@ -374,15 +336,13 @@ class USFMResource(Resource):
 
             # Convert the USFM to HTML and store in file. USFM-Tools books.py can
             # raise MalformedUsfmError when the following code is called. The
-            # DocumentGenerator class (in _initilize_resource_content) will catch
-            # that error but continue with other resource requests in the same
-            # document request.
+            # document_generator module will catch that error but continue with
+            # other resource requests in the same document request.
             UsfmTransform.buildSingleHtmlFromFile(
                 pathlib.Path(self._content_files[0]),
                 self._output_dir,
                 self._resource_filename,
             )
-
             # Read the HTML file into _content.
             html_file = "{}.html".format(
                 os.path.join(self._output_dir, self._resource_filename)
@@ -390,7 +350,7 @@ class USFMResource(Resource):
             assert os.path.exists(html_file)
             self._content = file_utils.read_file(html_file)
 
-            USFMHtmlInitializer(self)()
+            self._html_initializer._initialize_verses_html()
 
     @property
     def chapter_content(self) -> dict[model.ChapterNum, model.USFMChapter]:
@@ -401,21 +361,26 @@ class USFMResource(Resource):
 class TResource(Resource):
     """Provide methods common to all subclasses of TResource."""
 
-    @log_on_end(
-        logging.DEBUG,
-        "self._resource_url: {self._resource_url} for {self}",
-        logger=logger,
-    )
+    def __init__(self, *args, **kwargs) -> None:  # type: ignore
+        super().__init__(*args, **kwargs)
+        self._finder: resource_lookup.TResourceJsonLookup = (
+            resource_lookup.TResourceJsonLookup()
+        )
+
     def find_location(self) -> bool:
         """See docstring in superclass."""
-        lookup_svc = resource_lookup.TResourceJsonLookup()
-        resource_lookup_dto: model.ResourceLookupDto = lookup_svc.lookup(self)
-        self._lang_name = resource_lookup_dto.lang_name
-        self._resource_type_name = resource_lookup_dto.resource_type_name
-        self._resource_url = resource_lookup_dto.url
-        self._resource_source = resource_lookup_dto.source
-        self._resource_jsonpath = resource_lookup_dto.jsonpath
-        return self._resource_url is not None
+        resource_lookup_dto: model.ResourceLookupDto = self._finder.lookup(
+            self.lang_code, self.resource_type, self.resource_code
+        )
+        self._resource_lookup_dto = resource_lookup_dto
+        return self._resource_lookup_dto.url is not None
+
+    def provision_asset_files(self) -> None:
+        """
+        Using the resource's remote location, download the resource's file
+        assets to disk.
+        """
+        ResourceProvisioner(self)()
 
     @icontract.require(
         lambda lang_code, resource_requests: lang_code and resource_requests
@@ -424,6 +389,7 @@ class TResource(Resource):
     def _markdown_instance(
         self,
         lang_code: str,
+        resource_type: str,
         resource_requests: list[model.ResourceRequest],
         tw_resource_dir: Optional[str] = None,
     ) -> markdown.Markdown:
@@ -435,9 +401,7 @@ class TResource(Resource):
         """
         if not tw_resource_dir:
             tw_resource_dir = tw_utils.tw_resource_dir(lang_code)
-        translation_words_dict: dict[str, str] = tw_utils.translation_words_dict(
-            tw_resource_dir
-        )
+        translation_words_dict = tw_utils.translation_words_dict(tw_resource_dir)
         return markdown.Markdown(
             extensions=[
                 remove_section_preprocessor.RemoveSectionExtension(),
@@ -465,10 +429,8 @@ class TNResource(TResource):
     def __init__(self, *args, **kwargs) -> None:  # type: ignore
         super().__init__(*args, **kwargs)
         self._book_payload: model.TNBookPayload
+        self._html_initializer = TNHtmlInitializer(self)
 
-    @log_on_start(
-        logging.INFO, "Processing Translation Notes Markdown...", logger=logger
-    )
     def update_resource_with_asset_content(self) -> None:
         """
         Get Markdown content from this resource's file assets. Then do
@@ -476,20 +438,12 @@ class TNResource(TResource):
         needs of the document output. Then convert the Markdown content
         into HTML content.
         """
-        self._initialize_from_assets()
-        TNHtmlInitializer(self)()
+        self._html_initializer._initialize_verses_html()
 
     @property
     def book_payload(self) -> model.TNBookPayload:
         """Provide public interface for other modules."""
         return self._book_payload
-
-    @log_on_start(
-        logging.DEBUG, "self._resource_dir: {self._resource_dir}", logger=logger
-    )
-    def _initialize_from_assets(self) -> None:
-        """See docstring in superclass."""
-        self._manifest = Manifest(self)
 
     def verses_for_chapter(
         self, chapter_num: model.ChapterNum
@@ -518,7 +472,7 @@ class TNResource(TResource):
             model.HtmlContent(
                 settings.TN_RESOURCE_TYPE_NAME_WITH_ID_AND_REF_FMT_STR.format(
                     self.lang_code,
-                    bible_books.BOOK_NUMBERS[self._resource_code].zfill(3),
+                    bible_books.BOOK_NUMBERS[self.resource_code].zfill(3),
                     str(chapter_num).zfill(3),
                     verse_num.zfill(3),
                     self.resource_type_name,
@@ -541,10 +495,8 @@ class TQResource(TResource):
     def __init__(self, *args, **kwargs) -> None:  # type: ignore
         super().__init__(*args, **kwargs)
         self._book_payload: model.TQBookPayload
+        self._html_initializer = TQHtmlInitializer(self)
 
-    @log_on_start(
-        logging.INFO, "Processing Translation Questions Markdown...", logger=logger
-    )
     def update_resource_with_asset_content(self) -> None:
         """
         Get Markdown content from this resource's file assets. Then do
@@ -552,21 +504,12 @@ class TQResource(TResource):
         needs of the document output. Then convert the Markdown content
         into HTML content.
         """
-
-        self._initialize_from_assets()
-        TQHtmlInitializer(self)()
+        self._html_initializer._initialize_verses_html()
 
     @property
     def book_payload(self) -> model.TQBookPayload:
         """Provide public interface for other modules."""
         return self._book_payload
-
-    @log_on_start(
-        logging.DEBUG, "self._resource_dir: {self._resource_dir}", logger=logger
-    )
-    def _initialize_from_assets(self) -> None:
-        """See docstring in superclass."""
-        self._manifest = Manifest(self)
 
     def verses_for_chapter(
         self, chapter_num: model.ChapterNum
@@ -614,10 +557,8 @@ class TWResource(TResource):
     def __init__(self, *args, **kwargs) -> None:  # type: ignore
         super().__init__(*args, **kwargs)
         self._language_payload: model.TWLanguagePayload
+        self._html_initializer = TWHtmlInitializer(self)
 
-    @log_on_start(
-        logging.INFO, "Processing Translation Words Markdown...", logger=logger
-    )
     def update_resource_with_asset_content(self) -> None:
         """
         Get Markdown content from this resource's file assets. Then do
@@ -625,21 +566,12 @@ class TWResource(TResource):
         needs of the document output. Then convert the Markdown content
         into HTML content.
         """
-
-        self._initialize_from_assets()
-        TWHtmlInitializer(self)()
+        self._html_initializer._initialize_verses_html()
 
     @property
     def language_payload(self) -> model.TWLanguagePayload:
         """Provide public interface for other modules."""
         return self._language_payload
-
-    @log_on_start(
-        logging.DEBUG, "self._resource_dir: {self._resource_dir}", logger=logger
-    )
-    def _initialize_from_assets(self) -> None:
-        """See docstring in superclass."""
-        self._manifest = Manifest(self)
 
     def translation_word_links(
         self,
@@ -791,57 +723,19 @@ class TWResource(TResource):
 
 # FIXME The implementation was just a quick template based off of
 # TQResource, but needs to change a LOT. It is wildly incorrect and
-# just a placeholder.
+# just a placeholder, logic is not even close to correct/done. We
+# still have to decide how to handle TA resources.
 class TAResource(TResource):
     """
     This class specializes Resource for the case of a Translation
     Answers resource.
     """
 
-    # @log_on_start(
-    #     logging.INFO, "Processing Translation Academy Markdown...", logger=logger
-    # )
-    # def get_content(self) -> None:
-    #     """See docstring in superclass."""
-    #     self._get_ta_markdown()
-    #     self._transform_content()
-
-    # def _get_ta_markdown(self) -> None:
-    #     # TODO localization
-    #     ta_md = '<a id="ta-{}"/>\n# Translation Topics\n\n'.format(self._book_id)
-    #     sorted_rcs = sorted(
-    #         # resource["my_rcs"],
-    #         # key=lambda k: resource["resource_data"][k]["title"].lower()
-    #         self._my_rcs,
-    #         key=lambda k: self._resource_data[k]["title"].lower(),
-    #     )
-    #     for rc in sorted_rcs:
-    #         if "/ta/" not in rc:
-    #             continue
-    #         # if resource["resource_data"][rc]["text"]:
-    #         if self._resource_data[rc]["text"]:
-    #             # md = resource["resource_data"][rc]["text"]
-    #             md = self._resource_data[rc]["text"]
-    #         else:
-    #             md = ""
-    #         # id_tag = '<a id="{}"/>'.format(resource["resource_data"][rc]["id"])
-    #         id_tag = '<a id="{}"/>'.format(self._resource_data[rc]["id"])
-    #         md = re.compile(r"# ([^\n]+)\n").sub(r"# \1\n{}\n".format(id_tag), md, 1)
-    #         md = markdown_utils.increase_headers(md)
-    #         md += link_utils.get_uses(self._rc_references, rc)
-    #         md += "\n\n"
-    #         ta_md += md
-    #     logger.debug("ta_md is %s", ta_md)
-    #     self._content = ta_md
-    #     # return ta_md
-
     def __init__(self, *args, **kwargs) -> None:  # type: ignore
         super().__init__(*args, **kwargs)
         self._book_payload: model.TABookPayload
+        self._html_initializer = TAHtmlInitializer(self)
 
-    @log_on_start(
-        logging.INFO, "Processing Translation Academy Markdown...", logger=logger
-    )
     def update_resource_with_asset_content(self) -> None:
         """
         Get Markdown content from this resource's file assets. Then do
@@ -849,21 +743,12 @@ class TAResource(TResource):
         needs of the document output. Then convert the Markdown content
         into HTML content.
         """
-
-        self._initialize_from_assets()
-        TAHtmlInitializer(self)()
+        self._html_initializer._initialize_verses_html()
 
     @property
     def book_payload(self) -> model.TABookPayload:
         """Provide public interface for other modules."""
         return self._book_payload
-
-    @log_on_start(
-        logging.DEBUG, "self._resource_dir: {self._resource_dir}", logger=logger
-    )
-    def _initialize_from_assets(self) -> None:
-        """See docstring in superclass."""
-        self._manifest = Manifest(self)
 
     def verses_for_chapter(
         self, chapter_num: model.ChapterNum
@@ -899,7 +784,7 @@ def resource_factory(
         output_dir,
         resource_request,
         resource_requests,
-    )  # type: ignore
+    )
 
 
 class ResourceProvisioner:
@@ -961,28 +846,49 @@ class ResourceProvisioner:
         if (
             self._resource.resource_url
         ):  # We know that resource_url is not None because of how we got here, but mypy isn't convinced. Let's convince mypy.
-
-            # FIXME We'll have to see if this is the best approach for consistency
-            # across different resources' assets in different languages. So far it
-            # adheres to the most consistent pattern I've seen in translations.json,
-            # but my analysis of translations.json has not been exhaustive. That
-            # being said, it has worked fine for several languages and
-            # books so far.
             resource_filepath = os.path.join(
                 self._resource.resource_dir,
                 self._resource.resource_url.rpartition(os.path.sep)[2],
             )
+
+            logger.debug("resource_filepath: %s", resource_filepath)
+            # Check if resource assets need updating otherwise use
+            # what we already have on disk.
+            if file_utils.asset_file_needs_update(resource_filepath):
+                if _is_git(self._resource.resource_source):
+                    self._clone_git_repo(resource_filepath)
+                else:
+                    self._download_asset(resource_filepath)
+
+                if _is_zip(self._resource.resource_source):
+                    self._unzip_asset(resource_filepath)
+            if _is_git(self._resource.resource_source) or _is_zip(
+                self._resource.resource_source
+            ):
+                # When a git repo is cloned or when a zip file is
+                # unzipped, a subdirectory of resource_dir is created
+                # as a result. Update resource_dir to point to that
+                # subdirectory.
+                self._update_resource_dir()
+
+    def _update_resource_dir(self) -> None:
+        """
+        Update resource_dir to point to the first subdirectory of
+        resource_dir found.
+
+        Why? When a git repo is cloned or when a zip file is unzipped,
+        a subdirectory of resource_dir is created as a result. Update
+        resource_dir to point to that subdirectory.
+        """
+        subdirs = [
+            f.path for f in os.scandir(self._resource.resource_dir) if f.is_dir()
+        ]
+        if subdirs:
+            self._resource.resource_dir = subdirs[0]
             logger.debug(
-                "Using file location, resource_filepath: %s", resource_filepath
+                "resource_dir updated: %s",
+                self._resource.resource_dir,
             )
-
-            if self._is_git():
-                self._clone_git_repo(resource_filepath)
-            else:
-                self._download_asset(resource_filepath)
-
-            if self._is_zip():
-                self._unzip_asset(resource_filepath)
 
     def _clone_git_repo(self, resource_filepath: str) -> None:
         """
@@ -990,83 +896,78 @@ class ResourceProvisioner:
         the ASSET_CACHING_PERIOD has expired then delete the repo and
         clone it again to get updates.
         """
-        if file_utils.asset_file_needs_update(resource_filepath):
+        if os.path.exists(resource_filepath):
             logger.debug(
                 "About to delete pre-existing git repo %s in order to recreate it.",
                 resource_filepath,
             )
             try:
-                os.rmdir(resource_filepath)
+                shutil.rmtree(resource_filepath)
             except OSError:
                 logger.debug(
-                    "Directory %s was not removed due to an error.", resource_filepath
+                    "Directory %s was not removed due to an error.",
+                    resource_filepath,
                 )
                 logger.exception("Caught exception: ")
         command = "git clone --depth=1 '{}' '{}'".format(
             self._resource.resource_url, resource_filepath
         )
-        logger.debug("os.getcwd(): %s", os.getcwd())
-        logger.debug("git command: %s", command)
+        logger.debug("Attempting to clone into %s ...", resource_filepath)
         try:
             subprocess.call(command, shell=True)
         except subprocess.SubprocessError:
-            logger.debug("os.getcwd(): %s", os.getcwd())
             logger.debug("git command: %s", command)
             logger.debug("git clone failed!")
         else:
+            logger.debug("git command: %s", command)
             logger.debug("git clone succeeded.")
-            # Git repos get stored on directory deeper
-            self._resource.resource_dir = resource_filepath
 
-    @log_on_start(
-        logging.DEBUG,
-        "Downloading {self._resource.resource_url} into {resource_filepath}",
-        logger=logger,
-    )
-    @log_on_end(logging.INFO, "Downloading finished.", logger=logger)
     def _download_asset(self, resource_filepath: str) -> None:
         """Download the asset."""
-        if file_utils.asset_file_needs_update(resource_filepath):
-            # FIXME Might want to retry after some acceptable interval if there is a
-            # failure here due to network issues. It has happened very occasionally
-            # during testing that there has been a hiccup with the network at this
-            # point but succeeded on retry of the same test.
-            url_utils.download_file(self._resource.resource_url, resource_filepath)
+        logger.debug(
+            "Downloading %s into %s", self._resource.resource_url, resource_filepath
+        )
+        # FIXME Might want to retry after some acceptable interval if there is a
+        # failure here due to network issues. It has happened very occasionally
+        # during testing that there has been a hiccup with the network at this
+        # point but succeeded on retry of the same test.
+        url_utils.download_file(self._resource.resource_url, resource_filepath)
+        logger.info("Downloading finished.")
 
-    @log_on_start(
-        logging.DEBUG,
-        "Unzipping {resource_filepath} into {self._resource.resource_dir}",
-        logger=logger,
-    )
-    @log_on_end(logging.INFO, "Unzipping finished.", logger=logger)
-    @log_on_end(
-        logging.DEBUG,
-        "self._resource.resource_dir updated: {self._resource.resource_dir}.",
-        logger=logger,
+    @icontract.require(
+        lambda resource_filepath: resource_filepath
+        and os.path.exists(resource_filepath)
     )
     def _unzip_asset(self, resource_filepath: str) -> None:
         """Unzip the asset."""
+        logger.debug(
+            "Unzipping %s into %s", resource_filepath, self._resource.resource_dir
+        )
         file_utils.unzip(resource_filepath, self._resource.resource_dir)
-        # Update resource_dir.
-        # FIXME We can likely update the glob patterns for resource asset files.
-        # Update: Turns out the globs still work with the '**' in them, but
-        # perhaps it would be faster to eliminate '**'. Also perhaps it would be
-        # faster to use os.scandir there as well, if we can.
-        subdirs = [
-            f.path for f in os.scandir(self._resource.resource_dir) if f.is_dir()
-        ]
+        logger.info("Unzipping finished.")
 
-        self._resource.resource_dir = subdirs[0]
 
-    @icontract.require(lambda self: self._resource.resource_source)
-    def _is_git(self) -> bool:
-        """Return true if _resource_source is equal to 'git'."""
-        return self._resource.resource_source == model.AssetSourceEnum.GIT
+@icontract.require(lambda resource_source: resource_source)
+def _is_zip(resource_source: str) -> bool:
+    """Return true if resource_source is equal to 'zip'."""
+    return resource_source == model.AssetSourceEnum.ZIP
 
-    @icontract.require(lambda self: self._resource.resource_source)
-    def _is_zip(self) -> bool:
-        """Return true if _resource_source is equal to 'zip'."""
-        return self._resource.resource_source == model.AssetSourceEnum.ZIP
+
+@icontract.require(lambda resource_source: resource_source)
+def _is_git(resource_source: str) -> bool:
+    """Return true if resource_source is equal to 'git'."""
+    return resource_source == model.AssetSourceEnum.GIT
+
+
+class HtmlInitializer(Protocol):
+    """
+    Define a protocol class for classes that will act as HTML
+    initializers of a resource's content.
+    """
+
+    @abc.abstractmethod
+    def _initialize_verses_html(self) -> None:
+        ...
 
 
 class USFMHtmlInitializer:
@@ -1078,10 +979,6 @@ class USFMHtmlInitializer:
 
     def __init__(self, resource: USFMResource):
         self._resource = resource
-
-    def __call__(self) -> None:
-        """See docstring for this class."""
-        self._initialize_verses_html()
 
     def __str__(self) -> str:
         """Return a printable string identifying this instance."""
@@ -1178,11 +1075,11 @@ class USFMHtmlInitializer:
             # Recreate the verse range, now without leading
             # zeroes.
             verse_num = "{}-{}".format(str(verse_num_int), str(verse_num2_int))
-            logger.debug(
-                "chapter_num: %s, verse_num is a verse range: %s",
-                chapter_num,
-                verse_num,
-            )
+            # logger.debug(
+            #     "chapter_num: %s, verse_num is a verse range: %s",
+            #     chapter_num,
+            #     verse_num,
+            # )
         else:
             upper_bound_value = int(verse_num) + 1
             # Get rid of leading zeroes.
@@ -1250,10 +1147,6 @@ class TNHtmlInitializer:
     def __init__(self, resource: TNResource):
         self._resource = resource
 
-    def __call__(self) -> None:
-        """See docstring for this class."""
-        self._initialize_verses_html()
-
     def __str__(self) -> str:
         """Return a printable string identifying this instance."""
         return "TNHtmlInitializer(resource: {})".format(self._resource)
@@ -1271,7 +1164,9 @@ class TNHtmlInitializer:
         # Initialize the Python-Markdown extensions that get invoked
         # when md.convert is called.
         md: markdown.Markdown = self._resource._markdown_instance(
-            self._resource.lang_code, self._resource.resource_requests
+            self._resource.lang_code,
+            self._resource.resource_type,
+            self._resource.resource_requests,
         )
         # FIXME We can likely now remove the first '**' if we want. It
         # works as is though, it is just a minor optimization, but I'd
@@ -1279,7 +1174,8 @@ class TNHtmlInitializer:
         chapter_dirs = sorted(
             glob(
                 "{}/**/*{}/*[0-9]*".format(
-                    self._resource._resource_dir, self._resource._resource_code
+                    self._resource.resource_dir,
+                    self._resource.resource_code,
                 )
             )
         )
@@ -1290,7 +1186,8 @@ class TNHtmlInitializer:
             chapter_dirs = sorted(
                 glob(
                     "{}/*{}/*[0-9]*".format(
-                        self._resource._resource_dir, self._resource._resource_code
+                        self._resource.resource_dir,
+                        self._resource.resource_code,
                     )
                 )
             )
@@ -1327,7 +1224,8 @@ class TNHtmlInitializer:
         # Get the book intro if it exists
         book_intro_path = glob(
             "{}/*{}/front/intro.md".format(
-                self._resource._resource_dir, self._resource._resource_code
+                self._resource.resource_dir,
+                self._resource.resource_code,
             )
         )
         # For some languages, TN assets are stored in .txt files
@@ -1335,7 +1233,7 @@ class TNHtmlInitializer:
         if not book_intro_path:
             book_intro_path = glob(
                 "{}/*{}/front/intro.txt".format(
-                    self._resource._resource_dir, self._resource._resource_code
+                    self._resource.resource_dir, self._resource.resource_code
                 )
             )
         book_intro_html = ""
@@ -1357,10 +1255,6 @@ class TQHtmlInitializer:
     def __init__(self, resource: TQResource):
         self._resource = resource
 
-    def __call__(self) -> None:
-        """See docstring for this class."""
-        self._initialize_verses_html()
-
     def __str__(self) -> str:
         """Return a printable string identifying this instance."""
         return "TQHtmlInitializer(resource: {})".format(self._resource)
@@ -1375,14 +1269,16 @@ class TQHtmlInitializer:
         # Create the Markdown instance once and have it use our markdown
         # extensions.
         md: markdown.Markdown = self._resource._markdown_instance(
-            self._resource.lang_code, self._resource.resource_requests
+            self._resource.lang_code,
+            self._resource.resource_type,
+            self._resource.resource_requests,
         )
         # FIXME We can likely now remove the first '**' for a tiny
         # speedup, but I'd need to test thorougly first.
         chapter_dirs = sorted(
             glob(
                 "{}/**/*{}/*[0-9]*".format(
-                    self._resource._resource_dir, self._resource._resource_code
+                    self._resource.resource_dir, self._resource.resource_code
                 )
             )
         )
@@ -1393,7 +1289,7 @@ class TQHtmlInitializer:
             chapter_dirs = sorted(
                 glob(
                     "{}/*{}/*[0-9]*".format(
-                        self._resource._resource_dir, self._resource._resource_code
+                        self._resource.resource_dir, self._resource.resource_code
                     )
                 )
             )
@@ -1435,10 +1331,6 @@ class TWHtmlInitializer:
     def __init__(self, resource: TWResource):
         self._resource = resource
 
-    def __call__(self) -> None:
-        """See docstring for this class."""
-        self._initialize_verses_html()
-
     def __str__(self) -> str:
         """Return a printable string identifying this instance."""
         return "TWHtmlInitializer(resource: {})".format(self._resource)
@@ -1454,6 +1346,7 @@ class TWHtmlInitializer:
         # extensions.
         md: markdown.Markdown = self._resource._markdown_instance(
             self._resource.lang_code,
+            self._resource.resource_type,
             self._resource.resource_requests,
             self._resource.resource_dir,
         )
@@ -1462,7 +1355,10 @@ class TWHtmlInitializer:
         # that this doesn't have to be called again here as a special
         # case for TWResource? It isn't a big deal, but let's revisit
         # this as a low priority item.
+
+        # tw_resource_dir = tw_utils.tw_resource_dir(self._resource.lang_code)
         translation_word_filepaths = tw_utils.translation_word_filepaths(
+            # tw_resource_dir if tw_resource_dir else self._resource.resource_dir
             self._resource.resource_dir
         )
         name_content_pairs: list[model.TWNameContentPair] = []
@@ -1506,10 +1402,6 @@ class TAHtmlInitializer:
     def __init__(self, resource: TAResource):
         self._resource = resource
 
-    def __call__(self) -> None:
-        """See docstring for this class."""
-        self._initialize_verses_html()
-
     def __str__(self) -> str:
         """Return a printable string identifying this instance."""
         return "TAHtmlInitializer(resource: {})".format(self._resource)
@@ -1524,12 +1416,14 @@ class TAHtmlInitializer:
         # Create the Markdown instance once and have it use our markdown
         # extensions.
         md: markdown.Markdown = self._resource._markdown_instance(
-            self._resource.lang_code, self._resource.resource_requests
+            self._resource.lang_code,
+            self._resource.resource_type,
+            self._resource.resource_requests,
         )
         chapter_dirs = sorted(
             glob(
                 "{}/**/*{}/*[0-9]*".format(
-                    self._resource._resource_dir, self._resource._resource_code
+                    self._resource.resource_dir, self._resource.resource_code
                 )
             )
         )
@@ -1537,11 +1431,10 @@ class TAHtmlInitializer:
         # on if their assets were acquired as a git repo or a zip).
         # We handle this here.
         if not chapter_dirs:
-            # FIXME We can likely now remove the first '**'
             chapter_dirs = sorted(
                 glob(
                     "{}/*{}/*[0-9]*".format(
-                        self._resource._resource_dir, self._resource._resource_code
+                        self._resource.resource_dir, self._resource.resource_code
                     )
                 )
             )
@@ -1567,173 +1460,3 @@ class TAHtmlInitializer:
             chapter_payload = model.TAChapterPayload(verses_html=verses_html)
             chapter_verses[chapter_num] = chapter_payload
         self._resource._book_payload = model.TABookPayload(chapters=chapter_verses)
-
-
-class Manifest:
-    """
-    This class handles finding, loading, and converting manifest
-    files for a resource instance.
-    """
-
-    def __init__(self, resource: Resource) -> None:
-        self._resource = resource
-        self._manifest_content: dict
-        # self._manifest_file_path: Optional[pathlib.PurePath] = None
-        self._manifest_file_path: Optional[str] = None
-        self._version: Optional[str] = None
-        self._issued: Optional[str] = None
-
-    @icontract.require(lambda self: self._resource.resource_dir)
-    def __call__(self) -> None:
-        """All subclasses need to at least find their manifest file,
-        if it exists. Subclasses specialize this method to
-        additionally initialize other disk layout related properties.
-        """
-        manifest_file_list = glob("{}**/manifest.*".format(self._resource))
-        if manifest_file_list:
-            self._manifest_file_path = manifest_file_list[0]
-        else:
-            self._manifest_file_path = None
-        logger.debug("self._manifest_file_path: {}".format(self._manifest_file_path))
-        # Find directory where the manifest file is located
-        if self._manifest_file_path is not None:
-            self._manifest_content = self._load_manifest()
-            logger.debug(
-                "manifest dir: %s", pathlib.Path(self._manifest_file_path).parent
-            )
-
-        if self.manifest_type:
-            logger.debug("self.manifest_type: %s", self.manifest_type)
-            if self._is_yaml():
-                version, issued = self._manifest_version_and_issued()
-                self._version = version
-                self._issued = issued
-                logger.debug("_version: %s, _issued: %s", self._version, self._issued)
-        if self._manifest_content:
-            logger.debug("self._manifest_content: %s", self._manifest_content)
-
-    @property
-    def manifest_type(self) -> Optional[str]:
-        """Return the manifest type: yaml, json, or txt."""
-        if self._manifest_file_path is not None:
-            return pathlib.Path(self._manifest_file_path).suffix
-        return None
-
-    @icontract.require(lambda self: self._manifest_file_path is not None)
-    def _load_manifest(self) -> dict:
-        """Load the manifest file."""
-        manifest: dict = {}
-        if self._is_yaml():
-            manifest = file_utils.load_yaml_object(self._manifest_file_path)
-        elif self._is_txt():
-            manifest = file_utils.load_yaml_object(self._manifest_file_path)
-        elif self._is_json():
-            manifest = file_utils.load_json_object(self._manifest_file_path)
-        return manifest
-
-    @icontract.require(lambda self: self._manifest_content)
-    def _manifest_version_and_issued(self) -> tuple[str, str]:
-        """Return the manifest's version and issued values."""
-        version = ""
-        issued = ""
-        # NOTE manifest.txt files do not have 'dublin_core' or
-        # 'version' keys.
-        version = self._manifest_version()
-        issued = self._manifest_content["dublin_core"]["issued"]
-        return (version, issued)
-
-    def _manifest_version(self) -> str:
-        version = ""
-        try:
-            version = self._manifest_content[0]["dublin_core"]["version"]
-        except ValueError:
-            version = self._manifest_content["dublin_core"]["version"]
-        return version
-
-    @icontract.require(lambda self: self.manifest_type)
-    def _is_yaml(self) -> bool:
-        """Return true if the resource's manifest file has suffix yaml."""
-        return self.manifest_type == model.ManifestFormatTypeEnum.YAML
-
-    @icontract.require(lambda self: self.manifest_type)
-    def _is_txt(self) -> bool:
-        """Return true if the resource's manifest file has suffix json."""
-        return self.manifest_type == model.ManifestFormatTypeEnum.TXT
-
-    @icontract.require(lambda self: self.manifest_type)
-    def _is_json(self) -> bool:
-        """Return true if the resource's manifest file has suffix json."""
-        return self.manifest_type == model.ManifestFormatTypeEnum.JSON
-
-    # FIXME Not currently used. The idea for how this would be used is
-    # to verify that the book project that we have already found via
-    # globbing is indeed considered complete by the translators as
-    # codified in the manifest.
-    @icontract.require(
-        lambda self: self._manifest_content and "projects" in self._manifest_content
-    )
-    @icontract.ensure(lambda result: result)
-    def _book_project_from_yaml(self) -> Optional[dict]:
-        """
-        Return the project that was requested if it matches that found
-        in the manifest file for the resource otherwise return an
-        empty dict.
-        """
-        # logger.info("about to get projects")
-        # NOTE The old code would return the list of book projects
-        # that either contained: 1) all books if no books were
-        # specified by the user, or, 2) only those books that
-        # matched the books requested from the command line.
-        for project in self._manifest_content["projects"]:
-            if project["identifier"] in self._resource.resource_code:
-                return project
-        return None
-
-    # FIXME Not currently used. Might never be used again.
-    @icontract.require(
-        lambda self: self._manifest_content and "projects" in self._manifest_content
-    )
-    @icontract.ensure(lambda result: result)
-    def _book_projects_from_yaml(self) -> list[dict[Any, Any]]:
-        """
-        Return the sorted list of projects that are found in the
-        manifest file for the resource.
-        """
-        projects: list[dict[Any, Any]] = []
-        # if (
-        #     self._manifest_content and "projects" in self._manifest_content
-        # ):
-        # logger.info("about to get projects")
-        # NOTE The old code would return the list of book projects
-        # that either contained: 1) all books if no books were
-        # specified by the user, or, 2) only those books that
-        # matched the books requested from the command line.
-        for project in self._manifest_content["projects"]:
-            if project["identifier"] in self._resource.resource_code:
-                if not project["sort"]:
-                    project["sort"] = bible_books.BOOK_NUMBERS[project["identifier"]]
-                projects.append(project)
-        return sorted(projects, key=lambda project: project["sort"])
-
-    # FIXME Not currently used. Might never be used again.
-    @icontract.require(
-        lambda self: self._manifest_content
-        and "finished_chunks" in self._manifest_content
-    )
-    @icontract.ensure(lambda result: result)
-    def _book_projects_from_json(self) -> list:
-        """
-        Return the sorted list of projects that are found in the
-        manifest file for the resource.
-        """
-        projects: list[dict[Any, Any]] = []
-        for project in self._manifest_content["finished_chunks"]:
-            # TODO In resource_lookup, self._resource_code is used
-            # determine jsonpath for lookup. Some resources don't
-            # have anything more specific than the lang_code to
-            # get resources from. Well, at least one language is
-            # like that. In that case it contains a zip that has
-            # all the resources contained therein.
-            # if self._resource_code is not None:
-            projects.append(project)
-        return projects
