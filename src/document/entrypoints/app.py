@@ -2,14 +2,13 @@
 
 import os
 import pathlib
+from typing import Generator
 
+from document.config import settings
+from document.domain import document_generator, model, resource_lookup
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-
-from document.config import settings
-from document.domain import bible_books, model, resource_lookup
-from document.domain.document_generator import DocumentGenerator
 
 app = FastAPI()
 
@@ -39,21 +38,14 @@ def document_endpoint(
     containing URL of resulting PDF, or, None in the case of failure plus a
     message to return to the UI.
     """
-    document_generator = DocumentGenerator(
-        document_request,
-        settings.working_dir(),
-        settings.output_dir(),
-    )
     # Top level exception handler
     try:
-        document_generator.run()
-        finished_document_request_key = document_generator.document_request_key
-        finished_document_path = os.path.join(
-            settings.output_dir(), "{}.pdf".format(finished_document_request_key)
+        document_request_key, finished_document_path = document_generator.run(
+            document_request
         )
         assert os.path.exists(finished_document_path)
         details = model.FinishedDocumentDetails(
-            finished_document_request_key=finished_document_request_key,
+            finished_document_request_key=document_request_key,
             message=settings.SUCCESS_MESSAGE,
         )
     except Exception:
@@ -98,7 +90,7 @@ def lang_codes_names_and_resource_types() -> list[model.CodeNameTypeTriplet]:
 
 # @app.get(f"{settings.API_ROOT}/language_codes")
 @app.get("/language_codes")
-def lang_codes() -> list[str]:
+def lang_codes() -> Generator[str, None, None]:
     """Return list of all available language codes."""
     lookup_svc = resource_lookup.BIELHelperResourceJsonLookup()
     return lookup_svc.lang_codes()
@@ -106,7 +98,7 @@ def lang_codes() -> list[str]:
 
 # @app.get(f"{settings.API_ROOT}/language_codes_and_names")
 @app.get("/language_codes_and_names")
-def lang_codes_and_names() -> list[tuple[str, str]]:
+def lang_codes_and_names() -> Generator[tuple[str, str], None, None]:
     """Return list of all available language code, name tuples."""
     lookup_svc = resource_lookup.BIELHelperResourceJsonLookup()
     return lookup_svc.lang_codes_and_names()
