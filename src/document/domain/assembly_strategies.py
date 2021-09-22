@@ -13,13 +13,13 @@ import itertools
 import logging  # For logdecorator
 import re
 from collections.abc import Callable, Mapping
-from typing import Optional, cast
+from typing import Iterable, Optional, cast
 
 import icontract
 from logdecorator import log_on_start
 
 from document.config import settings
-from document.domain import bible_books, document_generator, model
+from document.domain import bible_books, model
 from document.domain.resource import (
     Resource,
     TAResource,
@@ -52,7 +52,7 @@ H1, H2, H3, H4, H5, H6 = "h1", "h2", "h3", "h4", "h5", "h6"
 
 def assembly_strategy_factory(
     assembly_strategy_kind: model.AssemblyStrategyEnum,
-) -> Callable[[document_generator.DocumentGenerator], str]:
+) -> Callable[[Iterable[Resource]], str]:
     """
     Strategy pattern. Given an assembly_strategy_kind, returns the
     appropriate strategy function to run.
@@ -561,7 +561,7 @@ def assembly_sub_strategy_factory_for_book_then_lang(
     logger=logger,
 )
 def _assemble_content_by_lang_then_book(
-    docgen: document_generator.DocumentGenerator,
+    found_resources: Iterable[Resource],
 ) -> str:
     """
     Assemble by language then by book in lexicographical order before
@@ -578,7 +578,7 @@ def _assemble_content_by_lang_then_book(
     # wanted was TN for Swahili and nothing else.
 
     resources_sorted_by_language = sorted(
-        docgen.found_resources,
+        found_resources,
         key=lambda resource: resource.lang_name,
     )
     html = []
@@ -620,7 +620,7 @@ def _assemble_content_by_lang_then_book(
 
             # We've got the resources, now we can use the sub-strategy factory
             # method to choose the right function to use from here on out.
-            docgen.assembly_sub_strategy = assembly_sub_strategy_factory(
+            assembly_sub_strategy = assembly_sub_strategy_factory(
                 usfm_resource,
                 tn_resource,
                 tq_resource,
@@ -633,13 +633,11 @@ def _assemble_content_by_lang_then_book(
                 settings.DEFAULT_ASSEMBLY_SUBSTRATEGY,
             )
 
-            logger.debug(
-                "docgen._assembly_sub_strategy: %s", str(docgen.assembly_sub_strategy)
-            )
+            logger.debug("assembly_sub_strategy: %s", str(assembly_sub_strategy))
 
             # Now that we have the sub-strategy, let's run it and
             # generate the HTML output.
-            sub_html: model.HtmlContent = docgen.assembly_sub_strategy(
+            sub_html: model.HtmlContent = assembly_sub_strategy(
                 usfm_resource,
                 tn_resource,
                 tq_resource,
@@ -661,9 +659,7 @@ def _assemble_content_by_lang_then_book(
     "Assembling document by interleaving at first by book and then by language.",
     logger=logger,
 )
-def _assemble_content_by_book_then_lang(
-    docgen: document_generator.DocumentGenerator,
-) -> str:
+def _assemble_content_by_book_then_lang(found_resources: Iterable[Resource]) -> str:
     """
     Assemble by book then by language in alphabetic order before
     delegating more atomic ordering/interleaving to an assembly
@@ -680,7 +676,7 @@ def _assemble_content_by_book_then_lang(
 
     resources_sorted_by_book = sorted(
         # docgen.found_resources, key=lambda resource: resource.lang_name,
-        docgen.found_resources,
+        found_resources,
         key=lambda resource: resource.resource_code,
     )
     html = []
@@ -705,7 +701,7 @@ def _assemble_content_by_book_then_lang(
 
         # We've got the resources, now we can use the sub-strategy factory
         # method to choose the right function to use from here on out.
-        docgen.assembly_sub_strategy_for_book_then_lang = assembly_sub_strategy_factory_for_book_then_lang(
+        assembly_sub_strategy_for_book_then_lang = assembly_sub_strategy_factory_for_book_then_lang(
             usfm_resources,
             tn_resources,
             tq_resources,
@@ -718,13 +714,13 @@ def _assemble_content_by_book_then_lang(
         )
 
         logger.debug(
-            "docgen._assembly_sub_strategy_for_book_then_lang: %s",
-            str(docgen.assembly_sub_strategy_for_book_then_lang),
+            "assembly_sub_strategy_for_book_then_lang: %s",
+            str(assembly_sub_strategy_for_book_then_lang),
         )
 
         # Now that we have the sub-strategy, let's run it and
         # generate the HTML output.
-        sub_html: model.HtmlContent = docgen.assembly_sub_strategy_for_book_then_lang(
+        sub_html: model.HtmlContent = assembly_sub_strategy_for_book_then_lang(
             usfm_resources,
             tn_resources,
             tq_resources,
