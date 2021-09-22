@@ -57,9 +57,12 @@ e2e-tests: up
 down:
 	docker-compose down --remove-orphans
 
+.PHONY: mypy-install-types
+mypy-install-types: checkvenv
+	mypy --install-types --non-interactive  # install all missing stub packages
+
 .PHONY: mypy
-mypy: checkvenv
-	mypy --install-types # install all missing stub packages
+mypy: mypy-install-types
 	mypy src/document/*.py
 	mypy src/document/**/*.py
 	mypy tests/*.py
@@ -151,11 +154,11 @@ local-e2e-tests:  local-prepare-for-tests-without-cleaning
 	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=false FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -vv
 
 .PHONY: local-smoke-test-with-translation-words
-local-smoke-test-with-translation-words: local-prepare-for-tests-without-cleaning
+local-smoke-test-with-translation-words: local-prepare-for-tests
 	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=false FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -k test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_pt_br_ulb_col_pt_br_tn_col_pt_br_tq_col_pt_br_tw_col_book_language_order
 
 .PHONY: local-smoke-test-with-translation-words2
-local-smoke-test-with-translation-words2: local-prepare-for-tests-without-cleaning
+local-smoke-test-with-translation-words2: local-prepare-for-tests
 	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=false FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -k test_en_ulb_wa_rom_en_tn_wa_rom_en_tq_wa_rom_en_tw_wa_rom_es_419_ulb_rom_es_419_tn_rom_en_tq_rom_es_419_tw_rom_book_language_order
 
 .PHONY: local-icontract-hypothesis-tests
