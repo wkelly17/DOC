@@ -78,8 +78,6 @@ class Resource:
         )
 
         # Book attributes
-        self._book_title: str = bible_books.BOOK_NAMES[self.resource_code]
-        self._book_number: str = bible_books.BOOK_NUMBERS[self.resource_code]
 
         # Location/lookup related
         self._resource_lookup_dto: model.ResourceLookupDto
@@ -127,6 +125,15 @@ class Resource:
         Subclasses override.
         """
         raise NotImplementedError
+
+    # Book attributes
+    @property
+    def book_title(self) -> str:
+        return bible_books.BOOK_NAMES[self.resource_code]
+
+    @property
+    def book_number(self) -> str:
+        return bible_books.BOOK_NUMBERS[self.resource_code]
 
     @property
     def lang_code(self) -> str:
@@ -1029,8 +1036,15 @@ class USFMHtmlInitializer:
             # Dictionary to hold verse number, verse value pairs.
             chapter_verses: dict[str, str] = {}
             for verse_element in chapter_verse_list:
-                (verse_num, verse_content_str,) = self._verse_num_and_verse_content_str(
-                    chapter_num, chapter_content_parser, verse_element
+                (
+                    verse_num,
+                    verse_content_str,
+                ) = USFMHtmlInitializer._verse_num_and_verse_content_str(
+                    self._resource.book_number,
+                    self._resource.lang_code,
+                    chapter_num,
+                    chapter_content_parser,
+                    verse_element,
                 )
                 chapter_verses[verse_num] = verse_content_str
             self._resource._chapter_content[chapter_num] = model.USFMChapter(
@@ -1039,8 +1053,10 @@ class USFMHtmlInitializer:
                 chapter_footnotes=chapter_footnotes,
             )
 
+    @staticmethod
     def _verse_num_and_verse_content_str(
-        self,
+        book_number: str,
+        lang_code: str,
         chapter_num: int,
         chapter_content_parser: bs4.BeautifulSoup,
         verse_element: str,
@@ -1083,12 +1099,12 @@ class USFMHtmlInitializer:
         # Create the lower and upper search bounds for the
         # BeautifulSoup HTML parser.
         lower_id = "{}-ch-{}-v-{}".format(
-            str(self._resource._book_number).zfill(3),
+            str(book_number).zfill(3),
             str(chapter_num).zfill(3),
             verse_num.zfill(3),
         )
         upper_id = "{}-ch-{}-v-{}".format(
-            str(self._resource._book_number).zfill(3),
+            str(book_number).zfill(3),
             str(chapter_num).zfill(3),
             str(upper_bound_value).zfill(3),
         )
@@ -1124,9 +1140,7 @@ class USFMHtmlInitializer:
         pattern = settings.VERSE_ANCHOR_ID_FMT_STR
         verse_content_str = re.sub(
             pattern,
-            settings.VERSE_ANCHOR_ID_SUBSTITUTION_FMT_STR.format(
-                self._resource.lang_code
-            ),
+            settings.VERSE_ANCHOR_ID_SUBSTITUTION_FMT_STR.format(lang_code),
             verse_content_str,
         )
         return model.VerseRef(verse_num), model.HtmlContent(verse_content_str)
