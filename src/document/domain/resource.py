@@ -126,6 +126,16 @@ class Resource:
         """
         raise NotImplementedError
 
+    @property
+    def resource_dir(self) -> str:
+        """Provide public interface for other modules."""
+        return self._resource_dir
+
+    @resource_dir.setter
+    def resource_dir(self, value: str) -> None:
+        """Provide public interface for other modules."""
+        self._resource_dir = value
+
     # Book attributes
     @property
     def book_title(self) -> str:
@@ -134,6 +144,8 @@ class Resource:
     @property
     def book_number(self) -> str:
         return bible_books.BOOK_NUMBERS[self.resource_code]
+
+    # ResourceRequest delegated properties
 
     @property
     def lang_code(self) -> str:
@@ -146,15 +158,21 @@ class Resource:
         return self._resource_request.resource_type
 
     @property
-    def resource_type_name(self) -> str:
-        """Provide public interface for other modules."""
-        return self._resource_lookup_dto.resource_type_name
-
-    @property
     def resource_code(self) -> str:
         """Provide public interface for other modules."""
         return self._resource_request.resource_code
 
+    @property
+    def resource_requests(self) -> list[model.ResourceRequest]:
+        """Provide public interface for other modules."""
+        return self._resource_requests
+
+    # ResourceLookupDto delegated properties
+
+    @property
+    def resource_type_name(self) -> str:
+        """Provide public interface for other modules."""
+        return self._resource_lookup_dto.resource_type_name
 
     @property
     def lang_name(self) -> str:
@@ -166,7 +184,6 @@ class Resource:
         """Provide public interface for other modules."""
         return self._resource_lookup_dto.url
 
-    # This method exists to make a mypy cast possible.
     @resource_url.setter
     def resource_url(self, value: AnyUrl) -> None:
         """Provide public interface for other modules."""
@@ -176,21 +193,6 @@ class Resource:
     def resource_source(self) -> str:
         """Provide public interface for other modules."""
         return self._resource_lookup_dto.source
-
-    @property
-    def resource_requests(self) -> list[model.ResourceRequest]:
-        """Provide public interface for other modules."""
-        return self._resource_requests
-
-    @property
-    def resource_dir(self) -> str:
-        """Provide public interface for other modules."""
-        return self._resource_dir
-
-    @resource_dir.setter
-    def resource_dir(self, value: str) -> None:
-        """Provide public interface for other modules."""
-        self._resource_dir = value
 
 
 class USFMResource(Resource):
