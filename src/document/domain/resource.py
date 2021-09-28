@@ -84,6 +84,7 @@ class Resource:
 
         # Content related instance vars
         self._content_files: list[str] = []
+        self._html_content: str = ""
 
     def __str__(self) -> str:
         """Return a printable string identifying this instance."""
@@ -351,7 +352,7 @@ class USFMResource(Resource):
                 os.path.join(self._output_dir, self._resource_filename)
             )
             assert os.path.exists(html_file)
-            self._content = file_utils.read_file(html_file)
+            self._html_content = file_utils.read_file(html_file)
 
             self._html_initializer._initialize_verses_html()
 
@@ -987,7 +988,7 @@ class USFMHtmlInitializer:
         """Return a printable string identifying this instance."""
         return "USFMHtmlInitializer(resource: {})".format(self._resource)
 
-    @icontract.require(lambda self: self._resource._content)
+    @icontract.require(lambda self: self._resource._html_content)
     @icontract.ensure(lambda self: self._resource._chapter_content)
     def _initialize_verses_html(self) -> None:
         """
@@ -995,7 +996,7 @@ class USFMHtmlInitializer:
         chunks, augment HTML output with additional HTML elements and
         store in an instance variable.
         """
-        parser = bs4.BeautifulSoup(self._resource._content, "html.parser")
+        parser = bs4.BeautifulSoup(self._resource._html_content, "html.parser")
 
         chapter_breaks = parser.find_all(H2, attrs={"class": "c-num"})
         localized_chapter_heading = chapter_breaks[0].get_text().split()[0]
