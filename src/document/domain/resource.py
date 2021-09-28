@@ -86,7 +86,6 @@ class Resource:
 
         # Content related instance vars
         self._content_files: list[str] = []
-        self._content: str
         self._verses_html: list[str] = []
 
     def __str__(self) -> str:
@@ -149,10 +148,6 @@ class Resource:
         """Provide public interface for other modules."""
         return self._resource_request.resource_code
 
-    @property
-    def content(self) -> str:
-        """Provide public interface for other modules."""
-        return self._content
 
     @property
     def lang_name(self) -> str:
