@@ -598,7 +598,7 @@ def _assemble_content_by_lang_then_book(
         resources_sorted_by_book = sorted(
             group_by_lang, key=lambda resource: resource.resource_code
         )
-        for book, group_by_book in itertools.groupby(
+        for book, resources_grouped_by_book in itertools.groupby(
             resources_sorted_by_book, lambda resource: resource.resource_code
         ):
             html.append(
@@ -610,7 +610,7 @@ def _assemble_content_by_lang_then_book(
 
             # Save grouper generator values in list since it will get exhausted
             # when used and exhausted generators cannot be reused.
-            resources = list(group_by_book)
+            resources = list(resources_grouped_by_book)
             usfm_resource: Optional[USFMResource] = _first_usfm_resource(resources)
             tn_resource: Optional[TNResource] = _tn_resource(resources)
             tq_resource: Optional[TQResource] = _tq_resource(resources)
