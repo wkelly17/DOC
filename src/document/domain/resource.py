@@ -84,7 +84,6 @@ class Resource:
 
         # Content related instance vars
         self._content_files: list[str] = []
-        self._verses_html: list[str] = []
 
     def __str__(self) -> str:
         """Return a printable string identifying this instance."""
