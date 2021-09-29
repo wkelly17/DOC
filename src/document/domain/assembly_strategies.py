@@ -16,8 +16,6 @@ from collections.abc import Callable, Mapping
 from typing import Iterable, Optional, cast
 
 import icontract
-from logdecorator import log_on_start
-
 from document.config import settings
 from document.domain import bible_books, model
 from document.domain.resource import (
@@ -28,6 +26,7 @@ from document.domain.resource import (
     TWResource,
     USFMResource,
 )
+from logdecorator import log_on_start
 
 logger = settings.logger(__name__)
 

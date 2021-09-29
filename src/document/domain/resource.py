@@ -18,10 +18,6 @@ from typing import Any, Optional, Protocol
 import bs4
 import icontract
 import markdown
-from logdecorator import log_on_end, log_on_start
-from pydantic import AnyUrl
-from usfm_tools.transform import UsfmTransform
-
 from document.config import settings
 from document.domain import bible_books, model, resource_lookup
 from document.markdown_extensions import (
@@ -29,6 +25,9 @@ from document.markdown_extensions import (
     remove_section_preprocessor,
 )
 from document.utils import file_utils, html_parsing_utils, tw_utils, url_utils
+from logdecorator import log_on_end, log_on_start
+from pydantic import AnyUrl
+from usfm_tools.transform import UsfmTransform
 
 logger = settings.logger(__name__)
 
