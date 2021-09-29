@@ -837,6 +837,8 @@ def _assemble_usfm_as_iterator_content_by_verse(
             chapter_heading = model.HtmlContent("")
             chapter_heading = chapter.chapter_content[0]
             html.append(chapter_heading)
+            tn_verses: Optional[dict[model.VerseRef, model.HtmlContent]] = None
+            tq_verses: Optional[dict[model.VerseRef, model.HtmlContent]] = None
             if tn_resource:
                 # Add the translation notes chapter intro.
                 chapter_intro = _chapter_intro(tn_resource, chapter_num)
@@ -863,7 +865,12 @@ def _assemble_usfm_as_iterator_content_by_verse(
                 # Add scripture verse
                 html.append(verse)
                 # Add TN verse content, if any
-                if tn_resource and tn_verses and verse_num in tn_verses:
+                if (
+                    tn_resource
+                    and tn_verses is not None
+                    and tn_verses
+                    and verse_num in tn_verses
+                ):
                     tn_verse_content = tn_resource.format_tn_verse(
                         chapter_num,
                         verse_num,
@@ -1174,6 +1181,7 @@ def _assemble_tn_as_iterator_content_by_verse(
             html.append(chapter_intro)
 
             tn_verses = tn_resource.verses_for_chapter(chapter_num)
+            tq_verses: Optional[dict[model.VerseRef, model.HtmlContent]] = None
             if tq_resource:
                 tq_verses = tq_resource.verses_for_chapter(chapter_num)
 

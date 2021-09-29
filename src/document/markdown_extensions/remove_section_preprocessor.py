@@ -13,7 +13,7 @@ logger = settings.logger(__name__)
 class RemoveSectionPreprocessor(Preprocessor):
     """Remove arbitrary Markdown sections."""
 
-    def __init__(self, config: dict, md: markdown.Markdown) -> None:
+    def __init__(self, config: dict[str, list[str]], md: markdown.Markdown) -> None:
         """Initialize."""
         # Example use of config. See __init__ for RemoveSectionExtension
         # below for initialization.
@@ -60,6 +60,7 @@ class RemoveSectionExtension(Extension):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize."""
+        self.md: markdown.Markdown
         self.config = {
             # Example config entry from the snippets extension that
             # ships with Python-Markdown library.

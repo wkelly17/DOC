@@ -56,7 +56,7 @@ def make_dir(
 @icontract.require(
     lambda file_name: file_name is not None and os.path.exists(file_name)
 )
-def load_json_object(file_name: pathlib.Path) -> list:
+def load_json_object(file_name: pathlib.Path) -> Any:
     """
     Deserialized JSON file <file_name> into a Python dict.
     :param file_name: The name of the file to read
@@ -64,15 +64,6 @@ def load_json_object(file_name: pathlib.Path) -> list:
     return json.loads(read_file(str(file_name.resolve())))
 
 
-@icontract.require(
-    lambda file_name: file_name is not None and os.path.exists(file_name)
-)
-def load_yaml_object(file_name: str) -> dict:
-    """
-    Deserialize YAML file <file_name> into a Python dict.
-    :param file_name: The name of the file to read
-    """
-    return yaml.safe_load(read_file(file_name))
 
 
 @icontract.require(lambda file_name: os.path.exists(file_name))

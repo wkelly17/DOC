@@ -778,7 +778,7 @@ def resource_factory(
     output_dir: str,
     resource_request: model.ResourceRequest,
     resource_requests: list[model.ResourceRequest],
-) -> Resource:
+) -> Any:
     """
     Factory method to create the appropriate Resource subclass for
     a given ResourceRequest instance.
@@ -935,7 +935,7 @@ class ResourceProvisioner:
         # failure here due to network issues. It has happened very occasionally
         # during testing that there has been a hiccup with the network at this
         # point but succeeded on retry of the same test.
-        url_utils.download_file(self._resource.resource_url, resource_filepath)
+        url_utils.download_file(str(self._resource.resource_url), resource_filepath)
         logger.info("Downloading finished.")
 
     @icontract.require(
@@ -1018,10 +1018,10 @@ class USFMHtmlInitializer:
                 "".join(chapter_content),
                 "html.parser",
             )
-            chapter_verse_tags: bs4.elements.ResultSet = (
-                chapter_content_parser.find_all("span", attrs={"class": "v-num"})
+            chapter_verse_tags = chapter_content_parser.find_all(
+                "span", attrs={"class": "v-num"}
             )
-            chapter_footnote_tag: bs4.elements.ResultSet = chapter_content_parser.find(
+            chapter_footnote_tag = chapter_content_parser.find(
                 "div", attrs={"class": "footnotes"}
             )
             chapter_footnotes = (

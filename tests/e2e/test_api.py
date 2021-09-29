@@ -32,11 +32,9 @@ def check_finished_document_with_verses_success(
     with open(html_file, "r") as fin:
         html = fin.read()
         parser = bs4.BeautifulSoup(html, "html.parser")
-        body: bs4.elements.ResultSet = parser.find_all("body")
+        body = parser.find_all("body")
         assert body
-        verses_html: bs4.elements.ResultSet = parser.find_all(
-            "span", attrs={"class": "v-num"}
-        )
+        verses_html = parser.find_all("span", attrs={"class": "v-num"})
         assert verses_html
     assert response.ok
 
@@ -633,11 +631,9 @@ def test_zh_ulb_doesnt_exist_jol_zh_tn_jol_language_book_order() -> None:
         with open(html_file, "r") as fin:
             html = fin.read()
             parser = bs4.BeautifulSoup(html, "html.parser")
-            body: bs4.elements.ResultSet = parser.find_all("body")
+            body = parser.find_all("body")
             assert body
-            verses_html: bs4.elements.ResultSet = parser.find_all(
-                "span", attrs={"class": "v-num"}
-            )
+            verses_html = parser.find_all("span", attrs={"class": "v-num"})
             # Since ulb doesn't exist as a resource_type for zh, there
             # are no verses available in the document.
             assert not verses_html

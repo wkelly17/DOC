@@ -31,11 +31,9 @@ def check_finished_document_with_verses_success(
     with open(html_file, "r") as fin:
         html = fin.read()
         parser = bs4.BeautifulSoup(html, "html.parser")
-        body: bs4.elements.ResultSet = parser.find_all("body")
+        body = parser.find_all("body")
         assert body
-        verses_html: bs4.elements.ResultSet = parser.find_all(
-            "span", attrs={"class": "v-num"}
-        )
+        verses_html = parser.find_all("span", attrs={"class": "v-num"})
         assert verses_html
     assert response.ok
 
@@ -60,7 +58,7 @@ def check_finished_document_without_verses_success(
     with open(html_file, "r") as fin:
         html = fin.read()
         parser = bs4.BeautifulSoup(html, "html.parser")
-        body: bs4.elements.ResultSet = parser.find_all("body")
+        body = parser.find_all("body")
         assert body
     assert response.ok
 

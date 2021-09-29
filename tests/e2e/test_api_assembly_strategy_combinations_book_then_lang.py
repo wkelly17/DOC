@@ -34,11 +34,9 @@ def check_finished_document_with_verses_success(
     with open(html_file, "r") as fin:
         html = fin.read()
         parser = bs4.BeautifulSoup(html, "html.parser")
-        body: bs4.elements.ResultSet = parser.find_all("body")
+        body = parser.find_all("body")
         assert body
-        verses_html: bs4.elements.ResultSet = parser.find_all(
-            "span", attrs={"class": "v-num"}
-        )
+        verses_html = parser.find_all("span", attrs={"class": "v-num"})
         assert verses_html
     assert response.ok
 
@@ -63,7 +61,7 @@ def check_finished_document_with_body_success(
     with open(html_file, "r") as fin:
         html = fin.read()
         parser = bs4.BeautifulSoup(html, "html.parser")
-        body: bs4.elements.ResultSet = parser.find_all("body")
+        body = parser.find_all("body")
         assert body
     assert response.ok
 
@@ -85,11 +83,9 @@ def check_finished_document_without_verses_success(
     with open(html_file, "r") as fin:
         html = fin.read()
         parser = bs4.BeautifulSoup(html, "html.parser")
-        body: bs4.elements.ResultSet = parser.find_all("body")
+        body = parser.find_all("body")
         assert body
-        verses_html: bs4.elements.ResultSet = parser.find_all(
-            "span", attrs={"class": "v-num"}
-        )
+        verses_html = parser.find_all("span", attrs={"class": "v-num"})
         # reg is malformed and udb does not exist, thus there is
         # no html generated
         assert not verses_html
@@ -1719,11 +1715,9 @@ def test_llx_reg_col_llx_tn_col_en_tq_col_llx_tw_col_book_language_order() -> No
         with open(html_file, "r") as fin:
             html = fin.read()
             parser = bs4.BeautifulSoup(html, "html.parser")
-            body: bs4.elements.ResultSet = parser.find_all("body")
+            body = parser.find_all("body")
             assert body
-            verses_html: bs4.elements.ResultSet = parser.find_all(
-                "span", attrs={"class": "v-num"}
-            )
+            verses_html = parser.find_all("span", attrs={"class": "v-num"})
             # Resource requested doesn't exist or isn't available so
             # we assert that the verses_html was not generated and
             # thus not present in the document.

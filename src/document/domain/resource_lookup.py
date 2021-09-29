@@ -135,8 +135,8 @@ class ResourceJsonLookup:
         """
         if url is None:
             return None
-        result: dict = urllib_parse.parse_qs(url)
-        result_lst: list = result[repo_url_dict_key]
+        result = urllib_parse.parse_qs(url)
+        result_lst = result[repo_url_dict_key]
         if result_lst:
             return result_lst[0]
         return None
@@ -151,7 +151,7 @@ class ResourceJsonLookup:
             json_path,
             self.json_data,
         )
-        value_set: set = set(value)
+        value_set = set(value)
         return list(value_set)
 
 
@@ -725,7 +725,7 @@ class BIELHelperResourceJsonLookup:
             yield (d["code"], d["name"])
 
     @icontract.ensure(lambda result: result)
-    def resource_types(self) -> list[str]:
+    def resource_types(self) -> Any:
         """
         Convenience method that can be called, e.g., from the UI, to
         get the set of all resource types.
@@ -733,7 +733,7 @@ class BIELHelperResourceJsonLookup:
         return self._lookup(settings.RESOURCE_TYPES_JSONPATH)
 
     @icontract.ensure(lambda result: result)
-    def resource_codes(self) -> list[str]:
+    def resource_codes(self) -> Any:
         """
         Convenience method that can be called, e.g., from the UI, to
         get the set of all resource codes.
