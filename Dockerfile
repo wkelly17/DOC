@@ -25,7 +25,9 @@ RUN fc-cache -f -v
 # Source: https://gist.github.com/lobermann/ca0e7bb2558b3b08923c6ae2c37a26ce
 # How to get wkhtmltopdf - don't use what Debian provides as it can have
 # headless display issues that mess with wkhtmltopdf.
-ARG WKHTMLTOX_LOC # Make a build arg available to this Dockerfile
+
+# Make a build arg available to this Dockerfile with default
+ARG WKHTMLTOX_LOC=https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.buster_amd64.deb
 RUN WKHTMLTOX_TEMP="$(mktemp)" && \
     wget -O "$WKHTMLTOX_TEMP" ${WKHTMLTOX_LOC} && \
     dpkg -i "$WKHTMLTOX_TEMP" && \
