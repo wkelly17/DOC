@@ -1,0 +1,42 @@
+name: Docker
+
+on: [push, pull_request]
+
+jobs:
+  #test building image for PR without push
+  test:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: FranzDiebold/github-env-vars-action@v1.3.0
+
+      - name: Build web image
+        shell: bash
+        run: docker build .
+
+  #build and push image
+  push:
+
+    runs-on: ubuntu-20.04
+    if: github.event_name == 'push'
+    needs: [test]
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: FranzDiebold/github-env-vars-action@v1.3.0
+
+      - name: Build web image
+        shell: bash
+        run: docker build -t wycliffeassociates/doc:$GITHUB_SHA -t wycliffeassociates/doc:$GITHUB_REF_NAME -t wycliffeassociates/doc:latest .
+
+      - name: Log into registry
+        shell: bash
+        env:
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_HUB_TOKEN }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_HUB_USER }}
+        run: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+        
+      - name: Push image
+        run: |
+          docker push -a wycliffeassociates/doc
