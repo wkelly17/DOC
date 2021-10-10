@@ -28,16 +28,7 @@ class ResourceJsonLookup:
 
     _lang_codes_names_and_resource_types: list[model.CodeNameTypeTriplet] = []
 
-    @staticmethod
-    def _initialize_lang_codes_names_and_resource_types() -> list[
-        model.CodeNameTypeTriplet
-    ]:
-        """
-        Initialize a list of available Tuple[lang_code, lang_name,
-        List[resource_type]].
-        """
 
-        return BIELHelperResourceJsonLookup().lang_codes_names_and_resource_types()
 
     @classmethod
     def lang_codes_names_and_resource_types(
@@ -45,7 +36,7 @@ class ResourceJsonLookup:
     ) -> list[model.CodeNameTypeTriplet]:
         if not cls._lang_codes_names_and_resource_types:
             cls._lang_codes_names_and_resource_types = (
-                ResourceJsonLookup._initialize_lang_codes_names_and_resource_types()
+                BIELHelperResourceJsonLookup().lang_codes_names_and_resource_types()
             )
 
         return cls._lang_codes_names_and_resource_types
