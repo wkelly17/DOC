@@ -4,7 +4,6 @@ and eventually a final document produced.
 """
 import base64
 import datetime
-import logging  # For logdecorator
 import os
 import smtplib
 import subprocess
@@ -23,7 +22,6 @@ from document.domain.resource import (
     resource_factory,
 )
 from document.utils import file_utils
-from logdecorator import log_on_start
 from more_itertools import partition
 from pydantic import EmailStr
 from usfm_tools.support import exceptions
@@ -157,13 +155,12 @@ def _should_send_email(email_address: Optional[EmailStr]) -> bool:
     return settings.SEND_EMAIL and email_address is not None
 
 
-@log_on_start(logging.INFO, "Calling _send_email_with_pdf_attachment", logger=logger)
 @icontract.require(
     lambda output_filename, document_request_key: os.path.exists(output_filename)
     and document_request_key
 )
 def _send_email_with_pdf_attachment(
-    email_address: EmailStr, output_filename: str, document_request_key: str
+    email_address: Optional[EmailStr], output_filename: str, document_request_key: str
 ) -> None:
     """
     If PDF exists, and environment configuration allows sending of
@@ -364,7 +361,6 @@ def _pdf_output_filename(document_request_key: str) -> str:
         and resource_request.resource_code in bible_books.BOOK_NAMES.keys()
     ]
 )
-@log_on_start(logging.DEBUG, "document_request: {document_request}", logger=logger)
 def run(document_request: model.DocumentRequest) -> tuple[str, str]:
     """
     This is the main entry point for this module and the
@@ -392,8 +388,8 @@ def run(document_request: model.DocumentRequest) -> tuple[str, str]:
         for resource in found_resources_list:
             resource.provision_asset_files()
 
-        for resource in unfound_resources:
-            logger.info("%s was not found", resource)
+        for unfound_resource in unfound_resources:
+            logger.info("%s was not found", unfound_resource)
 
         unloaded_resources = _update_found_resources_with_content(found_resources_list)
 

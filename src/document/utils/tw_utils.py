@@ -35,7 +35,7 @@ def translation_word_filepaths(resource_dir: str) -> list[str]:
 @icontract.ensure(lambda result: result)
 def localized_translation_word(
     translation_word_content: model.MarkdownContent,
-) -> model.LocalizedWord:
+) -> str:
     """
     Get the localized translation word from the
     translation_word_content. Sometimes a translation word file has as its
@@ -54,7 +54,7 @@ def localized_translation_word(
         #     "Updated localized_translation_word: %s", localized_translation_word
         # )
     localized_translation_word = str.strip(localized_translation_word)
-    return model.LocalizedWord(localized_translation_word)
+    return localized_translation_word
 
 
 @icontract.require(lambda lang_code: lang_code)

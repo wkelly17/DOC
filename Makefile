@@ -63,10 +63,10 @@ mypy-install-types: checkvenv
 
 .PHONY: mypy
 mypy: mypy-install-types
-	mypy src/document/*.py
-	mypy src/document/**/*.py
-	mypy tests/*.py
-	mypy tests/**/*.py
+	mypy --strict src/document/*.py
+	mypy --strict src/document/**/*.py
+	mypy --strict tests/*.py
+	mypy --strict tests/**/*.py
 
 .PHONY: pyicontract-lint
 pyicontract-lint: checkvenv

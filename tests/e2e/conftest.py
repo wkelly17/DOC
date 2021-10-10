@@ -54,7 +54,7 @@ def english_lang_code() -> str:
 
 @pytest.fixture(params=PASSING_NON_ENGLISH_LANG_CODES)
 # Type of request parameter is actually _pytest.fixtures.FixtureRequest
-def non_english_lang_code(request: Any) -> str:
+def non_english_lang_code(request: Any) -> Any:
     """
     Get all non-English language codes, but one per request.
 
@@ -97,7 +97,7 @@ def random_failing_non_english_lang_code() -> str:
 
 
 @pytest.fixture(params=bible_books.BOOK_NAMES.keys())
-def resource_code(request: Any) -> str:
+def resource_code(request: Any) -> Any:
     """All book names sequentially, but one at a time."""
     return request.param
 
@@ -119,12 +119,12 @@ def random_resource_code2() -> str:
 
 
 @pytest.fixture(params=[settings.TO_EMAIL_ADDRESS])
-def email_address(request: Any) -> str:
+def email_address(request: Any) -> Any:
     return request.param
 
 
 @pytest.fixture(params=[model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER])
-def assembly_strategy_kind(request: Any) -> str:
+def assembly_strategy_kind(request: Any) -> Any:
     return request.param
 
 
@@ -141,7 +141,7 @@ def non_english_resource_types() -> list[str]:
 
 
 @pytest.fixture()
-def english_resource_type_combos(english_resource_types: list[str]) -> list[tuple]:
+def english_resource_type_combos(english_resource_types: list[str]) -> list[tuple[str, ...]]:
     """
     All possible combinations, in the mathematical sense, of
     English resource types. See documentation for
@@ -158,7 +158,7 @@ def english_resource_type_combos(english_resource_types: list[str]) -> list[tupl
 @pytest.fixture()
 def non_english_resource_type_combos(
     non_english_resource_types: list[str],
-) -> list[tuple]:
+) -> list[tuple[str, ...]]:
     """
     All possible combinations, in the mathematical sense, of
     non-English resource types. See documentation for

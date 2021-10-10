@@ -7,10 +7,8 @@ Assembly strategies utilize the Strategy pattern:
 https://github.com/faif/python-patterns/blob/master/patterns/behavioral/strategy.py
 """
 # Handle circular import issue with document_generator module.
-from __future__ import annotations  # https://www.python.org/dev/peps/pep-0563/
 
 import itertools
-import logging  # For logdecorator
 import re
 from collections.abc import Callable, Mapping
 from typing import Iterable, Optional, cast
@@ -26,7 +24,6 @@ from document.domain.resource import (
     TWResource,
     USFMResource,
 )
-from logdecorator import log_on_start
 
 logger = settings.logger(__name__)
 
@@ -554,11 +551,6 @@ def assembly_sub_strategy_factory_for_book_then_lang(
 ## Assembly strategy implementations
 
 
-@log_on_start(
-    logging.INFO,
-    "Assembling document by interleaving at first by language and then by book.",
-    logger=logger,
-)
 def _assemble_content_by_lang_then_book(
     found_resources: Iterable[Resource],
 ) -> str:
@@ -653,11 +645,6 @@ def _assemble_content_by_lang_then_book(
     return "\n".join(html)
 
 
-@log_on_start(
-    logging.INFO,
-    "Assembling document by interleaving at first by book and then by language.",
-    logger=logger,
-)
 def _assemble_content_by_book_then_lang(found_resources: Iterable[Resource]) -> str:
     """
     Assemble by book then by language in alphabetic order before
@@ -828,16 +815,13 @@ def _assemble_usfm_as_iterator_content_by_verse(
                 )
             )
         )
-        # PEP526 disallows declaration of types in for loops.
-        chapter_num: model.ChapterNum
-        chapter: model.USFMChapter
         for chapter_num, chapter in usfm_resource.chapter_content.items():
             # Add in the USFM chapter heading.
             chapter_heading = model.HtmlContent("")
             chapter_heading = chapter.chapter_content[0]
             html.append(chapter_heading)
-            tn_verses: Optional[dict[model.VerseRef, model.HtmlContent]] = None
-            tq_verses: Optional[dict[model.VerseRef, model.HtmlContent]] = None
+            tn_verses: Optional[dict[str, model.HtmlContent]] = None
+            tq_verses: Optional[dict[str, model.HtmlContent]] = None
             if tn_resource:
                 # Add the translation notes chapter intro.
                 chapter_intro = _chapter_intro(tn_resource, chapter_num)
@@ -848,7 +832,7 @@ def _assemble_usfm_as_iterator_content_by_verse(
                 tq_verses = tq_resource.verses_for_chapter(chapter_num)
 
             # PEP526 disallows declaration of types in for loops.
-            verse_num: model.VerseRef
+            verse_num: str
             verse: model.HtmlContent
             # Now let's interleave USFM verse with its translation note, translation
             # questions, and translation words if available.
@@ -913,19 +897,19 @@ def _assemble_usfm_as_iterator_content_by_verse(
             )
         )
         # Add the usfm_resource2, e.g., udb, scripture verses.
-        for chapter_num, chapter in usfm_resource2.chapter_content.items():
+        for chapter_num2, chapter2 in usfm_resource2.chapter_content.items():
             # Add in the USFM chapter heading.
             chapter_heading = model.HtmlContent("")
-            chapter_heading = chapter.chapter_content[0]
+            chapter_heading = chapter2.chapter_content[0]
             html.append(chapter_heading)
             # Now let's interleave USFM verse with its translation note, translation
             # questions, and translation words if available.
-            for verse_num, verse in chapter.chapter_verses.items():
+            for verse_num, verse in chapter2.chapter_verses.items():
                 # Add header
                 html.append(
                     model.HtmlContent(
                         settings.RESOURCE_TYPE_NAME_WITH_REF_FMT_STR.format(
-                            usfm_resource2.resource_type_name, chapter_num, verse_num
+                            usfm_resource2.resource_type_name, chapter_num2, verse_num
                         )
                     )
                 )
@@ -959,9 +943,6 @@ def _assemble_usfm_tq_tw_content_by_verse(
 
     html: list[model.HtmlContent] = []
 
-    # PEP526 disallows declaration of types in for loops.
-    chapter_num: model.ChapterNum
-    chapter: model.USFMChapter
     for chapter_num, chapter in usfm_resource.chapter_content.items():
         # Add in the USFM chapter heading.
         chapter_heading = model.HtmlContent("")
@@ -971,7 +952,7 @@ def _assemble_usfm_tq_tw_content_by_verse(
         tq_verses = tq_resource.verses_for_chapter(chapter_num)
 
         # PEP526 disallows declaration of types in for loops.
-        verse_num: model.VerseRef
+        verse_num: str
         verse: model.HtmlContent
         # Now let's interleave USFM verse with its translation note, translation
         # questions, and translation words if available.
@@ -1034,9 +1015,6 @@ def _assemble_usfm_tw_content_by_verse(
 
     html: list[model.HtmlContent] = []
 
-    # PEP526 disallows declaration of types in for loops, but allows this.
-    chapter_num: model.ChapterNum
-    chapter: model.USFMChapter
     for chapter_num, chapter in usfm_resource.chapter_content.items():
         # Add in the USFM chapter heading.
         chapter_heading = model.HtmlContent("")
@@ -1045,7 +1023,7 @@ def _assemble_usfm_tw_content_by_verse(
 
         # PEP526 disallows declaration of types in for
         # loops, but allows this.
-        verse_num: model.VerseRef
+        verse_num: str
         verse: model.HtmlContent
         # Now let's interleave USFM verse with its translation note, translation
         # questions, and translation words if available.
@@ -1096,9 +1074,6 @@ def _assemble_usfm_tq_content_by_verse(
 
     html: list[model.HtmlContent] = []
 
-    # PEP526 disallows declaration of types in for loops, but allows this.
-    chapter_num: model.ChapterNum
-    chapter: model.USFMChapter
     for chapter_num, chapter in usfm_resource.chapter_content.items():
         # Add in the USFM chapter heading.
         chapter_heading = model.HtmlContent("")
@@ -1109,7 +1084,7 @@ def _assemble_usfm_tq_content_by_verse(
 
         # PEP526 disallows declaration of types in for
         # loops, but allows this.
-        verse_num: model.VerseRef
+        verse_num: str
         verse: model.HtmlContent
         # Now let's interleave USFM verse with its
         # translation note if available.
@@ -1159,8 +1134,6 @@ def _assemble_tn_as_iterator_content_by_verse(
         book_intro = _adjust_book_intro_headings(book_intro)
         html.append(book_intro)
 
-        # PEP526 disallows declaration of types in for loops.
-        chapter_num: model.ChapterNum
         for chapter_num in tn_resource.book_payload.chapters:
             # How to get chapter heading for Translation notes when USFM is not
             # requested? For now we'll use non-localized chapter heading. Add in the
@@ -1180,12 +1153,12 @@ def _assemble_tn_as_iterator_content_by_verse(
             html.append(chapter_intro)
 
             tn_verses = tn_resource.verses_for_chapter(chapter_num)
-            tq_verses: Optional[dict[model.VerseRef, model.HtmlContent]] = None
+            tq_verses: Optional[dict[str, model.HtmlContent]] = None
             if tq_resource:
                 tq_verses = tq_resource.verses_for_chapter(chapter_num)
 
             # PEP526 disallows declaration of types in for loops, but allows this.
-            verse_num: model.VerseRef
+            verse_num: str
             verse: model.HtmlContent
             # Now let's get all the verse level content.
             # iterator = tn_verses or tq_verses
@@ -1265,8 +1238,6 @@ def _assemble_tq_content_by_verse(
 
     html: list[model.HtmlContent] = []
 
-    # PEP526 disallows declaration of types in for loops, but allows this.
-    chapter_num: model.ChapterNum
     for chapter_num in tq_resource.book_payload.chapters:
         # How to get chapter heading for Translation questions when there is
         # not USFM requested? For now we'll use non-localized chapter heading.
@@ -1285,7 +1256,7 @@ def _assemble_tq_content_by_verse(
         tq_verses = tq_resource.verses_for_chapter(chapter_num)
 
         # PEP526 disallows declaration of types in for loops, but allows this.
-        verse_num: model.VerseRef
+        verse_num: str
         verse: model.HtmlContent
         # Now let's get all the verse translation notes available.
         if tq_verses:
@@ -1319,8 +1290,6 @@ def _assemble_tq_tw_content_by_verse(
 
     html: list[model.HtmlContent] = []
 
-    # PEP526 disallows declaration of types in for loops, but allows this.
-    chapter_num: model.ChapterNum
     for chapter_num in tq_resource.book_payload.chapters:
         # How to get chapter heading for Translation questions when there is
         # not USFM requested? For now we'll use non-localized chapter heading.
@@ -1339,7 +1308,7 @@ def _assemble_tq_tw_content_by_verse(
         tq_verses = tq_resource.verses_for_chapter(chapter_num)
 
         # PEP526 disallows declaration of types in for loops, but allows this.
-        verse_num: model.VerseRef
+        verse_num: str
         verse: model.HtmlContent
         # Now let's get all the verse translation notes available.
         if tq_verses:
@@ -1469,9 +1438,6 @@ def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
     # even consider such a change? A: In order to realize the most amount of
     # content displayed to user.
 
-    # PEP526 disallows declaration of types in for loops.
-    chapter_num: model.ChapterNum
-    chapter: model.USFMChapter
     # NOTE Assumption (which may need to change): usfm_resources[0] is the
     # right usfm_resource instance to use for chapter_num pump. However, if
     # usfm_resource[n] where n is not 0 has more chapters then it should
@@ -1488,9 +1454,9 @@ def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
         html.append(model.HtmlContent(chapter_heading))
 
         # Add chapter intro for each language
-        for tn_resource in tn_resources:
+        for tn_resource2 in tn_resources:
             # Add the translation notes chapter intro.
-            chapter_intro = _chapter_intro(tn_resource, chapter_num)
+            chapter_intro = _chapter_intro(tn_resource2, chapter_num)
             html.append(model.HtmlContent(chapter_intro))
 
         # NOTE If we add macro-weave feature, it would go here, see
@@ -1530,10 +1496,10 @@ def _assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
                     )
 
             # Add the interleaved tn notes
-            for tn_resource in tn_resources:
-                tn_verses = tn_resource.verses_for_chapter(chapter_num)
+            for tn_resource3 in tn_resources:
+                tn_verses = tn_resource3.verses_for_chapter(chapter_num)
                 if tn_verses and verse_num in tn_verses:
-                    tn_verse_content = tn_resource.format_tn_verse(
+                    tn_verse_content = tn_resource3.format_tn_verse(
                         chapter_num,
                         verse_num,
                         tn_verses[verse_num],
@@ -1661,9 +1627,6 @@ def _assemble_tn_as_iterator_content_by_verse_for_book_then_lang(
         # book_intros.append(book_intro)
         html.append(model.HtmlContent(book_intro))
 
-    # PEP526 disallows declaration of types in for loops, but allows this.
-    chapter_num: model.ChapterNum
-    chapter: model.TNChapterPayload
     # Use the first tn_resource as a chapter_num pump.
     for chapter_num in tn_resources[0].book_payload.chapters.keys():
         chapter_heading = model.HtmlContent("Chapter {}".format(chapter_num))
@@ -1774,9 +1737,6 @@ def _assemble_tq_as_iterator_content_by_verse_for_book_then_lang(
     #     french chapter intro goes here
     #         etc for tq, tw links, followed by tw definitions
 
-    # PEP526 disallows declaration of types in for loops, but allows this.
-    chapter_num: model.ChapterNum
-    chapter: model.TQChapterPayload
     # Use the first tn_resource as a chapter_num pump.
     for chapter_num in tq_resources[0].book_payload.chapters.keys():
         chapter_heading = model.HtmlContent("Chapter {}".format(chapter_num))
@@ -1876,8 +1836,8 @@ def _assemble_tw_as_iterator_content_by_verse_for_book_then_lang(
 
 def _format_tq_verse(
     resource_type_name: str,
-    chapter_num: model.ChapterNum,
-    verse_num: model.VerseRef,
+    chapter_num: int,
+    verse_num: str,
     verse: model.HtmlContent,
 ) -> list[model.HtmlContent]:
     """
@@ -1900,7 +1860,7 @@ def _format_tq_verse(
 
 # FIXME TA not implemented yet
 # def _format_ta_verse(
-#     chapter_num: model.ChapterNum, verse_num: model.VerseRef, verse: model.HtmlContent
+#     chapter_num: int, verse_num: str, verse: model.HtmlContent
 # ) -> List[model.HtmlContent]:
 #     html: List[model.HtmlContent] = []
 #     html.append(
@@ -2053,7 +2013,7 @@ def _adjust_chapter_intro_headings(chapter_intro: str) -> model.HtmlContent:
 
 
 def _chapter_intro(
-    tn_resource: TNResource, chapter_num: model.ChapterNum
+    tn_resource: TNResource, chapter_num: int
 ) -> model.HtmlContent:
     """Get the chapter intro."""
     if tn_resource and chapter_num in tn_resource.book_payload.chapters:

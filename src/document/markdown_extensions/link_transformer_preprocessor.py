@@ -20,11 +20,6 @@ TW = "tw"
 class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
     """Convert various link types to Markdown anchor links."""
 
-    @log_on_start(
-        logging.DEBUG,
-        "lang_code: {lang_code}",
-        logger=logger,
-    )
     def __init__(
         self,
         md: markdown.Markdown,

@@ -13,25 +13,8 @@ from pydantic import AnyUrl, BaseModel, EmailStr
 # These NewTypes give us more self-documenting code, but of course
 # aren't strictly necessary. They have been deemed helpful enough to
 # warrant their use.
-LocalizedWord = NewType("LocalizedWord", str)
-ImageLookupKey = NewType("ImageLookupKey", str)
-DateString = NewType("DateString", str)
 HtmlContent = NewType("HtmlContent", str)
 MarkdownContent = NewType("MarkdownContent", str)
-# This might look like overkill, but there are two reasons why we have
-# an abstraction for ChapterNum and VerseNum:
-# 1. If we wish to constrain chapter or verse numbers to their actual
-# range for any given book then we have an abstraction to hang that
-# validation off of. If that turns out to be a requirement, we'll likely
-# change ChapterNum and VerseNum from a NewType to be subclasses of BaseModel
-# Type and add validation. None of the call sites will have to change
-# except if we add exception handling for non-sensical chapter or verse
-# numbers being used.
-# 2. If we accept ranges of chapters or verses instead of whole books as a
-# request, then we'll again have an abstraction to hang such logic off
-# of.
-ChapterNum = NewType("ChapterNum", int)
-VerseRef = NewType("VerseRef", str)
 
 
 # https://blog.meadsteve.dev/programming/2020/02/10/types-at-the-edges-in-python/
@@ -183,7 +166,7 @@ class TNChapterPayload(BaseModel):
     """
 
     intro_html: HtmlContent
-    verses_html: dict[VerseRef, HtmlContent]
+    verses_html: dict[str, HtmlContent]
 
 
 class TNBookPayload(BaseModel):
@@ -193,7 +176,7 @@ class TNBookPayload(BaseModel):
     """
 
     intro_html: HtmlContent
-    chapters: dict[ChapterNum, TNChapterPayload]
+    chapters: dict[int, TNChapterPayload]
 
 
 class TQChapterPayload(BaseModel):
@@ -202,7 +185,7 @@ class TQChapterPayload(BaseModel):
     content.
     """
 
-    verses_html: dict[VerseRef, HtmlContent]
+    verses_html: dict[str, HtmlContent]
 
 
 class TQBookPayload(BaseModel):
@@ -211,7 +194,7 @@ class TQBookPayload(BaseModel):
     content.
     """
 
-    chapters: dict[ChapterNum, TQChapterPayload]
+    chapters: dict[int, TQChapterPayload]
 
 
 class TWUse(BaseModel):
@@ -223,9 +206,9 @@ class TWUse(BaseModel):
     lang_code: str
     book_id: str
     book_name: str
-    chapter_num: ChapterNum
-    verse_num: VerseRef
-    localized_word: LocalizedWord
+    chapter_num: int
+    verse_num: str
+    localized_word: str
 
 
 class TWNameContentPair(BaseModel):
@@ -234,7 +217,7 @@ class TWNameContentPair(BaseModel):
     HTML content (which was converted from its Markdown).
     """
 
-    localized_word: LocalizedWord
+    localized_word: str
     content: HtmlContent
 
 
@@ -245,7 +228,7 @@ class TWLanguagePayload(BaseModel):
     """
 
     name_content_pairs: list[TWNameContentPair] = []
-    uses: dict[LocalizedWord, list[TWUse]] = {}
+    uses: dict[str, list[TWUse]] = {}
 
 
 class TAChapterPayload(BaseModel):
@@ -254,7 +237,7 @@ class TAChapterPayload(BaseModel):
     content.
     """
 
-    verses_html: dict[VerseRef, HtmlContent]
+    verses_html: dict[str, HtmlContent]
 
 
 class TABookPayload(BaseModel):
@@ -263,7 +246,7 @@ class TABookPayload(BaseModel):
     content.
     """
 
-    chapters: dict[ChapterNum, TAChapterPayload]
+    chapters: dict[int, TAChapterPayload]
 
 
 class USFMChapter(BaseModel):
@@ -281,7 +264,7 @@ class USFMChapter(BaseModel):
     """
 
     chapter_content: list[HtmlContent]
-    chapter_verses: dict[VerseRef, HtmlContent]
+    chapter_verses: dict[str, HtmlContent]
     chapter_footnotes: HtmlContent
 
 
@@ -294,8 +277,8 @@ class CoverPayload(BaseModel):
     title: str
     unfound: str
     unloaded: str
-    revision_date: DateString
-    images: dict[ImageLookupKey, Union[str, bytes]]
+    revision_date: str
+    images: dict[str, Union[str, bytes]]
 
 
 class EmailPayload(BaseModel):
@@ -318,7 +301,7 @@ class MarkdownLink(BaseModel):
     module.
     """
 
-    url: str  # AnyUrl
+    url: str
     link_text: str
 
 
@@ -328,4 +311,4 @@ class WikiLink(BaseModel):
     module.
     """
 
-    url: str  # AnyUrl
+    url: str

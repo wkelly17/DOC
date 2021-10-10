@@ -2,7 +2,7 @@
 
 import os
 import pathlib
-from typing import Generator
+from typing import Any, Generator
 
 from document.config import settings
 from document.domain import document_generator, model, resource_lookup
@@ -106,7 +106,7 @@ def lang_codes_and_names() -> Generator[tuple[str, str], None, None]:
 
 # @app.get(f"{settings.API_ROOT}/resource_types")
 @app.get("/resource_types")
-def resource_types() -> list[str]:
+def resource_types() -> Any:
     """Return list of all available resource types."""
     lookup_svc = resource_lookup.BIELHelperResourceJsonLookup()
     return lookup_svc.resource_types()
@@ -114,13 +114,13 @@ def resource_types() -> list[str]:
 
 # @app.get(f"{settings.API_ROOT}/resource_codes")
 @app.get("/resource_codes")
-def resource_codes() -> list[str]:
+def resource_codes() -> Any:
     """Return list of all available resource codes."""
     lookup_svc = resource_lookup.BIELHelperResourceJsonLookup()
     return lookup_svc.resource_codes()
 
 
 @app.get("/health/status")
-def health_status() -> tuple[dict, int]:
+def health_status() -> tuple[dict[str, str], int]:
     """Ping-able server endpoint."""
     return {"status": "ok"}, 200

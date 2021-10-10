@@ -4,7 +4,6 @@ resource's asset files in the cloud.
 """
 
 
-import logging  # For logdecorator
 import abc
 import os
 import pathlib
@@ -13,7 +12,6 @@ from urllib import parse as urllib_parse
 
 import icontract
 import jsonpath_rw_ext as jp
-from logdecorator import log_on_end, log_on_start
 
 from document.config import settings
 from document.domain import model
@@ -184,7 +182,6 @@ class SourceDataFetcher:
     code.
     """
 
-    @log_on_start(logging.DEBUG, "working_dir: {working_dir}", logger=logger)
     def __init__(self, working_dir: str, json_file_url: str) -> None:
         self._working_dir = working_dir
         self._json_file_url = json_file_url
@@ -254,7 +251,6 @@ class USFMResourceJsonLookup:
         and resource_code is not None
     )
     @icontract.ensure(lambda result: result is not None)
-    @log_on_end(logging.DEBUG, "model.ResourceLookupDto: {result}", logger=logger)
     def lookup(
         self, lang_code: str, resource_type: str, resource_code: str
     ) -> model.ResourceLookupDto:
@@ -304,7 +300,6 @@ class USFMResourceJsonLookup:
         and result.jsonpath is not None
         # and result.lang_name
     )
-    @log_on_end(logging.DEBUG, "model.ResourceLookupDto: {result}", logger=logger)
     def _non_repo_usfm_location(
         self, lang_code: str, resource_type: str, resource_code: str
     ) -> model.ResourceLookupDto:
@@ -371,7 +366,6 @@ class USFMResourceJsonLookup:
         and result.jsonpath is not None
         # and result.lang_name
     )
-    @log_on_end(logging.DEBUG, "model.ResourceLookupDto: {result}", logger=logger)
     def _level1_location(
         self, lang_code: str, resource_type: str, resource_code: str
     ) -> model.ResourceLookupDto:

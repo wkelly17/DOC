@@ -3,10 +3,8 @@ This module provides classes that reify the concept of a resource.
 There are different classes for each resource type.
 """
 
-from __future__ import annotations  # https://www.python.org/dev/peps/pep-0563/
 
 import abc
-import logging  # For logdecorator
 import os
 import pathlib
 import re
@@ -25,7 +23,6 @@ from document.markdown_extensions import (
     remove_section_preprocessor,
 )
 from document.utils import file_utils, html_parsing_utils, tw_utils, url_utils
-from logdecorator import log_on_end, log_on_start
 from pydantic import AnyUrl
 from usfm_tools.transform import UsfmTransform
 
@@ -202,8 +199,8 @@ class USFMResource(Resource):
 
     def __init__(self, *args, **kwargs) -> None:  # type: ignore
         super().__init__(*args, **kwargs)
-        self._chapter_content: dict[model.ChapterNum, model.USFMChapter] = {}
         self._html_initializer = USFMHtmlInitializer(self)
+        self._chapter_content: dict[int, model.USFMChapter] = {}
         self._finder: resource_lookup.USFMResourceJsonLookup = (
             resource_lookup.USFMResourceJsonLookup()
         )
@@ -213,11 +210,6 @@ class USFMResource(Resource):
     # try to find a DocumentRequest instances's other ResourceRequests
     # instances. That is why we do not have a post-condition that would
     # request a resource URL be found for every resource.
-    @log_on_end(
-        logging.DEBUG,
-        "self._resource_lookup_dto.url = {self._resource_lookup_dto.url} for {self}",
-        logger=logger,
-    )
     def find_location(self) -> bool:
         """See docstring in superclass."""
         resource_lookup_dto: model.ResourceLookupDto = self._finder.lookup(
@@ -228,7 +220,7 @@ class USFMResource(Resource):
 
     def _update_resource_dir(self) -> None:
         """Update resource_dir."""
-        subdirs = [f.path for f in os.scandir(self.resource_dir) if f.is_dir()]
+        subdirs = [file.path for file in os.scandir(self.resource_dir) if file.is_dir()]
 
         if subdirs:
             self._resource_dir = subdirs[0]
@@ -244,7 +236,6 @@ class USFMResource(Resource):
         """
         ResourceProvisioner(self)()
 
-    @log_on_start(logging.DEBUG, "self._resource_dir: {self._resource_dir}")
     @icontract.ensure(lambda self: self._resource_filename is not None)
     def update_resource_with_asset_content(self) -> None:
         """See docstring in superclass."""
@@ -356,7 +347,7 @@ class USFMResource(Resource):
             self._html_initializer._initialize_verses_html()
 
     @property
-    def chapter_content(self) -> dict[model.ChapterNum, model.USFMChapter]:
+    def chapter_content(self) -> dict[int, model.USFMChapter]:
         """Provide public interface for other modules."""
         return self._chapter_content
 
@@ -449,8 +440,8 @@ class TNResource(TResource):
         return self._book_payload
 
     def verses_for_chapter(
-        self, chapter_num: model.ChapterNum
-    ) -> Optional[dict[model.VerseRef, model.HtmlContent]]:
+        self, chapter_num: int
+    ) -> Optional[dict[str, model.HtmlContent]]:
         """
         Return the HTML for verses that are in the chapter with
         chapter_num.
@@ -462,8 +453,8 @@ class TNResource(TResource):
 
     def format_tn_verse(
         self,
-        chapter_num: model.ChapterNum,
-        verse_num: model.VerseRef,
+        chapter_num: int,
+        verse_num: str,
         verse: model.HtmlContent,
     ) -> list[model.HtmlContent]:
         """
@@ -515,8 +506,9 @@ class TQResource(TResource):
         return self._book_payload
 
     def verses_for_chapter(
-        self, chapter_num: model.ChapterNum
-    ) -> Optional[dict[model.VerseRef, model.HtmlContent]]:
+        self,
+        chapter_num: int,
+    ) -> Optional[dict[str, model.HtmlContent]]:
         """Return the HTML for verses in chapter_num."""
         verses_html = None
         if chapter_num in self.book_payload.chapters:
@@ -525,8 +517,8 @@ class TQResource(TResource):
 
     def format_tq_verse(
         self,
-        chapter_num: model.ChapterNum,
-        verse_num: model.VerseRef,
+        chapter_num: int,
+        verse_num: str,
     ) -> list[model.HtmlContent]:
         """
         Build and return the content for the translation question for chapter
@@ -578,8 +570,8 @@ class TWResource(TResource):
 
     def translation_word_links(
         self,
-        chapter_num: model.ChapterNum,
-        verse_num: model.VerseRef,
+        chapter_num: int,
+        verse_num: str,
         verse: model.HtmlContent,
     ) -> list[model.HtmlContent]:
         """
@@ -754,8 +746,8 @@ class TAResource(TResource):
         return self._book_payload
 
     def verses_for_chapter(
-        self, chapter_num: model.ChapterNum
-    ) -> Optional[dict[model.VerseRef, model.HtmlContent]]:
+        self, chapter_num: int
+    ) -> Optional[dict[str, model.HtmlContent]]:
         """Return the HTML for verses in chapter_num."""
         verses_html = None
         if chapter_num in self.book_payload.chapters:
@@ -763,15 +755,6 @@ class TAResource(TResource):
         return verses_html
 
 
-@icontract.require(
-    lambda working_dir, output_dir, resource_request, resource_requests: working_dir
-    and output_dir
-    and resource_request
-    and resource_request.lang_code
-    and resource_request.resource_type
-    and resource_request.resource_code
-)
-@icontract.ensure(lambda result: result)
 def resource_factory(
     working_dir: str,
     output_dir: str,
@@ -835,11 +818,6 @@ class ResourceProvisioner:
         and self._resource.resource_dir
         and self._resource.resource_url
     )
-    @log_on_start(
-        logging.DEBUG,
-        "self._resource.resource_url: {self._resource.resource_url} for {self}",
-        logger=logger,
-    )
     def _acquire_resource(self) -> None:
         """
         Download or git clone resource and unzip resulting file if it
@@ -884,7 +862,7 @@ class ResourceProvisioner:
         resource_dir to point to that subdirectory.
         """
         subdirs = [
-            f.path for f in os.scandir(self._resource.resource_dir) if f.is_dir()
+            file.path for file in os.scandir(self._resource.resource_dir) if file.is_dir()
         ]
         if subdirs:
             self._resource.resource_dir = subdirs[0]
@@ -1061,7 +1039,7 @@ class USFMHtmlInitializer:
         chapter_num: int,
         chapter_content_parser: bs4.BeautifulSoup,
         verse_element: str,
-    ) -> tuple[model.VerseRef, model.HtmlContent]:
+    ) -> tuple[str, model.HtmlContent]:
         """
         Handle some messy initialization and return the
         chapter_num and verse_content_str.
@@ -1133,7 +1111,7 @@ class USFMHtmlInitializer:
         # a recapitulation of all previous verses. This does fix the problem
         # though and gives the desired result:
         verse_content_str = (
-            '<span class="v-num"' + verse_content_str.split('<span class="v-num"')[1]
+            '<span class="v-num"{}'.format(verse_content_str.split('<span class="v-num"')[1])
         )
         # At this point we alter verse_content_str span's ID by prepending the
         # lang_code to ensure unique verse references within language scope in a
@@ -1144,7 +1122,7 @@ class USFMHtmlInitializer:
             settings.VERSE_ANCHOR_ID_SUBSTITUTION_FMT_STR.format(lang_code),
             verse_content_str,
         )
-        return model.VerseRef(verse_num), model.HtmlContent(verse_content_str)
+        return str(verse_num), model.HtmlContent(verse_content_str)
 
 
 class TNHtmlInitializer:

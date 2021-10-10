@@ -111,14 +111,12 @@ def write_file(
 
 
 @icontract.require(lambda file_path: file_path is not None)
-@log_on_end(logging.DEBUG, "{file_path} needs update: {result}.", logger=logger)
 def source_file_needs_update(file_path: Union[str, pathlib.Path]) -> bool:
     """See docstring in __file_needs_update."""
     return __file_needs_update(file_path)
 
 
 @icontract.require(lambda file_path: file_path is not None)
-@log_on_end(logging.DEBUG, "{file_path} needs update: {result}.", logger=logger)
 def asset_file_needs_update(file_path: Union[str, pathlib.Path]) -> bool:
     """See docstring in __file_needs_update."""
     if not settings.ASSET_CACHING_ENABLED:

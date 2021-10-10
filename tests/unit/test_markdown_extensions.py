@@ -112,7 +112,7 @@ The "apostles" were men sent by Jesus to preach about God and his kingdom. The t
 # FIXME Update test to new interface
 @pytest.mark.skip
 @pytest.mark.datafiles(EN_TW_RESOURCE_DIR)
-def test_translation_word_link_alt_preprocessor(datafiles: list) -> None:
+def test_translation_word_link_alt_preprocessor(datafiles: list[str]) -> None:
     """
     Test the translation word link Markdown pre-processor extension.
     """
@@ -142,7 +142,7 @@ def test_translation_word_link_alt_preprocessor(datafiles: list) -> None:
 # the anchor link id too, update to new expected value
 @pytest.mark.skip
 @pytest.mark.datafiles(GU_TW_RESOURCE_DIR)
-def test_translation_word_link_alt_gu_preprocessor(datafiles: list) -> None:
+def test_translation_word_link_alt_gu_preprocessor(datafiles: list[str]) -> None:
     """
     Test the translation word link Markdown pre-processor extension.
     """
@@ -168,7 +168,7 @@ def test_translation_word_link_alt_gu_preprocessor(datafiles: list) -> None:
 # the anchor link id too, update to new expected value
 @pytest.mark.skip
 @pytest.mark.datafiles(GU_TW_RESOURCE_DIR)
-def test_translation_note_link_gu_preprocessor(datafiles: list) -> None:
+def test_translation_note_link_gu_preprocessor(datafiles: list[str]) -> None:
     """
     Test the translation note link Markdown pre-processor extension.
     """
