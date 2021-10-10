@@ -52,12 +52,10 @@ class ResourceJsonLookup:
         self._source_data_fetcher()
 
     # Make OO composition less arduous.
-    def __getattr__(self, attribute: str) -> Any:
-        """
-        Delegate method calls not on self to
-        self._source_data_fetcher.
-        """
-        return getattr(self._source_data_fetcher, attribute)
+
+    @property
+    def json_data(self) -> Any:
+        return self._source_data_fetcher.json_data
 
     @icontract.require(
         lambda lang_code, resource_type, resource_code: lang_code is not None
@@ -425,12 +423,13 @@ class TResourceJsonLookup:
     #     return self._resource_json_lookup
 
     # Make OO composition less arduous.
-    def __getattr__(self, attribute: str) -> Any:
-        """
-        Redirect method lookups that are not on self to
-        self.resource_json_lookup.
-        """
-        return getattr(self._resource_json_lookup, attribute)
+
+    def _lookup(self, json_path: str) -> list[str]:
+        return self._resource_json_lookup._lookup(json_path)
+
+    @property
+    def json_data(self) -> Any:
+        return self._resource_json_lookup.json_data
 
     @icontract.require(lambda self: self.json_data is not None)
     @icontract.require(
