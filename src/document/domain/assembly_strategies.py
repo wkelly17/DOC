@@ -661,13 +661,11 @@ def _assemble_content_by_book_then_lang(found_resources: Iterable[Resource]) -> 
     # instance all they wanted was TN for Swahili and nothing else.
 
     resources_sorted_by_book = sorted(
-        # docgen.found_resources, key=lambda resource: resource.lang_name,
         found_resources,
         key=lambda resource: resource.resource_code,
     )
     html = []
     book: str
-    # group_by_book: itertools._grouper # mypy doesn't like this type, though it is correct, hence it is commented out - just for documentation.
     for book, group_by_book in itertools.groupby(
         resources_sorted_by_book,
         lambda resource: resource.resource_code,
@@ -679,11 +677,21 @@ def _assemble_content_by_book_then_lang(found_resources: Iterable[Resource]) -> 
         # Save grouper generator values in list since it will get exhausted
         # when used and exhausted generators cannot be reused.
         resources = list(group_by_book)
-        usfm_resources: list[USFMResource] = _usfm_resources(resources)
-        tn_resources: list[TNResource] = _tn_resources(resources)
-        tq_resources: list[TQResource] = _tq_resources(resources)
-        tw_resources: list[TWResource] = _tw_resources(resources)
-        ta_resources: list[TAResource] = _ta_resources(resources)
+        usfm_resources: list[USFMResource] = [
+            resource for resource in resources if isinstance(resource, USFMResource)
+        ]
+        tn_resources: list[TNResource] = [
+            resource for resource in resources if isinstance(resource, TNResource)
+        ]
+        tq_resources: list[TQResource] = [
+            resource for resource in resources if isinstance(resource, TQResource)
+        ]
+        tw_resources: list[TWResource] = [
+            resource for resource in resources if isinstance(resource, TWResource)
+        ]
+        ta_resources: list[TAResource] = [
+            resource for resource in resources if isinstance(resource, TAResource)
+        ]
 
         # We've got the resources, now we can use the sub-strategy factory
         # method to choose the right function to use from here on out.
@@ -1922,9 +1930,6 @@ def _second_usfm_resource(resources: list[Resource]) -> Optional[USFMResource]:
     # return usfm_resources[0] if usfm_resources else None
 
 
-def _usfm_resources(resources: list[Resource]) -> list[USFMResource]:
-    """Return the USFMResource instances, if any, contained in resources."""
-    return [resource for resource in resources if isinstance(resource, USFMResource)]
 
 
 def _tn_resource(resources: list[Resource]) -> Optional[TNResource]:
@@ -1938,9 +1943,6 @@ def _tn_resource(resources: list[Resource]) -> Optional[TNResource]:
     return tn_resources[0] if tn_resources else None
 
 
-def _tn_resources(resources: list[Resource]) -> list[TNResource]:
-    """Return the TNResource instances, if any, contained in resources."""
-    return [resource for resource in resources if isinstance(resource, TNResource)]
 
 
 def _tw_resource(resources: list[Resource]) -> Optional[TWResource]:
@@ -1954,9 +1956,6 @@ def _tw_resource(resources: list[Resource]) -> Optional[TWResource]:
     return tw_resources[0] if tw_resources else None
 
 
-def _tw_resources(resources: list[Resource]) -> list[TWResource]:
-    """Return the TWResource instance, if any, contained in resources."""
-    return [resource for resource in resources if isinstance(resource, TWResource)]
 
 
 def _tq_resource(resources: list[Resource]) -> Optional[TQResource]:
@@ -1970,9 +1969,6 @@ def _tq_resource(resources: list[Resource]) -> Optional[TQResource]:
     return tq_resources[0] if tq_resources else None
 
 
-def _tq_resources(resources: list[Resource]) -> list[TQResource]:
-    """Return the TQResource instance, if any, contained in resources."""
-    return [resource for resource in resources if isinstance(resource, TQResource)]
 
 
 def _ta_resource(resources: list[Resource]) -> Optional[TAResource]:
@@ -1986,9 +1982,6 @@ def _ta_resource(resources: list[Resource]) -> Optional[TAResource]:
     return ta_resources[0] if ta_resources else None
 
 
-def _ta_resources(resources: list[Resource]) -> list[TAResource]:
-    """Return the TAResource instance, if any, contained in resources."""
-    return [resource for resource in resources if isinstance(resource, TAResource)]
 
 
 def _adjust_book_intro_headings(book_intro: str) -> model.HtmlContent:
@@ -2012,9 +2005,7 @@ def _adjust_chapter_intro_headings(chapter_intro: str) -> model.HtmlContent:
     return model.HtmlContent(re.sub(H6, H5, chapter_intro))
 
 
-def _chapter_intro(
-    tn_resource: TNResource, chapter_num: int
-) -> model.HtmlContent:
+def _chapter_intro(tn_resource: TNResource, chapter_num: int) -> model.HtmlContent:
     """Get the chapter intro."""
     if tn_resource and chapter_num in tn_resource.book_payload.chapters:
         chapter_intro = tn_resource.book_payload.chapters[chapter_num].intro_html
