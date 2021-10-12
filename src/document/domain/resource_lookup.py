@@ -7,12 +7,12 @@ resource's asset files in the cloud.
 import abc
 import os
 import pathlib
-from typing import Any, Generator, Optional, Protocol
+from collections.abc import Iterable
+from typing import Any, Optional, Protocol
 from urllib import parse as urllib_parse
 
 import icontract
 import jsonpath_rw_ext as jp
-
 from document.config import settings
 from document.domain import model
 from document.utils import file_utils, url_utils
@@ -27,8 +27,6 @@ class ResourceJsonLookup:
     """
 
     _lang_codes_names_and_resource_types: list[model.CodeNameTypeTriplet] = []
-
-
 
     @classmethod
     def lang_codes_names_and_resource_types(
@@ -686,7 +684,7 @@ class BIELHelperResourceJsonLookup:
 
     @icontract.require(lambda self: self.json_data is not None)
     @icontract.ensure(lambda result: result)
-    def lang_codes(self) -> Generator[str, None, None]:
+    def lang_codes(self) -> Iterable[str]:
         """
         Convenience method that can be called from UI to get the set
         of all language codes available through API. Presumably this
@@ -697,7 +695,7 @@ class BIELHelperResourceJsonLookup:
 
     @icontract.require(lambda self: self.json_data is not None)
     @icontract.ensure(lambda result: result)
-    def lang_codes_and_names(self) -> Generator[tuple[str, str], None, None]:
+    def lang_codes_and_names(self) -> Iterable[tuple[str, str]]:
         """
         Convenience method that can be called from UI to get the set
         of all language code, name tuples available through API.

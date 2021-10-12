@@ -10,11 +10,13 @@ from typing import NewType, Optional, Union
 
 from pydantic import AnyUrl, BaseModel, EmailStr
 
-# These NewTypes give us more self-documenting code, but of course
-# aren't strictly necessary. They have been deemed helpful enough to
-# warrant their use.
-HtmlContent = NewType("HtmlContent", str)
+# These Type Aliases give us more self-documenting code, but of course
+# aren't strictly necessary.
+HtmlContent = str
+# MarkdownContent = str
 MarkdownContent = NewType("MarkdownContent", str)
+VerseNum = str
+ChapterNum = int
 
 
 # https://blog.meadsteve.dev/programming/2020/02/10/types-at-the-edges-in-python/
@@ -166,7 +168,7 @@ class TNChapterPayload(BaseModel):
     """
 
     intro_html: HtmlContent
-    verses_html: dict[str, HtmlContent]
+    verses_html: dict[VerseNum, HtmlContent]
 
 
 class TNBookPayload(BaseModel):
@@ -176,7 +178,7 @@ class TNBookPayload(BaseModel):
     """
 
     intro_html: HtmlContent
-    chapters: dict[int, TNChapterPayload]
+    chapters: dict[ChapterNum, TNChapterPayload]
 
 
 class TQChapterPayload(BaseModel):
@@ -185,7 +187,7 @@ class TQChapterPayload(BaseModel):
     content.
     """
 
-    verses_html: dict[str, HtmlContent]
+    verses_html: dict[VerseNum, HtmlContent]
 
 
 class TQBookPayload(BaseModel):
@@ -194,7 +196,7 @@ class TQBookPayload(BaseModel):
     content.
     """
 
-    chapters: dict[int, TQChapterPayload]
+    chapters: dict[ChapterNum, TQChapterPayload]
 
 
 class TWUse(BaseModel):
@@ -206,8 +208,8 @@ class TWUse(BaseModel):
     lang_code: str
     book_id: str
     book_name: str
-    chapter_num: int
-    verse_num: str
+    chapter_num: ChapterNum
+    verse_num: VerseNum
     localized_word: str
 
 
@@ -237,7 +239,7 @@ class TAChapterPayload(BaseModel):
     content.
     """
 
-    verses_html: dict[str, HtmlContent]
+    verses_html: dict[VerseNum, HtmlContent]
 
 
 class TABookPayload(BaseModel):
@@ -246,7 +248,7 @@ class TABookPayload(BaseModel):
     content.
     """
 
-    chapters: dict[int, TAChapterPayload]
+    chapters: dict[ChapterNum, TAChapterPayload]
 
 
 class USFMChapter(BaseModel):
@@ -264,7 +266,7 @@ class USFMChapter(BaseModel):
     """
 
     chapter_content: list[HtmlContent]
-    chapter_verses: dict[str, HtmlContent]
+    chapter_verses: dict[VerseNum, HtmlContent]
     chapter_footnotes: HtmlContent
 
 

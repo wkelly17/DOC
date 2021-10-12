@@ -7,20 +7,18 @@ import datetime
 import os
 import smtplib
 import subprocess
+from collections.abc import Iterable
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from typing import Generator, Iterable, Optional, Union
+from typing import Optional, Union
 
 import icontract
 import pdfkit
 from document.config import settings
 from document.domain import assembly_strategies, bible_books, model
-from document.domain.resource import (
-    Resource,
-    resource_factory,
-)
+from document.domain.resource import Resource, resource_factory
 from document.utils import file_utils
 from more_itertools import partition
 from pydantic import EmailStr
@@ -37,17 +35,15 @@ UNDERSCORE = "_"
 # malformed document request, e.g., asking for a resource that
 # doesn't exist. Thus we can't assert that self._found_resources
 # has at least one resource.
-# @icontract.require(lambda found_resources: found_resources)
 def _update_found_resources_with_content(
     found_resources: list[Resource],
-) -> list[Resource]:
+) -> Iterable[Resource]:
     """
     Initialize the resources from their found assets and
     generate their content for later typesetting. If any of the
     found resources could not be loaded then return a list of them
     for later reporting.
     """
-    unloaded_resources: list[Resource] = []
     for resource in found_resources:
         # usfm_tools parser can throw a MalformedUsfmError parse error if the
         # USFM for the resource is malformed (from the perspective of the
@@ -57,7 +53,6 @@ def _update_found_resources_with_content(
         try:
             resource.update_resource_with_asset_content()
         except exceptions.MalformedUsfmError:
-            unloaded_resources.append(resource)
             logger.debug(
                 "Exception while reading USFM file for %s, skipping this \
                 resource and continuing with remaining resource requests, \
@@ -65,7 +60,7 @@ def _update_found_resources_with_content(
                 resource,
             )
             logger.exception("Caught exception:")
-    return unloaded_resources
+            yield resource
 
 
 def _document_request_key(
@@ -92,7 +87,7 @@ def _document_request_key(
 
 def _resources_from(
     resource_requests: list[model.ResourceRequest],
-) -> Generator[Resource, None, None]:
+) -> Iterable[Resource]:
     """
     Given a DocumentRequest, return a list of Resource
     instances, one for each ResourceRequest in the
@@ -135,7 +130,7 @@ def _assemble_content(
     assembly_strategy = assembly_strategies.assembly_strategy_factory(
         document_request.assembly_strategy_kind
     )
-    content = assembly_strategy(found_resources)
+    content = "".join(assembly_strategy(found_resources))
     content = _enclose_html_content(content)
     html_file_path = "{}.html".format(
         os.path.join(settings.output_dir(), document_request_key)
@@ -233,7 +228,7 @@ def _convert_html_to_pdf(
     document_request_key: str,
     found_resources: Iterable[Resource],
     unfound_resources: Iterable[Resource],
-    unloaded_resources: list[Resource],
+    unloaded_resources: Iterable[Resource],
 ) -> None:
     """Generate PDF from HTML contained in self.content."""
     now = datetime.datetime.now()
@@ -330,7 +325,7 @@ def _generate_pdf(
     document_request: model.DocumentRequest,
     found_resources: Iterable[Resource],
     unfound_resources: Iterable[Resource],
-    unloaded_resources: list[Resource],
+    unloaded_resources: Iterable[Resource],
 ) -> None:
     """
     If the PDF doesn't yet exist, go ahead and generate it
@@ -377,28 +372,27 @@ def run(document_request: model.DocumentRequest) -> tuple[str, str]:
     # the cloud including the more low level resource asset caching
     # mechanism for comparatively immediate return of PDF.
     if file_utils.asset_file_needs_update(output_filename):
-        unfound_resources, found_resources = partition(
+        unfound_resources_iter, found_resources_iter = partition(
             lambda resource: resource.find_location(), resources
         )
         # Need to use items produced by these two generators again so
         # materialize them into a list.
-        found_resources_list = list(found_resources)
-        unfound_resources_list = list(unfound_resources)
+        found_resources = list(found_resources_iter)
+        unfound_resources = list(unfound_resources_iter)
 
-        for resource in found_resources_list:
-            resource.provision_asset_files()
+        [resource.provision_asset_files() for resource in found_resources]
 
-        for unfound_resource in unfound_resources:
-            logger.info("%s was not found", unfound_resource)
+        # for unfound_resource in unfound_resources:
+        #     logger.info("%s was not found", unfound_resource)
 
-        unloaded_resources = _update_found_resources_with_content(found_resources_list)
+        unloaded_resources = list(_update_found_resources_with_content(found_resources))
 
         _generate_pdf(
             output_filename,
             document_request_key,
             document_request,
-            found_resources_list,
-            unfound_resources_list,
+            found_resources,
+            unfound_resources,
             unloaded_resources,
         )
     if _should_send_email(document_request.email_address):

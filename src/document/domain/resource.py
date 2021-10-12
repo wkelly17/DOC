@@ -10,6 +10,7 @@ import pathlib
 import re
 import shutil
 import subprocess
+from collections.abc import Iterable
 from glob import glob
 from typing import Any, Optional
 
@@ -610,28 +611,25 @@ class TNResource(TResource):
         chapter_num: int,
         verse_num: str,
         verse: model.HtmlContent,
-    ) -> list[model.HtmlContent]:
+    ) -> Iterable[model.HtmlContent]:
         """
         This is a slightly different form of TNResource.tn_verse that is used
         when no USFM has been requested.
         """
-        html: list[model.HtmlContent] = []
-        html.append(
-            model.HtmlContent(
-                settings.TN_RESOURCE_TYPE_NAME_WITH_ID_AND_REF_FMT_STR.format(
-                    self.lang_code,
-                    bible_books.BOOK_NUMBERS[self.resource_code].zfill(3),
-                    str(chapter_num).zfill(3),
-                    verse_num.zfill(3),
-                    self.resource_type_name,
-                    chapter_num,
-                    verse_num,
-                )
+        yield model.HtmlContent(
+            settings.TN_RESOURCE_TYPE_NAME_WITH_ID_AND_REF_FMT_STR.format(
+                self.lang_code,
+                bible_books.BOOK_NUMBERS[self.resource_code].zfill(3),
+                str(chapter_num).zfill(3),
+                verse_num.zfill(3),
+                self.resource_type_name,
+                chapter_num,
+                verse_num,
             )
         )
+
         # Change H1 HTML elements to H4 HTML elements in each translation note.
-        html.append(model.HtmlContent(re.sub(H1, H4, verse)))
-        return html
+        yield model.HtmlContent(re.sub(H1, H4, verse))
 
     def _initialize_verses_html(self) -> None:
         """
@@ -863,12 +861,11 @@ class TWResource(TResource):
         chapter_num: int,
         verse_num: str,
         verse: model.HtmlContent,
-    ) -> list[model.HtmlContent]:
+    ) -> Iterable[model.HtmlContent]:
         """
         Add the translation word links section which provides links from words
         used in the current verse to their definition.
         """
-        html: list[model.HtmlContent] = []
         uses: list[model.TWUse] = []
         name_content_pair: model.TWNameContentPair
         for name_content_pair in self._language_payload.name_content_pairs:
@@ -897,15 +894,14 @@ class TWResource(TResource):
 
         if uses:
             # Add header
-            html.append(
-                model.HtmlContent(
-                    settings.RESOURCE_TYPE_NAME_WITH_REF_FMT_STR.format(
-                        self.resource_type_name, chapter_num, verse_num
-                    )
+            yield model.HtmlContent(
+                settings.RESOURCE_TYPE_NAME_WITH_REF_FMT_STR.format(
+                    self.resource_type_name, chapter_num, verse_num
                 )
             )
+
             # Start list formatting
-            html.append(settings.UNORDERED_LIST_BEGIN_STR)
+            yield settings.UNORDERED_LIST_BEGIN_STR
             # Append word links.
             uses_list_items = [
                 settings.TRANSLATION_WORD_LIST_ITEM_FMT_STR.format(
@@ -915,15 +911,14 @@ class TWResource(TResource):
                 )
                 for use in list(tw_utils.uniq(uses))  # Get the unique uses
             ]
-            html.append(model.HtmlContent("\n".join(uses_list_items)))
+            yield model.HtmlContent("\n".join(uses_list_items))
             # End list formatting
-            html.append(settings.UNORDERED_LIST_END_STR)
-        return html
+            yield settings.UNORDERED_LIST_END_STR
 
     def translation_words_section(
         self,
         include_uses_section: bool = True,
-    ) -> list[model.HtmlContent]:
+    ) -> Iterable[model.HtmlContent]:
         """
         Build and return the translation words definition section, i.e.,
         the list of all translation words for this language, book
@@ -931,11 +926,8 @@ class TWResource(TResource):
         translation word back to the verses which include the translation
         word if include_uses_section is True.
         """
-        html: list[model.HtmlContent] = []
-        html.append(
-            model.HtmlContent(
-                settings.RESOURCE_TYPE_NAME_FMT_STR.format(self.resource_type_name)
-            )
+        yield model.HtmlContent(
+            settings.RESOURCE_TYPE_NAME_FMT_STR.format(self.resource_type_name)
         )
 
         for name_content_pair in self._language_payload.name_content_pairs:
@@ -976,8 +968,7 @@ class TWResource(TResource):
                 name_content_pair.content = model.HtmlContent(
                     name_content_pair.content + uses_section
                 )
-            html.append(name_content_pair.content)
-        return html
+            yield name_content_pair.content
 
     def _uses_section(self, uses: list[model.TWUse]) -> model.HtmlContent:
         """

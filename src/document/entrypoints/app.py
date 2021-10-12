@@ -2,7 +2,8 @@
 
 import os
 import pathlib
-from typing import Any, Generator
+from collections.abc import Iterable
+from typing import Any
 
 from document.config import settings
 from document.domain import document_generator, model, resource_lookup
@@ -90,7 +91,7 @@ def lang_codes_names_and_resource_types() -> list[model.CodeNameTypeTriplet]:
 
 # @app.get(f"{settings.API_ROOT}/language_codes")
 @app.get("/language_codes")
-def lang_codes() -> Generator[str, None, None]:
+def lang_codes() -> Iterable[str]:
     """Return list of all available language codes."""
     lookup_svc = resource_lookup.BIELHelperResourceJsonLookup()
     return lookup_svc.lang_codes()
@@ -98,7 +99,7 @@ def lang_codes() -> Generator[str, None, None]:
 
 # @app.get(f"{settings.API_ROOT}/language_codes_and_names")
 @app.get("/language_codes_and_names")
-def lang_codes_and_names() -> Generator[tuple[str, str], None, None]:
+def lang_codes_and_names() -> Iterable[tuple[str, str]]:
     """Return list of all available language code, name tuples."""
     lookup_svc = resource_lookup.BIELHelperResourceJsonLookup()
     return lookup_svc.lang_codes_and_names()
