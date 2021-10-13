@@ -35,7 +35,7 @@ UNDERSCORE = "_"
 # malformed document request, e.g., asking for a resource that
 # doesn't exist. Thus we can't assert that self._found_resources
 # has at least one resource.
-def _update_found_resources_with_content(
+def update_found_resources_with_content(
     found_resources: list[Resource],
 ) -> Iterable[Resource]:
     """
@@ -63,7 +63,7 @@ def _update_found_resources_with_content(
             yield resource
 
 
-def _document_request_key(
+def document_request_key(
     resource_requests: list[model.ResourceRequest], assembly_strategy_kind: str
 ) -> str:
     """
@@ -85,7 +85,7 @@ def _document_request_key(
     return "{}_{}".format(document_request_key[:-1], assembly_strategy_kind)
 
 
-def _resources_from(
+def resources_from(
     resource_requests: list[model.ResourceRequest],
 ) -> Iterable[Resource]:
     """
@@ -102,7 +102,7 @@ def _resources_from(
         )
 
 
-def _enclose_html_content(content: str) -> str:
+def enclose_html_content(content: str) -> str:
     """
     Write the enclosing HTML and body elements around the HTML
     body content for the document.
@@ -114,7 +114,7 @@ def _enclose_html_content(content: str) -> str:
     )
 
 
-def _assemble_content(
+def assemble_content(
     document_request_key: str,
     document_request: model.DocumentRequest,
     found_resources: Iterable[Resource],
@@ -131,7 +131,7 @@ def _assemble_content(
         document_request.assembly_strategy_kind
     )
     content = "".join(assembly_strategy(found_resources))
-    content = _enclose_html_content(content)
+    content = enclose_html_content(content)
     html_file_path = "{}.html".format(
         os.path.join(settings.output_dir(), document_request_key)
     )
@@ -142,7 +142,7 @@ def _assemble_content(
     )
 
 
-def _should_send_email(email_address: Optional[EmailStr]) -> bool:
+def should_send_email(email_address: Optional[EmailStr]) -> bool:
     """
     Return True if configuration is set to send email and the user
     has supplied an email address.
@@ -154,7 +154,7 @@ def _should_send_email(email_address: Optional[EmailStr]) -> bool:
     lambda output_filename, document_request_key: os.path.exists(output_filename)
     and document_request_key
 )
-def _send_email_with_pdf_attachment(
+def send_email_with_pdf_attachment(
     email_address: Optional[EmailStr], output_filename: str, document_request_key: str
 ) -> None:
     """
@@ -224,7 +224,7 @@ def _send_email_with_pdf_attachment(
             logger.exception("Unable to send the email. Caught exception: ")
 
 
-def _convert_html_to_pdf(
+def convert_html_to_pdf(
     document_request_key: str,
     found_resources: Iterable[Resource],
     unfound_resources: Iterable[Resource],
@@ -280,7 +280,7 @@ def _convert_html_to_pdf(
         os.path.join(settings.output_dir(), document_request_key)
     )
     assert os.path.exists(html_file_path)
-    output_pdf_file_path = _pdf_output_filename(document_request_key)
+    output_pdf_file_path = pdf_output_filename(document_request_key)
     with open(settings.LOGO_IMAGE_PATH, "rb") as fin:
         base64_encoded_logo_image = base64.b64encode(fin.read())
         images: dict[str, Union[str, bytes]] = {
@@ -319,7 +319,7 @@ def _convert_html_to_pdf(
         subprocess.call(copy_command, shell=True)
 
 
-def _generate_pdf(
+def generate_pdf(
     output_filename: str,
     document_request_key: str,
     document_request: model.DocumentRequest,
@@ -332,15 +332,15 @@ def _generate_pdf(
     using the content for each resource.
     """
     if not os.path.isfile(output_filename):
-        _assemble_content(document_request_key, document_request, found_resources)
+        assemble_content(document_request_key, document_request, found_resources)
         logger.info("Generating PDF %s...", output_filename)
-        _convert_html_to_pdf(
+        convert_html_to_pdf(
             document_request_key, found_resources, unfound_resources, unloaded_resources
         )
 
 
 @icontract.require(lambda document_request_key: document_request_key)
-def _pdf_output_filename(document_request_key: str) -> str:
+def pdf_output_filename(document_request_key: str) -> str:
     """Given document_request_key, return the PDF output file path."""
     return os.path.join(settings.output_dir(), "{}.pdf".format(document_request_key))
 
@@ -361,11 +361,10 @@ def run(document_request: model.DocumentRequest) -> tuple[str, str]:
     This is the main entry point for this module and the
     backend system as a whole.
     """
-    resources = _resources_from(document_request.resource_requests)
-    document_request_key = _document_request_key(
+    document_request_key_ = document_request_key(
         document_request.resource_requests, document_request.assembly_strategy_kind
     )
-    output_filename = _pdf_output_filename(document_request_key)
+    output_filename = pdf_output_filename(document_request_key_)
 
     # Immediately return pre-built PDF if the document previously been
     # generated and is fresh enough. In that case, front run all requests to
@@ -373,7 +372,8 @@ def run(document_request: model.DocumentRequest) -> tuple[str, str]:
     # mechanism for comparatively immediate return of PDF.
     if file_utils.asset_file_needs_update(output_filename):
         unfound_resources_iter, found_resources_iter = partition(
-            lambda resource: resource.find_location(), resources
+            lambda resource: resource.find_location(),
+            resources_from(document_request.resource_requests),
         )
         # Need to use items produced by these two generators again so
         # materialize them into a list.
@@ -385,18 +385,18 @@ def run(document_request: model.DocumentRequest) -> tuple[str, str]:
         # for unfound_resource in unfound_resources:
         #     logger.info("%s was not found", unfound_resource)
 
-        unloaded_resources = list(_update_found_resources_with_content(found_resources))
+        unloaded_resources = list(update_found_resources_with_content(found_resources))
 
-        _generate_pdf(
+        generate_pdf(
             output_filename,
-            document_request_key,
+            document_request_key_,
             document_request,
             found_resources,
             unfound_resources,
             unloaded_resources,
         )
-    if _should_send_email(document_request.email_address):
-        _send_email_with_pdf_attachment(
-            document_request.email_address, output_filename, document_request_key
+    if should_send_email(document_request.email_address):
+        send_email_with_pdf_attachment(
+            document_request.email_address, output_filename, document_request_key_
         )
-    return document_request_key, output_filename
+    return document_request_key_, output_filename
