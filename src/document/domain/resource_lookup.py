@@ -170,13 +170,10 @@ class SourceDataFetcher:
     """
 
     def __init__(self, working_dir: str, json_file_url: str) -> None:
-        self._working_dir = working_dir
         self._json_file_url = json_file_url
 
         self._json_file = pathlib.Path(
-            os.path.join(
-                self._working_dir, self._json_file_url.rpartition(os.path.sep)[2]
-            )
+            os.path.join(working_dir, self._json_file_url.rpartition(os.path.sep)[2])
         )
 
         self._json_data: list[str] = []

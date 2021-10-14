@@ -42,8 +42,6 @@ class Resource:
         self,
         # This is where resource asset files get downloaded to and
         # where generated PDFs are placed.
-        working_dir: str,
-        output_dir: str,
         # The resource request that this resource reifies.
         resource_request: model.ResourceRequest,
         # The resource requests from the document request. This is
@@ -51,8 +49,6 @@ class Resource:
         # to the LinkTransformerExtension.
         resource_requests: list[model.ResourceRequest],
     ) -> None:
-        self._working_dir = working_dir
-        self._output_dir = output_dir
         # DESIGN-ISSUE Avail the resource of the ResourceRequest instances in
         # the DocumentRequest so that it can in turn hand thenm to the
         # LinkTransformerExtension which in turn will use it to determine if
@@ -67,14 +63,8 @@ class Resource:
         # Directory may not exist yet. If not, this is dealt with later in an
         # appropriate place later on.
         self._resource_dir = os.path.join(
-            self._working_dir, "{}_{}".format(self.lang_code, self.resource_type)
+            settings.working_dir(), "{}_{}".format(self.lang_code, self.resource_type)
         )
-
-        self._resource_filename = "{}_{}_{}".format(
-            self.lang_code, self.resource_type, self.resource_code
-        )
-
-        # Book attributes
 
         # Location/lookup related
         self._resource_lookup_dto: model.ResourceLookupDto
@@ -132,6 +122,10 @@ class Resource:
     def resource_dir(self, value: str) -> None:
         """Provide public interface for other modules."""
         self._resource_dir = value
+
+    @property
+    def resource_filename(self) -> str:
+        return "{}_{}_{}".format(self.lang_code, self.resource_type, self.resource_code)
 
     # Book attributes
     @property
@@ -236,7 +230,7 @@ class USFMResource(Resource):
         """
         ResourceProvisioner(self)()
 
-    @icontract.ensure(lambda self: self._resource_filename is not None)
+    @icontract.ensure(lambda self: self.resource_filename is not None)
     def update_resource_with_asset_content(self) -> None:
         """See docstring in superclass."""
 
@@ -250,13 +244,13 @@ class USFMResource(Resource):
         # This frees us from some of the brittleness of using manifests
         # to find files. Some resources do not provide a manifest
         # anyway.
-        usfm_content_files = glob("{}**/*.usfm".format(self._resource_dir))
+        usfm_content_files = glob("{}**/*.usfm".format(self.resource_dir))
         if not usfm_content_files:
             # USFM files sometimes have txt suffix instead of usfm
-            txt_content_files = glob("{}**/*.txt".format(self._resource_dir))
+            txt_content_files = glob("{}**/*.txt".format(self.resource_dir))
             # Sometimes the txt USFM files live at another location
             if not txt_content_files:
-                txt_content_files = glob("{}**/**/*.txt".format(self._resource_dir))
+                txt_content_files = glob("{}**/**/*.txt".format(self.resource_dir))
 
         # If desired, in the case where a manifest must be consulted
         # to determine if the file is considered usable, i.e.,
@@ -334,12 +328,12 @@ class USFMResource(Resource):
             # other resource requests in the same document request.
             UsfmTransform.buildSingleHtmlFromFile(
                 pathlib.Path(self._content_files[0]),
-                self._output_dir,
-                self._resource_filename,
+                settings.output_dir(),
+                self.resource_filename,
             )
             # Read the HTML file into _content.
             html_file = "{}.html".format(
-                os.path.join(self._output_dir, self._resource_filename)
+                os.path.join(settings.output_dir(), self.resource_filename)
             )
             assert os.path.exists(html_file)
             self._html_content = file_utils.read_file(html_file)
@@ -1126,8 +1120,6 @@ class TAResource(TResource):
 
 
 def resource_factory(
-    working_dir: str,
-    output_dir: str,
     resource_request: model.ResourceRequest,
     resource_requests: list[model.ResourceRequest],
 ) -> Any:
@@ -1136,8 +1128,6 @@ def resource_factory(
     a given ResourceRequest instance.
     """
     return settings.resource_type_lookup_map()[resource_request.resource_type](
-        working_dir,
-        output_dir,
         resource_request,
         resource_requests,
     )

@@ -95,8 +95,6 @@ def resources_from(
     """
     for resource_request in resource_requests:
         yield resource_factory(
-            settings.working_dir(),
-            settings.output_dir(),
             resource_request,
             resource_requests,
         )
