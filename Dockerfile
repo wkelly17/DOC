@@ -57,3 +57,5 @@ COPY ./src/ /src/
 COPY ./tests /tests
 
 ENV PYTHONPATH=/src:/tests
+
+CMD ["gunicorn", "--worker-class", "uvicorn.workers.UvicornWorker", "--config", "./gunicorn.conf.py", "document.entrypoints.app:app"]
