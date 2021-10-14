@@ -9,6 +9,7 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD}
       TO_EMAIL_ADDRESS: ${TO_EMAIL_ADDRESS}
       SMTP_HOST: ${SMTP_HOST}
+      SEND_EMAIL: ${SEND_EMAIL}
     ports:
       - "5005:80"
     volumes:
