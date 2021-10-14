@@ -76,8 +76,5 @@ ENV PYTHONPATH=/backend:/tests
 ARG RUN_TESTS
 RUN if [ "$RUN_TESTS" = "true" ] ; then IN_CONTAINER=true pytest /tests/ ; else echo You have chosen to skip the test suite ; fi
 
-# Make PORT in .env and referenced in docker-compose.yml
-# available here.
-ARG PORT
 # What gets run when 'docker-compose run backend' is executed.
 CMD ["gunicorn", "--name", "document:entrypoints:app", "--worker-class", "uvicorn.workers.UvicornWorker", "--pythonpath", "/backend", "--conf", "/backend/gunicorn.conf.py", "document.entrypoints.app:app"]

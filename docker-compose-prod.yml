@@ -11,12 +11,6 @@ services:
       SMTP_HOST: ${SMTP_HOST}
     volumes:
       - docker_pdf_output:/output
-    entrypoint:
-      - gunicorn
-      - --name IRG
-      - --worker-class uvicorn.workers.UvicornWorker
-      - --conf ./gunicorn.conf.py
-      - document.entrypoints.app:app
   web:
     build: ./web
     ports:
