@@ -18,8 +18,9 @@ services:
       - ./docker_pdf_output:/output
     entrypoint:
       - gunicorn
-      - --name IRG
+      - --name DOC
       - --worker-class uvicorn.workers.UvicornWorker
+      - --pythonpath ./src
       - --conf ./gunicorn.conf.py
       - document.entrypoints.app:app
     networks:
