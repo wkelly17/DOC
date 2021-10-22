@@ -60,7 +60,7 @@ class Settings(BaseSettings):
     VERSE_ANCHOR_ID_SUBSTITUTION_FMT_STR: str = r"id='{}-\1-ch-\2-v-\3'"
 
     LOGGING_CONFIG_FILE_PATH: str = "src/document/logging_config.yaml"
-    DOCKER_CONTAINER_PDF_OUTPUT_DIR = "/output"
+    DOCKER_CONTAINER_PDF_OUTPUT_DIR: str = "/output"
 
     @icontract.require(lambda name: name)
     def logger(self, name: str) -> logging.Logger:
@@ -378,4 +378,4 @@ class Settings(BaseSettings):
         case_sensitive = True
 
 
-settings = Settings()
+settings: Settings = Settings()
