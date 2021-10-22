@@ -106,17 +106,19 @@ all-plus-linting: mypy pyicontract-lint down build up test
 # Local dev
 
 # Run a local Uvicorn server outside Docker
-.PHONY: local-uvicorn-server
+.PHONY: local-server
 local-server: checkvenv
 	uvicorn document.entrypoints.app:app --reload --host "127.0.0.1" --port "5005" --app-dir "./src/"
 
+# Run a local Gunicorn server outside Docker
 .PHONY: local-gunicorn-server
 local-gunicorn-server: checkvenv
-	exec gunicorn --name IRG --worker-class uvicorn.workers.UvicornWorker --conf ./gunicorn.conf.py --pythonpath ./src  document.entrypoints.app:app
+	exec gunicorn --name DOC --worker-class uvicorn.workers.UvicornWorker --conf ./gunicorn.conf.py --pythonpath ./src  document.entrypoints.app:app
 
 .PHONY: local-update-deps-prod
 local-update-deps-prod: checkvenv
-	pip-compile # --upgrade
+	pip-compile
+	# pip-compile --upgrade
 
 .PHONY: local-update-deps-dev
 local-update-deps-dev: local-update-deps-prod
@@ -145,12 +147,12 @@ local-clean-working-output-dir:
 
 # local-unit-tests: local-install-deps-dev local-prepare-for-tests
 .PHONY: local-unit-tests
-local-unit-tests:  local-prepare-for-tests-without-cleaning
+local-unit-tests:  local-prepare-for-tests
 	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=false FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/unit/ -vv
 
 # local-e2e-tests: local-install-deps-dev local-prepare-for-tests
 .PHONY: local-e2e-tests
-local-e2e-tests:  local-prepare-for-tests-without-cleaning
+local-e2e-tests:  local-prepare-for-tests
 	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=false FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -vv
 
 .PHONY: local-smoke-test-with-translation-words
@@ -160,6 +162,10 @@ local-smoke-test-with-translation-words: local-prepare-for-tests
 .PHONY: local-smoke-test-with-translation-words2
 local-smoke-test-with-translation-words2: local-prepare-for-tests
 	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=false FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -k test_en_ulb_wa_rom_en_tn_wa_rom_en_tq_wa_rom_en_tw_wa_rom_es_419_ulb_rom_es_419_tn_rom_en_tq_rom_es_419_tw_rom_book_language_order
+
+.PHONY: local-smoke-test-with-translation-words3
+local-smoke-test-with-translation-words3: local-prepare-for-tests
+	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=false FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -k test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_es_419_ulb_col_es_419_tn_col_es_419_tq_col_es_419_tw_col_language_book_order
 
 .PHONY: local-icontract-hypothesis-tests
 local-icontract-hypothesis-tests: local-prepare-for-tests
