@@ -812,7 +812,6 @@ def test_mr_ulb_mrk_mr_tq_mrk_mr_udb_mrk_language_book_order() -> None:
         check_finished_document_with_verses_success(response, finished_document_path)
 
 
-@pytest.mark.skip
 def test_gu_ulb_mic_gu_tn_mic_gu_tq_mic_gu_tw_mic_gu_ta_mic_language_book_order() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -1262,4 +1261,68 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_es_419_ulb_col_es_
             },
         )
         finished_document_path = "en-ulb-wa-col_en-tn-wa-col_en-tq-wa-col_en-tw-wa-col_es-419-ulb-col_es-419-tn-col_es-419-tq-col_es-419-tw-col_language_book_order.pdf"
+        check_finished_document_with_verses_success(response, finished_document_path)
+
+
+def test_kbt_reg_2co_ajg_reg_2co_pmm_reg_mrk_language_book_order() -> None:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
+        response: requests.Response = client.post(
+            "/documents",
+            json={
+                "email_address": settings.TO_EMAIL_ADDRESS,
+                "assembly_strategy_kind": "language_book_order",
+                "resource_requests": [
+                    {
+                        "lang_code": "kbt",
+                        "resource_type": "reg",
+                        "resource_code": "2co",
+                    },
+                    {
+                        "lang_code": "ajg",
+                        "resource_type": "reg",
+                        "resource_code": "2co",
+                    },
+                    {
+                        "lang_code": "pmm",
+                        "resource_type": "reg",
+                        "resource_code": "mrk",
+                    },
+                ],
+            },
+        )
+        finished_document_path = (
+            "kbt-reg-2co_ajg-reg-2co_pmm-reg-mrk_language_book_order.pdf"
+        )
+        check_finished_document_with_verses_success(response, finished_document_path)
+
+
+def test_kbt_reg_2co_ajg_x_adjtalagbe_reg_2co_pmm_reg_mrk_language_book_order() -> None:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
+        response: requests.Response = client.post(
+            "/documents",
+            json={
+                "email_address": settings.TO_EMAIL_ADDRESS,
+                "assembly_strategy_kind": "language_book_order",
+                "resource_requests": [
+                    {
+                        "lang_code": "kbt",
+                        "resource_type": "reg",
+                        "resource_code": "2co",
+                    },
+                    {
+                        "lang_code": "ajg-x-adjtalagbe",
+                        "resource_type": "reg",
+                        "resource_code": "2co",
+                    },
+                    {
+                        "lang_code": "pmm",
+                        "resource_type": "reg",
+                        "resource_code": "mrk",
+                    },
+                ],
+            },
+        )
+        finished_document_path = (
+            "kbt-reg-2co_ajg-x-adjtalagbe-reg-2co_pmm-reg-mrk_language_book_order.pdf"
+        )
         check_finished_document_with_verses_success(response, finished_document_path)

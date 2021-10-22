@@ -38,6 +38,13 @@ def check_finished_document_with_verses_success(
         assert body
         verses_html = parser.find_all("span", attrs={"class": "v-num"})
         assert verses_html
+        # Test defect that can occur in USFM file parsing of
+        # non-standalone USFM files, e.g., aba, reg, tit.
+        repeating_verse_num_defect = re.search(
+            "<sup><b>1</b></sup></span><sup><b>1</b></sup><b>1</b>1<b>1</b>11",
+            html,
+        )
+        assert not repeating_verse_num_defect
     assert response.ok
 
 
@@ -1090,7 +1097,6 @@ def test_mr_ulb_mrk_mr_tq_mrk_mr_udb_mrk_book_language_order() -> None:
         check_finished_document_with_verses_success(response, finished_document_path)
 
 
-@pytest.mark.skip
 def test_gu_ulb_mic_gu_tn_mic_gu_tq_mic_gu_tw_mic_gu_ta_mic_book_language_order() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -1488,6 +1494,67 @@ def test_fr_ulb_rev_fr_tw_rev_fr_udb_rev_book_language_order() -> None:
         check_finished_document_with_verses_success(response, finished_document_path)
 
 
+def test_fr_ulb_rev_fr_tw_rev_fr_udb_rev_ndh_x_chindali_reg_mat_ndh_x_chindali_tn_mat_ndh_x_chindali_tq_mat_ndh_x_chindali_tw_mat_ndh_x_chindali_udb_mat_book_language_order() -> None:
+    """
+    Show that the succeeding resource request's, fr-f10-rev,
+    content is rendered and the failing resource requests are reported
+    on the cover page of the PDF.
+    """
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
+        response: requests.Response = client.post(
+            "/documents",
+            json={
+                "email_address": settings.TO_EMAIL_ADDRESS,
+                "assembly_strategy_kind": "book_language_order",
+                "resource_requests": [
+                    {
+                        "lang_code": "fr",
+                        "resource_type": "ulb",
+                        "resource_code": "rev",
+                    },
+                    {
+                        "lang_code": "fr",
+                        "resource_type": "tw",
+                        "resource_code": "rev",
+                    },
+                    {
+                        "lang_code": "fr",
+                        "resource_type": "f10",
+                        "resource_code": "rev",
+                    },
+                    {
+                        "lang_code": "ndh-x-chindali",
+                        "resource_type": "reg",
+                        "resource_code": "mat",
+                    },
+                    {
+                        "lang_code": "ndh-x-chindali",
+                        "resource_type": "tn",
+                        "resource_code": "mat",
+                    },
+                    {
+                        "lang_code": "ndh-x-chindali",
+                        "resource_type": "tq",
+                        "resource_code": "mat",
+                    },
+                    {
+                        "lang_code": "ndh-x-chindali",
+                        "resource_type": "tw",
+                        "resource_code": "mat",
+                    },
+                    {
+                        "lang_code": "ndh-x-chindali",
+                        "resource_type": "udb",
+                        "resource_code": "mat",
+                    },
+                ],
+            },
+        )
+
+        finished_document_path = "fr-ulb-rev_fr-tw-rev_fr-f10-rev_ndh-x-chindali-reg-mat_ndh-x-chindali-tn-mat_ndh-x-chindali-tq-mat_ndh-x-chindali-tw-mat_ndh-x-chindali-udb-mat_book_language_order.pdf"
+        check_finished_document_with_verses_success(response, finished_document_path)
+
+
 def test_ndh_x_chindali_reg_mat_ndh_x_chindali_tn_mat_ndh_x_chindali_tq_mat_ndh_x_chindali_tw_mat_ndh_x_chindali_udb_mat_book_language_order() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -1525,10 +1592,7 @@ def test_ndh_x_chindali_reg_mat_ndh_x_chindali_tn_mat_ndh_x_chindali_tq_mat_ndh_
             },
         )
         finished_document_path = "ndh-x-chindali-reg-mat_ndh-x-chindali-tn-mat_ndh-x-chindali-tq-mat_ndh-x-chindali-tw-mat_ndh-x-chindali-udb-mat_book_language_order.pdf"
-        with pytest.raises(Exception):
-            check_finished_document_without_verses_success(
-                response, finished_document_path
-            )
+        check_finished_document_with_verses_success(response, finished_document_path)
 
 
 def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_es_419_ulb_col_es_419_tn_col_es_419_tq_col_es_419_tw_col_book_language_order() -> None:
@@ -1960,3 +2024,51 @@ def test_invalid_document_request() -> None:
             check_finished_document_with_verses_success(
                 response, finished_document_path
             )
+
+
+def test_wyy_reg_gen_wyy_reg_mic_book_language_order() -> None:
+    with pytest.raises(Exception):
+        with TestClient(app=app, base_url=settings.api_test_url()) as client:
+            response: requests.Response = client.post(
+                "/documents",
+                json={
+                    "email_address": settings.TO_EMAIL_ADDRESS,
+                    "assembly_strategy_kind": "book_language_order",
+                    "resource_requests": [
+                        {
+                            "lang_code": "wyy",
+                            "resource_type": "reg",
+                            "resource_code": "gen",
+                        },
+                        {
+                            "lang_code": "wyy",
+                            "resource_type": "reg",
+                            "resource_code": "mic",
+                        },
+                    ],
+                },
+            )
+            finished_document_path = "wyy-reg-gen_wyy-mic_book_language_order.pdf"
+            check_finished_document_without_verses_success(
+                response, finished_document_path
+            )
+
+
+def test_aba_reg_tit_book_language_order() -> None:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
+        response: requests.Response = client.post(
+            "/documents",
+            json={
+                "email_address": settings.TO_EMAIL_ADDRESS,
+                "assembly_strategy_kind": "book_language_order",
+                "resource_requests": [
+                    {
+                        "lang_code": "aba",
+                        "resource_type": "reg",
+                        "resource_code": "tit",
+                    },
+                ],
+            },
+        )
+        finished_document_path = "aba-reg-tit_book_language_order.pdf"
+        check_finished_document_with_verses_success(response, finished_document_path)

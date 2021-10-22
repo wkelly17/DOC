@@ -1,6 +1,5 @@
 from document.config import settings
-from document.domain import model
-from document.domain.resource import resource_factory
+from document.domain import model, resource_lookup
 
 ## Test the API:
 
@@ -20,13 +19,9 @@ def test_lookup_successes() -> None:
             lang_code="en", resource_type="tn-wa", resource_code="gen"
         )
     )
-
-    # NOTE # Jun 3, 2020: a couple days ago translations.json had zh tn, but now
-    # it is no longer available for some reason, so let's skip this test.
     resource_requests.append(
         model.ResourceRequest(lang_code="mr", resource_type="ulb", resource_code="gen")
     )
-
     resource_requests.append(
         model.ResourceRequest(
             lang_code="erk-x-erakor", resource_type="reg", resource_code="eph"
@@ -37,16 +32,13 @@ def test_lookup_successes() -> None:
         assembly_strategy_kind=assembly_strategy_kind,
         resource_requests=resource_requests,
     )
-
     for resource_request in document_request.resource_requests:
-        resource = resource_factory(
-            settings.working_dir(),
-            settings.output_dir(),
-            resource_request,
-            document_request.resource_requests,
+        resource_lookup_dto = resource_lookup.resource_lookup_dto(
+            resource_request.lang_code,
+            resource_request.resource_type,
+            resource_request.resource_code,
         )
-        resource.find_location()
-        assert resource.resource_url
+        assert resource_lookup_dto.url
 
 
 # FIXME This fails because zh doesn't use ulb for its USFM resource
@@ -76,11 +68,9 @@ def test_lookup_failures() -> None:
     )
 
     for resource_request in document_request.resource_requests:
-        resource = resource_factory(
-            settings.working_dir(),
-            settings.output_dir(),
-            resource_request,
-            document_request.resource_requests,
+        resource_lookup_dto = resource_lookup.resource_lookup_dto(
+            resource_request.lang_code,
+            resource_request.resource_type,
+            resource_request.resource_code,
         )
-        resource.find_location()
-        assert not resource.resource_url
+        assert not resource_lookup_dto.url

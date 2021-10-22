@@ -6,6 +6,7 @@ validation and JSON serialization.
 """
 
 from enum import Enum
+from collections.abc import Sequence
 from typing import NewType, Optional, Union
 
 from pydantic import AnyUrl, BaseModel, EmailStr
@@ -15,7 +16,7 @@ from pydantic import AnyUrl, BaseModel, EmailStr
 HtmlContent = str
 # MarkdownContent = str
 MarkdownContent = NewType("MarkdownContent", str)
-VerseNum = str
+VerseRef = str
 ChapterNum = int
 
 
@@ -75,7 +76,7 @@ class DocumentRequest(BaseModel):
 
     email_address: Optional[EmailStr]
     assembly_strategy_kind: AssemblyStrategyEnum
-    resource_requests: list[ResourceRequest]
+    resource_requests: Sequence[ResourceRequest]
 
 
 class AssemblySubstrategyEnum(str, Enum):
@@ -125,26 +126,17 @@ class AssetSourceEnum(str, Enum):
     ZIP = "zip"
 
 
-class ManifestFormatTypeEnum(str, Enum):
-    """
-    Manifest files can come in a variety of formats types: YAML,
-    JSON, or either of the previous two with a TXT suffix. There can
-    be others as well.
-    """
-
-    YAML = "yaml"
-    JSON = "json"
-    TXT = "txt"
-
-
 class ResourceLookupDto(BaseModel):
     """
     'Data transfer object' that we use to send lookup related info to
     the resource.
     """
 
+    lang_code: str
+    resource_type: str
+    resource_code: str
     url: Optional[AnyUrl]
-    source: str
+    source: AssetSourceEnum
     jsonpath: Optional[str]
     lang_name: str
     resource_type_name: str
@@ -161,47 +153,55 @@ class FinishedDocumentDetails(BaseModel):
     message: str
 
 
-class TNChapterPayload(BaseModel):
+class TNChapter(BaseModel):
     """
-    A class to hold a chapter's intro translation notes and a list
-    of its verses translation notes HTML content.
-    """
-
-    intro_html: HtmlContent
-    verses_html: dict[VerseNum, HtmlContent]
-
-
-class TNBookPayload(BaseModel):
-    """
-    A class to hold a book's intro translation notes and a list
-    of its chapters translation notes HTML content.
+    A class to hold a chapter's intro translation notes and a mapping
+    of its verse references to translation notes HTML content.
     """
 
     intro_html: HtmlContent
-    chapters: dict[ChapterNum, TNChapterPayload]
+    verses_html: dict[VerseRef, HtmlContent]
 
 
-class TQChapterPayload(BaseModel):
+class TNBook(BaseModel):
     """
-    A class to hold a list of its verses translation questions HTML
-    content.
-    """
-
-    verses_html: dict[VerseNum, HtmlContent]
-
-
-class TQBookPayload(BaseModel):
-    """
-    A class to hold a list of its chapters translation questions HTML
-    content.
+    A class to hold a book's intro translation notes and a mapping
+    of chapter numbers to translation notes HTML content.
     """
 
-    chapters: dict[ChapterNum, TQChapterPayload]
+    lang_code: str
+    lang_name: str
+    resource_code: str
+    resource_type_name: str
+    intro_html: HtmlContent
+    chapters: dict[ChapterNum, TNChapter]
+
+
+class TQChapter(BaseModel):
+    """
+    A class to hold a mapping of verse references to translation
+    questions HTML content.
+    """
+
+    verses_html: dict[VerseRef, HtmlContent]
+
+
+class TQBook(BaseModel):
+    """
+    A class to hold a mapping of chapter numbers to translation questions
+    HTML content.
+    """
+
+    lang_code: str
+    lang_name: str
+    resource_code: str
+    resource_type_name: str
+    chapters: dict[ChapterNum, TQChapter]
 
 
 class TWUse(BaseModel):
     """
-    A class to hold a reify a reference to a translation word occurring
+    A class to reify a reference to a translation word occurring
     in a USFM verse.
     """
 
@@ -209,7 +209,7 @@ class TWUse(BaseModel):
     book_id: str
     book_name: str
     chapter_num: ChapterNum
-    verse_num: VerseNum
+    verse_num: VerseRef
     localized_word: str
 
 
@@ -223,32 +223,18 @@ class TWNameContentPair(BaseModel):
     content: HtmlContent
 
 
-class TWLanguagePayload(BaseModel):
+class TWBook(BaseModel):
     """
-    A class to hold a map between a translation word's base filename,
-    e.g., abomination, and its TWNameContentPair instance.
+    A class to hold a list of TWNameContentPair instances and a list
+    of TWUses instances.
     """
 
+    lang_code: str
+    lang_name: str
+    resource_code: str
+    resource_type_name: str
     name_content_pairs: list[TWNameContentPair] = []
     uses: dict[str, list[TWUse]] = {}
-
-
-class TAChapterPayload(BaseModel):
-    """
-    A class to hold a list of its verses translation questions HTML
-    content.
-    """
-
-    verses_html: dict[VerseNum, HtmlContent]
-
-
-class TABookPayload(BaseModel):
-    """
-    A class to hold a list of its chapters translation questions HTML
-    content.
-    """
-
-    chapters: dict[ChapterNum, TAChapterPayload]
 
 
 class USFMChapter(BaseModel):
@@ -266,8 +252,21 @@ class USFMChapter(BaseModel):
     """
 
     chapter_content: list[HtmlContent]
-    chapter_verses: dict[VerseNum, HtmlContent]
+    chapter_verses: dict[VerseRef, HtmlContent]
     chapter_footnotes: HtmlContent
+
+
+class USFMBook(BaseModel):
+    """A class to hold a book's USFMChapter instances."""
+
+    lang_code: str
+    lang_name: str
+    resource_code: str
+    resource_type_name: str
+    chapters: dict[ChapterNum, USFMChapter]
+
+
+BookContent = Union[USFMBook, TNBook, TQBook, TWBook]
 
 
 class CoverPayload(BaseModel):

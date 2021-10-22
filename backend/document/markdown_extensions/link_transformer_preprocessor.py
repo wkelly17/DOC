@@ -1,10 +1,9 @@
-import logging  # For logdecorator
 import os
 import re
 
-import icontract
 import markdown
-from logdecorator import log_on_start
+from collections.abc import Mapping
+from typing import Any
 
 from document.config import settings
 from document.domain import bible_books, model
@@ -34,8 +33,6 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
         self._translation_words_dict: dict[str, str] = translation_words_dict
         super().__init__()
 
-    @icontract.require(lambda lines: lines)
-    @icontract.ensure(lambda result: result)
     def run(self, lines: list[str]) -> list[str]:
         """This is automatically called in super class."""
         source = "\n".join(lines)
@@ -74,8 +71,6 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
         source = self.transform_tn_obs_markdown_links(source)
         return source.split("\n")
 
-    @icontract.require(lambda source: source)
-    @icontract.ensure(lambda result: result)
     def transform_tw_rc_link(self, wikilink: model.WikiLink, source: str) -> str:
         """
         Transform the translation word rc wikilink into a Markdown
@@ -109,8 +104,10 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 and tw_resources_requests
             ):
                 # Localize the translation word.
-                file_content = file_utils.read_file(
-                    self._translation_words_dict[filename_sans_suffix]
+                file_content = model.MarkdownContent(
+                    file_utils.read_file(
+                        self._translation_words_dict[filename_sans_suffix]
+                    )
                 )
                 # Get the localized name for the translation word.
                 localized_translation_word = tw_utils.localized_translation_word(
@@ -132,8 +129,6 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 source = source.replace(match2.group(0), url)
         return source
 
-    @icontract.require(lambda source: source)
-    @icontract.ensure(lambda result: result)
     def transform_tw_markdown_links(self, source: str) -> str:
         """
         Transform the translation word relative file link into a
@@ -155,8 +150,10 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 and tw_resources_requests
             ):
                 # Localize non-English languages.
-                file_content = file_utils.read_file(
-                    self._translation_words_dict[filename_sans_suffix]
+                file_content = model.MarkdownContent(
+                    file_utils.read_file(
+                        self._translation_words_dict[filename_sans_suffix]
+                    )
                 )
                 # Get the localized name for the translation word
                 localized_translation_word = tw_utils.localized_translation_word(
@@ -188,8 +185,6 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
 
         return source
 
-    @icontract.require(lambda source: source)
-    @icontract.ensure(lambda result: result)
     def transform_tw_wiki_rc_links(self, source: str) -> str:
         """
         Transform the translation word rc link into source anchor link
@@ -210,8 +205,10 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 and tw_resources_requests
             ):
                 # Localize non-English languages.
-                file_content = file_utils.read_file(
-                    self._translation_words_dict[filename_sans_suffix]
+                file_content = model.MarkdownContent(
+                    file_utils.read_file(
+                        self._translation_words_dict[filename_sans_suffix]
+                    )
                 )
                 # Get the localized name for the translation word
                 localized_translation_word = tw_utils.localized_translation_word(
@@ -242,8 +239,6 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
 
         return source
 
-    @icontract.require(lambda source: source)
-    @icontract.ensure(lambda result: result)
     def transform_tw_wiki_prefixed_rc_links(self, source: str) -> str:
         """
         Transform the translation word rc TW wikilink into source anchor link
@@ -264,8 +259,10 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 and tw_resources_requests
             ):
                 # Need to localize non-English languages.
-                file_content = file_utils.read_file(
-                    self._translation_words_dict[filename_sans_suffix]
+                file_content = model.MarkdownContent(
+                    file_utils.read_file(
+                        self._translation_words_dict[filename_sans_suffix]
+                    )
                 )
                 # Get the localized name for the translation word
                 localized_translation_word = tw_utils.localized_translation_word(
@@ -293,8 +290,6 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
 
         return source
 
-    @icontract.require(lambda source: source)
-    @icontract.ensure(lambda result: result)
     def transform_ta_prefixed_wiki_rc_links(self, source: str) -> str:
         """
         Transform the translation academy rc wikilink into source anchor link
@@ -308,8 +303,6 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
             source = source.replace(match.group(0), "")
         return source
 
-    @icontract.require(lambda source: source)
-    @icontract.ensure(lambda result: result)
     def transform_ta_wiki_rc_links(self, source: str) -> str:
         """
         Transform the translation academy rc wikilink into source anchor link
@@ -323,8 +316,6 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
             source = source.replace(match.group(0), "")
         return source
 
-    @icontract.require(lambda source: source)
-    @icontract.ensure(lambda result: result)
     def transform_ta_markdown_links(self, source: str) -> str:
         """
         Transform the translation academy markdown link into source anchor link
@@ -338,8 +329,6 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
             source = source.replace(match.group(0), "")
         return source
 
-    @icontract.require(lambda source: source)
-    @icontract.ensure(lambda result: result)
     def transform_ta_prefixed_markdown_https_links(self, source: str) -> str:
         """
         Transform the translation academy markdown link into source anchor link
@@ -355,8 +344,6 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
             source = source.replace(match.group(0), "")
         return source
 
-    @icontract.require(lambda source: source)
-    @icontract.ensure(lambda result: result)
     def transform_ta_markdown_https_links(self, source: str) -> str:
         """
         Transform the translation academy markdown link into source anchor link
@@ -370,8 +357,6 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
             source = source.replace(match.group(0), "")
         return source
 
-    @icontract.require(lambda source: source)
-    @icontract.ensure(lambda result: result)
     def transform_tn_prefixed_markdown_links(self, source: str) -> str:
         """
         Transform the translation note rc link into a link pointing to
@@ -441,8 +426,6 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
 
         return source
 
-    @icontract.require(lambda source: source)
-    @icontract.ensure(lambda result: result)
     def transform_tn_markdown_links(self, source: str) -> str:
         """
         Transform the translation note rc link into a link pointing to
@@ -516,8 +499,6 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
 
         return source
 
-    @icontract.require(lambda source: source)
-    @icontract.ensure(lambda result: result)
     def transform_tn_missing_resource_code_markdown_links(self, source: str) -> str:
         """
         Transform the translation note rc link into a link pointing to
@@ -590,8 +571,6 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
 
         return source
 
-    @icontract.require(lambda source: source)
-    @icontract.ensure(lambda result: result)
     def transform_tn_obs_markdown_links(self, source: str) -> str:
         """
         Until OBS is supported, replace OBS TN link with just its link
@@ -608,7 +587,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
 class LinkTransformerExtension(markdown.Extension):
     """A Markdown link conversion extension."""
 
-    def __init__(self, **kwargs) -> None:  # type: ignore
+    def __init__(self, *args: str, **kwargs: Any) -> None:
         """Entry point."""
         self.config = kwargs
         # Don't call super.__init__(**kwargs) here as it will clobber the

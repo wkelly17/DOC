@@ -20,7 +20,7 @@ services:
       - gunicorn
       - --name DOC
       - --worker-class uvicorn.workers.UvicornWorker
-      - --pythonpath ./src
+      - --pythonpath ./backend
       - --conf ./gunicorn.conf.py
       - document.entrypoints.app:app
     networks:

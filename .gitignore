@@ -1,3 +1,5 @@
 /src/document.egg-info/
 /**/__pycache__
 /**/.mypy_cache/
+/**/**/**/*-darwin.so
+/**/**/**/.hypothesis/

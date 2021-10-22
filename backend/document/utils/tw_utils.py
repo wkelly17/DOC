@@ -6,9 +6,8 @@ resources that we use in multiple places.
 import os
 import pathlib
 from glob import glob
-from typing import Optional
-
-import icontract
+from typing import Any, Optional
+from collections.abc import Iterable, Sequence
 
 from document.config import settings
 from document.domain import model
@@ -18,8 +17,6 @@ logger = settings.logger(__name__)
 TW = "tw"
 
 
-@icontract.require(lambda resource_dir: resource_dir)
-@icontract.ensure(lambda result: result is not None)
 def translation_word_filepaths(resource_dir: str) -> list[str]:
     """
     Get the file paths to the translation word files for the
@@ -31,8 +28,6 @@ def translation_word_filepaths(resource_dir: str) -> list[str]:
     return filepaths
 
 
-@icontract.require(lambda translation_word_content: translation_word_content)
-@icontract.ensure(lambda result: result)
 def localized_translation_word(
     translation_word_content: model.MarkdownContent,
 ) -> str:
@@ -57,7 +52,6 @@ def localized_translation_word(
     return localized_translation_word
 
 
-@icontract.require(lambda lang_code: lang_code)
 def tw_resource_dir(lang_code: str) -> Optional[str]:
     """
     Return the location of the TW resource asset directory given the
@@ -89,8 +83,6 @@ def tw_resource_dir(lang_code: str) -> Optional[str]:
 # resource asset files on disk from a previous document request - we
 # wouldn't make the assumption that such files were there however)
 # therefore we can't require tw_resource_dir as a precondition.
-# @icontract.require(lambda tw_resource_dir: tw_resource_dir)
-# @icontract.ensure(lambda result: result)
 def translation_words_dict(tw_resource_dir: Optional[str]) -> dict[str, str]:
     """
     Given the path to the TW resource asset files, return a dictionary
@@ -111,9 +103,7 @@ def translation_words_dict(tw_resource_dir: Optional[str]) -> dict[str, str]:
 # translation words. If we start to accrue other utility functions
 # with which this would be better grouped, then we'll later move them
 # along with this function into their own module.
-@icontract.require(lambda sequence: sequence)
-@icontract.ensure(lambda result: result)
-def uniq(sequence):  # type: ignore
+def uniq(sequence: Sequence[Any]) -> Iterable[Any]:
     """
     Given a sequence, return a generator populated only with its
     unique elements. Works for non-hashable elements too.

@@ -13,12 +13,12 @@ pyupgrade: checkvenv
 # checks if pip-tools is installed
 ifeq ("$(wildcard .venv/bin/pip-compile)","")
 	@echo "Installing Pip-tools..."
-	@pip install pip-tools
+	@pip install --no-cache-dir pip-tools
 endif
 
 ifeq ("$(wildcard .venv/bin/pip-sync)","")
 	@echo "Installing Pip-tools..."
-	@pip install pip-tools
+	@pip install --no-cache-dir pip-tools
 endif
 
 .PHONY: build
@@ -57,100 +57,97 @@ e2e-tests: up
 down:
 	docker-compose down --remove-orphans
 
-.PHONY: mypy-install-types
-mypy-install-types: checkvenv
-	mypy --install-types --non-interactive  # install all missing stub packages
-
 .PHONY: mypy
-mypy: mypy-install-types
-	mypy --strict src/document/*.py
-	mypy --strict src/document/**/*.py
-	mypy --strict tests/*.py
-	mypy --strict tests/**/*.py
+mypy: checkvenv
+	mypy --strict --install-types --non-interactive backend/document/**/*.py
+	mypy --strict --install-types --non-interactive tests/**/*.py
 
-.PHONY: pyicontract-lint
-pyicontract-lint: checkvenv
-	pyicontract-lint --dont_panic src/document/domain
-	pyicontract-lint --dont_panic src/document/utils
-	pyicontract-lint --dont_panic src/document/entrypoints
+.PHONY: mypyc
+mypyc: mypy
+	mypyc --strict --install-types --non-interactive backend/document/**/*.py
 
 # https://radon.readthedocs.io/en/latest/commandline.html
 .PHONY: radon-cyclomatic-complexity
 radon-cyclomatic-complexity: checkvenv
-	radon cc src/document/**/*.py
+	radon cc backend/document/**/*.py
 
 .PHONY: radon-raw-stats
 radon-raw-stats: checkvenv
-	radon raw src/document/**/*.py
+	radon raw backend/document/**/*.py
 
 .PHONY: radon-maintainability-index
 radon-maintainability-index: checkvenv
-	radon mi src/document/**/*.py
+	radon mi backend/document/**/*.py
 
 .PHONY: radon-halstead-complexity
 radon-halstead-complexity: checkvenv
-	radon hal src/document/**/*.py
+	radon hal backend/document/**/*.py
 
 .PHONY: vulture-dead-code
 vulture-dead-code: checkvenv
-	vulture src/document/ --min-confidence 100
+	vulture backend/document/ --min-confidence 100
 	vulture tests/ --min-confidence 100
 
 .PHONY: all
 all: down build up test
 
 .PHONY: all-plus-linting
-all-plus-linting: mypy pyicontract-lint down build up test
-
-#########################
-# Local dev
+all-plus-linting: mypy down build up test
 
 # Run a local Uvicorn server outside Docker
 .PHONY: local-server
 local-server: checkvenv
-	uvicorn document.entrypoints.app:app --reload --host "127.0.0.1" --port "5005" --app-dir "./src/"
+	IN_CONTAINER=false uvicorn document.entrypoints.app:app --reload --host "0.0.0.0" --port "5005" --app-dir "./backend/"
 
 # Run a local Gunicorn server outside Docker
 .PHONY: local-gunicorn-server
 local-gunicorn-server: checkvenv
-	exec gunicorn --name DOC --worker-class uvicorn.workers.UvicornWorker --conf ./gunicorn.conf.py --pythonpath ./src  document.entrypoints.app:app
+	exec gunicorn --name DOC --worker-class uvicorn.workers.UvicornWorker --conf ./gunicorn.conf.py --pythonpath ./backend  document.entrypoints.app:app
 
-.PHONY: local-update-deps-prod
-local-update-deps-prod: checkvenv
+.PHONY: local-update-deps-base
+local-update-deps-base: checkvenv
 	pip-compile
 	# pip-compile --upgrade
 
+.PHONY: local-update-deps-prod
+local-update-deps-prod: local-update-deps-base
+	pip-compile requirements-prod.in
+	# pip-compile --upgrade requirements-prod.in
+
 .PHONY: local-update-deps-dev
-local-update-deps-dev: local-update-deps-prod
+local-update-deps-dev: local-update-deps-base
 	pip-compile requirements-dev.in
 	# pip-compile --upgrade requirements-dev.in
 
-.PHONY: local-install-deps-prod
-local-install-deps-prod: local-update-deps-prod
-	pip install -r requirements.txt
+.PHONY: local-install-deps-base
+local-install-deps-base: local-update-deps-base
+	pip install --no-cache-dir -r requirements.txt
 
 .PHONY: local-install-deps-dev
 local-install-deps-dev: local-update-deps-dev
-	pip install -r requirements.txt
-	pip install -r requirements-dev.txt
+	pip install --no-cache-dir -r requirements.txt
+	pip install --no-cache-dir -r requirements-dev.txt
+
+.PHONY: local-install-deps-prod
+local-install-deps-prod: local-update-deps-prod
+	pip install --no-cache-dir -r requirements.txt
+	pip install --no-cache-dir -r requirements-prod.txt
 
 .PHONY: local-prepare-for-tests
-local-prepare-for-tests: mypy pyicontract-lint local-clean-working-output-dir
+local-prepare-for-tests: mypy  local-clean-working-output-dir
 
 .PHONY: local-prepare-for-tests-without-cleaning
-local-prepare-for-tests-without-cleaning: mypy pyicontract-lint
+local-prepare-for-tests-without-cleaning: mypy
 
 .PHONY: local-clean-working-output-dir
 local-clean-working-output-dir:
 	find working/output/ -type f -name "*.html" -exec rm -- {} +
 	find working/output/ -type f -name "*.pdf" -exec rm -- {} +
 
-# local-unit-tests: local-install-deps-dev local-prepare-for-tests
 .PHONY: local-unit-tests
 local-unit-tests:  local-prepare-for-tests
 	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=false FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/unit/ -vv
 
-# local-e2e-tests: local-install-deps-dev local-prepare-for-tests
 .PHONY: local-e2e-tests
 local-e2e-tests:  local-prepare-for-tests
 	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=false FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -vv
@@ -166,14 +163,6 @@ local-smoke-test-with-translation-words2: local-prepare-for-tests
 .PHONY: local-smoke-test-with-translation-words3
 local-smoke-test-with-translation-words3: local-prepare-for-tests
 	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=false FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -k test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_es_419_ulb_col_es_419_tn_col_es_419_tq_col_es_419_tw_col_language_book_order
-
-.PHONY: local-icontract-hypothesis-tests
-local-icontract-hypothesis-tests: local-prepare-for-tests
-	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=false FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pyicontract-hypothesis test -p src/document/domain/resource.py
-
-.PHONY: local-icontract-hypothesis-test2
-local-icontract-hypothesis-tests2: local-prepare-for-tests
-	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=false FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pyicontract-hypothesis test -p src/document/entrypoints/app.py
 
 # This is one to run after running local-e2e-tests or any tests which
 # has yielded HTML and PDFs that need to be checked for linking

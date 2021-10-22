@@ -3,22 +3,22 @@ black
 cohesion
 dlint
 flake8
+flake8-annotations-complexity
+flake8-annotations-coverage
 flake8-bandit
 flake8-eradicate
 flake8-fixme
 flake8-mypy
 flake8-todo
-icontract-hypothesis
+flake8-type-annotations
 isort
 mypy
 pre-commit
-pyicontract-lint
 pylint
 pyls-mypy
 pytest
 pytest-datafiles
 pytest-icdiff
 radon
-typeguard
 vulture
-wemake-python-styleguide
+# wemake-python-styleguide

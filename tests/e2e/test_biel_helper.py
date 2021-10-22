@@ -1,9 +1,10 @@
-from fastapi.testclient import TestClient
-
+import pytest
 from document.config import settings
 from document.entrypoints.app import app
+from fastapi.testclient import TestClient
 
 
+@pytest.mark.skip
 def test_get_language_codes_names_and_resource_types_returns_ok() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response = client.get("/language_codes_names_and_resource_types")
@@ -13,6 +14,7 @@ def test_get_language_codes_names_and_resource_types_returns_ok() -> None:
         assert response.json()
 
 
+@pytest.mark.skip
 def test_get_language_codes_returns_ok() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response = client.get("/language_codes")

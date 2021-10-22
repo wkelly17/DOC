@@ -20,7 +20,7 @@ OBS, etc..
 Get the tools repo:
 
 #+begin_src shell
-git clone https://github.com/linearcombination/tools.git
+git clone https://github.com/linearcombination/InterleavedResourcesGenerator.git
 #+end_src
 
 Then cd into the tools directory you just creating by cloning.
@@ -85,16 +85,16 @@ make test
 **** Create and activate the virtual environment
 
 #+begin_src shell
-python3 -m venv venv
-source venv/bin/activate
-# or source venv/bin/activate.fish
+python3 -m venv .venv
+source .venv/bin/activate
+# or source .venv/bin/activate.fish
 #+end_src
 
 then ...
 
 **** Install pip-tools
 #+begin_src shell
-pip install pip-tools
+make pyupgrade
 #+end_src
 
 then ...
@@ -118,7 +118,7 @@ then ...
 
 **** Run a quick smoke test (runs one quick test)
 #+begin_src shell
-make local-smoke-test
+make local-smoke-test-with-translation-words
 #+end_src
 
 then ...

@@ -1,11 +1,10 @@
 """This module provides configuration values used by the application."""
 import logging
 import os
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from logging import config as lc
 from typing import Any, Optional, Union
 
-import icontract
 import jinja2
 import yaml
 from pydantic import AnyHttpUrl, BaseModel, BaseSettings, EmailStr, HttpUrl, validator
@@ -21,7 +20,11 @@ class Settings(BaseSettings):
 
     REPO_URL_DICT_KEY: str = "../download-scripture?repo_url"
     RESOURCE_TYPES_JSONPATH: str = "$[*].contents[*].code"
+    RESOURCE_TYPES_FOR_LANG_JSONPATH: str = "$[?code='{}'].contents[*].code"
     RESOURCE_CODES_JSONPATH: str = "$[*].contents[*].subcontents[*].code"
+    RESOURCE_CODES_FOR_LANG_JSONPATH: str = (
+        "$[?code='{}'].contents[*].subcontents[*].code"
+    )
 
     LANGUAGE_FMT_STR: str = "<h1>Language: {}</h1>"
     RESOURCE_TYPE_NAME_FMT_STR: str = "<h2>{}</h2>"
@@ -59,10 +62,23 @@ class Settings(BaseSettings):
     VERSE_ANCHOR_ID_FMT_STR: str = 'id="(.+?)-ch-(.+?)-v-(.+?)"'
     VERSE_ANCHOR_ID_SUBSTITUTION_FMT_STR: str = r"id='{}-\1-ch-\2-v-\3'"
 
-    LOGGING_CONFIG_FILE_PATH: str = "src/document/logging_config.yaml"
+    LOGGING_CONFIG_FILE_PATH: str = "backend/document/logging_config.yaml"
     DOCKER_CONTAINER_PDF_OUTPUT_DIR: str = "/output"
+    USFM_RESOURCE_TYPES: Sequence[str] = [
+        "cuv",
+        "f10",
+        "nav",
+        "reg",
+        "udb",
+        "udb-wa",
+        "ulb",
+        "ulb-wa",
+        "usfm",
+    ]
+    TN_RESOURCE_TYPES: Sequence[str] = ["tn", "tn-wa"]
+    TQ_RESOURCE_TYPES: Sequence[str] = ["tq", "tq-wa"]
+    TW_RESOURCE_TYPES: Sequence[str] = ["tw", "tw-wa"]
 
-    @icontract.require(lambda name: name)
     def logger(self, name: str) -> logging.Logger:
         """
         Return a Logger for scope named by name, e.g., module, that can be
@@ -105,12 +121,10 @@ class Settings(BaseSettings):
         acquired. RESOURCE_ASSETS_DIR is used when running in a docker
         environment. Otherwise a suitable local path.
         """
-        dirname = ""
         if self.IN_CONTAINER:
-            dirname = self.RESOURCE_ASSETS_DIR
+            return self.RESOURCE_ASSETS_DIR
         else:
-            dirname = "working/temp"
-        return dirname
+            return self.RESOURCE_ASSETS_DIR[1:]
 
     # Location where generated PDFs will be written to.
     DOCUMENT_OUTPUT_DIR: str
@@ -123,41 +137,6 @@ class Settings(BaseSettings):
         else:
             dirname = "working/output"
         return dirname
-
-    def resource_type_lookup_map(self) -> Mapping[str, Any]:
-        """
-        Return an immutable dictionary, MappingProxyType, of mappings
-        between resource_type and Resource subclass instance.
-        """
-        # Lazy import to avoid circular import.
-        from document.domain.resource import (
-            TAResource,
-            TNResource,
-            TQResource,
-            TWResource,
-            USFMResource,
-        )
-
-        # resource_type is key, Resource subclass is value
-        return {
-            "usfm": USFMResource,
-            "ulb": USFMResource,
-            "ulb-wa": USFMResource,
-            "udb": USFMResource,
-            "udb-wa": USFMResource,
-            "nav": USFMResource,
-            "reg": USFMResource,
-            "cuv": USFMResource,
-            "f10": USFMResource,
-            "tn": TNResource,
-            "tn-wa": TNResource,
-            "tq": TQResource,
-            "tq-wa": TQResource,
-            "tw": TWResource,
-            "tw-wa": TWResource,
-            "ta": TAResource,
-            "ta-wa": TAResource,
-        }
 
     # For options see https://wkhtmltopdf.org/usage/wkhtmltopdf.txt
     WKHTMLTOPDF_OPTIONS: Mapping[str, Optional[str]] = {
@@ -282,12 +261,12 @@ class Settings(BaseSettings):
         return self.ENGLISH_RESOURCE_TYPE_MAP[resource_type]
 
     TEMPLATE_PATHS_MAP: Mapping[str, str] = {
-        "book_intro": "src/templates/tn/book_intro_template.md",
-        "header_enclosing": "src/templates/html/header_enclosing.html",
-        "footer_enclosing": "src/templates/html/footer_enclosing.html",
-        "cover": "src/templates/html/cover.html",
-        "email-html": "src/templates/html/email.html",
-        "email": "src/templates/text/email.txt",
+        "book_intro": "backend/templates/tn/book_intro_template.md",
+        "header_enclosing": "backend/templates/html/header_enclosing.html",
+        "footer_enclosing": "backend/templates/html/footer_enclosing.html",
+        "cover": "backend/templates/html/cover.html",
+        "email-html": "backend/templates/html/email.html",
+        "email": "backend/templates/text/email.txt",
     }
 
     def template_path(self, key: str) -> str:
@@ -298,9 +277,6 @@ class Settings(BaseSettings):
         """
         return self.TEMPLATE_PATHS_MAP[key]
 
-    @icontract.require(
-        lambda template_lookup_key, dto: template_lookup_key and dto is not None
-    )
     def instantiated_template(self, template_lookup_key: str, dto: BaseModel) -> str:
         """
         Instantiate Jinja2 template with dto BaseModel instance. Return
@@ -313,7 +289,6 @@ class Settings(BaseSettings):
         env = jinja2.Environment().from_string(template)
         return env.render(data=dto)
 
-    @icontract.require(lambda template_lookup_key: template_lookup_key)
     def template(self, template_lookup_key: str) -> str:
         """Return template as string."""
         with open(self.template_path(template_lookup_key), "r") as filepath:
@@ -372,6 +347,8 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str
     SMTP_HOST: str
     SMTP_PORT: int
+
+    USER_AGENT: str = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11"
 
     class Config:
         env_file = ".env"

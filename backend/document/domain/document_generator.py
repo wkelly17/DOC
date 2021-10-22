@@ -7,22 +7,27 @@ import datetime
 import os
 import smtplib
 import subprocess
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping, Sequence
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from itertools import tee
 from typing import Optional, Union
 
-import icontract
-import pdfkit
+import pdfkit  # type: ignore
 from document.config import settings
-from document.domain import assembly_strategies, bible_books, model
-from document.domain.resource import Resource, resource_factory
+from document.domain import (
+    assembly_strategies,
+    bible_books,
+    model,
+    parsing,
+    resource_lookup,
+)
+
 from document.utils import file_utils
 from more_itertools import partition
-from pydantic import EmailStr
-from usfm_tools.support import exceptions
+
 
 logger = settings.logger(__name__)
 
@@ -31,40 +36,45 @@ HYPHEN = "-"
 UNDERSCORE = "_"
 
 
-# NOTE It is possible to have not found any resources due to a
-# malformed document request, e.g., asking for a resource that
-# doesn't exist. Thus we can't assert that self._found_resources
-# has at least one resource.
-def update_found_resources_with_content(
-    found_resources: list[Resource],
-) -> Iterable[Resource]:
+def resource_book_content_units(
+    found_resource_lookup_dtos: Iterable[model.ResourceLookupDto],
+    resource_dirs: Iterable[str],
+    resource_requests: Sequence[model.ResourceRequest],
+) -> Sequence[Union[model.BookContent, model.ResourceLookupDto]]:
     """
     Initialize the resources from their found assets and
     generate their content for later typesetting. If any of the
-    found resources could not be loaded then return a list of them
-    for later reporting.
+    found resources could not be loaded then return them for later
+    reporting.
     """
-    for resource in found_resources:
+    book_content_or_unloaded_resource_lookup_dtos: list[
+        Union[model.BookContent, model.ResourceLookupDto]
+    ] = []
+    for resource_lookup_dto, resource_dir in zip(
+        found_resource_lookup_dtos, resource_dirs
+    ):
         # usfm_tools parser can throw a MalformedUsfmError parse error if the
         # USFM for the resource is malformed (from the perspective of the
         # parser). If that happens keep track of said USFM resource for
         # reporting on the cover page of the generated PDF and log the issue,
         # but continue handling other resources in the document request.
         try:
-            resource.update_resource_with_asset_content()
-        except exceptions.MalformedUsfmError:
-            logger.debug(
-                "Exception while reading USFM file for %s, skipping this \
-                resource and continuing with remaining resource requests, \
-                if any.",
-                resource,
+            book_content_or_unloaded_resource_lookup_dtos.append(
+                parsing.initialize_verses_html(
+                    resource_lookup_dto, resource_dir, resource_requests
+                )
             )
-            logger.exception("Caught exception:")
-            yield resource
+        except Exception:
+            # Yield the resource that failed to be loaded by the USFM parser likely
+            # due to an exceptions.MalformedUsfmError. These unloaded resources are
+            # reported later on the cover page of the PDF.
+            book_content_or_unloaded_resource_lookup_dtos.append(resource_lookup_dto)
+    return book_content_or_unloaded_resource_lookup_dtos
 
 
 def document_request_key(
-    resource_requests: list[model.ResourceRequest], assembly_strategy_kind: str
+    resource_requests: Sequence[model.ResourceRequest],
+    assembly_strategy_kind: model.AssemblyStrategyEnum,
 ) -> str:
     """
     Create and return the document_request_key. The
@@ -85,37 +95,23 @@ def document_request_key(
     return "{}_{}".format(document_request_key[:-1], assembly_strategy_kind)
 
 
-def resources_from(
-    resource_requests: list[model.ResourceRequest],
-) -> Iterable[Resource]:
-    """
-    Given a DocumentRequest, return a list of Resource
-    instances, one for each ResourceRequest in the
-    DocumentRequest.
-    """
-    for resource_request in resource_requests:
-        yield resource_factory(
-            resource_request,
-            resource_requests,
-        )
-
-
-def enclose_html_content(content: str) -> str:
+def enclose_html_content(
+    content: str,
+    document_html_header: str = settings.document_html_header(),
+    document_html_footer: str = settings.document_html_footer(),
+) -> str:
     """
     Write the enclosing HTML and body elements around the HTML
     body content for the document.
     """
-    return "{}{}{}".format(
-        settings.document_html_header(),
-        content,
-        settings.document_html_footer(),
-    )
+    return "{}{}{}".format(document_html_header, content, document_html_footer)
 
 
 def assemble_content(
     document_request_key: str,
     document_request: model.DocumentRequest,
-    found_resources: Iterable[Resource],
+    book_content_units: Iterable[model.BookContent],
+    output_dir: str = settings.output_dir(),
 ) -> None:
     """
     Concatenate/interleave the content from all requested resources
@@ -128,11 +124,9 @@ def assemble_content(
     assembly_strategy = assembly_strategies.assembly_strategy_factory(
         document_request.assembly_strategy_kind
     )
-    content = "".join(assembly_strategy(found_resources))
+    content = "".join(assembly_strategy(book_content_units))
     content = enclose_html_content(content)
-    html_file_path = "{}.html".format(
-        os.path.join(settings.output_dir(), document_request_key)
-    )
+    html_file_path = "{}.html".format(os.path.join(output_dir, document_request_key))
     logger.debug("About to write HTML to %s", html_file_path)
     file_utils.write_file(
         html_file_path,
@@ -140,20 +134,30 @@ def assemble_content(
     )
 
 
-def should_send_email(email_address: Optional[EmailStr]) -> bool:
+def should_send_email(
+    # NOTE: email_address comes in as pydantic.EmailStr and leaves
+    # the pydantic class validator as a str.
+    email_address: Optional[str],
+    send_email: bool = settings.SEND_EMAIL,
+) -> bool:
     """
     Return True if configuration is set to send email and the user
     has supplied an email address.
     """
-    return settings.SEND_EMAIL and email_address is not None
+    return send_email and email_address is not None
 
 
-@icontract.require(
-    lambda output_filename, document_request_key: os.path.exists(output_filename)
-    and document_request_key
-)
 def send_email_with_pdf_attachment(
-    email_address: Optional[EmailStr], output_filename: str, document_request_key: str
+    # NOTE: email_address comes in as pydantic.EmailStr and leaves
+    # the pydantic class validator as a str.
+    email_address: Optional[str],
+    output_filename: str,
+    document_request_key: str,
+    from_email_address: str = settings.FROM_EMAIL_ADDRESS,
+    smtp_password: str = settings.SMTP_PASSWORD,
+    email_send_subject: str = settings.EMAIL_SEND_SUBJECT,
+    smtp_host: str = settings.SMTP_HOST,
+    smtp_port: int = settings.SMTP_PORT,
 ) -> None:
     """
     If PDF exists, and environment configuration allows sending of
@@ -161,15 +165,15 @@ def send_email_with_pdf_attachment(
     recipient's email with the PDF attached.
     """
     if email_address:
-        sender = settings.FROM_EMAIL_ADDRESS
-        email_password = settings.SMTP_PASSWORD
+        sender = from_email_address
+        email_password = smtp_password
         recipients = [email_address]
 
         logger.debug("Email sender %s, recipients: %s", sender, recipients)
 
         # Create the enclosing (outer) message
         outer = MIMEMultipart()
-        outer["Subject"] = settings.EMAIL_SEND_SUBJECT
+        outer["Subject"] = email_send_subject
         outer["To"] = COMMASPACE.join(recipients)
         outer["From"] = sender
         # outer.preamble = "You will not see this in a MIME-aware mail reader.\n"
@@ -210,7 +214,7 @@ def send_email_with_pdf_attachment(
 
         # Send the email
         try:
-            with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as smtp:
+            with smtplib.SMTP(smtp_host, smtp_port) as smtp:
                 smtp.ehlo()
                 smtp.starttls()
                 smtp.ehlo()
@@ -224,9 +228,15 @@ def send_email_with_pdf_attachment(
 
 def convert_html_to_pdf(
     document_request_key: str,
-    found_resources: Iterable[Resource],
-    unfound_resources: Iterable[Resource],
-    unloaded_resources: Iterable[Resource],
+    book_content_units: Iterable[model.BookContent],
+    unfound_resource_lookup_dtos: Iterable[model.ResourceLookupDto],
+    unloaded_resource_lookup_dtos: Iterable[model.ResourceLookupDto],
+    output_dir: str = settings.output_dir(),
+    logo_image_path: str = settings.LOGO_IMAGE_PATH,
+    working_dir: str = settings.working_dir(),
+    wkhtmltopdf_options: Mapping[str, Optional[str]] = settings.WKHTMLTOPDF_OPTIONS,
+    docker_container_pdf_output_dir: str = settings.DOCKER_CONTAINER_PDF_OUTPUT_DIR,
+    in_container: bool = settings.IN_CONTAINER,
 ) -> None:
     """Generate PDF from HTML contained in self.content."""
     now = datetime.datetime.now()
@@ -236,10 +246,10 @@ def convert_html_to_pdf(
             sorted(
                 {
                     "{}: {}".format(
-                        resource.lang_name,
-                        bible_books.BOOK_NAMES[resource.resource_code],
+                        book_content_unit.lang_name,
+                        bible_books.BOOK_NAMES[book_content_unit.resource_code],
                     )
-                    for resource in found_resources
+                    for book_content_unit in book_content_units
                 }
             )
         )
@@ -249,11 +259,11 @@ def convert_html_to_pdf(
             sorted(
                 {
                     "{}-{}-{}".format(
-                        resource.lang_code,
-                        resource.resource_type,
-                        resource.resource_code,
+                        unfound_resource_lookup_dto.lang_code,
+                        unfound_resource_lookup_dto.resource_type,
+                        unfound_resource_lookup_dto.resource_code,
                     )
-                    for resource in unfound_resources
+                    for unfound_resource_lookup_dto in unfound_resource_lookup_dtos
                 }
             )
         )
@@ -263,25 +273,23 @@ def convert_html_to_pdf(
             sorted(
                 {
                     "{}-{}-{}".format(
-                        resource.lang_code,
-                        resource.resource_type,
-                        resource.resource_code,
+                        unloaded_resource_lookup_dto.lang_code,
+                        unloaded_resource_lookup_dto.resource_type,
+                        unloaded_resource_lookup_dto.resource_code,
                     )
-                    for resource in unloaded_resources
+                    for unloaded_resource_lookup_dto in unloaded_resource_lookup_dtos
                 }
             )
         )
     )
     if unloaded:
-        logger.debug("Resources that could not be loaded: %s", unloaded)
-    html_file_path = "{}.html".format(
-        os.path.join(settings.output_dir(), document_request_key)
-    )
+        logger.debug("Resource requests that could not be loaded: %s", unloaded)
+    html_file_path = "{}.html".format(os.path.join(output_dir, document_request_key))
     assert os.path.exists(html_file_path)
     output_pdf_file_path = pdf_output_filename(document_request_key)
-    with open(settings.LOGO_IMAGE_PATH, "rb") as fin:
+    with open(logo_image_path, "rb") as fin:
         base64_encoded_logo_image = base64.b64encode(fin.read())
-        images: dict[str, Union[str, bytes]] = {
+        images: dict[str, str | bytes] = {
             "logo": base64_encoded_logo_image,
         }
     # Use Jinja2 to instantiate the cover page.
@@ -295,23 +303,23 @@ def convert_html_to_pdf(
             images=images,
         ),
     )
-    cover_filepath = os.path.join(settings.working_dir(), "cover.html")
+    cover_filepath = os.path.join(working_dir, "cover.html")
     with open(cover_filepath, "w") as fout:
         fout.write(cover)
     pdfkit.from_file(
         html_file_path,
         output_pdf_file_path,
-        options=settings.WKHTMLTOPDF_OPTIONS,
+        options=wkhtmltopdf_options,
         cover=cover_filepath,
     )
     assert os.path.exists(output_pdf_file_path)
     copy_command = "cp {}/{}.pdf {}".format(
-        settings.output_dir(),
+        output_dir,
         document_request_key,
-        settings.DOCKER_CONTAINER_PDF_OUTPUT_DIR,
+        docker_container_pdf_output_dir,
     )
-    logger.debug("IN_CONTAINER: {}".format(settings.IN_CONTAINER))
-    if settings.IN_CONTAINER:
+    logger.debug("IN_CONTAINER: {}".format(in_container))
+    if in_container:
         logger.info("About to cp PDF to Docker volume map on host")
         logger.debug("Copy PDF command: %s", copy_command)
         subprocess.call(copy_command, shell=True)
@@ -321,40 +329,33 @@ def generate_pdf(
     output_filename: str,
     document_request_key: str,
     document_request: model.DocumentRequest,
-    found_resources: Iterable[Resource],
-    unfound_resources: Iterable[Resource],
-    unloaded_resources: Iterable[Resource],
+    book_content_units: Iterable[model.BookContent],
+    unfound_resource_lookup_dtos: Iterable[model.ResourceLookupDto],
+    unloaded_resource_lookup_dtos: Iterable[model.ResourceLookupDto],
 ) -> None:
     """
     If the PDF doesn't yet exist, go ahead and generate it
     using the content for each resource.
     """
     if not os.path.isfile(output_filename):
-        assemble_content(document_request_key, document_request, found_resources)
+        assemble_content(document_request_key, document_request, book_content_units)
         logger.info("Generating PDF %s...", output_filename)
         convert_html_to_pdf(
-            document_request_key, found_resources, unfound_resources, unloaded_resources
+            document_request_key,
+            book_content_units,
+            unfound_resource_lookup_dtos,
+            unloaded_resource_lookup_dtos,
         )
 
 
-@icontract.require(lambda document_request_key: document_request_key)
-def pdf_output_filename(document_request_key: str) -> str:
+def pdf_output_filename(
+    document_request_key: str, output_dir: str = settings.output_dir()
+) -> str:
     """Given document_request_key, return the PDF output file path."""
-    return os.path.join(settings.output_dir(), "{}.pdf".format(document_request_key))
+    return os.path.join(output_dir, "{}.pdf".format(document_request_key))
 
 
-@icontract.require(
-    lambda document_request: document_request
-    and document_request.resource_requests
-    and [
-        resource_request
-        for resource_request in document_request.resource_requests
-        if resource_request.lang_code
-        and resource_request.resource_type in settings.resource_type_lookup_map().keys()
-        and resource_request.resource_code in bible_books.BOOK_NAMES.keys()
-    ]
-)
-def run(document_request: model.DocumentRequest) -> tuple[str, str]:
+def main(document_request: model.DocumentRequest) -> tuple[str, str]:
     """
     This is the main entry point for this module and the
     backend system as a whole.
@@ -369,30 +370,60 @@ def run(document_request: model.DocumentRequest) -> tuple[str, str]:
     # the cloud including the more low level resource asset caching
     # mechanism for comparatively immediate return of PDF.
     if file_utils.asset_file_needs_update(output_filename):
-        unfound_resources_iter, found_resources_iter = partition(
-            lambda resource: resource.find_location(),
-            resources_from(document_request.resource_requests),
+        resource_lookup_dtos = [
+            resource_lookup.resource_lookup_dto(
+                resource_request.lang_code,
+                resource_request.resource_type,
+                resource_request.resource_code,
+            )
+            for resource_request in document_request.resource_requests
+        ]
+
+        (
+            unfound_resource_lookup_dtos_iter,
+            found_resource_lookup_dtos_iter,
+        ) = partition(
+            lambda resource_lookup_dto: resource_lookup_dto.url is not None,
+            resource_lookup_dtos,
         )
-        # Need to use items produced by these two generators again so
-        # materialize them into a list.
-        found_resources = list(found_resources_iter)
-        unfound_resources = list(unfound_resources_iter)
 
-        [resource.provision_asset_files() for resource in found_resources]
+        found_resource_lookup_dtos = list(found_resource_lookup_dtos_iter)
+        unfound_resource_lookup_dtos = list(unfound_resource_lookup_dtos_iter)
 
-        # for unfound_resource in unfound_resources:
-        #     logger.info("%s was not found", unfound_resource)
+        resource_dirs = [
+            resource_lookup.provision_asset_files(resource_lookup_dto)
+            for resource_lookup_dto in found_resource_lookup_dtos
+        ]
 
-        unloaded_resources = list(update_found_resources_with_content(found_resources))
+        book_content_units_iter, unloaded_resource_lookup_dtos_iter = tee(
+            resource_book_content_units(
+                found_resource_lookup_dtos,
+                resource_dirs,
+                document_request.resource_requests,
+            )
+        )
+        # A little further processing is needed on tee objects to get
+        # the types we want.
+        book_content_units = [
+            book_content_unit
+            for book_content_unit in book_content_units_iter
+            if not isinstance(book_content_unit, model.ResourceLookupDto)
+        ]
+        unloaded_resource_lookup_dtos = [
+            resource_lookup_dto
+            for resource_lookup_dto in unloaded_resource_lookup_dtos_iter
+            if isinstance(resource_lookup_dto, model.ResourceLookupDto)
+        ]
 
         generate_pdf(
             output_filename,
             document_request_key_,
             document_request,
-            found_resources,
-            unfound_resources,
-            unloaded_resources,
+            book_content_units,
+            unfound_resource_lookup_dtos,
+            unloaded_resource_lookup_dtos,
         )
+
     if should_send_email(document_request.email_address):
         send_email_with_pdf_attachment(
             document_request.email_address, output_filename, document_request_key_

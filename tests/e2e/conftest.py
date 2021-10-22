@@ -18,7 +18,7 @@ from document.utils import file_utils
 # resource_code for these these fail in isolation or in combination
 # though. The more lang_codes we add here the longer the e2e tests will
 # take to complete.
-PASSING_NON_ENGLISH_LANG_CODES = [
+PASSING_NON_ENGLISH_LANG_CODES: list[str] = [
     "es-419",
     "f10",
     "gu",
@@ -28,22 +28,25 @@ PASSING_NON_ENGLISH_LANG_CODES = [
     "tl",
     "zh",
 ]
-FAILING_NON_ENGLISH_LANG_CODES = [
-    "aau",
-    "abu",
-    "abz",
-    "am",
-    "guq",
-    "kbt",
-    "ndh-x-chindali",
-    "tbg-x-abuhaina",
+FAILING_NON_ENGLISH_LANG_CODES: list[str] = [
+    # "aau",
+    # "abu",
+    # "abz",
+    # "am",
+    # "guq",
+    # "kbt",
+    # "ndh-x-chindali",
+    # "tbg-x-abuhaina",
 ]
-# Every once in a while it is good to un-comment the next two
-# expressions so that more combinations can be tested.
+# Every once in a while it is good to allow the next two
+# expressions to run so that more combinations can be tested.
 if False:
-    ALL_LANGUAGE_CODES = file_utils.load_json_object(
-        pathlib.Path("../../language_codes.json")
+    json_filepath = (
+        "/tests/language_codes.json"
+        if settings.IN_CONTAINER
+        else "./language_codes.json"
     )
+    ALL_LANGUAGE_CODES = file_utils.load_json_object(pathlib.Path(json_filepath))
     PASSING_NON_ENGLISH_LANG_CODES = ALL_LANGUAGE_CODES
 
 
@@ -55,13 +58,7 @@ def english_lang_code() -> str:
 @pytest.fixture(params=PASSING_NON_ENGLISH_LANG_CODES)
 # Type of request parameter is actually _pytest.fixtures.FixtureRequest
 def non_english_lang_code(request: Any) -> Any:
-    """
-    Get all non-English language codes, but one per request.
-
-    NOTE This is not currently used. Once a set of non-English
-    language codes which are known to pass the test are identified,
-    this can be used to test all of them one at a time.
-    """
+    """Get all non-English language codes, but one per request."""
     return request.param
 
 
@@ -137,11 +134,13 @@ def english_resource_types() -> list[str]:
 @pytest.fixture()
 def non_english_resource_types() -> list[str]:
     """All the non-English resource types."""
-    return ["ulb", "tn", "tq", "tw"]
+    return ["ulb", "reg", "tn", "tq", "tw"]
 
 
 @pytest.fixture()
-def english_resource_type_combos(english_resource_types: list[str]) -> list[tuple[str, ...]]:
+def english_resource_type_combos(
+    english_resource_types: list[str],
+) -> list[tuple[str, ...]]:
     """
     All possible combinations, in the mathematical sense, of
     English resource types. See documentation for

@@ -1,17 +1,19 @@
-FROM python:3.9.7-slim-buster
+FROM python:3.10.0-slim-bullseye
 
 RUN apt-get update && apt-get install -y \
     wget \
     curl \
-    fontconfig \
-    fonts-noto-cjk \
     git \
     unzip \
     # Next packages are for wkhtmltopdf
+    fontconfig \
+    fonts-noto-cjk \
     libxrender1 \
     xfonts-75dpi \
     xfonts-base \
-    libjpeg62-turbo
+    libjpeg62-turbo \
+    # For mypyc
+    gcc
 
 # Get and install needed fonts.
 RUN cd /tmp \
@@ -36,22 +38,27 @@ RUN WKHTMLTOX_TEMP="$(mktemp)" && \
 RUN mkdir -p /working/temp
 # Make the output directory where generated HTML and PDFs are placed.
 RUN mkdir -p /working/output
-# Make the directory where logs are written to.
 
 COPY icon-tn.png .
 COPY gunicorn.conf.py .
 
 # See https://pythonspeed.com/articles/activate-virtualenv-dockerfile/
+# for why a Python virtual env is used inside Docker.
 ENV VIRTUAL_ENV=/opt/venv
 RUN python -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 COPY requirements.txt .
 COPY requirements-dev.txt .
-RUN pip install -r requirements.txt
-RUN pip install -r requirements-dev.txt
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements-dev.txt
 
-COPY ./src/ /src/
+COPY ./backend/ /backend/
 COPY ./tests /tests
+# COPY ./language_codes.json /tests/
 
-ENV PYTHONPATH=/src:/tests
+# Inside the Python virtual env: check types, install any missing mypy stub
+# types packages, and compile most modules into C using mypyc
+RUN cd $VIRTUAL_ENV && . $VIRTUAL_ENV/bin/activate && mypyc --strict --install-types --non-interactive /backend/document/**/*.py
+
+ENV PYTHONPATH=/backend:/tests
