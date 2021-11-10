@@ -14,12 +14,14 @@ services:
       - "5005:80"
     volumes:
       - docker_pdf_output:/output
+    restart: unless-stopped
   web:
     build: ./web
     ports:
       - "8089:80"
     volumes:
       - docker_pdf_output:/srv/content
+    restart: unless-stopped
 
 volumes:
   docker_pdf_output:
