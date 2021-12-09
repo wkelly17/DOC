@@ -86,7 +86,7 @@ TA_PREFIXED_MARKDOWN_LINK_RE = re.compile(
 # in ../../../working/temp/pt-br_tw/pt-br_tw/bible/names/naphtali.md
 # e.g., (Veja: [eufemismo] (https://git.door43.org/Door43/en-ta-translate-vol2/src/master/content/figs_euphemism.md))
 # e.g., (Veja: [metonímia] (https://git.door43.org/Door43/en-ta-translate-vol2/src/master/content/figs_metonymy.md))
-# FIXME There still exist some links that are malformed such as this
+# NOTE There still exist some links that are malformed such as this
 # next example. We could catch these as well, but then they would never
 # get fixed in the markdown source.
 # e.g.,  (Veja: [metonímia} (https://git.door43.org/Door43/en-ta-translate- vol2/src/master/content/figs_metonymy.md)).
@@ -127,7 +127,7 @@ TN_MARKDOWN_RELATIVE_SCRIPTURE_LINK_RE = re.compile(
 )
 
 
-# FIXME Handle ([Colossians 1:7](../01/07.md)) and
+# NOTE ([Colossians 1:7](../01/07.md)) and
 # [Colossians 2:8](../02/08.md) still show up, but
 # this is because technically the link is malformed as it is missing
 # the resource_code, i.e., the book_id: col.

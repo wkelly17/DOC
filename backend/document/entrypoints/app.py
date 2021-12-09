@@ -64,6 +64,7 @@ def document_endpoint(
         )
 
         # Prepare the exception to send to the front end if needed.
+        # Source: https://fastapi.tiangolo.com/tutorial/handling-errors/
         # Source: https://testdriven.io/blog/developing-a-single-page-app-with-fastapi-and-vuejs/
         # FIXME: Still have not found a way to retrieve on the JS
         # frontend the exception message that is set below in 'detail'.

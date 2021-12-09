@@ -39,10 +39,8 @@ H1, H2, H3, H4, H5, H6 = "h1", "h2", "h3", "h4", "h5", "h6"
 # higher level, so-called 'assembly strategies' and lower level,
 # so-called 'sub strategies', assembly strategies.
 
-# FIXME Proper return type that mypy likes. Defaulted parameters seem to
-# be confusing mypy. pyre offers a type, but it is not a type that mypy
-# or pyre likes. Again, it is due to the defaulted optional parameters
-# on the functions being returned. If I end up using a structural
+# FIXME Proper return type that mypy likes. pyre offers a type, but it
+# is not a type that mypy or pyre likes. If I end up using a structural
 # pattern matching approach to selecting strategies then this problem
 # might be obviated.
 def assembly_strategy_factory(

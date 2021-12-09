@@ -61,12 +61,11 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
         # Handle links pointing at TN resource assets
         source = self.transform_tn_prefixed_markdown_links(source)
         source = self.transform_tn_markdown_links(source)
-        # FIXME This next method is not finished yet and haven't
-        # decided if we should use it or instead have human
-        # translators use more explicit scripture reference that
-        # includes the resource_code, e.g., col, rather than leave it
-        # out. If they did provide the resource_code then this case
-        # would be picked up by self.transform_tn_markdown_links.
+        # NOTE Haven't decided yet if we should use this next method or instead
+        # have human translators use more explicit scripture reference that
+        # includes the resource_code, e.g., col, rather than leave it out. If
+        # they did provide the resource_code then this case would be picked up
+        # by self.transform_tn_markdown_links.
         source = self.transform_tn_missing_resource_code_markdown_links(source)
         source = self.transform_tn_obs_markdown_links(source)
         return source.split("\n")
@@ -177,9 +176,9 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 # Search for translation word relative link
                 # and remove it along with any trailing comma from
                 # the source text.
-                # FIXME Theoretically, this will leave a trailing comma after the link
-                # if the link is not the last link in a list of links though I haven't
-                # yet seen such a case in practice.
+                # NOTE Theoretically, this will leave a trailing comma after the link
+                # if the link is not the last link in a list of links. I haven't
+                # yet seen such a case in practice though.
                 match_text_plus_preceding_dot_utf8_char = "· {}".format(match_text)
                 source = source.replace(match_text_plus_preceding_dot_utf8_char, "")
 

@@ -34,11 +34,6 @@ def attempt_asset_content_rescue(
     resource delivered as multiple populated directories in chapter >
     verses layout.
     """
-    # logger.info(
-    #     "About to scan resource_dir, {}, for USFM chapter directories...".format(
-    #         resource_dir
-    #     )
-    # )
     subdirs = [
         file
         for file in os.scandir(resource_dir)
@@ -47,7 +42,6 @@ def attempt_asset_content_rescue(
         and file.name != "front"
         and file.name != "00"
     ]
-    # logger.debug("resource_dir subdirs: %s", subdirs)
     logger.info("About to create markdown content for non-conformant USFM")
     markdown_content = []
     markdown_content.append(
@@ -57,13 +51,6 @@ def attempt_asset_content_rescue(
     markdown_content.append(
         "\h {}\n".format(bible_books.BOOK_NAMES[resource_lookup_dto.resource_code])
     )
-    # Example further output in English USFM:
-    # \toc1 The Book of Genesis
-    # \toc2 Genesis
-    # \toc3 Gen
-    # \mt Genesis
-    # logger.debug("subdirs[0].path: %s", os.fsdecode(subdirs[0].path))
-
     for chapter_dir in sorted(subdirs, key=lambda dir_entry: dir_entry.name):
         # Get verses for chapter
         chapter_markdown_content = []
@@ -80,17 +67,11 @@ def attempt_asset_content_rescue(
         )
         for markdown_file in chapter_verse_files:
             with open(markdown_file, "r") as fin:
-                # file_content = fin.read()
-                # file_content_with_verses_on_newlines = re.sub(
-                #     r"\v", r"\n\v", file_content
-                # )
-                # chapter_markdown_content.append(file_content_with_verses_on_newlines)
                 chapter_markdown_content.append(fin.read())
                 chapter_markdown_content.append("\n")
         # Store the chapter content into the collection of
         # all chapters content
         markdown_content.extend(chapter_markdown_content)
-    # logger.debug("markdown_content: %s", markdown_content)
 
     # Write the concatenated markdown content to a
     # non-clobberable filename.
@@ -238,8 +219,6 @@ def initialize_verses_html_usfm(
     parser = bs4.BeautifulSoup(html_content, "html.parser")
 
     chapter_breaks = parser.find_all(H2, attrs={"class": "c-num"})
-    # FIXME This could blow up if resource assets aren't acquired
-    # successfully (downloaded and unzipped or cloned)
     localized_chapter_heading = chapter_breaks[0].get_text().split()[0]
     chapters: dict[model.ChapterNum, model.USFMChapter] = {}
     for chapter_break in chapter_breaks:
@@ -373,11 +352,9 @@ def verse_num_and_verse_content_str(
         upper_tag,
     )
     verse_content = [str(tag) for tag in list(verse_content_tags)]
-    # logger.debug("verse_content: %s", verse_content)
     # FIXME HACK to prevent BeautifulSoup from sometimes
     # recapitulating all the verses after the current verse and
     # stuffing them into the same verse.
-    # del verse_content[2:]
     verse_content_str = "".join(verse_content[:2])
     # At this point we alter verse_content_str span's ID by prepending the
     # lang_code to ensure unique verse references within language scope in a
@@ -402,9 +379,6 @@ def initialize_verses_html_tn(
         resource_lookup_dto.resource_type,
         resource_requests,
     )
-    # FIXME We can likely now remove the first '**' if we want. It
-    # works as is though, it is just a minor optimization, but I'd
-    # need to fully it test it before making the change.
     chapter_dirs = sorted(
         glob(
             "{}/**/*{}/*[0-9]*".format(
@@ -496,8 +470,6 @@ def initialize_verses_html_tq(
         resource_lookup_dto.resource_type,
         resource_requests,
     )
-    # FIXME We can likely now remove the first '**' for a tiny
-    # speedup, but I'd need to test thorougly first.
     chapter_dirs = sorted(
         glob(
             "{}/**/*{}/*[0-9]*".format(resource_dir, resource_lookup_dto.resource_code)
@@ -516,12 +488,12 @@ def initialize_verses_html_tq(
     for chapter_dir in chapter_dirs:
         chapter_num = int(os.path.split(chapter_dir)[-1])
         verse_paths = sorted(glob("{}/*[0-9]*.md".format(chapter_dir)))
-        # For some languages, TQ assets may be stored in .txt files
-        # rather of .md files.
-        # FIXME This is true of TN assets, but I am not yet sure of TQ assets
-        # that use the TXT suffix.
-        if not verse_paths:
-            verse_paths = sorted(glob("{}/*[0-9]*.txt".format(chapter_dir)))
+        # NOTE For some languages, TN assets may be stored in .txt files
+        # rather of .md files. Though I have not yet seen this, this
+        # may also be true of TQ assets. If it is, then the following
+        # commented out code would suffice.
+        # if not verse_paths:
+        #     verse_paths = sorted(glob("{}/*[0-9]*.txt".format(chapter_dir)))
         verses_html: dict[int, str] = {}
         for filepath in verse_paths:
             verse_num = int(pathlib.Path(filepath).stem)
