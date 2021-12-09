@@ -1,12 +1,12 @@
 version: "3"
 services:
-  api:
+  backend:
     image: document-image
-    container_name: "api"
+    container_name: "backend"
     env_file:
       - .env
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
       args:
         # This comes from .env
