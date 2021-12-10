@@ -1,0 +1,6 @@
+-c requirements.txt
+mypy
+pre-commit
+pytest
+pytest-datafiles
+pytest-icdiff

@@ -40,7 +40,7 @@ RUN mkdir -p /working/temp
 RUN mkdir -p /working/output
 
 COPY icon-tn.png .
-COPY gunicorn.conf.py .
+COPY ./backend/gunicorn.conf.py .
 
 # See https://pythonspeed.com/articles/activate-virtualenv-dockerfile/
 # for why a Python virtual env is used inside Docker.
@@ -48,8 +48,8 @@ ENV VIRTUAL_ENV=/opt/venv
 RUN python -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-COPY requirements.txt .
-COPY requirements-dev.txt .
+COPY ./backend/requirements.txt .
+COPY ./backend/requirements-dev.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install --no-cache-dir -r requirements-dev.txt
 

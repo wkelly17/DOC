@@ -43,15 +43,11 @@ test: up
 
 .PHONY: unit-tests
 unit-tests: up
-	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/unit
-
-.PHONY: integration-tests
-integration-tests: up
-	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/integration
+	docker-compose run --rm --no-deps --entrypoint=pytest backend /tests/unit
 
 .PHONY: e2e-tests
 e2e-tests: up
-	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/e2e
+	docker-compose run --rm --no-deps --entrypoint=pytest backend /tests/e2e
 
 .PHONY: down
 down:
@@ -102,36 +98,36 @@ local-server: checkvenv
 # Run a local Gunicorn server outside Docker
 .PHONY: local-gunicorn-server
 local-gunicorn-server: checkvenv
-	exec gunicorn --name DOC --worker-class uvicorn.workers.UvicornWorker --conf ./gunicorn.conf.py --pythonpath ./backend  document.entrypoints.app:app
+	exec gunicorn --name DOC --worker-class uvicorn.workers.UvicornWorker --conf ./backend/gunicorn.conf.py --pythonpath ./backend  document.entrypoints.app:app
 
 .PHONY: local-update-deps-base
 local-update-deps-base: checkvenv
-	pip-compile
-	# pip-compile --upgrade
+	pip-compile ./backend/requirements.in
+	# pip-compile --upgrade ./backend/requirements.in
 
 .PHONY: local-update-deps-prod
 local-update-deps-prod: local-update-deps-base
-	pip-compile requirements-prod.in
-	# pip-compile --upgrade requirements-prod.in
+	pip-compile ./backend/requirements-prod.in
+	# pip-compile --upgrade ./backend/requirements-prod.in
 
 .PHONY: local-update-deps-dev
 local-update-deps-dev: local-update-deps-base
-	pip-compile requirements-dev.in
-	# pip-compile --upgrade requirements-dev.in
+	pip-compile ./backend/requirements-dev.in
+	# pip-compile --upgrade ./backend/requirements-dev.in
 
 .PHONY: local-install-deps-base
 local-install-deps-base: local-update-deps-base
-	pip install --no-cache-dir -r requirements.txt
+	pip install --no-cache-dir -r ./backend/requirements.txt
 
 .PHONY: local-install-deps-dev
 local-install-deps-dev: local-update-deps-dev
-	pip install --no-cache-dir -r requirements.txt
-	pip install --no-cache-dir -r requirements-dev.txt
+	pip install --no-cache-dir -r ./backend/requirements.txt
+	pip install --no-cache-dir -r ./backend/requirements-dev.txt
 
 .PHONY: local-install-deps-prod
 local-install-deps-prod: local-update-deps-prod
-	pip install --no-cache-dir -r requirements.txt
-	pip install --no-cache-dir -r requirements-prod.txt
+	pip install --no-cache-dir -r ./backend/requirements.txt
+	pip install --no-cache-dir -r ./backend/requirements-prod.txt
 
 .PHONY: local-prepare-for-tests
 local-prepare-for-tests: mypy  local-clean-working-output-dir

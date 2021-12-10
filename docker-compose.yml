@@ -6,7 +6,7 @@ services:
     env_file:
       - .env
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile
       args:
         # This comes from .env
@@ -21,10 +21,16 @@ services:
       - --name DOC
       - --worker-class uvicorn.workers.UvicornWorker
       - --pythonpath ./backend
-      - --conf ./gunicorn.conf.py
+      - --conf ./backend/gunicorn.conf.py
       - document.entrypoints.app:app
     networks:
       - local-net
+  frontend:
+    image: document-ui-image
+    container_name: "frontend"
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
 
 # Network bridge for communication between containers
 networks:
