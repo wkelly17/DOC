@@ -446,7 +446,6 @@ def lang_codes(
     of all language codes available through API. Presumably this
     could be called to populate a drop-down menu.
     """
-
     for lang in fetch_source_data(working_dir, translations_json_location):
         yield lang["code"]
 
@@ -454,19 +453,18 @@ def lang_codes(
 def lang_codes_and_names(
     working_dir: str = settings.working_dir(),
     translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
-) -> Iterable[tuple[str, str]]:
+) -> list[tuple[str, str]]:
     """
     Convenience method that can be called from UI to get the set
     of all language code, name tuples available through API.
     Presumably this could be called to populate a drop-down menu.
     """
-    # Using jsonpath in a loop here was prohibitively slow so we
-    # use the dictionary in this case.
+    values = []
     for d in fetch_source_data(working_dir, translations_json_location):
-        yield (d["code"], d["name"]) if d["name"] != "Unknown" else (
-            d["code"],
-            "{} name (Language code: {})".format(d["name"], d["code"]),
+        values.append(
+            (d["code"], "{} (language code: {})".format(d["name"], d["code"]))
         )
+    return sorted(values, key=lambda value: value[1])
 
 
 def resource_types(jsonpath_str: str = settings.RESOURCE_TYPES_JSONPATH) -> Any:

@@ -120,7 +120,7 @@ def lang_codes() -> Iterable[str]:
 @app.get("/language_codes_and_names")
 def lang_codes_and_names() -> list[tuple[str, str]]:
     """Return list of all available language code, name tuples."""
-    return list(resource_lookup.lang_codes_and_names())
+    return resource_lookup.lang_codes_and_names()
 
 
 @app.get("/resource_types")
