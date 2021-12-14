@@ -7,17 +7,13 @@ from typing import Any
 
 from document.config import settings
 from document.domain import document_generator, model, resource_lookup
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.openapi.docs import (
-    get_redoc_html,
-    get_swagger_ui_html,
-    get_swagger_ui_oauth2_redirect_html,
-)
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import AnyHttpUrl
 from starlette.responses import HTMLResponse
+
 
 # Don't serve swagger docs static assets from third party CDN.
 # Source: https://github.com/tiangolo/fastapi/issues/2518#issuecomment-827513744
@@ -40,7 +36,24 @@ app.add_middleware(
 )
 
 
-@app.post("/documents", response_model=model.FinishedDocumentDetails)
+class InvalidDocumentRequestException(Exception):
+    def __init__(self, message: str):
+        self.message: str = message
+
+
+@app.exception_handler(InvalidDocumentRequestException)
+def invalid_document_request_exception_handler(
+    request: Request, exc: InvalidDocumentRequestException
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=404,
+        content={
+            "message": f"{exc.message}",
+        },
+    )
+
+
+@app.post("/documents")
 def document_endpoint(
     document_request: model.DocumentRequest,
     success_message: str = settings.SUCCESS_MESSAGE,
@@ -60,26 +73,13 @@ def document_endpoint(
         assert os.path.exists(finished_document_path)
     except Exception as exc:
         logger.exception(
-            "There was a error while attempting to fulfill the document request. Likely reason is the following exception:"
+            "There was a error while attempting to fulfill the document "
+            "request. Likely reason is the following exception:"
         )
-
-        # Prepare the exception to send to the front end if needed.
-        # Source: https://fastapi.tiangolo.com/tutorial/handling-errors/
-        # Source: https://testdriven.io/blog/developing-a-single-page-app-with-fastapi-and-vuejs/
-        # FIXME: Still have not found a way to retrieve on the JS
-        # frontend the exception message that is set below in 'detail'.
-        backend_exception = HTTPException(
-            status_code=404,
-            detail="{}, Exception: {}".format(failure_message, exc),
-        )
-        raise backend_exception
-        # details = model.FinishedDocumentDetails(
-        #     finished_document_request_key=None,
-        #     # Provide an appropriate message back to the UI that can
-        #     # be shared with the user when the document request cannot
-        #     # be fulfilled for some reason.
-        #     message=failure_message,
-        # )
+        # NOTE It might not always be the case that an exception here
+        # is as a result of an invalid document request, but it often
+        # is.
+        raise InvalidDocumentRequestException(message=failure_message)
     else:
         details = model.FinishedDocumentDetails(
             finished_document_request_key=document_request_key,
