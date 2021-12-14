@@ -59,7 +59,7 @@ mypy: checkvenv
 	mypy --strict --install-types --non-interactive tests/**/*.py
 
 .PHONY: mypyc
-mypyc: mypy
+mypyc:
 	mypyc --strict --install-types --non-interactive backend/document/**/*.py
 
 # https://radon.readthedocs.io/en/latest/commandline.html
