@@ -70,7 +70,7 @@ ENV PYTHONPATH=/backend:/tests
 # Make RUN_TESTS in .env and referenced in docker-compose.yml
 # available here.
 ARG RUN_TESTS
-RUN if [[ -n "$RUN_TESTS" ]] ; then IN_CONTAINER=true pytest /tests/ ; else echo You have chosen to skip the test suite ; fi
+RUN if [ "$RUN_TESTS" = "true" ] ; then IN_CONTAINER=true pytest /tests/ ; else echo You have chosen to skip the test suite ; fi
 
 # Make PORT in .env and referenced in docker-compose.yml
 # available here.

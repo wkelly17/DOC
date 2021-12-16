@@ -8,15 +8,16 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        # This comes from .env
+        # These come from .env
         WKHTMLTOX_LOC: ${WKHTMLTOX_LOC}
         RUN_TESTS: ${RUN_TESTS}
         PORT: ${PORT}
+        DOCUMENT_OUTPUT_DIR: ${DOCUMENT_OUTPUT_DIR}
     volumes:
-      # IRG writes generated PDFs to /output. Map that directory to the
+      # Writes generated PDFs to the value of DOCUMENT_OUTPUT_DIR which we map to
       # ./docker_pdf_output host directory in order to be able to view
       # generated PDFs in the host file system.
-      - ./docker_pdf_output:/output
+      - ./docker_pdf_output:${DOCUMENT_OUTPUT_DIR}
     ports:
       - 5005:5005
     networks:
