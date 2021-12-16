@@ -117,9 +117,6 @@ def assemble_content(
     Concatenate/interleave the content from all requested resources
     according to the assembly_strategy requested and write out to a single
     HTML file excluding a wrapping HTML and BODY element.
-    Precondition: each resource has already generated HTML of its
-    body content (sans enclosing HTML and body elements) and
-    stored it in its _content instance variable.
     """
     assembly_strategy = assembly_strategies.assembly_strategy_factory(
         document_request.assembly_strategy_kind
@@ -360,6 +357,7 @@ def main(document_request: model.DocumentRequest) -> tuple[str, str]:
     This is the main entry point for this module and the
     backend system as a whole.
     """
+    document_request.resource_requests = coalesce_english_tn_requests(document_request.resource_requests)
     document_request_key_ = document_request_key(
         document_request.resource_requests, document_request.assembly_strategy_kind
     )
@@ -429,3 +427,48 @@ def main(document_request: model.DocumentRequest) -> tuple[str, str]:
             document_request.email_address, output_filename, document_request_key_
         )
     return document_request_key_, output_filename
+
+
+def coalesce_english_tn_requests(
+    resource_requests: Sequence[model.ResourceRequest],
+) -> Sequence[model.ResourceRequest]:
+    """
+    Ensure only one English translation notes resource request per
+    document request.
+
+    translations.json offers URLs for English translation notes in repo form,
+    en-tn, or in downloadable zip form, tn. They are the same resource
+    provided in two different ways, thus only allow one per document
+    request. Prefer the repo as once it is cloned subsequent accesses
+    will be fast. Downloadable zip would be faster the first time, but
+    eventually someone would request en-tn and not tn and then you'd
+    have to wait for the repo to be cloned. I'd rather initialize
+    resources early after initial launch.
+    """
+    if [resource_request for resource_request in resource_requests if
+        resource_request.lang_code == "en" and
+        resource_request.resource_type == "tn"] and [resource_request
+                                                     for
+                                                     resource_request
+                                                     in
+                                                     resource_requests
+                                                     if
+                                                     resource_request.lang_code
+                                                     == "en" and
+                                                     resource_request.resource_type
+                                                     == "tn-wa"]: # Both tn and tn-wa requested for en.
+
+        # Return the Sequence of resource_requests
+        # with the English tn resource request removed but leave the
+        # English tn-wa resouce request in the Sequence.
+        return [
+            resource_request
+            for resource_request in resource_requests
+            if not (
+                resource_request.lang_code == "en"
+                and resource_request.resource_type == "tn"
+            )
+        ]
+    # Special case did not apply, thus return the unaltered
+    # resource_requests Sequence.
+    return resource_requests

@@ -10,14 +10,11 @@ https://github.com/faif/python-patterns/blob/master/patterns/behavioral/strategy
 import itertools
 import re
 from collections.abc import Callable, Iterable, Mapping, Sequence
-from functools import singledispatch
-
 from typing import Any, Optional
 
 from document.config import settings
 from document.domain import bible_books, model
 from document.utils import tw_utils
-
 
 logger = settings.logger(__name__)
 
@@ -29,8 +26,8 @@ H1, H2, H3, H4, H5, H6 = "h1", "h2", "h3", "h4", "h5", "h6"
 # Asseembly strategy and sub-strategy factories
 #
 # Currently, there are two levels of assembly strategies: one higher,
-# chosen by _assembly_strategy_factory, and one lower, chosen by
-# _assembly_sub_strategy_factory. These two levels of assembly
+# chosen by assembly_strategy_factory, and one lower, chosen by
+# assembly_sub_strategy_factory. These two levels of assembly
 # strategies work together in the following way: the higher level
 # constrains the assembly algorithm by some criteria, e.g., by
 # language, and then the lower level further organizes the assembly
@@ -39,10 +36,7 @@ H1, H2, H3, H4, H5, H6 = "h1", "h2", "h3", "h4", "h5", "h6"
 # higher level, so-called 'assembly strategies' and lower level,
 # so-called 'sub strategies', assembly strategies.
 
-# FIXME Proper return type that mypy likes. pyre offers a type, but it
-# is not a type that mypy or pyre likes. If I end up using a structural
-# pattern matching approach to selecting strategies then this problem
-# might be obviated.
+# FIXME Proper return type that mypy likes.
 def assembly_strategy_factory(
     assembly_strategy_kind: model.AssemblyStrategyEnum,
 ) -> Any:
@@ -544,10 +538,6 @@ def assembly_sub_strategy_factory_for_book_then_lang(
     ]
 
 
-#######################################
-## Assembly strategy implementations
-
-
 def assemble_content_by_lang_then_book(
     book_content_units: Iterable[model.BookContent],
     language_fmt_str: str = settings.LANGUAGE_FMT_STR,
@@ -559,15 +549,6 @@ def assemble_content_by_lang_then_book(
     delegating more atomic ordering/interleaving to an assembly
     sub-strategy.
     """
-    # NOTE Each strategy can interleave resource material the way it
-    # wants. A user could choose a strategy they want at the front
-    # end. Presumably, we could offer the user such strategies from a
-    # dropdown that would be intelligent enough to only present
-    # choices that make sense for the number of languages and
-    # resources they have selected, e.g., we wouldn't bother them with
-    # the choice of interleaving strategy if for instance all they
-    # wanted was TN for Swahili and nothing else.
-
     book_units_sorted_by_language = sorted(
         book_content_units,
         key=lambda book_content_unit: book_content_unit.lang_name,
@@ -654,15 +635,6 @@ def assemble_content_by_book_then_lang(
     delegating more atomic ordering/interleaving to an assembly
     sub-strategy.
     """
-
-    # NOTE Each strategy can interleave resource material the way it wants.
-    # A user could choose a strategy they want at the front end. Presumably,
-    # we could offer the user such strategies from a drop-down that would be
-    # intelligent enough to only present choices that make sense for the
-    # number of languages and resources they have been selected, e.g., we
-    # wouldn't bother them with the choice of interleaving strategy if for
-    # instance all they wanted was TN for Swahili and nothing else.
-
     book_content_units_sorted_by_book = sorted(
         book_content_units,
         key=lambda book_content_unit: book_content_unit.resource_code,
@@ -733,7 +705,8 @@ def assemble_content_by_book_then_lang(
 # Assembly sub-strategy implementations for language then book strategy
 #
 # Possible combinations with usfm (e.g., ulb, ulb-wa, cuv, nav, etc), tn,
-# tq, tw, usfm2 (e.g., udb):
+# tq, tw, usfm2 (e.g., udb) expressed as a truth table to make sure no
+# cases are missed:
 #
 #
 #  | usfm | tn | tq | tw | usfm2 | combination as string | complete | test      | comment    |
@@ -1356,6 +1329,22 @@ def assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
     Construct the HTML for a 'by verse' strategy wherein at least one
     USFM resource (e.g., ulb, nav, cuv, etc.) exists, and TN, TQ, and
     TW may exist.
+
+    Rough sketch of algo that follows:
+    English book intro
+    French book intro
+    chapter heading, e.g., Chapter 1
+        english chapter intro goes here
+        french chaptre entre qui
+            Unlocked Literal Bible (ULB) 1:1
+            a verse goes here
+            French ULB 1:1
+            a verse goes here
+            ULB Translation Helps 1:1
+            translation notes for English goes here
+            French Translation notes 1:1
+            translation notes for French goes here
+            etc for tq, tw links, footnotes, followed by tw definitions
     """
 
     # Sort resources by language
@@ -1365,22 +1354,6 @@ def assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
     tq_book_content_units = sorted(tq_book_content_units, key=key)
     tw_book_content_units = sorted(tw_book_content_units, key=key)
     # ta_resources = sorted(ta_resources, key=key)
-
-    # Rough sketch of algo that follows:
-    # English book intro
-    # French book intro
-    # chapter heading, e.g., Chapter 1
-    #     english chapter intro goes here
-    #     french chaptre entre qui
-    #         Unlocked Literal Bible (ULB) 1:1
-    #         a verse goes here
-    #         French ULB 1:1
-    #         a verse goes here
-    #         ULB Translation Helps 1:1
-    #         translation notes for English goes here
-    #         French Translation notes 1:1
-    #         translation notes for French goes here
-    #         etc for tq, tw links, footnotes, followed by tw definitions
 
     # Add book intros for each tn_book_content_unit
     for tn_book_content_unit in tn_book_content_units:
@@ -1566,10 +1539,20 @@ def assemble_tn_as_iterator_content_by_verse_for_book_then_lang(
     """
     Construct the HTML for a 'by verse' strategy wherein at least
     tn_book_content_units exists, and TN, TQ, and TW may exist.
+
+
+    Rough sketch of algo that follows:
+    English book intro
+    French book intro
+    chapter heading, e.g., Chapter 1
+        english chapter intro goes here
+        french chapter intro goes here
+            ULB Translation Helps 1:1
+            translation notes for English goes here
+            French Translation notes 1:1
+            translation notes for French goes here
+            etc for tq, tw links, followed by tw definitions
     """
-
-    # html: list[model.HtmlContent] = []
-
     # Sort resources by language
     key = lambda resource: resource.lang_code
     usfm_book_content_units = sorted(usfm_book_content_units, key=key)
@@ -1577,18 +1560,6 @@ def assemble_tn_as_iterator_content_by_verse_for_book_then_lang(
     tq_book_content_units = sorted(tq_book_content_units, key=key)
     tw_book_content_units = sorted(tw_book_content_units, key=key)
     # ta_resources = sorted(ta_resources, key=key)
-
-    # Rough sketch of algo that follows:
-    # English book intro
-    # French book intro
-    # chapter heading, e.g., Chapter 1
-    #     english chapter intro goes here
-    #     french chapter intro goes here
-    #         ULB Translation Helps 1:1
-    #         translation notes for English goes here
-    #         French Translation notes 1:1
-    #         translation notes for French goes here
-    #         etc for tq, tw links, followed by tw definitions
 
     # Add book intros for each tn_book_content_unit
     for tn_book_content_unit in tn_book_content_units:
@@ -1692,14 +1663,6 @@ def assemble_tq_as_iterator_content_by_verse_for_book_then_lang(
     tq_book_content_units = sorted(tq_book_content_units, key=key)
     tw_book_content_units = sorted(tw_book_content_units, key=key)
     # ta_resources = sorted(ta_resources, key=key)
-
-    # Rough sketch of algo that follows:
-    # English book intro
-    # French book intro
-    # chapter heading, e.g., Chapter 1
-    #     english chapter intro goes here
-    #     french chapter intro goes here
-    #         etc for tq, tw links, followed by tw definitions
 
     # Use the first tn_book_content_unit as a chapter_num pump.
     for chapter_num in tq_book_content_units[0].chapters.keys():

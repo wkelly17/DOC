@@ -12,7 +12,7 @@ import subprocess
 import urllib
 from collections.abc import Iterable, Sequence
 from contextlib import closing
-from typing import Any, Callable, Optional, Protocol
+from typing import Any, Optional
 from urllib import parse as urllib_parse
 from urllib.request import urlopen
 
@@ -20,7 +20,6 @@ import jsonpath_rw_ext as jp  # type: ignore
 from document.config import settings
 from document.domain import bible_books, model
 from document.utils import file_utils
-
 
 logger = settings.logger(__name__)
 
@@ -275,10 +274,9 @@ def usfm_resource_lookup(
     resource_lookup_dto: model.ResourceLookupDto
 
     # Special case:
-    # Ironically, for English, translations.json file only
-    # contains URLs to PDF assets rather than anything useful for
-    # our purposes. Therefore, we have this guard to handle
-    # English resource requests separately and outside of
+    # For English, translations.json file only contains URLs to PDF assets
+    # rather than anything useful for our purposes. Therefore, we have this
+    # guard to handle English resource requests separately and outside of
     # translations.json by retrieving them from their git repos.
     if lang_code == "en":
         return _english_git_repo_location(
@@ -356,12 +354,11 @@ def t_resource_lookup(
     """
     resource_lookup_dto: model.ResourceLookupDto
 
-    # For English, translations.json file only
-    # contains URLs to PDF assets rather than anything useful for
-    # our purposes. Therefore, we have this guard to handle
-    # English resource requests separately outside of
-    # translations.json.
-    if lang_code == "en":
+    # For English, with the exception of tn resource type, translations.json
+    # file only contains URLs to PDF assets rather than anything useful for
+    # our purposes. Therefore, we have this guard to handle English resource
+    # requests separately outside of translations.json.
+    if lang_code == "en" and resource_type != "tn":
         return _english_git_repo_location(
             lang_code,
             resource_type,
