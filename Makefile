@@ -33,10 +33,12 @@ build-no-cache: checkvenv
 up: checkvenv
 	docker-compose up -d --force-recreate
 
+# This runs just the backend
 .PHONY: server
 server: up
 	docker-compose run backend
 
+# This runs both the backend and the frontend
 .PHONY: frontend-server
 frontend-server: up
 	docker-compose run frontend
