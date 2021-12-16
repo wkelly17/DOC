@@ -1,8 +1,7 @@
 version: "3"
 services:
   backend:
-    image: document-image
-    container_name: "backend"
+    container_name: backend
     env_file:
       - .env
     build:
@@ -11,26 +10,28 @@ services:
       args:
         # This comes from .env
         WKHTMLTOX_LOC: ${WKHTMLTOX_LOC}
+        RUN_TESTS: ${RUN_TESTS}
+        PORT: ${PORT}
     volumes:
       # IRG writes generated PDFs to /output. Map that directory to the
       # ./docker_pdf_output host directory in order to be able to view
       # generated PDFs in the host file system.
       - ./docker_pdf_output:/output
-    entrypoint:
-      - gunicorn
-      - --name DOC
-      - --worker-class uvicorn.workers.UvicornWorker
-      - --pythonpath ./backend
-      - --conf ./backend/gunicorn.conf.py
-      - document.entrypoints.app:app
+    ports:
+      - 5005:5005
     networks:
       - local-net
   frontend:
-    image: document-ui-image
-    container_name: "frontend"
+    container_name: frontend
     build:
       context: ./frontend
       dockerfile: Dockerfile
+    ports:
+      - 8000:8000
+    networks:
+      - local-net
+    depends_on:
+      - backend
 
 # Network bridge for communication between containers
 networks:

@@ -22,7 +22,7 @@ ifeq ("$(wildcard .venv/bin/pip-sync)","")
 endif
 
 .PHONY: build
-build: checkvenv local-update-deps-dev
+build: checkvenv local-update-deps-prod
 	docker-compose build
 
 .PHONY: build-no-cache
@@ -31,15 +31,19 @@ build-no-cache: checkvenv
 
 .PHONY: up
 up: checkvenv
-	docker-compose up -d
+	docker-compose up -d --force-recreate
 
 .PHONY: server
 server: up
-	docker-compose run  api
+	docker-compose run backend
+
+.PHONY: frontend-server
+frontend-server: up
+	docker-compose run frontend
 
 .PHONY: test
 test: up
-	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/unit /tests/integration /tests/e2e
+	docker-compose run --rm --no-deps --entrypoint=pytest backend /tests/unit /tests/integration /tests/e2e
 
 .PHONY: unit-tests
 unit-tests: up
@@ -52,6 +56,11 @@ e2e-tests: up
 .PHONY: down
 down:
 	docker-compose down --remove-orphans
+
+.PHONY: stop-and-remove
+stop-and-remove:
+	docker ps -q | xargs docker stop
+	docker ps -a -q -f status=exited | xargs docker rm
 
 .PHONY: mypy
 mypy: checkvenv

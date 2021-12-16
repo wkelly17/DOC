@@ -27,7 +27,7 @@ RUN fc-cache -f -v
 # Source: https://gist.github.com/lobermann/ca0e7bb2558b3b08923c6ae2c37a26ce
 # How to get wkhtmltopdf - don't use what Debian provides as it can have
 # headless display issues that mess with wkhtmltopdf.
-ARG WKHTMLTOX_LOC # Make a build arg available to this Dockerfile
+ARG WKHTMLTOX_LOC # Make a build arg (in docker-compose.yml from .env) available to this Dockerfile
 RUN WKHTMLTOX_TEMP="$(mktemp)" && \
     wget -O "$WKHTMLTOX_TEMP" ${WKHTMLTOX_LOC} && \
     dpkg -i "$WKHTMLTOX_TEMP" && \
@@ -39,6 +39,7 @@ RUN mkdir -p /working/temp
 # Make the output directory where generated HTML and PDFs are placed.
 RUN mkdir -p /working/output
 
+COPY .env .
 COPY icon-tn.png .
 COPY ./backend/gunicorn.conf.py .
 
@@ -49,16 +50,30 @@ RUN python -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 COPY ./backend/requirements.txt .
-COPY ./backend/requirements-dev.txt .
+COPY ./backend/requirements-prod.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install --no-cache-dir -r requirements-dev.txt
+RUN pip install --no-cache-dir -r requirements-prod.txt
 
 COPY ./backend/ /backend/
-COPY ./tests /tests
+COPY ./tests/ /tests/
 # COPY ./language_codes.json /tests/
 
 # Inside the Python virtual env: check types, install any missing mypy stub
 # types packages, and compile most modules into C using mypyc
 RUN cd $VIRTUAL_ENV && . $VIRTUAL_ENV/bin/activate && mypyc --strict --install-types --non-interactive /backend/document/**/*.py
 
+# Make sure Python can find the code to run
 ENV PYTHONPATH=/backend:/tests
+
+# Run tests to verify correctness and (mainly) to generate assets for preheating cache
+# To run the tests do: docker-compose build --build-arg run_tests=1
+# Make RUN_TESTS in .env and referenced in docker-compose.yml
+# available here.
+ARG RUN_TESTS
+RUN if [[ -n "$RUN_TESTS" ]] ; then IN_CONTAINER=true pytest /tests/ ; else echo You have chosen to skip the test suite ; fi
+
+# Make PORT in .env and referenced in docker-compose.yml
+# available here.
+ARG PORT
+# What gets run when 'docker-compose run backend' is executed.
+CMD ["gunicorn", "--name", "document:entrypoints:app", "--worker-class", "uvicorn.workers.UvicornWorker", "--pythonpath", "/backend", "--conf", "/backend/gunicorn.conf.py", "document.entrypoints.app:app"]
