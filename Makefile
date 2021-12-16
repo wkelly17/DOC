@@ -73,6 +73,10 @@ mypy: checkvenv
 mypyc:
 	mypyc --strict --install-types --non-interactive backend/document/**/*.py
 
+.PHONY: clean-mypyc-artifacts
+clean-mypyc-artifacts:
+	find . -type f -name "*.so" -exec rm -- {} +
+
 # https://radon.readthedocs.io/en/latest/commandline.html
 .PHONY: radon-cyclomatic-complexity
 radon-cyclomatic-complexity: checkvenv
