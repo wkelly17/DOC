@@ -24,7 +24,7 @@ git clone https://github.com/linearcombination/InterleavedResourcesGenerator.git
 #+end_src
 
 Then cd into the tools directory you just creating by cloning.
-*** Run demo inside the Docker container:
+*** Run test suite inside the Docker container:
 **** One command to take down old running containers, build the new, and run all tests
 #+begin_src shell
 make all
@@ -80,7 +80,11 @@ make build-no-cache
 #+begin_src shell
 make test
 #+end_src
-
+*** Run whole system inside the Docker container so that you can test in browser
+#+begin_src shell
+make build
+make frontend-server
+#+end_src
 *** Run demo outside Docker container
 **** Create and activate the virtual environment
 
