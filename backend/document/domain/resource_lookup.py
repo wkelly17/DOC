@@ -795,7 +795,7 @@ def clone_git_repo(url: str, resource_filepath: str) -> None:
     """
     if os.path.exists(resource_filepath):
         logger.debug(
-            "About to delete pre-existing git repo %s in order to recreate it.",
+            "About to delete pre-existing git repo %s in order to recreate it due to cache staleness.",
             resource_filepath,
         )
         try:
