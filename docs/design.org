@@ -277,35 +277,6 @@ note bottom of ResourceJsonLookup : This is where the translations.json API is q
 #+RESULTS:
 [[file:wa_design_class_diagram2.png]]
 
-** Docker container
-There isn't much to say about the docker container except that it
-provides the runtime environment, obviously. The only significant new
-detail is that fastapi can be specified to run on a particular IP and
-port (seen in =docker-compose.yaml=) which =BIEL= will know and use when
-submitting requests.
-
-In a later iteration toward the end, Fastapi will presumably be load
-balanced. Further, to protect its pool of workers from being tied up
-by long running client requests from =BIEL=, one can adopt an
-architecture such as the one described in the next paragraph.
-
-=nginx= in front of =gnunicorn= in front of fastapi could be put in place to
-handle load balancing incoming front end requests from =BIEL=. To learn
-why you might do something like that please see this [[https://stackoverflow.com/questions/20766684/what-benefit-is-added-by-using-gunicorn-nginx-flask#20766961][stackoverflow answer]]
-
-I am not bothering myself with this at all right now, just mentioning
-it. There are other architectures that could be used when we get
-there.
-** (Bonus/optional material) Convenience web service endpoints for BIEL UI to call (if desired)
-In the interest of good user experience, it seems like it will be
-important that =BIEL= only request resources that actually exist (as
-defined by =translations.json=).
-
-I've provided a few web app endpoints from which =BIEL= can
-request data in order to populate its dropdown menu's in =BIEL='s
-document request wizard.
-
-You can see those by looking at ../tests/e2e/test_biel_helper.py
 ** Caching design
 The system has two levels of caching:
 1. PDF document,
@@ -317,7 +288,7 @@ and is 'fresh' according to the caching policy expressed in
 file_utils.asset_file_needs_update, then immediately serve the PDF
 document to the requesting user.
 
-For (2), if any of the DocumentRequest instances's ResourceRequest
+For (2), if any of the DocumentRequest instance's ResourceRequest
 instances have been obtained from the cloud before and are 'fresh'
 according to the caching policy expressed in
 file_utils.asset_file_needs_update, then don't fetch said resource asset
@@ -326,20 +297,6 @@ files again, instead reuse the asset files already obtained.
 Also, in level (2): translations.json is obtained
 according to the caching policy expressed in
 file_utils.source_file_needs_update.
-** Oddities - differences from the norm in resources I've found
-These are oddities that are not currently handled, either at all or
-totally, either by the original system or the current system.
-
-Examples:
-
-| Language code | Resource type | Resource code | Oddity                                                      |
-|---------------+---------------+---------------+-------------------------------------------------------------|
-| ml            | tn            | any           | zip contains a manifest.yaml per usual, but the translation |
-|               |               |               | notes are not in markdown they are tsv files.               |
-| erk-x-erakor  | reg           | any           | manifest.json rather than manifest.txt or manifest.yaml.    |
-|               |               |               | manifest.json has different structure and keys.             |
-| en            | tn-wa         | any           | translations.json only lists links to PDFs                  |
-
 ** Composition of project in LOC
 #+begin_src shell :results output
 # pip install pygount
@@ -348,26 +305,49 @@ pygount  --folders-to-skip .DS_Store,.git,.mypy_cache,.pytest_cache,GPUCache,pdf
 
 #+RESULTS:
 #+begin_example
-    Language       Files    %     Code    %     Comment    %
------------------  -----  ------  ----  ------  -------  ------
-Python                32   23.19  3917   39.97     4328   97.59
-VimL                   2    1.45  3178   32.43        2    0.05
-HTML                   4    2.90  1376   14.04       58    1.31
-JSON                   6    4.35   575    5.87        0    0.00
-Text only              8    5.80   444    4.53        0    0.00
-TOML                   2    1.45    63    0.64        7    0.16
-HTML+Django/Jinja      2    1.45    61    0.62        4    0.09
-YAML                   2    1.45    60    0.61        4    0.09
-INI                    3    2.17    45    0.46       11    0.25
-Makefile               1    0.72    30    0.31        2    0.05
-Docker                 1    0.72    28    0.29       12    0.27
-markdown               3    2.17    22    0.22        0    0.00
-Bash                   1    0.72     1    0.01        7    0.16
-__unknown__            7    5.07     0    0.00        0    0.00
-__empty__              9    6.52     0    0.00        0    0.00
-__binary__            55   39.86     0    0.00        0    0.00
------------------  -----  ------  ----  ------  -------  ------
-Sum total            138          9800             4435
+        Language          Files    %      Code     %     Comment    %
+------------------------  -----  ------  ------  ------  -------  ------
+Python                     3045   23.90  491501   45.51   180896   95.56
+Text only                   218    1.71  317366   29.39        0    0.00
+C                            56    0.44  149536   13.85     4189    2.21
+Markdown                   2051   16.10   47222    4.37        0    0.00
+YAML                          9    0.07   34256    3.17        8    0.00
+JSON                         24    0.19   17441    1.62        0    0.00
+ASCII armored                15    0.12    8354    0.77       90    0.05
+C++                          10    0.08    5148    0.48     2255    1.19
+PostScript                    1    0.01    2847    0.26      111    0.06
+reStructuredText             33    0.26    1999    0.19       35    0.02
+Objective-C                   2    0.02    1559    0.14     1330    0.70
+HTML                         11    0.09    1048    0.10       42    0.02
+S                             1    0.01     224    0.02       49    0.03
+INI                           6    0.05     204    0.02       22    0.01
+XSLT                          2    0.02     168    0.02        3    0.00
+Makefile                      3    0.02     159    0.01       48    0.03
+Graphviz                      2    0.02     141    0.01        0    0.00
+PowerShell                    2    0.02     117    0.01       97    0.05
+Fish                          2    0.02     108    0.01       27    0.01
+HTML+Django/Jinja             2    0.02      76    0.01        8    0.00
+Batchfile                     4    0.03      64    0.01        5    0.00
+XML                           2    0.02      61    0.01        4    0.00
+Bash                          5    0.04      59    0.01       17    0.01
+Docker                        3    0.02      58    0.01       38    0.02
+CSS+Lasso                     1    0.01      49    0.00       10    0.01
+Tcsh                          2    0.02      45    0.00       12    0.01
+TOML                         11    0.09      22    0.00        0    0.00
+Cheetah                       3    0.02      22    0.00        0    0.00
+JavaScript                    4    0.03      17    0.00        6    0.00
+Nginx configuration file      2    0.02      12    0.00        5    0.00
+Ruby                          1    0.01       6    0.00        0    0.00
+Go                            1    0.01       2    0.00        0    0.00
+Rust                          1    0.01       1    0.00        0    0.00
+Modula-2                      1    0.01       1    0.00        0    0.00
+__unknown__                3037   23.84       0    0.00        0    0.00
+__generated__                24    0.19       0    0.00        0    0.00
+__empty__                   415    3.26       0    0.00        0    0.00
+__duplicate__                79    0.62       0    0.00        0    0.00
+__binary__                 3648   28.64       0    0.00        0    0.00
+------------------------  -----  ------  ------  ------  -------  ------
+Sum total                 12739          1079893           189307
 #+end_example
 
 ** Handling links
