@@ -110,7 +110,7 @@ class Settings(BaseSettings):
         return "https://{}:{}{}".format(host, port, root)
 
     # Location where resource assets will be downloaded.
-    RESOURCE_ASSETS_DIR: str
+    RESOURCE_ASSETS_DIR: str = "/working/temp"
 
     # Indicate whether running in Docker container.
     IN_CONTAINER: bool = False
@@ -127,7 +127,7 @@ class Settings(BaseSettings):
             return self.RESOURCE_ASSETS_DIR[1:]
 
     # Location where generated PDFs will be written to.
-    DOCUMENT_OUTPUT_DIR: str
+    DOCUMENT_OUTPUT_DIR: str = "/working/output"
 
     def output_dir(self) -> str:
         """The directory where the generated documents are placed."""
