@@ -2,6 +2,7 @@
 Entrypoint for backend. Here incoming document requests are processed
 and eventually a final document produced.
 """
+
 import base64
 import datetime
 import os
@@ -15,6 +16,7 @@ from email.mime.text import MIMEText
 from itertools import tee
 from typing import Optional, Union
 
+import jinja2
 import pdfkit  # type: ignore
 from document.config import settings
 from document.domain import (
@@ -24,10 +26,9 @@ from document.domain import (
     parsing,
     resource_lookup,
 )
-
 from document.utils import file_utils
 from more_itertools import partition
-
+from pydantic import BaseModel
 
 logger = settings.logger(__name__)
 
@@ -95,10 +96,41 @@ def document_request_key(
     return "{}_{}".format(document_request_key[:-1], assembly_strategy_kind)
 
 
+def template_path(
+    key: str, template_paths_map: Mapping[str, str] = settings.TEMPLATE_PATHS_MAP
+) -> str:
+    """
+    Return the path to the requested template give a lookup key.
+    Return a different path if the code is running inside the Docker
+    container.
+    """
+    return template_paths_map[key]
+
+
+def template(template_lookup_key: str) -> str:
+    """Return template as string."""
+    with open(template_path(template_lookup_key), "r") as filepath:
+        template = filepath.read()
+    return template
+
+
+def instantiated_template(template_lookup_key: str, dto: BaseModel) -> str:
+    """
+    Instantiate Jinja2 template with dto BaseModel instance. Return
+    instantiated template as string.
+    """
+    # FIXME Maybe use jinja2.PackageLoader here instead: https://github.com/tfbf/usfm/blob/master/usfm/html.py
+    with open(template_path(template_lookup_key), "r") as filepath:
+        template = filepath.read()
+    # FIXME Handle exceptions
+    env = jinja2.Environment().from_string(template)
+    return env.render(data=dto)
+
+
 def enclose_html_content(
     content: str,
-    document_html_header: str = settings.document_html_header(),
-    document_html_footer: str = settings.document_html_footer(),
+    document_html_header: str = template("header_enclosing"),
+    document_html_footer: str = template("footer_enclosing"),
 ) -> str:
     """
     Write the enclosing HTML header and footer elements around the
@@ -197,7 +229,7 @@ def send_email_with_pdf_attachment(
                 )
 
         # Get the email body
-        message_body = settings.instantiated_template(
+        message_body = instantiated_template(
             "email",
             model.EmailPayload(
                 document_request_key=document_request_key,
@@ -290,7 +322,7 @@ def convert_html_to_pdf(
             "logo": base64_encoded_logo_image,
         }
     # Use Jinja2 to instantiate the cover page.
-    cover = settings.instantiated_template(
+    cover = instantiated_template(
         "cover",
         model.CoverPayload(
             title=title,
@@ -357,7 +389,9 @@ def main(document_request: model.DocumentRequest) -> tuple[str, str]:
     This is the main entry point for this module and the
     backend system as a whole.
     """
-    document_request.resource_requests = coalesce_english_tn_requests(document_request.resource_requests)
+    document_request.resource_requests = coalesce_english_tn_requests(
+        document_request.resource_requests
+    )
     document_request_key_ = document_request_key(
         document_request.resource_requests, document_request.assembly_strategy_kind
     )
@@ -445,18 +479,16 @@ def coalesce_english_tn_requests(
     have to wait for the repo to be cloned. I'd rather initialize
     resources early after initial launch.
     """
-    if [resource_request for resource_request in resource_requests if
-        resource_request.lang_code == "en" and
-        resource_request.resource_type == "tn"] and [resource_request
-                                                     for
-                                                     resource_request
-                                                     in
-                                                     resource_requests
-                                                     if
-                                                     resource_request.lang_code
-                                                     == "en" and
-                                                     resource_request.resource_type
-                                                     == "tn-wa"]: # Both tn and tn-wa requested for en.
+    if [
+        resource_request
+        for resource_request in resource_requests
+        if resource_request.lang_code == "en" and resource_request.resource_type == "tn"
+    ] and [
+        resource_request
+        for resource_request in resource_requests
+        if resource_request.lang_code == "en"
+        and resource_request.resource_type == "tn-wa"
+    ]:  # Both tn and tn-wa requested for en.
 
         # Return the Sequence of resource_requests
         # with the English tn resource request removed but leave the

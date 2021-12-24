@@ -214,22 +214,6 @@ class Settings(BaseSettings):
     # subdirectories of a resource's acquired files.
     MARKDOWN_DOC_FILE_NAMES: list[str] = ["readme", "license"]
 
-    def document_html_header(self) -> str:
-        """
-        Return the enclosing HTML and body element format string used
-        to enclose the document's HTML content which was aggregated from
-        all the resources in the document request.
-        """
-        return self.template("header_enclosing")
-
-    def document_html_footer(self) -> str:
-        """
-        Return the enclosing HTML and body element format string used
-        to enclose the document's HTML content which was aggregated from
-        all the resources in the document request.
-        """
-        return self.template("footer_enclosing")
-
     ENGLISH_GIT_REPO_MAP: Mapping[str, str] = {
         "ulb-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_ulb",
         "udb-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_udb",
@@ -237,13 +221,6 @@ class Settings(BaseSettings):
         "tw-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_tw",
         "tq-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_tq",
     }
-
-    def english_git_repo_url(self, resource_type: str) -> str:
-        """
-        This is a hack to compensate for translations.json which only
-        provides URLs in non-English languages.
-        """
-        return self.ENGLISH_GIT_REPO_MAP[resource_type]
 
     ENGLISH_RESOURCE_TYPE_MAP: Mapping[str, str] = {
         "ulb-wa": "Unlocked Literal Bible (ULB)",
@@ -253,13 +230,6 @@ class Settings(BaseSettings):
         "tw-wa": "ULB Translation Words",
     }
 
-    def english_resource_type_name(self, resource_type: str) -> str:
-        """
-        This is a hack to compensate for translations.json which only
-        provides information for non-English languages.
-        """
-        return self.ENGLISH_RESOURCE_TYPE_MAP[resource_type]
-
     TEMPLATE_PATHS_MAP: Mapping[str, str] = {
         "book_intro": "backend/templates/tn/book_intro_template.md",
         "header_enclosing": "backend/templates/html/header_enclosing.html",
@@ -268,32 +238,6 @@ class Settings(BaseSettings):
         "email-html": "backend/templates/html/email.html",
         "email": "backend/templates/text/email.txt",
     }
-
-    def template_path(self, key: str) -> str:
-        """
-        Return the path to the requested template give a lookup key.
-        Return a different path if the code is running inside the Docker
-        container.
-        """
-        return self.TEMPLATE_PATHS_MAP[key]
-
-    def instantiated_template(self, template_lookup_key: str, dto: BaseModel) -> str:
-        """
-        Instantiate Jinja2 template with dto BaseModel instance. Return
-        instantiated template as string.
-        """
-        # FIXME Maybe use jinja2.PackageLoader here instead: https://github.com/tfbf/usfm/blob/master/usfm/html.py
-        with open(self.template_path(template_lookup_key), "r") as filepath:
-            template = filepath.read()
-        # FIXME Handle exceptions
-        env = jinja2.Environment().from_string(template)
-        return env.render(data=dto)
-
-    def template(self, template_lookup_key: str) -> str:
-        """Return template as string."""
-        with open(self.template_path(template_lookup_key), "r") as filepath:
-            template = filepath.read()
-        return template
 
     # Return boolean indicating if caching of generated document's should be
     # cached.

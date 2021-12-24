@@ -5,7 +5,6 @@ assets.
 """
 
 
-import abc
 import os
 import pathlib
 import shutil
@@ -13,7 +12,7 @@ import subprocess
 import urllib
 from collections.abc import Iterable, Sequence
 from contextlib import closing
-from typing import Any, Optional
+from typing import Any, Callable, Mapping, Optional
 from urllib import parse as urllib_parse
 from urllib.request import urlopen
 
@@ -72,44 +71,6 @@ def _lookup(
     return list(value_set)
 
 
-def _git_repo_location(
-    lang_code: str,
-    resource_type: str,
-    resource_code: str,
-    jsonpath_str: str,
-    lang_name_jsonpath_str: str,
-    resource_type_name_jsonpath_str: str,
-) -> model.ResourceLookupDto:
-    """
-    If successful, return a string containing the URL of USFM
-    repo, otherwise return None.
-    """
-    url: Optional[str] = None
-    urls = _lookup(jsonpath_str)
-    if urls:
-        # Get the portion of the query string that gives
-        # the repo URL
-        url = _parse_repo_url(urls[0])
-    lang_name_lst = _lookup(lang_name_jsonpath_str)
-    if lang_name_lst:
-        lang_name = lang_name_lst[0]
-    else:
-        lang_name = ""
-    resource_type_name_lst = _lookup(resource_type_name_jsonpath_str)
-    if resource_type_name_lst:
-        resource_type_name = resource_type_name_lst[0]
-    else:
-        resource_type_name = ""
-    return model.ResourceLookupDto(
-        lang_code=lang_code,
-        resource_type=resource_type,
-        resource_code=resource_code,
-        url=url,
-        source=model.AssetSourceEnum.GIT,
-        jsonpath=jsonpath_str,
-        lang_name=lang_name,
-        resource_type_name=resource_type_name,
-    )
 
 
 def _parse_repo_url(
@@ -156,13 +117,21 @@ def _english_git_repo_location(
 # FIXME Add asset_source_enum_kind as a parameter to _location, then
 # pass in the desired value at call sites. Once that is done
 # _non_repo_usfm_location is equivalent to _location.
-def _non_repo_usfm_location(
+
+
+def const(url: str) -> Optional[str]:
+    return url
+
+
+def _location(
     lang_code: str,
     resource_type: str,
     resource_code: str,
     jsonpath_str: str,
     lang_name_jsonpath_str: str,
     resource_type_name_jsonpath_str: str,
+    asset_source_enum_kind: str,
+    url_parsing_fn: Callable[[str], Optional[str]] = const,
 ) -> model.ResourceLookupDto:
     """Return a model.ResourceLookupDto."""
     # Many languages have a git repo found by
@@ -184,7 +153,7 @@ def _non_repo_usfm_location(
     url: Optional[str] = None
     urls = _lookup(jsonpath_str)
     if urls:
-        url = urls[0]
+        url = url_parsing_fn(urls[0])
     lang_name_lst = _lookup(lang_name_jsonpath_str)
     if lang_name_lst:
         lang_name = lang_name_lst[0]
@@ -200,65 +169,33 @@ def _non_repo_usfm_location(
         resource_type=resource_type,
         resource_code=resource_code,
         url=url,
-        source=model.AssetSourceEnum.USFM,
+        source=asset_source_enum_kind,
         jsonpath=jsonpath_str,
         lang_name=lang_name,
         resource_type_name=resource_type_name,
     )
 
 
-def _location(
-    lang_code: str,
+def english_resource_type_name(
     resource_type: str,
-    resource_code: str,
-    jsonpath_str: str,
-    lang_name_jsonpath_str: str,
-    resource_type_name_jsonpath_str: str,
-) -> model.ResourceLookupDto:
+    english_resource_type_map: Mapping[str, str] = settings.ENGLISH_RESOURCE_TYPE_MAP,
+) -> str:
     """
     This is a hack to compensate for translations.json which only
     provides information for non-English languages.
     """
-    # Many languages have a git repo found by
-    # format='Download' that is parallel to the
-    # individual, per book, USFM files.
-    #
-    # There is at least one language, code='ar', that has only
-    # single USFM files. In that particular language all the
-    # individual USFM files per book can also be found in a zip
-    # file,
-    # $[?code='ar'].contents[?code='nav'].links[format='zip'],
-    # which also contains the manifest.yaml file.
-    # That language is the only one with a
-    # contents[?code='nav'].
-    #
-    # Another, yet different, example is the case of
-    # $[?code="avd"] which has format="usfm" without
-    # having a zip containing USFM files at the same level.
-    url: Optional[str] = None
-    urls = _lookup(jsonpath_str)
-    if urls:
-        url = urls[0]
-    lang_name_lst = _lookup(lang_name_jsonpath_str)
-    if lang_name_lst:
-        lang_name = lang_name_lst[0]
-    else:
-        lang_name = ""
-    resource_type_name_lst = _lookup(resource_type_name_jsonpath_str)
-    if resource_type_name_lst:
-        resource_type_name = resource_type_name_lst[0]
-    else:
-        resource_type_name = ""
-    return model.ResourceLookupDto(
-        lang_code=lang_code,
-        resource_type=resource_type,
-        resource_code=resource_code,
-        url=url,
-        source=model.AssetSourceEnum.ZIP,
-        jsonpath=jsonpath_str,
-        lang_name=lang_name,
-        resource_type_name=resource_type_name,
-    )
+    return english_resource_type_map[resource_type]
+
+
+def english_git_repo_url(
+    resource_type: str,
+    english_git_repo_map: Mapping[str, str] = settings.ENGLISH_GIT_REPO_MAP,
+) -> str:
+    """
+    This is a hack to compensate for translations.json which only
+    provides URLs in non-English languages.
+    """
+    return english_git_repo_map[resource_type]
 
 
 def usfm_resource_lookup(
@@ -281,13 +218,13 @@ def usfm_resource_lookup(
             lang_code,
             resource_type,
             resource_code,
-            url=settings.english_git_repo_url(resource_type),
-            resource_type_name=settings.english_resource_type_name(resource_type),
+            url=english_git_repo_url(resource_type),
+            resource_type_name=english_resource_type_name(resource_type),
         )
 
     # Prefer getting USFM files individually rather than
     # introducing the latency of cloning a git repo.
-    resource_lookup_dto = _non_repo_usfm_location(
+    resource_lookup_dto = _location(
         lang_code,
         resource_type,
         resource_code,
@@ -300,12 +237,13 @@ def usfm_resource_lookup(
         resource_type_name_jsonpath_str=settings.RESOURCE_TYPE_NAME_JSONPATH.format(
             lang_code, resource_type
         ),
+        asset_source_enum_kind=model.AssetSourceEnum.USFM,
     )
 
     # Individual USFM file was not available, now try getting it
     # from a git repo.
     if resource_lookup_dto.url is None:
-        resource_lookup_dto = _git_repo_location(
+        resource_lookup_dto = _location(
             lang_code,
             resource_type,
             resource_code,
@@ -320,6 +258,8 @@ def usfm_resource_lookup(
             resource_type_name_jsonpath_str=settings.RESOURCE_TYPE_NAME_JSONPATH.format(
                 lang_code, resource_type
             ),
+            asset_source_enum_kind=model.AssetSourceEnum.GIT,
+            url_parsing_fn=_parse_repo_url,
         )
 
     if resource_lookup_dto.url is None:
@@ -337,6 +277,7 @@ def usfm_resource_lookup(
             resource_type_name_jsonpath_str=settings.RESOURCE_TYPE_NAME_JSONPATH.format(
                 lang_code, resource_type
             ),
+            asset_source_enum_kind=model.AssetSourceEnum.ZIP,
         )
 
     return resource_lookup_dto
@@ -361,8 +302,8 @@ def t_resource_lookup(
             lang_code,
             resource_type,
             resource_code,
-            url=settings.english_git_repo_url(resource_type),
-            resource_type_name=settings.english_resource_type_name(resource_type),
+            url=english_git_repo_url(resource_type),
+            resource_type_name=english_resource_type_name(resource_type),
         )
 
     resource_lookup_dto = _location(
@@ -377,6 +318,7 @@ def t_resource_lookup(
         resource_type_name_jsonpath_str=settings.RESOURCE_TYPE_NAME_JSONPATH.format(
             lang_code, resource_type
         ),
+        asset_source_enum_kind=model.AssetSourceEnum.ZIP,
     )
     if resource_lookup_dto.url is None:
         resource_lookup_dto = _location(
@@ -393,6 +335,7 @@ def t_resource_lookup(
             resource_type_name_jsonpath_str=settings.RESOURCE_TYPE_NAME_JSONPATH.format(
                 lang_code, resource_type
             ),
+            asset_source_enum_kind=model.AssetSourceEnum.ZIP,
         )
 
     if resource_lookup_dto.url is None:
@@ -410,6 +353,7 @@ def t_resource_lookup(
             resource_type_name_jsonpath_str=settings.RESOURCE_TYPE_NAME_JSONPATH.format(
                 lang_code, resource_type
             ),
+            asset_source_enum_kind=model.AssetSourceEnum.ZIP,
         )
 
     if resource_lookup_dto.url is None:
@@ -427,6 +371,7 @@ def t_resource_lookup(
             resource_type_name_jsonpath_str=settings.RESOURCE_TYPE_NAME_JSONPATH.format(
                 lang_code, resource_type
             ),
+            asset_source_enum_kind=model.AssetSourceEnum.ZIP,
         )
 
     return resource_lookup_dto
