@@ -1,6 +1,7 @@
 """
 This module provides an API for looking up the location of a
-resource's asset files in the cloud.
+resource's asset files in the cloud and acquiring said resource
+assets.
 """
 
 
@@ -163,10 +164,7 @@ def _non_repo_usfm_location(
     lang_name_jsonpath_str: str,
     resource_type_name_jsonpath_str: str,
 ) -> model.ResourceLookupDto:
-    """
-    If successful, return a model.ResourceLookupDto subclass
-    instance.
-    """
+    """Return a model.ResourceLookupDto."""
     # Many languages have a git repo found by
     # format='Download' that is parallel to the
     # individual, per book, USFM files.
@@ -218,8 +216,8 @@ def _location(
     resource_type_name_jsonpath_str: str,
 ) -> model.ResourceLookupDto:
     """
-    If successful, return a string containing the URL of USFM
-    file, otherwise None.
+    This is a hack to compensate for translations.json which only
+    provides information for non-English languages.
     """
     # Many languages have a git repo found by
     # format='Download' that is parallel to the
@@ -269,7 +267,7 @@ def usfm_resource_lookup(
     """
     Given a resource, comprised of language code, e.g., 'en', a
     resource type, e.g., 'ulb-wa', and a resource code, e.g., 'gen',
-    return URL for resource.
+    return model.ResourceLookupDto for resource.
     """
     resource_lookup_dto: model.ResourceLookupDto
 
@@ -529,10 +527,9 @@ def lang_codes_names_and_resource_types(
     translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
 ) -> Iterable[model.CodeNameTypeTriplet]:
     """
-    Convenience method that can be called to get the iterable
-    of all tuples where each tuple consists of language code,
-    language name, and list of resource types available for that
-    language.
+    Convenience method that can be called to get the list of all
+    tuples containing language code, language name, and list of
+    resource types available for that language.
 
     Example usage in repl:
     >>> from document.domain import resource_lookup
@@ -564,7 +561,7 @@ def lang_codes_names_resource_types_and_resource_codes(
 ) -> Iterable[tuple[str, str, Sequence[tuple[str, Sequence[str]]]]]:
     """
     Convenience method that can be called to get the set
-    of all tuples where each tuple consists of language code,
+    of all tuples containing language code,
     language name, list of resource types available for that
     language, and the resource_codes available for each resource
     type.
@@ -623,10 +620,10 @@ def lang_codes_names_and_contents_codes(
     translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
 ) -> Sequence[tuple[str, str, str]]:
     """
-    Convenience test method that can be called to get the set
-    of all language code, language name, contents level code as
-    tuples. Contents level code is a reference to the structure of
-    translations.json, e.g.:
+    Convenience test method that can be called to get the set of all
+    language codes, their associated language names, and contents level
+    codes as tuples. Contents level code is a reference to the structure
+    of translations.json, e.g.:
 
     [
         {
@@ -738,7 +735,7 @@ def prepare_resource_directory(lang_code: str, resource_type: str) -> None:
 def acquire_resource_assets(resource_lookup_dto: model.ResourceLookupDto) -> str:
     """
     Download or git clone resource and unzip resulting file if it
-    is a zip file.
+    is a zip file. Return the resource_dir path.
     """
 
     resource_dir = resource_directory(
@@ -780,7 +777,7 @@ def acquire_resource_assets(resource_lookup_dto: model.ResourceLookupDto) -> str
 
 
 def unzip_asset(lang_code: str, resource_type: str, resource_filepath: str) -> None:
-    """Unzip the asset."""
+    """Unzip the asset in its resource directory."""
     resource_dir = resource_directory(lang_code, resource_type)
     logger.debug("Unzipping %s into %s", resource_filepath, resource_dir)
     file_utils.unzip(resource_filepath, resource_dir)

@@ -43,7 +43,7 @@ def resource_book_content_units(
 ) -> Sequence[Union[model.BookContent, model.ResourceLookupDto]]:
     """
     Initialize the resources from their found assets and
-    generate their content for later typesetting. If any of the
+    parse their content for later typesetting. If any of the
     found resources could not be loaded then return them for later
     reporting.
     """
@@ -101,8 +101,8 @@ def enclose_html_content(
     document_html_footer: str = settings.document_html_footer(),
 ) -> str:
     """
-    Write the enclosing HTML and body elements around the HTML
-    body content for the document.
+    Write the enclosing HTML header and footer elements around the
+    HTML body content for the document.
     """
     return "{}{}{}".format(document_html_header, content, document_html_footer)
 
@@ -114,9 +114,9 @@ def assemble_content(
     output_dir: str = settings.output_dir(),
 ) -> None:
     """
-    Concatenate/interleave the content from all requested resources
-    according to the assembly_strategy requested and write out to a single
-    HTML file excluding a wrapping HTML and BODY element.
+    Assemble the content from all requested resources according to the
+    assembly_strategy requested and write out to a single HTML file
+    for subsequent use.
     """
     assembly_strategy = assembly_strategies.assembly_strategy_factory(
         document_request.assembly_strategy_kind
@@ -235,7 +235,7 @@ def convert_html_to_pdf(
     docker_container_pdf_output_dir: str = settings.DOCKER_CONTAINER_PDF_OUTPUT_DIR,
     in_container: bool = settings.IN_CONTAINER,
 ) -> None:
-    """Generate PDF from HTML contained in self.content."""
+    """Generate PDF from HTML."""
     now = datetime.datetime.now()
     revision_date = "Generated on: {}-{}-{}".format(now.year, now.month, now.day)
     title = "{}".format(

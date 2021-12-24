@@ -62,8 +62,9 @@ def document_endpoint(
     """
     Get the document request and hand it off to the document_generator
     module for processing. Return model.FinishedDocumentDetails instance
-    containing URL of resulting PDF, or, None in the case of failure plus a
-    message to return to the UI.
+    containing URL of resulting PDF, or, raise an
+    InvalidDocumentRequestException if there is an exception which is
+    subsequently caught in the frontend UI.
     """
     # Top level exception handler
     try:
