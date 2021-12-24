@@ -116,7 +116,7 @@ local-gunicorn-server: checkvenv
 	exec gunicorn --name DOC --worker-class uvicorn.workers.UvicornWorker --conf ./backend/gunicorn.conf.py --pythonpath ./backend  document.entrypoints.app:app
 
 .PHONY: local-update-deps-base
-local-update-deps-base: checkvenv
+local-update-deps-base: pyupgrade
 	pip-compile ./backend/requirements.in
 	# pip-compile --upgrade ./backend/requirements.in
 
