@@ -139,7 +139,7 @@ make local-e2e-tests
 ** (Needs updating) Interactions at a high level
 
 #+begin_src plantuml :file wa_design_sequence_diagram1.png :exports results
-UI_biel -> app.document_endpoint: JSON document resources request
+UI_biel -> app.document_endpoint: JSON document request
 app.document_endopint -> DocumentGenerator: instantiate DocumentGenerator\npassing resources from request
 #+end_src
 
@@ -148,9 +148,8 @@ app.document_endopint -> DocumentGenerator: instantiate DocumentGenerator\npassi
 
 
 =DocumentGenerator= passes back a JSON dict containing any messaging and
-the eventual location of the generated document for display to the
-requesting user (by =BIEL=), or the document itself (depending on how
-long it takes to generate).
+the URL of the generated document for display to the requesting user
+(by =BIEL=).
 
 #+begin_src plantuml :file wa_design_sequence_diagram2.png :exports results
 DocumentGenerator -> DocumentGenerator: generate document request key unique to set of resources requested, e.g., a request for two resources: ml-ulb-gen-en-ulb-wa-gen.
@@ -171,112 +170,8 @@ DocumentGenerator -> DocumentGenerator: convert HTML to PDF using pandoc
 #+RESULTS:
 [[file:wa_design_sequence_diagram2.png]]
 
-
-A problem with the old design was that it had one class, =TnConverter=,
-doing all the work. This monolithic design resulted in copious
-conditional logic in order to deal with handling different types of
-resources differently, e.g., USFM files, translation notes, etc..
-
-This new version of the design has extracted logic paths unique to
-each resource type and relocated them into Resource subclasses,
-created via a factory method (=ResourceFactory=). These subclasses share
-a clean interface: =find_location=, =get_files=, =initialize_properties=,
-=get_content=. The work of =find_location= is delegated to
-=ResourceJsonLookup= for all instances. =get_files= is also common to all
-subclasses and not specialized from the =Resource= superclass.
-Specialization in each subclass happens in the =initialize_properties=
-and =get_content= methods.
-
-This new design has also replaced the design of passing around a
-dictionary within =DocumentGenerator=. Each resource that is part of a
-single document request is now fully reified into its own object and
-=DocumentGenerator= maintains a collection of these Resource instances.
-
-=DocumentGenerator= also now maintains a unique key for each particular
-collection of resources in the document generation request. This will
-make it possible in a future design to simply lookup, if it exists, an
-already finalized and generated document if one with the same
-resources and order has been requested in the past. This should
-greatly improve UX experience due to cutting out all the document
-generation processing time.
-
-#+begin_src plantuml :file wa_design_class_diagram_resources.png :exports results
-Resource *-- ResourceJsonLookup
-Resource : find_location()
-Resource : get_files()
-Resource : {abstract} initialize_properties()
-Resource : {abstract} get_content()
-note top of Resource: Partially abstract superclass that handles behavior common to all resources
-Resource <|-- USFMResource
-' USFMResource : +find_location()
-' USFMResource : +get_files()
-USFMResource : +initialize_properties()
-USFMResource : +get_content()
-Resource <|-- TResource
-TResource : +_discover_layout()
-TResource : +_convert_md2html()
-note top of TResource: superclass that handles behavior common to all non-USFM resources
-TResource <|-- TNResource
-' TNResource : +find_location()
-' TNResource : +get_files()
-TNResource : +ihitialize_properties()
-TNResource : +get_content()
-TResource <|-- TAResource
-' TAResource : +find_location()
-' TAResource : +get_files()
-TAResource : +ihitialize_properties()
-TAResource : +get_content()
-TResource <|-- TQResource
-' TQResource : +find_location()
-' TQResource : +get_files()
-TQResource : +ihitialize_properties()
-TQResource : +get_content()
-TResource <|-- TWResource
-' TWResource : +find_location()
-' TWResource : +get_files()
-TWResource : +ihitialize_properties()
-TWResource : +get_content()
-#+end_src
-
-#+RESULTS:
-[[file:wa_design_class_diagram_resources.png]]
-
-
-The interface for ResourceLookup has not changed since the last
-design, but some of the underlying implementation details have that
-are not relevant to this design document.
-
-#+begin_src plantuml :file wa_design_class_diagram.png :exports results
-ResourceLookup <|-- ResourceJsonLookup
-ResourceLookup : {abstract} lookup()
-note top of ResourceLookup : Abstract superclass which exists only\nfor documentation and design looking\nforward to ResourceGraphQLLookup.\nIt is definitely not necessary for the system to work
-ResourceJsonLookup : +lookup()
-ResourceLookup <|-- ResourceGraphQLLookup
-note bottom of ResourceGraphQLLookup : Does not currently exist,\n but could replace ResourceJsonLookup one day.\nWith this design, call sites could largely\nremain unchanged.
-ResourceGraphQLLookup : +lookup()
-#+end_src
-
-#+RESULTS:
-[[file:wa_design_class_diagram.png]]
-
-
-As mentioned above a =DocumentGenerator= accepts a document generation
-request composed of resources. =DocumentGenerator= instantiates the
-appropriate =Resource= subclass based on the resource type. Each
-=Resource= instance composes one =ResourceJsonLookup= to which it delegates
-lookup tasks.
-
-#+begin_src plantuml :file wa_design_class_diagram2.png :exports results
-DocumentGenerator o-- Resource
-Resource *-- ResourceJsonLookup
-note top of DocumentGenerator : This used to be called TnConverter.
-note bottom of Resource : Already discussed above, e.g., USFMResource, TAResource, TNResource, TQResource, or TWResource
-note bottom of ResourceJsonLookup : This is where the translations.json API is queried
-#+end_src
-
-#+RESULTS:
-[[file:wa_design_class_diagram2.png]]
-
+** Auto-generated system diagram
+[[file+sys:classes.png]]
 ** Caching design
 The system has two levels of caching:
 1. PDF document,

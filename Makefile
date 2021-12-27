@@ -99,6 +99,11 @@ vulture-dead-code: checkvenv
 	vulture backend/document/ --min-confidence 100
 	vulture tests/ --min-confidence 100
 
+.PHONY: generate-class-diagrams
+generate-class-diagrams:
+	pyreverse backend/document
+	dot -Tpng classes.dot -o docs/classes.png
+
 .PHONY: all
 all: down build up test
 
