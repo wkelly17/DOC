@@ -127,7 +127,9 @@ local-update-deps-base: pyupgrade
 
 .PHONY: local-update-deps-prod
 local-update-deps-prod: local-update-deps-base
-	pip-compile ./backend/requirements-prod.in
+	# FIXME When mypyc build gets fixed we can remove the
+	# --upgradce-package switch.
+	pip-compile ./backend/requirements-prod.in --upgrade-package mypy==0.921
 	# pip-compile --upgrade ./backend/requirements-prod.in
 
 .PHONY: local-update-deps-dev
