@@ -14,8 +14,9 @@ from document.domain import model
 
 class Settings(BaseSettings):
     """
-    BaseSettings subclasses allow values of constants to be overridden
-    by environment variables and env files, e.g., ../../.env
+    BaseSettings subclasses like this one allow values of constants to
+    be overridden by environment variables like those defined in env
+    files, e.g., ../../.env
     """
 
     REPO_URL_DICT_KEY: str = "../download-scripture?repo_url"
@@ -122,8 +123,7 @@ class Settings(BaseSettings):
     def working_dir(self) -> str:
         """
         The directory where the resources will be placed once
-        acquired. RESOURCE_ASSETS_DIR is used when running in a docker
-        environment. Otherwise a suitable local path.
+        acquired.
         """
         if self.IN_CONTAINER:
             return self.RESOURCE_ASSETS_DIR
@@ -243,7 +243,7 @@ class Settings(BaseSettings):
         "email": "backend/templates/text/email.txt",
     }
 
-    # Return boolean indicating if caching of generated document's should be
+    # Return boolean indicating if caching of generated documents should be
     # cached.
     ASSET_CACHING_ENABLED: bool = True
     # Caching window of time in which asset
@@ -296,8 +296,13 @@ class Settings(BaseSettings):
     SMTP_HOST: str
     SMTP_PORT: int
 
+    # Example fake user agent value required by domain host to allow serving
+    # files. Other values could possibly work. This value definitely
+    # works.
     USER_AGENT: str = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11"
 
+    # Pydantic uses this inner class convention to configure the
+    # Settings class.
     class Config:
         env_file = ".env"
         case_sensitive = True

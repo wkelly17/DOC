@@ -19,8 +19,8 @@ TW = "tw"
 
 def translation_word_filepaths(resource_dir: str) -> list[str]:
     """
-    Get the file paths to the translation word files for the
-    TWResource instance.
+    Get the file paths to the translation word files located
+    recursively in resource_dir.
     """
     filepaths = glob("{}/bible/kt/*.md".format(resource_dir))
     filepaths.extend(glob("{}/bible/names/*.md".format(resource_dir)))
@@ -33,9 +33,11 @@ def localized_translation_word(
 ) -> str:
     """
     Get the localized translation word from the
-    translation_word_content. Sometimes a translation word file has as its
-    first header a list of various forms of the word. If that is the case
-    we use the first form of the word in the list.
+    translation_word_content.
+
+    Sometimes a translation word file has as its first header a list
+    of various forms of the word. If that is the case we use the first
+    form of the word in the list.
     """
     localized_translation_word = translation_word_content.split("\n")[0].split("# ")[1]
     if "," in localized_translation_word:

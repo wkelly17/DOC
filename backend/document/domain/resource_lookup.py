@@ -71,8 +71,6 @@ def _lookup(
     return list(value_set)
 
 
-
-
 def _parse_repo_url(
     url: str,
     repo_url_dict_key: str = settings.REPO_URL_DICT_KEY,
@@ -98,10 +96,7 @@ def _english_git_repo_location(
     url: str,
     resource_type_name: str,
 ) -> model.ResourceLookupDto:
-    """
-    If successful, return a string containing the URL of repo,
-    otherwise return None.
-    """
+    """Return a model.ResourceLookupDto."""
     return model.ResourceLookupDto(
         lang_code=lang_code,
         resource_type=resource_type,
@@ -114,12 +109,8 @@ def _english_git_repo_location(
     )
 
 
-# FIXME Add asset_source_enum_kind as a parameter to _location, then
-# pass in the desired value at call sites. Once that is done
-# _non_repo_usfm_location is equivalent to _location.
-
-
 def const(url: str) -> Optional[str]:
+    """Classic functional constant function."""
     return url
 
 

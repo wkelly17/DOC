@@ -19,8 +19,8 @@ def unzip(source_file: str, destination_dir: str) -> None:
     """
     Unzips <source_file> into <destination_dir>.
 
-    :param str|unicode source_file: The name of the file to read
-    :param str|unicode destination_dir: The name of the directory to write the unzipped files
+    :param str source_file: The path of the file to read
+    :param str destination_dir: The path of the directory to write the unzipped files
     """
     with zipfile.ZipFile(source_file) as zf:
         zf.extractall(destination_dir)
@@ -49,7 +49,7 @@ def make_dir(
 def load_json_object(file_name: pathlib.Path) -> Any:
     """
     Deserialized JSON file <file_name> into a Python dict.
-    :param file_name: The name of the file to read
+    :param file_name: The path of the file to read
     """
     return json.loads(read_file(str(file_name.resolve())))
 
@@ -75,7 +75,7 @@ def write_file(
 
     If <file_contents> is not a string, it is serialized as JSON.
 
-    :param file_name: The name of the file to write
+    :param file_name: The path of the file to write
     :param file_contents: The string to write or the object to serialize
     :param indent: Specify a value if you want the output formatted to be more easily readable
     """

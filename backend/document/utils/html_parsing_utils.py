@@ -10,8 +10,8 @@ import bs4
 
 def tag_elements_between(cur: Any, end: Any) -> Any:
     """
-    Walk the tree between a starting and ending location and yields
-    the tags along the way.
+    Walk the tree between a starting and ending location and yield
+    tags along the way.
 
     Usage:
     >>> print ' '.join(tag for tag in tag_elements_between(soup.find('h2', text='Heading1').next_sibling,\
