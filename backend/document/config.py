@@ -139,7 +139,7 @@ class Settings(BaseSettings):
         if self.IN_CONTAINER:
             dirname = self.DOCUMENT_OUTPUT_DIR
         else:
-            dirname = "working/output"
+            dirname = self.DOCUMENT_OUTPUT_DIR[1:]
         return dirname
 
     # For options see https://wkhtmltopdf.org/usage/wkhtmltopdf.txt
