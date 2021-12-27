@@ -342,9 +342,8 @@ def convert_html_to_pdf(
         cover=cover_filepath,
     )
     assert os.path.exists(output_pdf_file_path)
-    copy_command = "cp {}/{}.pdf {}".format(
-        output_dir,
-        document_request_key,
+    copy_command = "cp {} {}".format(
+        output_pdf_file_path,
         docker_container_pdf_output_dir,
     )
     logger.debug("IN_CONTAINER: {}".format(in_container))

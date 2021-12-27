@@ -68,7 +68,7 @@ class Settings(BaseSettings):
     VERSE_ANCHOR_ID_SUBSTITUTION_FMT_STR: str = r"id='{}-\1-ch-\2-v-\3'"
 
     LOGGING_CONFIG_FILE_PATH: str = "backend/document/logging_config.yaml"
-    DOCKER_CONTAINER_PDF_OUTPUT_DIR: str = "/output"
+    DOCKER_CONTAINER_PDF_OUTPUT_DIR: str = "/pdf_output"
     USFM_RESOURCE_TYPES: Sequence[str] = [
         "cuv",
         "f10",

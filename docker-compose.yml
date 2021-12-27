@@ -15,7 +15,7 @@ services:
     volumes:
       # Map to ./docker_pdf_output host directory in order to be able
       # to view generated PDFs in the host file system.
-      - ./docker_pdf_output:/working/output
+      - ./docker_pdf_output:/pdf_output
     ports:
       - 5005:5005
     networks:

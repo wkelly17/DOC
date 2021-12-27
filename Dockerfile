@@ -38,6 +38,8 @@ RUN WKHTMLTOX_TEMP="$(mktemp)" && \
 RUN mkdir -p /working/temp
 # Make the output directory where generated HTML and PDFs are placed.
 RUN mkdir -p /working/output
+# Make the output directory where generated PDFs are copied too.
+RUN mkdir -p /pdf_output
 
 COPY .env .
 COPY icon-tn.png .
