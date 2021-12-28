@@ -119,10 +119,8 @@ def instantiated_template(template_lookup_key: str, dto: BaseModel) -> str:
     Instantiate Jinja2 template with dto BaseModel instance. Return
     instantiated template as string.
     """
-    # FIXME Maybe use jinja2.PackageLoader here instead: https://github.com/tfbf/usfm/blob/master/usfm/html.py
     with open(template_path(template_lookup_key), "r") as filepath:
         template = filepath.read()
-    # FIXME Handle exceptions
     env = jinja2.Environment().from_string(template)
     return env.render(data=dto)
 

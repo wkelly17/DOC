@@ -352,7 +352,7 @@ def verse_num_and_verse_content_str(
         upper_tag,
     )
     verse_content = [str(tag) for tag in list(verse_content_tags)]
-    # FIXME HACK to prevent BeautifulSoup from sometimes
+    # HACK to prevent BeautifulSoup from sometimes
     # recapitulating all the verses after the current verse and
     # stuffing them into the same verse.
     verse_content_str = "".join(verse_content[:2])
