@@ -2108,9 +2108,10 @@ def translation_words_section(
     translation word back to the verses which include the translation
     word if include_uses_section is True.
     """
-    yield model.HtmlContent(
-        resource_type_name_fmt_str.format(book_content_unit.resource_type_name)
-    )
+    if book_content_unit.name_content_pairs:
+        yield model.HtmlContent(
+            resource_type_name_fmt_str.format(book_content_unit.resource_type_name)
+        )
 
     for name_content_pair in book_content_unit.name_content_pairs:
         # NOTE Another approach to including all translation words would be to
