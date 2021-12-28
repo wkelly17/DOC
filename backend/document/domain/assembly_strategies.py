@@ -843,8 +843,14 @@ def assemble_usfm_as_iterator_content_by_verse(
                         )
                     )
                     # Add scripture verse
-                    if chapter_num in usfm_book_content_unit2.chapters and verse_num in usfm_book_content_unit2.chapters[chapter_num].chapter_verses:
-                        verse_ = usfm_book_content_unit2.chapters[chapter_num].chapter_verses[verse_num]
+                    if (
+                        chapter_num in usfm_book_content_unit2.chapters
+                        and verse_num
+                        in usfm_book_content_unit2.chapters[chapter_num].chapter_verses
+                    ):
+                        verse_ = usfm_book_content_unit2.chapters[
+                            chapter_num
+                        ].chapter_verses[verse_num]
                         yield verse_
 
                 yield settings.HTML_COLUMN_END
