@@ -160,7 +160,7 @@ class TNChapter(BaseModel):
     """
 
     intro_html: HtmlContent
-    verses_html: dict[VerseRef, HtmlContent]
+    verses: dict[VerseRef, HtmlContent]
 
 
 class TNBook(BaseModel):
@@ -183,7 +183,7 @@ class TQChapter(BaseModel):
     questions HTML content.
     """
 
-    verses_html: dict[VerseRef, HtmlContent]
+    verses: dict[VerseRef, HtmlContent]
 
 
 class TQBook(BaseModel):
@@ -251,9 +251,9 @@ class USFMChapter(BaseModel):
     system desire to do so.
     """
 
-    chapter_content: list[HtmlContent]
-    chapter_verses: dict[VerseRef, HtmlContent]
-    chapter_footnotes: HtmlContent
+    content: list[HtmlContent]
+    verses: dict[VerseRef, HtmlContent]
+    footnotes: HtmlContent
 
 
 class USFMBook(BaseModel):

@@ -800,7 +800,7 @@ def assemble_usfm_as_iterator_content_by_verse(
         ) in usfm_book_content_unit.chapters.items():
             # Add in the USFM chapter heading.
             chapter_heading = model.HtmlContent("")
-            chapter_heading = chapter.chapter_content[0]
+            chapter_heading = chapter.content[0]
             yield chapter_heading
             tn_verses: Optional[dict[str, model.HtmlContent]] = None
             tq_verses: Optional[dict[str, model.HtmlContent]] = None
@@ -817,7 +817,7 @@ def assemble_usfm_as_iterator_content_by_verse(
             verse: model.HtmlContent
             # Now let's interleave USFM verse with its translation note, translation
             # questions, and translation words if available.
-            for verse_num, verse in chapter.chapter_verses.items():
+            for verse_num, verse in chapter.verses.items():
                 yield settings.HTML_ROW_BEGIN
                 yield settings.HTML_COLUMN_BEGIN
                 # Add header
@@ -846,11 +846,11 @@ def assemble_usfm_as_iterator_content_by_verse(
                     if (
                         chapter_num in usfm_book_content_unit2.chapters
                         and verse_num
-                        in usfm_book_content_unit2.chapters[chapter_num].chapter_verses
+                        in usfm_book_content_unit2.chapters[chapter_num].verses
                     ):
-                        verse_ = usfm_book_content_unit2.chapters[
-                            chapter_num
-                        ].chapter_verses[verse_num]
+                        verse_ = usfm_book_content_unit2.chapters[chapter_num].verses[
+                            verse_num
+                        ]
                         yield verse_
 
                 yield settings.HTML_COLUMN_END
@@ -890,9 +890,9 @@ def assemble_usfm_as_iterator_content_by_verse(
                 yield settings.HTML_COLUMN_END
                 yield settings.HTML_ROW_END
             # Add scripture footnotes if available
-            if chapter.chapter_footnotes:
+            if chapter.footnotes:
                 yield footnotes_heading
-                yield chapter.chapter_footnotes
+                yield chapter.footnotes
         if tw_book_content_unit:
             # Add the translation words definition section.
             yield from translation_words_section(tw_book_content_unit)
@@ -912,11 +912,11 @@ def assemble_usfm_as_iterator_content_by_verse(
         ) in usfm_book_content_unit2.chapters.items():
             # Add in the USFM chapter heading.
             chapter_heading = model.HtmlContent("")
-            chapter_heading = chapter_.chapter_content[0]
+            chapter_heading = chapter_.content[0]
             yield chapter_heading
             # Now let's interleave USFM verse with its translation note, translation
             # questions, and translation words if available.
-            for verse_num, verse in chapter_.chapter_verses.items():
+            for verse_num, verse in chapter_.verses.items():
                 # Add header
                 yield model.HtmlContent(
                     resource_type_name_with_ref_fmt_str.format(
@@ -950,7 +950,7 @@ def assemble_usfm_tq_tw_content_by_verse(
         for chapter_num, chapter in usfm_book_content_unit.chapters.items():
             # Add in the USFM chapter heading.
             chapter_heading = model.HtmlContent("")
-            chapter_heading = chapter.chapter_content[0]
+            chapter_heading = chapter.content[0]
             yield chapter_heading
 
             tq_verses = None
@@ -962,7 +962,7 @@ def assemble_usfm_tq_tw_content_by_verse(
             verse: model.HtmlContent
             # Now let's interleave USFM verse with its translation note, translation
             # questions, and translation words if available.
-            for verse_num, verse in chapter.chapter_verses.items():
+            for verse_num, verse in chapter.verses.items():
                 yield settings.HTML_ROW_BEGIN
                 yield settings.HTML_COLUMN_BEGIN
                 # Add header
@@ -1000,9 +1000,9 @@ def assemble_usfm_tq_tw_content_by_verse(
                 yield settings.HTML_COLUMN_END
                 yield settings.HTML_ROW_END
             # Add scripture footnotes if available
-            if chapter.chapter_footnotes:
+            if chapter.footnotes:
                 yield footnotes_heading
-                yield chapter.chapter_footnotes
+                yield chapter.footnotes
     if tw_book_content_unit:
         # Add the translation words definition section.
         yield from translation_words_section(tw_book_content_unit)
@@ -1028,7 +1028,7 @@ def assemble_usfm_tw_content_by_verse(
         for chapter_num, chapter in usfm_book_content_unit.chapters.items():
             # Add in the USFM chapter heading.
             chapter_heading = model.HtmlContent("")
-            chapter_heading = chapter.chapter_content[0]
+            chapter_heading = chapter.content[0]
             yield chapter_heading
 
             # PEP526 disallows declaration of types in for
@@ -1037,7 +1037,7 @@ def assemble_usfm_tw_content_by_verse(
             verse: model.HtmlContent
             # Now let's interleave USFM verse with its translation note, translation
             # questions, and translation words if available.
-            for verse_num, verse in chapter.chapter_verses.items():
+            for verse_num, verse in chapter.verses.items():
                 yield settings.HTML_ROW_BEGIN
                 yield settings.HTML_COLUMN_BEGIN
                 # Add scripture verse header
@@ -1068,9 +1068,9 @@ def assemble_usfm_tw_content_by_verse(
                 yield settings.HTML_ROW_END
 
             # Add scripture footnotes if available
-            if chapter.chapter_footnotes:
+            if chapter.footnotes:
                 yield footnotes_heading
-                yield chapter.chapter_footnotes
+                yield chapter.footnotes
     if tw_book_content_unit:
         # Add the translation words definition section.
         yield from translation_words_section(tw_book_content_unit)
@@ -1093,7 +1093,7 @@ def assemble_usfm_tq_content_by_verse(
         for chapter_num, chapter in usfm_book_content_unit.chapters.items():
             # Add in the USFM chapter heading.
             chapter_heading = model.HtmlContent("")
-            chapter_heading = chapter.chapter_content[0]
+            chapter_heading = chapter.content[0]
             yield chapter_heading
 
             tq_verses = None
@@ -1106,7 +1106,7 @@ def assemble_usfm_tq_content_by_verse(
             verse: model.HtmlContent
             # Now let's interleave USFM verse with its
             # translation note if available.
-            for verse_num, verse in chapter.chapter_verses.items():
+            for verse_num, verse in chapter.verses.items():
                 yield settings.HTML_ROW_BEGIN
                 yield settings.HTML_COLUMN_BEGIN
                 # Add scripture verse heading
@@ -1137,9 +1137,9 @@ def assemble_usfm_tq_content_by_verse(
                 yield settings.HTML_ROW_END
 
             # Add scripture footnotes if available
-            if chapter.chapter_footnotes:
+            if chapter.footnotes:
                 yield footnotes_heading
-                yield chapter.chapter_footnotes
+                yield chapter.footnotes
 
 
 def assemble_tn_as_iterator_content_by_verse(
@@ -1232,11 +1232,11 @@ def assemble_tn_as_iterator_content_by_verse(
         ) in usfm_book_content_unit2.chapters.items():
             # Add in the USFM chapter heading.
             chapter_heading = model.HtmlContent("")
-            chapter_heading = chapter.chapter_content[0]
+            chapter_heading = chapter.content[0]
             yield chapter_heading
             # Now let's interleave USFM verse with its translation note, translation
             # questions, and translation words if available.
-            for verse_num, verse in chapter.chapter_verses.items():
+            for verse_num, verse in chapter.verses.items():
                 # Add header
                 yield model.HtmlContent(
                     resource_type_name_with_ref_fmt_str.format(
@@ -1463,7 +1463,7 @@ def assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
         # be strange to have more than one chapter heading per chapter
         # for this assembly sub-strategy.
         chapter_heading = model.HtmlContent("")
-        chapter_heading = chapter.chapter_content[0]
+        chapter_heading = chapter.content[0]
         yield model.HtmlContent(chapter_heading)
 
         # Add chapter intro for each language
@@ -1488,8 +1488,7 @@ def assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
             for usfm_book_content_unit in usfm_book_content_units:
                 if (
                     chapter_num in usfm_book_content_unit.chapters
-                    and verse_num
-                    in usfm_book_content_unit.chapters[chapter_num].chapter_verses
+                    and verse_num in usfm_book_content_unit.chapters[chapter_num].verses
                 ):
 
                     # Add header
@@ -1502,9 +1501,7 @@ def assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
                     )
 
                     # Add scripture verse
-                    yield usfm_book_content_unit.chapters[chapter_num].chapter_verses[
-                        verse_num
-                    ]
+                    yield usfm_book_content_unit.chapters[chapter_num].verses[verse_num]
             yield settings.HTML_COLUMN_END
 
             # Add the interleaved tn notes
@@ -1557,7 +1554,7 @@ def assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
                 if (
                     usfm_book_content_unit_ is not None
                     and verse_num
-                    in usfm_book_content_unit_.chapters[chapter_num].chapter_verses
+                    in usfm_book_content_unit_.chapters[chapter_num].verses
                 ):
                     if not tn_verses and not tq_verses:
                         yield settings.HTML_COLUMN_BEGIN
@@ -1565,9 +1562,7 @@ def assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
                         tw_book_content_unit,
                         chapter_num,
                         verse_num,
-                        usfm_book_content_unit_.chapters[chapter_num].chapter_verses[
-                            verse_num
-                        ],
+                        usfm_book_content_unit_.chapters[chapter_num].verses[verse_num],
                     )
                 else:
                     logger.debug(
@@ -1586,7 +1581,7 @@ def assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
             try:
                 chapter_footnotes = usfm_book_content_unit.chapters[
                     chapter_num
-                ].chapter_footnotes
+                ].footnotes
                 if chapter_footnotes:
                     yield footnotes_heading
                     yield chapter_footnotes
@@ -1702,15 +1697,13 @@ def assemble_tn_as_iterator_content_by_verse_for_book_then_lang(
                 if (
                     usfm_book_content_unit_ is not None
                     and verse_num
-                    in usfm_book_content_unit_.chapters[chapter_num].chapter_verses
+                    in usfm_book_content_unit_.chapters[chapter_num].verses
                 ):
                     yield from translation_word_links(
                         tw_book_content_unit,
                         chapter_num,
                         verse_num,
-                        usfm_book_content_unit_.chapters[chapter_num].chapter_verses[
-                            verse_num
-                        ],
+                        usfm_book_content_unit_.chapters[chapter_num].verses[verse_num],
                     )
 
     # Add the translation word definitions
@@ -1782,15 +1775,13 @@ def assemble_tq_as_iterator_content_by_verse_for_book_then_lang(
                 if (
                     usfm_book_content_unit_ is not None
                     and verse_num
-                    in usfm_book_content_unit_.chapters[chapter_num].chapter_verses
+                    in usfm_book_content_unit_.chapters[chapter_num].verses
                 ):
                     yield from translation_word_links(
                         tw_book_content_unit,
                         chapter_num,
                         verse_num,
-                        usfm_book_content_unit_.chapters[chapter_num].chapter_verses[
-                            verse_num
-                        ],
+                        usfm_book_content_unit_.chapters[chapter_num].verses[verse_num],
                     )
 
     # Add the translation word definitions
@@ -2017,7 +2008,7 @@ def verses_for_chapter_tn(
     """
     verses_html = None
     if chapter_num in book_content_unit.chapters:
-        verses_html = book_content_unit.chapters[chapter_num].verses_html
+        verses_html = book_content_unit.chapters[chapter_num].verses
     return verses_html
 
 
@@ -2028,7 +2019,7 @@ def verses_for_chapter_tq(
     """Return the HTML for verses in chapter_num."""
     verses_html = None
     if chapter_num in book_content_unit.chapters:
-        verses_html = book_content_unit.chapters[chapter_num].verses_html
+        verses_html = book_content_unit.chapters[chapter_num].verses
     return verses_html
 
 

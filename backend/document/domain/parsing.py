@@ -267,9 +267,9 @@ def initialize_verses_html_usfm(
             )
             chapter_verses[verse_num] = verse_content_str
         chapters[chapter_num] = model.USFMChapter(
-            chapter_content=chapter_content,
-            chapter_verses=chapter_verses,
-            chapter_footnotes=chapter_footnotes,
+            content=chapter_content,
+            verses=chapter_verses,
+            footnotes=chapter_footnotes,
         )
     return model.USFMBook(
         lang_code=resource_lookup_dto.lang_code,
@@ -425,9 +425,7 @@ def initialize_verses_html_tn(
             verse_content = file_utils.read_file(filepath)
             verse_content = md.convert(verse_content)
             verses_html[verse_num] = verse_content
-        chapter_payload = model.TNChapter(
-            intro_html=intro_html, verses_html=verses_html
-        )
+        chapter_payload = model.TNChapter(intro_html=intro_html, verses=verses_html)
         chapter_verses[chapter_num] = chapter_payload
     # Get the book intro if it exists
     book_intro_path = glob(
@@ -500,7 +498,7 @@ def initialize_verses_html_tq(
             verse_content = file_utils.read_file(filepath)
             verse_content = md.convert(verse_content)
             verses_html[verse_num] = verse_content
-        chapter_verses[chapter_num] = model.TQChapter(verses_html=verses_html)
+        chapter_verses[chapter_num] = model.TQChapter(verses=verses_html)
     return model.TQBook(
         lang_code=resource_lookup_dto.lang_code,
         lang_name=resource_lookup_dto.lang_name,
