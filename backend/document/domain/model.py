@@ -7,7 +7,7 @@ validation and JSON serialization.
 
 from enum import Enum
 from collections.abc import Sequence
-from typing import NewType, Optional, Union
+from typing import NewType, Optional, Union, final
 
 from pydantic import AnyUrl, BaseModel, EmailStr
 
@@ -22,6 +22,7 @@ ChapterNum = int
 
 # https://blog.meadsteve.dev/programming/2020/02/10/types-at-the-edges-in-python/
 # https://pydantic-docs.helpmanual.io/usage/models/
+@final
 class ResourceRequest(BaseModel):
     """
     This class is used to encode a request for a resource, e.g.,
@@ -40,6 +41,7 @@ class ResourceRequest(BaseModel):
 # https://pydantic-docs.helpmanual.io/usage/types/#enums-and-choices
 # for where this pattern of combining Enum and BaseModel comes from in
 # pydantic.
+@final
 class AssemblyStrategyEnum(str, Enum):
     """
     There is currently one high level assembly strategy kind to choose from:
@@ -65,6 +67,7 @@ class AssemblyStrategyEnum(str, Enum):
     BOOK_LANGUAGE_ORDER = "book_language_order"
 
 
+@final
 class DocumentRequest(BaseModel):
     """
     This class is used to send in a document generation request from
@@ -79,6 +82,7 @@ class DocumentRequest(BaseModel):
     resource_requests: Sequence[ResourceRequest]
 
 
+@final
 class AssemblySubstrategyEnum(str, Enum):
     """
     A sub-strategy enum signals which interleaving sub-strategy
@@ -113,6 +117,7 @@ class AssemblySubstrategyEnum(str, Enum):
     VERSE = "VERSE"
 
 
+@final
 class AssetSourceEnum(str, Enum):
     """
     This class/enum captures the concept of: where did the resource's
@@ -126,6 +131,7 @@ class AssetSourceEnum(str, Enum):
     ZIP = "zip"
 
 
+@final
 class ResourceLookupDto(BaseModel):
     """
     'Data transfer object' that we use to send lookup related info to
@@ -142,6 +148,7 @@ class ResourceLookupDto(BaseModel):
     resource_type_name: str
 
 
+@final
 class FinishedDocumentDetails(BaseModel):
     """
     Pydanctic model that we use as a return value to send back via
@@ -153,6 +160,7 @@ class FinishedDocumentDetails(BaseModel):
     message: str
 
 
+@final
 class TNChapter(BaseModel):
     """
     A class to hold a chapter's intro translation notes and a mapping
@@ -163,6 +171,7 @@ class TNChapter(BaseModel):
     verses: dict[VerseRef, HtmlContent]
 
 
+@final
 class TNBook(BaseModel):
     """
     A class to hold a book's intro translation notes and a mapping
@@ -177,6 +186,7 @@ class TNBook(BaseModel):
     chapters: dict[ChapterNum, TNChapter]
 
 
+@final
 class TQChapter(BaseModel):
     """
     A class to hold a mapping of verse references to translation
@@ -186,6 +196,7 @@ class TQChapter(BaseModel):
     verses: dict[VerseRef, HtmlContent]
 
 
+@final
 class TQBook(BaseModel):
     """
     A class to hold a mapping of chapter numbers to translation questions
@@ -199,6 +210,7 @@ class TQBook(BaseModel):
     chapters: dict[ChapterNum, TQChapter]
 
 
+@final
 class TWUse(BaseModel):
     """
     A class to reify a reference to a translation word occurring
@@ -213,6 +225,7 @@ class TWUse(BaseModel):
     localized_word: str
 
 
+@final
 class TWNameContentPair(BaseModel):
     """
     A class to hold the localized translation word and its associated
@@ -223,6 +236,7 @@ class TWNameContentPair(BaseModel):
     content: HtmlContent
 
 
+@final
 class TWBook(BaseModel):
     """
     A class to hold a list of TWNameContentPair instances and a list
@@ -237,6 +251,7 @@ class TWBook(BaseModel):
     uses: dict[str, list[TWUse]] = {}
 
 
+@final
 class USFMChapter(BaseModel):
     """
     A class to hold the USFM converted to HTML content for a chapter
@@ -256,6 +271,7 @@ class USFMChapter(BaseModel):
     footnotes: HtmlContent
 
 
+@final
 class USFMBook(BaseModel):
     """A class to hold a book's USFMChapter instances."""
 
@@ -269,6 +285,7 @@ class USFMBook(BaseModel):
 BookContent = Union[USFMBook, TNBook, TQBook, TWBook]
 
 
+@final
 class CoverPayload(BaseModel):
     """
     A class to hold a PDF cover sheet, i.e., first page, HTML template
@@ -282,12 +299,14 @@ class CoverPayload(BaseModel):
     images: dict[str, Union[str, bytes]]
 
 
+@final
 class EmailPayload(BaseModel):
     """A class to hold an HTML email body."""
 
     document_request_key: str
 
 
+@final
 class CodeNameTypeTriplet(BaseModel):
     """A utility class to provide validation in resource_lookup module."""
 
@@ -296,6 +315,7 @@ class CodeNameTypeTriplet(BaseModel):
     resource_types: list[str]
 
 
+@final
 class MarkdownLink(BaseModel):
     """
     Reify a markdown link for use in link_transformer_preprocessor
@@ -306,6 +326,7 @@ class MarkdownLink(BaseModel):
     link_text: str
 
 
+@final
 class WikiLink(BaseModel):
     """
     Reify a wiki link for use in link_transformer_preprocessor

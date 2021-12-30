@@ -3,7 +3,7 @@ import re
 
 import markdown
 from collections.abc import Mapping
-from typing import Any
+from typing import Any, final
 
 from document.config import settings
 from document.domain import bible_books, model
@@ -16,6 +16,7 @@ TN = "tn"
 TW = "tw"
 
 
+@final
 class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
     """Convert various link types to Markdown anchor links."""
 

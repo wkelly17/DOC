@@ -3,7 +3,7 @@ import logging
 import os
 from collections.abc import Mapping, Sequence
 from logging import config as lc
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, final
 
 import jinja2
 import yaml
@@ -12,6 +12,7 @@ from pydantic import AnyHttpUrl, BaseModel, BaseSettings, EmailStr, HttpUrl, val
 from document.domain import model
 
 
+@final
 class Settings(BaseSettings):
     """
     BaseSettings subclasses like this one allow values of constants to

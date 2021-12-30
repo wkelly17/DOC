@@ -3,7 +3,7 @@
 import os
 import pathlib
 from collections.abc import Iterable, Sequence
-from typing import Any
+from typing import Any, final
 
 from document.config import settings
 from document.domain import document_generator, model, resource_lookup
@@ -36,6 +36,7 @@ app.add_middleware(
 )
 
 
+@final
 class InvalidDocumentRequestException(Exception):
     def __init__(self, message: str):
         self.message: str = message

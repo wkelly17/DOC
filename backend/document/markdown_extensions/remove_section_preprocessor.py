@@ -1,5 +1,5 @@
 import re
-from typing import Any
+from typing import Any, final
 
 import markdown
 from markdown import Extension
@@ -10,6 +10,7 @@ from document.config import settings
 logger = settings.logger(__name__)
 
 
+@final
 class RemoveSectionPreprocessor(Preprocessor):
     """Remove arbitrary Markdown sections."""
 
@@ -55,6 +56,7 @@ class RemoveSectionPreprocessor(Preprocessor):
         return self.remove_sections(source)
 
 
+@final
 class RemoveSectionExtension(Extension):
     """Wikilink to Markdown link conversion extension."""
 
