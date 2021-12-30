@@ -252,7 +252,9 @@ def initialize_verses_html_usfm(
         # Get each verse opening span tag and then the actual verse text for
         # this chapter and enclose them each in a p element.
         chapter_verse_list = [
-            "<p>{} {}</p>".format(verse, verse.next_sibling)
+            "<p>{} {} {}</p>".format(
+                verse, verse.next_sibling, verse.next_sibling.next_element
+            )
             for verse in chapter_verse_tags
         ]
         # Dictionary to hold verse number, verse value pairs.
@@ -355,7 +357,8 @@ def verse_num_and_verse_content_str(
     # HACK to prevent BeautifulSoup from sometimes
     # recapitulating all the verses after the current verse and
     # stuffing them into the same verse.
-    verse_content_str = "".join(verse_content[:2])
+    # verse_content_str = "".join(verse_content[:2])
+    verse_content_str = "".join(verse_content)
     # At this point we alter verse_content_str span's ID by prepending the
     # lang_code to ensure unique verse references within language scope in a
     # multi-language document.
