@@ -1425,39 +1425,14 @@ def assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
         book_intro = adjust_book_intro_headings(book_intro)
         yield model.HtmlContent(book_intro)
 
-    # NOTE A note regarding chapter and verse pumps used in loops
-    # below:
-    #
-    # Instead of usfm_book_content_units[0] being used by default as the chapter and
-    # verse pump in the next loop, we could use the usfm_book_content_unit with the
-    # most chapters or verses for the chapter_num or verse_num pump
-    # respectively:
-    #
-    # usfm_with_most_chapters = max(
-    #     usfm_book_content_units,
-    #     key=lambda usfm_book_content_unit: usfm_book_content_unit.chapter_content
-    # )
-    #
-    # and:
-    #
-    # usfm_with_most_verses = max(
-    #     usfm_book_content_units,
-    #     key=lambda usfm_book_content_unit: usfm_book_content_unit.chapter_content[
-    #         chapter_num
-    #     ].chapter_verses.items(),
-    # )
-    #
-    # Care would need to be taken with subsequent logic if this is used. Why
-    # even consider such a change? A: In order to realize the most amount of
-    # content displayed to user.
-
-    # NOTE Assumption (which may need to change): usfm_book_content_units[0] is the
-    # right usfm_book_content_unit instance to use for chapter_num pump. However, if
-    # usfm_book_content_unit[n] where n is not 0 has more chapters then it should
-    # probably be used instead. Still thinking about this one. Hasn't been
-    # an issue in practice so far. See note above about
-    # usfm_with_most_chapters for a possible different approach.
-    for chapter_num, chapter in usfm_book_content_units[0].chapters.items():
+    # Use the usfm_book_conent_unit that has the most chapters as a
+    # chapter_num pump.
+    # Realize the most amount of content displayed to user.
+    usfm_with_most_chapters = max(
+        usfm_book_content_units,
+        key=lambda usfm_book_content_unit: usfm_book_content_unit.chapters.keys(),
+    )
+    for chapter_num, chapter in usfm_with_most_chapters.chapters.items():
         # Add the first USFM resource's chapter heading. We ignore
         # chapter headings for other usfm_book_content_units because it would
         # be strange to have more than one chapter heading per chapter
@@ -1473,15 +1448,17 @@ def assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
 
         # NOTE If we add macro-weave feature, it would go here, see
         # notes for code.
-        # Use the first usfm_book_content_unit as a verse_num pump
-        for verse_num in (
-            usfm_book_content_units[0]
-            .chapters[chapter_num]
-            .chapter_verses.keys()
-            # See note above about usfm_with_most_verses for why this
-            # is here. Here for possible future use.
-            # usfm_with_most_verses.chapter_content[chapter_num].chapter_verses.items()
-        ):
+
+        # Use the usfm_book_content_unit that has the most verses for
+        # this chapter_num chapter as a verse_num pump.
+        # I.e., realize the most amount of content displayed to user.
+        usfm_with_most_verses = max(
+            usfm_book_content_units,
+            key=lambda usfm_book_content_unit: usfm_book_content_unit.chapters[
+                chapter_num
+            ].verses.keys(),
+        )
+        for verse_num in usfm_with_most_verses.chapters[chapter_num].verses.keys():
             yield settings.HTML_ROW_BEGIN
             yield settings.HTML_COLUMN_BEGIN
             # Add the interleaved USFM verses
@@ -1639,8 +1616,14 @@ def assemble_tn_as_iterator_content_by_verse_for_book_then_lang(
         book_intro = adjust_book_intro_headings(book_intro)
         yield model.HtmlContent(book_intro)
 
-    # Use the first tn_book_content_unit as a chapter_num pump.
-    for chapter_num in tn_book_content_units[0].chapters.keys():
+    # Use the tn_book_conent_unit that has the most chapters as a
+    # chapter_num pump.
+    # Realize the most amount of content displayed to user.
+    # FIXME Use of chapters_key throws an exception: instances of
+    # dict cannot be compared.
+    chapters_key = lambda tn_book_content_unit: tn_book_content_unit.chapters.keys()
+    tn_with_most_chapters = max(tn_book_content_units, key=chapters_key)
+    for chapter_num in tn_with_most_chapters.chapters.keys():
         yield model.HtmlContent("Chapter {}".format(chapter_num))
 
         # Add chapter intro for each language
@@ -1648,10 +1631,16 @@ def assemble_tn_as_iterator_content_by_verse_for_book_then_lang(
             # Add the translation notes chapter intro.
             yield from chapter_intro(tn_book_content_unit, chapter_num)
 
-        # Use the first tn_book_content_unit as a verse_num pump
-        for verse_num in (
-            tn_book_content_units[0].chapters[chapter_num].verses_html.keys()
-        ):
+        # Use the tn_book_content_unit that has the most verses for
+        # this chapter_num chapter as a verse_num pump.
+        # I.e., realize the most amount of content displayed to user.
+        tn_with_most_verses = max(
+            tn_book_content_units,
+            key=lambda tn_book_content_unit: tn_book_content_unit.chapters[
+                chapter_num
+            ].verses.keys(),
+        )
+        for verse_num in tn_with_most_verses.chapters[chapter_num].verses.keys():
             # Add the interleaved tn notes
             for tn_book_content_unit in tn_book_content_units:
                 tn_verses = verses_for_chapter_tn(tn_book_content_unit, chapter_num)
@@ -1733,14 +1722,27 @@ def assemble_tq_as_iterator_content_by_verse_for_book_then_lang(
     tw_book_content_units = sorted(tw_book_content_units, key=key)
     # ta_resources = sorted(ta_resources, key=key)
 
-    # Use the first tn_book_content_unit as a chapter_num pump.
-    for chapter_num in tq_book_content_units[0].chapters.keys():
+    # Use the tq_book_conent_unit that has the most chapters as a
+    # chapter_num pump.
+    # Realize the most amount of content displayed to user.
+    # chapter_key = lambda tq_book_content_unit: tq_book_content_unit.chapters.keys()
+    tq_with_most_chapters = max(
+        tq_book_content_units,
+        key=lambda tq_book_content_unit: tq_book_content_unit.chapters.keys(),
+    )
+    for chapter_num in tq_with_most_chapters.chapters.keys():
         yield model.HtmlContent("Chapter {}".format(chapter_num))
 
-        # Use the first tq_book_content_unit as a verse_num pump
-        for verse_num in (
-            tq_book_content_units[0].chapters[chapter_num].verses_html.keys()
-        ):
+        # Use the tn_book_content_unit that has the most verses for
+        # this chapter_num chapter as a verse_num pump.
+        # I.e., realize the most amount of content displayed to user.
+        tq_with_most_verses = max(
+            tq_book_content_units,
+            key=lambda tq_book_content_unit: tq_book_content_unit.chapters[
+                chapter_num
+            ].verses.keys(),
+        )
+        for verse_num in tq_with_most_verses.chapters[chapter_num].verses.keys():
             # Add the interleaved tq questions
             for tq_book_content_unit in tq_book_content_units:
                 tq_verses = verses_for_chapter_tq(tq_book_content_unit, chapter_num)
