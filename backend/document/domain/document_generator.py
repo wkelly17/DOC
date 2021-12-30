@@ -70,6 +70,7 @@ def resource_book_content_units(
             # due to an exceptions.MalformedUsfmError. These unloaded resources are
             # reported later on the cover page of the PDF.
             book_content_or_unloaded_resource_lookup_dtos.append(resource_lookup_dto)
+            logger.exception("Caught exception: ")
     return book_content_or_unloaded_resource_lookup_dtos
 
 
