@@ -6,7 +6,7 @@ from collections.abc import Iterable, Sequence
 from typing import Any, final
 
 from document.config import settings
-from document.domain import document_generator, model, resource_lookup
+from document.domain import document_generator, exceptions, model, resource_lookup
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
@@ -36,15 +36,9 @@ app.add_middleware(
 )
 
 
-@final
-class InvalidDocumentRequestException(Exception):
-    def __init__(self, message: str):
-        self.message: str = message
-
-
-@app.exception_handler(InvalidDocumentRequestException)
+@app.exception_handler(exceptions.InvalidDocumentRequestException)
 def invalid_document_request_exception_handler(
-    request: Request, exc: InvalidDocumentRequestException
+    request: Request, exc: exceptions.InvalidDocumentRequestException
 ) -> JSONResponse:
     return JSONResponse(
         status_code=404,
@@ -81,7 +75,7 @@ def document_endpoint(
         # NOTE It might not always be the case that an exception here
         # is as a result of an invalid document request, but it often
         # is.
-        raise InvalidDocumentRequestException(message=failure_message)
+        raise exceptions.InvalidDocumentRequestException(message=failure_message)
     else:
         details = model.FinishedDocumentDetails(
             finished_document_request_key=document_request_key,
