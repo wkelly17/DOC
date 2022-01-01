@@ -180,7 +180,7 @@ def asset_content(
     return html_content
 
 
-def initialize_verses_html(
+def book_content(
     resource_lookup_dto: model.ResourceLookupDto,
     resource_dir: str,
     resource_requests: Sequence[model.ResourceRequest],
@@ -189,28 +189,28 @@ def initialize_verses_html(
     tq_resource_types: Sequence[str] = settings.TQ_RESOURCE_TYPES,
     tw_resource_types: Sequence[str] = settings.TW_RESOURCE_TYPES,
 ) -> model.BookContent:
-    """Build and return the HTML content."""
+    """Build and return the HTML book content instance."""
     book_content: model.BookContent
     if resource_lookup_dto.resource_type in usfm_resource_types:
-        book_content = initialize_verses_html_usfm(
+        book_content = usfm_book_content(
             resource_lookup_dto, resource_dir, resource_requests
         )
     elif resource_lookup_dto.resource_type in tn_resource_types:
-        book_content = initialize_verses_html_tn(
+        book_content = tn_book_content(
             resource_lookup_dto, resource_dir, resource_requests
         )
     elif resource_lookup_dto.resource_type in tq_resource_types:
-        book_content = initialize_verses_html_tq(
+        book_content = tq_book_content(
             resource_lookup_dto, resource_dir, resource_requests
         )
     elif resource_lookup_dto.resource_type in tw_resource_types:
-        book_content = initialize_verses_html_tw(
+        book_content = tw_book_content(
             resource_lookup_dto, resource_dir, resource_requests
         )
     return book_content
 
 
-def initialize_verses_html_usfm(
+def usfm_book_content(
     resource_lookup_dto: model.ResourceLookupDto,
     resource_dir: str,
     resource_requests: Sequence[model.ResourceRequest],
@@ -370,7 +370,7 @@ def verse_num_and_verse_content_str(
     return str(verse_num), model.HtmlContent(verse_content_str)
 
 
-def initialize_verses_html_tn(
+def tn_book_content(
     resource_lookup_dto: model.ResourceLookupDto,
     resource_dir: str,
     resource_requests: Sequence[model.ResourceRequest],
@@ -407,7 +407,7 @@ def initialize_verses_html_tn(
         chapter_num = int(os.path.split(chapter_dir)[-1])
         intro_paths = glob("{}/*intro.md".format(chapter_dir))
         # For some languages, TN assets are stored in .txt files
-        # rather of .md files.
+        # rather than .md files.
         if not intro_paths:
             intro_paths = glob("{}/*intro.txt".format(chapter_dir))
         intro_path = intro_paths[0] if intro_paths else None
@@ -418,16 +418,15 @@ def initialize_verses_html_tn(
             intro_html = md.convert(intro_md)
         verse_paths = sorted(glob("{}/*[0-9]*.md".format(chapter_dir)))
         # For some languages, TN assets are stored in .txt files
-        # rather of .md files.
+        # rather than .md files.
         if not verse_paths:
             verse_paths = sorted(glob("{}/*[0-9]*.txt".format(chapter_dir)))
         verses_html: dict[int, str] = {}
         for filepath in verse_paths:
             verse_num = int(pathlib.Path(filepath).stem)
-            verse_content = ""
-            verse_content = file_utils.read_file(filepath)
-            verse_content = md.convert(verse_content)
-            verses_html[verse_num] = verse_content
+            verse_md_content = file_utils.read_file(filepath)
+            verse_html_content = md.convert(verse_md_content)
+            verses_html[verse_num] = verse_html_content
         chapter_payload = model.TNChapter(intro_html=intro_html, verses=verses_html)
         chapter_verses[chapter_num] = chapter_payload
     # Get the book intro if it exists
@@ -459,7 +458,7 @@ def initialize_verses_html_tn(
     )
 
 
-def initialize_verses_html_tq(
+def tq_book_content(
     resource_lookup_dto: model.ResourceLookupDto,
     resource_dir: str,
     resource_requests: Sequence[model.ResourceRequest],
@@ -498,9 +497,9 @@ def initialize_verses_html_tq(
         verses_html: dict[int, str] = {}
         for filepath in verse_paths:
             verse_num = int(pathlib.Path(filepath).stem)
-            verse_content = file_utils.read_file(filepath)
-            verse_content = md.convert(verse_content)
-            verses_html[verse_num] = verse_content
+            verse_md_content = file_utils.read_file(filepath)
+            verse_html_content = md.convert(verse_md_content)
+            verses_html[verse_num] = verse_html_content
         chapter_verses[chapter_num] = model.TQChapter(verses=verses_html)
     return model.TQBook(
         lang_code=resource_lookup_dto.lang_code,
@@ -511,7 +510,7 @@ def initialize_verses_html_tq(
     )
 
 
-def initialize_verses_html_tw(
+def tw_book_content(
     resource_lookup_dto: model.ResourceLookupDto,
     resource_dir: str,
     resource_requests: Sequence[model.ResourceRequest],

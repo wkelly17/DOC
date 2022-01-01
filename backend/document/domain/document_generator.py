@@ -61,7 +61,7 @@ def resource_book_content_units(
         # but continue handling other resources in the document request.
         try:
             book_content_or_unloaded_resource_lookup_dtos.append(
-                parsing.initialize_verses_html(
+                parsing.book_content(
                     resource_lookup_dto, resource_dir, resource_requests
                 )
             )
