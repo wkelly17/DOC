@@ -275,7 +275,14 @@ def usfm_resource_lookup(
 
 
 def t_resource_lookup(
-    lang_code: str, resource_type: str, resource_code: str
+    lang_code: str,
+    resource_type: str,
+    resource_code: str,
+    lang_name_jsonpath_fmt_str: str = settings.RESOURCE_LANG_NAME_JSONPATH,
+    resource_type_name_jsonpath_fmt_str: str = settings.RESOURCE_TYPE_NAME_JSONPATH,
+    resource_url_level1_jsonpath_fmt_str: str = settings.RESOURCE_URL_LEVEL1_JSONPATH,
+    resource_url_level2_jsonpath_fmt_str: str = settings.RESOURCE_URL_LEVEL2_JSONPATH,
+    asset_source_enum_kind: str = model.AssetSourceEnum.ZIP,
 ) -> model.ResourceLookupDto:
     """
     Given a resource, comprised of language code, e.g., 'wum', a
@@ -301,32 +308,30 @@ def t_resource_lookup(
         lang_code,
         resource_type,
         resource_code,
-        jsonpath_str=settings.RESOURCE_URL_LEVEL1_JSONPATH.format(
+        jsonpath_str=resource_url_level1_jsonpath_fmt_str.format(
             lang_code,
             resource_type,
         ),
-        lang_name_jsonpath_str=settings.RESOURCE_LANG_NAME_JSONPATH.format(lang_code),
-        resource_type_name_jsonpath_str=settings.RESOURCE_TYPE_NAME_JSONPATH.format(
+        lang_name_jsonpath_str=lang_name_jsonpath_fmt_str.format(lang_code),
+        resource_type_name_jsonpath_str=resource_type_name_jsonpath_fmt_str.format(
             lang_code, resource_type
         ),
-        asset_source_enum_kind=model.AssetSourceEnum.ZIP,
+        asset_source_enum_kind=asset_source_enum_kind,
     )
     if resource_lookup_dto.url is None:
         resource_lookup_dto = _location(
             lang_code,
             resource_type,
             resource_code,
-            jsonpath_str=settings.RESOURCE_URL_LEVEL2_JSONPATH.format(
+            jsonpath_str=resource_url_level2_jsonpath_fmt_str.format(
                 lang_code,
                 resource_type,
             ),
-            lang_name_jsonpath_str=settings.RESOURCE_LANG_NAME_JSONPATH.format(
-                lang_code
-            ),
-            resource_type_name_jsonpath_str=settings.RESOURCE_TYPE_NAME_JSONPATH.format(
+            lang_name_jsonpath_str=lang_name_jsonpath_fmt_str.format(lang_code),
+            resource_type_name_jsonpath_str=resource_type_name_jsonpath_fmt_str.format(
                 lang_code, resource_type
             ),
-            asset_source_enum_kind=model.AssetSourceEnum.ZIP,
+            asset_source_enum_kind=asset_source_enum_kind,
         )
 
     if resource_lookup_dto.url is None:
@@ -334,17 +339,15 @@ def t_resource_lookup(
             lang_code,
             resource_type,
             resource_code,
-            jsonpath_str=settings.RESOURCE_URL_LEVEL1_JSONPATH.format(
+            jsonpath_str=resource_url_level1_jsonpath_fmt_str.format(
                 lang_code,
                 resource_type,
             ),
-            lang_name_jsonpath_str=settings.RESOURCE_LANG_NAME_JSONPATH.format(
-                lang_code
-            ),
-            resource_type_name_jsonpath_str=settings.RESOURCE_TYPE_NAME_JSONPATH.format(
+            lang_name_jsonpath_str=lang_name_jsonpath_fmt_str.format(lang_code),
+            resource_type_name_jsonpath_str=resource_type_name_jsonpath_fmt_str.format(
                 lang_code, resource_type
             ),
-            asset_source_enum_kind=model.AssetSourceEnum.ZIP,
+            asset_source_enum_kind=asset_source_enum_kind,
         )
 
     if resource_lookup_dto.url is None:
@@ -352,17 +355,15 @@ def t_resource_lookup(
             lang_code,
             resource_type,
             resource_code,
-            jsonpath_str=settings.RESOURCE_URL_LEVEL2_JSONPATH.format(
+            jsonpath_str=resource_url_level2_jsonpath_fmt_str.format(
                 lang_code,
                 resource_type,
             ),
-            lang_name_jsonpath_str=settings.RESOURCE_LANG_NAME_JSONPATH.format(
-                lang_code
-            ),
-            resource_type_name_jsonpath_str=settings.RESOURCE_TYPE_NAME_JSONPATH.format(
+            lang_name_jsonpath_str=lang_name_jsonpath_fmt_str.format(lang_code),
+            resource_type_name_jsonpath_str=resource_type_name_jsonpath_fmt_str.format(
                 lang_code, resource_type
             ),
-            asset_source_enum_kind=model.AssetSourceEnum.ZIP,
+            asset_source_enum_kind=asset_source_enum_kind,
         )
 
     return resource_lookup_dto
@@ -617,6 +618,9 @@ def resource_lookup_dto(
     resource_type: str,
     resource_code: str,
     usfm_resource_types: Sequence[str] = settings.USFM_RESOURCE_TYPES,
+    tn_resource_types: Sequence[str] = settings.TN_RESOURCE_TYPES,
+    tq_resource_types: Sequence[str] = settings.TQ_RESOURCE_TYPES,
+    tw_resource_types: Sequence[str] = settings.TW_RESOURCE_TYPES,
 ) -> model.ResourceLookupDto:
     """
     Get the model.ResourceLookupDto instance for the given lang_code,
