@@ -18,7 +18,7 @@ from urllib.request import urlopen
 
 import jsonpath_rw_ext as jp  # type: ignore
 from document.config import settings
-from document.domain import bible_books, model
+from document.domain import bible_books, exceptions, model
 from document.utils import file_utils
 
 logger = settings.logger(__name__)
@@ -624,7 +624,16 @@ def resource_lookup_dto(
     """
     if resource_type in usfm_resource_types:
         return usfm_resource_lookup(lang_code, resource_type, resource_code)
-    return t_resource_lookup(lang_code, resource_type, resource_code)
+    elif (
+        resource_type in tn_resource_types
+        or resource_type in tq_resource_types
+        or resource_type in tw_resource_types
+    ):
+        return t_resource_lookup(lang_code, resource_type, resource_code)
+    else:
+        raise exceptions.InvalidDocumentRequestException(
+            message="{} resource type requested is invalid.".format(resource_type)
+        )
 
 
 def provision_asset_files(resource_lookup_dto: model.ResourceLookupDto) -> str:
