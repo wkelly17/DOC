@@ -812,6 +812,8 @@ def test_mr_ulb_mrk_mr_tq_mrk_mr_udb_mrk_language_book_order() -> None:
         check_finished_document_with_verses_success(response, finished_document_path)
 
 
+# TA resource type is not yet supported
+@pytest.mark.skip
 def test_gu_ulb_mic_gu_tn_mic_gu_tq_mic_gu_tw_mic_gu_ta_mic_language_book_order() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
