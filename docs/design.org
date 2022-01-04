@@ -30,21 +30,11 @@ Then cd into the tools directory you just creating by cloning.
 make all
 #+end_src
 
-Warning: this will take a _long_ time!
-
-If you don't want to have this running for so long then do this
-instead:
-
-#+begin_src shell
-make unit-tests
-#+end_src
+Warning: this will take about a half hour tops.
 
 The generated PDFs are copied from the Docker container to the
 =docker_pdf_output= directory at the base of the repo.
 
-For ease of stakeholders, one or more example PDFs created by the test
-runs are committed to the git repo in the =docker_pdf_output=
-directory.
 **** Or, you can do one thing at a time using multiple Makefile targets
 ***** Build the container
 
@@ -136,7 +126,7 @@ make local-unit-tests
 make local-e2e-tests
 #+end_src
 
-** (Needs updating) Interactions at a high level
+** Interactions at a high level
 
 #+begin_src plantuml :file wa_design_sequence_diagram1.png :exports results
 UI_biel -> app.document_endpoint: JSON document request
