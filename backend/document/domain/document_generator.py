@@ -122,7 +122,7 @@ def instantiated_template(template_lookup_key: str, dto: BaseModel) -> str:
     """
     with open(template_path(template_lookup_key), "r") as filepath:
         template = filepath.read()
-    env = jinja2.Environment().from_string(template)
+    env = jinja2.Environment(autoescape=True).from_string(template)
     return env.render(data=dto)
 
 
