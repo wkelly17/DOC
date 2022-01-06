@@ -12,13 +12,13 @@ from document.config import settings
 from document.domain import bible_books, model
 from document.utils import file_utils
 
-# Good enough for now. May put in config.py later.
-# By passing we mean that some combinations involving these lang_codes
-# hav succeeded. There could be combinations of resource_type and
-# resource_code for these these fail in isolation or in combination
-# though. The more lang_codes we add here the longer the e2e tests will
-# take to complete.
 PASSING_NON_ENGLISH_LANG_CODES: list[str] = [
+# A blessed set of language codes that are known to generate tests
+# that pass, i.e., they are well supported for all their resource
+# types and (hopefully) all their resource codes (i.e., books). This
+# is by no means the only language codes that are supported. It is
+# just that the more language codes we add here the longer the
+# e2e-tests suite will take to complete.
     "es-419",
     "f10",
     "gu",
@@ -29,6 +29,11 @@ PASSING_NON_ENGLISH_LANG_CODES: list[str] = [
     "zh",
 ]
 FAILING_NON_ENGLISH_LANG_CODES: list[str] = [
+# Every once in a while, outside the Docker environment, it is good to
+# allow tests against more language codes. Here we use all language
+# codes. The system randomized fixtures that use
+# PASSING_NON_ENGLISH_LANG_CODES will then have all languages to
+# choose from randomly of which it will choose a subset.
     # "aau",
     # "abu",
     # "abz",
@@ -38,8 +43,6 @@ FAILING_NON_ENGLISH_LANG_CODES: list[str] = [
     # "ndh-x-chindali",
     # "tbg-x-abuhaina",
 ]
-# Every once in a while it is good to allow the next two
-# expressions to run so that more combinations can be tested.
 if False:
     json_filepath = (
         "/tests/language_codes.json"

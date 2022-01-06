@@ -11,12 +11,12 @@ from document.entrypoints.app import app
 ########################
 
 
-# This will build a PDF for every book of the bible, thus it takes a
-# long time. This makes it unpleasant to run all tests via the 'make
-# all' Makefile target. For this reason, skip this when you want to run
-# all the tests, excepting these. Note that English tests exist in
-# additional places so you aren't not testing English resources by
-# skipping this. This is just additional coverage.
+# This will build a PDF for every book of the bible for English, thus
+# it takes a long time. This makes it unpleasant to run all tests via
+# the 'make e2e-tests' Makefile target. Note that English tests exist
+# in additional places so you aren't not testing English resources by
+# skipping this. This is just additional coverage that could be run
+# once in a while.
 @pytest.mark.skip
 def test_english_variable_resource_type_combos_for_all_books(
     english_document_request: model.DocumentRequest,

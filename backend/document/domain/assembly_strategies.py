@@ -94,7 +94,7 @@ def assembly_sub_strategy_factory(
             bool,  # tn_book_content_unit_exists
             bool,  # tq_book_content_unit_exists
             bool,  # tw_book_content_unit_exists
-            # bool,  # ta_resource_exists
+            # bool,  # ta_book_content_unit_exists
             bool,  # usfm_book_content_unit2_exists
             model.AssemblySubstrategyEnum,  # assembly_strategy_kind
         ],
@@ -347,7 +347,7 @@ def assembly_sub_strategy_factory(
             tn_book_content_unit is not None,
             tq_book_content_unit is not None,
             tw_book_content_unit is not None,
-            # ta_resource is not None,
+            # ta_book_content_unit is not None,
             usfm_book_content_unit2 is not None,
             assembly_substrategy_kind,
         )
@@ -359,7 +359,7 @@ def assembly_sub_strategy_factory_for_book_then_lang(
     tn_book_content_units: Sequence[model.TNBook],
     tq_book_content_units: Sequence[model.TQBook],
     tw_book_content_units: Sequence[model.TWBook],
-    # ta_resources: Sequence[TAResource],
+    # ta_book_content_units: Sequence[model.TABook],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> Callable[
     [
@@ -367,7 +367,7 @@ def assembly_sub_strategy_factory_for_book_then_lang(
         Sequence[model.TNBook],
         Sequence[model.TQBook],
         Sequence[model.TWBook],
-        # list[TAResource],
+        # Sequence[model.TABook],
         model.AssemblySubstrategyEnum,
     ],
     Iterable[model.HtmlContent],
@@ -391,7 +391,7 @@ def assembly_sub_strategy_factory_for_book_then_lang(
             bool,  # tn_book_content_units is non-empty
             bool,  # tq_book_content_units is non-empty
             bool,  # tw_book_content_units is non-empty
-            # bool,  # ta_resources is non-empty
+            # bool,  # ta_book_content_units is non-empty
             model.AssemblySubstrategyEnum,  # assembly_strategy_kind
         ],
         Callable[
@@ -400,7 +400,7 @@ def assembly_sub_strategy_factory_for_book_then_lang(
                 Sequence[model.TNBook],
                 Sequence[model.TQBook],
                 Sequence[model.TWBook],
-                # list[TAResource],
+                # Sequence[TABook],
                 model.AssemblySubstrategyEnum,
             ],
             Iterable[model.HtmlContent],
@@ -536,7 +536,7 @@ def assembly_sub_strategy_factory_for_book_then_lang(
             True if tn_book_content_units else False,
             True if tq_book_content_units else False,
             True if tw_book_content_units else False,
-            # True if ta_resources else False,
+            # True if ta_book_content_units else False,
             assembly_substrategy_kind,
         )
     ]
@@ -594,7 +594,7 @@ def assemble_content_by_lang_then_book(
             tw_book_content_unit_: Optional[model.TWBook] = tw_book_content_unit(
                 book_content_units_
             )
-            # ta_resource: Optional[TAResource] = _ta_resource(resources)
+            # ta_book_content_unit: Optional[model.TABook] = ta_book_content_unit(book_content_units_)
             usfm_book_content_unit2: Optional[
                 model.USFMBook
             ] = second_usfm_book_content_unit(book_content_units_)
@@ -606,7 +606,7 @@ def assemble_content_by_lang_then_book(
                 tn_book_content_unit_,
                 tq_book_content_unit_,
                 tw_book_content_unit_,
-                # ta_resource,
+                # ta_book_content_unit_,
                 usfm_book_content_unit2,
                 default_assembly_substrategy,
             )
@@ -620,7 +620,7 @@ def assemble_content_by_lang_then_book(
                 tn_book_content_unit_,
                 tq_book_content_unit_,
                 tw_book_content_unit_,
-                # ta_resource,
+                # ta_book_content_unit_,
                 usfm_book_content_unit2,
                 # Currently there is only one sub-strategy so we just get it from a
                 # config value. If we get more later then we'll thread the user's choice
@@ -673,8 +673,10 @@ def assemble_content_by_book_then_lang(
             for book_content_unit in book_content_units_grouped_by_book
             if isinstance(book_content_unit, model.TWBook)
         ]
-        # ta_resources: list[TAResource] = [
-        #     resource for resource in resources if isinstance(resource, TAResource)
+        # ta_book_content_units: Sequence[model.TABook] = [
+        #   book_content_unit
+        #   for book_content_unit in book_content_units_grouped_by_book
+        #   if isinstance(book_content_unit, model.TABook)
         # ]
 
         # We've got the resources, now we can use the sub-strategy factory
@@ -684,7 +686,7 @@ def assemble_content_by_book_then_lang(
             tn_book_content_units,
             tq_book_content_units,
             tw_book_content_units,
-            # ta_resources,
+            # ta_book_content_units,
             default_assembly_substrategy,
         )
 
@@ -700,7 +702,7 @@ def assemble_content_by_book_then_lang(
             tn_book_content_units,
             tq_book_content_units,
             tw_book_content_units,
-            # ta_resources,
+            # ta_book_content_units,
             default_assembly_substrategy,
         )
 
@@ -766,7 +768,7 @@ def assemble_usfm_as_iterator_content_by_verse(
     tn_book_content_unit: Optional[model.TNBook],
     tq_book_content_unit: Optional[model.TQBook],
     tw_book_content_unit: Optional[model.TWBook],
-    # ta_resource: Optional[TAResource],
+    # ta_book_content_unit: Optional[model.TABook],
     usfm_book_content_unit2: Optional[model.USFMBook],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
     resource_type_name_fmt_str: str = settings.RESOURCE_TYPE_NAME_FMT_STR,
@@ -935,7 +937,7 @@ def assemble_usfm_tq_tw_content_by_verse(
     tn_book_content_unit: Optional[model.TNBook],
     tq_book_content_unit: Optional[model.TQBook],
     tw_book_content_unit: Optional[model.TWBook],
-    # ta_resource: Optional[TAResource],
+    # ta_book_content_unit: Optional[model.TABook],
     usfm_book_content_unit2: Optional[model.USFMBook],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
     resource_type_name_with_ref_fmt_str: str = settings.RESOURCE_TYPE_NAME_WITH_REF_FMT_STR,
@@ -1013,7 +1015,7 @@ def assemble_usfm_tw_content_by_verse(
     tn_book_content_unit: Optional[model.TNBook],
     tq_book_content_unit: Optional[model.TQBook],
     tw_book_content_unit: Optional[model.TWBook],
-    # ta_resource: Optional[TAResource],
+    # ta_book_content_unit: Optional[model.TABook],
     usfm_book_content_unit2: Optional[model.USFMBook],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
     resource_type_name_with_ref_fmt_str: str = settings.RESOURCE_TYPE_NAME_WITH_REF_FMT_STR,
@@ -1081,7 +1083,7 @@ def assemble_usfm_tq_content_by_verse(
     tn_book_content_unit: Optional[model.TNBook],
     tq_book_content_unit: Optional[model.TQBook],
     tw_book_content_unit: Optional[model.TWBook],
-    # ta_resource: Optional[TAResource],
+    # ta_book_content_unit: Optional[model.TABook],
     usfm_book_content_unit2: Optional[model.USFMBook],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
     resource_type_name_with_ref_fmt_str: str = settings.RESOURCE_TYPE_NAME_WITH_REF_FMT_STR,
@@ -1147,7 +1149,7 @@ def assemble_tn_as_iterator_content_by_verse(
     tn_book_content_unit: Optional[model.TNBook],
     tq_book_content_unit: Optional[model.TQBook],
     tw_book_content_unit: Optional[model.TWBook],
-    # ta_resource: Optional[TAResource],
+    # ta_book_content_unit: Optional[model.TABook],
     usfm_book_content_unit2: Optional[model.USFMBook],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
     chapter_header_fmt_str: str = settings.CHAPTER_HEADER_FMT_STR,
@@ -1255,7 +1257,7 @@ def assemble_tq_content_by_verse(
     tn_book_content_unit: Optional[model.TNBook],
     tq_book_content_unit: Optional[model.TQBook],
     tw_book_content_unit: Optional[model.TWBook],
-    # ta_resource: Optional[TAResource],
+    # ta_book_content_unit: Optional[model.TABook],
     usfm_book_content_unit2: Optional[model.USFMBook],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
     chapter_header_fmt_str: str = settings.CHAPTER_HEADER_FMT_STR,
@@ -1301,7 +1303,7 @@ def assemble_tq_tw_content_by_verse(
     tn_book_content_unit: Optional[model.TNBook],
     tq_book_content_unit: Optional[model.TQBook],
     tw_book_content_unit: Optional[model.TWBook],
-    # ta_resource: Optional[TAResource],
+    # ta_book_content_unit: Optional[model.TABook],
     usfm_book_content_unit2: Optional[model.USFMBook],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
     chapter_header_fmt_str: str = settings.CHAPTER_HEADER_FMT_STR,
@@ -1362,7 +1364,7 @@ def assemble_tw_content_by_verse(
     tn_book_content_unit: Optional[model.TNBook],
     tq_book_content_unit: Optional[model.TQBook],
     tw_book_content_unit: Optional[model.TWBook],
-    # ta_resource: Optional[TAResource],
+    # ta_book_content_unit: Optional[model.TABook],
     usfm_book_content_unit2: Optional[model.USFMBook],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> Iterable[model.HtmlContent]:
@@ -1383,7 +1385,7 @@ def assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
     tn_book_content_units: Sequence[model.TNBook],
     tq_book_content_units: Sequence[model.TQBook],
     tw_book_content_units: Sequence[model.TWBook],
-    # ta_resources: list[TAResource],
+    # ta_book_content_units: list[model.TABook],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
     resource_type_name_with_ref_fmt_str: str = settings.RESOURCE_TYPE_NAME_WITH_REF_FMT_STR,
     footnotes_heading: model.HtmlContent = settings.FOOTNOTES_HEADING,
@@ -1416,7 +1418,7 @@ def assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
     tn_book_content_units = sorted(tn_book_content_units, key=key)
     tq_book_content_units = sorted(tq_book_content_units, key=key)
     tw_book_content_units = sorted(tw_book_content_units, key=key)
-    # ta_resources = sorted(ta_resources, key=key)
+    # ta_book_content_units = sorted(ta_book_content_units, key=key)
 
     # Add book intros for each tn_book_content_unit
     for tn_book_content_unit in tn_book_content_units:
@@ -1581,7 +1583,7 @@ def assemble_tn_as_iterator_content_by_verse_for_book_then_lang(
     tn_book_content_units: Sequence[model.TNBook],
     tq_book_content_units: Sequence[model.TQBook],
     tw_book_content_units: Sequence[model.TWBook],
-    # ta_resources: list[TAResource],
+    # ta_book_content_units: list[model.TABook],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> Iterable[model.HtmlContent]:
     """
@@ -1607,7 +1609,7 @@ def assemble_tn_as_iterator_content_by_verse_for_book_then_lang(
     tn_book_content_units = sorted(tn_book_content_units, key=key)
     tq_book_content_units = sorted(tq_book_content_units, key=key)
     tw_book_content_units = sorted(tw_book_content_units, key=key)
-    # ta_resources = sorted(ta_resources, key=key)
+    # ta_book_content_units = sorted(ta_book_content_units, key=key)
 
     # Add book intros for each tn_book_content_unit
     for tn_book_content_unit in tn_book_content_units:
@@ -1619,8 +1621,6 @@ def assemble_tn_as_iterator_content_by_verse_for_book_then_lang(
     # Use the tn_book_conent_unit that has the most chapters as a
     # chapter_num pump.
     # Realize the most amount of content displayed to user.
-    # FIXME Use of chapters_key throws an exception: instances of
-    # dict cannot be compared.
     chapters_key = lambda tn_book_content_unit: tn_book_content_unit.chapters.keys()
     tn_with_most_chapters = max(tn_book_content_units, key=chapters_key)
     for chapter_num in tn_with_most_chapters.chapters.keys():
@@ -1706,7 +1706,7 @@ def assemble_tq_as_iterator_content_by_verse_for_book_then_lang(
     tn_book_content_units: Sequence[model.TNBook],
     tq_book_content_units: Sequence[model.TQBook],
     tw_book_content_units: Sequence[model.TWBook],
-    # ta_resources: list[TAResource],
+    # ta_book_content_units: Sequence[model.TABook],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> Iterable[model.HtmlContent]:
     """
@@ -1720,7 +1720,7 @@ def assemble_tq_as_iterator_content_by_verse_for_book_then_lang(
     tn_book_content_units = sorted(tn_book_content_units, key=key)
     tq_book_content_units = sorted(tq_book_content_units, key=key)
     tw_book_content_units = sorted(tw_book_content_units, key=key)
-    # ta_resources = sorted(ta_resources, key=key)
+    # ta_book_content_units = sorted(ta_book_content_units, key=key)
 
     # Use the tq_book_conent_unit that has the most chapters as a
     # chapter_num pump.
@@ -1797,7 +1797,7 @@ def assemble_tw_as_iterator_content_by_verse_for_book_then_lang(
     tn_book_content_units: Sequence[model.TNBook],
     tq_book_content_units: Sequence[model.TQBook],
     tw_book_content_units: Sequence[model.TWBook],
-    # ta_resources: list[TAResource],
+    # ta_book_content_units: list[model.TABook],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
 ) -> Iterable[model.HtmlContent]:
     """Construct the HTML for a only TW."""
@@ -1808,7 +1808,7 @@ def assemble_tw_as_iterator_content_by_verse_for_book_then_lang(
     tn_book_content_units = sorted(tn_book_content_units, key=key)
     tq_book_content_units = sorted(tq_book_content_units, key=key)
     tw_book_content_units = sorted(tw_book_content_units, key=key)
-    # ta_resources = sorted(ta_resources, key=key)
+    # ta_book_content_units = sorted(ta_book_content_units, key=key)
 
     # Add the translation word definitions
     for tw_book_content_unit in tw_book_content_units:

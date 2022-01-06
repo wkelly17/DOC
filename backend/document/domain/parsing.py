@@ -354,10 +354,6 @@ def verse_num_and_verse_content_str(
         upper_tag,
     )
     verse_content = [str(tag) for tag in list(verse_content_tags)]
-    # HACK to prevent BeautifulSoup from sometimes
-    # recapitulating all the verses after the current verse and
-    # stuffing them into the same verse.
-    # verse_content_str = "".join(verse_content[:2])
     verse_content_str = "".join(verse_content)
     # At this point we alter verse_content_str span's ID by prepending the
     # lang_code to ensure unique verse references within language scope in a

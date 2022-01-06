@@ -16,7 +16,6 @@ from document.entrypoints.app import app
 # avoided.
 
 
-# @pytest.mark.skip
 def test_random_non_english_fixtures(
     random_non_english_document_request: model.DocumentRequest,
 ) -> None:
@@ -30,7 +29,6 @@ def test_random_non_english_fixtures(
         assert response.ok
 
 
-# @pytest.mark.skip
 def test_random_english_and_non_english_combo_document_request(
     random_english_and_non_english_document_request: model.DocumentRequest,
 ) -> None:
@@ -44,7 +42,6 @@ def test_random_english_and_non_english_combo_document_request(
         assert response.ok
 
 
-# @pytest.mark.skip
 def test_random_two_non_english_languages_combo_document_request(
     random_two_non_english_languages_document_request: model.DocumentRequest,
 ) -> None:

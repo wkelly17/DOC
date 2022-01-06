@@ -767,7 +767,7 @@ def clone_git_repo(url: str, resource_filepath: str) -> None:
 def download_asset(url: str, resource_filepath: str) -> None:
     """Download the asset."""
     logger.debug("Downloading %s into %s", url, resource_filepath)
-    # FIXME Might want to retry after some acceptable interval if there is a
+    # TODO Might want to retry after some acceptable interval if there is a
     # failure here due to network issues. It has happened very occasionally
     # during testing that there has been a hiccup with the network at this
     # point but succeeded on retry of the same test.
