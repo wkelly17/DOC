@@ -3,16 +3,14 @@
 import os
 import pathlib
 from collections.abc import Iterable, Sequence
-from typing import Any, final
+from typing import Any
 
 from document.config import settings
 from document.domain import document_generator, exceptions, model, resource_lookup
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
 from pydantic import AnyHttpUrl
-from starlette.responses import HTMLResponse
 
 
 # Don't serve swagger docs static assets from third party CDN.
