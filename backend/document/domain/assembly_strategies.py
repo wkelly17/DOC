@@ -20,7 +20,7 @@ logger = settings.logger(__name__)
 
 
 H1, H2, H3, H4, H5, H6 = "h1", "h2", "h3", "h4", "h5", "h6"
-
+NUM_ZEROS = 3
 
 ########################################################################
 # Asseembly strategy and sub-strategy factories
@@ -1171,10 +1171,8 @@ def assemble_tn_as_iterator_content_by_verse(
             yield model.HtmlContent(
                 chapter_header_fmt_str.format(
                     tn_book_content_unit.lang_code,
-                    bible_books.BOOK_NUMBERS[tn_book_content_unit.resource_code].zfill(
-                        3
-                    ),
-                    str(chapter_num).zfill(3),
+                    book_numbers[tn_book_content_unit.resource_code].zfill(NUM_ZEROS),
+                    str(chapter_num).zfill(NUM_ZEROS),
                     chapter_num,
                 )
             )
@@ -1273,10 +1271,8 @@ def assemble_tq_content_by_verse(
             yield model.HtmlContent(
                 chapter_header_fmt_str.format(
                     tq_book_content_unit.lang_code,
-                    bible_books.BOOK_NUMBERS[tq_book_content_unit.resource_code].zfill(
-                        3
-                    ),
-                    str(chapter_num).zfill(3),
+                    book_numbers[tq_book_content_unit.resource_code].zfill(NUM_ZEROS),
+                    str(chapter_num).zfill(NUM_ZEROS),
                     chapter_num,
                 )
             )
@@ -1320,10 +1316,8 @@ def assemble_tq_tw_content_by_verse(
             yield model.HtmlContent(
                 chapter_header_fmt_str.format(
                     tq_book_content_unit.lang_code,
-                    bible_books.BOOK_NUMBERS[tq_book_content_unit.resource_code].zfill(
-                        3
-                    ),
-                    str(chapter_num).zfill(3),
+                    book_numbers[tq_book_content_unit.resource_code].zfill(NUM_ZEROS),
+                    str(chapter_num).zfill(NUM_ZEROS),
                     chapter_num,
                 )
             )
@@ -1988,9 +1982,9 @@ def format_tn_verse(
     yield model.HtmlContent(
         format_str.format(
             book_content_unit.lang_code,
-            bible_books.BOOK_NUMBERS[book_content_unit.resource_code].zfill(3),
-            str(chapter_num).zfill(3),
-            verse_num.zfill(3),
+            book_numbers[book_content_unit.resource_code].zfill(NUM_ZEROS),
+            str(chapter_num).zfill(NUM_ZEROS),
+            verse_num.zfill(NUM_ZEROS),
             book_content_unit.resource_type_name,
             chapter_num,
             verse_num,
@@ -2165,10 +2159,10 @@ def uses_section(
         html_content_str = model.HtmlContent(
             translation_word_verse_ref_item_fmt_str.format(
                 use.lang_code,
-                bible_books.BOOK_NUMBERS[use.book_id].zfill(3),
-                str(use.chapter_num).zfill(3),
-                str(use.verse_num).zfill(3),
-                bible_books.BOOK_NAMES[use.book_id],
+                book_numbers[use.book_id].zfill(NUM_ZEROS),
+                str(use.chapter_num).zfill(NUM_ZEROS),
+                str(use.verse_num).zfill(NUM_ZEROS),
+                book_names[use.book_id],
                 use.chapter_num,
                 use.verse_num,
             )
