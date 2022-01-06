@@ -348,7 +348,7 @@ def convert_html_to_pdf(
     )
     logger.debug("IN_CONTAINER: {}".format(in_container))
     if in_container:
-        logger.info("About to cp PDF to Docker volume map on host")
+        logger.info("About to cp PDF to from Docker volume to host")
         logger.debug("Copy PDF command: %s", copy_command)
         subprocess.call(copy_command, shell=True)
 
