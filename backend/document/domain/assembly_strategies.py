@@ -547,6 +547,7 @@ def assemble_content_by_lang_then_book(
     language_fmt_str: str = settings.LANGUAGE_FMT_STR,
     book_fmt_str: str = settings.BOOK_FMT_STR,
     default_assembly_substrategy: model.AssemblySubstrategyEnum = settings.DEFAULT_ASSEMBLY_SUBSTRATEGY,
+    book_names: Mapping[str, str] = bible_books.BOOK_NAMES,
 ) -> Iterable[str]:
     """
     Assemble by language then by book in lexicographical order before
@@ -577,7 +578,7 @@ def assemble_content_by_lang_then_book(
             book_content_units_sorted_by_book,
             lambda book_content_unit: book_content_unit.resource_code,
         ):
-            yield book_fmt_str.format(bible_books.BOOK_NAMES[book])
+            yield book_fmt_str.format(book_names[book])
 
             # Save grouper generator values in list since it will get exhausted
             # when used and exhausted generators cannot be reused.
@@ -633,6 +634,7 @@ def assemble_content_by_book_then_lang(
     book_content_units: Iterable[model.BookContent],
     book_as_grouper_fmt_str: str = settings.BOOK_AS_GROUPER_FMT_STR,
     default_assembly_substrategy: model.AssemblySubstrategyEnum = settings.DEFAULT_ASSEMBLY_SUBSTRATEGY,
+    book_names: Mapping[str, str] = bible_books.BOOK_NAMES,
 ) -> Iterable[str]:
     """
     Assemble by book then by language in alphabetic order before
@@ -648,7 +650,7 @@ def assemble_content_by_book_then_lang(
         book_content_units_sorted_by_book,
         lambda book_content_unit: book_content_unit.resource_code,
     ):
-        yield book_as_grouper_fmt_str.format(bible_books.BOOK_NAMES[book])
+        yield book_as_grouper_fmt_str.format(book_names[book])
 
         # Save grouper generator values in list since it will get exhausted
         # when used and exhausted generators cannot be reused.
@@ -774,6 +776,10 @@ def assemble_usfm_as_iterator_content_by_verse(
     resource_type_name_fmt_str: str = settings.RESOURCE_TYPE_NAME_FMT_STR,
     resource_type_name_with_ref_fmt_str: str = settings.RESOURCE_TYPE_NAME_WITH_REF_FMT_STR,
     footnotes_heading: model.HtmlContent = settings.FOOTNOTES_HEADING,
+    html_row_begin: str = settings.HTML_ROW_BEGIN,
+    html_column_begin: str = settings.HTML_COLUMN_BEGIN,
+    html_column_end: str = settings.HTML_COLUMN_END,
+    html_row_end: str = settings.HTML_ROW_END,
 ) -> Iterable[model.HtmlContent]:
     """
     Construct the HTML for a 'by verse' strategy wherein at least one
@@ -820,8 +826,8 @@ def assemble_usfm_as_iterator_content_by_verse(
             # Now let's interleave USFM verse with its translation note, translation
             # questions, and translation words if available.
             for verse_num, verse in chapter.verses.items():
-                yield settings.HTML_ROW_BEGIN
-                yield settings.HTML_COLUMN_BEGIN
+                yield html_row_begin
+                yield html_column_begin
                 # Add header
                 yield model.HtmlContent(
                     resource_type_name_with_ref_fmt_str.format(
@@ -855,8 +861,8 @@ def assemble_usfm_as_iterator_content_by_verse(
                         ]
                         yield verse_
 
-                yield settings.HTML_COLUMN_END
-                yield settings.HTML_COLUMN_BEGIN
+                yield html_column_end
+                yield html_column_begin
 
                 # Add TN verse content, if any
                 if (
@@ -889,8 +895,8 @@ def assemble_usfm_as_iterator_content_by_verse(
                         verse,
                     )
 
-                yield settings.HTML_COLUMN_END
-                yield settings.HTML_ROW_END
+                yield html_column_end
+                yield html_row_end
             # Add scripture footnotes if available
             if chapter.footnotes:
                 yield footnotes_heading
@@ -942,6 +948,10 @@ def assemble_usfm_tq_tw_content_by_verse(
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
     resource_type_name_with_ref_fmt_str: str = settings.RESOURCE_TYPE_NAME_WITH_REF_FMT_STR,
     footnotes_heading: model.HtmlContent = settings.FOOTNOTES_HEADING,
+    html_row_begin: str = settings.HTML_ROW_BEGIN,
+    html_column_begin: str = settings.HTML_COLUMN_BEGIN,
+    html_column_end: str = settings.HTML_COLUMN_END,
+    html_row_end: str = settings.HTML_ROW_END,
 ) -> Iterable[model.HtmlContent]:
     """
     Construct the HTML for a 'by verse' strategy wherein USFM, TQ,
@@ -965,8 +975,8 @@ def assemble_usfm_tq_tw_content_by_verse(
             # Now let's interleave USFM verse with its translation note, translation
             # questions, and translation words if available.
             for verse_num, verse in chapter.verses.items():
-                yield settings.HTML_ROW_BEGIN
-                yield settings.HTML_COLUMN_BEGIN
+                yield html_row_begin
+                yield html_column_begin
                 # Add header
                 yield model.HtmlContent(
                     resource_type_name_with_ref_fmt_str.format(
@@ -979,8 +989,8 @@ def assemble_usfm_tq_tw_content_by_verse(
                 # Add scripture verse
                 yield verse
 
-                yield settings.HTML_COLUMN_END
-                yield settings.HTML_COLUMN_BEGIN
+                yield html_column_end
+                yield html_column_begin
 
                 # Add TN verse content, if any
                 if tq_book_content_unit and tq_verses and verse_num in tq_verses:
@@ -999,8 +1009,8 @@ def assemble_usfm_tq_tw_content_by_verse(
                         verse,
                     )
 
-                yield settings.HTML_COLUMN_END
-                yield settings.HTML_ROW_END
+                yield html_column_end
+                yield html_row_end
             # Add scripture footnotes if available
             if chapter.footnotes:
                 yield footnotes_heading
@@ -1020,6 +1030,10 @@ def assemble_usfm_tw_content_by_verse(
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
     resource_type_name_with_ref_fmt_str: str = settings.RESOURCE_TYPE_NAME_WITH_REF_FMT_STR,
     footnotes_heading: model.HtmlContent = settings.FOOTNOTES_HEADING,
+    html_row_begin: str = settings.HTML_ROW_BEGIN,
+    html_column_begin: str = settings.HTML_COLUMN_BEGIN,
+    html_column_end: str = settings.HTML_COLUMN_END,
+    html_row_end: str = settings.HTML_ROW_END,
 ) -> Iterable[model.HtmlContent]:
     """
     Construct the HTML for a 'by verse' strategy wherein USFM and TW
@@ -1040,8 +1054,8 @@ def assemble_usfm_tw_content_by_verse(
             # Now let's interleave USFM verse with its translation note, translation
             # questions, and translation words if available.
             for verse_num, verse in chapter.verses.items():
-                yield settings.HTML_ROW_BEGIN
-                yield settings.HTML_COLUMN_BEGIN
+                yield html_row_begin
+                yield html_column_begin
                 # Add scripture verse header
                 yield model.HtmlContent(
                     resource_type_name_with_ref_fmt_str.format(
@@ -1054,8 +1068,8 @@ def assemble_usfm_tw_content_by_verse(
                 # Add scripture verse
                 yield verse
 
-                yield settings.HTML_COLUMN_END
-                yield settings.HTML_COLUMN_BEGIN
+                yield html_column_end
+                yield html_column_begin
 
                 if tw_book_content_unit:
                     # Add the translation words links section
@@ -1066,8 +1080,8 @@ def assemble_usfm_tw_content_by_verse(
                         verse,
                     )
 
-                yield settings.HTML_COLUMN_END
-                yield settings.HTML_ROW_END
+                yield html_column_end
+                yield html_row_end
 
             # Add scripture footnotes if available
             if chapter.footnotes:
@@ -1088,6 +1102,10 @@ def assemble_usfm_tq_content_by_verse(
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
     resource_type_name_with_ref_fmt_str: str = settings.RESOURCE_TYPE_NAME_WITH_REF_FMT_STR,
     footnotes_heading: model.HtmlContent = settings.FOOTNOTES_HEADING,
+    html_row_begin: str = settings.HTML_ROW_BEGIN,
+    html_column_begin: str = settings.HTML_COLUMN_BEGIN,
+    html_column_end: str = settings.HTML_COLUMN_END,
+    html_row_end: str = settings.HTML_ROW_END,
 ) -> Iterable[model.HtmlContent]:
     """Construct the HTML for a 'by verse' strategy wherein only USFM and TQ exist."""
 
@@ -1109,8 +1127,8 @@ def assemble_usfm_tq_content_by_verse(
             # Now let's interleave USFM verse with its
             # translation note if available.
             for verse_num, verse in chapter.verses.items():
-                yield settings.HTML_ROW_BEGIN
-                yield settings.HTML_COLUMN_BEGIN
+                yield html_row_begin
+                yield html_column_begin
                 # Add scripture verse heading
                 yield model.HtmlContent(
                     resource_type_name_with_ref_fmt_str.format(
@@ -1123,8 +1141,8 @@ def assemble_usfm_tq_content_by_verse(
                 # Add scripture verse
                 yield verse
 
-                yield settings.HTML_COLUMN_END
-                yield settings.HTML_COLUMN_BEGIN
+                yield html_column_end
+                yield html_column_begin
 
                 # Add TQ verse content, if any
                 if tq_book_content_unit and tq_verses and verse_num in tq_verses:
@@ -1135,8 +1153,8 @@ def assemble_usfm_tq_content_by_verse(
                         tq_verses[verse_num],
                     )
 
-                yield settings.HTML_COLUMN_END
-                yield settings.HTML_ROW_END
+                yield html_column_end
+                yield html_row_end
 
             # Add scripture footnotes if available
             if chapter.footnotes:
@@ -1154,6 +1172,7 @@ def assemble_tn_as_iterator_content_by_verse(
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
     chapter_header_fmt_str: str = settings.CHAPTER_HEADER_FMT_STR,
     resource_type_name_with_ref_fmt_str: str = settings.RESOURCE_TYPE_NAME_WITH_REF_FMT_STR,
+    book_numbers: Mapping[str, str] = bible_books.BOOK_NUMBERS,
 ) -> Iterable[model.HtmlContent]:
     """
     Construct the HTML for a 'by verse' strategy wherein only TN, TQ,
@@ -1259,6 +1278,7 @@ def assemble_tq_content_by_verse(
     usfm_book_content_unit2: Optional[model.USFMBook],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
     chapter_header_fmt_str: str = settings.CHAPTER_HEADER_FMT_STR,
+    book_numbers: Mapping[str, str] = bible_books.BOOK_NUMBERS,
 ) -> Iterable[model.HtmlContent]:
     """Construct the HTML for a 'by verse' strategy wherein only TQ exists."""
     # Make mypy happy. We know, due to how we got here, that book_content_unit objects are not None.
@@ -1303,6 +1323,7 @@ def assemble_tq_tw_content_by_verse(
     usfm_book_content_unit2: Optional[model.USFMBook],
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
     chapter_header_fmt_str: str = settings.CHAPTER_HEADER_FMT_STR,
+    book_numbers: Mapping[str, str] = bible_books.BOOK_NUMBERS,
 ) -> Iterable[model.HtmlContent]:
     """
     Construct the HTML for a 'by verse' strategy wherein only TQ and
@@ -1383,6 +1404,10 @@ def assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
     resource_type_name_with_ref_fmt_str: str = settings.RESOURCE_TYPE_NAME_WITH_REF_FMT_STR,
     footnotes_heading: model.HtmlContent = settings.FOOTNOTES_HEADING,
+    html_row_begin: str = settings.HTML_ROW_BEGIN,
+    html_column_begin: str = settings.HTML_COLUMN_BEGIN,
+    html_column_end: str = settings.HTML_COLUMN_END,
+    html_row_end: str = settings.HTML_ROW_END,
 ) -> Iterable[model.HtmlContent]:
     """
     Construct the HTML for a 'by verse' strategy wherein at least one
@@ -1455,8 +1480,8 @@ def assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
             ].verses.keys(),
         )
         for verse_num in usfm_with_most_verses.chapters[chapter_num].verses.keys():
-            yield settings.HTML_ROW_BEGIN
-            yield settings.HTML_COLUMN_BEGIN
+            yield html_row_begin
+            yield html_column_begin
             # Add the interleaved USFM verses
             for usfm_book_content_unit in usfm_book_content_units:
                 if (
@@ -1475,14 +1500,14 @@ def assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
 
                     # Add scripture verse
                     yield usfm_book_content_unit.chapters[chapter_num].verses[verse_num]
-            yield settings.HTML_COLUMN_END
+            yield html_column_end
 
             # Add the interleaved tn notes
             tn_verses: Optional[dict[str, model.HtmlContent]] = None
             for tn_book_content_unit3 in tn_book_content_units:
                 tn_verses = verses_for_chapter_tn(tn_book_content_unit3, chapter_num)
                 if tn_verses and verse_num in tn_verses:
-                    yield settings.HTML_COLUMN_BEGIN
+                    yield html_column_begin
                     yield from format_tn_verse(
                         tn_book_content_unit3,
                         chapter_num,
@@ -1497,7 +1522,7 @@ def assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
                 # Add TQ verse content, if any
                 if tq_verses and verse_num in tq_verses:
                     if not tn_verses:
-                        yield settings.HTML_COLUMN_BEGIN
+                        yield html_column_begin
                     yield from format_tq_verse(
                         tq_book_content_unit.resource_type_name,
                         chapter_num,
@@ -1530,7 +1555,7 @@ def assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
                     in usfm_book_content_unit_.chapters[chapter_num].verses
                 ):
                     if not tn_verses and not tq_verses:
-                        yield settings.HTML_COLUMN_BEGIN
+                        yield html_column_begin
                     yield from translation_word_links(
                         tw_book_content_unit,
                         chapter_num,
@@ -1546,8 +1571,8 @@ def assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
                         tw_book_content_unit.resource_code,
                     )
 
-            yield settings.HTML_COLUMN_END
-            yield settings.HTML_ROW_END
+            yield html_column_end
+            yield html_row_end
 
         # Add the footnotes
         for usfm_book_content_unit in usfm_book_content_units:
@@ -1974,6 +1999,7 @@ def format_tn_verse(
     verse_num: str,
     verse: model.HtmlContent,
     format_str: str = settings.TN_RESOURCE_TYPE_NAME_WITH_ID_AND_REF_FMT_STR,
+    book_numbers: Mapping[str, str] = bible_books.BOOK_NUMBERS,
 ) -> Iterable[model.HtmlContent]:
     """
     This is a slightly different form of TNResource.tn_verse that is used
@@ -2028,6 +2054,7 @@ def translation_word_links(
     unordered_list_begin_str: str = settings.UNORDERED_LIST_BEGIN_STR,
     translation_word_list_item_fmt_str: str = settings.TRANSLATION_WORD_LIST_ITEM_FMT_STR,
     unordered_list_end_str: str = settings.UNORDERED_LIST_END_STR,
+    book_names: Mapping[str, str] = bible_books.BOOK_NAMES,
 ) -> Iterable[model.HtmlContent]:
     """
     Add the translation word links section which provides links from words
@@ -2044,7 +2071,7 @@ def translation_word_links(
             use = model.TWUse(
                 lang_code=book_content_unit.lang_code,
                 book_id=book_content_unit.resource_code,
-                book_name=bible_books.BOOK_NAMES[book_content_unit.resource_code],
+                book_name=book_names[book_content_unit.resource_code],
                 chapter_num=chapter_num,
                 verse_num=verse_num,
                 localized_word=name_content_pair.localized_word,
@@ -2145,6 +2172,8 @@ def uses_section(
     unordered_list_begin_str: str = settings.UNORDERED_LIST_BEGIN_STR,
     translation_word_verse_ref_item_fmt_str: str = settings.TRANSLATION_WORD_VERSE_REF_ITEM_FMT_STR,
     unordered_list_end_str: str = settings.UNORDERED_LIST_END_STR,
+    book_numbers: Mapping[str, str] = bible_books.BOOK_NUMBERS,
+    book_names: Mapping[str, str] = bible_books.BOOK_NAMES,
 ) -> model.HtmlContent:
     """
     Construct and return the 'Uses:' section which comes at the end of

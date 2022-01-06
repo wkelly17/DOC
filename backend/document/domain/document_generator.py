@@ -265,6 +265,7 @@ def convert_html_to_pdf(
     wkhtmltopdf_options: Mapping[str, Optional[str]] = settings.WKHTMLTOPDF_OPTIONS,
     docker_container_pdf_output_dir: str = settings.DOCKER_CONTAINER_PDF_OUTPUT_DIR,
     in_container: bool = settings.IN_CONTAINER,
+    book_names: Mapping[str, str] = bible_books.BOOK_NAMES,
 ) -> None:
     """Generate PDF from HTML."""
     now = datetime.datetime.now()
@@ -275,7 +276,7 @@ def convert_html_to_pdf(
                 {
                     "{}: {}".format(
                         book_content_unit.lang_name,
-                        bible_books.BOOK_NAMES[book_content_unit.resource_code],
+                        book_names[book_content_unit.resource_code],
                     )
                     for book_content_unit in book_content_units
                 }

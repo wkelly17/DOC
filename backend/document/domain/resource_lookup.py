@@ -433,21 +433,21 @@ def resource_types_for_lang(
 def resource_codes_for_lang(
     lang_code: str,
     jsonpath_str: str = settings.RESOURCE_CODES_FOR_LANG_JSONPATH,
+    book_names: Mapping[str, str] = bible_books.BOOK_NAMES,
+    book_numbers: Mapping[str, str] = bible_books.BOOK_NUMBERS,
 ) -> Sequence[Sequence[Any]]:
     """
     Convenience method that can be called, e.g., from the UI, to
     get the set of all resource codes for a particular lang_code.
     """
     resource_codes = [
-        [resource_code, bible_books.BOOK_NAMES[resource_code]]
+        [resource_code, book_names[resource_code]]
         for resource_code in _lookup(jsonpath_str.format(lang_code))
         if resource_code
     ]
     return sorted(
         resource_codes,
-        key=lambda resource_code_name_pair: bible_books.BOOK_NUMBERS[
-            resource_code_name_pair[0]
-        ],
+        key=lambda resource_code_name_pair: book_numbers[resource_code_name_pair[0]],
     )
 
 
