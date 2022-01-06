@@ -65,7 +65,7 @@ def document_endpoint(
             document_request
         )
         assert os.path.exists(finished_document_path)
-    except Exception as exc:
+    except Exception:
         logger.exception(
             "There was a error while attempting to fulfill the document "
             "request. Likely reason is the following exception:"
