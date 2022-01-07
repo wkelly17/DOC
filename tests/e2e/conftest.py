@@ -439,11 +439,13 @@ def random_english_and_non_english_document_request(
     short of that, to help guide us to implementing the graceful
     raising of exceptions and their handlers for such failures.
     """
-    random_english_resource_requests.extend(random_non_english_resource_requests)
     return model.DocumentRequest(
         email_address=email_address,
         assembly_strategy_kind=assembly_strategy_kind,
-        resource_requests=random_english_resource_requests,
+        resource_requests=[
+            *random_english_resource_requests,
+            *random_non_english_resource_requests,
+        ],
     )
 
 
@@ -459,9 +461,11 @@ def random_two_non_english_languages_document_request(
     non-English languages for each assembly_strategy_kind. Each
     language has its own randomly chosen set of resource requests.
     """
-    random_non_english_resource_requests.extend(random_non_english_resource_requests2)
     return model.DocumentRequest(
         email_address=email_address,
         assembly_strategy_kind=assembly_strategy_kind,
-        resource_requests=random_non_english_resource_requests,
+        resource_requests=[
+            *random_non_english_resource_requests,
+            *random_non_english_resource_requests2,
+        ],
     )
