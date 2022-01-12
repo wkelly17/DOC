@@ -396,7 +396,7 @@ def main(document_request: model.DocumentRequest) -> tuple[str, str]:
     )
     output_filename = pdf_output_filename(document_request_key_)
 
-    # Immediately return pre-built PDF if the document previously been
+    # Immediately return pre-built PDF if the document has previously been
     # generated and is fresh enough. In that case, front run all requests to
     # the cloud including the more low level resource asset caching
     # mechanism for comparatively immediate return of PDF.
