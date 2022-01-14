@@ -12,16 +12,20 @@ from document.config import settings
 from document.entrypoints.app import app
 
 
-def check_finished_document_with_verses_success(
-    response: requests.Response, finished_document_path: str
-) -> None:
+def check_finished_document_with_verses_success(response: requests.Response) -> None:
     """
     Helper to keep tests DRY.
 
     Check that the finished_document_path exists and also check that
     the HTML file associated with it exists and includes verses_html.
     """
-    finished_document_path = os.path.join(settings.output_dir(), finished_document_path)
+    assert response.ok
+    content = response.json()
+    assert "finished_document_request_key" in content
+    assert "message" in content
+    finished_document_path = os.path.join(
+        settings.output_dir(), "{}.pdf".format(content["finished_document_request_key"])
+    )
     assert os.path.isfile(finished_document_path)
     html_file = "{}.html".format(finished_document_path.split(".")[0])
     assert os.path.isfile(html_file)
@@ -69,8 +73,7 @@ def test_en_ulb_wa_col_en_tn_wa_col_language_book_order_with_no_email() -> None:
                 ],
             },
         )
-        finished_document_path = "en-ulb-wa-col_en-tn-wa-col_language_book_order.pdf"
-        check_finished_document_with_verses_success(response, finished_document_path)
+        check_finished_document_with_verses_success(response)
 
 
 def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_language_book_order() -> None:
@@ -103,10 +106,7 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_language_book_order() -> None:
                 ],
             },
         )
-        finished_document_path = (
-            "en-ulb-wa-col_en-tn-wa-col_en-tq-wa-col_language_book_order.pdf"
-        )
-        check_finished_document_with_verses_success(response, finished_document_path)
+        check_finished_document_with_verses_success(response)
 
 
 def test_en_ulb_wa_tn_wa_jud_language_book_order() -> None:
@@ -134,8 +134,7 @@ def test_en_ulb_wa_tn_wa_jud_language_book_order() -> None:
                 ],
             },
         )
-        finished_document_path = "en-ulb-wa-jud_en-tn-wa-jud_language_book_order.pdf"
-        check_finished_document_with_verses_success(response, finished_document_path)
+        check_finished_document_with_verses_success(response)
 
 
 def test_ar_nav_jud_language_book_order() -> None:
@@ -159,11 +158,8 @@ def test_ar_nav_jud_language_book_order() -> None:
                 ],
             },
         )
-        finished_document_path = "ar-nav-jud_language_book_order.pdf"
         with pytest.raises(Exception):
-            check_finished_document_with_verses_success(
-                response, finished_document_path
-            )
+            check_finished_document_with_verses_success(response)
 
 
 def test_pt_br_ulb_tn_language_book_order() -> None:
@@ -191,8 +187,7 @@ def test_pt_br_ulb_tn_language_book_order() -> None:
                 ],
             },
         )
-        finished_document_path = "pt-br-ulb-gen_pt-br-tn-gen_language_book_order.pdf"
-        check_finished_document_with_verses_success(response, finished_document_path)
+        check_finished_document_with_verses_success(response)
 
 
 def test_pt_br_ulb_tn_en_ulb_wa_tn_wa_luk_language_book_order() -> None:
@@ -230,8 +225,7 @@ def test_pt_br_ulb_tn_en_ulb_wa_tn_wa_luk_language_book_order() -> None:
                 ],
             },
         )
-        finished_document_path = "pt-br-ulb-luk_pt-br-tn-luk_en-ulb-wa-luk_en-tn-wa-luk_language_book_order.pdf"
-        check_finished_document_with_verses_success(response, finished_document_path)
+        check_finished_document_with_verses_success(response)
 
 
 def test_pt_br_ulb_tn_luk_en_ulb_wa_tn_wa_luk_sw_ulb_tn_col_language_book_order() -> None:
@@ -275,8 +269,7 @@ def test_pt_br_ulb_tn_luk_en_ulb_wa_tn_wa_luk_sw_ulb_tn_col_language_book_order(
                 ],
             },
         )
-        finished_document_path = "pt-br-ulb-luk_pt-br-tn-luk_en-ulb-wa-luk_en-tn-wa-luk_sw-ulb-col_sw-tn-col_language_book_order.pdf"
-        check_finished_document_with_verses_success(response, finished_document_path)
+        check_finished_document_with_verses_success(response)
 
 
 def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_col_sw_tq_col_sw_tw_col_sw_ulb_tit_sw_tn_tit_sw_tq_tit_sw_tw_tit_language_book_order() -> None:
@@ -345,8 +338,7 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_c
                 ],
             },
         )
-        finished_document_path = "en-ulb-wa-col_en-tn-wa-col_en-tq-wa-col_en-tw-wa-col_sw-ulb-col_sw-tn-col_sw-tq-col_sw-tw-col_sw-tn-tit_sw-tq-tit_sw-tw-tit_language_book_order.pdf"
-        check_finished_document_with_verses_success(response, finished_document_path)
+        check_finished_document_with_verses_success(response)
 
 
 def test_en_ulb_wa_col_en_tn_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_col_sw_tw_col_sw_ulb_tit_sw_tn_tit_sw_tw_tit_language_book_order() -> None:
@@ -405,8 +397,7 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_col_sw_tw_col_
                 ],
             },
         )
-        finished_document_path = "en-ulb-wa-col_en-tn-wa-col_en-tw-wa-col_sw-ulb-col_sw-tn-col_sw-tw-col_sw-ulb-tit_sw-tn-tit_sw-tw-tit_language_book_order.pdf"
-        check_finished_document_with_verses_success(response, finished_document_path)
+        check_finished_document_with_verses_success(response)
 
 
 def test_en_ulb_wa_col_en_tw_wa_col_sw_ulb_col_sw_tw_col_sw_ulb_tit_sw_tw_tit_language_book_order() -> None:
@@ -450,8 +441,7 @@ def test_en_ulb_wa_col_en_tw_wa_col_sw_ulb_col_sw_tw_col_sw_ulb_tit_sw_tw_tit_la
                 ],
             },
         )
-        finished_document_path = "en-ulb-wa-col_en-tw-wa-col_sw-ulb-col_sw-tw-col_sw-ulb-tit_sw-tw-tit_language_book_order.pdf"
-        check_finished_document_with_verses_success(response, finished_document_path)
+        check_finished_document_with_verses_success(response)
 
 
 def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_sw_ulb_tit_sw_tq_tit_sw_tw_tit_language_book_order() -> None:
@@ -510,8 +500,7 @@ def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_
                 ],
             },
         )
-        finished_document_path = "en-ulb-wa-col_en-tq-wa-col_en-tw-wa-col_sw-ulb-col_sw-tq-col_sw-tw-col_sw-ulb-tit_sw-tq-tit_sw-tw-tit_language_book_order.pdf"
-        check_finished_document_with_verses_success(response, finished_document_path)
+        check_finished_document_with_verses_success(response)
 
 
 def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_zh_cuv_tit_sw_tq_tit_sw_tw_tit_language_book_order() -> None:
@@ -574,8 +563,7 @@ def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_
                 ],
             },
         )
-        finished_document_path = "en-ulb-wa-col_en-tq-wa-col_en-tw-wa-col_sw-ulb-col_sw-tq-col_sw-tw-col_zh-cuv-tit_sw-tq-tit_sw-tw-tit_language_book_order.pdf"
-        check_finished_document_with_verses_success(response, finished_document_path)
+        check_finished_document_with_verses_success(response)
 
 
 ###################################################################
@@ -664,8 +652,7 @@ def test_zh_cuv_jol_zh_tn_jol_language_book_order() -> None:
                 ],
             },
         )
-        finished_document_path = "zh-cuv-jol_zh-tn-jol_language_book_order.pdf"
-        check_finished_document_with_verses_success(response, finished_document_path)
+        check_finished_document_with_verses_success(response)
 
 
 def test_zh_cuv_jol_zh_tn_jol_zh_tq_jol_zh_tw_jol_language_book_order() -> None:
@@ -703,10 +690,7 @@ def test_zh_cuv_jol_zh_tn_jol_zh_tq_jol_zh_tw_jol_language_book_order() -> None:
                 ],
             },
         )
-        finished_document_path = (
-            "zh-cuv-jol_zh-tn-jol_zh-tq-jol_zh-tw-jol_language_book_order.pdf"
-        )
-        check_finished_document_with_verses_success(response, finished_document_path)
+        check_finished_document_with_verses_success(response)
 
 
 def test_pt_br_ulb_luk_pt_br_tn_luk_language_book_order() -> None:
@@ -734,5 +718,4 @@ def test_pt_br_ulb_luk_pt_br_tn_luk_language_book_order() -> None:
                 ],
             },
         )
-        finished_document_path = "pt-br-ulb-luk_pt-br-tn-luk_language_book_order.pdf"
-        check_finished_document_with_verses_success(response, finished_document_path)
+        check_finished_document_with_verses_success(response)

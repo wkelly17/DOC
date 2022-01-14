@@ -36,6 +36,8 @@ COMMASPACE = ", "
 HYPHEN = "-"
 UNDERSCORE = "_"
 
+MAX_FILENAME_LENGTH = 240
+
 
 def resource_book_content_units(
     found_resource_lookup_dtos: Iterable[model.ResourceLookupDto],
@@ -77,14 +79,25 @@ def resource_book_content_units(
 def document_request_key(
     resource_requests: Sequence[model.ResourceRequest],
     assembly_strategy_kind: model.AssemblyStrategyEnum,
+    max_filename_len: int = MAX_FILENAME_LENGTH,
 ) -> str:
     """
     Create and return the document_request_key. The
     document_request_key uniquely identifies a document request.
+
+    If the document request key is max_filename_len or more characters
+    in length, then switch to using a shorter string that is based on the
+    current time. The reason for this is that the document request key is
+    used as the file name (with suffix appended) and each OS has a limit
+    to how long a file name may be. max_filename_len should make room for
+    the a file suffix, e.g., ".html", to be appended.
+
+    It is really useful to have filenames with semantic meaning and so
+    those are preferred when possible, i.e., when the file name is not
+    too long.
     """
-    document_request_key = ""
-    for resource_request in resource_requests:
-        document_request_key += (
+    resource_request_keys = UNDERSCORE.join(
+        [
             HYPHEN.join(
                 [
                     resource_request.lang_code,
@@ -92,9 +105,22 @@ def document_request_key(
                     resource_request.resource_code,
                 ]
             )
-            + UNDERSCORE
-        )
-    return "{}_{}".format(document_request_key[:-1], assembly_strategy_kind)
+            for resource_request in resource_requests
+        ]
+    )
+    document_request_key = "{}_{}".format(resource_request_keys, assembly_strategy_kind)
+    if len(document_request_key) >= max_filename_len:
+        # Likely the generated filename was too long for the OS where this is
+        # running. In that case, use the current time as a document_request_key
+        # value as doing so results in an acceptably short length.
+        import time
+
+        timestamp_components = str(time.time()).split(".")
+        return "{}_{}".format(timestamp_components[0], timestamp_components[1])
+    else:
+        # Use the semantic filename which declaratively describes the
+        # document request components.
+        return document_request_key
 
 
 def template_path(
