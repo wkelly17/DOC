@@ -16,6 +16,7 @@ at least 66 resource_codes.
 
 There are a few different assembly strategies available.
 
+
 In this way, the API can produce multi-language, multi-book,
 multi-resource PDFs assembled according to the resources and assembly
 strategy combinations chosen.
