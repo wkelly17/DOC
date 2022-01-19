@@ -73,7 +73,7 @@ ENV PYTHONPATH=/backend:/tests
 # To run the tests do: docker-compose build --build-arg run_tests=1
 # Make RUN_TESTS in .env and referenced in docker-compose.yml
 # available here.
-ARG RUN_TESTS
+ARG RUN_TESTS=false
 RUN if [ "$RUN_TESTS" = "true" ] ; then IN_CONTAINER=true pytest /tests/ ; else echo You have chosen to skip the test suite ; fi
 
 # What gets run when 'docker-compose run backend' is executed.
