@@ -15,8 +15,8 @@ jobs:
         shell: bash
         run: docker build .
 
-  #build and push image
-  push:
+  #build and publish image
+  publish:
 
     runs-on: ubuntu-20.04
     if: github.event_name == 'push'
@@ -37,6 +37,6 @@ jobs:
           DOCKER_USERNAME: ${{ secrets.DOCKER_HUB_USER }}
         run: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
         
-      - name: Push image
+      - name: Docker push image
         run: |
           docker push -a wycliffeassociates/doc
