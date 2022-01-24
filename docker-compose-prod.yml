@@ -26,7 +26,7 @@ services:
   frontend:
     image: wycliffeassociates/doc-ui:${IMAGE_TAG}
     ports:
-      - 8001:8000
+      - "8001:80"
     depends_on:
       - api
     restart: unless-stopped
