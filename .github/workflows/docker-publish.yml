@@ -11,9 +11,13 @@ jobs:
       - uses: actions/checkout@v2
       - uses: FranzDiebold/github-env-vars-action@v1.3.0
 
-      - name: Build web image
+      - name: Build api image
         shell: bash
         run: docker build .
+
+      - name: Build UI image
+        shell: bash
+        run: docker build ./frontend
 
   #build and publish image
   publish:
@@ -26,9 +30,13 @@ jobs:
       - uses: actions/checkout@v2
       - uses: FranzDiebold/github-env-vars-action@v1.3.0
 
-      - name: Build web image
+      - name: Build api image
         shell: bash
         run: docker build -t wycliffeassociates/doc:$GITHUB_SHA -t wycliffeassociates/doc:$GITHUB_REF_NAME -t wycliffeassociates/doc:latest .
+
+      - name: Build UI image
+        shell: bash
+        run: docker build -t wycliffeassociates/doc-ui:$GITHUB_SHA -t wycliffeassociates/doc-ui:$GITHUB_REF_NAME -t wycliffeassociates/doc-ui:latest ./frontend
 
       - name: Log into registry
         shell: bash
@@ -37,6 +45,10 @@ jobs:
           DOCKER_USERNAME: ${{ secrets.DOCKER_HUB_USER }}
         run: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
         
-      - name: Docker push image
+      - name: Docker push api image
         run: |
           docker push -a wycliffeassociates/doc
+
+      - name: Docker push ui image
+        run: |
+          docker push -a wycliffeassociates/doc-ui
