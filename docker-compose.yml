@@ -1,38 +1,38 @@
 version: "3"
 services:
-  backend:
-    container_name: backend
+  api:
+    image: wycliffeassociates/doc:${IMAGE_TAG}
     env_file:
       - .env
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        # These come from .env
-        WKHTMLTOX_LOC: ${WKHTMLTOX_LOC}
-        RUN_TESTS: ${RUN_TESTS}
-        PORT: ${PORT}
-    volumes:
-      # Map to ./docker_pdf_output host directory in order to be able
-      # to view generated PDFs in the host file system.
-      - ./docker_pdf_output:/pdf_output
+    environment:
+      FROM_EMAIL_ADDRESS: ${FROM_EMAIL_ADDRESS}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      TO_EMAIL_ADDRESS: ${TO_EMAIL_ADDRESS}
+      SMTP_HOST: ${SMTP_HOST}
+      SEND_EMAIL: ${SEND_EMAIL}
+      TRANSLATIONS_JSON_LOCATION: ${TRANSLATIONS_JSON_LOCATION}
     ports:
       - 5005:5005
-    networks:
-      - local-net
+    volumes:
+      - ./docker_pdf_output:/pdf_output
+    restart: unless-stopped
+  fileserver:
+    build: ./web
+    ports:
+      - 8089:80
+    volumes:
+      - docker_pdf_output:/srv/content
+    restart: unless-stopped
   frontend:
-    container_name: frontend
+    image: wycliffeassociates/doc-ui:${IMAGE_TAG}
     build:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - 8000:8000
-    networks:
-      - local-net
+      - 8001:80
     depends_on:
-      - backend
+      - api
+    restart: unless-stopped
 
-# Network bridge for communication between containers
-networks:
-  local-net:
-    driver: bridge
+volumes:
+  docker_pdf_output:

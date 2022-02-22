@@ -6,7 +6,7 @@ import os
 import pathlib
 import re
 import time
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from glob import glob
 from typing import Optional
 
@@ -27,7 +27,9 @@ H1, H2, H3, H4 = "h1", "h2", "h3", "h4"
 
 
 def attempt_asset_content_rescue(
-    resource_dir: str, resource_lookup_dto: model.ResourceLookupDto
+    resource_dir: str,
+    resource_lookup_dto: model.ResourceLookupDto,
+    bible_book_names: Mapping[str, str] = bible_books.BOOK_NAMES,
 ) -> str:
     """
     Attempt to assemble and construct parseable USFM content for USFM
@@ -49,7 +51,7 @@ def attempt_asset_content_rescue(
     )
     markdown_content.append("\ide UTF-8\n")
     markdown_content.append(
-        "\h {}\n".format(bible_books.BOOK_NAMES[resource_lookup_dto.resource_code])
+        "\h {}\n".format(bible_book_names[resource_lookup_dto.resource_code])
     )
     for chapter_dir in sorted(subdirs, key=lambda dir_entry: dir_entry.name):
         # Get verses for chapter
@@ -94,6 +96,9 @@ def asset_content(
     resource_lookup_dto: model.ResourceLookupDto,
     resource_dir: str,
     output_dir: str = settings.output_dir(),
+    usfm_glob_fmt_str: str = "{}**/*.usfm",
+    usfm_ending_in_txt_glob_fmt_str: str = "{}**/*.txt",
+    usfm_ending_in_txt_in_subdirectoy_glob_fmt_str: str = "{}**/**/*.txt",
 ) -> str:
     """
     Gather and parse USFM content into HTML content and return the
@@ -109,13 +114,15 @@ def asset_content(
     # This frees us from some of the brittleness of using manifests
     # to find files. Some resources do not provide a manifest
     # anyway.
-    usfm_content_files = glob("{}**/*.usfm".format(resource_dir))
+    usfm_content_files = glob(usfm_glob_fmt_str.format(resource_dir))
     if not usfm_content_files:
         # USFM files sometimes have txt suffix instead of usfm
-        txt_content_files = glob("{}**/*.txt".format(resource_dir))
+        txt_content_files = glob(usfm_ending_in_txt_glob_fmt_str.format(resource_dir))
         # Sometimes the txt USFM files live at another location
         if not txt_content_files:
-            txt_content_files = glob("{}**/**/*.txt".format(resource_dir))
+            txt_content_files = glob(
+                usfm_ending_in_txt_in_subdirectoy_glob_fmt_str.format(resource_dir)
+            )
 
     # If desired, in the case where a manifest must be consulted
     # to determine if the file is considered usable, i.e.,
@@ -174,7 +181,7 @@ def asset_content(
             resource_filename_,
         )
         # Read the HTML file into _content.
-        html_file = "{}.html".format(os.path.join(output_dir, resource_filename_))
+        html_file = os.path.join(output_dir, "{}.html".format(resource_filename_))
         assert os.path.exists(html_file)
         html_content = file_utils.read_file(html_file)
     return html_content
@@ -214,35 +221,38 @@ def usfm_book_content(
     resource_lookup_dto: model.ResourceLookupDto,
     resource_dir: str,
     resource_requests: Sequence[model.ResourceRequest],
+    h2: str = H2,
+    bs_parser_type: str = "html.parser",
+    css_attribute_type: str = "class",
 ) -> model.USFMBook:
     html_content = asset_content(resource_lookup_dto, resource_dir)
-    parser = bs4.BeautifulSoup(html_content, "html.parser")
+    parser = bs4.BeautifulSoup(html_content, bs_parser_type)
 
-    chapter_breaks = parser.find_all(H2, attrs={"class": "c-num"})
+    chapter_breaks = parser.find_all(h2, attrs={css_attribute_type: "c-num"})
     localized_chapter_heading = chapter_breaks[0].get_text().split()[0]
     chapters: dict[model.ChapterNum, model.USFMChapter] = {}
     for chapter_break in chapter_breaks:
         chapter_num = int(chapter_break.get_text().split()[1])
         chapter_content = html_parsing_utils.tag_elements_between(
             parser.find(
-                H2,
+                h2,
                 text="{} {}".format(localized_chapter_heading, chapter_num),
             ),
             parser.find(
-                H2,
+                h2,
                 text="{} {}".format(localized_chapter_heading, chapter_num + 1),
             ),
         )
         chapter_content = [str(tag) for tag in list(chapter_content)]
         chapter_content_parser = bs4.BeautifulSoup(
             "".join(chapter_content),
-            "html.parser",
+            bs_parser_type,
         )
         chapter_verse_tags = chapter_content_parser.find_all(
-            "span", attrs={"class": "v-num"}
+            "span", attrs={css_attribute_type: "v-num"}
         )
         chapter_footnote_tag = chapter_content_parser.find(
-            "div", attrs={"class": "footnotes"}
+            "div", attrs={css_attribute_type: "footnotes"}
         )
         chapter_footnotes = (
             model.HtmlContent(str(chapter_footnote_tag))
@@ -290,6 +300,8 @@ def verse_num_and_verse_content_str(
     verse_element: str,
     pattern: str = settings.VERSE_ANCHOR_ID_FMT_STR,
     format_str: str = settings.VERSE_ANCHOR_ID_SUBSTITUTION_FMT_STR,
+    num_zeros: int = 3,
+    css_attribute_type: str = "class",
 ) -> tuple[str, model.HtmlContent]:
     """
     Handle some messy initialization and return the
@@ -329,25 +341,25 @@ def verse_num_and_verse_content_str(
     # Create the lower and upper search bounds for the
     # BeautifulSoup HTML parser.
     lower_id = "{}-ch-{}-v-{}".format(
-        str(book_number).zfill(3),
-        str(chapter_num).zfill(3),
-        verse_num.zfill(3),
+        str(book_number).zfill(num_zeros),
+        str(chapter_num).zfill(num_zeros),
+        verse_num.zfill(num_zeros),
     )
     upper_id = "{}-ch-{}-v-{}".format(
-        str(book_number).zfill(3),
-        str(chapter_num).zfill(3),
-        str(upper_bound_value).zfill(3),
+        str(book_number).zfill(num_zeros),
+        str(chapter_num).zfill(num_zeros),
+        str(upper_bound_value).zfill(num_zeros),
     )
     # Using the upper and lower parse a verse worth of HTML
     # content.
 
     lower_tag = chapter_content_parser.find(
         "span",
-        attrs={"class": "v-num", "id": lower_id},
+        attrs={css_attribute_type: "v-num", "id": lower_id},
     )
     upper_tag = chapter_content_parser.find(
         "span",
-        attrs={"class": "v-num", "id": upper_id},
+        attrs={css_attribute_type: "v-num", "id": upper_id},
     )
     verse_content_tags = html_parsing_utils.tag_elements_between(
         lower_tag,
@@ -370,6 +382,14 @@ def tn_book_content(
     resource_lookup_dto: model.ResourceLookupDto,
     resource_dir: str,
     resource_requests: Sequence[model.ResourceRequest],
+    chapter_dirs_glob_fmt_str: str = "{}/**/*{}/*[0-9]*",
+    chapter_dirs_glob_alt_fmt_str: str = "{}/*{}/*[0-9]*",
+    intro_paths_glob_fmt_str: str = "{}/*intro.md",
+    intro_paths_glob_alt_fmt_str: str = "{}/*intro.txt",
+    verse_paths_glob_fmt_str: str = "{}/*[0-9]*.md",
+    verse_paths_glob_alt_fmt_str: str = "{}/*[0-9]*.txt",
+    book_intro_paths_glob_fmt_str: str = "{}/*{}/front/intro.md",
+    book_intro_paths_glob_alt_fmt_str: str = "{}/*{}/front/intro.txt",
 ) -> model.TNBook:
     # Initialize the Python-Markdown extensions that get invoked
     # when md.convert is called.
@@ -380,7 +400,7 @@ def tn_book_content(
     )
     chapter_dirs = sorted(
         glob(
-            "{}/**/*{}/*[0-9]*".format(
+            chapter_dirs_glob_fmt_str.format(
                 resource_dir,
                 resource_lookup_dto.resource_code,
             )
@@ -392,7 +412,7 @@ def tn_book_content(
     if not chapter_dirs:
         chapter_dirs = sorted(
             glob(
-                "{}/*{}/*[0-9]*".format(
+                chapter_dirs_glob_alt_fmt_str.format(
                     resource_dir,
                     resource_lookup_dto.resource_code,
                 )
@@ -401,22 +421,22 @@ def tn_book_content(
     chapter_verses: dict[int, model.TNChapter] = {}
     for chapter_dir in chapter_dirs:
         chapter_num = int(os.path.split(chapter_dir)[-1])
-        intro_paths = glob("{}/*intro.md".format(chapter_dir))
+        intro_paths = glob(intro_paths_glob_fmt_str.format(chapter_dir))
         # For some languages, TN assets are stored in .txt files
         # rather than .md files.
         if not intro_paths:
-            intro_paths = glob("{}/*intro.txt".format(chapter_dir))
+            intro_paths = glob(intro_paths_glob_alt_fmt_str.format(chapter_dir))
         intro_path = intro_paths[0] if intro_paths else None
         intro_md = ""
         intro_html = ""
         if intro_path:
             intro_md = file_utils.read_file(intro_path)
             intro_html = md.convert(intro_md)
-        verse_paths = sorted(glob("{}/*[0-9]*.md".format(chapter_dir)))
+        verse_paths = sorted(glob(verse_paths_glob_fmt_str.format(chapter_dir)))
         # For some languages, TN assets are stored in .txt files
         # rather than .md files.
         if not verse_paths:
-            verse_paths = sorted(glob("{}/*[0-9]*.txt".format(chapter_dir)))
+            verse_paths = sorted(glob(verse_paths_glob_alt_fmt_str.format(chapter_dir)))
         verses_html: dict[int, str] = {}
         for filepath in verse_paths:
             verse_num = int(pathlib.Path(filepath).stem)
@@ -427,7 +447,7 @@ def tn_book_content(
         chapter_verses[chapter_num] = chapter_payload
     # Get the book intro if it exists
     book_intro_path = glob(
-        "{}/*{}/front/intro.md".format(
+        book_intro_paths_glob_fmt_str.format(
             resource_dir,
             resource_lookup_dto.resource_code,
         )
@@ -436,7 +456,7 @@ def tn_book_content(
     # rather of .md files.
     if not book_intro_path:
         book_intro_path = glob(
-            "{}/*{}/front/intro.txt".format(
+            book_intro_paths_glob_alt_fmt_str.format(
                 resource_dir, resource_lookup_dto.resource_code
             )
         )
@@ -458,6 +478,9 @@ def tq_book_content(
     resource_lookup_dto: model.ResourceLookupDto,
     resource_dir: str,
     resource_requests: Sequence[model.ResourceRequest],
+    chapter_dirs_glob_fmt_str: str = "{}/**/*{}/*[0-9]*",
+    chapter_dirs_glob_alt_fmt_str: str = "{}/*{}/*[0-9]*",
+    verse_paths_glob_fmt_str: str = "{}/*[0-9]*.md",
 ) -> model.TQBook:
     # Create the Markdown instance once and have it use our markdown
     # extensions.
@@ -468,7 +491,9 @@ def tq_book_content(
     )
     chapter_dirs = sorted(
         glob(
-            "{}/**/*{}/*[0-9]*".format(resource_dir, resource_lookup_dto.resource_code)
+            chapter_dirs_glob_fmt_str.format(
+                resource_dir, resource_lookup_dto.resource_code
+            )
         )
     )
     # Some languages are organized differently on disk (e.g., depending
@@ -477,13 +502,15 @@ def tq_book_content(
     if not chapter_dirs:
         chapter_dirs = sorted(
             glob(
-                "{}/*{}/*[0-9]*".format(resource_dir, resource_lookup_dto.resource_code)
+                chapter_dirs_glob_alt_fmt_str.format(
+                    resource_dir, resource_lookup_dto.resource_code
+                )
             )
         )
     chapter_verses: dict[int, model.TQChapter] = {}
     for chapter_dir in chapter_dirs:
         chapter_num = int(os.path.split(chapter_dir)[-1])
-        verse_paths = sorted(glob("{}/*[0-9]*.md".format(chapter_dir)))
+        verse_paths = sorted(glob(verse_paths_glob_fmt_str.format(chapter_dir)))
         # NOTE For some languages, TN assets may be stored in .txt files
         # rather of .md files. Though I have not yet seen this, this
         # may also be true of TQ assets. If it is, then the following
@@ -510,6 +537,10 @@ def tw_book_content(
     resource_lookup_dto: model.ResourceLookupDto,
     resource_dir: str,
     resource_requests: Sequence[model.ResourceRequest],
+    h1: str = H1,
+    h2: str = H2,
+    h3: str = H3,
+    h4: str = H4,
 ) -> model.TWBook:
     # Create the Markdown instance once and have it use our markdown
     # extensions.
@@ -536,8 +567,8 @@ def tw_book_content(
         )
         html_word_content = md.convert(translation_word_content)
         # Make adjustments to the HTML here.
-        html_word_content = re.sub(H2, H4, html_word_content)
-        html_word_content = re.sub(H1, H3, html_word_content)
+        html_word_content = re.sub(h2, h4, html_word_content)
+        html_word_content = re.sub(h1, h3, html_word_content)
         name_content_pairs.append(
             model.TWNameContentPair(
                 localized_word=localized_translation_word, content=html_word_content

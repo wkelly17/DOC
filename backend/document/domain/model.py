@@ -7,15 +7,14 @@ validation and JSON serialization.
 
 from enum import Enum
 from collections.abc import Sequence
-from typing import NewType, Optional, Union, final
+from typing import Optional, Union, final
 
 from pydantic import AnyUrl, BaseModel, EmailStr
 
 # These Type Aliases give us more self-documenting code, but of course
 # aren't strictly necessary.
 HtmlContent = str
-# MarkdownContent = str
-MarkdownContent = NewType("MarkdownContent", str)
+MarkdownContent = str
 VerseRef = str
 ChapterNum = int
 

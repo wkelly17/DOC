@@ -95,6 +95,7 @@ def _english_git_repo_location(
     resource_code: str,
     url: str,
     resource_type_name: str,
+    asset_source_enum_kind: str = model.AssetSourceEnum.GIT,
 ) -> model.ResourceLookupDto:
     """Return a model.ResourceLookupDto."""
     return model.ResourceLookupDto(
@@ -102,7 +103,7 @@ def _english_git_repo_location(
         resource_type=resource_type,
         resource_code=resource_code,
         url=url,
-        source=model.AssetSourceEnum.GIT,
+        source=asset_source_enum_kind,
         jsonpath=None,
         lang_name="English",
         resource_type_name=resource_type_name,
@@ -129,14 +130,10 @@ def _location(
     # format='Download' that is parallel to the
     # individual, per book, USFM files.
     #
-    # There is at least one language, code='ar', that has only
-    # single USFM files. In that particular language all the
-    # individual USFM files per book can also be found in a zip
-    # file,
-    # $[?code='ar'].contents[?code='nav'].links[format='zip'],
-    # which also contains the manifest.yaml file.
-    # That language is the only one with a
-    # contents[?code='nav'].
+    # There is at least one language, code='ar', that has only single USFM
+    # files. In that particular language, and others like it, all the
+    # individual USFM files per book can also be found in a zip file,
+    # $[?code='ar'].contents[?code='nav'].links[format='zip'].
     #
     # Another, yet different, example is the case of
     # $[?code="avd"] which has format="usfm" without
@@ -190,7 +187,17 @@ def english_git_repo_url(
 
 
 def usfm_resource_lookup(
-    lang_code: str, resource_type: str, resource_code: str
+    lang_code: str,
+    resource_type: str,
+    resource_code: str,
+    individual_usfm_url_jsonpath_fmt_str: str = settings.INDIVIDUAL_USFM_URL_JSONPATH,
+    resource_lang_name_jsonpath_fmt_str: str = settings.RESOURCE_LANG_NAME_JSONPATH,
+    resource_type_name_jsonpath_fmt_str: str = settings.RESOURCE_TYPE_NAME_JSONPATH,
+    asset_source_enum_usfm_kind: str = model.AssetSourceEnum.USFM,
+    asset_source_enum_git_kind: str = model.AssetSourceEnum.GIT,
+    asset_source_enum_zip_kind: str = model.AssetSourceEnum.ZIP,
+    resource_download_format_jsonpath_fmt_str: str = settings.RESOURCE_DOWNLOAD_FORMAT_JSONPATH,
+    resource_url_level1_jsonpath_fmt_str: str = settings.RESOURCE_URL_LEVEL1_JSONPATH,
 ) -> model.ResourceLookupDto:
     """
     Given a resource, comprised of language code, e.g., 'en', a
@@ -219,16 +226,16 @@ def usfm_resource_lookup(
         lang_code,
         resource_type,
         resource_code,
-        jsonpath_str=settings.INDIVIDUAL_USFM_URL_JSONPATH.format(
+        jsonpath_str=individual_usfm_url_jsonpath_fmt_str.format(
             lang_code,
             resource_type,
             resource_code,
         ),
-        lang_name_jsonpath_str=settings.RESOURCE_LANG_NAME_JSONPATH.format(lang_code),
-        resource_type_name_jsonpath_str=settings.RESOURCE_TYPE_NAME_JSONPATH.format(
+        lang_name_jsonpath_str=resource_lang_name_jsonpath_fmt_str.format(lang_code),
+        resource_type_name_jsonpath_str=resource_type_name_jsonpath_fmt_str.format(
             lang_code, resource_type
         ),
-        asset_source_enum_kind=model.AssetSourceEnum.USFM,
+        asset_source_enum_kind=asset_source_enum_usfm_kind,
     )
 
     # Individual USFM file was not available, now try getting it
@@ -238,18 +245,18 @@ def usfm_resource_lookup(
             lang_code,
             resource_type,
             resource_code,
-            jsonpath_str=settings.RESOURCE_DOWNLOAD_FORMAT_JSONPATH.format(
+            jsonpath_str=resource_download_format_jsonpath_fmt_str.format(
                 lang_code,
                 resource_type,
                 resource_code,
             ),
-            lang_name_jsonpath_str=settings.RESOURCE_LANG_NAME_JSONPATH.format(
+            lang_name_jsonpath_str=resource_lang_name_jsonpath_fmt_str.format(
                 lang_code
             ),
-            resource_type_name_jsonpath_str=settings.RESOURCE_TYPE_NAME_JSONPATH.format(
+            resource_type_name_jsonpath_str=resource_type_name_jsonpath_fmt_str.format(
                 lang_code, resource_type
             ),
-            asset_source_enum_kind=model.AssetSourceEnum.GIT,
+            asset_source_enum_kind=asset_source_enum_git_kind,
             url_parsing_fn=_parse_repo_url,
         )
 
@@ -258,17 +265,17 @@ def usfm_resource_lookup(
             lang_code,
             resource_type,
             resource_code,
-            jsonpath_str=settings.RESOURCE_URL_LEVEL1_JSONPATH.format(
+            jsonpath_str=resource_url_level1_jsonpath_fmt_str.format(
                 lang_code,
                 resource_type,
             ),
-            lang_name_jsonpath_str=settings.RESOURCE_LANG_NAME_JSONPATH.format(
+            lang_name_jsonpath_str=resource_lang_name_jsonpath_fmt_str.format(
                 lang_code
             ),
-            resource_type_name_jsonpath_str=settings.RESOURCE_TYPE_NAME_JSONPATH.format(
+            resource_type_name_jsonpath_str=resource_type_name_jsonpath_fmt_str.format(
                 lang_code, resource_type
             ),
-            asset_source_enum_kind=model.AssetSourceEnum.ZIP,
+            asset_source_enum_kind=asset_source_enum_zip_kind,
         )
 
     return resource_lookup_dto
@@ -795,11 +802,17 @@ def update_resource_dir(lang_code: str, resource_type: str) -> str:
     return resource_dir
 
 
-def is_zip(resource_source: model.AssetSourceEnum) -> bool:
+def is_zip(
+    resource_source: model.AssetSourceEnum,
+    asset_source_enum_kind: str = model.AssetSourceEnum.ZIP,
+) -> bool:
     """Return true if resource_source is equal to 'zip'."""
-    return resource_source == model.AssetSourceEnum.ZIP
+    return resource_source == asset_source_enum_kind
 
 
-def is_git(resource_source: model.AssetSourceEnum) -> bool:
+def is_git(
+    resource_source: model.AssetSourceEnum,
+    asset_source_enum_kind: str = model.AssetSourceEnum.GIT,
+) -> bool:
     """Return true if resource_source is equal to 'git'."""
-    return resource_source == model.AssetSourceEnum.GIT
+    return resource_source == asset_source_enum_kind

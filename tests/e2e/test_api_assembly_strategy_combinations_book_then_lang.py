@@ -896,6 +896,85 @@ def test_gu_ulb_mrk_gu_tn_mrk_gu_tq_mrk_gu_tw_mrk_gu_udb_mrk_book_language_order
         check_finished_document_with_verses_success(response)
 
 
+def test_ceb_ulb_mrk_ceb_tw_mrk_ceb_tq_mrk_ceb_tn_mrk_fr_ulb_mrk_fr_tw_mrk_fr_tq_mrk_fr_tn_mrk_fr_f10_mrk_pt_br_ulb_mrk_pt_br_tw_mrk_pt_br_tq_mrk_pt_br_tn_mrk_book_language_order() -> None:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
+        response: requests.Response = client.post(
+            "/documents",
+            json={
+                "email_address": settings.TO_EMAIL_ADDRESS,
+                "assembly_strategy_kind": "book_language_order",
+                "resource_requests": [
+                    {
+                        "lang_code": "ceb",
+                        "resource_type": "ulb",
+                        "resource_code": "mrk",
+                    },
+                    {
+                        "lang_code": "ceb",
+                        "resource_type": "tw",
+                        "resource_code": "mrk",
+                    },
+                    {
+                        "lang_code": "ceb",
+                        "resource_type": "tq",
+                        "resource_code": "mrk",
+                    },
+                    {
+                        "lang_code": "ceb",
+                        "resource_type": "tn",
+                        "resource_code": "mrk",
+                    },
+                    {
+                        "lang_code": "fr",
+                        "resource_type": "ulb",
+                        "resource_code": "mrk",
+                    },
+                    {
+                        "lang_code": "fr",
+                        "resource_type": "tw",
+                        "resource_code": "mrk",
+                    },
+                    {
+                        "lang_code": "fr",
+                        "resource_type": "tq",
+                        "resource_code": "mrk",
+                    },
+                    {
+                        "lang_code": "fr",
+                        "resource_type": "tn",
+                        "resource_code": "mrk",
+                    },
+                    {
+                        "lang_code": "fr",
+                        "resource_type": "f10",
+                        "resource_code": "mrk",
+                    },
+                    {
+                        "lang_code": "pt-br",
+                        "resource_type": "ulb",
+                        "resource_code": "mrk",
+                    },
+                    {
+                        "lang_code": "pt-br",
+                        "resource_type": "tw",
+                        "resource_code": "mrk",
+                    },
+                    {
+                        "lang_code": "pt-br",
+                        "resource_type": "tq",
+                        "resource_code": "mrk",
+                    },
+                    {
+                        "lang_code": "pt-br",
+                        "resource_type": "tn",
+                        "resource_code": "mrk",
+                    },
+                ],
+            },
+        )
+        check_finished_document_with_verses_success(response)
+
+
 def test_mr_ulb_mrk_mr_tn_mrk_mr_tq_mrk_mr_tw_mrk_mr_udb_mrk_book_language_order() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(

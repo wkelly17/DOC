@@ -101,19 +101,11 @@ class Settings(BaseSettings):
 
     # Get API prefix. Useful to have a prefix for versioning of the API.
     # TODO Consider using API_ROOT in router prefix
-    API_ROOT: str
 
     API_LOCAL_PORT: int
-    API_REMOTE_PORT: int
 
     # FIXME HTTPS shouldn't be hardcoded. fastapi will have a sane way
     # to deal with this that I've yet to research.
-    def api_url(self) -> str:
-        """Return the full base URL of the Fastapi server."""
-        host = os.environ.get("API_HOST", "localhost")
-        port = self.API_LOCAL_PORT if host == "localhost" else self.API_REMOTE_PORT
-        root = self.API_ROOT
-        return "https://{}:{}{}".format(host, port, root)
 
     # Location where resource assets will be downloaded.
     RESOURCE_ASSETS_DIR: str = "/working/temp"

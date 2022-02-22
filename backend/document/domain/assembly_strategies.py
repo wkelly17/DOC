@@ -36,7 +36,7 @@ NUM_ZEROS = 3
 # higher level, so-called 'assembly strategies' and lower level,
 # so-called 'sub strategies', assembly strategies.
 
-# FIXME More accurate return type than Any that mypy likes.
+# TODO More accurate return type than Any that mypy likes.
 # NOTE Every return type I tried based on the possible actual return
 # types failed. I also used pyre type checker, pyre-check, to try to
 # unearth a more accurate type and it did find a possible type, but it
@@ -118,7 +118,7 @@ def assembly_sub_strategy_factory(
             True,
             # False,
             True,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_usfm_as_iterator_content_by_verse,
         (
             True,
@@ -127,7 +127,7 @@ def assembly_sub_strategy_factory(
             False,
             # False,
             True,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_usfm_as_iterator_content_by_verse,
         (
             True,
@@ -136,7 +136,7 @@ def assembly_sub_strategy_factory(
             False,
             # False,
             True,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_usfm_as_iterator_content_by_verse,
         (
             True,
@@ -145,7 +145,7 @@ def assembly_sub_strategy_factory(
             True,
             # False,
             True,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_usfm_as_iterator_content_by_verse,
         (
             True,
@@ -154,7 +154,7 @@ def assembly_sub_strategy_factory(
             False,
             # False,
             True,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_usfm_as_iterator_content_by_verse,
         (
             True,
@@ -163,7 +163,7 @@ def assembly_sub_strategy_factory(
             True,
             # False,
             True,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_usfm_as_iterator_content_by_verse,
         (
             True,
@@ -172,7 +172,7 @@ def assembly_sub_strategy_factory(
             True,
             # False,
             True,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_usfm_as_iterator_content_by_verse,
         (
             True,
@@ -181,7 +181,7 @@ def assembly_sub_strategy_factory(
             False,
             # False,
             True,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_usfm_as_iterator_content_by_verse,
         (
             False,
@@ -190,7 +190,7 @@ def assembly_sub_strategy_factory(
             False,
             # False,
             True,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_usfm_as_iterator_content_by_verse,
         # (
         #     True,
@@ -199,7 +199,7 @@ def assembly_sub_strategy_factory(
         #     True,
         #     True,
         #     False,
-        #     model.AssemblySubstrategyEnum.VERSE,
+        #     assembly_substrategy_kind,
         # ): _assemble_usfm_tn_tq_tw_ta_content_by_verse,
         # ): _assemble_usfm_as_iterator_content_by_verse,
         (
@@ -209,7 +209,7 @@ def assembly_sub_strategy_factory(
             True,
             # False,
             False,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_usfm_as_iterator_content_by_verse,
         (
             True,
@@ -218,7 +218,7 @@ def assembly_sub_strategy_factory(
             True,
             # False,
             False,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_usfm_as_iterator_content_by_verse,
         (
             True,
@@ -227,7 +227,7 @@ def assembly_sub_strategy_factory(
             True,
             # False,
             False,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_usfm_tq_tw_content_by_verse,
         (
             True,
@@ -236,7 +236,7 @@ def assembly_sub_strategy_factory(
             True,
             # False,
             False,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_usfm_tw_content_by_verse,
         (
             True,
@@ -245,7 +245,7 @@ def assembly_sub_strategy_factory(
             False,
             # False,
             False,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_usfm_as_iterator_content_by_verse,
         (
             True,
@@ -254,7 +254,7 @@ def assembly_sub_strategy_factory(
             False,
             # False,
             False,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_usfm_tq_content_by_verse,
         (
             True,
@@ -263,7 +263,7 @@ def assembly_sub_strategy_factory(
             False,
             # False,
             False,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_usfm_as_iterator_content_by_verse,
         (
             False,
@@ -272,7 +272,7 @@ def assembly_sub_strategy_factory(
             True,
             # False,
             False,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_tn_as_iterator_content_by_verse,
         (
             False,
@@ -281,7 +281,7 @@ def assembly_sub_strategy_factory(
             True,
             # False,
             False,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_tn_as_iterator_content_by_verse,
         (
             False,
@@ -290,7 +290,7 @@ def assembly_sub_strategy_factory(
             False,
             # False,
             False,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_tn_as_iterator_content_by_verse,
         (
             False,
@@ -299,7 +299,7 @@ def assembly_sub_strategy_factory(
             True,
             # False,
             False,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_tq_tw_content_by_verse,
         (
             False,
@@ -308,7 +308,7 @@ def assembly_sub_strategy_factory(
             True,
             # False,
             False,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_tw_content_by_verse,
         (
             False,
@@ -317,7 +317,7 @@ def assembly_sub_strategy_factory(
             False,
             # False,
             False,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_tq_content_by_verse,
         (
             True,
@@ -326,7 +326,7 @@ def assembly_sub_strategy_factory(
             False,
             # False,
             False,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_usfm_as_iterator_content_by_verse,
         (
             False,
@@ -335,7 +335,7 @@ def assembly_sub_strategy_factory(
             False,
             # False,
             False,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_tn_as_iterator_content_by_verse,
     }
     return strategies[
@@ -412,7 +412,7 @@ def assembly_sub_strategy_factory_for_book_then_lang(
             True,
             True,
             # False,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_usfm_as_iterator_content_by_verse_for_book_then_lang,
         (
             True,
@@ -420,7 +420,7 @@ def assembly_sub_strategy_factory_for_book_then_lang(
             True,
             False,
             # False,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_usfm_as_iterator_content_by_verse_for_book_then_lang,
         (
             True,
@@ -428,7 +428,7 @@ def assembly_sub_strategy_factory_for_book_then_lang(
             False,
             True,
             # False,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_usfm_as_iterator_content_by_verse_for_book_then_lang,
         (
             True,
@@ -436,7 +436,7 @@ def assembly_sub_strategy_factory_for_book_then_lang(
             False,
             False,
             # False,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_usfm_as_iterator_content_by_verse_for_book_then_lang,
         (
             True,
@@ -444,7 +444,7 @@ def assembly_sub_strategy_factory_for_book_then_lang(
             True,
             True,
             # False,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_usfm_as_iterator_content_by_verse_for_book_then_lang,
         (
             True,
@@ -452,7 +452,7 @@ def assembly_sub_strategy_factory_for_book_then_lang(
             True,
             False,
             # False,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_usfm_as_iterator_content_by_verse_for_book_then_lang,
         (
             True,
@@ -460,7 +460,7 @@ def assembly_sub_strategy_factory_for_book_then_lang(
             False,
             True,
             # False,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_usfm_as_iterator_content_by_verse_for_book_then_lang,
         (
             True,
@@ -468,7 +468,7 @@ def assembly_sub_strategy_factory_for_book_then_lang(
             False,
             False,
             # False,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_usfm_as_iterator_content_by_verse_for_book_then_lang,
         (
             False,
@@ -476,7 +476,7 @@ def assembly_sub_strategy_factory_for_book_then_lang(
             True,
             True,
             # False,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_tn_as_iterator_content_by_verse_for_book_then_lang,
         (
             False,
@@ -484,7 +484,7 @@ def assembly_sub_strategy_factory_for_book_then_lang(
             True,
             False,
             # False,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_tn_as_iterator_content_by_verse_for_book_then_lang,
         (
             False,
@@ -492,7 +492,7 @@ def assembly_sub_strategy_factory_for_book_then_lang(
             False,
             True,
             # False,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_tn_as_iterator_content_by_verse_for_book_then_lang,
         (
             False,
@@ -500,7 +500,7 @@ def assembly_sub_strategy_factory_for_book_then_lang(
             False,
             False,
             # False,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_tn_as_iterator_content_by_verse_for_book_then_lang,
         (
             False,
@@ -508,7 +508,7 @@ def assembly_sub_strategy_factory_for_book_then_lang(
             True,
             True,
             # False,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_tq_as_iterator_content_by_verse_for_book_then_lang,
         (
             False,
@@ -516,7 +516,7 @@ def assembly_sub_strategy_factory_for_book_then_lang(
             True,
             False,
             # False,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_tq_as_iterator_content_by_verse_for_book_then_lang,
         (
             False,
@@ -524,7 +524,7 @@ def assembly_sub_strategy_factory_for_book_then_lang(
             False,
             True,
             # False,
-            model.AssemblySubstrategyEnum.VERSE,
+            assembly_substrategy_kind,
         ): assemble_tw_as_iterator_content_by_verse_for_book_then_lang,
     }
     return strategies[
@@ -1173,6 +1173,7 @@ def assemble_tn_as_iterator_content_by_verse(
     chapter_header_fmt_str: str = settings.CHAPTER_HEADER_FMT_STR,
     resource_type_name_with_ref_fmt_str: str = settings.RESOURCE_TYPE_NAME_WITH_REF_FMT_STR,
     book_numbers: Mapping[str, str] = bible_books.BOOK_NUMBERS,
+    num_zeros: int = NUM_ZEROS,
 ) -> Iterable[model.HtmlContent]:
     """
     Construct the HTML for a 'by verse' strategy wherein only TN, TQ,
@@ -1190,8 +1191,8 @@ def assemble_tn_as_iterator_content_by_verse(
             yield model.HtmlContent(
                 chapter_header_fmt_str.format(
                     tn_book_content_unit.lang_code,
-                    book_numbers[tn_book_content_unit.resource_code].zfill(NUM_ZEROS),
-                    str(chapter_num).zfill(NUM_ZEROS),
+                    book_numbers[tn_book_content_unit.resource_code].zfill(num_zeros),
+                    str(chapter_num).zfill(num_zeros),
                     chapter_num,
                 )
             )
@@ -1279,6 +1280,7 @@ def assemble_tq_content_by_verse(
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
     chapter_header_fmt_str: str = settings.CHAPTER_HEADER_FMT_STR,
     book_numbers: Mapping[str, str] = bible_books.BOOK_NUMBERS,
+    num_zeros: int = NUM_ZEROS,
 ) -> Iterable[model.HtmlContent]:
     """Construct the HTML for a 'by verse' strategy wherein only TQ exists."""
     # Make mypy happy. We know, due to how we got here, that book_content_unit objects are not None.
@@ -1291,8 +1293,8 @@ def assemble_tq_content_by_verse(
             yield model.HtmlContent(
                 chapter_header_fmt_str.format(
                     tq_book_content_unit.lang_code,
-                    book_numbers[tq_book_content_unit.resource_code].zfill(NUM_ZEROS),
-                    str(chapter_num).zfill(NUM_ZEROS),
+                    book_numbers[tq_book_content_unit.resource_code].zfill(num_zeros),
+                    str(chapter_num).zfill(num_zeros),
                     chapter_num,
                 )
             )
@@ -1324,6 +1326,7 @@ def assemble_tq_tw_content_by_verse(
     assembly_substrategy_kind: model.AssemblySubstrategyEnum,
     chapter_header_fmt_str: str = settings.CHAPTER_HEADER_FMT_STR,
     book_numbers: Mapping[str, str] = bible_books.BOOK_NUMBERS,
+    num_zeros: int = NUM_ZEROS,
 ) -> Iterable[model.HtmlContent]:
     """
     Construct the HTML for a 'by verse' strategy wherein only TQ and
@@ -1337,8 +1340,8 @@ def assemble_tq_tw_content_by_verse(
             yield model.HtmlContent(
                 chapter_header_fmt_str.format(
                     tq_book_content_unit.lang_code,
-                    book_numbers[tq_book_content_unit.resource_code].zfill(NUM_ZEROS),
-                    str(chapter_num).zfill(NUM_ZEROS),
+                    book_numbers[tq_book_content_unit.resource_code].zfill(num_zeros),
+                    str(chapter_num).zfill(num_zeros),
                     chapter_num,
                 )
             )
@@ -1502,12 +1505,14 @@ def assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
                     yield usfm_book_content_unit.chapters[chapter_num].verses[verse_num]
             yield html_column_end
 
+            # All helps should show up in right column lined up with associated
+            # scripture on the left column. There should only ever be two columns.
+            yield html_column_begin
             # Add the interleaved tn notes
             tn_verses: Optional[dict[str, model.HtmlContent]] = None
             for tn_book_content_unit3 in tn_book_content_units:
                 tn_verses = verses_for_chapter_tn(tn_book_content_unit3, chapter_num)
                 if tn_verses and verse_num in tn_verses:
-                    yield html_column_begin
                     yield from format_tn_verse(
                         tn_book_content_unit3,
                         chapter_num,
@@ -1521,8 +1526,6 @@ def assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
                 tq_verses = verses_for_chapter_tq(tq_book_content_unit, chapter_num)
                 # Add TQ verse content, if any
                 if tq_verses and verse_num in tq_verses:
-                    if not tn_verses:
-                        yield html_column_begin
                     yield from format_tq_verse(
                         tq_book_content_unit.resource_type_name,
                         chapter_num,
@@ -1554,8 +1557,6 @@ def assemble_usfm_as_iterator_content_by_verse_for_book_then_lang(
                     and verse_num
                     in usfm_book_content_unit_.chapters[chapter_num].verses
                 ):
-                    if not tn_verses and not tq_verses:
-                        yield html_column_begin
                     yield from translation_word_links(
                         tw_book_content_unit,
                         chapter_num,
@@ -2000,6 +2001,7 @@ def format_tn_verse(
     verse: model.HtmlContent,
     format_str: str = settings.TN_RESOURCE_TYPE_NAME_WITH_ID_AND_REF_FMT_STR,
     book_numbers: Mapping[str, str] = bible_books.BOOK_NUMBERS,
+    num_zeros: int = NUM_ZEROS,
 ) -> Iterable[model.HtmlContent]:
     """
     This is a slightly different form of TNResource.tn_verse that is used
@@ -2008,9 +2010,9 @@ def format_tn_verse(
     yield model.HtmlContent(
         format_str.format(
             book_content_unit.lang_code,
-            book_numbers[book_content_unit.resource_code].zfill(NUM_ZEROS),
-            str(chapter_num).zfill(NUM_ZEROS),
-            verse_num.zfill(NUM_ZEROS),
+            book_numbers[book_content_unit.resource_code].zfill(num_zeros),
+            str(chapter_num).zfill(num_zeros),
+            verse_num.zfill(num_zeros),
             book_content_unit.resource_type_name,
             chapter_num,
             verse_num,
@@ -2174,6 +2176,7 @@ def uses_section(
     unordered_list_end_str: str = settings.UNORDERED_LIST_END_STR,
     book_numbers: Mapping[str, str] = bible_books.BOOK_NUMBERS,
     book_names: Mapping[str, str] = bible_books.BOOK_NAMES,
+    num_zeros: int = NUM_ZEROS,
 ) -> model.HtmlContent:
     """
     Construct and return the 'Uses:' section which comes at the end of
@@ -2188,9 +2191,9 @@ def uses_section(
         html_content_str = model.HtmlContent(
             translation_word_verse_ref_item_fmt_str.format(
                 use.lang_code,
-                book_numbers[use.book_id].zfill(NUM_ZEROS),
-                str(use.chapter_num).zfill(NUM_ZEROS),
-                str(use.verse_num).zfill(NUM_ZEROS),
+                book_numbers[use.book_id].zfill(num_zeros),
+                str(use.chapter_num).zfill(num_zeros),
+                str(use.verse_num).zfill(num_zeros),
                 book_names[use.book_id],
                 use.chapter_num,
                 use.verse_num,
