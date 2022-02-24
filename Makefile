@@ -23,14 +23,19 @@ endif
 
 .PHONY: build
 build: checkvenv local-update-deps-prod
-	docker-compose build
+	export IMAGE_TAG=local && \
+	docker build -t wycliffeassociates/doc:$${IMAGE_TAG} . && \
+	docker build -t wycliffeassociates/doc-ui:$${IMAGE_TAG} ./frontend
 
 .PHONY: build-no-cache
 build-no-cache: checkvenv
-	docker-compose build --no-cache
+	export IMAGE_TAG=local && \
+	docker build --no-cache -t wycliffeassociates/doc:$${IMAGE_TAG} . && \
+	docker build --no-cache -t wycliffeassociates/doc-ui:$${IMAGE_TAG} ./frontend
 
 .PHONY: up
 up: checkvenv
+	export IMAGE_TAG=local && \
 	docker-compose up -d
 
 # This runs just the backend
