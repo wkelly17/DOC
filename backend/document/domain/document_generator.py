@@ -43,6 +43,7 @@ def resource_book_content_units(
     found_resource_lookup_dtos: Iterable[model.ResourceLookupDto],
     resource_dirs: Iterable[str],
     resource_requests: Sequence[model.ResourceRequest],
+    layout_for_print: bool,
 ) -> Sequence[Union[model.BookContent, model.ResourceLookupDto]]:
     """
     Initialize the resources from their found assets and
@@ -64,7 +65,10 @@ def resource_book_content_units(
         try:
             book_content_or_unloaded_resource_lookup_dtos.append(
                 parsing.book_content(
-                    resource_lookup_dto, resource_dir, resource_requests
+                    resource_lookup_dto,
+                    resource_dir,
+                    resource_requests,
+                    layout_for_print,
                 )
             )
         except Exception:
@@ -79,6 +83,7 @@ def resource_book_content_units(
 def document_request_key(
     resource_requests: Sequence[model.ResourceRequest],
     assembly_strategy_kind: model.AssemblyStrategyEnum,
+    assembly_layout_kind: model.AssemblyLayoutEnum,
     max_filename_len: int = MAX_FILENAME_LENGTH,
 ) -> str:
     """
@@ -108,7 +113,9 @@ def document_request_key(
             for resource_request in resource_requests
         ]
     )
-    document_request_key = "{}_{}".format(resource_request_keys, assembly_strategy_kind)
+    document_request_key = "{}_{}_{}".format(
+        resource_request_keys, assembly_strategy_kind, assembly_layout_kind
+    )
     if len(document_request_key) >= max_filename_len:
         # Likely the generated filename was too long for the OS where this is
         # running. In that case, use the current time as a document_request_key
@@ -154,7 +161,7 @@ def instantiated_template(template_lookup_key: str, dto: BaseModel) -> str:
 
 def enclose_html_content(
     content: str,
-    document_html_header: str = template("header_enclosing"),
+    document_html_header: str,
     document_html_footer: str = template("footer_enclosing"),
 ) -> str:
     """
@@ -162,6 +169,25 @@ def enclose_html_content(
     HTML body content for the document.
     """
     return "{}{}{}".format(document_html_header, content, document_html_footer)
+
+
+def document_html_header(
+    assembly_layout_kind: Optional[model.AssemblyLayoutEnum],
+) -> str:
+    """
+    Choose the appropriate HTML header given the
+    assembly_layout_kind. The HTML header, naturally, contains the CSS
+    definitions and they in turn can be used to affect visual
+    compactness.
+    """
+    if assembly_layout_kind and assembly_layout_kind in [
+        model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
+        model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
+        model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
+    ]:
+        return template("header_compact_enclosing")
+    else:
+        return template("header_enclosing")
 
 
 def assemble_content(
@@ -178,8 +204,11 @@ def assemble_content(
     assembly_strategy = assembly_strategies.assembly_strategy_factory(
         document_request.assembly_strategy_kind
     )
-    content = "".join(assembly_strategy(book_content_units))
-    content = enclose_html_content(content)
+    content = "".join(
+        assembly_strategy(book_content_units, document_request.assembly_layout_kind)
+    )
+    header = document_html_header(document_request.assembly_layout_kind)
+    content = enclose_html_content(content, document_html_header=header)
     html_file_path = "{}.html".format(os.path.join(output_dir, document_request_key))
     logger.debug("About to write HTML to %s", html_file_path)
     file_utils.write_file(
@@ -409,6 +438,49 @@ def pdf_output_filename(
     return os.path.join(output_dir, "{}.pdf".format(document_request_key))
 
 
+def select_assembly_layout_kind(
+    document_request: model.DocumentRequest,
+    usfm_resource_types: Sequence[str] = settings.USFM_RESOURCE_TYPES,
+    book_language_order: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
+    print_layout: model.AssemblyLayoutEnum = model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
+    # NOTE Could also have default value of
+    # model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT
+    # or model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT
+    non_print_layout_for_multiple_usfm: model.AssemblyLayoutEnum = model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT,
+    default_print_layout: model.AssemblyLayoutEnum = model.AssemblyLayoutEnum.ONE_COLUMN,
+) -> model.AssemblyLayoutEnum:
+    """
+    Make an intelligent choice of what layout to use given the
+    DocumentRequest instance the user has requested. Why? Because we
+    don't want to bother the user with having to choose a layout which
+    would require them to understand what layouts could work well for
+    their particular document request. Instead, we make the choice for
+    them.
+    """
+    if not document_request.layout_for_print:
+        document_request.layout_for_print = False
+    if document_request.layout_for_print:
+        return print_layout
+
+    number_of_usfm_languages = len(
+        set(
+            [
+                resource_request.lang_code
+                for resource_request in document_request.resource_requests
+                if resource_request.resource_type in usfm_resource_types
+            ]
+        )
+    )
+
+    if (
+        document_request.assembly_strategy_kind == book_language_order
+        and number_of_usfm_languages > 1
+    ):
+        return non_print_layout_for_multiple_usfm
+
+    return default_print_layout
+
+
 def main(document_request: model.DocumentRequest) -> tuple[str, str]:
     """
     This is the main entry point for this module and the
@@ -417,8 +489,22 @@ def main(document_request: model.DocumentRequest) -> tuple[str, str]:
     document_request.resource_requests = coalesce_english_tn_requests(
         document_request.resource_requests
     )
+    # If an assembly_layout_kind has been chosen in the document request,
+    # then we know that the request originated from a unit test. The UI does
+    # not provide a way to choose an arbitrary layout, but unit tests can
+    # specify a layout arbitrarily. We must handle both situations.
+    if not document_request.assembly_layout_kind:
+        document_request.assembly_layout_kind = select_assembly_layout_kind(
+            document_request
+        )
+    logger.debug(
+        "document_request: %s",
+        document_request,
+    )
     document_request_key_ = document_request_key(
-        document_request.resource_requests, document_request.assembly_strategy_kind
+        document_request.resource_requests,
+        document_request.assembly_strategy_kind,
+        document_request.assembly_layout_kind,
     )
     output_filename = pdf_output_filename(document_request_key_)
 
@@ -457,6 +543,7 @@ def main(document_request: model.DocumentRequest) -> tuple[str, str]:
                 found_resource_lookup_dtos,
                 resource_dirs,
                 document_request.resource_requests,
+                document_request.layout_for_print,
             )
         )
         # A little further processing is needed on tee objects to get

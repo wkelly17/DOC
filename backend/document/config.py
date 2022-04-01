@@ -62,7 +62,9 @@ class Settings(BaseSettings):
     OPENING_H3_FMT_STR: str = "<h3>{}"
     OPENING_H3_WITH_ID_FMT_STR: str = '<h3 id="{}-{}">{}'
     TRANSLATION_WORD_ANCHOR_LINK_FMT_STR: str = "[{}](#{}-{})"
+    TRANSLATION_WORD_FMT_STR: str = "{}"
     TRANSLATION_WORD_PREFIX_ANCHOR_LINK_FMT_STR: str = "({}: [{}](#{}-{}))"
+    TRANSLATION_WORD_PREFIX_FMT_STR: str = "({}: {})"
     TRANSLATION_NOTE_ANCHOR_LINK_FMT_STR: str = "[{}](#{}-{}-tn-ch-{}-v-{})"
     # FIXME Tighten up the '.' usage in the following regex
     VERSE_ANCHOR_ID_FMT_STR: str = 'id="(.+?)-ch-(.+?)-v-(.+?)"'
@@ -84,6 +86,11 @@ class Settings(BaseSettings):
     TN_RESOURCE_TYPES: Sequence[str] = ["tn", "tn-wa"]
     TQ_RESOURCE_TYPES: Sequence[str] = ["tq", "tq-wa"]
     TW_RESOURCE_TYPES: Sequence[str] = ["tw", "tw-wa"]
+    BC_RESOURCE_TYPES: Sequence[str] = ["bc-wa"]
+
+    # fmt: off
+    BC_ARTICLE_URL_FMT_STR: str = "https://content.bibletranslationtools.org/WycliffeAssociates/en_bc/src/branch/master/{}"
+    # fmt: on
 
     def logger(self, name: str) -> logging.Logger:
         """
@@ -217,6 +224,7 @@ class Settings(BaseSettings):
         "tn-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_tn",
         "tw-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_tw",
         "tq-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_tq",
+        "bc-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_bc",
     }
 
     ENGLISH_RESOURCE_TYPE_MAP: Mapping[str, str] = {
@@ -225,11 +233,13 @@ class Settings(BaseSettings):
         "tn-wa": "ULB Translation Helps",
         "tq-wa": "ULB Translation Questions",
         "tw-wa": "ULB Translation Words",
+        "bc-wa": "Bible Commentary",
     }
 
     TEMPLATE_PATHS_MAP: Mapping[str, str] = {
         "book_intro": "backend/templates/tn/book_intro_template.md",
         "header_enclosing": "backend/templates/html/header_enclosing.html",
+        "header_compact_enclosing": "backend/templates/html/header_compact_enclosing.html",
         "footer_enclosing": "backend/templates/html/footer_enclosing.html",
         "cover": "backend/templates/html/cover.html",
         "email-html": "backend/templates/html/email.html",
@@ -254,9 +264,6 @@ class Settings(BaseSettings):
     # as a document request parameter so we'll just choose an arbitrary
     # sub-strategy here. This means that we can write code for multiple
     # sub-strategies and choose one to put in play at a time here.
-    DEFAULT_ASSEMBLY_SUBSTRATEGY: model.AssemblySubstrategyEnum = (
-        model.AssemblySubstrategyEnum.VERSE
-    )
 
     # Return a list of the Markdown section titles that our
     # Python-Markdown remove_section_processor extension should remove.

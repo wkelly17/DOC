@@ -11,27 +11,42 @@
     return value === null || value.trim()?.length === 0
   }
 
+  //  type ResourceRequest = {
+  //    lang_code: string
+  //    resource_type: string
+  //    resource_code: string
+  //  }
+  //
+  //  type DocumentRequest = {
+  //    email_address: string | null | undefined
+  //    assembly_strategy_kind: AssemblyStrategy | null
+  //    assembly_layout_kind: null | undefined
+  //    layout_for_print: boolean
+  //    resource_requests: Array<ResourceRequest>
+  //  }
+
   let email: string | null = null
   let assemblyStrategy: AssemblyStrategy | null
+  let layoutForPrint: boolean | null
   let lang0Code: string = ''
   let lang0ResourceTypes: string[] = []
   let lang0ResourceCodes: string[] = []
   let lang1Code: string = ''
   let lang1ResourceTypes: string[] = []
   let lang1ResourceCodes: string[] = []
-  let lang2Code: string = ''
-  let lang2ResourceTypes: string[] = []
-  let lang2ResourceCodes: string[] = []
+  /* let lang2Code: string = '' */
+  /* let lang2ResourceTypes: string[] = [] */
+  /* let lang2ResourceCodes: string[] = [] */
 
   // Button will toggle this value
   let showAnotherLang: boolean = false
   function handleAddLang() {
     showAnotherLang = true
   }
-  let showAnotherLang2: boolean = false
-  function handleAddLang2() {
-    showAnotherLang2 = true
-  }
+  /* let showAnotherLang2: boolean = false */
+  /* function handleAddLang2() { */
+  /*   showAnotherLang2 = true */
+  /* } */
 
   onMount(() => {
     reset()
@@ -107,35 +122,35 @@
 
   // Language 2
 
-  async function getLang2CodesAndNames(): Promise<string[]> {
-    const response = await fetch(API_ROOT_URL + LANGUAGE_CODES_AND_NAMES)
-    const json = await response.json()
-    if (response.ok) {
-      return <string[]>json
-    } else {
-      throw new Error(json)
-    }
-  }
+  /* async function getLang2CodesAndNames(): Promise<string[]> { */
+  /*   const response = await fetch(API_ROOT_URL + LANGUAGE_CODES_AND_NAMES) */
+  /*   const json = await response.json() */
+  /*   if (response.ok) { */
+  /*     return <string[]>json */
+  /*   } else { */
+  /*     throw new Error(json) */
+  /*   } */
+  /* } */
 
-  async function getLang2ResourceTypes(langCode: string): Promise<string[]> {
-    const response = await fetch(API_ROOT_URL + RESOURCE_TYPES_FOR_LANG + langCode)
-    const json = await response.json()
-    if (response.ok) {
-      return <string[]>json
-    } else {
-      throw new Error(json)
-    }
-  }
+  /* async function getLang2ResourceTypes(langCode: string): Promise<string[]> { */
+  /*   const response = await fetch(API_ROOT_URL + RESOURCE_TYPES_FOR_LANG + langCode) */
+  /*   const json = await response.json() */
+  /*   if (response.ok) { */
+  /*     return <string[]>json */
+  /*   } else { */
+  /*     throw new Error(json) */
+  /*   } */
+  /* } */
 
-  async function getLang2ResourceCodes(langCode: string): Promise<string[]> {
-    const response = await fetch(API_ROOT_URL + RESOURCE_CODES_FOR_LANG + langCode)
-    const json = await response.json()
-    if (response.ok) {
-      return <string[]>json
-    } else {
-      throw new Error(json)
-    }
-  }
+  /* async function getLang2ResourceCodes(langCode: string): Promise<string[]> { */
+  /*   const response = await fetch(API_ROOT_URL + RESOURCE_CODES_FOR_LANG + langCode) */
+  /*   const json = await response.json() */
+  /*   if (response.ok) { */
+  /*     return <string[]>json */
+  /*   } else { */
+  /*     throw new Error(json) */
+  /*   } */
+  /* } */
 
   let finished_document_url: string = ''
 
@@ -144,20 +159,21 @@
     // Be careful to set email to null as API expects a null rather
     // than empty string if email is not provided by user.
     email = null
+    layoutForPrint = null
     lang0Code = ''
     lang0ResourceTypes = []
     lang0ResourceCodes = []
     lang1Code = ''
     lang1ResourceTypes = []
     lang1ResourceCodes = []
-    lang2Code = ''
-    lang2ResourceTypes = []
-    lang2ResourceCodes = []
+    /* lang2Code = '' */
+    /* lang2ResourceTypes = [] */
+    /* lang2ResourceCodes = [] */
     hideWaitMessage()
     hideErrorMessage()
     finished_document_url = ''
     showAnotherLang = false
-    showAnotherLang2 = false
+    /* showAnotherLang2 = false */
     document.getElementById('email')?.focus()
   }
 
@@ -205,22 +221,32 @@
       }
     }
     // Create resource_requests for lang2
-    for (let resourceCode of <string[]>lang2ResourceCodes) {
-      for (let resourceType of <string[]>lang2ResourceTypes) {
-        rr.push({
-          lang_code: lang2Code,
-          resource_type: resourceType,
-          resource_code: resourceCode
-        })
-      }
-    }
+    /* for (let resourceCode of <string[]>lang2ResourceCodes) { */
+    /*   for (let resourceType of <string[]>lang2ResourceTypes) { */
+    /*     rr.push({ */
+    /*       lang_code: lang2Code, */
+    /*       resource_type: resourceType, */
+    /*       resource_code: resourceCode */
+    /*     }) */
+    /*   } */
+    /* } */
 
     console.log('email: ', email)
+    if (layoutForPrint) {
+      layoutForPrint = true
+    } else {
+      layoutForPrint = false
+    }
+
     // Create the JSON structure to POST.
+    // let documentRequest: DocumentRequest = {
     let documentRequest = {
       // FIXME Test that email_address is handled correctly with respect to null
       email_address: email?.trim(), // !isEmpty(email) ? email.trim() : null,
+      // email_address: !isEmpty(email) ? email.trim() : null,
       assembly_strategy_kind: assemblyStrategy,
+      // assembly_layout_kind: undefined,
+      layout_for_print: layoutForPrint,
       resource_requests: rr
     }
     console.log('document request: ', JSON.stringify(documentRequest, null, 2))
@@ -269,6 +295,13 @@
           <label for="email">{import.meta.env.VITE_EMAIL_LABEL}</label>
           <input type="text" name="email" id="email" bind:value={email} />
         </div>
+        <label for="layoutForPrint">{import.meta.env.VITE_LAYOUT_FOR_PRINT_LABEL}</label>
+        <input
+          type="checkbox"
+          name="layoutForPrint"
+          id="layoutForPrint"
+          bind:checked={layoutForPrint}
+        />
 
         <AssemblyStrategyComponent bind:assemblyStrategy />
 
@@ -399,12 +432,12 @@
             {/await}
           </div>
         {/if}
-        {#if !isEmpty(lang1Code) && lang1ResourceTypes?.length > 0 && lang1ResourceCodes?.length > 0}
+        <!-- {#if !isEmpty(lang1Code) && lang1ResourceTypes?.length > 0 && lang1ResourceCodes?.length > 0}
           <button disabled={showAnotherLang2} on:click|preventDefault={handleAddLang2}
             >{import.meta.env.VITE_ADD_ANOTHER_LANGUAGE_BUTTON_TXT}</button
           >
-        {/if}
-        {#if showAnotherLang2}
+        {/if} -->
+        <!-- {#if showAnotherLang2}
           <div>
             <h3>{import.meta.env.VITE_LANG_2_HEADER}</h3>
             {#await getLang2CodesAndNames()}
@@ -465,7 +498,7 @@
               <p class="error">{error.message}</p>
             {/await}
           </div>
-        {/if}
+        {/if} -->
 
         <div style="margin-top:3em">
           <button on:click|preventDefault={reset}>reset</button>
@@ -486,11 +519,18 @@
       {#if finished_document_url.length > 0}
         <div class="finished-document-url">
           <p>
-            {import.meta.env.VITE_DOCUMENT_READY_MSG_PART1}
+            {import.meta.env.VITE_PDF_DOCUMENT_READY_MSG_PART1}
             <a href="{API_ROOT_URL}/pdfs/{finished_document_url}"
-              >{import.meta.env.VITE_DOCUMENT_READY_LINK_TXT}</a
+              >{import.meta.env.VITE_PDF_DOCUMENT_READY_LINK_TXT}</a
             >
-            {import.meta.env.VITE_DOCUMENT_READY_MSG_PART2}
+            {import.meta.env.VITE_PDF_DOCUMENT_READY_MSG_PART2}
+          </p>
+          <p>
+            {import.meta.env.VITE_HTML_DOCUMENT_READY_MSG_PART1}
+            <a href="{API_ROOT_URL}/html/{finished_document_url}" target="_blank"
+              >{import.meta.env.VITE_HTML_DOCUMENT_READY_LINK_TXT}</a
+            >
+            {import.meta.env.VITE_HTML_DOCUMENT_READY_MSG_PART2}
           </p>
         </div>
       {/if}

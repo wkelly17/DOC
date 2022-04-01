@@ -150,3 +150,10 @@ TN_OBS_MARKDOWN_LINK_RE = re.compile(
 )
 
 # TN_VERSE_ID_REGEX = r"id=\"(?P<lang_code>.*?)-(?P<book_num>.*?)-tn-ch-(?P<chapter_num>.*?)-v-(?P<verse_ref>.*?)\""
+
+
+# See: [Covenant with David](../articles/covenantdavid.md); [Messiah (Christ)](../articles/messiahchrist.md); [Ancestor and Descendant (Fathers, Forefathers, Patriarchs)](../articles/ancestor.md); [Son of David](../articles/sonofdavid.md)
+# More particularly:  [Covenant with David](../articles/covenantdavid.md)
+BC_MARKDOWN_LINK_RE = re.compile(
+    r"\[(?P<link_text>.+?)\] *\(\.\.\/(?P<link_ref>articles.+?)\)"
+)

@@ -62,8 +62,70 @@ class AssemblyStrategyEnum(str, Enum):
     AssemblySubstrategyEnum. The sky is the limit.
     """
 
-    LANGUAGE_BOOK_ORDER = "language_book_order"
-    BOOK_LANGUAGE_ORDER = "book_language_order"
+    LANGUAGE_BOOK_ORDER = "lbo"
+    BOOK_LANGUAGE_ORDER = "blo"
+
+
+@final
+class AssemblyLayoutEnum(str, Enum):
+    """
+    A enum used by the assembly_strategies module to know how
+    to layout the content.
+
+    We can have N such layouts and each can be completely
+    arbitrary, simply based on the desires of content designers.
+
+    Said another way: the enum is just a name that is arbitrarily
+    chosen to be compact but adequate to express the type of layout
+    that is to be accomplished in the HTML document (prior to conversion
+    to PDF).
+
+    Layouts:
+
+    * ONE_COLUMN
+      One column verse and associated content interleave
+
+    * TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT
+      Two columns, with scripture on the left and its associated helps
+      on the right. This layout causes excessive whitespace on the
+      left side because helps are much longer than verses typically.
+
+    * TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT
+      Two columns, with scripture on the left and a different
+      scripture on the right. Obviously only applicable when at least
+      two languages have been chosen. This layout has less whitespace
+      than TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT because verses on
+      the left are typically about the same size as verses on the right
+      and helps are shown vertically spanning the whole horizontal space
+      after each verse.
+
+    * ONE_COLUMN_COMPACT
+      This layout minimizes whitespace in a one column layout so as to
+      be appropriate for printing to paper.
+
+    * TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT
+      This layout minimizes whitespace by using
+      TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT layout but with a different
+      CSS styling that results in less whitespace.
+
+    * TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT
+      This layout minimizes whitespace by using
+      TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT layout but with a
+      different CSS styling that results in less whitespace.
+    """
+
+    ONE_COLUMN = "1c"
+    ONE_COLUMN_COMPACT = "1c_c"
+    TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT = "2c_sl_hr"
+    # fmt: off
+    TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT = "2c_sl_hr_c"
+    # NOTE The next two layouts would only make sense
+    # with an AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER assembly
+    # strategy when more than one language is chosen for the same
+    # book.
+    TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT = "2c_sl_sr"
+    TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT = "2c_sl_sr_c"
+    # fmt: on
 
 
 @final
@@ -78,42 +140,27 @@ class DocumentRequest(BaseModel):
 
     email_address: Optional[EmailStr]
     assembly_strategy_kind: AssemblyStrategyEnum
+    # NOTE For testing we want to exercise various layouts, thus we
+    # make this attribute Optional so that we can specify it in unit
+    # tests if desired. But the normal case is to set
+    # assembly_layout_kind to None in a document request if we are
+    # manually coding up a document request instance to send to the
+    # API. If you go this latter route, say to use the API in a
+    # different context than interacting with the UI then the onus is
+    # on you as the developer to choose an assembly_layout_kind that
+    # makes sense given the document request you have instantiated.
+    # The system knows which make sense and which do not given your
+    # document request and if you choose one that does not make sense
+    # then you'll get an exception on purpose.
+    assembly_layout_kind: Optional[AssemblyLayoutEnum]
+    # The user can choose whether the result should be formatted to
+    # print. When the user selects yes/True to format for print
+    # then we'll choose a compact layout that makes sense for their
+    # document request. This happens in
+    # document_generator.select_assembly_layout_kind if
+    # assembly_layout_kind is None in the document request.
+    layout_for_print: bool
     resource_requests: Sequence[ResourceRequest]
-
-
-@final
-class AssemblySubstrategyEnum(str, Enum):
-    """
-    A sub-strategy enum signals which interleaving sub-strategy
-    to use.
-    E.g., If the high level interleaving strategy LANGUAGE_BOOK_ORDER
-    has been chosen then inside the language and book interleaving
-    loop the sub-strategy will be signaled by a value from this
-    AssemblySubstrategyEnum.
-
-    We can have N such sub-strategies and each can be completely
-    arbitrary, simply based on the desires of content designers.
-
-    Said another way: the enum is just a name that is arbitrarily
-    chosen to be compact but adequate to express the type of interleaving
-    that is to be accomplished in the HTML document (prior to conversion
-    to PDf).
-
-    There is currently one assembly sub-strategy kind to choose from:
-
-    * VERSE
-      - cause a verse's worth of each resource's content to be interleaved.
-
-    NOTE
-    We could later add others. As an arbitrary example, perhaps we'd
-    want a sub-strategy that did verse-level interleaving for USFM and
-    TN, but chapter level interleaving for TQ or if not chapter then
-    some totally arbitrary interleaving or organization. Basically,
-    the enum values are just used to select a particular assembly
-    sub-strategy, whatever it is.
-    """
-
-    VERSE = "VERSE"
 
 
 @final
@@ -150,9 +197,9 @@ class ResourceLookupDto(BaseModel):
 @final
 class FinishedDocumentDetails(BaseModel):
     """
-    Pydanctic model that we use as a return value to send back via
-    Fastapi to the client. For now it just contains the finished
-    dcocument filepath on disk.
+    Pydantic model that we use as a return value to send back via
+    FastAPI to the client. For now it just contains the finished
+    document filepath on disk.
     """
 
     finished_document_request_key: Optional[str]
@@ -251,6 +298,30 @@ class TWBook(BaseModel):
 
 
 @final
+class BCChapter(BaseModel):
+    """
+    A class to hold a mapping of verse references to bible
+    commentary HTML content.
+    """
+
+    commentary: HtmlContent
+
+
+@final
+class BCBook(BaseModel):
+    """
+    A class to hold a mapping of chapter numbers to translation questions
+    HTML content.
+    """
+
+    lang_code: str
+    lang_name: str
+    resource_code: str
+    resource_type_name: str
+    chapters: dict[ChapterNum, BCChapter]
+
+
+@final
 class USFMChapter(BaseModel):
     """
     A class to hold the USFM converted to HTML content for a chapter
@@ -281,7 +352,7 @@ class USFMBook(BaseModel):
     chapters: dict[ChapterNum, USFMChapter]
 
 
-BookContent = Union[USFMBook, TNBook, TQBook, TWBook]
+BookContent = Union[USFMBook, TNBook, TQBook, TWBook, BCBook]
 
 
 @final

@@ -17,8 +17,12 @@ TW = "tw"
 
 
 @final
-class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
-    """Convert various link types to Markdown anchor links."""
+class LinkPrintTransformerPreprocessor(markdown.preprocessors.Preprocessor):
+    """
+    Convert various link types to text of the link description instead
+    of a live link since this is used for producing content suitable for
+    printing.
+    """
 
     def __init__(
         self,
@@ -69,6 +73,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
         # by self.transform_tn_markdown_links.
         source = self.transform_tn_missing_resource_code_markdown_links(source)
         source = self.transform_tn_obs_markdown_links(source)
+        source = self.transform_bc_markdown_links(source)
         return source.split("\n")
 
     def transform_tw_rc_link(self, wikilink: model.WikiLink, source: str) -> str:
@@ -114,10 +119,8 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 # Build the anchor link.
                 url = url.replace(
                     match.group(0),  # The whole match
-                    settings.TRANSLATION_WORD_ANCHOR_LINK_FMT_STR.format(
-                        localized_translation_word,
-                        self._lang_code,
-                        localized_translation_word,
+                    settings.TRANSLATION_WORD_FMT_STR.format(
+                        localized_translation_word
                     ),
                 )
             else:
@@ -160,9 +163,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 # Build the anchor links
                 source = source.replace(
                     match_text,
-                    settings.TRANSLATION_WORD_ANCHOR_LINK_FMT_STR.format(
-                        localized_translation_word,
-                        self._lang_code,
+                    settings.TRANSLATION_WORD_FMT_STR.format(
                         localized_translation_word,
                     ),
                 )
@@ -215,9 +216,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 # Build the anchor links
                 source = source.replace(
                     match.group(0),  # The whole match
-                    settings.TRANSLATION_WORD_ANCHOR_LINK_FMT_STR.format(
-                        localized_translation_word,
-                        self._lang_code,
+                    settings.TRANSLATION_WORD_FMT_STR.format(
                         localized_translation_word,
                     ),
                 )
@@ -269,10 +268,8 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 # Build the anchor links
                 source = source.replace(
                     match.group(0),  # The whole match
-                    settings.TRANSLATION_WORD_PREFIX_ANCHOR_LINK_FMT_STR.format(
+                    settings.TRANSLATION_WORD_PREFIX_FMT_STR.format(
                         match.group("prefix_text"),
-                        localized_translation_word,
-                        self._lang_code,
                         localized_translation_word,
                     ),
                 )
@@ -370,59 +367,59 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
             chapter_num = match.group("chapter_num")
             verse_ref = match.group("verse_ref")
 
-            # NOTE(id:check_for_resource_request) To bother getting the TN resource
-            # asset file referenced in the matched link we must know that said TN
-            # resource identified by the lang_code/resource_type/resource_code combo
-            # in the link has been requested by the user in the DocumentRequest.
-            tn_resource_requests: list[model.ResourceRequest] = [
-                resource_request
-                for resource_request in self._resource_requests
-                if resource_request.lang_code == lang_code
-                and TN in resource_request.resource_type
-                and resource_request.resource_code == resource_code
-            ]
-            if tn_resource_requests:
-                tn_resource_request: model.ResourceRequest = tn_resource_requests[0]
-                # Build a file path to the TN note being requested.
-                first_resource_path_segment = "{}_{}".format(
-                    tn_resource_request.lang_code,
-                    tn_resource_request.resource_type,
-                )
-                second_resource_path_segment = "{}_tn".format(
-                    tn_resource_request.lang_code
-                )
-                path = "{}.md".format(
-                    os.path.join(
-                        working_dir,
-                        first_resource_path_segment,
-                        second_resource_path_segment,
-                        resource_code,
-                        chapter_num,
-                        verse_ref,
-                    )
-                )
-                if os.path.exists(path):  # file path to TN note exists
-                    # Create anchor link to translation note
-                    new_link = settings.TRANSLATION_NOTE_ANCHOR_LINK_FMT_STR.format(
-                        scripture_ref,
-                        tn_resource_request.lang_code,
-                        bible_books.BOOK_NUMBERS[
-                            tn_resource_request.resource_code
-                        ].zfill(3),
-                        chapter_num.zfill(3),
-                        verse_ref.zfill(3),
-                    )
-                    # Replace the match text with the new anchor link
-                    source = source.replace(
-                        match.group(0),  # The whole match
-                        "({})".format(new_link),
-                    )
-                else:  # TN note file does not exist.
-                    # Replace link with link text only.
-                    source = source.replace(match.group(0), scripture_ref)
-            else:  # TN resource that link requested was not included as part of the DocumentRequest
-                # Replace link with link text only.
-                source = source.replace(match.group(0), scripture_ref)
+            # # NOTE(id:check_for_resource_request) To bother getting the TN resource
+            # # asset file referenced in the matched link we must know that said TN
+            # # resource identified by the lang_code/resource_type/resource_code combo
+            # # in the link has been requested by the user in the DocumentRequest.
+            # tn_resource_requests: list[model.ResourceRequest] = [
+            #     resource_request
+            #     for resource_request in self._resource_requests
+            #     if resource_request.lang_code == lang_code
+            #     and TN in resource_request.resource_type
+            #     and resource_request.resource_code == resource_code
+            # ]
+            # if tn_resource_requests:
+            #     tn_resource_request: model.ResourceRequest = tn_resource_requests[0]
+            #     # Build a file path to the TN note being requested.
+            #     first_resource_path_segment = "{}_{}".format(
+            #         tn_resource_request.lang_code,
+            #         tn_resource_request.resource_type,
+            #     )
+            #     second_resource_path_segment = "{}_tn".format(
+            #         tn_resource_request.lang_code
+            #     )
+            #     path = "{}.md".format(
+            #         os.path.join(
+            #             working_dir,
+            #             first_resource_path_segment,
+            #             second_resource_path_segment,
+            #             resource_code,
+            #             chapter_num,
+            #             verse_ref,
+            #         )
+            #     )
+            #     if os.path.exists(path):  # file path to TN note exists
+            #         # Create anchor link to translation note
+            #         new_link = settings.TRANSLATION_NOTE_ANCHOR_LINK_FMT_STR.format(
+            #             scripture_ref,
+            #             tn_resource_request.lang_code,
+            #             bible_books.BOOK_NUMBERS[
+            #                 tn_resource_request.resource_code
+            #             ].zfill(3),
+            #             chapter_num.zfill(3),
+            #             verse_ref.zfill(3),
+            #         )
+            #         # Replace the match text with the new anchor link
+            #         source = source.replace(
+            #             match.group(0),  # The whole match
+            #             "({})".format(new_link),
+            #         )
+            #     else:  # TN note file does not exist.
+            #         # Replace link with link text only.
+            #         source = source.replace(match.group(0), scripture_ref)
+            # else:  # TN resource that link requested was not included as part of the DocumentRequest
+            # Replace link with link text only.
+            source = source.replace(match.group(0), scripture_ref)
 
         return source
 
@@ -441,61 +438,61 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
             verse_ref = match.group("verse_ref")
 
             # NOTE See id:check_for_resource_request above
-            matching_resource_requests: list[model.ResourceRequest] = [
-                resource_request
-                for resource_request in self._resource_requests
-                if resource_request.lang_code == self._lang_code
-                and TN in resource_request.resource_type
-                and resource_request.resource_code == resource_code
-            ]
-            if matching_resource_requests:
-                matching_resource_request: model.ResourceRequest = (
-                    matching_resource_requests[0]
-                )
-                # Build a file path to the TN note being requested.
-                first_resource_path_segment = "{}_{}".format(
-                    matching_resource_request.lang_code,
-                    matching_resource_request.resource_type,
-                )
-                second_resource_path_segment = "{}_tn".format(
-                    matching_resource_request.lang_code
-                )
-                path = "{}.md".format(
-                    os.path.join(
-                        settings.working_dir(),
-                        first_resource_path_segment,
-                        second_resource_path_segment,
-                        resource_code,
-                        chapter_num,
-                        verse_ref,
-                    )
-                )
-                if os.path.exists(path):  # file path to TN note exists
-                    # Create anchor link to translation note
-                    new_link = settings.TRANSLATION_NOTE_ANCHOR_LINK_FMT_STR.format(
-                        scripture_ref,
-                        self._lang_code,
-                        bible_books.BOOK_NUMBERS[resource_code].zfill(3),
-                        chapter_num.zfill(3),
-                        verse_ref.zfill(3),
-                    )
-                    # Replace the match text with the new anchor link
-                    source = source.replace(
-                        match.group(0),  # The whole match
-                        "({})".format(new_link),
-                    )
-                else:  # TN note file does not exist.
-                    # Replace match text from the source text with the
-                    # link text only so that is not clickable.
-                    # The whole match plus surrounding parenthesis
-                    source = source.replace(
-                        "({})".format(match.group(0)), scripture_ref
-                    )
-            else:  # TN resource that link requested was not included as part of the
-                # DocumentRequest Replace match text from the source text with the link
-                # text only so that is not clickable.
-                # The whole match plus surrounding parenthesis
-                source = source.replace("({})".format(match.group(0)), scripture_ref)
+            # matching_resource_requests: list[model.ResourceRequest] = [
+            #     resource_request
+            #     for resource_request in self._resource_requests
+            #     if resource_request.lang_code == self._lang_code
+            #     and TN in resource_request.resource_type
+            #     and resource_request.resource_code == resource_code
+            # ]
+            # if matching_resource_requests:
+            #     matching_resource_request: model.ResourceRequest = (
+            #         matching_resource_requests[0]
+            #     )
+            #     # Build a file path to the TN note being requested.
+            #     first_resource_path_segment = "{}_{}".format(
+            #         matching_resource_request.lang_code,
+            #         matching_resource_request.resource_type,
+            #     )
+            #     second_resource_path_segment = "{}_tn".format(
+            #         matching_resource_request.lang_code
+            #     )
+            #     path = "{}.md".format(
+            #         os.path.join(
+            #             settings.working_dir(),
+            #             first_resource_path_segment,
+            #             second_resource_path_segment,
+            #             resource_code,
+            #             chapter_num,
+            #             verse_ref,
+            #         )
+            #     )
+            #     if os.path.exists(path):  # file path to TN note exists
+            #         # Create anchor link to translation note
+            #         new_link = settings.TRANSLATION_NOTE_ANCHOR_LINK_FMT_STR.format(
+            #             scripture_ref,
+            #             self._lang_code,
+            #             bible_books.BOOK_NUMBERS[resource_code].zfill(3),
+            #             chapter_num.zfill(3),
+            #             verse_ref.zfill(3),
+            #         )
+            #         # Replace the match text with the new anchor link
+            #         source = source.replace(
+            #             match.group(0),  # The whole match
+            #             "({})".format(new_link),
+            #         )
+            #     else:  # TN note file does not exist.
+            #         # Replace match text from the source text with the
+            #         # link text only so that is not clickable.
+            #         # The whole match plus surrounding parenthesis
+            #         source = source.replace(
+            #             "({})".format(match.group(0)), scripture_ref
+            #         )
+            # else:  # TN resource that link requested was not included as part of the
+            # DocumentRequest Replace match text from the source text with the link
+            # text only so that is not clickable.
+            # The whole match plus surrounding parenthesis
+            source = source.replace("({})".format(match.group(0)), scripture_ref)
 
         return source
 
@@ -512,62 +509,62 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
             chapter_num = match.group("chapter_num")
             verse_ref = match.group("verse_ref")
 
-            matching_resource_requests: list[model.ResourceRequest] = [
-                resource_request
-                for resource_request in self._resource_requests
-                if resource_request.lang_code == self._lang_code
-                and TN in resource_request.resource_type
-            ]
-            resource_code = ""
-            if matching_resource_requests:
-                matching_resource_request: model.ResourceRequest = (
-                    matching_resource_requests[0]
-                )
-                resource_code = matching_resource_request.resource_code
-                # Build a file path to the TN note being requested.
-                first_resource_path_segment = "{}_{}".format(
-                    matching_resource_request.lang_code,
-                    matching_resource_request.resource_type,
-                )
-                second_resource_path_segment = "{}_tn".format(
-                    matching_resource_request.lang_code
-                )
-                path = "{}.md".format(
-                    os.path.join(
-                        settings.working_dir(),
-                        first_resource_path_segment,
-                        second_resource_path_segment,
-                        resource_code,
-                        chapter_num,
-                        verse_ref,
-                    )
-                )
-                if os.path.exists(path):  # file path to TN note exists
-                    # Create anchor link to translation note
-                    new_link = settings.TRANSLATION_NOTE_ANCHOR_LINK_FMT_STR.format(
-                        scripture_ref,
-                        self._lang_code,
-                        bible_books.BOOK_NUMBERS[resource_code].zfill(3),
-                        chapter_num.zfill(3),
-                        verse_ref.zfill(3),
-                    )
-                    # Replace the match text with the new anchor link
-                    source = source.replace(
-                        match.group(0),  # The whole match
-                        "({})".format(new_link),
-                    )
-                else:  # TN note file does not exist.
-                    # Replace match text from the source text with the
-                    # link text only so that is not clickable.
-                    # The whole match plus surrounding parenthesis
-                    source = source.replace(
-                        "({})".format(match.group(0)), scripture_ref
-                    )
-            else:  # TN resource that link requested was not included as part of the
-                # DocumentRequest Replace match text from the source text with the link
-                # text only so that is not clickable.
-                # The whole match plus surrounding parenthesis
-                source = source.replace("({})".format(match.group(0)), scripture_ref)
+            # matching_resource_requests: list[model.ResourceRequest] = [
+            #     resource_request
+            #     for resource_request in self._resource_requests
+            #     if resource_request.lang_code == self._lang_code
+            #     and TN in resource_request.resource_type
+            # ]
+            # resource_code = ""
+            # if matching_resource_requests:
+            #     matching_resource_request: model.ResourceRequest = (
+            #         matching_resource_requests[0]
+            #     )
+            #     resource_code = matching_resource_request.resource_code
+            #     # Build a file path to the TN note being requested.
+            #     first_resource_path_segment = "{}_{}".format(
+            #         matching_resource_request.lang_code,
+            #         matching_resource_request.resource_type,
+            #     )
+            #     second_resource_path_segment = "{}_tn".format(
+            #         matching_resource_request.lang_code
+            #     )
+            #     path = "{}.md".format(
+            #         os.path.join(
+            #             settings.working_dir(),
+            #             first_resource_path_segment,
+            #             second_resource_path_segment,
+            #             resource_code,
+            #             chapter_num,
+            #             verse_ref,
+            #         )
+            #     )
+            #     if os.path.exists(path):  # file path to TN note exists
+            #         # Create anchor link to translation note
+            #         new_link = settings.TRANSLATION_NOTE_ANCHOR_LINK_FMT_STR.format(
+            #             scripture_ref,
+            #             self._lang_code,
+            #             bible_books.BOOK_NUMBERS[resource_code].zfill(3),
+            #             chapter_num.zfill(3),
+            #             verse_ref.zfill(3),
+            #         )
+            #         # Replace the match text with the new anchor link
+            #         source = source.replace(
+            #             match.group(0),  # The whole match
+            #             "({})".format(new_link),
+            #         )
+            #     else:  # TN note file does not exist.
+            #         # Replace match text from the source text with the
+            #         # link text only so that is not clickable.
+            #         # The whole match plus surrounding parenthesis
+            #         source = source.replace(
+            #             "({})".format(match.group(0)), scripture_ref
+            #         )
+            # else:  # TN resource that link requested was not included as part of the
+            # DocumentRequest Replace match text from the source text with the link
+            # text only so that is not clickable.
+            # The whole match plus surrounding parenthesis
+            source = source.replace("({})".format(match.group(0)), scripture_ref)
 
         return source
 
@@ -583,8 +580,21 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
             source = source.replace(match.group(0), match.group("link_text"))
         return source
 
+    def transform_bc_markdown_links(
+        self,
+        source: str,
+    ) -> str:
+        """
+        Replace bible commentary relative link with link text.
+        """
+        for match in re.finditer(link_regexes.BC_MARKDOWN_LINK_RE, source):
+            # Build the anchor links to referenced bible commentary
+            # articles.
+            source = source.replace(match.group(0), match.group("link_text"))
+        return source
 
-class LinkTransformerExtension(markdown.Extension):
+
+class LinkPrintTransformerExtension(markdown.Extension):
     """A Markdown link conversion extension."""
 
     def __init__(self, *args: str, **kwargs: Any) -> None:
@@ -595,15 +605,15 @@ class LinkTransformerExtension(markdown.Extension):
 
     def extendMarkdown(self, md: markdown.Markdown) -> None:
         """Automatically called by superclass."""
-        link_transformer = LinkTransformerPreprocessor(
+        link_print_transformer = LinkPrintTransformerPreprocessor(
             md,
             self.getConfig("lang_code"),
             self.getConfig("resource_requests"),
             self.getConfig("translation_words_dict"),
         )
         md.preprocessors.register(
-            link_transformer,
-            "link_transformer",
+            link_print_transformer,
+            "link_print_transformer",
             32,
         )
 

@@ -8,6 +8,9 @@ def test_coalesce_english_tn_requests() -> None:
     assembly_strategy_kind: model.AssemblyStrategyEnum = (
         model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER
     )
+    assembly_layout_kind: model.AssemblyLayoutEnum = (
+        model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT
+    )
     resource_requests: list[model.ResourceRequest] = []
     resource_requests.append(
         model.ResourceRequest(
@@ -33,6 +36,8 @@ def test_coalesce_english_tn_requests() -> None:
     document_request = model.DocumentRequest(
         email_address=settings.FROM_EMAIL_ADDRESS,
         assembly_strategy_kind=assembly_strategy_kind,
+        assembly_layout_kind=assembly_layout_kind,
+        layout_for_print=False,
         resource_requests=resource_requests,
     )
     assert len(document_request.resource_requests) == 5
@@ -121,7 +126,10 @@ def test_document_request_key_too_long_for_semantic_result() -> None:
         for component in components
     ]
     assembly_strategy_kind = model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER
+    assembly_layout_kind = (
+        model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT
+    )
     key = document_generator.document_request_key(
-        resource_requests, assembly_strategy_kind
+        resource_requests, assembly_strategy_kind, assembly_layout_kind
     )
     assert re.search(r"[0-9]+_[0-9]+", key)

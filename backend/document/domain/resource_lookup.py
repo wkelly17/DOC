@@ -376,6 +376,26 @@ def t_resource_lookup(
     return resource_lookup_dto
 
 
+def bc_resource_lookup(
+    lang_code: str,
+    resource_type: str,
+    resource_code: str,
+    asset_source_enum_kind: str = model.AssetSourceEnum.GIT,
+) -> model.ResourceLookupDto:
+    """
+    Given a resource, comprised of language code, e.g., 'wum', a
+    resource type, e.g., 'tn', and a resource code, e.g., 'gen',
+    return model.ResourceLookupDto instance for resource.
+    """
+    return _english_git_repo_location(
+        lang_code,
+        resource_type,
+        resource_code,
+        url=english_git_repo_url(resource_type),
+        resource_type_name=english_resource_type_name(resource_type),
+    )
+
+
 def lang_codes(
     working_dir: str = settings.working_dir(),
     translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
@@ -421,6 +441,7 @@ def resource_types_for_lang(
     tn_resource_types: Sequence[str] = settings.TN_RESOURCE_TYPES,
     tq_resource_types: Sequence[str] = settings.TQ_RESOURCE_TYPES,
     tw_resource_types: Sequence[str] = settings.TW_RESOURCE_TYPES,
+    bc_resource_types: Sequence[str] = settings.BC_RESOURCE_TYPES,
 ) -> Sequence[Any]:
     """
     Convenience method that can be called, e.g., from the UI, to
@@ -428,11 +449,15 @@ def resource_types_for_lang(
     """
     resource_types = [
         resource_type
-        for resource_type in _lookup(jsonpath_str.format(lang_code))
+        # NOTE The '+ bc_resouce_types' is a hack because
+        # translations.json doesn't include bible commentary as a
+        # resource type.
+        for resource_type in _lookup(jsonpath_str.format(lang_code)) + bc_resource_types
         if resource_type in usfm_resource_types
         or resource_type in tn_resource_types
         or resource_type in tq_resource_types
         or resource_type in tw_resource_types
+        or resource_type in bc_resource_types
     ]
     return sorted(resource_types, reverse=True)
 
@@ -628,6 +653,7 @@ def resource_lookup_dto(
     tn_resource_types: Sequence[str] = settings.TN_RESOURCE_TYPES,
     tq_resource_types: Sequence[str] = settings.TQ_RESOURCE_TYPES,
     tw_resource_types: Sequence[str] = settings.TW_RESOURCE_TYPES,
+    bc_resource_types: Sequence[str] = settings.BC_RESOURCE_TYPES,
 ) -> model.ResourceLookupDto:
     """
     Get the model.ResourceLookupDto instance for the given lang_code,
@@ -641,6 +667,8 @@ def resource_lookup_dto(
         or resource_type in tw_resource_types
     ):
         return t_resource_lookup(lang_code, resource_type, resource_code)
+    elif lang_code == "en" and resource_type in bc_resource_types:
+        return bc_resource_lookup(lang_code, resource_type, resource_code)
     else:
         raise exceptions.InvalidDocumentRequestException(
             message="{} resource type requested is invalid.".format(resource_type)

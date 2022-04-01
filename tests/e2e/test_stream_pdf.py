@@ -6,6 +6,7 @@ import yaml
 from fastapi.testclient import TestClient
 
 from document.config import settings
+from document.domain import model
 from document.entrypoints.app import app
 
 logger = settings.logger(__name__)
@@ -23,7 +24,9 @@ def test_stream_ar_nav_jud_pdf() -> None:
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": "language_book_order",
+                "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
+                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT,
+                "layout_for_print": False,
                 "resource_requests": [
                     {
                         "lang_code": "ar",

@@ -1,6 +1,6 @@
 # Stage 0, "development-stage", based on Node.js, to build the
 # frontend and run it in 'development' mode.
-FROM node:17.5.0-bullseye-slim as development-stage
+FROM node:17.7.1-bullseye-slim as development-stage
 
 RUN apt-get update && apt-get install -y \
     python3  \

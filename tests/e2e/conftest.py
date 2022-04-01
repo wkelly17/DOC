@@ -5,7 +5,7 @@ import os
 import pathlib
 import random
 from collections.abc import Sequence
-from typing import Any
+from typing import Any, Optional
 
 import pydantic
 import pytest
@@ -120,14 +120,37 @@ def random_resource_code2() -> str:
     return random.choice(book_ids)
 
 
-@pytest.fixture(params=[settings.TO_EMAIL_ADDRESS])
-def email_address(request: Any) -> Any:
-    return request.param
+@pytest.fixture()
+def email_address() -> str:
+    return settings.TO_EMAIL_ADDRESS
 
 
-@pytest.fixture(params=[model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER])
-def assembly_strategy_kind(request: Any) -> Any:
-    return request.param
+@pytest.fixture()
+def assembly_strategy_kind() -> str:
+    return random.choice(
+        [
+            model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
+            model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
+        ]
+    )
+
+
+@pytest.fixture
+def assembly_layout_kind() -> Optional[str]:
+    return None
+    # return random.choice(
+    #     [
+    #         model.AssemblyLayoutEnum.ONE_COLUMN,
+    #         model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
+    #         model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT,
+    #         model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
+    #     ]
+    # )
+
+
+@pytest.fixture
+def layout_for_print() -> bool:
+    return random.choice([True, False])
 
 
 @pytest.fixture()
@@ -320,12 +343,16 @@ def random_non_english_resource_requests2(
 def english_document_request(
     email_address: pydantic.EmailStr,
     assembly_strategy_kind: model.AssemblyStrategyEnum,
+    assembly_layout_kind: model.AssemblyLayoutEnum,
+    layout_for_print: bool,
     english_resource_requests: Sequence[model.ResourceRequest],
 ) -> model.DocumentRequest:
     """Build one English language document request."""
     return model.DocumentRequest(
         email_address=email_address,
         assembly_strategy_kind=assembly_strategy_kind,
+        assembly_layout_kind=assembly_layout_kind,
+        layout_for_print=layout_for_print,
         resource_requests=english_resource_requests,
     )
 
@@ -334,6 +361,8 @@ def english_document_request(
 def random_english_document_request(
     email_address: pydantic.EmailStr,
     assembly_strategy_kind: model.AssemblyStrategyEnum,
+    assembly_layout_kind: model.AssemblyLayoutEnum,
+    layout_for_print: bool,
     english_resource_requests: Sequence[model.ResourceRequest],
 ) -> model.DocumentRequest:
     """
@@ -347,6 +376,8 @@ def random_english_document_request(
     return model.DocumentRequest(
         email_address=email_address,
         assembly_strategy_kind=assembly_strategy_kind,
+        assembly_layout_kind=assembly_layout_kind,
+        layout_for_print=layout_for_print,
         resource_requests=random_english_resource_requests,
     )
 
@@ -355,8 +386,9 @@ def random_english_document_request(
 def random_non_english_document_request(
     email_address: pydantic.EmailStr,
     assembly_strategy_kind: model.AssemblyStrategyEnum,
+    assembly_layout_kind: model.AssemblyLayoutEnum,
+    layout_for_print: bool,
     random_non_english_resource_requests: Sequence[model.ResourceRequest],
-    random_resource_code: str,
 ) -> model.DocumentRequest:
     """
     Build one non-English language document request for each
@@ -376,6 +408,8 @@ def random_non_english_document_request(
     return model.DocumentRequest(
         email_address=email_address,
         assembly_strategy_kind=assembly_strategy_kind,
+        assembly_layout_kind=assembly_layout_kind,
+        layout_for_print=layout_for_print,
         resource_requests=random_non_english_resource_requests,
     )
 
@@ -384,8 +418,9 @@ def random_non_english_document_request(
 def random_failing_non_english_document_request(
     email_address: pydantic.EmailStr,
     assembly_strategy_kind: model.AssemblyStrategyEnum,
+    assembly_layout_kind: model.AssemblyLayoutEnum,
+    layout_for_print: bool,
     random_failing_non_english_resource_requests: Sequence[model.ResourceRequest],
-    random_resource_code: str,
 ) -> model.DocumentRequest:
     """
     Build one non-English language document request for each
@@ -408,6 +443,8 @@ def random_failing_non_english_document_request(
     return model.DocumentRequest(
         email_address=email_address,
         assembly_strategy_kind=assembly_strategy_kind,
+        assembly_layout_kind=assembly_layout_kind,
+        layout_for_print=layout_for_print,
         resource_requests=random_failing_non_english_resource_requests,
     )
 
@@ -421,6 +458,8 @@ def random_failing_non_english_document_request(
 def random_english_and_non_english_document_request(
     email_address: pydantic.EmailStr,
     assembly_strategy_kind: model.AssemblyStrategyEnum,
+    assembly_layout_kind: model.AssemblyLayoutEnum,
+    layout_for_print: bool,
     random_english_resource_requests: Sequence[model.ResourceRequest],
     random_non_english_resource_requests: Sequence[model.ResourceRequest],
 ) -> model.DocumentRequest:
@@ -442,6 +481,8 @@ def random_english_and_non_english_document_request(
     return model.DocumentRequest(
         email_address=email_address,
         assembly_strategy_kind=assembly_strategy_kind,
+        assembly_layout_kind=assembly_layout_kind,
+        layout_for_print=layout_for_print,
         resource_requests=[
             *random_english_resource_requests,
             *random_non_english_resource_requests,
@@ -453,6 +494,8 @@ def random_english_and_non_english_document_request(
 def random_two_non_english_languages_document_request(
     email_address: pydantic.EmailStr,
     assembly_strategy_kind: model.AssemblyStrategyEnum,
+    assembly_layout_kind: model.AssemblyLayoutEnum,
+    layout_for_print: bool,
     random_non_english_resource_requests: Sequence[model.ResourceRequest],
     random_non_english_resource_requests2: Sequence[model.ResourceRequest],
 ) -> model.DocumentRequest:
@@ -464,6 +507,8 @@ def random_two_non_english_languages_document_request(
     return model.DocumentRequest(
         email_address=email_address,
         assembly_strategy_kind=assembly_strategy_kind,
+        assembly_layout_kind=assembly_layout_kind,
+        layout_for_print=layout_for_print,
         resource_requests=[
             *random_non_english_resource_requests,
             *random_non_english_resource_requests2,

@@ -7,7 +7,8 @@ from typing import Any
 
 from document.config import settings
 from document.domain import document_generator, exceptions, model, resource_lookup
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, status
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import AnyHttpUrl
@@ -43,6 +44,18 @@ def invalid_document_request_exception_handler(
         content={
             "message": f"{exc.message}",
         },
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(
+    request: Request, exc: RequestValidationError
+) -> JSONResponse:
+    exc_str = f"{exc}".replace("\n", " ").replace("   ", " ")
+    logger.error(f"{request}: {exc_str}")
+    content = {"status_code": 10422, "message": exc_str, "data": None}
+    return JSONResponse(
+        content=content, status_code=status.HTTP_422_UNPROCESSABLE_ENTITY
     )
 
 
@@ -93,6 +106,19 @@ def serve_pdf_document(
         path=path,
         filename=pathlib.Path(path).name,
         headers={"Content-Disposition": "attachment"},
+    )
+
+
+@app.get("/html/{document_request_key}")
+def serve_html_document(
+    document_request_key: str, output_dir: str = settings.output_dir()
+) -> FileResponse:
+    """Serve the requested HTML document."""
+    path = "{}.html".format(os.path.join(output_dir, document_request_key))
+    return FileResponse(
+        path=path,
+        filename=pathlib.Path(path).name,
+        headers={"Content-Disposition": "inline"},
     )
 
 

@@ -2,11 +2,11 @@
   import type { AssemblyStrategy } from './types'
 
   let book_language_order_strategy: AssemblyStrategy = {
-    id: 'book_language_order',
+    id: 'blo',
     label: <string>import.meta.env.VITE_BOOK_LANGUAGE_ORDER_LABEL
   }
   let language_book_order_strategy: AssemblyStrategy = {
-    id: 'language_book_order',
+    id: 'lbo',
     label: <string>import.meta.env.VITE_LANGUAGE_BOOK_ORDER_LABEL
   }
   let assemblyStrategies = [book_language_order_strategy, language_book_order_strategy]
