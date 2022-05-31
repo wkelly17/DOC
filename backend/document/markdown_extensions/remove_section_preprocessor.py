@@ -27,28 +27,17 @@ class RemoveSectionPreprocessor(Preprocessor):
             md = self.remove_md_section(md, section)
         return md.split("\n")
 
-    def remove_md_section(self, md: str, section_name: str) -> str:
-        """
-        Given markdown and a section name, removes the section header and the
-        text contained in the section.
-        """
-        header_regex = re.compile("^#.*$")
-        section_regex = re.compile("^#+ {}".format(section_name))
-        out_md = ""
-        in_section = False
-        for line in md.splitlines():
-            if in_section:
-                if header_regex.match(line):
-                    # We found a header.  The section is over.
-                    out_md += line + "\n"
-                    in_section = False
-            else:
-                if section_regex.match(line):
-                    # We found the section header.
-                    in_section = True
-                else:
-                    out_md = "{}{}\n".format(out_md, line)
-        return out_md
+    def remove_md_section(
+        self,
+        md: str,
+        section_name: str,
+        # See https://regex101.com/r/SSItAG/1
+        section_regex_fmt_str: str = r"\#+ +{}.*$\n*.*",
+    ) -> str:
+        md_out = re.sub(
+            section_regex_fmt_str.format(section_name), "", md, 0, re.DOTALL
+        )
+        return md_out
 
     def run(self, lines: list[str]) -> list[str]:
         """Entrypoint."""
