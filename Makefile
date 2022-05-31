@@ -94,6 +94,7 @@ mypyc:
 .PHONY: clean-mypyc-artifacts
 clean-mypyc-artifacts:
 	find . -type f -name "*.so" -exec rm -- {} +
+	find . -type f -name "*.c" -exec rm -- {} +
 
 # https://radon.readthedocs.io/en/latest/commandline.html
 .PHONY: radon-cyclomatic-complexity
