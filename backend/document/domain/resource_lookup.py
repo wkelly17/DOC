@@ -447,12 +447,17 @@ def resource_types_for_lang(
     Convenience method that can be called, e.g., from the UI, to
     get the set of all resource types for a particular lang_code.
     """
+    # NOTE The '+ bc_resouce_types' is because translations.json doesn't
+    # include bible commentary as a resource type. Bible commentary is only
+    # available for English at this time.
+    resource_types_list = (
+        _lookup(jsonpath_str.format(lang_code)) + bc_resource_types
+        if lang_code == "en"
+        else _lookup(jsonpath_str.format(lang_code))
+    )
     resource_types = [
         resource_type
-        # NOTE The '+ bc_resouce_types' is a hack because
-        # translations.json doesn't include bible commentary as a
-        # resource type.
-        for resource_type in _lookup(jsonpath_str.format(lang_code)) + bc_resource_types
+        for resource_type in resource_types_list
         if resource_type in usfm_resource_types
         or resource_type in tn_resource_types
         or resource_type in tq_resource_types
