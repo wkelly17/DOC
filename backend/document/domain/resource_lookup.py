@@ -399,19 +399,22 @@ def bc_resource_lookup(
 def lang_codes(
     working_dir: str = settings.working_dir(),
     translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
+    lang_code_filter_list: Sequence[str] = settings.LANG_CODE_FILTER_LIST,
 ) -> Iterable[Any]:
     """
     Convenience method that can be called from UI to get the set
     of all language codes available through API. Presumably this
     could be called to populate a drop-down menu.
     """
-    for lang in fetch_source_data(working_dir, translations_json_location):
+    data = fetch_source_data(working_dir, translations_json_location)
+    for lang in [lang for lang in data if lang["code"] not in lang_code_filter_list]:
         yield lang["code"]
 
 
 def lang_codes_and_names(
     working_dir: str = settings.working_dir(),
     translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
+    lang_code_filter_list: Sequence[str] = settings.LANG_CODE_FILTER_LIST,
 ) -> list[tuple[str, str]]:
     """
     Convenience method that can be called from UI to get the set
@@ -419,7 +422,8 @@ def lang_codes_and_names(
     Presumably this could be called to populate a drop-down menu.
     """
     values = []
-    for d in fetch_source_data(working_dir, translations_json_location):
+    data = fetch_source_data(working_dir, translations_json_location)
+    for d in [lang for lang in data if lang["code"] not in lang_code_filter_list]:
         values.append(
             (d["code"], "{} (language code: {})".format(d["name"], d["code"]))
         )
@@ -447,9 +451,15 @@ def resource_types_for_lang(
     Convenience method that can be called, e.g., from the UI, to
     get the set of all resource types for a particular lang_code.
     """
-    # NOTE The '+ bc_resouce_types' is because translations.json doesn't
-    # include bible commentary as a resource type. Bible commentary is only
-    # available for English at this time.
+    # Add bible commentary resource types to set of resource types for
+    # language if the language is English as only English has bible
+    # commentary available at this time. Preferrably we'd get all resource
+    # types from the _lookup function which gets it data from
+    # translations.json currently, but unfortunately, translations.json does
+    # not include bible commentary as a resource type. As such this is
+    # somewhat of a hack and should probably be addressed in the data
+    # pipeline such that English bible commentary info is added to
+    # translations.json.
     resource_types_list = (
         _lookup(jsonpath_str.format(lang_code)) + bc_resource_types
         if lang_code == "en"

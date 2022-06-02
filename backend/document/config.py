@@ -79,6 +79,8 @@ class Settings(BaseSettings):
         "reg",
         "udb",
         "udb-wa",
+        "ugnt",
+        # "uhb", # parser blows on: AttributeError: 'SingleHTMLRenderer' object has no attribute 'renderCAS'
         "ulb",
         "ulb-wa",
         "usfm",
@@ -87,6 +89,26 @@ class Settings(BaseSettings):
     TQ_RESOURCE_TYPES: Sequence[str] = ["tq", "tq-wa"]
     TW_RESOURCE_TYPES: Sequence[str] = ["tw", "tw-wa"]
     BC_RESOURCE_TYPES: Sequence[str] = ["bc-wa"]
+    # List of language codes for which there is an issue in
+    # translations.json such that a complete document request cannot
+    # be formed for these languages due to some issue with respect to
+    # their resource types or resource codes. E.g., hu doesn't have
+    # any resource types or resource codes in translations.json.
+    LANG_CODE_FILTER_LIST: Sequence[str] = [
+        "acq",
+        "gaj-x-ymnk",
+        "hr",
+        "hu",
+        "id",
+        "kip",
+        "lus",
+        "mor",
+        "mve",
+        "pmy",
+        "sr-Latn",
+        "tig",
+        "tem",
+    ]
 
     # fmt: off
     BC_ARTICLE_URL_FMT_STR: str = "https://content.bibletranslationtools.org/WycliffeAssociates/en_bc/src/branch/master/{}"
