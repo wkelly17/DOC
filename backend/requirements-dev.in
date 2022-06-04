@@ -20,6 +20,7 @@ pyls-mypy
 pytest
 pytest-datafiles
 pytest-icdiff
+pytest-xdist[psutil]
 radon
 vulture
 # wemake-python-styleguide
