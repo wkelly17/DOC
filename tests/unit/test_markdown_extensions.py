@@ -29,23 +29,58 @@ def test_remove_section_preprocessor() -> None:
     """
     Test the remove section Markdown pre-processor extension.
     """
-    source = """# apostle
+    source = """# blah
 
-## Related Ideas:
+## Flub:
 
-apostleship
+Nullam eu ante vel est convallis dignissim.  Fusce suscipit, wisi nec facilisis facilisis, est dui fermentum leo, quis tempor ligula erat quis odio.  Nunc porta vulputate tellus.  Nunc rutrum turpis sed pede.  Sed bibendum.  Aliquam posuere.  Nunc aliquet, augue nec adipiscing interdum, lacus tellus malesuada massa, quis varius mi purus non odio.  Pellentesque condimentum, magna ut suscipit hendrerit, ipsum augue ornare nulla, non luctus diam neque sit amet urna.  Curabitur vulputate vestibulum lorem.  Fusce sagittis, libero non molestie mollis, magna orci ultrices dolor, at vulputate neque nulla lacinia eros.  Sed id ligula quis est convallis tempor.  Curabitur lacinia pulvinar nibh.  Nam a sapien.
+
+
+## Picture of blah:
+
+<a href="http://example.com"><img src="http://example.com/foo.png" ></a>
 
 ## Links:
 
-The "apostles" were men sent by Jesus to preach about God and his kingdom. The term "apostleship" refers to the position and authority of those who were chosen as apostles.
+Lorem ipsum dolor sit amet, consectetuer adipiscing elit.  Donec hendrerit tempor tellus.  Donec pretium posuere tellus.  Proin quam nisl, tincidunt et, mattis eget, convallis nec, purus.  Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.  Nulla posuere.  Donec vitae dolor.  Nullam tristique diam non turpis.  Cras placerat accumsan nulla.  Nullam rutrum.  Nam vestibulum accumsan nisl.
 
-* The word "apostle" means "someone who is sent out for a special purpose." The apostle has the same authority as the one who sent him.
-* Jesus' twelve closest disciples became the first apostles. Other men, such as Paul and James, also became apostles.
-* By God's power, the apostles were able to boldly preach the gospel and heal people, and were able to force demons to come out of people."""
-    expected = """<h1>apostle</h1>\n<h2>Related Ideas:</h2>\n<p>apostleship</p>"""
+
+## Delete me:
+
+* foo
+* bar
+
+## Keep me:
+
+* Blatz
+
+Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus."""
+
+    source_expected = """# blah
+
+## Flub:
+
+Nullam eu ante vel est convallis dignissim.  Fusce suscipit, wisi nec facilisis facilisis, est dui fermentum leo, quis tempor ligula erat quis odio.  Nunc porta vulputate tellus.  Nunc rutrum turpis sed pede.  Sed bibendum.  Aliquam posuere.  Nunc aliquet, augue nec adipiscing interdum, lacus tellus malesuada massa, quis varius mi purus non odio.  Pellentesque condimentum, magna ut suscipit hendrerit, ipsum augue ornare nulla, non luctus diam neque sit amet urna.  Curabitur vulputate vestibulum lorem.  Fusce sagittis, libero non molestie mollis, magna orci ultrices dolor, at vulputate neque nulla lacinia eros.  Sed id ligula quis est convallis tempor.  Curabitur lacinia pulvinar nibh.  Nam a sapien.
+
+
+## Keep me:
+
+* Blatz
+
+Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus."""
+
+    md_source = markdown.Markdown()
+    expected = md_source.convert(source_expected)
 
     md = markdown.Markdown(
-        extensions=[remove_section_preprocessor.RemoveSectionExtension()]
+        extensions=[
+            remove_section_preprocessor.RemoveSectionExtension(
+                sections_to_remove=[
+                    ["Picture", "Links", "Delete me"],
+                    "Sections to remove",
+                ]
+            )
+        ]
     )
     actual = md.convert(source)
     assert expected == actual

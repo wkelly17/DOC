@@ -783,6 +783,7 @@ def markdown_instance(
     resource_requests: Sequence[model.ResourceRequest],
     layout_for_print: bool,
     tw_resource_dir: Optional[str] = None,
+    sections_to_remove: list[str] = settings.MARKDOWN_SECTIONS_TO_REMOVE,
 ) -> markdown.Markdown:
     """
     Initialize and return a markdown.Markdown instance that can be
@@ -796,7 +797,12 @@ def markdown_instance(
     if not layout_for_print:  # User doesn't want to print result
         return markdown.Markdown(
             extensions=[
-                remove_section_preprocessor.RemoveSectionExtension(),
+                remove_section_preprocessor.RemoveSectionExtension(
+                    sections_to_remove=[
+                        sections_to_remove,
+                        "Markdown sections to remove",
+                    ]
+                ),
                 link_transformer_preprocessor.LinkTransformerExtension(
                     lang_code=[lang_code, "Language code for resource"],
                     resource_requests=[
@@ -814,7 +820,9 @@ def markdown_instance(
     # things since we are printing.
     return markdown.Markdown(
         extensions=[
-            remove_section_preprocessor.RemoveSectionExtension(),
+            remove_section_preprocessor.RemoveSectionExtension(
+                sections_to_remove=[sections_to_remove, "Markdown sections to remove"]
+            ),
             link_print_transformer_preprocessor.LinkPrintTransformerExtension(
                 lang_code=[lang_code, "Language code for resource"],
                 resource_requests=[
