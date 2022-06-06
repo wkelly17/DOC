@@ -1,5 +1,4 @@
-# Stage 0, "development-stage", based on Node.js, to build the
-# frontend and run it in 'development' mode.
+# Stage 0: build the frontend.
 FROM node:17.7.1-bullseye-slim as development-stage
 
 RUN apt-get update && apt-get install -y \
@@ -22,10 +21,13 @@ COPY ./ /app/
 RUN npm run check
 
 # 'npm run build' will run 'vite build' which will create the
-# ./dist directory containing the built project.
+# ./dist directory containing the built project. Note too that 'npm
+# run build' puts the frontend build system (vite) into production mode
+# which means that the values in .env.production will have priority
+# over same in .env
 RUN npm run build
 
-# Stage 1, based on Nginx, to have only the compiled app, ready for production with Nginx
+# Stage 1: Let nginx serve the built front-end in production.
 FROM nginx:1.21.6
 COPY --from=development-stage /app/nginx.conf /etc/nginx/conf.d/default.conf
 COPY ./nginx-backend-not-found.conf /etc/nginx/extra-conf.d/backend-not-found.conf
