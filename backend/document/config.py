@@ -292,6 +292,8 @@ class Settings(BaseSettings):
     MARKDOWN_SECTIONS_TO_REMOVE: list[str] = [
         "Examples from the Bible stories",
         "Links",
+        "Picture of",
+        "Pictures",
     ]
 
     #  Return the from email to use for sending email with generated PDF

@@ -14,16 +14,18 @@ logger = settings.logger(__name__)
 class RemoveSectionPreprocessor(Preprocessor):
     """Remove arbitrary Markdown sections."""
 
-    def __init__(self, config: dict[str, list[str]], md: markdown.Markdown) -> None:
-        """Initialize."""
-        # Example use of config. See __init__ for RemoveSectionExtension
-        # below for initialization.
-        # self.encoding = config.get("encoding")
+    def __init__(self, md: markdown.Markdown, sections_to_remove: list[str]) -> None:
+        self._md: markdown.Markdown = md
+        self._sections_to_remove: list[str] = sections_to_remove
+        logger.debug("sections_to_remove: %s", sections_to_remove)
         super().__init__()
 
-    def remove_sections(self, md: str) -> list[str]:
+    def remove_sections(
+        self,
+        md: str,
+    ) -> list[str]:
         """Remove various markdown sections."""
-        for section in settings.MARKDOWN_SECTIONS_TO_REMOVE:
+        for section in self._sections_to_remove:
             md = self.remove_md_section(md, section)
         return md.split("\n")
 
@@ -61,24 +63,16 @@ class RemoveSectionExtension(Extension):
     """Wikilink to Markdown link conversion extension."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize."""
-        self.md: markdown.Markdown
-        self.config = {
-            # Example config entry from the snippets extension that
-            # ships with Python-Markdown library.
-            # "encoding": ["utf-8", 'Encoding of snippets - Default: "utf-8"'],
-        }
-        super().__init__(*args, **kwargs)
+        """Entrypoint."""
+        self.config = kwargs
 
     def extendMarkdown(self, md: markdown.Markdown) -> None:
-        """Register the extension."""
+        """Automatically called by superclass."""
         self.md = md
         md.registerExtension(self)
-        config = self.getConfigs()
-        removesection = RemoveSectionPreprocessor(config, md)
-        md.preprocessors.register(removesection, "remove_section", 32)
-
-
-def makeExtension(*args: Any, **kwargs: Any) -> RemoveSectionExtension:
-    """Return extension."""
-    return RemoveSectionExtension(*args, **kwargs)
+        remove_section_transformer = RemoveSectionPreprocessor(
+            md, self.getConfig("sections_to_remove")
+        )
+        md.preprocessors.register(
+            remove_section_transformer, "remove_section_transformer", 32
+        )
