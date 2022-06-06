@@ -12,6 +12,7 @@ more-itertools
 pdfkit
 pydantic[email,dotenv]
 pyparsing
+pytest-xdist[psutil]
 requests
 termcolor
 uvicorn

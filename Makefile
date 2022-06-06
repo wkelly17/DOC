@@ -59,7 +59,7 @@ clean-local-docker-output-dir:
 
 .PHONY: unit-tests
 unit-tests: up
-	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/unit
+	docker-compose run --rm --no-deps --entrypoint=pytest api -n auto /tests/unit
 
 .PHONY: e2e-tests
 e2e-tests: up clean-local-docker-output-dir
@@ -183,11 +183,11 @@ local-clean-working-output-dir:
 
 .PHONY: local-unit-tests
 local-unit-tests:  local-prepare-for-tests
-	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=false FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/unit/ -vv
+	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=false FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest -n auto tests/unit/ -vv
 
 .PHONY: local-e2e-tests
 local-e2e-tests:  local-prepare-for-tests
-	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=false FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -vv
+	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=false FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest -n auto tests/e2e/ -vv
 
 # Will execute
 # test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_pt_br_ulb_col_pt_br_tn_col_pt_br_tq_col_pt_br_tw_col_book_language_order_2c_sl_hr and test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_pt_br_ulb_col_pt_br_tn_col_pt_br_tq_col_pt_br_tw_col_book_language_order_2c_sl_hr_c

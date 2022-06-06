@@ -33,6 +33,10 @@ dlint==0.12.0
     # via -r ./backend/requirements-dev.in
 eradicate==2.0.0
     # via flake8-eradicate
+execnet==1.9.0
+    # via
+    #   -c ./backend/requirements.txt
+    #   pytest-xdist
 filelock==3.4.2
     # via virtualenv
 flake8==3.9.2
@@ -124,6 +128,10 @@ pprintpp==0.4.0
     # via pytest-icdiff
 pre-commit==2.16.0
     # via -r ./backend/requirements-dev.in
+psutil==5.9.1
+    # via
+    #   -c ./backend/requirements.txt
+    #   pytest-xdist
 py==1.11.0
     # via
     #   pytest
@@ -147,15 +155,25 @@ pyparsing==2.4.5
     # via
     #   -c ./backend/requirements.txt
     #   packaging
-pytest==6.2.5
+pytest==7.1.2
     # via
+    #   -c ./backend/requirements.txt
     #   -r ./backend/requirements-dev.in
     #   pytest-datafiles
     #   pytest-icdiff
+    #   pytest-xdist
 pytest-datafiles==2.0
     # via -r ./backend/requirements-dev.in
+pytest-forked==1.4.0
+    # via
+    #   -c ./backend/requirements.txt
+    #   pytest-xdist
 pytest-icdiff==0.5
     # via -r ./backend/requirements-dev.in
+pytest-xdist[psutil]==2.5.0
+    # via
+    #   -c ./backend/requirements.txt
+    #   -r ./backend/requirements-dev.in
 python-jsonrpc-server==0.4.0
     # via python-language-server
 python-language-server==0.36.2
