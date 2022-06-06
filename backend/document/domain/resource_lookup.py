@@ -516,6 +516,8 @@ def lang_codes_names_and_resource_types(
     resource types available for that language.
 
     Example usage in repl:
+    >>> from document.config import settings
+    >>> settings.IN_CONTAINER = False
     >>> from document.domain import resource_lookup
     >>> data = resource_lookup.lang_codes_names_and_resource_types()
     Lookup the resource types available for zh
@@ -551,6 +553,8 @@ def lang_codes_names_resource_types_and_resource_codes(
     type.
 
     Example usage in repl:
+    >>> from document.config import settings
+    >>> settings.IN_CONTAINER = False
     >>> from document.domain import resource_lookup
     >>> data = resource_lookup.lang_codes_names_resource_types_and_resource_codes()
     Lookup the resource type available for zh
