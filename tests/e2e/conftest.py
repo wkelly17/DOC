@@ -491,8 +491,7 @@ def random_two_non_english_languages_document_request(
     random_non_english_resource_requests2: Sequence[model.ResourceRequest],
 ) -> model.DocumentRequest:
     """
-    Build one non-English language document request with two
-    non-English languages for each assembly_strategy_kind. Each
+    Build two non-English language document requests. Each
     language has its own randomly chosen set of resource requests.
     """
     return model.DocumentRequest(
