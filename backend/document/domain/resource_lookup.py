@@ -5,6 +5,7 @@ assets.
 """
 
 
+import git
 import os
 import pathlib
 import shutil
@@ -787,7 +788,9 @@ def unzip_asset(lang_code: str, resource_type: str, resource_filepath: str) -> N
     logger.info("Unzipping finished.")
 
 
-def clone_git_repo(url: str, resource_filepath: str) -> None:
+def clone_git_repo(
+    url: str, resource_filepath: str, use_git_cli: bool = settings.USE_GIT_CLI
+) -> None:
     """
     Clone the git repo. If the repo was previously cloned but
     the ASSET_CACHING_PERIOD has expired then delete the repo and
@@ -806,16 +809,30 @@ def clone_git_repo(url: str, resource_filepath: str) -> None:
                 resource_filepath,
             )
             logger.exception("Caught exception: ")
-    command = "git clone --depth=1 '{}' '{}'".format(url, resource_filepath)
-    logger.debug("Attempting to clone into %s ...", resource_filepath)
-    try:
-        subprocess.call(command, shell=True)
-    except subprocess.SubprocessError:
-        logger.debug("git command: %s", command)
-        logger.debug("git clone failed!")
+    if use_git_cli:
+        command = "git clone --depth=1 '{}' '{}'".format(url, resource_filepath)
+        logger.debug("Attempting to clone into %s ...", resource_filepath)
+        try:
+            subprocess.call(command, shell=True)
+        except subprocess.SubprocessError:
+            logger.debug("git command: %s", command)
+            logger.debug("git clone failed!")
+        else:
+            logger.debug("git command: %s", command)
+            logger.debug("git clone succeeded.")
     else:
-        logger.debug("git command: %s", command)
-        logger.debug("git clone succeeded.")
+        logger.debug("Attempting to clone into %s ...", resource_filepath)
+        try:
+            git.repo.Repo.clone_from(
+                url=url, to_path=resource_filepath, multi_options=["--depth=1"]
+            )
+            # with git_clone_options(...) ?
+            #   pygit2.clone_repository(url, resource_filepath)
+        except Exception:
+            # except pygit2.errors.GitError:
+            logger.debug("git clone failed!")
+        else:
+            logger.debug("git clone succeeded.")
 
 
 def download_asset(url: str, resource_filepath: str) -> None:
