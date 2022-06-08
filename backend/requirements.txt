@@ -34,6 +34,10 @@ fastapi==0.75.0
     # via -r ./backend/requirements.in
 future==0.18.2
     # via usfm-tools
+gitdb==4.0.9
+    # via gitpython
+gitpython==3.1.27
+    # via -r ./backend/requirements.in
 gunicorn==20.1.0
     # via -r ./backend/requirements.in
 h11==0.13.0
@@ -103,6 +107,8 @@ requests==2.27.1
     # via -r ./backend/requirements.in
 six==1.16.0
     # via jsonpath-rw
+smmap==5.0.0
+    # via gitdb
 sniffio==1.2.0
     # via anyio
 soupsieve==2.3.1
