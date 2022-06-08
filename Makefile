@@ -22,7 +22,7 @@ ifeq ("$(wildcard .venv/bin/pip-sync)","")
 endif
 
 .PHONY: build
-build: checkvenv local-update-deps-prod
+build: checkvenv local-install-deps-prod
 	export IMAGE_TAG=local && \
 	docker build -t wycliffeassociates/doc:$${IMAGE_TAG} . && \
 	docker build -t wycliffeassociates/doc-ui:$${IMAGE_TAG} ./frontend
