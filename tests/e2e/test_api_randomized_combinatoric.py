@@ -16,7 +16,7 @@ from document.entrypoints.app import app
 # avoided.
 
 
-def test_random_non_english_fixtures(
+def test_random_non_english_document_request(
     random_non_english_document_request: model.DocumentRequest,
 ) -> None:
     """
