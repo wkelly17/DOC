@@ -12,6 +12,7 @@ more-itertools
 pdfkit
 pydantic[email,dotenv]
 pyparsing
+pytest-repeat
 pytest-xdist[psutil]
 requests
 termcolor

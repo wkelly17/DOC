@@ -5,7 +5,9 @@
 #    pip-compile ./backend/requirements-prod.in
 #
 attrs==21.4.0
-    # via pytest
+    # via
+    #   -c ./backend/requirements.txt
+    #   pytest
 cfgv==3.3.1
     # via pre-commit
 distlib==0.3.4
@@ -17,7 +19,9 @@ icdiff==2.0.4
 identify==2.4.12
     # via pre-commit
 iniconfig==1.1.1
-    # via pytest
+    # via
+    #   -c ./backend/requirements.txt
+    #   pytest
 mypy==0.921
     # via -r ./backend/requirements-prod.in
 mypy-extensions==0.4.3
@@ -25,25 +29,31 @@ mypy-extensions==0.4.3
 nodeenv==1.6.0
     # via pre-commit
 packaging==21.3
-    # via pytest
+    # via
+    #   -c ./backend/requirements.txt
+    #   pytest
 platformdirs==2.5.1
     # via virtualenv
 pluggy==1.0.0
-    # via pytest
+    # via
+    #   -c ./backend/requirements.txt
+    #   pytest
 pprintpp==0.4.0
     # via pytest-icdiff
 pre-commit==2.17.0
     # via -r ./backend/requirements-prod.in
 py==1.11.0
     # via
+    #   -c ./backend/requirements.txt
     #   pytest
     #   pytest-datafiles
 pyparsing==2.4.5
     # via
     #   -c ./backend/requirements.txt
     #   packaging
-pytest==7.1.1
+pytest==7.1.2
     # via
+    #   -c ./backend/requirements.txt
     #   -r ./backend/requirements-prod.in
     #   pytest-datafiles
     #   pytest-icdiff
@@ -63,6 +73,7 @@ toml==0.10.2
     # via pre-commit
 tomli==2.0.1
     # via
+    #   -c ./backend/requirements.txt
     #   mypy
     #   pytest
 typing-extensions==4.1.1
