@@ -3772,7 +3772,6 @@ def assemble_tn_as_iterator_for_lang_then_book(
     usfm_book_content_unit2: Optional[model.USFMBook],
     bc_book_content_unit: Optional[model.BCBook],
     chapter_header_fmt_str: str = settings.CHAPTER_HEADER_FMT_STR,
-    resource_type_name_with_ref_fmt_str: str = settings.RESOURCE_TYPE_NAME_WITH_REF_FMT_STR,
     book_numbers: Mapping[str, str] = bible_books.BOOK_NUMBERS,
     num_zeros: int = NUM_ZEROS,
 ) -> Iterable[model.HtmlContent]:
@@ -5202,10 +5201,6 @@ def assemble_tw_as_iterator_for_book_then_lang(
     # Sort resources by language
     key = lambda resource: resource.lang_code
     # FIXME Do we need to sort anything other than
-    # tw_book_content_units here?
-    usfm_book_content_units = sorted(usfm_book_content_units, key=key)
-    tn_book_content_units = sorted(tn_book_content_units, key=key)
-    tq_book_content_units = sorted(tq_book_content_units, key=key)
     tw_book_content_units = sorted(tw_book_content_units, key=key)
     bc_book_content_units = sorted(bc_book_content_units, key=key)
 
