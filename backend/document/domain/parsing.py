@@ -760,7 +760,7 @@ def bc_book_content(
             if h1:
                 h1.append(" Commentary")
         # Replace relative links to bible commentary articles with
-        # absolute links the same resource online.
+        # absolute links to the same resource online.
         for link in parser.find_all("a"):
             old_link_ref = link.get("href")
             new_link_ref = url_fmt_str.format(old_link_ref[3:])

@@ -201,13 +201,22 @@ def assemble_content(
     assembly_strategy requested and write out to a single HTML file
     for subsequent use.
     """
+    # Get the assembly strategy function appropriate given the users
+    # choice of document_request.assembly_strategy_kind
     assembly_strategy = assembly_strategies.assembly_strategy_factory(
         document_request.assembly_strategy_kind
     )
+    # Now, actually do the actual assembly given the additional
+    # information of the document_request.assembly_layout_kind and
+    # return it as a string.
     content = "".join(
         assembly_strategy(book_content_units, document_request.assembly_layout_kind)
     )
+    # Get the appropriate HTML template header content given the
+    # document_request.assembly_layout_kind the user has chosen.
     header = document_html_header(document_request.assembly_layout_kind)
+    # Finally compose the HTML document into one string that includes
+    # the header template content.
     content = enclose_html_content(content, document_html_header=header)
     html_file_path = "{}.html".format(os.path.join(output_dir, document_request_key))
     logger.debug("About to write HTML to %s", html_file_path)
@@ -501,6 +510,7 @@ def main(document_request: model.DocumentRequest) -> tuple[str, str]:
         "document_request: %s",
         document_request,
     )
+    # Generate the document request key that identifies this and identical document requests.
     document_request_key_ = document_request_key(
         document_request.resource_requests,
         document_request.assembly_strategy_kind,
@@ -522,6 +532,8 @@ def main(document_request: model.DocumentRequest) -> tuple[str, str]:
             for resource_request in document_request.resource_requests
         ]
 
+        # Determine which resources were actually found and which were
+        # not.
         (
             unfound_resource_lookup_dtos_iter,
             found_resource_lookup_dtos_iter,
@@ -530,14 +542,22 @@ def main(document_request: model.DocumentRequest) -> tuple[str, str]:
             resource_lookup_dtos,
         )
 
+        # Save results for more than one use (generators exhaust on
+        # first use).
         found_resource_lookup_dtos = list(found_resource_lookup_dtos_iter)
         unfound_resource_lookup_dtos = list(unfound_resource_lookup_dtos_iter)
 
+        # For each found resource lookup DTO, now actually provision
+        # to disk the assets associated with the resources and return
+        # the resource directory paths.
         resource_dirs = [
             resource_lookup.provision_asset_files(resource_lookup_dto)
             for resource_lookup_dto in found_resource_lookup_dtos
         ]
 
+        # Initialize found resources from their provisioned assets. If
+        # any could not be initialized return those in the second
+        # iterator via tee.
         book_content_units_iter, unloaded_resource_lookup_dtos_iter = tee(
             resource_book_content_units(
                 found_resource_lookup_dtos,
@@ -547,12 +567,15 @@ def main(document_request: model.DocumentRequest) -> tuple[str, str]:
             )
         )
         # A little further processing is needed on tee objects to get
-        # the types we want.
+        # the types separated. This first list is of successfully
+        # initialized book content units.
         book_content_units = [
             book_content_unit
             for book_content_unit in book_content_units_iter
             if not isinstance(book_content_unit, model.ResourceLookupDto)
         ]
+        # This second list is of resource lookup DTOs whose assets
+        # could not be successfully loaded.
         unloaded_resource_lookup_dtos = [
             resource_lookup_dto
             for resource_lookup_dto in unloaded_resource_lookup_dtos_iter

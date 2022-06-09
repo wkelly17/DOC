@@ -157,7 +157,7 @@ def resource_types_for_lang(lang_code: str) -> Sequence[Any]:
 
 @app.get("/resource_codes_for_lang/{lang_code}")
 def resource_codes_for_lang(lang_code: str) -> Sequence[Sequence[Any]]:
-    """Return list of all available resource types."""
+    """Return list of all available resource codes."""
     return resource_lookup.resource_codes_for_lang(lang_code)
 
 

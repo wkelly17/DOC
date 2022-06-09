@@ -13,7 +13,7 @@ from document.config import settings
 from document.domain import bible_books, model
 from document.utils import file_utils
 
-# A blessed set of language codes that are known to generate tests
+# A blessed set of language codes that can be used to generate tests
 # that pass, i.e., they are well supported for all their resource
 # types and (hopefully) all their resource codes (i.e., books). This
 # is by no means the only language codes that are supported. It is
@@ -366,12 +366,7 @@ def random_english_document_request(
     english_resource_requests: Sequence[model.ResourceRequest],
 ) -> model.DocumentRequest:
     """
-    Build one randomly chosen English language document request. This
-    fixture does not iterate through all resource codes like
-    english_document_request does because it depends on
-    random_english_resource_requests rather than
-    english_resource_requests which in turn depends on
-    random_resource_code rather than resource_code.
+    Build one randomly chosen English language document request.
     """
     return model.DocumentRequest(
         email_address=email_address,
@@ -391,9 +386,7 @@ def random_non_english_document_request(
     random_non_english_resource_requests: Sequence[model.ResourceRequest],
 ) -> model.DocumentRequest:
     """
-    Build one non-English language document request for each
-    assembly_strategy_kind, one randomly chosen set of resource
-    requests, and one randomly chosen resource code.
+    Build one non-English language document request.
 
     NOTE Many such randomly generated non-English tests will fail
     since non-English language support is not complete with respect to
@@ -464,9 +457,7 @@ def random_english_and_non_english_document_request(
     random_non_english_resource_requests: Sequence[model.ResourceRequest],
 ) -> model.DocumentRequest:
     """
-    Build one non-English language document request for each
-    assembly_strategy_kind, one randomly chosen set of resource
-    requests, and one randomly chosen resource code.
+    Build one non-English language document request.
 
     NOTE Many such randomly generated non-English tests will fail
     since non-English language support is not complete with respect to
@@ -500,8 +491,7 @@ def random_two_non_english_languages_document_request(
     random_non_english_resource_requests2: Sequence[model.ResourceRequest],
 ) -> model.DocumentRequest:
     """
-    Build one non-English language document request with two
-    non-English languages for each assembly_strategy_kind. Each
+    Build two non-English language document requests. Each
     language has its own randomly chosen set of resource requests.
     """
     return model.DocumentRequest(

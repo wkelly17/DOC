@@ -2613,8 +2613,8 @@ def assemble_content_by_book_then_lang(
             if isinstance(book_content_unit, model.BCBook)
         ]
 
-        # We've got the resources, now we can use the sub-strategy factory
-        # method to choose the right function to use from here on out.
+        # We've got the resources, now we can use the layout factory
+        # function to choose the right function to use from here on out.
         assembly_layout_for_book_then_lang_strategy = (
             assembly_factory_for_book_then_lang_strategy(
                 usfm_book_content_units,
@@ -3285,10 +3285,6 @@ def assemble_usfm_tq_tw_for_lang_then_book_1c(
     bc_book_content_unit: Optional[model.BCBook],
     resource_type_name_with_ref_fmt_str: str = settings.RESOURCE_TYPE_NAME_WITH_REF_FMT_STR,
     footnotes_heading: model.HtmlContent = settings.FOOTNOTES_HEADING,
-    # html_row_begin: str = settings.HTML_ROW_BEGIN,
-    # html_column_begin: str = settings.HTML_COLUMN_BEGIN,
-    # html_column_end: str = settings.HTML_COLUMN_END,
-    # html_row_end: str = settings.HTML_ROW_END,
 ) -> Iterable[model.HtmlContent]:
     """
     Construct the HTML for a 'by verse' strategy wherein USFM, TQ,
@@ -4157,8 +4153,101 @@ def assemble_usfm_as_iterator_for_book_then_lang_2c_sl_sr(
     html_row_end: str = settings.HTML_ROW_END,
 ) -> Iterable[model.HtmlContent]:
     """
-    Construct the HTML wherein at least one USFM resource (e.g., ulb,
-    nav, cuv, etc.) exists, and TN, TQ, and TW may exist.
+    Construct the HTML for the two column scripture left scripture
+    right layout.
+
+    Ensure that different languages' USFMs ends up next to each other
+    horizontally in the two column layout.
+
+    Discussion:
+
+    First let's find all possible USFM combinations for two languages
+    that have both a primary USFM, e.g., ulb-wa, available and a secondary
+    USFM, e.g., udb-wa, available for selection:
+
+    primary_lang0, primary_lang1, secondary_lang0, secondary_lang1
+
+    0                 0                0             1
+    0                 0                1             0
+    0                 0                1             1
+    0                 1                0             0
+    0                 1                0             1
+    0                 1                1             0
+    0                 1                1             1
+    1                 0                0             0
+    1                 0                0             1
+    1                 0                1             0
+    1                 0                1             1
+    1                 1                0             1
+    1                 1                1             0
+    1                 1                1             1
+
+    of which we can eliminate those that do not have the minimum of
+    two languages and eliminate those that do not have USFMs
+    for both languages yielding:
+
+    primary_lang0, primary_lang1, secondary_lang0, secondary_lang1
+
+    0                 0                1             1
+    0                 1                1             0
+    0                 1                1             1
+    1                 0                0             1
+    1                 0                1             1
+    1                 1                0             1
+    1                 1                1             0
+    1                 1                1             1
+
+    which we then reorder columns to make the subsequent step easier:
+
+    primary_lang0, secondary_lang0, primary_lang1, secondary_lang1
+
+    0                   1             0              1
+    0                   1             1              0
+    0                   1             1              1
+    1                   0             0              1
+    1                   1             0              1
+    1                   0             1              1
+    1                   1             1              0
+    1                   1             1              1
+
+    which yields the following possible USFM layouts when we admit
+    that lang0 always appears on the left and lang1 always appears on
+    the right of the two column layout:
+
+    secondary_lang0     | secondary_lang1
+
+    or
+
+    secondary_lang0     | primary_lang1
+
+    or
+
+    secondary_lang0     | primary_lang1
+                        | secondary_lang1
+
+    or
+
+    primary_lang0       | secondary_lang1
+
+    or
+
+    primary_lang0       | secondary_lang1
+    secondary_lang0     |
+
+    or
+
+    primary_lang0       | primary_lang1
+                        | secondary_lang1
+
+    or
+
+    primary_lang0       | primary_lang1
+    secondary_lang0     |
+
+    or
+
+    primary_lang0       | primary_lang1
+    secondary_lang0     | secondary_lang1
     """
 
     # Sort resources by language
