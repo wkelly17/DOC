@@ -2745,6 +2745,9 @@ def assemble_by_usfm_as_iterator_for_lang_then_book_2c_sl_hr(
         book_intro = adjust_book_intro_headings(book_intro)
         yield model.HtmlContent(book_intro)
 
+    if bc_book_content_unit:
+        yield book_intro_commentary(bc_book_content_unit)
+
     if usfm_book_content_unit:
         # Scripture type for usfm_book_content_unit, e.g., ulb, cuv, nav, reg, etc.
         yield model.HtmlContent(
@@ -2913,6 +2916,9 @@ def assemble_by_usfm_as_iterator_for_lang_then_book_1c(
         book_intro = adjust_book_intro_headings(book_intro)
         yield model.HtmlContent(book_intro)
 
+    if bc_book_content_unit:
+        yield book_intro_commentary(bc_book_content_unit)
+
     if usfm_book_content_unit:
         # Scripture type for usfm_book_content_unit, e.g., ulb, cuv, nav, reg, etc.
         yield model.HtmlContent(
@@ -3072,6 +3078,9 @@ def assemble_by_usfm_as_iterator_for_lang_then_book_1c_c(
         book_intro = tn_book_content_unit.intro_html
         book_intro = adjust_book_intro_headings(book_intro)
         yield model.HtmlContent(book_intro)
+
+    if bc_book_content_unit:
+        yield book_intro_commentary(bc_book_content_unit)
 
     if usfm_book_content_unit:
         # Scripture type for usfm_book_content_unit, e.g., ulb, cuv, nav, reg, etc.
@@ -4013,6 +4022,9 @@ def assemble_usfm_as_iterator_for_book_then_lang_2c_sl_hr(
         book_intro = adjust_book_intro_headings(book_intro)
         yield model.HtmlContent(book_intro)
 
+    for bc_book_content_unit in bc_book_content_units:
+        yield book_intro_commentary(bc_book_content_unit)
+
     # Use the usfm_book_content_unit that has the most chapters as a
     # chapter_num pump.
     # Realize the most amount of content displayed to user.
@@ -4191,6 +4203,9 @@ def assemble_usfm_as_iterator_for_book_then_lang_2c_sl_sr(
         book_intro = tn_book_content_unit.intro_html
         book_intro = adjust_book_intro_headings(book_intro)
         yield model.HtmlContent(book_intro)
+
+    for bc_book_content_unit in bc_book_content_units:
+        yield book_intro_commentary(bc_book_content_unit)
 
     # Use the usfm_book_content_unit that has the most chapters as a
     # chapter_num pump.
@@ -4376,7 +4391,7 @@ def assemble_usfm_as_iterator_for_book_then_lang_1c(
     tn_book_content_units = sorted(tn_book_content_units, key=key)
     tq_book_content_units = sorted(tq_book_content_units, key=key)
     tw_book_content_units = sorted(tw_book_content_units, key=key)
-    # ta_book_content_units = sorted(ta_book_content_units, key=key)
+    bc_book_content_units = sorted(bc_book_content_units, key=key)
 
     # Add book intros for each tn_book_content_unit
     for tn_book_content_unit in tn_book_content_units:
@@ -4384,6 +4399,9 @@ def assemble_usfm_as_iterator_for_book_then_lang_1c(
         book_intro = tn_book_content_unit.intro_html
         book_intro = adjust_book_intro_headings(book_intro)
         yield model.HtmlContent(book_intro)
+
+    for bc_book_content_unit in bc_book_content_units:
+        yield book_intro_commentary(bc_book_content_unit)
 
     # Use the usfm_book_content_unit that has the most chapters as a
     # chapter_num pump.
@@ -4575,6 +4593,9 @@ def assemble_usfm_as_iterator_for_book_then_lang_1c_c(
         book_intro = adjust_book_intro_headings(book_intro)
         yield model.HtmlContent(book_intro)
 
+    for bc_book_content_unit in bc_book_content_units:
+        yield book_intro_commentary(bc_book_content_unit)
+
     # Use the usfm_book_content_unit that has the most chapters as a
     # chapter_num pump.
     # Realize the most amount of content displayed to user.
@@ -4714,7 +4735,7 @@ def assemble_tn_as_iterator_for_book_then_lang(
     tn_book_content_units = sorted(tn_book_content_units, key=key)
     tq_book_content_units = sorted(tq_book_content_units, key=key)
     tw_book_content_units = sorted(tw_book_content_units, key=key)
-    # ta_book_content_units = sorted(ta_book_content_units, key=key)
+    bc_book_content_units = sorted(bc_book_content_units, key=key)
 
     # Add book intros for each tn_book_content_unit
     for tn_book_content_unit in tn_book_content_units:
@@ -4722,6 +4743,9 @@ def assemble_tn_as_iterator_for_book_then_lang(
         book_intro = tn_book_content_unit.intro_html
         book_intro = adjust_book_intro_headings(book_intro)
         yield model.HtmlContent(book_intro)
+
+    for bc_book_content_unit in bc_book_content_units:
+        yield book_intro_commentary(bc_book_content_unit)
 
     # Use the tn_book_content_unit that has the most chapters as a
     # chapter_num pump.
@@ -4735,6 +4759,11 @@ def assemble_tn_as_iterator_for_book_then_lang(
         for tn_book_content_unit in tn_book_content_units:
             # Add the translation notes chapter intro.
             yield from chapter_intro(tn_book_content_unit, chapter_num)
+
+        for bc_book_content_unit in bc_book_content_units:
+            # Add the chapter commentary.
+            yield chapter_commentary(bc_book_content_unit, chapter_num)
+
 
         # Use the tn_book_content_unit that has the most verses for
         # this chapter_num chapter as a verse_num pump.
@@ -4846,6 +4875,9 @@ def assemble_tn_as_iterator_for_book_then_lang_c(
         book_intro = adjust_book_intro_headings(book_intro)
         yield model.HtmlContent(book_intro)
 
+    for bc_book_content_unit in bc_book_content_units:
+        yield book_intro_commentary(bc_book_content_unit)
+
     # Use the tn_book_content_unit that has the most chapters as a
     # chapter_num pump.
     # Realize the most amount of content displayed to user.
@@ -4924,7 +4956,7 @@ def assemble_tq_as_iterator_for_book_then_lang(
     tn_book_content_units = sorted(tn_book_content_units, key=key)
     tq_book_content_units = sorted(tq_book_content_units, key=key)
     tw_book_content_units = sorted(tw_book_content_units, key=key)
-    # ta_book_content_units = sorted(ta_book_content_units, key=key)
+    bc_book_content_units = sorted(bc_book_content_units, key=key)
 
     # Use the tq_book_content_unit that has the most chapters as a
     # chapter_num pump.
@@ -4936,6 +4968,11 @@ def assemble_tq_as_iterator_for_book_then_lang(
     )
     for chapter_num in tq_with_most_chapters.chapters.keys():
         yield model.HtmlContent("Chapter {}".format(chapter_num))
+
+        for bc_book_content_unit in bc_book_content_units:
+            # Add the chapter commentary.
+            yield chapter_commentary(bc_book_content_unit, chapter_num)
+
 
         # Use the tn_book_content_unit that has the most verses for
         # this chapter_num chapter as a verse_num pump.
@@ -5071,7 +5108,7 @@ def assemble_tw_as_iterator_for_book_then_lang(
     tw_book_content_units: Sequence[model.TWBook],
     bc_book_content_units: Sequence[model.BCBook],
 ) -> Iterable[model.HtmlContent]:
-    """Construct the HTML for a only TW."""
+    """Construct the HTML for BC and TW."""
 
     # Sort resources by language
     key = lambda resource: resource.lang_code
@@ -5082,6 +5119,12 @@ def assemble_tw_as_iterator_for_book_then_lang(
     tq_book_content_units = sorted(tq_book_content_units, key=key)
     tw_book_content_units = sorted(tw_book_content_units, key=key)
     bc_book_content_units = sorted(bc_book_content_units, key=key)
+
+    # Add the bible commentary
+    for bc_book_content_unit in bc_book_content_units:
+        yield bc_book_content_unit.book_intro
+        for chapter in bc_book_content_unit.chapters.values():
+            yield chapter.commentary
 
     # Add the translation word definitions
     for tw_book_content_unit in tw_book_content_units:
@@ -5246,7 +5289,7 @@ def adjust_chapter_intro_headings(chapter_intro: str) -> model.HtmlContent:
     return model.HtmlContent(re.sub(H6, H5, chapter_intro))
 
 
-def adjust_chapter_commentary_headings(chapter_commentary: str) -> model.HtmlContent:
+def adjust_commentary_headings(chapter_commentary: str) -> model.HtmlContent:
     """Change levels on headings."""
     # logger.debug("commentary parser: %s", parser)
     # Move the H4 out of the way, we'll deal with it last.
@@ -5269,6 +5312,14 @@ def chapter_intro(
     return adjust_chapter_intro_headings(chapter_intro)
 
 
+def book_intro_commentary(bc_book_content_unit: model.BCBook) -> model.HtmlContent:
+    if bc_book_content_unit:
+        book_intro_commentary = bc_book_content_unit.book_intro
+    else:
+        book_intro_commentary = model.HtmlContent("")
+    return adjust_commentary_headings(book_intro_commentary)
+
+
 def chapter_commentary(
     bc_book_content_unit: model.BCBook, chapter_num: int
 ) -> model.HtmlContent:
@@ -5277,7 +5328,7 @@ def chapter_commentary(
         chapter_commentary = bc_book_content_unit.chapters[chapter_num].commentary
     else:
         chapter_commentary = model.HtmlContent("")
-    return adjust_chapter_commentary_headings(chapter_commentary)
+    return adjust_commentary_headings(chapter_commentary)
 
 
 def format_tn_verse(

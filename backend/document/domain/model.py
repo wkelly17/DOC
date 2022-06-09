@@ -314,6 +314,7 @@ class BCBook(BaseModel):
     HTML content.
     """
 
+    book_intro: str
     lang_code: str
     lang_name: str
     resource_code: str
