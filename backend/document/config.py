@@ -78,7 +78,7 @@ class Settings(BaseSettings):
         "nav",
         "reg",
         "udb",
-        "udb-wa",
+        # "udb-wa", # 2022-05-12 - Content team doesn't want this used.
         "ugnt",
         # "uhb", # parser blows on: AttributeError: 'SingleHTMLRenderer' object has no attribute 'renderCAS'
         "ulb",
