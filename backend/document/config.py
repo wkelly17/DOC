@@ -142,6 +142,8 @@ class Settings(BaseSettings):
     # Indicate whether running in Docker container.
     IN_CONTAINER: bool = False
 
+    USE_GIT_CLI: bool = False
+
     def working_dir(self) -> str:
         """
         The directory where the resources will be placed once
