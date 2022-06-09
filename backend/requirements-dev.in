@@ -1,5 +1,5 @@
 -c requirements.txt
-black
+git+https://github.com/psf/black
 cohesion
 dlint
 flake8
