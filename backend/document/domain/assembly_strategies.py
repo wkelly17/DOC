@@ -2460,6 +2460,22 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
         ): assemble_tw_as_iterator_for_book_then_lang,
+        (
+            False,
+            False,
+            False,
+            False,
+            True,
+            model.AssemblyLayoutEnum.ONE_COLUMN,
+        ): assemble_tw_as_iterator_for_book_then_lang,
+        (
+            False,
+            False,
+            False,
+            False,
+            True,
+            model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
+        ): assemble_tw_as_iterator_for_book_then_lang,
     }
     return strategies[
         # Turn existence (exists or not) into a boolean for each
