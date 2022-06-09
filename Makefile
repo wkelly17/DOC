@@ -22,7 +22,7 @@ ifeq ("$(wildcard .venv/bin/pip-sync)","")
 endif
 
 .PHONY: build
-build: checkvenv local-update-deps-prod
+build: checkvenv local-install-deps-prod
 	export IMAGE_TAG=local && \
 	docker build -t wycliffeassociates/doc:$${IMAGE_TAG} . && \
 	docker build -t wycliffeassociates/doc-ui:$${IMAGE_TAG} ./frontend
@@ -67,11 +67,11 @@ e2e-tests: up clean-local-docker-output-dir
 
 .PHONY: smoke-test-with-translation-words
 smoke-test-with-translation-words: up clean-local-docker-output-dir
-	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/e2e -k test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_pt_br_ulb_col_pt_br_tn_col_pt_br_tq_col_pt_br_tw_col_book_language_order
+	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/e2e -k test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_pt_br_ulb_col_pt_br_tn_col_pt_br_tq_col_pt_br_tw_col_book_language_order_2c_sl_hr
 
 .PHONY: smoke-test-with-translation-words2
 smoke-test-with-translation-words2: up clean-local-docker-output-dir
-	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/e2e -k test_en_ulb_wa_rom_en_tn_wa_rom_en_tq_wa_rom_en_tw_wa_rom_es_419_ulb_rom_es_419_tn_rom_en_tq_rom_es_419_tw_rom_book_language_order
+	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/e2e -k test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_es_419_ulb_col_es_419_tn_col_es_419_tq_col_es_419_tw_col_book_language_order_2c_sl_hr
 
 .PHONY: down
 down:
@@ -189,6 +189,10 @@ local-unit-tests:  local-prepare-for-tests
 local-e2e-tests:  local-prepare-for-tests
 	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=false FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest -n auto tests/e2e/ -vv
 
+.PHONY: local-repeat-randomized-tests
+local-repeat-randomized-tests: local-prepare-for-tests
+	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=false FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest -n auto --count 10 tests/e2e/ -k test_api_randomized_combinatoric.py
+
 # Will execute
 # test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_pt_br_ulb_col_pt_br_tn_col_pt_br_tq_col_pt_br_tw_col_book_language_order_2c_sl_hr and test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_pt_br_ulb_col_pt_br_tn_col_pt_br_tq_col_pt_br_tw_col_book_language_order_2c_sl_hr_c
 .PHONY: local-smoke-test-with-translation-words
@@ -263,6 +267,30 @@ local-smoke-test-with-translation-words16: local-prepare-for-tests
 .PHONY: local-smoke-test-with-translation-words17
 local-smoke-test-with-translation-words17: local-prepare-for-tests
 	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=false FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -k test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_en_bc_wa_col_fr_f10_col_fr_tn_col_fr_tq_col_fr_tw_col_book_language_order_layout_not_for_print
+
+.PHONY: local-smoke-test-with-translation-words18
+local-smoke-test-with-translation-words18: local-prepare-for-tests
+	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=false FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -k test_document_requests
+
+.PHONY: local-smoke-test-with-translation-words19
+local-smoke-test-with-translation-words19: local-prepare-for-tests
+	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=false FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -k test_all_document_requests
+
+.PHONY: local-smoke-test-with-translation-words20
+local-smoke-test-with-translation-words20: local-prepare-for-tests
+	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=false FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -k test_en_ulb_wa_col_en_tn_wa_col_sw_ulb_col_sw_tn_col_sw_ulb_tit_sw_tn_tit_book_language_order_2c_sl_sr
+
+.PHONY: local-smoke-test-with-translation-words21
+local-smoke-test-with-translation-words21: local-prepare-for-tests
+	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=false FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -k test_fr_f10_col_fr_tn_col_fr_tq_col_fr_tw_col_book_language_order_2c_sl_hr_docx
+
+.PHONY: local-smoke-test-with-translation-words22
+local-smoke-test-with-translation-words22: local-prepare-for-tests
+	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=false FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -k test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_pt_br_ulb_col_pt_br_tn_col_pt_br_tq_col_pt_br_tw_col_book_language_order_2c_sl_sr_epub
+
+.PHONY: local-smoke-test-with-translation-words23
+local-smoke-test-with-translation-words23: local-prepare-for-tests
+	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=false FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -k test_es_419_ulb_nam_es_419_reg_nam_es_419_tn_nam_es_419_tw_nam_sw_ulb_lam_sw_reg_lam_sw_tn_lam_sw_tw_lam_book_language_order_sl_sr
 
 # This is one to run after running local-e2e-tests or any tests which
 # has yielded HTML and PDFs that need to be checked for linking
