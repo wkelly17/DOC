@@ -4313,13 +4313,11 @@ def assemble_usfm_as_iterator_for_book_then_lang_2c_sl_sr(
         # Add chapter intro for each language
         for tn_book_content_unit2 in tn_book_content_units:
             # Add the translation notes chapter intro.
-            yield model.HtmlContent(chapter_intro(tn_book_content_unit2, chapter_num))
+            yield chapter_intro(tn_book_content_unit2, chapter_num)
 
         for bc_book_content_unit in bc_book_content_units:
             # Add the chapter commentary.
-            yield model.HtmlContent(
-                chapter_commentary(bc_book_content_unit, chapter_num)
-            )
+            yield chapter_commentary(bc_book_content_unit, chapter_num)
 
         # Use the usfm_book_content_unit that has the most verses for
         # this chapter_num chapter as a verse_num pump.
@@ -4510,13 +4508,11 @@ def assemble_usfm_as_iterator_for_book_then_lang_1c(
         # Add chapter intro for each language
         for tn_book_content_unit2 in tn_book_content_units:
             # Add the translation notes chapter intro.
-            yield model.HtmlContent(chapter_intro(tn_book_content_unit2, chapter_num))
+            yield chapter_intro(tn_book_content_unit2, chapter_num)
 
         for bc_book_content_unit in bc_book_content_units:
             # Add the chapter commentary.
-            yield model.HtmlContent(
-                chapter_commentary(bc_book_content_unit, chapter_num)
-            )
+            yield chapter_commentary(bc_book_content_unit, chapter_num)
 
         # Use the usfm_book_content_unit that has the most verses for
         # this chapter_num chapter as a verse_num pump.
