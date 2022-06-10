@@ -4848,7 +4848,6 @@ def assemble_tn_as_iterator_for_book_then_lang(
             # Add the chapter commentary.
             yield chapter_commentary(bc_book_content_unit, chapter_num)
 
-
         # Use the tn_book_content_unit that has the most verses for
         # this chapter_num chapter as a verse_num pump.
         # I.e., realize the most amount of content displayed to user.
@@ -5056,7 +5055,6 @@ def assemble_tq_as_iterator_for_book_then_lang(
         for bc_book_content_unit in bc_book_content_units:
             # Add the chapter commentary.
             yield chapter_commentary(bc_book_content_unit, chapter_num)
-
 
         # Use the tn_book_content_unit that has the most verses for
         # this chapter_num chapter as a verse_num pump.
