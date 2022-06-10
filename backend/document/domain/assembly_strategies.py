@@ -5196,7 +5196,6 @@ def assemble_tw_as_iterator_for_book_then_lang(
 
     # Sort resources by language
     key = lambda resource: resource.lang_code
-    # FIXME Do we need to sort anything other than
     tw_book_content_units = sorted(tw_book_content_units, key=key)
     bc_book_content_units = sorted(bc_book_content_units, key=key)
 
