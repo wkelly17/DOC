@@ -156,7 +156,7 @@ def layout_for_print() -> bool:
 @pytest.fixture()
 def english_resource_types() -> Sequence[str]:
     """All the English resource types."""
-    return ["ulb-wa", "tn-wa", "tq-wa", "tw-wa"]
+    return ["ulb-wa", "tn-wa", "tq-wa", "tw-wa", "bc-wa"]
 
 
 @pytest.fixture()

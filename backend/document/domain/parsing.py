@@ -728,6 +728,7 @@ def bc_book_content(
     resource_dir: str,
     resource_requests: Sequence[model.ResourceRequest],
     layout_for_print: bool,
+    book_intro_glob_path_fmt_str: str = "{}/*{}/intro.md",
     chapter_dirs_glob_fmt_str: str = "{}/*{}/*[0-9]*",
     parser_type: str = "html.parser",
     url_fmt_str: str = settings.BC_ARTICLE_URL_FMT_STR,
@@ -740,6 +741,15 @@ def bc_book_content(
         resource_requests,
         layout_for_print,
     )
+    book_intro_paths = glob(
+        book_intro_glob_path_fmt_str.format(
+            resource_dir, resource_lookup_dto.resource_code
+        )
+    )
+    book_intro_md_content = (
+        file_utils.read_file(book_intro_paths[0]) if book_intro_paths else ""
+    )
+    book_intro_html_content = md.convert(book_intro_md_content)
     chapter_dirs = sorted(
         glob(
             chapter_dirs_glob_fmt_str.format(
@@ -769,6 +779,7 @@ def bc_book_content(
             link.parent.a.replace_with(new_link)
         chapters[chapter_num] = model.BCChapter(commentary=str(parser))
     return model.BCBook(
+        book_intro=book_intro_html_content,
         lang_code=resource_lookup_dto.lang_code,
         lang_name=resource_lookup_dto.lang_name,
         resource_code=resource_lookup_dto.resource_code,
