@@ -3772,7 +3772,6 @@ def assemble_tn_as_iterator_for_lang_then_book(
     usfm_book_content_unit2: Optional[model.USFMBook],
     bc_book_content_unit: Optional[model.BCBook],
     chapter_header_fmt_str: str = settings.CHAPTER_HEADER_FMT_STR,
-    resource_type_name_with_ref_fmt_str: str = settings.RESOURCE_TYPE_NAME_WITH_REF_FMT_STR,
     book_numbers: Mapping[str, str] = bible_books.BOOK_NUMBERS,
     num_zeros: int = NUM_ZEROS,
 ) -> Iterable[model.HtmlContent]:
@@ -4314,13 +4313,11 @@ def assemble_usfm_as_iterator_for_book_then_lang_2c_sl_sr(
         # Add chapter intro for each language
         for tn_book_content_unit2 in tn_book_content_units:
             # Add the translation notes chapter intro.
-            yield model.HtmlContent(chapter_intro(tn_book_content_unit2, chapter_num))
+            yield chapter_intro(tn_book_content_unit2, chapter_num)
 
         for bc_book_content_unit in bc_book_content_units:
             # Add the chapter commentary.
-            yield model.HtmlContent(
-                chapter_commentary(bc_book_content_unit, chapter_num)
-            )
+            yield chapter_commentary(bc_book_content_unit, chapter_num)
 
         # Use the usfm_book_content_unit that has the most verses for
         # this chapter_num chapter as a verse_num pump.
@@ -4511,13 +4508,11 @@ def assemble_usfm_as_iterator_for_book_then_lang_1c(
         # Add chapter intro for each language
         for tn_book_content_unit2 in tn_book_content_units:
             # Add the translation notes chapter intro.
-            yield model.HtmlContent(chapter_intro(tn_book_content_unit2, chapter_num))
+            yield chapter_intro(tn_book_content_unit2, chapter_num)
 
         for bc_book_content_unit in bc_book_content_units:
             # Add the chapter commentary.
-            yield model.HtmlContent(
-                chapter_commentary(bc_book_content_unit, chapter_num)
-            )
+            yield chapter_commentary(bc_book_content_unit, chapter_num)
 
         # Use the usfm_book_content_unit that has the most verses for
         # this chapter_num chapter as a verse_num pump.
@@ -4853,7 +4848,6 @@ def assemble_tn_as_iterator_for_book_then_lang(
             # Add the chapter commentary.
             yield chapter_commentary(bc_book_content_unit, chapter_num)
 
-
         # Use the tn_book_content_unit that has the most verses for
         # this chapter_num chapter as a verse_num pump.
         # I.e., realize the most amount of content displayed to user.
@@ -5062,7 +5056,6 @@ def assemble_tq_as_iterator_for_book_then_lang(
             # Add the chapter commentary.
             yield chapter_commentary(bc_book_content_unit, chapter_num)
 
-
         # Use the tn_book_content_unit that has the most verses for
         # this chapter_num chapter as a verse_num pump.
         # I.e., realize the most amount of content displayed to user.
@@ -5201,11 +5194,6 @@ def assemble_tw_as_iterator_for_book_then_lang(
 
     # Sort resources by language
     key = lambda resource: resource.lang_code
-    # FIXME Do we need to sort anything other than
-    # tw_book_content_units here?
-    usfm_book_content_units = sorted(usfm_book_content_units, key=key)
-    tn_book_content_units = sorted(tn_book_content_units, key=key)
-    tq_book_content_units = sorted(tq_book_content_units, key=key)
     tw_book_content_units = sorted(tw_book_content_units, key=key)
     bc_book_content_units = sorted(bc_book_content_units, key=key)
 
