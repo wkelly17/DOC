@@ -6,8 +6,9 @@
 #
 astroid==2.9.0
     # via pylint
-attrs==21.2.0
+attrs==21.4.0
     # via
+    #   -c ./backend/requirements.txt
     #   flake8-eradicate
     #   flake8-mypy
     #   pytest
@@ -15,11 +16,11 @@ backports-entry-points-selectable==1.1.1
     # via virtualenv
 bandit==1.7.1
     # via flake8-bandit
-black==21.12b0
+black @ git+https://github.com/psf/black
     # via -r ./backend/requirements-dev.in
 cfgv==3.3.1
     # via pre-commit
-click==8.0.3
+click==8.0.4
     # via
     #   -c ./backend/requirements.txt
     #   black
@@ -71,15 +72,21 @@ future==0.18.2
     #   -c ./backend/requirements.txt
     #   radon
 gitdb==4.0.9
-    # via gitpython
-gitpython==3.1.24
-    # via bandit
+    # via
+    #   -c ./backend/requirements.txt
+    #   gitpython
+gitpython==3.1.27
+    # via
+    #   -c ./backend/requirements.txt
+    #   bandit
 icdiff==2.0.4
     # via pytest-icdiff
 identify==2.4.0
     # via pre-commit
 iniconfig==1.1.1
-    # via pytest
+    # via
+    #   -c ./backend/requirements.txt
+    #   pytest
 isort==5.10.1
     # via
     #   -r ./backend/requirements-dev.in
@@ -106,12 +113,14 @@ mypy-extensions==0.4.3
 nodeenv==1.6.0
     # via pre-commit
 packaging==21.3
-    # via pytest
+    # via
+    #   -c ./backend/requirements.txt
+    #   pytest
 parso==0.7.1
     # via jedi
 pathspec==0.9.0
     # via black
-pbr==5.8.0
+pbr==5.8.1
     # via
     #   -c ./backend/requirements.txt
     #   stevedore
@@ -122,6 +131,7 @@ platformdirs==2.4.1
     #   virtualenv
 pluggy==1.0.0
     # via
+    #   -c ./backend/requirements.txt
     #   pytest
     #   python-language-server
 pprintpp==0.4.0
@@ -134,8 +144,10 @@ psutil==5.9.1
     #   pytest-xdist
 py==1.11.0
     # via
+    #   -c ./backend/requirements.txt
     #   pytest
     #   pytest-datafiles
+    #   pytest-forked
 pycodestyle==2.7.0
     # via
     #   flake8
@@ -160,6 +172,7 @@ pytest==7.1.2
     #   -c ./backend/requirements.txt
     #   -r ./backend/requirements-dev.in
     #   pytest-datafiles
+    #   pytest-forked
     #   pytest-icdiff
     #   pytest-xdist
 pytest-datafiles==2.0
@@ -191,23 +204,25 @@ six==1.16.0
     #   mando
     #   virtualenv
 smmap==5.0.0
-    # via gitdb
+    # via
+    #   -c ./backend/requirements.txt
+    #   gitdb
 stevedore==3.5.0
     # via bandit
 toml==0.10.2
     # via
     #   pre-commit
     #   pylint
-    #   pytest
     #   vulture
-tomli==1.2.3
-    # via
-    #   black
-    #   mypy
-typing-extensions==4.0.1
+tomli==2.0.1
     # via
     #   -c ./backend/requirements.txt
     #   black
+    #   mypy
+    #   pytest
+typing-extensions==4.1.1
+    # via
+    #   -c ./backend/requirements.txt
     #   mypy
 ujson==5.1.0
     # via
