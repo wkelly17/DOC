@@ -40,7 +40,7 @@ def invalid_document_request_exception_handler(
     request: Request, exc: exceptions.InvalidDocumentRequestException
 ) -> JSONResponse:
     return JSONResponse(
-        status_code=404,
+        status_code=status.HTTP_400_BAD_REQUEST,
         content={
             "message": f"{exc.message}",
         },
