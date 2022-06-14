@@ -257,22 +257,17 @@ def usfm_book_content(
             verse_footnote_ref.i.a.replace_with(span)
 
     chapter_break_tags = parser.find_all(h2, attrs={css_attribute_type: "c-num"})
-    # FIXME Accessing the localized_chapter_heading failed for a couple
-    # languages with an index out of range exception. Need to rerun full
-    # test suite to identify which ones and investigate why.
-    localized_chapter_heading_text = chapter_break_tags[0].get_text()
-    localized_chapter_heading = localized_chapter_heading_text.split()[0]
     chapters: dict[model.ChapterNum, model.USFMChapter] = {}
     for chapter_break in chapter_break_tags:
         chapter_num = int(chapter_break.get_text().split()[1])
         chapter_content = html_parsing_utils.tag_elements_between(
             parser.find(
                 h2,
-                text="{} {}".format(localized_chapter_heading, chapter_num),
+                text=re.compile(".* {}".format(chapter_num)),
             ),
             parser.find(
                 h2,
-                text="{} {}".format(localized_chapter_heading, chapter_num + 1),
+                text=re.compile(".* {}".format(chapter_num + 1)),
             ),
         )
         chapter_content = [str(tag) for tag in list(chapter_content)]
@@ -280,7 +275,6 @@ def usfm_book_content(
             "".join(chapter_content),
             bs_parser_type,
         )
-
         chapter_verse_span_tags = chapter_content_parser.find_all(
             "span", attrs={css_attribute_type: "v-num"}
         )
@@ -337,16 +331,13 @@ def verse_ref_and_verse_content_str(
     lang_code: str,
     chapter_num: int,
     chapter_content_parser: bs4.BeautifulSoup,
-    verse_element: str,
+    verse_span_tag: str,
     pattern: str = settings.VERSE_ANCHOR_ID_FMT_STR,
     format_str: str = settings.VERSE_ANCHOR_ID_SUBSTITUTION_FMT_STR,
     num_zeros: int = 3,
     css_attribute_type: str = "class",
 ) -> tuple[str, model.HtmlContent]:
-    """
-    Handle some messy initialization and return the
-    chapter_num and verse_content_str.
-    """
+    """Return the verse_ref and verse_content_str."""
     # Rather than a single verse num, the item in
     # verse_num may be a verse range, e.g., 1-2.
     # See test_mr_ulb_mrk_mr_tn_mrk_mr_tq_mrk_mr_tw_mrk_mr_udb_mrk_language_book_order
@@ -354,7 +345,7 @@ def verse_ref_and_verse_content_str(
     # Get the verse num from the verse HTML tag's id value.
     # NOTE: split is more performant than re.
     # See https://stackoverflow.com/questions/7501609/python-re-split-vs-split
-    verse_ref = str(verse_element).split("-v-")[1].split('"')[0]
+    verse_ref = str(verse_span_tag).split("-v-")[1].split('"')[0]
     # Check for hyphen in the range
     verse_ref_components = verse_ref.split("-")
     if len(verse_ref_components) > 1:  # This is a verse ref for a verse range

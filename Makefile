@@ -77,6 +77,10 @@ smoke-test-with-translation-words: up clean-local-docker-output-dir
 smoke-test-with-translation-words2: up clean-local-docker-output-dir
 	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/e2e -k test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_es_419_ulb_col_es_419_tn_col_es_419_tq_col_es_419_tw_col_book_language_order_2c_sl_hr
 
+.PHONY: smoke-test-with-translation-words3
+smoke-test-with-translation-words3: up clean-local-docker-output-dir
+	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/e2e -k test_pt_br_ulb_tn_en_ulb_wa_tn_wa_luk_language_book_order_2c_sl_hr
+
 .PHONY: down
 down:
 	docker-compose down --remove-orphans
@@ -300,6 +304,10 @@ local-smoke-test-with-translation-words23: local-prepare-for-tests
 .PHONY: local-smoke-test-with-translation-words24
 local-smoke-test-with-translation-words24: local-prepare-for-tests
 	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=false FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -k test_en_tw_wa_col_en_bc_wa_col_book_language_order
+
+.PHONY: local-smoke-test-with-translation-words25
+local-smoke-test-with-translation-words25: local-prepare-for-tests
+	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=false FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -k test_pt_br_ulb_tn_en_ulb_wa_tn_wa_luk_language_book_order_2c_sl_hr
 
 # This is one to run after running local-e2e-tests or any tests which
 # has yielded HTML and PDFs that need to be checked for linking
