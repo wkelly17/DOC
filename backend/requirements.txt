@@ -10,8 +10,13 @@ anyio==3.5.0
     # via starlette
 asgiref==3.5.0
     # via uvicorn
+async-generator==1.10
+    # via trio
 attrs==21.4.0
-    # via pytest
+    # via
+    #   outcome
+    #   pytest
+    #   trio
 beautifulsoup4==4.10.0
     # via bs4
 bs4==0.0.1
@@ -47,6 +52,7 @@ idna==3.3
     #   anyio
     #   email-validator
     #   requests
+    #   trio
 iniconfig==1.1.1
     # via pytest
 jinja2==3.0.3
@@ -63,6 +69,8 @@ markupsafe==2.1.1
     # via jinja2
 more-itertools==8.12.0
     # via -r ./backend/requirements.in
+outcome==1.1.0
+    # via trio
 packaging==21.3
     # via pytest
 pbr==5.8.1
@@ -110,7 +118,11 @@ six==1.16.0
 smmap==5.0.0
     # via gitdb
 sniffio==1.2.0
-    # via anyio
+    # via
+    #   anyio
+    #   trio
+sortedcontainers==2.4.0
+    # via trio
 soupsieve==2.3.1
     # via beautifulsoup4
 starlette==0.17.1
@@ -119,6 +131,10 @@ termcolor==1.1.0
     # via -r ./backend/requirements.in
 tomli==2.0.1
     # via pytest
+toolz==0.11.2
+    # via -r ./backend/requirements.in
+trio==0.21.0
+    # via -r ./backend/requirements.in
 types-beautifulsoup4==4.10.16
     # via -r ./backend/requirements.in
 types-markdown==3.3.12
