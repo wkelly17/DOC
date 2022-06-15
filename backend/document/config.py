@@ -38,6 +38,8 @@ class Settings(BaseSettings):
     HTML_ROW_END: str = model.HtmlContent("</div>")
     HTML_COLUMN_BEGIN: str = model.HtmlContent("<div class='column'>")
     HTML_COLUMN_END: str = model.HtmlContent("</div>")
+    HTML_COLUMN_LEFT_BEGIN: str = model.HtmlContent("<div class='column-left'>")
+    HTML_COLUMN_RIGHT_BEGIN: str = model.HtmlContent("<div class='column-right'>")
     BOOK_FMT_STR: str = "<h2>Book: {}</h2>"
     BOOK_AS_GROUPER_FMT_STR: str = "<h1>Book: {}</h1>"
     VERSE_FMT_STR: str = "<h3>Verse {}:{}</h3>"
