@@ -196,8 +196,7 @@ def assemble_content(
     document_request_key: str,
     document_request: model.DocumentRequest,
     book_content_units: Iterable[model.BookContent],
-    output_dir: str = settings.output_dir(),
-) -> None:
+) -> str:
     """
     Assemble the content from all requested resources according to the
     assembly_strategy requested and write out to a single HTML file
@@ -220,12 +219,7 @@ def assemble_content(
     # Finally compose the HTML document into one string that includes
     # the header template content.
     content = enclose_html_content(content, document_html_header=header)
-    html_file_path = "{}.html".format(os.path.join(output_dir, document_request_key))
-    logger.debug("About to write HTML to %s", html_file_path)
-    file_utils.write_file(
-        html_file_path,
-        content,
-    )
+    return content
 
 
 def should_send_email(
@@ -241,17 +235,19 @@ def should_send_email(
     return send_email and email_address is not None
 
 
-def send_email_with_pdf_attachment(
+def send_email_with_attachment(
     # NOTE: email_address comes in as pydantic.EmailStr and leaves
     # the pydantic class validator as a str.
     email_address: Optional[str],
-    output_filename: str,
+    attachments: list[model.Attachment],
     document_request_key: str,
+    content_disposition: str = "attachment",
     from_email_address: str = settings.FROM_EMAIL_ADDRESS,
     smtp_password: str = settings.SMTP_PASSWORD,
     email_send_subject: str = settings.EMAIL_SEND_SUBJECT,
     smtp_host: str = settings.SMTP_HOST,
     smtp_port: int = settings.SMTP_PORT,
+    comma_space: str = COMMASPACE,
 ) -> None:
     """
     If PDF exists, and environment configuration allows sending of
@@ -268,24 +264,23 @@ def send_email_with_pdf_attachment(
         # Create the enclosing (outer) message
         outer = MIMEMultipart()
         outer["Subject"] = email_send_subject
-        outer["To"] = COMMASPACE.join(recipients)
+        outer["To"] = comma_space.join(recipients)
         outer["From"] = sender
         # outer.preamble = "You will not see this in a MIME-aware mail reader.\n"
 
         # List of attachments
-        attachments = [output_filename]
 
         # Add the attachments to the message
-        for file in attachments:
+        for attachment in attachments:
             try:
-                with open(file, "rb") as fp:
-                    msg = MIMEBase("application", "octet-stream")
+                with open(attachment.filepath, "rb") as fp:
+                    msg = MIMEBase(attachment.mime_type[0], attachment.mime_type[1])
                     msg.set_payload(fp.read())
                 encoders.encode_base64(msg)
                 msg.add_header(
                     "Content-Disposition",
-                    "attachment",
-                    filename=os.path.basename(file),
+                    content_disposition,
+                    filename=os.path.basename(attachment.filepath),
                 )
                 outer.attach(msg)
             except Exception:
@@ -321,132 +316,95 @@ def send_email_with_pdf_attachment(
 
 
 def convert_html_to_pdf(
-    document_request_key: str,
-    book_content_units: Iterable[model.BookContent],
-    unfound_resource_lookup_dtos: Iterable[model.ResourceLookupDto],
-    unloaded_resource_lookup_dtos: Iterable[model.ResourceLookupDto],
-    output_dir: str = settings.output_dir(),
-    logo_image_path: str = settings.LOGO_IMAGE_PATH,
-    working_dir: str = settings.working_dir(),
+    html_filepath: str,
+    cover_filepath: str,
+    pdf_filepath: str,
     wkhtmltopdf_options: Mapping[str, Optional[str]] = settings.WKHTMLTOPDF_OPTIONS,
-    docker_container_pdf_output_dir: str = settings.DOCKER_CONTAINER_PDF_OUTPUT_DIR,
-    in_container: bool = settings.IN_CONTAINER,
-    book_names: Mapping[str, str] = bible_books.BOOK_NAMES,
 ) -> None:
     """Generate PDF from HTML."""
-    now = datetime.datetime.now()
-    revision_date = "Generated on: {}-{}-{}".format(now.year, now.month, now.day)
-    title = "{}".format(
-        COMMASPACE.join(
-            sorted(
-                {
-                    "{}: {}".format(
-                        book_content_unit.lang_name,
-                        book_names[book_content_unit.resource_code],
-                    )
-                    for book_content_unit in book_content_units
-                }
-            )
-        )
-    )
-    unfound = "{}".format(
-        COMMASPACE.join(
-            sorted(
-                {
-                    "{}-{}-{}".format(
-                        unfound_resource_lookup_dto.lang_code,
-                        unfound_resource_lookup_dto.resource_type,
-                        unfound_resource_lookup_dto.resource_code,
-                    )
-                    for unfound_resource_lookup_dto in unfound_resource_lookup_dtos
-                }
-            )
-        )
-    )
-    unloaded = "{}".format(
-        COMMASPACE.join(
-            sorted(
-                {
-                    "{}-{}-{}".format(
-                        unloaded_resource_lookup_dto.lang_code,
-                        unloaded_resource_lookup_dto.resource_type,
-                        unloaded_resource_lookup_dto.resource_code,
-                    )
-                    for unloaded_resource_lookup_dto in unloaded_resource_lookup_dtos
-                }
-            )
-        )
-    )
-    if unloaded:
-        logger.debug("Resource requests that could not be loaded: %s", unloaded)
-    html_file_path = "{}.html".format(os.path.join(output_dir, document_request_key))
-    assert os.path.exists(html_file_path)
-    output_pdf_file_path = pdf_output_filename(document_request_key)
-    with open(logo_image_path, "rb") as fin:
-        base64_encoded_logo_image = base64.b64encode(fin.read())
-        images: dict[str, str | bytes] = {
-            "logo": base64_encoded_logo_image,
-        }
-    # Use Jinja2 to instantiate the cover page.
-    cover = instantiated_template(
-        "cover",
-        model.CoverPayload(
-            title=title,
-            unfound=unfound,
-            unloaded=unloaded,
-            revision_date=revision_date,
-            images=images,
-        ),
-    )
-    cover_filepath = os.path.join(working_dir, "cover.html")
-    with open(cover_filepath, "w") as fout:
-        fout.write(cover)
+    assert os.path.exists(html_filepath)
+    assert os.path.exists(cover_filepath)
     pdfkit.from_file(
-        html_file_path,
-        output_pdf_file_path,
+        html_filepath,
+        pdf_filepath,
         options=wkhtmltopdf_options,
         cover=cover_filepath,
     )
-    assert os.path.exists(output_pdf_file_path)
-    copy_command = "cp {} {}".format(
-        output_pdf_file_path,
-        docker_container_pdf_output_dir,
-    )
-    logger.debug("IN_CONTAINER: {}".format(in_container))
-    if in_container:
-        logger.info("About to cp PDF to from Docker volume to host")
-        logger.debug("Copy PDF command: %s", copy_command)
-        subprocess.call(copy_command, shell=True)
 
 
-def generate_pdf(
-    output_filename: str,
-    document_request_key: str,
-    document_request: model.DocumentRequest,
-    book_content_units: Iterable[model.BookContent],
-    unfound_resource_lookup_dtos: Iterable[model.ResourceLookupDto],
-    unloaded_resource_lookup_dtos: Iterable[model.ResourceLookupDto],
+# FIXME Use cover page...or should we? Maybe we should integrate what
+# used to be presented on cover page inside the HTML document instead.
+def convert_html_to_epub(
+    html_filepath: str,
+    cover_filepath: str,
+    epub_filepath: str,
+    pandoc_options: str = settings.PANDOC_OPTIONS,
 ) -> None:
-    """
-    If the PDF doesn't yet exist, go ahead and generate it
-    using the content for each resource.
-    """
-    if not os.path.isfile(output_filename):
-        assemble_content(document_request_key, document_request, book_content_units)
-        logger.info("Generating PDF %s...", output_filename)
-        convert_html_to_pdf(
-            document_request_key,
-            book_content_units,
-            unfound_resource_lookup_dtos,
-            unloaded_resource_lookup_dtos,
-        )
+    """Generate ePub from HTML."""
+    assert os.path.exists(html_filepath)
+    assert os.path.exists(cover_filepath)
+    pandoc_command = "pandoc {} {} -o {}".format(
+        pandoc_options,
+        html_filepath,
+        epub_filepath,
+    )
+    logger.debug("Generate ePub command: %s", pandoc_command)
+    subprocess.call(pandoc_command, shell=True)
 
 
-def pdf_output_filename(
+# FIXME Use cover page...or should we? Maybe we should integrate what
+# used to be presented on cover page inside the HTML document instead.
+def convert_html_to_docx(
+    html_filepath: str,
+    cover_filepath: str,
+    docx_filepath: str,
+    pandoc_options: str = settings.PANDOC_OPTIONS,
+) -> None:
+    """Generate Docx from HTML."""
+    assert os.path.exists(html_filepath)
+    assert os.path.exists(cover_filepath)
+    pandoc_command = "pandoc {} {} -o {}".format(
+        pandoc_options,
+        html_filepath,
+        docx_filepath,
+    )
+    logger.debug("Generate Docx command: %s", pandoc_command)
+    subprocess.call(pandoc_command, shell=True)
+
+
+def html_filepath(
+    document_request_key: str, output_dir: str = settings.output_dir()
+) -> str:
+    """Given document_request_key, return the HTML output file path."""
+    return os.path.join(output_dir, "{}.html".format(document_request_key))
+
+
+def pdf_filepath(
     document_request_key: str, output_dir: str = settings.output_dir()
 ) -> str:
     """Given document_request_key, return the PDF output file path."""
     return os.path.join(output_dir, "{}.pdf".format(document_request_key))
+
+
+def epub_filepath(
+    document_request_key: str, output_dir: str = settings.output_dir()
+) -> str:
+    """Given document_request_key, return the ePub output file path."""
+    return os.path.join(output_dir, "{}.epub".format(document_request_key))
+
+
+def docx_filepath(
+    document_request_key: str, output_dir: str = settings.output_dir()
+) -> str:
+    """Given document_request_key, return the docx output file path."""
+    return os.path.join(output_dir, "{}.docx".format(document_request_key))
+
+
+def cover_filepath(
+    document_request_key: str, output_dir: str = settings.output_dir()
+) -> str:
+    """Given document_request_key, return the HTML cover output file path."""
+    return os.path.join(output_dir, "{}_cover.html".format(document_request_key))
 
 
 def select_assembly_layout_kind(
@@ -520,11 +478,168 @@ def select_assembly_layout_kind(
     return default_layout
 
 
-def main(document_request: model.DocumentRequest) -> tuple[str, str]:
+def write_html_content_to_file(
+    content: str,
+    output_filename: str,
+) -> None:
+    """
+    Write HTML content to file.
+    """
+    logger.debug("About to write HTML to %s", output_filename)
+    # Write the HTML file to disk.
+    file_utils.write_file(
+        output_filename,
+        content,
+    )
+
+
+def write_html_cover_to_file(
+    cover_filepath: str,
+    book_content_units: Iterable[model.BookContent],
+    unfound_resource_lookup_dtos: Iterable[model.ResourceLookupDto],
+    unloaded_resource_lookup_dtos: Iterable[model.ResourceLookupDto],
+    logo_image_path: str = settings.LOGO_IMAGE_PATH,
+    book_names: Mapping[str, str] = bible_books.BOOK_NAMES,
+) -> None:
+    """Generate HTML cover page and write it to file."""
+    now = datetime.datetime.now()
+    revision_date = "Generated on: {}-{}-{}".format(now.year, now.month, now.day)
+    title = "{}".format(
+        COMMASPACE.join(
+            sorted(
+                {
+                    "{}: {}".format(
+                        book_content_unit.lang_name,
+                        book_names[book_content_unit.resource_code],
+                    )
+                    for book_content_unit in book_content_units
+                }
+            )
+        )
+    )
+    unfound = "{}".format(
+        COMMASPACE.join(
+            sorted(
+                {
+                    "{}-{}-{}".format(
+                        unfound_resource_lookup_dto.lang_code,
+                        unfound_resource_lookup_dto.resource_type,
+                        unfound_resource_lookup_dto.resource_code,
+                    )
+                    for unfound_resource_lookup_dto in unfound_resource_lookup_dtos
+                }
+            )
+        )
+    )
+    unloaded = "{}".format(
+        COMMASPACE.join(
+            sorted(
+                {
+                    "{}-{}-{}".format(
+                        unloaded_resource_lookup_dto.lang_code,
+                        unloaded_resource_lookup_dto.resource_type,
+                        unloaded_resource_lookup_dto.resource_code,
+                    )
+                    for unloaded_resource_lookup_dto in unloaded_resource_lookup_dtos
+                }
+            )
+        )
+    )
+    if unloaded:
+        logger.debug("Resource requests that could not be loaded: %s", unloaded)
+    with open(logo_image_path, "rb") as fin:
+        base64_encoded_logo_image = base64.b64encode(fin.read())
+        images: dict[str, str | bytes] = {
+            "logo": base64_encoded_logo_image,
+        }
+    # Use Jinja2 to instantiate the cover page.
+    cover = instantiated_template(
+        "cover",
+        model.CoverPayload(
+            title=title,
+            unfound=unfound,
+            unloaded=unloaded,
+            revision_date=revision_date,
+            images=images,
+        ),
+    )
+    # FIXME should we use file_utils.write_file
+    with open(cover_filepath, "w") as fout:
+        fout.write(cover)
+
+
+def copy_pdf_to_docker_output_dir(
+    pdf_filepath: str,
+    docker_container_document_output_dir: str = settings.DOCKER_CONTAINER_DOCUMENT_OUTPUT_DIR,
+    in_container: bool = settings.IN_CONTAINER,
+) -> None:
+    """
+    Copy PDF file to docker_container_document_output_dir.
+    """
+    assert os.path.exists(pdf_filepath)
+    copy_command = "cp {} {}".format(
+        pdf_filepath,
+        docker_container_document_output_dir,
+    )
+    logger.debug("IN_CONTAINER: {}".format(in_container))
+    if in_container:
+        logger.info("About to cp PDF to from Docker volume to host")
+        logger.debug("Copy PDF command: %s", copy_command)
+        subprocess.call(copy_command, shell=True)
+
+
+def copy_epub_to_docker_output_dir(
+    epub_filepath: str,
+    docker_container_document_output_dir: str = settings.DOCKER_CONTAINER_DOCUMENT_OUTPUT_DIR,
+    in_container: bool = settings.IN_CONTAINER,
+) -> None:
+    """
+    Copy ePub file to docker_container_document_output_dir.
+    """
+    assert os.path.exists(epub_filepath)
+    copy_command = "cp {} {}".format(
+        epub_filepath,
+        docker_container_document_output_dir,
+    )
+    logger.debug("IN_CONTAINER: {}".format(in_container))
+    if in_container:
+        logger.info(
+            "About to cp ePub from output directory to from Docker volume for fileserver in production and for file viewing on host in development."
+        )
+        logger.debug("Copy ePub command: %s", copy_command)
+        subprocess.call(copy_command, shell=True)
+
+
+def copy_docx_to_docker_output_dir(
+    docx_filepath: str,
+    docker_container_document_output_dir: str = settings.DOCKER_CONTAINER_DOCUMENT_OUTPUT_DIR,
+    in_container: bool = settings.IN_CONTAINER,
+) -> None:
+    """
+    Copy Docx file to docker_container_document_output_dir.
+    """
+    assert os.path.exists(docx_filepath)
+    copy_command = "cp {} {}".format(
+        docx_filepath,
+        docker_container_document_output_dir,
+    )
+    logger.debug("IN_CONTAINER: {}".format(in_container))
+    if in_container:
+        logger.info(
+            "About to cp Docx from output directory to from Docker volume for fileserver in production and for file viewing on host in development."
+        )
+        logger.debug("Copy Docx command: %s", copy_command)
+        subprocess.call(copy_command, shell=True)
+
+
+def main(document_request: model.DocumentRequest) -> str:
     """
     This is the main entry point for this module and the
     backend system as a whole.
     """
+    # Handle document requests which request tn-wa and tn.
+    # FIXME This needs to change, see FIXME note at the method
+    # definition site.
     document_request.resource_requests = coalesce_english_tn_requests(
         document_request.resource_requests
     )
@@ -546,13 +661,16 @@ def main(document_request: model.DocumentRequest) -> tuple[str, str]:
         document_request.assembly_strategy_kind,
         document_request.assembly_layout_kind,
     )
-    output_filename = pdf_output_filename(document_request_key_)
+    html_filepath_ = html_filepath(document_request_key_)
+    pdf_filepath_ = pdf_filepath(document_request_key_)
+    epub_filepath_ = epub_filepath(document_request_key_)
+    docx_filepath_ = docx_filepath(document_request_key_)
+    cover_filepath_ = cover_filepath(document_request_key_)
 
-    # Immediately return pre-built PDF if the document has previously been
-    # generated and is fresh enough. In that case, front run all requests to
-    # the cloud including the more low level resource asset caching
-    # mechanism for comparatively immediate return of PDF.
-    if file_utils.asset_file_needs_update(output_filename):
+    if file_utils.asset_file_needs_update(html_filepath_):
+        # HTML didn't exist in cache so go ahead and start by getting the
+        # resource lookup DTOs for each resource request in the document
+        # request.
         resource_lookup_dtos = [
             resource_lookup.resource_lookup_dto(
                 resource_request.lang_code,
@@ -611,23 +729,86 @@ def main(document_request: model.DocumentRequest) -> tuple[str, str]:
             for resource_lookup_dto in unloaded_resource_lookup_dtos_iter
             if isinstance(resource_lookup_dto, model.ResourceLookupDto)
         ]
-
-        generate_pdf(
-            output_filename,
-            document_request_key_,
-            document_request,
+        content = assemble_content(
+            document_request_key_, document_request, book_content_units
+        )
+        write_html_content_to_file(
+            content,
+            html_filepath_,
+        )
+        write_html_cover_to_file(
+            cover_filepath_,
             book_content_units,
             unfound_resource_lookup_dtos,
             unloaded_resource_lookup_dtos,
         )
 
-    if should_send_email(document_request.email_address):
-        send_email_with_pdf_attachment(
-            document_request.email_address, output_filename, document_request_key_
+    # Immediately return pre-built PDF if the document has previously been
+    # generated and is fresh enough. In that case, front run all requests to
+    # the cloud including the more low level resource asset caching
+    # mechanism for comparatively immediate return of PDF.
+    if document_request.generate_pdf and file_utils.asset_file_needs_update(
+        pdf_filepath_
+    ):
+        logger.info("Generating PDF %s...", pdf_filepath_)
+        convert_html_to_pdf(
+            html_filepath_,
+            cover_filepath_,
+            pdf_filepath_,
         )
-    return document_request_key_, output_filename
+        copy_pdf_to_docker_output_dir(pdf_filepath_)
+
+    if document_request.generate_epub and file_utils.asset_file_needs_update(
+        epub_filepath_
+    ):
+        convert_html_to_epub(
+            html_filepath_,
+            cover_filepath_,
+            epub_filepath_,
+        )
+        copy_epub_to_docker_output_dir(epub_filepath_)
+
+    if document_request.generate_docx and file_utils.asset_file_needs_update(
+        docx_filepath_
+    ):
+
+        convert_html_to_docx(
+            html_filepath_,
+            cover_filepath_,
+            docx_filepath_,
+        )
+        copy_docx_to_docker_output_dir(docx_filepath_)
+
+    if should_send_email(document_request.email_address):
+        if document_request.generate_pdf:
+            attachments = [
+                model.Attachment(
+                    filepath=pdf_filepath_, mime_type=("application", "octet-stream")
+                )
+            ]
+        if document_request.generate_epub:
+            attachments.append(
+                model.Attachment(
+                    filepath=epub_filepath_, mime_type=("application", "octet-stream")
+                )
+            )
+        if document_request.generate_docx:
+            attachments.append(
+                model.Attachment(
+                    filepath=docx_filepath_, mime_type=("application", "octet-stream")
+                )
+            )
+
+        send_email_with_attachment(
+            document_request.email_address,
+            attachments,
+            document_request_key_,
+        )
+    return document_request_key_
 
 
+# FIXME Turns out tn-wa and tn really are different, but only one should
+# be used. Need to find out which is preferred.
 def coalesce_english_tn_requests(
     resource_requests: Sequence[model.ResourceRequest],
 ) -> Sequence[model.ResourceRequest]:

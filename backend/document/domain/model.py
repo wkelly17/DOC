@@ -5,6 +5,7 @@ pydantic.BaseModel as FastAPI can use these classes to do automatic
 validation and JSON serialization.
 """
 
+from dataclasses import dataclass
 from enum import Enum
 from collections.abc import Sequence
 from typing import Optional, Union, final
@@ -161,6 +162,12 @@ class DocumentRequest(BaseModel):
     # assembly_layout_kind is None in the document request.
     layout_for_print: bool
     resource_requests: Sequence[ResourceRequest]
+    # Indicate whether PDF should be generated.
+    generate_pdf: bool
+    # Indicate whether ePub should be generated.
+    generate_epub: bool
+    # Indicate whether Docx should be generated.
+    generate_docx: bool
 
 
 @final
@@ -405,3 +412,10 @@ class WikiLink(BaseModel):
     """
 
     url: str
+
+
+@final
+@dataclass
+class Attachment:
+    filepath: str
+    mime_type: tuple[str, str]

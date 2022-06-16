@@ -137,19 +137,26 @@ def assembly_strategy_kind() -> str:
 
 @pytest.fixture
 def assembly_layout_kind() -> Optional[str]:
-    return None
-    # return random.choice(
-    #     [
-    #         model.AssemblyLayoutEnum.ONE_COLUMN,
-    #         model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
-    #         model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT,
-    #         model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
-    #     ]
-    # )
+    return None  # Choose none to let the system decide
 
 
 @pytest.fixture
 def layout_for_print() -> bool:
+    return random.choice([True, False])
+
+
+@pytest.fixture
+def generate_pdf() -> bool:
+    return random.choice([True, False])
+
+
+@pytest.fixture
+def generate_epub() -> bool:
+    return random.choice([True, False])
+
+
+@pytest.fixture
+def generate_docx() -> bool:
     return random.choice([True, False])
 
 
@@ -345,6 +352,8 @@ def english_document_request(
     assembly_strategy_kind: model.AssemblyStrategyEnum,
     assembly_layout_kind: model.AssemblyLayoutEnum,
     layout_for_print: bool,
+    generate_pdf: bool,
+    generate_epub: bool,
     english_resource_requests: Sequence[model.ResourceRequest],
 ) -> model.DocumentRequest:
     """Build one English language document request."""
@@ -353,6 +362,8 @@ def english_document_request(
         assembly_strategy_kind=assembly_strategy_kind,
         assembly_layout_kind=assembly_layout_kind,
         layout_for_print=layout_for_print,
+        generate_pdf=generate_pdf,
+        generate_epub=generate_epub,
         resource_requests=english_resource_requests,
     )
 
@@ -363,6 +374,8 @@ def random_english_document_request(
     assembly_strategy_kind: model.AssemblyStrategyEnum,
     assembly_layout_kind: model.AssemblyLayoutEnum,
     layout_for_print: bool,
+    generate_pdf: bool,
+    generate_epub: bool,
     english_resource_requests: Sequence[model.ResourceRequest],
 ) -> model.DocumentRequest:
     """
@@ -373,6 +386,8 @@ def random_english_document_request(
         assembly_strategy_kind=assembly_strategy_kind,
         assembly_layout_kind=assembly_layout_kind,
         layout_for_print=layout_for_print,
+        generate_pdf=generate_pdf,
+        generate_epub=generate_epub,
         resource_requests=random_english_resource_requests,
     )
 
@@ -383,6 +398,9 @@ def random_non_english_document_request(
     assembly_strategy_kind: model.AssemblyStrategyEnum,
     assembly_layout_kind: model.AssemblyLayoutEnum,
     layout_for_print: bool,
+    generate_pdf: bool,
+    generate_epub: bool,
+    generate_docx: bool,
     random_non_english_resource_requests: Sequence[model.ResourceRequest],
 ) -> model.DocumentRequest:
     """
@@ -403,16 +421,23 @@ def random_non_english_document_request(
         assembly_strategy_kind=assembly_strategy_kind,
         assembly_layout_kind=assembly_layout_kind,
         layout_for_print=layout_for_print,
+        generate_pdf=generate_pdf,
+        generate_epub=generate_epub,
+        generate_docx=generate_docx,
         resource_requests=random_non_english_resource_requests,
     )
 
 
+# FIXME Not used. Consider removing.
 @pytest.fixture()
 def random_failing_non_english_document_request(
     email_address: pydantic.EmailStr,
     assembly_strategy_kind: model.AssemblyStrategyEnum,
     assembly_layout_kind: model.AssemblyLayoutEnum,
     layout_for_print: bool,
+    generate_pdf: bool,
+    generate_epub: bool,
+    generate_docx: bool,
     random_failing_non_english_resource_requests: Sequence[model.ResourceRequest],
 ) -> model.DocumentRequest:
     """
@@ -438,6 +463,9 @@ def random_failing_non_english_document_request(
         assembly_strategy_kind=assembly_strategy_kind,
         assembly_layout_kind=assembly_layout_kind,
         layout_for_print=layout_for_print,
+        generate_pdf=generate_pdf,
+        generate_epub=generate_epub,
+        generate_docx=generate_docx,
         resource_requests=random_failing_non_english_resource_requests,
     )
 
@@ -453,6 +481,9 @@ def random_english_and_non_english_document_request(
     assembly_strategy_kind: model.AssemblyStrategyEnum,
     assembly_layout_kind: model.AssemblyLayoutEnum,
     layout_for_print: bool,
+    generate_pdf: bool,
+    generate_epub: bool,
+    generate_docx: bool,
     random_english_resource_requests: Sequence[model.ResourceRequest],
     random_non_english_resource_requests: Sequence[model.ResourceRequest],
 ) -> model.DocumentRequest:
@@ -474,6 +505,9 @@ def random_english_and_non_english_document_request(
         assembly_strategy_kind=assembly_strategy_kind,
         assembly_layout_kind=assembly_layout_kind,
         layout_for_print=layout_for_print,
+        generate_pdf=generate_pdf,
+        generate_epub=generate_epub,
+        generate_docx=generate_docx,
         resource_requests=[
             *random_english_resource_requests,
             *random_non_english_resource_requests,
@@ -487,6 +521,9 @@ def random_two_non_english_languages_document_request(
     assembly_strategy_kind: model.AssemblyStrategyEnum,
     assembly_layout_kind: model.AssemblyLayoutEnum,
     layout_for_print: bool,
+    generate_pdf: bool,
+    generate_epub: bool,
+    generate_docx: bool,
     random_non_english_resource_requests: Sequence[model.ResourceRequest],
     random_non_english_resource_requests2: Sequence[model.ResourceRequest],
 ) -> model.DocumentRequest:
@@ -499,6 +536,9 @@ def random_two_non_english_languages_document_request(
         assembly_strategy_kind=assembly_strategy_kind,
         assembly_layout_kind=assembly_layout_kind,
         layout_for_print=layout_for_print,
+        generate_pdf=generate_pdf,
+        generate_epub=generate_epub,
+        generate_docx=generate_docx,
         resource_requests=[
             *random_non_english_resource_requests,
             *random_non_english_resource_requests2,

@@ -15,14 +15,14 @@ services:
     ports:
       - 5005:5005
     volumes:
-      - ./docker_pdf_output:/pdf_output
+      - ./docker_document_output:/document_output
     restart: unless-stopped
   fileserver:
     build: ./web
     ports:
       - 8089:80
     volumes:
-      - docker_pdf_output:/srv/content
+      - docker_document_output:/srv/content
     restart: unless-stopped
   frontend:
     image: wycliffeassociates/doc-ui:${IMAGE_TAG}
@@ -35,4 +35,4 @@ services:
     restart: unless-stopped
 
 volumes:
-  docker_pdf_output:
+  docker_document_output:

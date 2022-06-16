@@ -39,6 +39,9 @@ def test_coalesce_english_tn_requests() -> None:
         assembly_layout_kind=assembly_layout_kind,
         layout_for_print=False,
         resource_requests=resource_requests,
+        generate_pdf=True,
+        generate_epub=False,
+        generate_docx=False,
     )
     assert len(document_request.resource_requests) == 5
     resource_requests_ = document_generator.coalesce_english_tn_requests(

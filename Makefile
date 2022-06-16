@@ -55,7 +55,9 @@ test: up
 
 .PHONY: clean-local-docker-output-dir
 clean-local-docker-output-dir:
-	find docker_pdf_output/ -type f -name "*.pdf" -exec rm -- {} +
+	find docker_document_output/ -type f -name "*.pdf" -exec rm -- {} +
+	find docker_document_output/ -type f -name "*.epub" -exec rm -- {} +
+	find docker_document_output/ -type f -name "*.docx" -exec rm -- {} +
 
 .PHONY: unit-tests
 unit-tests: up

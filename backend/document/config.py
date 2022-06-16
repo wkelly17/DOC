@@ -73,7 +73,7 @@ class Settings(BaseSettings):
     VERSE_ANCHOR_ID_SUBSTITUTION_FMT_STR: str = r"id='{}-\1-ch-\2-v-\3'"
 
     LOGGING_CONFIG_FILE_PATH: str = "backend/document/logging_config.yaml"
-    DOCKER_CONTAINER_PDF_OUTPUT_DIR: str = "/pdf_output"
+    DOCKER_CONTAINER_DOCUMENT_OUTPUT_DIR: str = "/document_output"
     USFM_RESOURCE_TYPES: Sequence[str] = [
         "cuv",
         "f10",
@@ -186,10 +186,11 @@ class Settings(BaseSettings):
         "footer-center": "[page]",
         "footer-line": None,  # Produce a line above the footer
     }
+    PANDOC_OPTIONS: str = "--quiet"
 
     # Return the message to show to user on successful generation of
     # PDF.
-    SUCCESS_MESSAGE: str = "Success! Please retrieve your generated document using a GET REST request to /pdf/{document_request_key} where document_request_key is the finished_document_request_key in this payload."
+    SUCCESS_MESSAGE: str = "Success! Please retrieve your generated document using a GET REST request to /pdf/{document_request_key} or /epub/{document_request_key} or /docx/{document_request_key} (depending on whether you requested PDF, ePub, or Docx result) where document_request_key is the finished_document_request_key in this payload."
 
     # Return the message to show to user on failure generating PDF.
     FAILURE_MESSAGE: str = "The document request could not be fulfilled either because the resources requested are not available either currently or at all or because the system does not yet support the resources requested."

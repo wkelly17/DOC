@@ -27,6 +27,9 @@ def test_send_email_with_ar_nav_jud_pdf() -> None:
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "ar",

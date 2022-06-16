@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2022-01-14 Fri 07:03 -->
+<!-- 2022-05-30 Mon 10:59 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>&lrm;</title>
@@ -190,7 +190,7 @@
     { font-size: 10px; font-weight: bold; white-space: nowrap; }
   .org-info-js_search-highlight
     { background-color: #ffff00; color: #000000; font-weight: bold; }
-  .org-svg { width: 90%; }
+  .org-svg { }
 </style>
 </head>
 <body>
@@ -199,64 +199,64 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#orgc5c592d">1. Design notes</a>
+<li><a href="#orgf80b9fd">1. Design notes</a>
 <ul>
-<li><a href="#orgb5adcfb">1.1. Requirements</a>
+<li><a href="#org1f0a55a">1.1. Requirements</a>
 <ul>
-<li><a href="#org31f747f">1.1.1. Requirement</a></li>
-<li><a href="#org04e7d5f">1.1.2. Requirement</a></li>
-<li><a href="#org6affbd8">1.1.3. Requirement</a></li>
-<li><a href="#org7488765">1.1.4. Requirement</a></li>
+<li><a href="#org3a41037">1.1.1. Requirement</a></li>
+<li><a href="#org9b38ed4">1.1.2. Requirement</a></li>
+<li><a href="#org21f0e97">1.1.3. Requirement</a></li>
+<li><a href="#org47e67d4">1.1.4. Requirement</a></li>
 </ul>
 </li>
-<li><a href="#orgf120f31">1.2. How to run a demo for yourself</a>
+<li><a href="#org64d561d">1.2. How to run a demo for yourself</a>
 <ul>
-<li><a href="#orgd54e9de">1.2.1. Get the code</a></li>
-<li><a href="#orgfc7a60c">1.2.2. Run test suite inside the Docker container:</a>
+<li><a href="#org50f31fb">1.2.1. Get the code</a></li>
+<li><a href="#orgd18f520">1.2.2. Run test suite inside the Docker container:</a>
 <ul>
-<li><a href="#orgf5d38c5">1.2.2.1. One command to take down old running containers, build the new, and run all tests</a></li>
-<li><a href="#orga05e1b6">1.2.2.2. Or, instead of <code>make all</code> you can do one thing at a time using multiple Makefile targets</a>
+<li><a href="#orge742b83">1.2.2.1. One command to take down old running containers, build the new, and run all tests</a></li>
+<li><a href="#orgfe0703e">1.2.2.2. Or, instead of <code>make all</code> you can do one thing at a time using multiple Makefile targets</a>
 <ul>
-<li><a href="#orgd490cfc">1.2.2.2.1. Build the container</a></li>
-<li><a href="#org47ff0ae">1.2.2.2.2. Or, build the container the 2+Nth time from scratch</a></li>
-<li><a href="#org111b576">1.2.2.2.3. Run the tests</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="#org0a5e917">1.2.3. Run server so that you can test in browser</a></li>
-<li><a href="#org54da05a">1.2.4. Run demo outside Docker container</a>
-<ul>
-<li><a href="#orgf15318b">1.2.4.1. Create and activate the virtual environment</a></li>
-<li><a href="#orgb4a4750">1.2.4.2. Install pip-tools</a></li>
-<li><a href="#org0a2d707">1.2.4.3. Install dependencies</a></li>
-<li><a href="#org7f3f977">1.2.4.4. (optional) Install our app in editable mode</a></li>
-<li><a href="#org2f78b82">1.2.4.5. Run a quick smoke test (runs one quick test)</a></li>
-<li><a href="#org78ccda9">1.2.4.6. Run unit tests</a></li>
-<li><a href="#org16e6796">1.2.4.7. Run e2e tests</a></li>
+<li><a href="#orgfeb756c">1.2.2.2.1. Build the container</a></li>
+<li><a href="#org931ffe6">1.2.2.2.2. Or, build the container the 2+Nth time from scratch</a></li>
+<li><a href="#orgc3815e5">1.2.2.2.3. Run the tests</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#org51772f1">1.3. Interactions at a high level</a></li>
-<li><a href="#org1ec4f43">1.4. Auto-generated system diagram</a></li>
-<li><a href="#org3a9b7cc">1.5. Caching design</a></li>
-<li><a href="#orgaa7b14e">1.6. Handling links</a></li>
+<li><a href="#orgc856040">1.2.3. Run server so that you can test in browser</a></li>
+<li><a href="#org217a0aa">1.2.4. Run demo outside Docker container</a>
+<ul>
+<li><a href="#org9d80a18">1.2.4.1. Create and activate the virtual environment</a></li>
+<li><a href="#org70ed92b">1.2.4.2. Install pip-tools</a></li>
+<li><a href="#org9a96a87">1.2.4.3. Install dependencies</a></li>
+<li><a href="#org3f1d798">1.2.4.4. (optional) Install our app in editable mode</a></li>
+<li><a href="#orgea2a7c6">1.2.4.5. Run a quick smoke test (runs one quick test)</a></li>
+<li><a href="#org9787037">1.2.4.6. Run unit tests</a></li>
+<li><a href="#org9862fae">1.2.4.7. Run e2e tests</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgc8ef14c">1.3. Interactions at a high level</a></li>
+<li><a href="#orga1ed6e7">1.4. Auto-generated system diagram</a></li>
+<li><a href="#org879a3ad">1.5. Caching design</a></li>
+<li><a href="#org7843062">1.6. Handling links</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div id="outline-container-orgc5c592d" class="outline-2">
-<h2 id="orgc5c592d"><span class="section-number-2">1.</span> Design notes</h2>
+<div id="outline-container-orgf80b9fd" class="outline-2">
+<h2 id="orgf80b9fd"><span class="section-number-2">1.</span> Design notes</h2>
 <div class="outline-text-2" id="text-1">
 </div>
-<div id="outline-container-orgb5adcfb" class="outline-3">
-<h3 id="orgb5adcfb"><span class="section-number-3">1.1.</span> Requirements</h3>
+<div id="outline-container-org1f0a55a" class="outline-3">
+<h3 id="org1f0a55a"><span class="section-number-3">1.1.</span> Requirements</h3>
 <div class="outline-text-3" id="text-1-1">
 </div>
-<div id="outline-container-org31f747f" class="outline-4">
-<h4 id="org31f747f"><span class="section-number-4">1.1.1.</span> Requirement</h4>
+<div id="outline-container-org3a41037" class="outline-4">
+<h4 id="org3a41037"><span class="section-number-4">1.1.1.</span> Requirement</h4>
 <div class="outline-text-4" id="text-1-1-1">
 <p>
 Allow creating a document out of any combination of resources from any
@@ -264,16 +264,16 @@ combination of languages supported (in translations.json).
 </p>
 </div>
 </div>
-<div id="outline-container-org04e7d5f" class="outline-4">
-<h4 id="org04e7d5f"><span class="section-number-4">1.1.2.</span> Requirement</h4>
+<div id="outline-container-org9b38ed4" class="outline-4">
+<h4 id="org9b38ed4"><span class="section-number-4">1.1.2.</span> Requirement</h4>
 <div class="outline-text-4" id="text-1-1-2">
 <p>
 Produce PDF document.
 </p>
 </div>
 </div>
-<div id="outline-container-org6affbd8" class="outline-4">
-<h4 id="org6affbd8"><span class="section-number-4">1.1.3.</span> Requirement</h4>
+<div id="outline-container-org21f0e97" class="outline-4">
+<h4 id="org21f0e97"><span class="section-number-4">1.1.3.</span> Requirement</h4>
 <div class="outline-text-4" id="text-1-1-3">
 <p>
 If generation of PDF document takes longer than X threshold of time,
@@ -284,8 +284,8 @@ determined.
 </p>
 </div>
 </div>
-<div id="outline-container-org7488765" class="outline-4">
-<h4 id="org7488765"><span class="section-number-4">1.1.4.</span> Requirement</h4>
+<div id="outline-container-org47e67d4" class="outline-4">
+<h4 id="org47e67d4"><span class="section-number-4">1.1.4.</span> Requirement</h4>
 <div class="outline-text-4" id="text-1-1-4">
 <p>
 Handle TN, TA, TW, TQ, ULB, UDB resource requests. Later perhaps also
@@ -294,12 +294,12 @@ OBS, etc..
 </div>
 </div>
 </div>
-<div id="outline-container-orgf120f31" class="outline-3">
-<h3 id="orgf120f31"><span class="section-number-3">1.2.</span> How to run a demo for yourself</h3>
+<div id="outline-container-org64d561d" class="outline-3">
+<h3 id="org64d561d"><span class="section-number-3">1.2.</span> How to run a demo for yourself</h3>
 <div class="outline-text-3" id="text-1-2">
 </div>
-<div id="outline-container-orgd54e9de" class="outline-4">
-<h4 id="orgd54e9de"><span class="section-number-4">1.2.1.</span> Get the code</h4>
+<div id="outline-container-org50f31fb" class="outline-4">
+<h4 id="org50f31fb"><span class="section-number-4">1.2.1.</span> Get the code</h4>
 <div class="outline-text-4" id="text-1-2-1">
 <p>
 Get the tools repo:
@@ -312,12 +312,12 @@ Get the tools repo:
 </div>
 </div>
 
-<div id="outline-container-orgfc7a60c" class="outline-4">
-<h4 id="orgfc7a60c"><span class="section-number-4">1.2.2.</span> Run test suite inside the Docker container:</h4>
+<div id="outline-container-orgd18f520" class="outline-4">
+<h4 id="orgd18f520"><span class="section-number-4">1.2.2.</span> Run test suite inside the Docker container:</h4>
 <div class="outline-text-4" id="text-1-2-2">
 </div>
-<div id="outline-container-orgf5d38c5" class="outline-5">
-<h5 id="orgf5d38c5"><span class="section-number-5">1.2.2.1.</span> One command to take down old running containers, build the new, and run all tests</h5>
+<div id="outline-container-orge742b83" class="outline-5">
+<h5 id="orge742b83"><span class="section-number-5">1.2.2.1.</span> One command to take down old running containers, build the new, and run all tests</h5>
 <div class="outline-text-5" id="text-1-2-2-1">
 <div class="org-src-container">
 <pre class="src src-shell">make all
@@ -331,17 +331,17 @@ network latency.
 
 <p>
 The generated PDFs are copied from the Docker container to the
-<code>docker_pdf_output</code> directory at the base of the repo for ease of perusal.
+<code>docker_document_output</code> directory at the base of the repo for ease of perusal.
 </p>
 </div>
 </div>
 
-<div id="outline-container-orga05e1b6" class="outline-5">
-<h5 id="orga05e1b6"><span class="section-number-5">1.2.2.2.</span> Or, instead of <code>make all</code> you can do one thing at a time using multiple Makefile targets</h5>
+<div id="outline-container-orgfe0703e" class="outline-5">
+<h5 id="orgfe0703e"><span class="section-number-5">1.2.2.2.</span> Or, instead of <code>make all</code> you can do one thing at a time using multiple Makefile targets</h5>
 <div class="outline-text-5" id="text-1-2-2-2">
 </div>
-<div id="outline-container-orgd490cfc" class="outline-6">
-<h6 id="orgd490cfc"><span class="section-number-6">1.2.2.2.1.</span> Build the container</h6>
+<div id="outline-container-orgfeb756c" class="outline-6">
+<h6 id="orgfeb756c"><span class="section-number-6">1.2.2.2.1.</span> Build the container</h6>
 <div class="outline-text-6" id="text-1-2-2-2-1">
 <p>
 First take down any running containers from previous runs:
@@ -361,8 +361,8 @@ then &#x2026;
 </div>
 </div>
 </div>
-<div id="outline-container-org47ff0ae" class="outline-6">
-<h6 id="org47ff0ae"><span class="section-number-6">1.2.2.2.2.</span> Or, build the container the 2+Nth time from scratch</h6>
+<div id="outline-container-org931ffe6" class="outline-6">
+<h6 id="org931ffe6"><span class="section-number-6">1.2.2.2.2.</span> Or, build the container the 2+Nth time from scratch</h6>
 <div class="outline-text-6" id="text-1-2-2-2-2">
 <p>
 First take down any running containers from previous runs:
@@ -397,8 +397,8 @@ build with no caching.
 </div>
 </div>
 
-<div id="outline-container-org111b576" class="outline-6">
-<h6 id="org111b576"><span class="section-number-6">1.2.2.2.3.</span> Run the tests</h6>
+<div id="outline-container-orgc3815e5" class="outline-6">
+<h6 id="orgc3815e5"><span class="section-number-6">1.2.2.2.3.</span> Run the tests</h6>
 <div class="outline-text-6" id="text-1-2-2-2-3">
 <div class="org-src-container">
 <pre class="src src-shell">make test
@@ -425,8 +425,8 @@ and
 </div>
 </div>
 </div>
-<div id="outline-container-org0a5e917" class="outline-4">
-<h4 id="org0a5e917"><span class="section-number-4">1.2.3.</span> Run server so that you can test in browser</h4>
+<div id="outline-container-orgc856040" class="outline-4">
+<h4 id="orgc856040"><span class="section-number-4">1.2.3.</span> Run server so that you can test in browser</h4>
 <div class="outline-text-4" id="text-1-2-3">
 <div class="org-src-container">
 <pre class="src src-shell">make build
@@ -435,17 +435,17 @@ make frontend-server
 </div>
 </div>
 </div>
-<div id="outline-container-org54da05a" class="outline-4">
-<h4 id="org54da05a"><span class="section-number-4">1.2.4.</span> Run demo outside Docker container</h4>
+<div id="outline-container-org217a0aa" class="outline-4">
+<h4 id="org217a0aa"><span class="section-number-4">1.2.4.</span> Run demo outside Docker container</h4>
 <div class="outline-text-4" id="text-1-2-4">
 </div>
-<div id="outline-container-orgf15318b" class="outline-5">
-<h5 id="orgf15318b"><span class="section-number-5">1.2.4.1.</span> Create and activate the virtual environment</h5>
+<div id="outline-container-org9d80a18" class="outline-5">
+<h5 id="org9d80a18"><span class="section-number-5">1.2.4.1.</span> Create and activate the virtual environment</h5>
 <div class="outline-text-5" id="text-1-2-4-1">
 <div class="org-src-container">
 <pre class="src src-shell">python3 -m venv .venv
-source .venv/bin/activate
-# or source .venv/bin/activate.fish
+<span style="color: #61afef; font-weight: bold;">source</span> .venv/bin/activate
+<span style="color: #687080; font-style: italic;"># </span><span style="color: #687080; font-style: italic;">or source .venv/bin/activate.fish</span>
 </pre>
 </div>
 
@@ -455,8 +455,8 @@ then &#x2026;
 </div>
 </div>
 
-<div id="outline-container-orgb4a4750" class="outline-5">
-<h5 id="orgb4a4750"><span class="section-number-5">1.2.4.2.</span> Install pip-tools</h5>
+<div id="outline-container-org70ed92b" class="outline-5">
+<h5 id="org70ed92b"><span class="section-number-5">1.2.4.2.</span> Install pip-tools</h5>
 <div class="outline-text-5" id="text-1-2-4-2">
 <div class="org-src-container">
 <pre class="src src-shell">make pyupgrade
@@ -469,8 +469,8 @@ then &#x2026;
 </div>
 </div>
 
-<div id="outline-container-org0a2d707" class="outline-5">
-<h5 id="org0a2d707"><span class="section-number-5">1.2.4.3.</span> Install dependencies</h5>
+<div id="outline-container-org9a96a87" class="outline-5">
+<h5 id="org9a96a87"><span class="section-number-5">1.2.4.3.</span> Install dependencies</h5>
 <div class="outline-text-5" id="text-1-2-4-3">
 <div class="org-src-container">
 <pre class="src src-shell">make local-install-deps-dev
@@ -487,8 +487,8 @@ Then &#x2026;
 </div>
 </div>
 
-<div id="outline-container-org7f3f977" class="outline-5">
-<h5 id="org7f3f977"><span class="section-number-5">1.2.4.4.</span> (optional) Install our app in editable mode</h5>
+<div id="outline-container-org3f1d798" class="outline-5">
+<h5 id="org3f1d798"><span class="section-number-5">1.2.4.4.</span> (optional) Install our app in editable mode</h5>
 <div class="outline-text-5" id="text-1-2-4-4">
 <div class="org-src-container">
 <pre class="src src-shell">pip install -e .
@@ -501,8 +501,8 @@ then &#x2026;
 </div>
 </div>
 
-<div id="outline-container-org2f78b82" class="outline-5">
-<h5 id="org2f78b82"><span class="section-number-5">1.2.4.5.</span> Run a quick smoke test (runs one quick test)</h5>
+<div id="outline-container-orgea2a7c6" class="outline-5">
+<h5 id="orgea2a7c6"><span class="section-number-5">1.2.4.5.</span> Run a quick smoke test (runs one quick test)</h5>
 <div class="outline-text-5" id="text-1-2-4-5">
 <div class="org-src-container">
 <pre class="src src-shell">make local-smoke-test-with-translation-words
@@ -514,8 +514,8 @@ then &#x2026;
 </p>
 </div>
 </div>
-<div id="outline-container-org78ccda9" class="outline-5">
-<h5 id="org78ccda9"><span class="section-number-5">1.2.4.6.</span> Run unit tests</h5>
+<div id="outline-container-org9787037" class="outline-5">
+<h5 id="org9787037"><span class="section-number-5">1.2.4.6.</span> Run unit tests</h5>
 <div class="outline-text-5" id="text-1-2-4-6">
 <div class="org-src-container">
 <pre class="src src-shell">make local-unit-tests
@@ -527,8 +527,8 @@ then &#x2026;
 </p>
 </div>
 </div>
-<div id="outline-container-org16e6796" class="outline-5">
-<h5 id="org16e6796"><span class="section-number-5">1.2.4.7.</span> Run e2e tests</h5>
+<div id="outline-container-org9862fae" class="outline-5">
+<h5 id="org9862fae"><span class="section-number-5">1.2.4.7.</span> Run e2e tests</h5>
 <div class="outline-text-5" id="text-1-2-4-7">
 <div class="org-src-container">
 <pre class="src src-shell">make local-e2e-tests
@@ -539,11 +539,11 @@ then &#x2026;
 </div>
 </div>
 
-<div id="outline-container-org51772f1" class="outline-3">
-<h3 id="org51772f1"><span class="section-number-3">1.3.</span> Interactions at a high level</h3>
+<div id="outline-container-orgc8ef14c" class="outline-3">
+<h3 id="orgc8ef14c"><span class="section-number-3">1.3.</span> Interactions at a high level</h3>
 <div class="outline-text-3" id="text-1-3">
 
-<div id="org859cced" class="figure">
+<div id="org02def2d" class="figure">
 <p><img src="wa_design_sequence_diagram1.png" alt="wa_design_sequence_diagram1.png" />
 </p>
 </div>
@@ -557,28 +557,28 @@ the URL of the generated document for display to the requesting user
 </div>
 </div>
 
-<div id="outline-container-org1ec4f43" class="outline-3">
-<h3 id="org1ec4f43"><span class="section-number-3">1.4.</span> Auto-generated system diagram</h3>
+<div id="outline-container-orga1ed6e7" class="outline-3">
+<h3 id="orga1ed6e7"><span class="section-number-3">1.4.</span> Auto-generated system diagram</h3>
 <div class="outline-text-3" id="text-1-4">
 <p>
 Regenerate image:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-shell">cd ..
-source .venv/bin/activate &amp;&amp; make generate-class-diagrams
+<pre class="src src-shell"><span style="color: #61afef; font-weight: bold;">cd</span> ..
+<span style="color: #61afef; font-weight: bold;">source</span> .venv/bin/activate &amp;&amp; make generate-class-diagrams
 </pre>
 </div>
 
 
-<div id="orgf6dc7ee" class="figure">
+<div id="org8031f96" class="figure">
 <p><img src="classes.png" alt="classes.png" />
 </p>
 </div>
 </div>
 </div>
-<div id="outline-container-org3a9b7cc" class="outline-3">
-<h3 id="org3a9b7cc"><span class="section-number-3">1.5.</span> Caching design</h3>
+<div id="outline-container-org879a3ad" class="outline-3">
+<h3 id="org879a3ad"><span class="section-number-3">1.5.</span> Caching design</h3>
 <div class="outline-text-3" id="text-1-5">
 <p>
 The system has two levels of caching:
@@ -611,8 +611,8 @@ according to the caching policy expressed in
 </p>
 </div>
 </div>
-<div id="outline-container-orgaa7b14e" class="outline-3">
-<h3 id="orgaa7b14e"><span class="section-number-3">1.6.</span> Handling links</h3>
+<div id="outline-container-org7843062" class="outline-3">
+<h3 id="org7843062"><span class="section-number-3">1.6.</span> Handling links</h3>
 <div class="outline-text-3" id="text-1-6">
 <p>
 Translation notes can have links to translation words.
@@ -662,7 +662,7 @@ Answer: 3
 </div>
 </div>
 <div id="postamble" class="status">
-<p class="date">Created: 2022-01-14 Fri 07:03</p>
+<p class="date">Created: 2022-05-30 Mon 10:59</p>
 <p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
