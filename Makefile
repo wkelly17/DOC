@@ -309,6 +309,10 @@ local-smoke-test-with-translation-words24: local-prepare-for-tests
 local-smoke-test-with-translation-words25: local-prepare-for-tests
 	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=false FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -k test_pt_br_ulb_tn_en_ulb_wa_tn_wa_luk_language_book_order_2c_sl_hr
 
+.PHONY: local-smoke-test-with-translation-words26
+local-smoke-test-with-translation-words26: local-prepare-for-tests
+	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=false FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -k test_long_document_request_key
+
 # This is one to run after running local-e2e-tests or any tests which
 # has yielded HTML and PDFs that need to be checked for linking
 # correctness.
