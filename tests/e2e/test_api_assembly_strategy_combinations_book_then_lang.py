@@ -986,7 +986,6 @@ def test_pt_br_ulb_col_pt_br_tn_col_pt_br_tq_col_pt_br_tw_col_book_language_orde
         check_finished_document_with_verses_success(response)
 
 
-
 def test_pt_br_ulb_col_pt_br_tn_col_pt_br_tq_col_pt_br_tw_col_book_language_order_1c() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -9408,6 +9407,9 @@ def test_en_tw_wa_col_en_bc_wa_col_book_language_order() -> None:
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
                 "assembly_layout_kind": None,
                 "layout_for_print": False,
+                "generate_pdf": False,
+                "generate_epub": False,
+                "generate_docx": True,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -9434,6 +9436,9 @@ def test_en_tw_wa_col_en_bc_wa_col_book_language_order_for_print() -> None:
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
                 "assembly_layout_kind": None,
                 "layout_for_print": True,
+                "generate_pdf": False,
+                "generate_epub": False,
+                "generate_docx": True,
                 "resource_requests": [
                     {
                         "lang_code": "en",
