@@ -5,9 +5,11 @@ and eventually a final document produced.
 
 import base64
 import datetime
+import more_itertools
 import os
 import smtplib
 import subprocess
+import toolz  # type: ignore
 from collections.abc import Iterable, Mapping, Sequence
 from email import encoders
 from email.mime.base import MIMEBase
@@ -26,7 +28,7 @@ from document.domain import (
     parsing,
     resource_lookup,
 )
-from document.utils import file_utils
+from document.utils import file_utils, number_utils
 from more_itertools import partition
 from pydantic import BaseModel
 
@@ -73,7 +75,7 @@ def resource_book_content_units(
             )
         except Exception:
             # Yield the resource that failed to be loaded by the USFM parser likely
-            # due to an exceptions.MalformedUsfmError. These unloaded resources are
+            # due to a USFM-Tools.exceptions.MalformedUsfmError. These unloaded resources are
             # reported later on the cover page of the PDF.
             book_content_or_unloaded_resource_lookup_dtos.append(resource_lookup_dto)
             logger.exception("Caught exception: ")
@@ -452,11 +454,11 @@ def select_assembly_layout_kind(
     usfm_resource_types: Sequence[str] = settings.USFM_RESOURCE_TYPES,
     book_language_order: model.AssemblyStrategyEnum = model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
     print_layout: model.AssemblyLayoutEnum = model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
-    # NOTE Could also have default value of
+    # NOTE Could also have default value for non_print_layout_for_multiple_usfm of
     # model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT
     # or model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT
     non_print_layout_for_multiple_usfm: model.AssemblyLayoutEnum = model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT,
-    default_print_layout: model.AssemblyLayoutEnum = model.AssemblyLayoutEnum.ONE_COLUMN,
+    default_layout: model.AssemblyLayoutEnum = model.AssemblyLayoutEnum.ONE_COLUMN,
 ) -> model.AssemblyLayoutEnum:
     """
     Make an intelligent choice of what layout to use given the
@@ -471,6 +473,22 @@ def select_assembly_layout_kind(
     if document_request.layout_for_print:
         return print_layout
 
+    # Partition ulb resource requests by language.
+    language_groups = toolz.itertoolz.groupby(
+        lambda r: r.lang_code,
+        filter(
+            lambda r: r.resource_type in usfm_resource_types,
+            document_request.resource_requests,
+        ),
+    )
+    # Get a list of the sorted set of books for each language for later
+    # comparison.
+    sorted_book_set_for_each_language = [
+        sorted({item.resource_code for item in value})
+        for key, value in language_groups.items()
+    ]
+
+    # Get the unique number of languages
     number_of_usfm_languages = len(
         set(
             [
@@ -483,11 +501,23 @@ def select_assembly_layout_kind(
 
     if (
         document_request.assembly_strategy_kind == book_language_order
+        # Because book content for different languages will be side by side for
+        # the scripture left scripture right layout, we make sure there are a non-zero
+        # even number of languages so that we can display them left and right in
+        # pairs.
         and number_of_usfm_languages > 1
+        and number_utils.is_even(number_of_usfm_languages)
+        # Each language must have the same set of books in order to
+        # use the scripture left scripture right layout strategy. As an example,
+        # you wouldn't want to allow the sl-sr layout if the document request
+        # asked for swahili ulb for lamentations and spanish ulb for nahum -
+        # the set of books in each language are not the same and so do not make
+        # sense to be displayed side by side.
+        and more_itertools.all_equal(sorted_book_set_for_each_language)
     ):
         return non_print_layout_for_multiple_usfm
 
-    return default_print_layout
+    return default_layout
 
 
 def main(document_request: model.DocumentRequest) -> tuple[str, str]:

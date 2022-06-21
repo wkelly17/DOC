@@ -17,6 +17,8 @@ pytest-repeat
 pytest-xdist[psutil]
 requests
 termcolor
+toolz
+trio
 uvicorn
 
 types-PyYAML

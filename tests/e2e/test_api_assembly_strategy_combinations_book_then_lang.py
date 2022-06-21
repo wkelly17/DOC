@@ -8224,6 +8224,7 @@ def test_wyy_reg_gen_wyy_reg_mic_book_language_order_1c() -> None:
         check_finished_document_without_verses_success(response)
 
 
+@pytest.mark.skip
 def test_bdf_reg_mat_bdf_reg_mrk_pt_br_ulb_mat_pt_br_ulb_mrk_pt_br_tw_mat_pt_br_tw_mrk_pt_br_tq_mat_pt_br_tq_mrk_pt_br_tn_mat_pt_br_tn_mrk_fr_ulb_mat_fr_ulb_mrk_fr_tw_mat_fr_tw_mrk_fr_tq_mat_fr_tq_mrk_fr_tn_mat_fr_tn_mrk_fr_f10_mat_fr_f10_mrk_book_language_order_2c_sl_hr() -> None:
     """
     Test case where document_request_key is too long and the system
@@ -8304,6 +8305,7 @@ def test_bdf_reg_mat_bdf_reg_mrk_pt_br_ulb_mat_pt_br_ulb_mrk_pt_br_tw_mat_pt_br_
         check_finished_document_with_verses_success(response)
 
 
+@pytest.mark.skip
 def test_bdf_reg_mat_bdf_reg_mrk_pt_br_ulb_mat_pt_br_ulb_mrk_pt_br_tw_mat_pt_br_tw_mrk_pt_br_tq_mat_pt_br_tq_mrk_pt_br_tn_mat_pt_br_tn_mrk_fr_ulb_mat_fr_ulb_mrk_fr_tw_mat_fr_tw_mrk_fr_tq_mat_fr_tq_mrk_fr_tn_mat_fr_tn_mrk_fr_f10_mat_fr_f10_mrk_book_language_order_2c_sl_hr_c() -> None:
     """
     Test case where document_request_key is too long and the system
@@ -8315,7 +8317,7 @@ def test_bdf_reg_mat_bdf_reg_mrk_pt_br_ulb_mat_pt_br_ulb_mrk_pt_br_tw_mat_pt_br_
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
+                "assembly_layout_kind": None,
                 "layout_for_print": True,
                 "resource_requests": [
                     {
@@ -8384,6 +8386,7 @@ def test_bdf_reg_mat_bdf_reg_mrk_pt_br_ulb_mat_pt_br_ulb_mrk_pt_br_tw_mat_pt_br_
         check_finished_document_with_verses_success(response)
 
 
+@pytest.mark.skip
 def test_bdf_reg_mat_bdf_reg_mrk_pt_br_ulb_mat_pt_br_ulb_mrk_pt_br_tw_mat_pt_br_tw_mrk_pt_br_tq_mat_pt_br_tq_mrk_pt_br_tn_mat_pt_br_tn_mrk_fr_ulb_mat_fr_ulb_mrk_fr_tw_mat_fr_tw_mrk_fr_tq_mat_fr_tq_mrk_fr_tn_mat_fr_tn_mrk_fr_f10_mat_fr_f10_mrk_book_language_order_1c() -> None:
     """
     Test case where document_request_key is too long and the system
@@ -8395,88 +8398,8 @@ def test_bdf_reg_mat_bdf_reg_mrk_pt_br_ulb_mat_pt_br_ulb_mrk_pt_br_tw_mat_pt_br_
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN,
+                "assembly_layout_kind": None,
                 "layout_for_print": False,
-                "resource_requests": [
-                    {
-                        "lang_code": "bdf",
-                        "resource_type": "reg",
-                        "resource_code": "mat",
-                    },
-                    {
-                        "lang_code": "bdf",
-                        "resource_type": "reg",
-                        "resource_code": "mrk",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "ulb",
-                        "resource_code": "mat",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "tw",
-                        "resource_code": "mat",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "tq",
-                        "resource_code": "mat",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "tn",
-                        "resource_code": "mat",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "ulb",
-                        "resource_code": "mrk",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "tw",
-                        "resource_code": "mrk",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "tq",
-                        "resource_code": "mrk",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "tn",
-                        "resource_code": "mrk",
-                    },
-                    {"lang_code": "fr", "resource_type": "ulb", "resource_code": "mat"},
-                    {"lang_code": "fr", "resource_type": "tw", "resource_code": "mat"},
-                    {"lang_code": "fr", "resource_type": "tq", "resource_code": "mat"},
-                    {"lang_code": "fr", "resource_type": "tn", "resource_code": "mat"},
-                    {"lang_code": "fr", "resource_type": "f10", "resource_code": "mat"},
-                    {"lang_code": "fr", "resource_type": "ulb", "resource_code": "mrk"},
-                    {"lang_code": "fr", "resource_type": "tw", "resource_code": "mrk"},
-                    {"lang_code": "fr", "resource_type": "tq", "resource_code": "mrk"},
-                    {"lang_code": "fr", "resource_type": "tn", "resource_code": "mrk"},
-                    {"lang_code": "fr", "resource_type": "f10", "resource_code": "mrk"},
-                ],
-            },
-        )
-        check_finished_document_with_verses_success(response)
-
-
-def test_bdf_reg_mat_bdf_reg_mrk_pt_br_ulb_mat_pt_br_ulb_mrk_pt_br_tw_mat_pt_br_tw_mrk_pt_br_tq_mat_pt_br_tq_mrk_pt_br_tn_mat_pt_br_tn_mrk_fr_ulb_mat_fr_ulb_mrk_fr_tw_mat_fr_tw_mrk_fr_tq_mat_fr_tq_mrk_fr_tn_mat_fr_tn_mrk_fr_f10_mat_fr_f10_mrk_book_language_order_1c_c() -> None:
-    """
-    Test case where document_request_key is too long and the system
-    will use a timestamp for the document_request_key instead.
-    """
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
-                "layout_for_print": True,
                 "resource_requests": [
                     {
                         "lang_code": "bdf",
