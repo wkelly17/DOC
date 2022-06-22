@@ -203,6 +203,14 @@
   function showErrorMessage() {
     errorMessage = true
   }
+  let linksMessage: boolean
+  $: linksMessage = false
+  function showLinksMessage() {
+    linksMessage = true
+  }
+  function hideLinksMessage() {
+    linksMessage = false
+  }
 
   function submit() {
     let rr = []
@@ -278,6 +286,7 @@
       hideErrorMessage()
     }
     showWaitMessage()
+    hideLinksMessage()
     // POST the formValues to the API
     fetch(API_ROOT_URL + '/documents', {
       method: 'POST',
@@ -297,6 +306,7 @@
         document_request_key = data['finished_document_request_key']
         hideErrorMessage()
         hideWaitMessage()
+        showLinksMessage()
       })
       .catch(err => {
         console.error('error: ', err)
@@ -305,6 +315,7 @@
         // display it alongside the canned generic error message.
         // errorMessageDetails = JSON.stringify(err)
         showErrorMessage()
+        hideLinksMessage()
       })
   }
 </script>
@@ -564,7 +575,7 @@
           <p>{import.meta.env.VITE_ERROR_MSG}</p>
         </div>
       {/if}
-      {#if document_request_key.length > 0}
+      {#if document_request_key.length > 0 && linksMessage}
         <div class="finished-document-url">
           <p>
             {import.meta.env.VITE_HTML_DOCUMENT_READY_MSG_PART1}
