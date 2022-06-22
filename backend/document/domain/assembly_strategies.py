@@ -27,7 +27,7 @@ from typing import Any, Optional
 
 from document.config import settings
 from document.domain import bible_books, model
-from document.utils import tw_utils
+from document.utils import tw_utils, number_utils
 
 logger = settings.logger(__name__)
 
@@ -4166,6 +4166,58 @@ def assemble_usfm_as_iterator_for_book_then_lang_2c_sl_hr(
         yield from translation_words_section(tw_book_content_unit)
 
 
+def languages_in_books(
+    usfm_book_content_units: Sequence[model.BookContent],
+) -> Sequence[str]:
+    """Return the distinct languages in the usfm_book_content_units."""
+    languages = list(
+        set(
+            [
+                lang_group[0]
+                for lang_group in itertools.groupby(
+                    usfm_book_content_units, key=lambda unit: unit.lang_code
+                )
+            ]
+        )
+    )
+    logger.debug("languages: %s", languages)
+    # Invariant: if we got this far, then we know there are at
+    # least two languages being requested (see
+    # document_generator.select_assembly_layout_kind).
+    return languages
+
+
+def ensure_primary_usfm_books_for_different_languages_are_adjacent(
+    usfm_book_content_units: Sequence[model.USFMBook],
+) -> Sequence[model.USFMBook]:
+    """
+    Interleave/zip USFM book content units such that they are
+    juxtaposed language to language in pairs.
+    """
+    languages = languages_in_books(usfm_book_content_units)
+    # Get book content units for language 0.
+    usfm_lang0_book_content_units = [
+        usfm_book_content_unit
+        for usfm_book_content_unit in usfm_book_content_units
+        if usfm_book_content_unit.lang_code == languages[0]
+    ]
+    # Get book content units for language 1.
+    usfm_lang1_book_content_units = [
+        usfm_book_content_unit
+        for usfm_book_content_unit in usfm_book_content_units
+        if usfm_book_content_unit.lang_code == languages[1]
+    ]
+    return list(
+        # Flatten iterable of tuples into regular flat iterable.
+        itertools.chain.from_iterable(
+            # Interleave the two different languages usfm units.
+            itertools.zip_longest(
+                usfm_lang0_book_content_units, usfm_lang1_book_content_units
+            )
+        )
+    )
+
+
 def assemble_usfm_as_iterator_for_book_then_lang_2c_sl_sr(
     usfm_book_content_units: Sequence[model.USFMBook],
     tn_book_content_units: Sequence[model.TNBook],
@@ -4176,6 +4228,8 @@ def assemble_usfm_as_iterator_for_book_then_lang_2c_sl_sr(
     footnotes_heading: model.HtmlContent = settings.FOOTNOTES_HEADING,
     html_row_begin: str = settings.HTML_ROW_BEGIN,
     html_column_begin: str = settings.HTML_COLUMN_BEGIN,
+    html_column_left_begin: str = settings.HTML_COLUMN_LEFT_BEGIN,
+    html_column_right_begin: str = settings.HTML_COLUMN_RIGHT_BEGIN,
     html_column_end: str = settings.HTML_COLUMN_END,
     html_row_end: str = settings.HTML_ROW_END,
 ) -> Iterable[model.HtmlContent]:
@@ -4285,6 +4339,14 @@ def assemble_usfm_as_iterator_for_book_then_lang_2c_sl_sr(
     tw_book_content_units = sorted(tw_book_content_units, key=key)
     bc_book_content_units = sorted(bc_book_content_units, key=key)
 
+    # Order USFM book content units so that they are in language pairs
+    # for side by side display.
+    zipped_usfm_book_content_units = (
+        ensure_primary_usfm_books_for_different_languages_are_adjacent(
+            usfm_book_content_units
+        )
+    )
+
     # Add book intros for each tn_book_content_unit
     for tn_book_content_unit in tn_book_content_units:
         # Add the book intro
@@ -4329,15 +4391,37 @@ def assemble_usfm_as_iterator_for_book_then_lang_2c_sl_sr(
             ].verses.keys(),
         )
         for verse_num in usfm_with_most_verses.chapters[chapter_num].verses.keys():
+            # Get lang_code of first USFM so that we can use it later
+            # to make sure USFMs of the same language are on the same
+            # side of the two column layout.
+            lang0_code = zipped_usfm_book_content_units[0].lang_code
             # Add the interleaved USFM verses
-            for idx, usfm_book_content_unit in enumerate(usfm_book_content_units):
+            for idx, usfm_book_content_unit in enumerate(
+                zipped_usfm_book_content_units
+            ):
+                # If the number of non-None USFM book content unit instances
+                # The conditions for beginning a row are a simple
+                # result of the fact that we can have between 2 and 4
+                # non-None USFM content units in the collection one of which
+                # could be a None (due to an earlier use of
+                # itertools.zip_longest in the call to
+                # ensure_primary_usfm_books_for_different_languages_are_adjacent)
+                # in the case when there are 3 non-None items, but 4
+                # total counting the None.
+                if number_utils.is_even(idx) or idx == 3:
+                    yield html_row_begin
+
                 if (
-                    chapter_num in usfm_book_content_unit.chapters
+                    usfm_book_content_unit
+                    and chapter_num in usfm_book_content_unit.chapters
                     and verse_num in usfm_book_content_unit.chapters[chapter_num].verses
                 ):
-                    if idx % 2 == 0:  # even index
-                        yield html_row_begin
-                        yield html_column_begin
+                    # lang0's USFM content units should always be on the
+                    # left and lang1's should always be on the right.
+                    if lang0_code == usfm_book_content_unit.lang_code:
+                        yield html_column_left_begin
+                    else:
+                        yield html_column_right_begin
 
                     # Add header
                     yield model.HtmlContent(
@@ -4350,36 +4434,52 @@ def assemble_usfm_as_iterator_for_book_then_lang_2c_sl_sr(
 
                     # Add scripture verse
                     yield usfm_book_content_unit.chapters[chapter_num].verses[verse_num]
-                    yield html_column_end
-            yield html_row_end
+                yield html_column_end
+                if not number_utils.is_even(
+                    idx
+                ):  # Non-even indexes signal the end of the current row.
+                    yield html_row_end
 
-            # Add the interleaved tn notes
+            # Add the interleaved tn notes, making sure to put lang0
+            # notes on the left and lang1 notes on the right.
             tn_verses: Optional[dict[str, model.HtmlContent]] = None
-            for tn_book_content_unit3 in tn_book_content_units:
+            for idx, tn_book_content_unit3 in enumerate(tn_book_content_units):
                 tn_verses = verses_for_chapter_tn(tn_book_content_unit3, chapter_num)
                 if tn_verses and verse_num in tn_verses:
+                    if number_utils.is_even(idx):
+                        yield html_row_begin
+                    yield html_column_begin
                     yield from format_tn_verse(
                         tn_book_content_unit3,
                         chapter_num,
                         verse_num,
                         tn_verses[verse_num],
                     )
+                    yield html_column_end
+            yield html_row_end
 
-            # Add the interleaved tq questions
+            # Add the interleaved tq questions, making sure to put lang0
+            # questions on the left and lang1 questions on the right.
             tq_verses: Optional[dict[str, model.HtmlContent]] = None
-            for tq_book_content_unit in tq_book_content_units:
+            for idx, tq_book_content_unit in enumerate(tq_book_content_units):
                 tq_verses = verses_for_chapter_tq(tq_book_content_unit, chapter_num)
                 # Add TQ verse content, if any
                 if tq_verses and verse_num in tq_verses:
+                    if number_utils.is_even(idx):
+                        yield html_row_begin
+                    yield html_column_begin
                     yield from format_tq_verse(
                         tq_book_content_unit.resource_type_name,
                         chapter_num,
                         verse_num,
                         tq_verses[verse_num],
                     )
+                    yield html_column_end
+            yield html_row_end
 
-            # Add the interleaved translation word links
-            for tw_book_content_unit in tw_book_content_units:
+            # Add the interleaved translation word links, making sure to put lang0
+            # word links on the left and lang1 word links on the right.
+            for idx, tw_book_content_unit in enumerate(tw_book_content_units):
                 # Get the usfm_book_content_unit instance associated with the
                 # tw_book_content_unit, i.e., having same lang_code and
                 # resource_code.
@@ -4402,12 +4502,17 @@ def assemble_usfm_as_iterator_for_book_then_lang_2c_sl_sr(
                     and verse_num
                     in usfm_book_content_unit_.chapters[chapter_num].verses
                 ):
+                    if number_utils.is_even(idx):
+                        yield html_row_begin
+                        yield html_column_begin
+
                     yield from translation_word_links(
                         tw_book_content_unit,
                         chapter_num,
                         verse_num,
                         usfm_book_content_unit_.chapters[chapter_num].verses[verse_num],
                     )
+                    yield html_column_end
                 else:
                     logger.debug(
                         "usfm for chapter %s, verse %s likely could not be parsed by usfm parser for language %s and book %s",
@@ -4416,6 +4521,7 @@ def assemble_usfm_as_iterator_for_book_then_lang_2c_sl_sr(
                         tw_book_content_unit.lang_code,
                         tw_book_content_unit.resource_code,
                     )
+            yield html_row_end
 
         # Add the footnotes
         for usfm_book_content_unit in usfm_book_content_units:

@@ -852,77 +852,6 @@ def test_pt_br_ulb_col_pt_br_tn_col_pt_br_tq_col_pt_br_tw_col_book_language_orde
         check_finished_document_with_verses_success(response)
 
 
-def test_pt_br_ulb_col_pt_br_tn_col_pt_br_tq_col_pt_br_tw_col_book_language_order_2c_sl_sr() -> None:
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT,
-                "layout_for_print": False,
-                "resource_requests": [
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "ulb",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "tn",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "tq",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "tw",
-                        "resource_code": "col",
-                    },
-                ],
-            },
-        )
-        check_finished_document_with_verses_success(response)
-
-
-def test_pt_br_ulb_col_pt_br_tn_col_pt_br_tq_col_pt_br_tw_col_book_language_order_2c_sl_sr_c() -> None:
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
-                "layout_for_print": False,
-                "resource_requests": [
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "ulb",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "tn",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "tq",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "tw",
-                        "resource_code": "col",
-                    },
-                ],
-            },
-        )
-        check_finished_document_with_verses_success(response)
-
 
 def test_pt_br_ulb_col_pt_br_tn_col_pt_br_tq_col_pt_br_tw_col_book_language_order_1c() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
@@ -1041,78 +970,6 @@ def test_fr_f10_col_fr_tn_col_fr_tq_col_fr_tw_col_book_language_order_2c_sl_hr_c
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
                 "layout_for_print": True,
-                "resource_requests": [
-                    {
-                        "lang_code": "fr",
-                        "resource_type": "f10",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "fr",
-                        "resource_type": "tn",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "fr",
-                        "resource_type": "tq",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "fr",
-                        "resource_type": "tw",
-                        "resource_code": "col",
-                    },
-                ],
-            },
-        )
-        check_finished_document_with_verses_success(response)
-
-
-def test_fr_f10_col_fr_tn_col_fr_tq_col_fr_tw_col_book_language_order_2c_sl_sr() -> None:
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT,
-                "layout_for_print": False,
-                "resource_requests": [
-                    {
-                        "lang_code": "fr",
-                        "resource_type": "f10",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "fr",
-                        "resource_type": "tn",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "fr",
-                        "resource_type": "tq",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "fr",
-                        "resource_type": "tw",
-                        "resource_code": "col",
-                    },
-                ],
-            },
-        )
-        check_finished_document_with_verses_success(response)
-
-
-def test_fr_f10_col_fr_tn_col_fr_tq_col_fr_tw_col_book_language_order_2c_sl_sr_c() -> None:
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
-                "layout_for_print": False,
                 "resource_requests": [
                     {
                         "lang_code": "fr",
@@ -1632,60 +1489,6 @@ def test_en_ulb_wa_tit_en_tn_wa_tit_book_language_order_2c_sl_hr_c() -> None:
         check_finished_document_with_verses_success(response)
 
 
-def test_en_ulb_wa_tit_en_tn_wa_tit_book_language_order_2c_sl_sr() -> None:
-    "English ulb-wa and tn-wa for book of Timothy."
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT,
-                "layout_for_print": False,
-                "resource_requests": [
-                    {
-                        "lang_code": "en",
-                        "resource_type": "ulb-wa",
-                        "resource_code": "tit",
-                    },
-                    {
-                        "lang_code": "en",
-                        "resource_type": "tn-wa",
-                        "resource_code": "tit",
-                    },
-                ],
-            },
-        )
-        check_finished_document_with_verses_success(response)
-
-
-def test_en_ulb_wa_tit_en_tn_wa_tit_book_language_order_2c_sl_sr_c() -> None:
-    "English ulb-wa and tn-wa for book of Timothy."
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
-                "layout_for_print": False,
-                "resource_requests": [
-                    {
-                        "lang_code": "en",
-                        "resource_type": "ulb-wa",
-                        "resource_code": "tit",
-                    },
-                    {
-                        "lang_code": "en",
-                        "resource_type": "tn-wa",
-                        "resource_code": "tit",
-                    },
-                ],
-            },
-        )
-        check_finished_document_with_verses_success(response)
-
-
 def test_en_ulb_wa_tit_en_tn_wa_tit_book_language_order_1c() -> None:
     "English ulb-wa and tn-wa for book of Timothy."
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
@@ -1774,58 +1577,6 @@ def test_sw_ulb_col_sw_tn_col_book_language_order_2c_sl_hr_c() -> None:
                 "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
-                "layout_for_print": True,
-                "resource_requests": [
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "ulb",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "tn",
-                        "resource_code": "col",
-                    },
-                ],
-            },
-        )
-        check_finished_document_with_verses_success(response)
-
-
-def test_sw_ulb_col_sw_tn_col_book_language_order_2c_sl_sr() -> None:
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT,
-                "layout_for_print": True,
-                "resource_requests": [
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "ulb",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "tn",
-                        "resource_code": "col",
-                    },
-                ],
-            },
-        )
-        check_finished_document_with_verses_success(response)
-
-
-def test_sw_ulb_col_sw_tn_col_book_language_order_2c_sl_sr_c() -> None:
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
                 "layout_for_print": True,
                 "resource_requests": [
                     {
@@ -1941,42 +1692,6 @@ def test_sw_ulb_col_sw_tn_col_sw_ulb_tit_sw_tn_tit_book_language_order_2c_sl_hr_
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
                 "layout_for_print": True,
-                "resource_requests": [
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "ulb",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "tn",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "ulb",
-                        "resource_code": "tit",
-                    },
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "tn",
-                        "resource_code": "tit",
-                    },
-                ],
-            },
-        )
-        check_finished_document_with_verses_success(response)
-
-
-def test_sw_ulb_col_sw_tn_col_sw_ulb_tit_sw_tn_tit_book_language_order_2c_sl_sr_c() -> None:
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
-                "layout_for_print": False,
                 "resource_requests": [
                     {
                         "lang_code": "sw",
@@ -2130,98 +1845,6 @@ def test_en_ulb_wa_col_en_tn_wa_col_sw_ulb_col_sw_tn_col_sw_ulb_tit_sw_tn_tit_bo
                 "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
-                "layout_for_print": False,
-                "resource_requests": [
-                    {
-                        "lang_code": "en",
-                        "resource_type": "ulb-wa",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "en",
-                        "resource_type": "tn-wa",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "ulb",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "tn",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "ulb",
-                        "resource_code": "tit",
-                    },
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "tn",
-                        "resource_code": "tit",
-                    },
-                ],
-            },
-        )
-        check_finished_document_with_verses_success(response)
-
-
-def test_en_ulb_wa_col_en_tn_wa_col_sw_ulb_col_sw_tn_col_sw_ulb_tit_sw_tn_tit_book_language_order_2c_sl_sr() -> None:
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT,
-                "layout_for_print": False,
-                "resource_requests": [
-                    {
-                        "lang_code": "en",
-                        "resource_type": "ulb-wa",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "en",
-                        "resource_type": "tn-wa",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "ulb",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "tn",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "ulb",
-                        "resource_code": "tit",
-                    },
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "tn",
-                        "resource_code": "tit",
-                    },
-                ],
-            },
-        )
-        check_finished_document_with_verses_success(response)
-
-
-def test_en_ulb_wa_col_en_tn_wa_col_sw_ulb_col_sw_tn_col_sw_ulb_tit_sw_tn_tit_book_language_order_2c_sl_sr_c() -> None:
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
                 "layout_for_print": False,
                 "resource_requests": [
                     {
@@ -2481,7 +2104,7 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_sw_ulb_col_sw_tn_col_sw_tq_col_
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT,
+                "assembly_layout_kind": None,
                 "layout_for_print": False,
                 "resource_requests": [
                     {
@@ -2542,7 +2165,7 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_sw_ulb_col_sw_tn_col_sw_tq_col_
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
+                "assembly_layout_kind": None,
                 "layout_for_print": False,
                 "resource_requests": [
                     {
@@ -2773,98 +2396,6 @@ def test_en_ulb_wa_col_en_tq_wa_col_sw_ulb_col_sw_tq_col_sw_ulb_tit_sw_tq_tit_bo
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
                 "layout_for_print": True,
-                "resource_requests": [
-                    {
-                        "lang_code": "en",
-                        "resource_type": "ulb-wa",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "en",
-                        "resource_type": "tq-wa",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "ulb",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "tq",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "ulb",
-                        "resource_code": "tit",
-                    },
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "tq",
-                        "resource_code": "tit",
-                    },
-                ],
-            },
-        )
-        check_finished_document_with_verses_success(response)
-
-
-def test_en_ulb_wa_col_en_tq_wa_col_sw_ulb_col_sw_tq_col_sw_ulb_tit_sw_tq_tit_book_language_order_2c_sl_sr() -> None:
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT,
-                "layout_for_print": False,
-                "resource_requests": [
-                    {
-                        "lang_code": "en",
-                        "resource_type": "ulb-wa",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "en",
-                        "resource_type": "tq-wa",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "ulb",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "tq",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "ulb",
-                        "resource_code": "tit",
-                    },
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "tq",
-                        "resource_code": "tit",
-                    },
-                ],
-            },
-        )
-        check_finished_document_with_verses_success(response)
-
-
-def test_en_ulb_wa_col_en_tq_wa_col_sw_ulb_col_sw_tq_col_sw_ulb_tit_sw_tq_tit_book_language_order_2c_sl_sr_c() -> None:
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
-                "layout_for_print": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -8224,170 +7755,7 @@ def test_wyy_reg_gen_wyy_reg_mic_book_language_order_1c() -> None:
         check_finished_document_without_verses_success(response)
 
 
-@pytest.mark.skip
-def test_bdf_reg_mat_bdf_reg_mrk_pt_br_ulb_mat_pt_br_ulb_mrk_pt_br_tw_mat_pt_br_tw_mrk_pt_br_tq_mat_pt_br_tq_mrk_pt_br_tn_mat_pt_br_tn_mrk_fr_ulb_mat_fr_ulb_mrk_fr_tw_mat_fr_tw_mrk_fr_tq_mat_fr_tq_mrk_fr_tn_mat_fr_tn_mrk_fr_f10_mat_fr_f10_mrk_book_language_order_2c_sl_hr() -> None:
-    """
-    Test case where document_request_key is too long and the system
-    will use a timestamp for the document_request_key instead.
-    """
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT,
-                "layout_for_print": False,
-                "resource_requests": [
-                    {
-                        "lang_code": "bdf",
-                        "resource_type": "reg",
-                        "resource_code": "mat",
-                    },
-                    {
-                        "lang_code": "bdf",
-                        "resource_type": "reg",
-                        "resource_code": "mrk",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "ulb",
-                        "resource_code": "mat",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "tw",
-                        "resource_code": "mat",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "tq",
-                        "resource_code": "mat",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "tn",
-                        "resource_code": "mat",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "ulb",
-                        "resource_code": "mrk",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "tw",
-                        "resource_code": "mrk",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "tq",
-                        "resource_code": "mrk",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "tn",
-                        "resource_code": "mrk",
-                    },
-                    {"lang_code": "fr", "resource_type": "ulb", "resource_code": "mat"},
-                    {"lang_code": "fr", "resource_type": "tw", "resource_code": "mat"},
-                    {"lang_code": "fr", "resource_type": "tq", "resource_code": "mat"},
-                    {"lang_code": "fr", "resource_type": "tn", "resource_code": "mat"},
-                    {"lang_code": "fr", "resource_type": "f10", "resource_code": "mat"},
-                    {"lang_code": "fr", "resource_type": "ulb", "resource_code": "mrk"},
-                    {"lang_code": "fr", "resource_type": "tw", "resource_code": "mrk"},
-                    {"lang_code": "fr", "resource_type": "tq", "resource_code": "mrk"},
-                    {"lang_code": "fr", "resource_type": "tn", "resource_code": "mrk"},
-                    {"lang_code": "fr", "resource_type": "f10", "resource_code": "mrk"},
-                ],
-            },
-        )
-        check_finished_document_with_verses_success(response)
-
-
-@pytest.mark.skip
-def test_bdf_reg_mat_bdf_reg_mrk_pt_br_ulb_mat_pt_br_ulb_mrk_pt_br_tw_mat_pt_br_tw_mrk_pt_br_tq_mat_pt_br_tq_mrk_pt_br_tn_mat_pt_br_tn_mrk_fr_ulb_mat_fr_ulb_mrk_fr_tw_mat_fr_tw_mrk_fr_tq_mat_fr_tq_mrk_fr_tn_mat_fr_tn_mrk_fr_f10_mat_fr_f10_mrk_book_language_order_2c_sl_hr_c() -> None:
-    """
-    Test case where document_request_key is too long and the system
-    will use a timestamp for the document_request_key instead.
-    """
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": None,
-                "layout_for_print": True,
-                "resource_requests": [
-                    {
-                        "lang_code": "bdf",
-                        "resource_type": "reg",
-                        "resource_code": "mat",
-                    },
-                    {
-                        "lang_code": "bdf",
-                        "resource_type": "reg",
-                        "resource_code": "mrk",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "ulb",
-                        "resource_code": "mat",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "tw",
-                        "resource_code": "mat",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "tq",
-                        "resource_code": "mat",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "tn",
-                        "resource_code": "mat",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "ulb",
-                        "resource_code": "mrk",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "tw",
-                        "resource_code": "mrk",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "tq",
-                        "resource_code": "mrk",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "tn",
-                        "resource_code": "mrk",
-                    },
-                    {"lang_code": "fr", "resource_type": "ulb", "resource_code": "mat"},
-                    {"lang_code": "fr", "resource_type": "tw", "resource_code": "mat"},
-                    {"lang_code": "fr", "resource_type": "tq", "resource_code": "mat"},
-                    {"lang_code": "fr", "resource_type": "tn", "resource_code": "mat"},
-                    {"lang_code": "fr", "resource_type": "f10", "resource_code": "mat"},
-                    {"lang_code": "fr", "resource_type": "ulb", "resource_code": "mrk"},
-                    {"lang_code": "fr", "resource_type": "tw", "resource_code": "mrk"},
-                    {"lang_code": "fr", "resource_type": "tq", "resource_code": "mrk"},
-                    {"lang_code": "fr", "resource_type": "tn", "resource_code": "mrk"},
-                    {"lang_code": "fr", "resource_type": "f10", "resource_code": "mrk"},
-                ],
-            },
-        )
-        check_finished_document_with_verses_success(response)
-
-
-@pytest.mark.skip
-def test_bdf_reg_mat_bdf_reg_mrk_pt_br_ulb_mat_pt_br_ulb_mrk_pt_br_tw_mat_pt_br_tw_mrk_pt_br_tq_mat_pt_br_tq_mrk_pt_br_tn_mat_pt_br_tn_mrk_fr_ulb_mat_fr_ulb_mrk_fr_tw_mat_fr_tw_mrk_fr_tq_mat_fr_tq_mrk_fr_tn_mat_fr_tn_mrk_fr_f10_mat_fr_f10_mrk_book_language_order_1c() -> None:
+def test_long_document_request_key() -> None:
     """
     Test case where document_request_key is too long and the system
     will use a timestamp for the document_request_key instead.
@@ -8402,16 +7770,6 @@ def test_bdf_reg_mat_bdf_reg_mrk_pt_br_ulb_mat_pt_br_ulb_mrk_pt_br_tw_mat_pt_br_
                 "layout_for_print": False,
                 "resource_requests": [
                     {
-                        "lang_code": "bdf",
-                        "resource_type": "reg",
-                        "resource_code": "mat",
-                    },
-                    {
-                        "lang_code": "bdf",
-                        "resource_type": "reg",
-                        "resource_code": "mrk",
-                    },
-                    {
                         "lang_code": "pt-br",
                         "resource_type": "ulb",
                         "resource_code": "mat",
@@ -8423,44 +7781,79 @@ def test_bdf_reg_mat_bdf_reg_mrk_pt_br_ulb_mat_pt_br_ulb_mrk_pt_br_tw_mat_pt_br_
                     },
                     {
                         "lang_code": "pt-br",
-                        "resource_type": "tq",
-                        "resource_code": "mat",
-                    },
-                    {
-                        "lang_code": "pt-br",
                         "resource_type": "tn",
                         "resource_code": "mat",
                     },
                     {
                         "lang_code": "pt-br",
-                        "resource_type": "ulb",
-                        "resource_code": "mrk",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "tw",
-                        "resource_code": "mrk",
-                    },
-                    {
-                        "lang_code": "pt-br",
                         "resource_type": "tq",
-                        "resource_code": "mrk",
-                    },
-                    {
-                        "lang_code": "pt-br",
-                        "resource_type": "tn",
-                        "resource_code": "mrk",
+                        "resource_code": "mat",
                     },
                     {"lang_code": "fr", "resource_type": "ulb", "resource_code": "mat"},
-                    {"lang_code": "fr", "resource_type": "tw", "resource_code": "mat"},
-                    {"lang_code": "fr", "resource_type": "tq", "resource_code": "mat"},
                     {"lang_code": "fr", "resource_type": "tn", "resource_code": "mat"},
+                    {"lang_code": "fr", "resource_type": "tq", "resource_code": "mat"},
+                    {"lang_code": "fr", "resource_type": "tw", "resource_code": "mat"},
                     {"lang_code": "fr", "resource_type": "f10", "resource_code": "mat"},
-                    {"lang_code": "fr", "resource_type": "ulb", "resource_code": "mrk"},
-                    {"lang_code": "fr", "resource_type": "tw", "resource_code": "mrk"},
-                    {"lang_code": "fr", "resource_type": "tq", "resource_code": "mrk"},
-                    {"lang_code": "fr", "resource_type": "tn", "resource_code": "mrk"},
-                    {"lang_code": "fr", "resource_type": "f10", "resource_code": "mrk"},
+                    {
+                        "lang_code": "en",
+                        "resource_type": "ulb-wa",
+                        "resource_code": "mat",
+                    },
+                    {
+                        "lang_code": "en",
+                        "resource_type": "tn-wa",
+                        "resource_code": "mat",
+                    },
+                    {
+                        "lang_code": "en",
+                        "resource_type": "tq-wa",
+                        "resource_code": "mat",
+                    },
+                    {
+                        "lang_code": "en",
+                        "resource_type": "tw-wa",
+                        "resource_code": "mat",
+                    },
+                    {
+                        "lang_code": "es-419",
+                        "resource_type": "ulb",
+                        "resource_code": "mat",
+                    },
+                    {
+                        "lang_code": "es-419",
+                        "resource_type": "tn",
+                        "resource_code": "mat",
+                    },
+                    {
+                        "lang_code": "es-419",
+                        "resource_type": "tq",
+                        "resource_code": "mat",
+                    },
+                    {
+                        "lang_code": "es-419",
+                        "resource_type": "tw",
+                        "resource_code": "mat",
+                    },
+                    {
+                        "lang_code": "zh",
+                        "resource_type": "cuv",
+                        "resource_code": "mat",
+                    },
+                    {
+                        "lang_code": "zh",
+                        "resource_type": "tn",
+                        "resource_code": "mat",
+                    },
+                    {
+                        "lang_code": "zh",
+                        "resource_type": "tw",
+                        "resource_code": "mat",
+                    },
+                    {
+                        "lang_code": "zh",
+                        "resource_type": "cuv",
+                        "resource_code": "mrk",
+                    },
                 ],
             },
         )
