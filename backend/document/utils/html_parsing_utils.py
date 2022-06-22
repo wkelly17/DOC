@@ -5,8 +5,6 @@ scraping library.
 
 from typing import Any
 
-import bs4
-
 
 def tag_elements_between(cur: Any, end: Any) -> Any:
     """

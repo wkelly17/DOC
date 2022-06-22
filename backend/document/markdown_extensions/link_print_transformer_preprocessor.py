@@ -1,12 +1,10 @@
-import os
 import re
 
 import markdown
-from collections.abc import Mapping
 from typing import Any, final
 
 from document.config import settings
-from document.domain import bible_books, model
+from document.domain import model
 from document.markdown_extensions import link_regexes
 from document.utils import file_utils, tw_utils
 
@@ -362,10 +360,10 @@ class LinkPrintTransformerPreprocessor(markdown.preprocessors.Preprocessor):
         """
         for match in re.finditer(link_regexes.TN_MARKDOWN_SCRIPTURE_LINK_RE, source):
             scripture_ref = match.group("scripture_ref")
-            lang_code = match.group("lang_code")
-            resource_code = match.group("resource_code")
-            chapter_num = match.group("chapter_num")
-            verse_ref = match.group("verse_ref")
+            # lang_code = match.group("lang_code")
+            # resource_code = match.group("resource_code")
+            # chapter_num = match.group("chapter_num")
+            # verse_ref = match.group("verse_ref")
 
             # # NOTE(id:check_for_resource_request) To bother getting the TN resource
             # # asset file referenced in the matched link we must know that said TN
@@ -433,9 +431,9 @@ class LinkPrintTransformerPreprocessor(markdown.preprocessors.Preprocessor):
             link_regexes.TN_MARKDOWN_RELATIVE_SCRIPTURE_LINK_RE, source
         ):
             scripture_ref = match.group("scripture_ref")
-            resource_code = match.group("resource_code")
-            chapter_num = match.group("chapter_num")
-            verse_ref = match.group("verse_ref")
+            # resource_code = match.group("resource_code")
+            # chapter_num = match.group("chapter_num")
+            # verse_ref = match.group("verse_ref")
 
             # NOTE See id:check_for_resource_request above
             # matching_resource_requests: list[model.ResourceRequest] = [

@@ -1,7 +1,6 @@
 """Link regular expressions used by link_transformer_preprocessor module."""
 
 import re
-from typing import Pattern
 
 # Handle TW wikilink inner text
 TW_RC_LINK_RE = re.compile(

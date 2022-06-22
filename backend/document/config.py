@@ -1,13 +1,11 @@
 """This module provides configuration values used by the application."""
 import logging
-import os
 from collections.abc import Mapping, Sequence
 from logging import config as lc
-from typing import Any, Optional, Union, final
+from typing import Optional, final
 
-import jinja2
 import yaml
-from pydantic import AnyHttpUrl, BaseModel, BaseSettings, EmailStr, HttpUrl, validator
+from pydantic import AnyHttpUrl, BaseSettings, EmailStr, HttpUrl, validator
 
 from document.domain import model
 

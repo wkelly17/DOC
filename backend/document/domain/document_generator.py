@@ -563,7 +563,6 @@ def write_html_cover_to_file(
             images=images,
         ),
     )
-    # FIXME should we use file_utils.write_file
     with open(cover_filepath, "w") as fout:
         fout.write(cover)
 
@@ -637,9 +636,6 @@ def main(document_request: model.DocumentRequest) -> str:
     This is the main entry point for this module and the
     backend system as a whole.
     """
-    # Handle document requests which request tn-wa and tn.
-    # FIXME This needs to change, see FIXME note at the method
-    # definition site.
     # If an assembly_layout_kind has been chosen in the document request,
     # then we know that the request originated from a unit test. The UI does
     # not provide a way to choose an arbitrary layout, but unit tests can
