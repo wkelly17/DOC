@@ -27,6 +27,9 @@ def test_stream_ar_nav_jud_pdf() -> None:
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "ar",
@@ -47,7 +50,7 @@ def test_stream_ar_nav_jud_pdf() -> None:
 
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response2: requests.Response = client.get(
-            "/pdfs/{}".format(finished_document_request_key),
+            "/pdf/{}".format(finished_document_request_key),
         )
         logger.debug("response: {}".format(response2))
         finished_document_path = os.path.join(

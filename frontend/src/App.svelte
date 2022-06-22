@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import type { AssemblyStrategy } from './lib/types'
+  import type { AssemblyStrategy } from './types'
   import LoadingIndicator from './lib/LoadingIndicator.svelte'
   import AssemblyStrategyComponent from './lib/AssemblyStrategy.svelte'
 
@@ -28,6 +28,9 @@
   let email: string | null = null
   let assemblyStrategy: AssemblyStrategy | null
   let layoutForPrint: boolean | null
+  let generatePdf: boolean | null
+  let generateEpub: boolean | null
+  let generateDocx: boolean | null
   let lang0Code: string = ''
   let lang0ResourceTypes: string[] = []
   let lang0ResourceCodes: string[] = []
@@ -152,7 +155,7 @@
   /*   } */
   /* } */
 
-  let finished_document_url: string = ''
+  let document_request_key: string = ''
 
   function reset() {
     assemblyStrategy = null
@@ -160,6 +163,9 @@
     // than empty string if email is not provided by user.
     email = null
     layoutForPrint = null
+    generatePdf = null
+    generateEpub = null
+    generateDocx = null
     lang0Code = ''
     lang0ResourceTypes = []
     lang0ResourceCodes = []
@@ -171,7 +177,7 @@
     /* lang2ResourceCodes = [] */
     hideWaitMessage()
     hideErrorMessage()
-    finished_document_url = ''
+    document_request_key = ''
     showAnotherLang = false
     /* showAnotherLang2 = false */
     document.getElementById('email')?.focus()
@@ -237,6 +243,21 @@
     } else {
       layoutForPrint = false
     }
+    if (generatePdf) {
+      generatePdf = true
+    } else {
+      generatePdf = false
+    }
+    if (generateEpub) {
+      generateEpub = true
+    } else {
+      generateEpub = false
+    }
+    if (generateDocx) {
+      generateDocx = true
+    } else {
+      generateDocx = false
+    }
 
     // Create the JSON structure to POST.
     // let documentRequest: DocumentRequest = {
@@ -247,6 +268,9 @@
       assembly_strategy_kind: assemblyStrategy,
       // assembly_layout_kind: undefined,
       layout_for_print: layoutForPrint,
+      generate_pdf: generatePdf,
+      generate_epub: generateEpub,
+      generate_docx: generateDocx,
       resource_requests: rr
     }
     console.log('document request: ', JSON.stringify(documentRequest, null, 2))
@@ -270,7 +294,7 @@
       })
       .then(data => {
         console.log('data: ', data)
-        finished_document_url = data['finished_document_request_key']
+        document_request_key = data['finished_document_request_key']
         hideErrorMessage()
         hideWaitMessage()
       })
@@ -301,6 +325,30 @@
           name="layoutForPrint"
           id="layoutForPrint"
           bind:checked={layoutForPrint}
+        />
+        <br />
+        <label for="generatePdf">{import.meta.env.VITE_PDF_LABEL}</label>
+        <input
+          type="checkbox"
+          name="generatePdf"
+          id="generatePdf"
+          bind:checked={generatePdf}
+        />
+        <br />
+        <label for="generateEpub">{import.meta.env.VITE_EPUB_LABEL}</label>
+        <input
+          type="checkbox"
+          name="generateEpub"
+          id="generateEpub"
+          bind:checked={generateEpub}
+        />
+        <br />
+        <label for="generateDocx">{import.meta.env.VITE_DOCX_LABEL}</label>
+        <input
+          type="checkbox"
+          name="generateDocx"
+          id="generateDocx"
+          bind:checked={generateDocx}
         />
 
         <AssemblyStrategyComponent bind:assemblyStrategy />
@@ -516,22 +564,42 @@
           <p>{import.meta.env.VITE_ERROR_MSG}</p>
         </div>
       {/if}
-      {#if finished_document_url.length > 0}
+      {#if document_request_key.length > 0}
         <div class="finished-document-url">
           <p>
-            {import.meta.env.VITE_PDF_DOCUMENT_READY_MSG_PART1}
-            <a href="{API_ROOT_URL}/pdfs/{finished_document_url}"
-              >{import.meta.env.VITE_PDF_DOCUMENT_READY_LINK_TXT}</a
-            >
-            {import.meta.env.VITE_PDF_DOCUMENT_READY_MSG_PART2}
-          </p>
-          <p>
             {import.meta.env.VITE_HTML_DOCUMENT_READY_MSG_PART1}
-            <a href="{API_ROOT_URL}/html/{finished_document_url}" target="_blank"
+            <a href="{API_ROOT_URL}/html/{document_request_key}" target="_blank"
               >{import.meta.env.VITE_HTML_DOCUMENT_READY_LINK_TXT}</a
             >
             {import.meta.env.VITE_HTML_DOCUMENT_READY_MSG_PART2}
           </p>
+          {#if generateEpub}
+            <p>
+              {import.meta.env.VITE_EPUB_DOCUMENT_READY_MSG_PART1}
+              <a href="{API_ROOT_URL}/epub/{document_request_key}"
+                >{import.meta.env.VITE_EPUB_DOCUMENT_READY_LINK_TXT}</a
+              >
+              {import.meta.env.VITE_EPUB_DOCUMENT_READY_MSG_PART2}
+            </p>
+          {/if}
+          {#if generatePdf}
+            <p>
+              {import.meta.env.VITE_PDF_DOCUMENT_READY_MSG_PART1}
+              <a href="{API_ROOT_URL}/pdf/{document_request_key}"
+                >{import.meta.env.VITE_PDF_DOCUMENT_READY_LINK_TXT}</a
+              >
+              {import.meta.env.VITE_PDF_DOCUMENT_READY_MSG_PART2}
+            </p>
+          {/if}
+          {#if generateDocx}
+            <p>
+              {import.meta.env.VITE_DOCX_DOCUMENT_READY_MSG_PART1}
+              <a href="{API_ROOT_URL}/docx/{document_request_key}"
+                >{import.meta.env.VITE_DOCX_DOCUMENT_READY_LINK_TXT}</a
+              >
+              {import.meta.env.VITE_DOCX_DOCUMENT_READY_MSG_PART2}
+            </p>
+          {/if}
         </div>
       {/if}
     </div>

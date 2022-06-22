@@ -22,6 +22,13 @@ RUN cd /tmp \
 # Refresh system font cache.
 RUN fc-cache -f -v
 
+# Get and install Pandoc for HTML to ePub conversion.
+ARG PANDOC_LOC=https://github.com/jgm/pandoc/releases/download/2.18/pandoc-2.18-1-amd64.deb
+RUN PANDOC_TEMP="$(mktemp)" && \
+    wget -O "$PANDOC_TEMP" ${PANDOC_LOC} && \
+    dpkg -i "$PANDOC_TEMP" && \
+    rm -f "$PANDOC_TEMP"
+
 # Install wkhtmltopdf
 # Source: https://github.com/wkhtmltopdf/wkhtmltopdf/issues/2037
 # Source: https://gist.github.com/lobermann/ca0e7bb2558b3b08923c6ae2c37a26ce
@@ -40,8 +47,8 @@ RUN WKHTMLTOX_TEMP="$(mktemp)" && \
 RUN mkdir -p /working/temp
 # Make the output directory where generated HTML and PDFs are placed.
 RUN mkdir -p /working/output
-# Make the output directory where generated PDFs are copied too.
-RUN mkdir -p /pdf_output
+# Make the output directory where generated documents (PDF, ePub, Docx) are copied too.
+RUN mkdir -p /document_output
 
 COPY .env .
 COPY icon-tn.png .

@@ -12,11 +12,11 @@ cfgv==3.3.1
     # via pre-commit
 distlib==0.3.4
     # via virtualenv
-filelock==3.6.0
+filelock==3.7.1
     # via virtualenv
-icdiff==2.0.4
+icdiff==2.0.5
     # via pytest-icdiff
-identify==2.4.12
+identify==2.5.1
     # via pre-commit
 iniconfig==1.1.1
     # via
@@ -32,7 +32,7 @@ packaging==21.3
     # via
     #   -c ./backend/requirements.txt
     #   pytest
-platformdirs==2.5.1
+platformdirs==2.5.2
     # via virtualenv
 pluggy==1.0.0
     # via
@@ -40,7 +40,7 @@ pluggy==1.0.0
     #   pytest
 pprintpp==0.4.0
     # via pytest-icdiff
-pre-commit==2.17.0
+pre-commit==2.19.0
     # via -r ./backend/requirements-prod.in
 py==1.11.0
     # via
@@ -57,7 +57,7 @@ pytest==7.1.2
     #   -r ./backend/requirements-prod.in
     #   pytest-datafiles
     #   pytest-icdiff
-pytest-datafiles==2.0
+pytest-datafiles==2.0.1
     # via -r ./backend/requirements-prod.in
 pytest-icdiff==0.5
     # via -r ./backend/requirements-prod.in
@@ -76,9 +76,9 @@ tomli==2.0.1
     #   -c ./backend/requirements.txt
     #   mypy
     #   pytest
-typing-extensions==4.1.1
+typing-extensions==4.2.0
     # via
     #   -c ./backend/requirements.txt
     #   mypy
-virtualenv==20.13.4
+virtualenv==20.14.1
     # via pre-commit

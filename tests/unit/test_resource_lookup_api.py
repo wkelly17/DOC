@@ -35,6 +35,9 @@ def test_lookup_successes() -> None:
         assembly_strategy_kind=assembly_strategy_kind,
         assembly_layout_kind=assembly_layout_kind,
         layout_for_print=True,
+        generate_pdf=False,
+        generate_epub=True,
+        generate_docx=False,
         resource_requests=resource_requests,
     )
     for resource_request in document_request.resource_requests:
@@ -74,6 +77,9 @@ def test_lookup_failures() -> None:
         assembly_strategy_kind=assembly_strategy_kind,
         assembly_layout_kind=assembly_layout_kind,
         layout_for_print=False,
+        generate_pdf=True,
+        generate_epub=False,
+        generate_docx=False,
         resource_requests=resource_requests,
     )
 

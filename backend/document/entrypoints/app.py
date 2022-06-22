@@ -74,13 +74,10 @@ def document_endpoint(
     """
     # Top level exception handler
     try:
-        document_request_key, finished_document_path = document_generator.main(
-            document_request
-        )
-        assert os.path.exists(finished_document_path)
+        document_request_key = document_generator.main(document_request)
     except Exception:
         logger.exception(
-            "There was a error while attempting to fulfill the document "
+            "There was an error while attempting to fulfill the document "
             "request. Likely reason is the following exception:"
         )
         # NOTE It might not always be the case that an exception here
@@ -96,12 +93,38 @@ def document_endpoint(
     return details
 
 
-@app.get("/pdfs/{document_request_key}")
+@app.get("/epub/{document_request_key}")
+def serve_epub_document(
+    document_request_key: str, output_dir: str = settings.output_dir()
+) -> FileResponse:
+    """Serve the requested ePub document."""
+    path = "{}.epub".format(os.path.join(output_dir, document_request_key))
+    return FileResponse(
+        path=path,
+        filename=pathlib.Path(path).name,
+        headers={"Content-Disposition": "attachment"},
+    )
+
+
+@app.get("/pdf/{document_request_key}")
 def serve_pdf_document(
     document_request_key: str, output_dir: str = settings.output_dir()
 ) -> FileResponse:
     """Serve the requested PDF document."""
     path = "{}.pdf".format(os.path.join(output_dir, document_request_key))
+    return FileResponse(
+        path=path,
+        filename=pathlib.Path(path).name,
+        headers={"Content-Disposition": "attachment"},
+    )
+
+
+@app.get("/docx/{document_request_key}")
+def serve_docx_document(
+    document_request_key: str, output_dir: str = settings.output_dir()
+) -> FileResponse:
+    """Serve the requested Docx document."""
+    path = "{}.docx".format(os.path.join(output_dir, document_request_key))
     return FileResponse(
         path=path,
         filename=pathlib.Path(path).name,

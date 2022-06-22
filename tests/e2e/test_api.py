@@ -24,17 +24,15 @@ def check_finished_document_with_verses_success(response: requests.Response) -> 
     content = response.json()
     assert "finished_document_request_key" in content
     assert "message" in content
-    finished_document_path = os.path.join(
-        settings.output_dir(), "{}.pdf".format(content["finished_document_request_key"])
+    html_filepath = os.path.join(
+        settings.output_dir(),
+        "{}.html".format(content["finished_document_request_key"]),
     )
-    assert os.path.isfile(finished_document_path)
-    html_file = "{}.html".format(finished_document_path.split(".")[0])
-    assert os.path.isfile(html_file)
     assert response.json() == {
-        "finished_document_request_key": pathlib.Path(finished_document_path).stem,
+        "finished_document_request_key": content["finished_document_request_key"],
         "message": settings.SUCCESS_MESSAGE,
     }
-    with open(html_file, "r") as fin:
+    with open(html_filepath, "r") as fin:
         html = fin.read()
         parser = bs4.BeautifulSoup(html, "html.parser")
         body = parser.find_all("body")
@@ -56,13 +54,11 @@ def check_finished_document_without_verses_success(response: requests.Response) 
     content = response.json()
     assert "finished_document_request_key" in content
     assert "message" in content
-    finished_document_path = os.path.join(
-        settings.output_dir(), "{}.pdf".format(content["finished_document_request_key"])
+    html_filepath = os.path.join(
+        settings.output_dir(),
+        "{}.html".format(content["finished_document_request_key"]),
     )
-    assert os.path.exists(finished_document_path)
-    html_file = "{}.html".format(finished_document_path.split(".")[0])
-    assert os.path.exists(html_file)
-    with open(html_file, "r") as fin:
+    with open(html_filepath, "r") as fin:
         html = fin.read()
         parser = bs4.BeautifulSoup(html, "html.parser")
         body = parser.find_all("body")
@@ -92,6 +88,9 @@ def test_en_ulb_wa_col_en_tn_wa_col_language_book_order_with_no_email_2c_sl_hr()
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -122,6 +121,9 @@ def test_en_ulb_wa_col_en_tn_wa_col_language_book_order_with_no_email_2c_sl_hr_c
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
                 "layout_for_print": True,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -152,6 +154,9 @@ def test_en_ulb_wa_col_en_tn_wa_col_language_book_order_with_no_email_1c() -> No
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -182,6 +187,9 @@ def test_en_ulb_wa_col_en_tn_wa_col_language_book_order_with_no_email_1c_c() -> 
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
                 "layout_for_print": True,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -212,6 +220,9 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_language_book_order_2c_sl_hr() 
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -245,8 +256,11 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_language_book_order_2c_sl_hr_c(
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
+                "assembly_layout_kind": None,
                 "layout_for_print": True,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -282,6 +296,9 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_language_book_order_1c() -> Non
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -317,6 +334,9 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_language_book_order_1c_c() -> N
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
                 "layout_for_print": True,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -352,6 +372,9 @@ def test_en_ulb_wa_tn_wa_jud_language_book_order_2c_sl_hr() -> None:
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -382,6 +405,9 @@ def test_en_ulb_wa_tn_wa_jud_language_book_order_2c_sl_hr_c() -> None:
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
                 "layout_for_print": True,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -412,6 +438,9 @@ def test_en_ulb_wa_tn_wa_jud_language_book_order_1c() -> None:
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -442,6 +471,9 @@ def test_en_ulb_wa_tn_wa_jud_language_book_order_1c_c() -> None:
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
                 "layout_for_print": True,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -473,6 +505,9 @@ def test_ar_nav_jud_language_book_order_1c() -> None:
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "ar",
@@ -500,6 +535,9 @@ def test_ar_nav_jud_language_book_order_1c_c() -> None:
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
                 "layout_for_print": True,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "ar",
@@ -526,6 +564,9 @@ def test_pt_br_ulb_tn_language_book_order_2c_sl_hr() -> None:
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "pt-br",
@@ -556,6 +597,9 @@ def test_pt_br_ulb_tn_language_book_order_2c_sl_hr_c() -> None:
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
                 "layout_for_print": True,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "pt-br",
@@ -586,6 +630,9 @@ def test_pt_br_ulb_tn_language_book_order_1c() -> None:
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "pt-br",
@@ -616,6 +663,9 @@ def test_pt_br_ulb_tn_language_book_order_1c_c() -> None:
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
                 "layout_for_print": True,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "pt-br",
@@ -633,6 +683,7 @@ def test_pt_br_ulb_tn_language_book_order_1c_c() -> None:
         check_finished_document_with_verses_success(response)
 
 
+@pytest.mark.skip
 def test_pt_br_ulb_tn_en_ulb_wa_tn_wa_luk_language_book_order_2c_sl_hr() -> None:
     """
     Produce verse level interleaved document for Brazilian Portuguese
@@ -646,6 +697,9 @@ def test_pt_br_ulb_tn_en_ulb_wa_tn_wa_luk_language_book_order_2c_sl_hr() -> None
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "pt-br",
@@ -673,6 +727,7 @@ def test_pt_br_ulb_tn_en_ulb_wa_tn_wa_luk_language_book_order_2c_sl_hr() -> None
         check_finished_document_with_verses_success(response)
 
 
+@pytest.mark.skip
 def test_pt_br_ulb_tn_en_ulb_wa_tn_wa_luk_language_book_order_2c_sl_hr_c() -> None:
     """
     Produce verse level interleaved document for Brazilian Portuguese
@@ -686,6 +741,9 @@ def test_pt_br_ulb_tn_en_ulb_wa_tn_wa_luk_language_book_order_2c_sl_hr_c() -> No
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
                 "layout_for_print": True,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "pt-br",
@@ -726,6 +784,9 @@ def test_pt_br_ulb_tn_en_ulb_wa_tn_wa_luk_language_book_order_1c() -> None:
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "pt-br",
@@ -766,6 +827,9 @@ def test_pt_br_ulb_tn_en_ulb_wa_tn_wa_luk_language_book_order_1c_c() -> None:
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
                 "layout_for_print": True,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "pt-br",
@@ -800,8 +864,11 @@ def test_pt_br_ulb_tn_luk_en_ulb_wa_tn_wa_luk_sw_ulb_tn_col_language_book_order_
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT,
+                "assembly_layout_kind": None,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "pt-br",
@@ -846,8 +913,11 @@ def test_pt_br_ulb_tn_luk_en_ulb_wa_tn_wa_luk_sw_ulb_tn_col_language_book_order_
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
+                "assembly_layout_kind": None,
                 "layout_for_print": True,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "pt-br",
@@ -894,6 +964,9 @@ def test_pt_br_ulb_tn_luk_en_ulb_wa_tn_wa_luk_sw_ulb_tn_col_language_book_order_
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "pt-br",
@@ -940,6 +1013,9 @@ def test_pt_br_ulb_tn_luk_en_ulb_wa_tn_wa_luk_sw_ulb_tn_col_language_book_order_
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
                 "layout_for_print": True,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "pt-br",
@@ -992,6 +1068,9 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_c
                 # "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT,
                 "assembly_layout_kind": None,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -1068,6 +1147,9 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_c
                 # "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
                 "assembly_layout_kind": None,
                 "layout_for_print": True,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -1140,6 +1222,9 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_c
                 # "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN,
                 "assembly_layout_kind": None,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -1212,6 +1297,9 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_c
                 # "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
                 "assembly_layout_kind": None,
                 "layout_for_print": True,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -1284,6 +1372,9 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_col_sw_tw_col_
                 # "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT,
                 "assembly_layout_kind": None,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -1346,6 +1437,9 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_col_sw_tw_col_
                 # "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
                 "assembly_layout_kind": None,
                 "layout_for_print": True,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -1408,6 +1502,9 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_col_sw_tw_col_
                 # "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN,
                 "assembly_layout_kind": None,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -1470,6 +1567,9 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_col_sw_tw_col_
                 # "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
                 "assembly_layout_kind": None,
                 "layout_for_print": True,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -1532,6 +1632,9 @@ def test_en_ulb_wa_col_en_tw_wa_col_sw_ulb_col_sw_tw_col_sw_ulb_tit_sw_tw_tit_la
                 # "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT,
                 "assembly_layout_kind": None,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -1579,6 +1682,9 @@ def test_en_ulb_wa_col_en_tw_wa_col_sw_ulb_col_sw_tw_col_sw_ulb_tit_sw_tw_tit_la
                 # "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
                 "assembly_layout_kind": None,
                 "layout_for_print": True,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -1625,6 +1731,9 @@ def test_en_ulb_wa_col_en_tw_wa_col_sw_ulb_col_sw_tw_col_sw_ulb_tit_sw_tw_tit_la
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": None,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -1672,6 +1781,9 @@ def test_en_ulb_wa_col_en_tw_wa_col_sw_ulb_col_sw_tw_col_sw_ulb_tit_sw_tw_tit_la
                 # "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
                 "assembly_layout_kind": None,
                 "layout_for_print": True,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -1718,6 +1830,9 @@ def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": None,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -1780,6 +1895,9 @@ def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_
                 # "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
                 "assembly_layout_kind": None,
                 "layout_for_print": True,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -1842,6 +1960,9 @@ def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_
                 # "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN,
                 "assembly_layout_kind": None,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -1904,6 +2025,9 @@ def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_
                 # "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
                 "assembly_layout_kind": None,
                 "layout_for_print": True,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -1969,6 +2093,9 @@ def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": None,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -2034,6 +2161,9 @@ def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": None,
                 "layout_for_print": True,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -2099,6 +2229,9 @@ def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": None,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -2164,6 +2297,9 @@ def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": None,
                 "layout_for_print": True,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "en",
@@ -2239,6 +2375,9 @@ def test_zh_ulb_doesnt_exist_jol_zh_tn_jol_language_book_order_2c_sl_hr() -> Non
                 # "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT,
                 "assembly_layout_kind": None,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "zh",
@@ -2273,6 +2412,9 @@ def test_zh_ulb_doesnt_exist_jol_zh_tn_jol_language_book_order_2c_sl_hr_c() -> N
                 # "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
                 "assembly_layout_kind": None,
                 "layout_for_print": True,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "zh",
@@ -2307,6 +2449,9 @@ def test_zh_ulb_doesnt_exist_jol_zh_tn_jol_language_book_order_1c() -> None:
                 # "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN,
                 "assembly_layout_kind": None,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "zh",
@@ -2341,6 +2486,9 @@ def test_zh_ulb_doesnt_exist_jol_zh_tn_jol_language_book_order_1c_c() -> None:
                 # "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
                 "assembly_layout_kind": None,
                 "layout_for_print": True,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "zh",
@@ -2372,6 +2520,9 @@ def test_zh_cuv_jol_zh_tn_jol_language_book_order_2c_sl_hr() -> None:
                 # "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT,
                 "assembly_layout_kind": None,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "zh",
@@ -2403,6 +2554,9 @@ def test_zh_cuv_jol_zh_tn_jol_language_book_order_2c_sl_hr_c() -> None:
                 # "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
                 "assembly_layout_kind": None,
                 "layout_for_print": True,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "zh",
@@ -2434,6 +2588,9 @@ def test_zh_cuv_jol_zh_tn_jol_language_book_order_1c() -> None:
                 # "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN,
                 "assembly_layout_kind": None,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "zh",
@@ -2465,6 +2622,9 @@ def test_zh_cuv_jol_zh_tn_jol_language_book_order_1c_c() -> None:
                 # "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
                 "assembly_layout_kind": None,
                 "layout_for_print": True,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "zh",
@@ -2496,6 +2656,9 @@ def test_zh_cuv_jol_zh_tn_jol_zh_tq_jol_zh_tw_jol_language_book_order_2c_sl_hr()
                 # "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT,
                 "assembly_layout_kind": None,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "zh",
@@ -2537,6 +2700,9 @@ def test_zh_cuv_jol_zh_tn_jol_zh_tq_jol_zh_tw_jol_language_book_order_2c_sl_hr_c
                 # "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
                 "assembly_layout_kind": None,
                 "layout_for_print": True,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "zh",
@@ -2578,6 +2744,9 @@ def test_zh_cuv_jol_zh_tn_jol_zh_tq_jol_zh_tw_jol_language_book_order_1c() -> No
                 # "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN,
                 "assembly_layout_kind": None,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "zh",
@@ -2618,6 +2787,9 @@ def test_zh_cuv_jol_zh_tn_jol_zh_tq_jol_zh_tw_jol_language_book_order_1c_c() -> 
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": None,
                 "layout_for_print": True,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "zh",
@@ -2645,6 +2817,7 @@ def test_zh_cuv_jol_zh_tn_jol_zh_tq_jol_zh_tw_jol_language_book_order_1c_c() -> 
         check_finished_document_with_verses_success(response)
 
 
+@pytest.mark.skip
 def test_pt_br_ulb_luk_pt_br_tn_luk_language_book_order_2c_sl_hr() -> None:
     """
     Produce verse level interleaved document for Brazilian Portuguese scripture and
@@ -2659,6 +2832,9 @@ def test_pt_br_ulb_luk_pt_br_tn_luk_language_book_order_2c_sl_hr() -> None:
                 # "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT,
                 "assembly_layout_kind": None,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "pt-br",
@@ -2676,6 +2852,7 @@ def test_pt_br_ulb_luk_pt_br_tn_luk_language_book_order_2c_sl_hr() -> None:
         check_finished_document_with_verses_success(response)
 
 
+@pytest.mark.skip
 def test_pt_br_ulb_luk_pt_br_tn_luk_language_book_order_2c_sl_hr_c() -> None:
     """
     Produce verse level interleaved document for Brazilian Portuguese scripture and
@@ -2690,6 +2867,9 @@ def test_pt_br_ulb_luk_pt_br_tn_luk_language_book_order_2c_sl_hr_c() -> None:
                 # "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
                 "assembly_layout_kind": None,
                 "layout_for_print": True,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "pt-br",
@@ -2707,6 +2887,7 @@ def test_pt_br_ulb_luk_pt_br_tn_luk_language_book_order_2c_sl_hr_c() -> None:
         check_finished_document_with_verses_success(response)
 
 
+@pytest.mark.skip
 def test_pt_br_ulb_luk_pt_br_tn_luk_language_book_order_1c() -> None:
     """
     Produce verse level interleaved document for Brazilian Portuguese scripture and
@@ -2721,6 +2902,9 @@ def test_pt_br_ulb_luk_pt_br_tn_luk_language_book_order_1c() -> None:
                 # "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN,
                 "assembly_layout_kind": None,
                 "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "pt-br",
@@ -2738,6 +2922,7 @@ def test_pt_br_ulb_luk_pt_br_tn_luk_language_book_order_1c() -> None:
         check_finished_document_with_verses_success(response)
 
 
+@pytest.mark.skip
 def test_pt_br_ulb_luk_pt_br_tn_luk_language_book_order_1c_c() -> None:
     """
     Produce verse level interleaved document for Brazilian Portuguese scripture and
@@ -2752,6 +2937,9 @@ def test_pt_br_ulb_luk_pt_br_tn_luk_language_book_order_1c_c() -> None:
                 # "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
                 "assembly_layout_kind": None,
                 "layout_for_print": True,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
                 "resource_requests": [
                     {
                         "lang_code": "pt-br",

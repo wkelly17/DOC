@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { AssemblyStrategy } from './types'
+  import type { AssemblyStrategy } from '../types'
 
   let book_language_order_strategy: AssemblyStrategy = {
     id: 'blo',

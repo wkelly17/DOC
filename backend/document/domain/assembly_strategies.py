@@ -4940,8 +4940,10 @@ def assemble_tn_as_iterator_for_book_then_lang(
     # Use the tn_book_content_unit that has the most chapters as a
     # chapter_num pump.
     # Realize the most amount of content displayed to user.
-    chapters_key = lambda tn_book_content_unit: tn_book_content_unit.chapters.keys()
-    tn_with_most_chapters = max(tn_book_content_units, key=chapters_key)
+    tn_with_most_chapters = max(
+        tn_book_content_units,
+        key=lambda tn_book_content_unit: tn_book_content_unit.chapters.keys(),
+    )
     for chapter_num in tn_with_most_chapters.chapters.keys():
         yield model.HtmlContent("Chapter {}".format(chapter_num))
 

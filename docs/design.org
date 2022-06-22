@@ -33,7 +33,7 @@ Note: this will take about a half hour give or take depending on your
 network latency.
 
 The generated PDFs are copied from the Docker container to the
-=docker_pdf_output= directory at the base of the repo for ease of perusal.
+=docker_document_output= directory at the base of the repo for ease of perusal.
 
 **** Or, instead of =make all= you can do one thing at a time using multiple Makefile targets
 ***** Build the container
