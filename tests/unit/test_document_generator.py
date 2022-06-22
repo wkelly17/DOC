@@ -4,54 +4,6 @@ from document.config import settings
 from document.domain import model, document_generator
 
 
-def test_coalesce_english_tn_requests() -> None:
-    assembly_strategy_kind: model.AssemblyStrategyEnum = (
-        model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER
-    )
-    assembly_layout_kind: model.AssemblyLayoutEnum = (
-        model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT
-    )
-    resource_requests: list[model.ResourceRequest] = []
-    resource_requests.append(
-        model.ResourceRequest(
-            lang_code="en", resource_type="ulb-wa", resource_code="gen"
-        )
-    )
-    resource_requests.append(
-        model.ResourceRequest(
-            lang_code="en", resource_type="tn-wa", resource_code="gen"
-        )
-    )
-    resource_requests.append(
-        model.ResourceRequest(lang_code="en", resource_type="tn", resource_code="gen")
-    )
-    resource_requests.append(
-        model.ResourceRequest(lang_code="mr", resource_type="ulb", resource_code="gen")
-    )
-    resource_requests.append(
-        model.ResourceRequest(
-            lang_code="erk-x-erakor", resource_type="reg", resource_code="eph"
-        )
-    )
-    document_request = model.DocumentRequest(
-        email_address=settings.FROM_EMAIL_ADDRESS,
-        assembly_strategy_kind=assembly_strategy_kind,
-        assembly_layout_kind=assembly_layout_kind,
-        layout_for_print=False,
-        resource_requests=resource_requests,
-        generate_pdf=True,
-        generate_epub=False,
-        generate_docx=False,
-    )
-    assert len(document_request.resource_requests) == 5
-    resource_requests_ = document_generator.coalesce_english_tn_requests(
-        document_request.resource_requests
-    )
-    # Extra tn resource request is filtered out, leaving 4 instead of
-    # 5 resource requests.
-    assert len(resource_requests_) == 4
-
-
 def test_document_request_key_too_long_for_semantic_result() -> None:
     """
     Use enough resource requests that a semantic name built from them

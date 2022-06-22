@@ -444,6 +444,7 @@ def resource_types_for_lang(
     jsonpath_str: str = settings.RESOURCE_TYPES_FOR_LANG_JSONPATH,
     usfm_resource_types: Sequence[str] = settings.USFM_RESOURCE_TYPES,
     tn_resource_types: Sequence[str] = settings.TN_RESOURCE_TYPES,
+    en_tn_resource_types: Sequence[str] = settings.EN_TN_RESOURCE_TYPES,
     tq_resource_types: Sequence[str] = settings.TQ_RESOURCE_TYPES,
     tw_resource_types: Sequence[str] = settings.TW_RESOURCE_TYPES,
     bc_resource_types: Sequence[str] = settings.BC_RESOURCE_TYPES,
@@ -470,7 +471,11 @@ def resource_types_for_lang(
         resource_type
         for resource_type in resource_types_list
         if resource_type in usfm_resource_types
-        or resource_type in tn_resource_types
+        or (
+            resource_type in en_tn_resource_types
+            if lang_code == "en"
+            else resource_type in tn_resource_types
+        )
         or resource_type in tq_resource_types
         or resource_type in tw_resource_types
         or resource_type in bc_resource_types
@@ -671,6 +676,7 @@ def resource_lookup_dto(
     resource_code: str,
     usfm_resource_types: Sequence[str] = settings.USFM_RESOURCE_TYPES,
     tn_resource_types: Sequence[str] = settings.TN_RESOURCE_TYPES,
+    en_tn_resource_types: Sequence[str] = settings.EN_TN_RESOURCE_TYPES,
     tq_resource_types: Sequence[str] = settings.TQ_RESOURCE_TYPES,
     tw_resource_types: Sequence[str] = settings.TW_RESOURCE_TYPES,
     bc_resource_types: Sequence[str] = settings.BC_RESOURCE_TYPES,
@@ -682,7 +688,8 @@ def resource_lookup_dto(
     if resource_type in usfm_resource_types:
         return usfm_resource_lookup(lang_code, resource_type, resource_code)
     elif (
-        resource_type in tn_resource_types
+        (lang_code == "en" and resource_type in en_tn_resource_types)
+        or (lang_code != "en" and resource_type in tn_resource_types)
         or resource_type in tq_resource_types
         or resource_type in tw_resource_types
     ):

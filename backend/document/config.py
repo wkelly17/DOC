@@ -87,7 +87,8 @@ class Settings(BaseSettings):
         "ulb-wa",
         "usfm",
     ]
-    TN_RESOURCE_TYPES: Sequence[str] = ["tn", "tn-wa"]
+    TN_RESOURCE_TYPES: Sequence[str] = ["tn"]
+    EN_TN_RESOURCE_TYPES: Sequence[str] = ["tn-wa"]
     TQ_RESOURCE_TYPES: Sequence[str] = ["tq", "tq-wa"]
     TW_RESOURCE_TYPES: Sequence[str] = ["tw", "tw-wa"]
     BC_RESOURCE_TYPES: Sequence[str] = ["bc-wa"]
