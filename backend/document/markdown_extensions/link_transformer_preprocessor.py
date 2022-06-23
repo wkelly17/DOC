@@ -2,7 +2,6 @@ import os
 import re
 
 import markdown
-from collections.abc import Mapping
 from typing import Any, final
 
 from document.config import settings

@@ -195,6 +195,7 @@ def book_content(
     layout_for_print: bool,
     usfm_resource_types: Sequence[str] = settings.USFM_RESOURCE_TYPES,
     tn_resource_types: Sequence[str] = settings.TN_RESOURCE_TYPES,
+    en_tn_resource_types: Sequence[str] = settings.EN_TN_RESOURCE_TYPES,
     tq_resource_types: Sequence[str] = settings.TQ_RESOURCE_TYPES,
     tw_resource_types: Sequence[str] = settings.TW_RESOURCE_TYPES,
     bc_resource_types: Sequence[str] = settings.BC_RESOURCE_TYPES,
@@ -205,7 +206,9 @@ def book_content(
         book_content = usfm_book_content(
             resource_lookup_dto, resource_dir, resource_requests, layout_for_print
         )
-    elif resource_lookup_dto.resource_type in tn_resource_types:
+    elif resource_lookup_dto.resource_type in cast(list[str], tn_resource_types) + cast(
+        list[str], en_tn_resource_types
+    ):
         book_content = tn_book_content(
             resource_lookup_dto, resource_dir, resource_requests, layout_for_print
         )

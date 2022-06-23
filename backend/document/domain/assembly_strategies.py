@@ -19,7 +19,6 @@ Architecturally, assembly strategies utilize the Strategy pattern:
 https://github.com/faif/python-patterns/blob/master/patterns/behavioral/strategy.py
 """
 
-import bs4
 import itertools
 import re
 from collections.abc import Callable, Iterable, Mapping, Sequence
@@ -4920,7 +4919,6 @@ def assemble_tn_as_iterator_for_book_then_lang(
     """
     # Sort resources by language
     key = lambda resource: resource.lang_code
-    # FIXME Do we need to sort anthing other than tn_book_content_unites?
     usfm_book_content_units = sorted(usfm_book_content_units, key=key)
     tn_book_content_units = sorted(tn_book_content_units, key=key)
     tq_book_content_units = sorted(tq_book_content_units, key=key)
@@ -5052,7 +5050,6 @@ def assemble_tn_as_iterator_for_book_then_lang_c(
     """
     # Sort resources by language
     key = lambda resource: resource.lang_code
-    # FIXME Do we need to sort anything other than tn_book_content_units?
     usfm_book_content_units = sorted(usfm_book_content_units, key=key)
     tn_book_content_units = sorted(tn_book_content_units, key=key)
     tq_book_content_units = sorted(tq_book_content_units, key=key)
@@ -5237,9 +5234,8 @@ def assemble_tq_as_iterator_for_book_then_lang_c(
 
     # Sort resources by language
     key = lambda resource: resource.lang_code
-    # FIXME Do we need to sort anything but tq and down here?
     usfm_book_content_units = sorted(usfm_book_content_units, key=key)
-    tn_book_content_units = sorted(tn_book_content_units, key=key)
+    # tn_book_content_units = sorted(tn_book_content_units, key=key)
     tq_book_content_units = sorted(tq_book_content_units, key=key)
     tw_book_content_units = sorted(tw_book_content_units, key=key)
     bc_book_content_units = sorted(bc_book_content_units, key=key)
