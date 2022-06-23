@@ -2,8 +2,6 @@ version: "3"
 services:
   api:
     image: wycliffeassociates/doc:${IMAGE_TAG}
-    env_file:
-      - .env
     environment:
       FROM_EMAIL_ADDRESS: ${FROM_EMAIL_ADDRESS}
       SMTP_PASSWORD: ${SMTP_PASSWORD}
