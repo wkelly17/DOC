@@ -1,8 +1,17 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import type { AssemblyStrategy } from './types'
-  import LoadingIndicator from './lib/LoadingIndicator.svelte'
-  import AssemblyStrategyComponent from './lib/AssemblyStrategy.svelte'
+  import LoadingIndicator from './components/LoadingIndicator.svelte'
+  import AssemblyStrategyComponent from './components/AssemblyStrategy.svelte'
+
+  // Wizard components
+  // https://github.com/MirrorBytes/MultiStep/tree/main/step-4/src/components
+  // FIXME If I use other form elements than select and input then I
+  // will need to add such a component import here (and create it).
+  // import Form from './components/Form.svelte'
+  // import Step from './components/Step.svelte'
+  // import Input from './components/Input.svelte'
+  // import Select from './components/Select.svelte'
 
   let API_ROOT_URL: string = <string>import.meta.env.VITE_BACKEND_API_URL
   console.log('API_ROOT_URL: ', API_ROOT_URL)
@@ -177,6 +186,7 @@
     /* lang2ResourceCodes = [] */
     hideWaitMessage()
     hideErrorMessage()
+    hideLinksMessage()
     document_request_key = ''
     showAnotherLang = false
     /* showAnotherLang2 = false */
