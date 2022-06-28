@@ -48,6 +48,14 @@ server: up
 frontend-server: up
 	docker-compose run frontend
 
+# This builds the frontend and then runs both the backend and the
+# frontend. This is the entryoint for a non-technical user who just
+# wants to type one command and have it work.
+.PHONY: build-and-run
+build-and-run: build up
+	docker-compose run frontend
+
+
 .PHONY: test
 test: up
 	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/unit /tests/integration /tests/e2e
