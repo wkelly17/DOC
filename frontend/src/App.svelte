@@ -560,8 +560,8 @@
         {/if} -->
 
         <div style="margin-top:3em">
-          <button on:click|preventDefault={reset}>reset</button>
-          <button type="submit">submit</button>
+          <button type="submit" class="submit-button">submit</button>
+          <button on:click|preventDefault={reset} class="reset-button">reset</button>
         </div>
       </form>
 
@@ -644,5 +644,23 @@
   }
   .error {
     color: red;
+  }
+  .submit-button {
+    background-color: green;
+    border: none;
+    color: white;
+    padding: 15px 30px;
+    text-decoration: none;
+    margin: 4px 2px;
+    cursor: pointer;
+  }
+  .reset-button {
+    background-color: red;
+    border: none;
+    color: white;
+    padding: 15px 30px;
+    text-decoration: none;
+    margin: 4px 2px;
+    cursor: pointer;
   }
 </style>
