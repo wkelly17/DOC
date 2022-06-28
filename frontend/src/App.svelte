@@ -36,7 +36,8 @@
 
   let email: string | null = null
   let assemblyStrategy: AssemblyStrategy | null
-  let layoutForPrint: boolean | null
+  let assemblyStrategyKind: string = 'lbo' // Default to language book order since the UI is defaulted to print
+  let layoutForPrint: boolean | null = true
   let generatePdf: boolean | null
   let generateEpub: boolean | null
   let generateDocx: boolean | null
@@ -167,7 +168,7 @@
   let document_request_key: string = ''
 
   function reset() {
-    assemblyStrategy = null
+    assemblyStrategyKind = 'lbo'
     // Be careful to set email to null as API expects a null rather
     // than empty string if email is not provided by user.
     email = null
@@ -190,7 +191,7 @@
     document_request_key = ''
     showAnotherLang = false
     /* showAnotherLang2 = false */
-    document.getElementById('email')?.focus()
+    document.getElementById('lang')?.focus()
   }
 
   // Submit button will toggle this value
@@ -283,7 +284,7 @@
       // FIXME Test that email_address is handled correctly with respect to null
       email_address: email?.trim(), // !isEmpty(email) ? email.trim() : null,
       // email_address: !isEmpty(email) ? email.trim() : null,
-      assembly_strategy_kind: assemblyStrategy,
+      assembly_strategy_kind: assemblyStrategyKind,
       // assembly_layout_kind: undefined,
       layout_for_print: layoutForPrint,
       generate_pdf: generatePdf,
@@ -336,51 +337,13 @@
       <h2>{import.meta.env.VITE_TOP_H2_HEADER}</h2>
 
       <form on:submit|preventDefault={submit}>
-        <div class="fields">
-          <label for="email">{import.meta.env.VITE_EMAIL_LABEL}</label>
-          <input type="text" name="email" id="email" bind:value={email} />
-        </div>
-        <label for="layoutForPrint">{import.meta.env.VITE_LAYOUT_FOR_PRINT_LABEL}</label>
-        <input
-          type="checkbox"
-          name="layoutForPrint"
-          id="layoutForPrint"
-          bind:checked={layoutForPrint}
-        />
-        <br />
-        <label for="generatePdf">{import.meta.env.VITE_PDF_LABEL}</label>
-        <input
-          type="checkbox"
-          name="generatePdf"
-          id="generatePdf"
-          bind:checked={generatePdf}
-        />
-        <br />
-        <label for="generateEpub">{import.meta.env.VITE_EPUB_LABEL}</label>
-        <input
-          type="checkbox"
-          name="generateEpub"
-          id="generateEpub"
-          bind:checked={generateEpub}
-        />
-        <br />
-        <label for="generateDocx">{import.meta.env.VITE_DOCX_LABEL}</label>
-        <input
-          type="checkbox"
-          name="generateDocx"
-          id="generateDocx"
-          bind:checked={generateDocx}
-        />
-
-        <AssemblyStrategyComponent bind:assemblyStrategy />
-
-        <div class:langs0-invisible={assemblyStrategy === null}>
+        <div>
           <h3>{import.meta.env.VITE_LANG_0_HEADER}</h3>
 
           {#await getLang0CodesAndNames()}
             <LoadingIndicator />
           {:then data}
-            <select bind:value={lang0Code} name="lang">
+            <select bind:value={lang0Code} name="lang" id="lang">
               {#each data as langCodeAndName}
                 <option value={langCodeAndName[0]}>{langCodeAndName[1]}</option>
               {/each}
@@ -569,6 +532,55 @@
           </div>
         {/if} -->
 
+        <div>
+          <br />
+          <label for="layoutForPrint">{import.meta.env.VITE_LAYOUT_FOR_PRINT_LABEL}</label
+          >
+          <input
+            type="checkbox"
+            name="layoutForPrint"
+            id="layoutForPrint"
+            bind:checked={layoutForPrint}
+          />
+        </div>
+        <div
+          class:assembly-strategy-invisible={lang1ResourceCodes === undefined ||
+            lang1ResourceCodes.length == 0 ||
+            layoutForPrint}
+        >
+          <AssemblyStrategyComponent bind:assemblyStrategy />
+        </div>
+        <div>
+          <br />
+          <label for="generatePdf">{import.meta.env.VITE_PDF_LABEL}</label>
+          <input
+            type="checkbox"
+            name="generatePdf"
+            id="generatePdf"
+            bind:checked={generatePdf}
+          />
+          <br />
+          <label for="generateEpub">{import.meta.env.VITE_EPUB_LABEL}</label>
+          <input
+            type="checkbox"
+            name="generateEpub"
+            id="generateEpub"
+            bind:checked={generateEpub}
+          />
+          <br />
+          <label for="generateDocx">{import.meta.env.VITE_DOCX_LABEL}</label>
+          <input
+            type="checkbox"
+            name="generateDocx"
+            id="generateDocx"
+            bind:checked={generateDocx}
+          />
+        </div>
+
+        <div class="fields">
+          <label for="email">{import.meta.env.VITE_EMAIL_LABEL}</label>
+          <input type="text" name="email" id="email" bind:value={email} />
+        </div>
         <div style="margin-top:3em">
           <button on:click|preventDefault={reset}>reset</button>
           <button type="submit">submit</button>
@@ -654,5 +666,26 @@
   }
   .error {
     color: red;
+  }
+  .submit-button {
+    background-color: green;
+    border: none;
+    color: white;
+    padding: 15px 30px;
+    text-decoration: none;
+    margin: 4px 2px;
+    cursor: pointer;
+  }
+  .reset-button {
+    background-color: red;
+    border: none;
+    color: white;
+    padding: 15px 30px;
+    text-decoration: none;
+    margin: 4px 2px;
+    cursor: pointer;
+  }
+  .assembly-strategy-invisible {
+    display: none;
   }
 </style>
