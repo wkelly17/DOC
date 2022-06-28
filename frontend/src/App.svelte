@@ -27,7 +27,7 @@
 
   let email: string | null = null
   let assemblyStrategy: AssemblyStrategy | null
-  let layoutForPrint: boolean | null
+  let layoutForPrint: boolean | null = true
   let generatePdf: boolean | null
   let generateEpub: boolean | null
   let generateDocx: boolean | null
@@ -162,7 +162,7 @@
     // Be careful to set email to null as API expects a null rather
     // than empty string if email is not provided by user.
     email = null
-    layoutForPrint = null
+    layoutForPrint = true
     generatePdf = null
     generateEpub = null
     generateDocx = null
