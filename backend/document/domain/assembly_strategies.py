@@ -2519,9 +2519,13 @@ def assemble_content_by_lang_then_book(
         # resources will be clumped together by resource code, i.e.,
         # by language, otherwise a new group will be created every time a new
         # resource_code is sequentially encountered.
+        # Sort the books in canonical order.
+        book_id_map = dict(
+            (id, pos) for pos, id in enumerate(bible_books.BOOK_NAMES.keys())
+        )
         book_content_units_sorted_by_book = sorted(
             group_by_lang,
-            key=lambda book_content_unit: book_content_unit.resource_code,
+            key=lambda book_content_unit: book_id_map[book_content_unit.resource_code],
         )
         for book, book_content_units_grouped_by_book in itertools.groupby(
             book_content_units_sorted_by_book,
@@ -2588,9 +2592,13 @@ def assemble_content_by_book_then_lang(
     delegating more atomic ordering/interleaving to an assembly
     sub-strategy.
     """
+    # Sort the books in canonical order.
+    book_id_map = dict(
+        (id, pos) for pos, id in enumerate(bible_books.BOOK_NAMES.keys())
+    )
     book_content_units_sorted_by_book = sorted(
         book_content_units,
-        key=lambda book_content_unit: book_content_unit.resource_code,
+        key=lambda book_content_unit: book_id_map[book_content_unit.resource_code],
     )
     book: str
     for book, group_by_book in itertools.groupby(
