@@ -582,8 +582,8 @@
           <input type="text" name="email" id="email" bind:value={email} />
         </div>
         <div style="margin-top:3em">
-          <button on:click|preventDefault={reset}>reset</button>
-          <button type="submit">submit</button>
+          <button type="submit" class="submit-button">submit</button>
+          <button on:click|preventDefault={reset} class="reset-button">reset</button>
         </div>
       </form>
 
