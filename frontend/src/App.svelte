@@ -475,15 +475,15 @@
               <LoadingIndicator />
             {:then data}
               <h3>{import.meta.env.VITE_LANG_1_RESOURCE_CODES_HEADER}</h3>
-              {#each data as value}
+              {#each data as resourceCodeAndName}
                 <label>
                   <input
                     type="checkbox"
                     bind:group={lang1ResourceCodes}
                     name="lang1ResourceCodes"
-                    value={value[0]}
+                    value={resourceCodeAndName[0]}
                   />
-                  {value[1]}
+                  {resourceCodeAndName[1]}
                 </label>
               {/each}
             {:catch error}
