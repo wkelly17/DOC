@@ -172,7 +172,7 @@
     // Be careful to set email to null as API expects a null rather
     // than empty string if email is not provided by user.
     email = null
-    layoutForPrint = null
+    layoutForPrint = true
     generatePdf = null
     generateEpub = null
     generateDocx = null
