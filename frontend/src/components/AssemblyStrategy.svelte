@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { AssemblyStrategy } from '../types'
+  import Select, { Option } from '@smui/select'
 
   let book_language_order_strategy: AssemblyStrategy = {
     id: 'blo',
@@ -16,9 +17,14 @@
 
 <div>
   <h3>{import.meta.env.VITE_ASSEMBLY_STRATEGY_HEADER}</h3>
-  <select bind:value={assemblyStrategy} name="assemblyStrategy">
+  <Select bind:value={assemblyStrategy} label="Choose assembly">
     {#each assemblyStrategies as assemblyStrategy}
-      <option value={assemblyStrategy.id}>{assemblyStrategy.label}</option>
+      <Option value={assemblyStrategy.id}>{assemblyStrategy.label}</Option>
     {/each}
-  </select>
+  </Select>
+  <!-- <select bind:value={assemblyStrategy} name="assemblyStrategy"> -->
+  <!--   {#each assemblyStrategies as assemblyStrategy} -->
+  <!--     <option value={assemblyStrategy.id}>{assemblyStrategy.label}</option> -->
+  <!--   {/each} -->
+  <!-- </select> -->
 </div>
