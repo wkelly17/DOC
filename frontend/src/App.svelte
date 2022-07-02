@@ -132,38 +132,6 @@
     }
   }
 
-  // Language 2
-
-  /* async function getLang2CodesAndNames(): Promise<string[]> { */
-  /*   const response = await fetch(API_ROOT_URL + LANGUAGE_CODES_AND_NAMES) */
-  /*   const json = await response.json() */
-  /*   if (response.ok) { */
-  /*     return <string[]>json */
-  /*   } else { */
-  /*     throw new Error(json) */
-  /*   } */
-  /* } */
-
-  /* async function getLang2ResourceTypes(langCode: string): Promise<string[]> { */
-  /*   const response = await fetch(API_ROOT_URL + RESOURCE_TYPES_FOR_LANG + langCode) */
-  /*   const json = await response.json() */
-  /*   if (response.ok) { */
-  /*     return <string[]>json */
-  /*   } else { */
-  /*     throw new Error(json) */
-  /*   } */
-  /* } */
-
-  /* async function getLang2ResourceCodes(langCode: string): Promise<string[]> { */
-  /*   const response = await fetch(API_ROOT_URL + RESOURCE_CODES_FOR_LANG + langCode) */
-  /*   const json = await response.json() */
-  /*   if (response.ok) { */
-  /*     return <string[]>json */
-  /*   } else { */
-  /*     throw new Error(json) */
-  /*   } */
-  /* } */
-
   let document_request_key: string = ''
 
   function reset() {
@@ -481,74 +449,6 @@
             {/await}
           </div>
         {/if}
-        <!-- {#if !isEmpty(lang1Code) && lang1ResourceTypes?.length > 0 && lang1ResourceCodes?.length > 0}
-          <button disabled={showAnotherLang2} on:click|preventDefault={handleAddLang2}
-            >{import.meta.env.VITE_ADD_ANOTHER_LANGUAGE_BUTTON_TXT}</button
-          >
-        {/if} -->
-        <!-- {#if showAnotherLang2}
-          <div>
-            <h3>{import.meta.env.VITE_LANG_2_HEADER}</h3>
-            {#await getLang2CodesAndNames()}
-              <LoadingIndicator />
-            {:then data}
-              <select bind:value={lang2Code} name="lang2">
-                {#each data as value}
-                  <option value={value[0]}>{value[1]}</option>
-                {/each}
-              </select>
-            {:catch error}
-              <p class="error">{error.message}</p>
-            {/await}
-          </div>
-        {/if}
-        {#if !isEmpty(lang2Code)}
-          <div>
-            {#await getLang2ResourceTypes(lang2Code)}
-              <LoadingIndicator />
-            {:then data}
-              <h3>{import.meta.env.VITE_LANG_2_RESOURCE_TYPES_HEADER}</h3>
-              {#each data as value}
-                <label>
-                  <input
-                    type="checkbox"
-                    bind:group={lang2ResourceTypes}
-                    name="lang2ResourceTypes"
-                    id="lang2ResourceTypes"
-                    {value}
-                  />
-                  {value}
-                </label>
-              {/each}
-            {:catch error}
-              <p class="error">{error.message}</p>
-            {/await}
-          </div>
-        {/if}
-        {#if !isEmpty(lang2Code) && lang2ResourceTypes?.length > 0}
-          <div>
-            {#await getLang2ResourceCodes(lang2Code)}
-              <LoadingIndicator />
-            {:then data}
-              <h3>{import.meta.env.VITE_LANG_2_RESOURCE_CODES_HEADER}</h3>
-              {#each data as value}
-                <label>
-                  <input
-                    type="checkbox"
-                    bind:group={lang2ResourceCodes}
-                    name="lang2ResourceCodes"
-                    id="lang2ResourceCodes"
-                    value={value[0]}
-                  />
-                  {value[1]}
-                </label>
-              {/each}
-            {:catch error}
-              <p class="error">{error.message}</p>
-            {/await}
-          </div>
-        {/if} -->
-
         <div>
           <FormField align="end">
             <Switch bind:checked={layoutForPrint} />
