@@ -22,9 +22,4 @@
       <Option value={assemblyStrategy.id}>{assemblyStrategy.label}</Option>
     {/each}
   </Select>
-  <!-- <select bind:value={assemblyStrategy} name="assemblyStrategy"> -->
-  <!--   {#each assemblyStrategies as assemblyStrategy} -->
-  <!--     <option value={assemblyStrategy.id}>{assemblyStrategy.label}</option> -->
-  <!--   {/each} -->
-  <!-- </select> -->
 </div>
