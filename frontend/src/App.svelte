@@ -10,6 +10,9 @@
   import Checkbox from '@smui/checkbox'
   import FormField from '@smui/form-field'
   import Switch from '@smui/switch'
+  import LayoutGrid, { Cell } from '@smui/layout-grid'
+
+  import otBooks from './data/ot_books'
 
   // Wizard components
   // https://github.com/MirrorBytes/MultiStep/tree/main/step-4/src/components
@@ -36,10 +39,10 @@
   let generatePdf: boolean = false
   let generateEpub: boolean = false
   let generateDocx: boolean = false
-  let lang0Code: string = ''
+  let lang0NameAndCode: string = ''
   let lang0ResourceTypes: string[] = []
   let lang0ResourceCodes: string[] = []
-  let lang1Code: string = ''
+  let lang1NameAndCode: string = ''
   let lang1ResourceTypes: string[] = []
   let lang1ResourceCodes: string[] = []
   /* let lang2Code: string = '' */
@@ -143,10 +146,10 @@
     generatePdf = false
     generateEpub = false
     generateDocx = false
-    lang0Code = ''
+    lang0NameAndCode = ''
     lang0ResourceTypes = []
     lang0ResourceCodes = []
-    lang1Code = ''
+    lang1NameAndCode = ''
     lang1ResourceTypes = []
     lang1ResourceCodes = []
     /* lang2Code = '' */
@@ -212,7 +215,7 @@
     for (let resourceCode of lang0ResourceCodes) {
       for (let resourceType of lang0ResourceTypes) {
         rr.push({
-          lang_code: extractLanguageCode(lang0Code),
+          lang_code: extractLanguageCode(lang0NameAndCode),
           resource_type: resourceType,
           resource_code: resourceCode
         })
@@ -222,7 +225,7 @@
     for (let resourceCode of lang1ResourceCodes) {
       for (let resourceType of lang1ResourceTypes) {
         rr.push({
-          lang_code: extractLanguageCode(lang1Code),
+          lang_code: extractLanguageCode(lang1NameAndCode),
           resource_type: resourceType,
           resource_code: resourceCode
         })
@@ -328,7 +331,7 @@
               options={data.map(function (element) {
                 return element[1]
               })}
-              bind:value={lang0Code}
+              bind:value={lang0NameAndCode}
               showMenuWithNoInput={false}
               label={import.meta.env.VITE_LANG_0_HEADER}
             />
@@ -336,9 +339,10 @@
             <p class="error">{error.message}</p>
           {/await}
         </div>
-        {#if !isEmpty(lang0Code)}
+        {#if !isEmpty(lang0NameAndCode)}
+          {@const lang0Code = extractLanguageCode(lang0NameAndCode)}
           <div>
-            {#await getLang0ResourceTypesAndNames(extractLanguageCode(lang0Code))}
+            {#await getLang0ResourceTypesAndNames(lang0Code)}
               <LoadingIndicator />
             {:then data}
               <h3>{import.meta.env.VITE_LANG_0_RESOURCE_TYPES_HEADER}</h3>
@@ -358,30 +362,56 @@
           </div>
         {/if}
 
-        {#if !isEmpty(lang0Code) && lang0ResourceTypes?.length > 0}
+        {#if !isEmpty(lang0NameAndCode) && lang0ResourceTypes?.length > 0}
+          {@const lang0Code = extractLanguageCode(lang0NameAndCode)}
           <div>
-            {#await getLang0ResourceCodes(extractLanguageCode(lang0Code))}
+            {#await getLang0ResourceCodes(lang0Code)}
               <LoadingIndicator />
             {:then data}
+              {@const otBooksInLang0 = data.filter(function (element) {
+                return otBooks.includes(element[0])
+              })}
+              {@const ntBooksInLang0 = data.filter(function (element) {
+                return !otBooks.includes(element[0])
+              })}
               <h3>{import.meta.env.VITE_LANG_0_RESOURCE_CODES_HEADER}</h3>
-              {#each data as resourceCodeAndName}
-                <div>
-                  <FormField align="end">
-                    <Checkbox
-                      bind:group={lang0ResourceCodes}
-                      bind:value={resourceCodeAndName[0]}
-                    />
-                    <span slot="label">{resourceCodeAndName[1]}</span>
-                  </FormField>
-                </div>
-              {/each}
+              <LayoutGrid>
+                <Cell>
+                  <h3>Old Testament</h3>
+                  {#each otBooksInLang0 as resourceCodeAndName}
+                    <div class="book-cell">
+                      <FormField align="end">
+                        <Checkbox
+                          bind:group={lang0ResourceCodes}
+                          bind:value={resourceCodeAndName[0]}
+                        />
+                        <span slot="label">{resourceCodeAndName[1]}</span>
+                      </FormField>
+                    </div>
+                  {/each}
+                </Cell>
+                <Cell>
+                  <h3>New Testament</h3>
+                  {#each ntBooksInLang0 as resourceCodeAndName}
+                    <div class="book-cell">
+                      <FormField align="end">
+                        <Checkbox
+                          bind:group={lang0ResourceCodes}
+                          bind:value={resourceCodeAndName[0]}
+                        />
+                        <span slot="label">{resourceCodeAndName[1]}</span>
+                      </FormField>
+                    </div>
+                  {/each}
+                </Cell>
+              </LayoutGrid>
             {:catch error}
               <p class="error">{error.message}</p>
             {/await}
           </div>
         {/if}
 
-        {#if !isEmpty(lang0Code) && lang0ResourceTypes?.length > 0 && lang0ResourceCodes?.length > 0}
+        {#if !isEmpty(lang0NameAndCode) && lang0ResourceTypes?.length > 0 && lang0ResourceCodes?.length > 0}
           <button disabled={showAnotherLang} on:click|preventDefault={handleAddLang}
             >{import.meta.env.VITE_ADD_ANOTHER_LANGUAGE_BUTTON_TXT}</button
           >
@@ -396,7 +426,7 @@
                 options={data.map(function (element) {
                   return element[1]
                 })}
-                bind:value={lang1Code}
+                bind:value={lang1NameAndCode}
                 showMenuWithNoInput={false}
                 label={import.meta.env.VITE_LANG_1_HEADER}
               />
@@ -405,9 +435,10 @@
             {/await}
           </div>
         {/if}
-        {#if !isEmpty(lang1Code)}
+        {#if !isEmpty(lang1NameAndCode)}
+          {@const lang1Code = extractLanguageCode(lang1NameAndCode)}
           <div>
-            {#await getLang1ResourceTypesAndNames(extractLanguageCode(lang1Code))}
+            {#await getLang1ResourceTypesAndNames(lang1Code)}
               <LoadingIndicator />
             {:then data}
               <h3>{import.meta.env.VITE_LANG_1_RESOURCE_TYPES_HEADER}</h3>
@@ -427,23 +458,49 @@
             {/await}
           </div>
         {/if}
-        {#if !isEmpty(lang1Code) && lang1ResourceTypes?.length > 0}
+        {#if !isEmpty(lang1NameAndCode) && lang1ResourceTypes?.length > 0}
+          {@const lang1Code = extractLanguageCode(lang1NameAndCode)}
           <div>
-            {#await getLang1ResourceCodes(extractLanguageCode(lang1Code))}
+            {#await getLang1ResourceCodes(lang1Code)}
               <LoadingIndicator />
             {:then data}
+              {@const otBooksInLang1 = data.filter(function (element) {
+                return otBooks.includes(element[0])
+              })}
+              {@const ntBooksInLang1 = data.filter(function (element) {
+                return !otBooks.includes(element[0])
+              })}
               <h3>{import.meta.env.VITE_LANG_1_RESOURCE_CODES_HEADER}</h3>
-              {#each data as resourceCodeAndName}
-                <div>
-                  <FormField align="end">
-                    <Checkbox
-                      bind:group={lang1ResourceCodes}
-                      bind:value={resourceCodeAndName[0]}
-                    />
-                    <span slot="label">{resourceCodeAndName[1]}</span>
-                  </FormField>
-                </div>
-              {/each}
+              <LayoutGrid>
+                <Cell>
+                  <h3>Old Testament</h3>
+                  {#each otBooksInLang1 as resourceCodeAndName}
+                    <div class="book-cell">
+                      <FormField align="end">
+                        <Checkbox
+                          bind:group={lang1ResourceCodes}
+                          bind:value={resourceCodeAndName[0]}
+                        />
+                        <span slot="label">{resourceCodeAndName[1]}</span>
+                      </FormField>
+                    </div>
+                  {/each}
+                </Cell>
+                <Cell>
+                  <h3>New Testament</h3>
+                  {#each ntBooksInLang1 as resourceCodeAndName}
+                    <div class="book-cell">
+                      <FormField align="end">
+                        <Checkbox
+                          bind:group={lang1ResourceCodes}
+                          bind:value={resourceCodeAndName[0]}
+                        />
+                        <span slot="label">{resourceCodeAndName[1]}</span>
+                      </FormField>
+                    </div>
+                  {/each}
+                </Cell>
+              </LayoutGrid>
             {:catch error}
               <p class="error">{error.message}</p>
             {/await}
@@ -615,5 +672,10 @@
   }
   .assembly-strategy-invisible {
     display: none;
+  }
+  .book-cell {
+    display: flex;
+    justify-content: left;
+    align-items: center;
   }
 </style>
