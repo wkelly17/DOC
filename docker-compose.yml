@@ -13,7 +13,7 @@ services:
     ports:
       - 5005:5005
     volumes:
-      - ./docker_document_output:/document_output
+      - docker_document_output:/document_output
     restart: unless-stopped
   fileserver:
     build: ./web
