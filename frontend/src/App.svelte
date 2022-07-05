@@ -27,7 +27,7 @@
 
   let email: string | null = null
   let assemblyStrategy: AssemblyStrategy | null
-  let layoutForPrint: boolean | null
+  let layoutForPrint: boolean | null = true
   let generatePdf: boolean | null
   let generateEpub: boolean | null
   let generateDocx: boolean | null
@@ -162,7 +162,7 @@
     // Be careful to set email to null as API expects a null rather
     // than empty string if email is not provided by user.
     email = null
-    layoutForPrint = null
+    layoutForPrint = true
     generatePdf = null
     generateEpub = null
     generateDocx = null
@@ -560,8 +560,8 @@
         {/if} -->
 
         <div style="margin-top:3em">
-          <button on:click|preventDefault={reset}>reset</button>
-          <button type="submit">submit</button>
+          <button type="submit" class="submit-button">submit</button>
+          <button on:click|preventDefault={reset} class="reset-button">reset</button>
         </div>
       </form>
 
@@ -644,5 +644,23 @@
   }
   .error {
     color: red;
+  }
+  .submit-button {
+    background-color: green;
+    border: none;
+    color: white;
+    padding: 15px 30px;
+    text-decoration: none;
+    margin: 4px 2px;
+    cursor: pointer;
+  }
+  .reset-button {
+    background-color: red;
+    border: none;
+    color: white;
+    padding: 15px 30px;
+    text-decoration: none;
+    margin: 4px 2px;
+    cursor: pointer;
   }
 </style>
