@@ -3,7 +3,6 @@ export type AssemblyStrategy = {
   label: string
 }
 
-// NOTE the following is for the next version of the frontend, including now
 export type JsonValue =
   | string
   | number

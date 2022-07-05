@@ -483,6 +483,50 @@ def resource_types_for_lang(
     return sorted(resource_types, reverse=True)
 
 
+def resource_types_and_names_for_lang(
+    lang_code: str,
+    working_dir: str = settings.working_dir(),
+    translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
+    lang_code_filter_list: Sequence[str] = settings.LANG_CODE_FILTER_LIST,
+    usfm_resource_types: Sequence[str] = settings.USFM_RESOURCE_TYPES,
+    tn_resource_types: Sequence[str] = settings.TN_RESOURCE_TYPES,
+    en_tn_resource_types: Sequence[str] = settings.EN_TN_RESOURCE_TYPES,
+    tq_resource_types: Sequence[str] = settings.TQ_RESOURCE_TYPES,
+    tw_resource_types: Sequence[str] = settings.TW_RESOURCE_TYPES,
+    bc_resource_types: Sequence[str] = settings.BC_RESOURCE_TYPES,
+) -> list[tuple[str, str]]:
+    """
+    Convenience method that can be called from UI to get the set
+    of all resource type, name tuples for a given language available
+    through API. Presumably this could be called to populate a
+    drop-down menu.
+    """
+    values = []
+    data = fetch_source_data(working_dir, translations_json_location)
+    for item in [lang for lang in data if lang["code"] in [lang_code]]:
+        for resource_type in item["contents"]:
+            if (
+                resource_type["code"] in usfm_resource_types
+                or (
+                    resource_type["code"] in en_tn_resource_types
+                    if lang_code == "en"
+                    else resource_type["code"] in tn_resource_types
+                )
+                or resource_type["code"] in tq_resource_types
+                or resource_type["code"] in tw_resource_types
+                or resource_type["code"] in bc_resource_types
+            ):
+                values.append(
+                    (
+                        resource_type["code"],
+                        "{} ({})".format(resource_type["name"], resource_type["code"]),
+                    )
+                )
+    if lang_code == "en":
+        values.append(("bc-wa", "Bible Commentary (bc-wa)"))
+    return sorted(values, key=lambda value: value[0])
+
+
 def resource_codes_for_lang(
     lang_code: str,
     jsonpath_str: str = settings.RESOURCE_CODES_FOR_LANG_JSONPATH,
