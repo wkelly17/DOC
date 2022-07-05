@@ -34,11 +34,12 @@
 
   let email: string | null = null
   let assemblyStrategy: AssemblyStrategy | null
-  let layoutForPrint: boolean | null = true
-  let generatePdf: boolean | null
-  let generateEpub: boolean | null
-  let generateDocx: boolean | null
-  let lang0Code: string = ''
+  let assemblyStrategyKind: string = LANGUAGE_BOOK_ORDER // Default to language book order since the UI is defaulted to print
+  let layoutForPrint: boolean = true
+  let generatePdf: boolean = false
+  let generateEpub: boolean = false
+  let generateDocx: boolean = false
+  let lang0NameAndCode: string = ''
   let lang0ResourceTypes: string[] = []
   let lang0ResourceCodes: string[] = []
   let lang1NameAndCode: string = ''
