@@ -45,19 +45,12 @@
   let lang1NameAndCode: string = ''
   let lang1ResourceTypes: string[] = []
   let lang1ResourceCodes: string[] = []
-  /* let lang2Code: string = '' */
-  /* let lang2ResourceTypes: string[] = [] */
-  /* let lang2ResourceCodes: string[] = [] */
 
   // Button will toggle this value
   let showAnotherLang: boolean = false
   function handleAddLang() {
     showAnotherLang = true
   }
-  /* let showAnotherLang2: boolean = false */
-  /* function handleAddLang2() { */
-  /*   showAnotherLang2 = true */
-  /* } */
 
   onMount(() => {
     reset()
@@ -152,15 +145,11 @@
     lang1NameAndCode = ''
     lang1ResourceTypes = []
     lang1ResourceCodes = []
-    /* lang2Code = '' */
-    /* lang2ResourceTypes = [] */
-    /* lang2ResourceCodes = [] */
     hideWaitMessage()
     hideErrorMessage()
     hideLinksMessage()
     document_request_key = ''
     showAnotherLang = false
-    /* showAnotherLang2 = false */
     document.getElementById('lang')?.focus()
   }
 
@@ -231,16 +220,6 @@
         })
       }
     }
-    // Create resource_requests for lang2
-    /* for (let resourceCode of <string[]>lang2ResourceCodes) { */
-    /*   for (let resourceType of <string[]>lang2ResourceTypes) { */
-    /*     rr.push({ */
-    /*       lang_code: lang2Code, */
-    /*       resource_type: resourceType, */
-    /*       resource_code: resourceCode */
-    /*     }) */
-    /*   } */
-    /* } */
 
     console.log('email: ', email)
     if (layoutForPrint) {
