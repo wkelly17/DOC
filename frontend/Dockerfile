@@ -8,11 +8,9 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-COPY *.json /app/
-
-RUN npm install
-
 COPY ./ /app/
+RUN npx smui-theme template src/theme
+RUN npm install
 
 # Comment out the next line to disable tests
 # RUN npm run test:unit
