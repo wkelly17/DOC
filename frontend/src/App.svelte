@@ -165,8 +165,6 @@
   // Error will toggle this value
   let errorMessage: boolean
   $: errorMessage = false
-  // let errorMessageDetails: string | null
-  // $: errorMessageDetails = null
   function hideErrorMessage() {
     errorMessage = false
   }
@@ -221,7 +219,6 @@
       }
     }
 
-    console.log('email: ', email)
     if (layoutForPrint) {
       layoutForPrint = true
     } else {
