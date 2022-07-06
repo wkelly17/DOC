@@ -1,5 +1,5 @@
 # Stage 0: build the frontend.
-FROM node:17.7.1-bullseye-slim as development-stage
+FROM node:18.4.0-bullseye-slim as development-stage
 
 RUN apt-get update && apt-get install -y \
     python3  \
@@ -26,7 +26,7 @@ RUN npm run check
 RUN npm run build
 
 # Stage 1: Let nginx serve the built front-end in production.
-FROM nginx:1.21.6
+FROM nginx:1.23
 COPY --from=development-stage /app/nginx.conf /etc/nginx/conf.d/default.conf
 COPY ./nginx-backend-not-found.conf /etc/nginx/extra-conf.d/backend-not-found.conf
 COPY --from=development-stage /app/dist/ /usr/share/nginx/html

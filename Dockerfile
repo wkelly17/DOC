@@ -1,4 +1,4 @@
-FROM python:3.10.2-slim-bullseye
+FROM python:3.10.5-slim-bullseye
 
 RUN apt-get update && apt-get install -y \
     wget \
