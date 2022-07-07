@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
+RUN mkdir dist # Output directory for color theme
 COPY ./ /app/
 RUN npx smui-theme template src/theme
 RUN npm install
