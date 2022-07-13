@@ -2866,9 +2866,6 @@ def assemble_by_usfm_as_iterator_for_lang_then_book_2c_sl_hr(
             if chapter.footnotes:
                 yield footnotes_heading
                 yield chapter.footnotes
-        if tw_book_content_unit:
-            # Add the translation words definition section.
-            yield from translation_words_section(tw_book_content_unit)
 
     if not usfm_book_content_unit and usfm_book_content_unit2:
         # Scripture type for usfm_book_content_unit2, e.g., udb
@@ -3028,9 +3025,6 @@ def assemble_by_usfm_as_iterator_for_lang_then_book_1c(
             if chapter.footnotes:
                 yield footnotes_heading
                 yield chapter.footnotes
-        if tw_book_content_unit:
-            # Add the translation words definition section.
-            yield from translation_words_section(tw_book_content_unit)
 
     if not usfm_book_content_unit and usfm_book_content_unit2:
         # Scripture type for usfm_book_content_unit2, e.g., udb
@@ -3191,11 +3185,6 @@ def assemble_by_usfm_as_iterator_for_lang_then_book_1c_c(
             if chapter.footnotes:
                 yield footnotes_heading
                 yield chapter.footnotes
-        if tw_book_content_unit:
-            # Add the translation words definition section.
-            yield from translation_words_section(
-                tw_book_content_unit, include_uses_section=False
-            )
 
     if not usfm_book_content_unit and usfm_book_content_unit2:
         # Scripture type for usfm_book_content_unit2, e.g., udb
@@ -3306,9 +3295,6 @@ def assemble_usfm_tq_tw_for_lang_then_book_2c_sl_hr(
             if chapter.footnotes:
                 yield footnotes_heading
                 yield chapter.footnotes
-    if tw_book_content_unit:
-        # Add the translation words definition section.
-        yield from translation_words_section(tw_book_content_unit)
 
 
 def assemble_usfm_tq_tw_for_lang_then_book_1c(
@@ -3376,9 +3362,6 @@ def assemble_usfm_tq_tw_for_lang_then_book_1c(
             if chapter.footnotes:
                 yield footnotes_heading
                 yield chapter.footnotes
-    if tw_book_content_unit:
-        # Add the translation words definition section.
-        yield from translation_words_section(tw_book_content_unit)
 
 
 def assemble_usfm_tq_tw_for_lang_then_book_1c_c(
@@ -3450,11 +3433,6 @@ def assemble_usfm_tq_tw_for_lang_then_book_1c_c(
             if chapter.footnotes:
                 yield footnotes_heading
                 yield chapter.footnotes
-    if tw_book_content_unit:
-        # Add the translation words definition section.
-        yield from translation_words_section(
-            tw_book_content_unit, include_uses_section=False
-        )
 
 
 def assemble_usfm_tw_for_lang_then_book_2c_sl_hr(
@@ -3523,9 +3501,6 @@ def assemble_usfm_tw_for_lang_then_book_2c_sl_hr(
             if chapter.footnotes:
                 yield footnotes_heading
                 yield chapter.footnotes
-    if tw_book_content_unit:
-        # Add the translation words definition section.
-        yield from translation_words_section(tw_book_content_unit)
 
 
 def assemble_usfm_tw_for_lang_then_book_1c(
@@ -3582,9 +3557,6 @@ def assemble_usfm_tw_for_lang_then_book_1c(
             if chapter.footnotes:
                 yield footnotes_heading
                 yield chapter.footnotes
-    if tw_book_content_unit:
-        # Add the translation words definition section.
-        yield from translation_words_section(tw_book_content_unit)
 
 
 def assemble_usfm_tw_for_lang_then_book_1c_c(
@@ -3641,11 +3613,6 @@ def assemble_usfm_tw_for_lang_then_book_1c_c(
             if chapter.footnotes:
                 yield footnotes_heading
                 yield chapter.footnotes
-    if tw_book_content_unit:
-        # Add the translation words definition section.
-        yield from translation_words_section(
-            tw_book_content_unit, include_uses_section=False
-        )
 
 
 def assemble_usfm_tq_for_lang_then_book_2c_sl_hr(
@@ -3851,11 +3818,6 @@ def assemble_tn_as_iterator_for_lang_then_book(
                             verse,
                         )
 
-    if tw_book_content_unit:
-        # Add the translation words definition section.
-        yield from translation_words_section(
-            tw_book_content_unit, include_uses_section=False
-        )
 
 
 def assemble_tq_as_iterator_for_lang_then_book(
@@ -3964,11 +3926,6 @@ def assemble_tq_tw_for_lang_then_book(
                             verse_num,
                             verse,
                         )
-    if tw_book_content_unit:
-        # Add the translation words definition section.
-        yield from translation_words_section(
-            tw_book_content_unit, include_uses_section=False
-        )
 
 
 def assemble_tw_as_iterator_for_lang_then_book(
@@ -3980,11 +3937,6 @@ def assemble_tw_as_iterator_for_lang_then_book(
     bc_book_content_unit: Optional[model.BCBook],
 ) -> Iterable[model.HtmlContent]:
     """Construct the HTML for a 'by verse' strategy wherein only TW exists."""
-    if tw_book_content_unit:
-        # Add the translation words definition section.
-        yield from translation_words_section(
-            tw_book_content_unit, include_uses_section=False
-        )
 
 
 #########################################################################
@@ -4166,10 +4118,6 @@ def assemble_usfm_as_iterator_for_book_then_lang_2c_sl_hr(
                 )
                 logger.exception("Caught exception:")
 
-    # Add the translation word definitions
-    for tw_book_content_unit in tw_book_content_units:
-        # Add the translation words definition section.
-        yield from translation_words_section(tw_book_content_unit)
 
 
 def languages_in_books(
@@ -4546,10 +4494,6 @@ def assemble_usfm_as_iterator_for_book_then_lang_2c_sl_sr(
                 )
                 logger.exception("Caught exception:")
 
-    # Add the translation word definitions
-    for tw_book_content_unit in tw_book_content_units:
-        # Add the translation words definition section.
-        yield from translation_words_section(tw_book_content_unit)
 
 
 def assemble_usfm_as_iterator_for_book_then_lang_1c(
@@ -4736,10 +4680,6 @@ def assemble_usfm_as_iterator_for_book_then_lang_1c(
                 )
                 logger.exception("Caught exception:")
 
-    # Add the translation word definitions
-    for tw_book_content_unit in tw_book_content_units:
-        # Add the translation words definition section.
-        yield from translation_words_section(tw_book_content_unit)
 
 
 def assemble_usfm_as_iterator_for_book_then_lang_1c_c(
@@ -4890,14 +4830,6 @@ def assemble_usfm_as_iterator_for_book_then_lang_1c_c(
                 )
                 logger.exception("Caught exception:")
 
-    # TODO Limit the translation words shown to only those that appear
-    # in the book selected.
-    # Add the translation word definitions
-    for tw_book_content_unit in tw_book_content_units:
-        # Add the translation words definition section.
-        yield from translation_words_section(
-            tw_book_content_unit, include_uses_section=False
-        )
 
 
 def assemble_tn_as_iterator_for_book_then_lang(
@@ -5025,10 +4957,6 @@ def assemble_tn_as_iterator_for_book_then_lang(
                         usfm_book_content_unit_.chapters[chapter_num].verses[verse_num],
                     )
 
-    # Add the translation word definitions
-    for tw_book_content_unit in tw_book_content_units:
-        # Add the translation words definition section.
-        yield from translation_words_section(tw_book_content_unit)
 
 
 def assemble_tn_as_iterator_for_book_then_lang_c(
@@ -5123,14 +5051,7 @@ def assemble_tn_as_iterator_for_book_then_lang_c(
                         tq_verses[verse_num],
                     )
 
-    # TODO Only show those translation words that occur in the book
-    # requested.
     # Add the translation word definitions
-    for tw_book_content_unit in tw_book_content_units:
-        # Add the translation words definition section.
-        yield from translation_words_section(
-            tw_book_content_unit, include_uses_section=False
-        )
 
 
 def assemble_tq_as_iterator_for_book_then_lang(
@@ -5221,10 +5142,6 @@ def assemble_tq_as_iterator_for_book_then_lang(
                         usfm_book_content_unit_.chapters[chapter_num].verses[verse_num],
                     )
 
-    # Add the translation word definitions
-    for tw_book_content_unit in tw_book_content_units:
-        # Add the translation words definition section.
-        yield from translation_words_section(tw_book_content_unit)
 
 
 def assemble_tq_as_iterator_for_book_then_lang_c(
@@ -5284,14 +5201,6 @@ def assemble_tq_as_iterator_for_book_then_lang_c(
                         tq_verses[verse_num],
                     )
 
-    # TODO Only show those translation words which occur in the book
-    # requested.
-    # Add the translation word definitions
-    for tw_book_content_unit in tw_book_content_units:
-        # Add the translation words definition section.
-        yield from translation_words_section(
-            tw_book_content_unit, include_uses_section=False
-        )
 
 
 def assemble_tw_as_iterator_for_book_then_lang(
@@ -5635,95 +5544,3 @@ def translation_word_links(
         yield unordered_list_end_str
 
 
-def translation_words_section(
-    book_content_unit: model.TWBook,
-    include_uses_section: bool = True,
-    resource_type_name_fmt_str: str = settings.RESOURCE_TYPE_NAME_FMT_STR,
-    opening_h3_fmt_str: str = settings.OPENING_H3_FMT_STR,
-    opening_h3_with_id_fmt_str: str = settings.OPENING_H3_WITH_ID_FMT_STR,
-) -> Iterable[model.HtmlContent]:
-    """
-    Build and return the translation words definition section, i.e.,
-    the list of all translation words for this language, book
-    combination. Include a 'Uses:' section that points from the
-    translation word back to the verses which include the translation
-    word if include_uses_section is True.
-    """
-    if book_content_unit.name_content_pairs:
-        yield model.HtmlContent(
-            resource_type_name_fmt_str.format(book_content_unit.resource_type_name)
-        )
-
-    for name_content_pair in book_content_unit.name_content_pairs:
-        # NOTE Another approach to including all translation words would be to
-        # only include words in the translation section which occur in current
-        # lang_code, book verses. The problem with this is that translation note
-        # 'See also' sections often refer to translation words that are not part
-        # of the lang_code/book content and thus those links are dead unless we
-        # include them even if they don't have any 'Uses' section. In other
-        # words, by limiting the translation words we limit the ability of those
-        # using the interleaved document to gain deeper understanding of the
-        # interrelationships of words.
-
-        # Make linking work: have to add ID to tags for anchor
-        # links to work.
-        name_content_pair.content = model.HtmlContent(
-            name_content_pair.content.replace(
-                opening_h3_fmt_str.format(name_content_pair.localized_word),
-                opening_h3_with_id_fmt_str.format(
-                    book_content_unit.lang_code,
-                    name_content_pair.localized_word,
-                    name_content_pair.localized_word,
-                ),
-            )
-        )
-        uses_section_ = model.HtmlContent("")
-
-        # See comment above.
-        if (
-            include_uses_section
-            and name_content_pair.localized_word in book_content_unit.uses
-        ):
-            uses_section_ = uses_section(
-                book_content_unit.uses[name_content_pair.localized_word]
-            )
-            name_content_pair.content = model.HtmlContent(
-                name_content_pair.content + uses_section_
-            )
-        yield name_content_pair.content
-
-
-def uses_section(
-    uses: Sequence[model.TWUse],
-    translation_word_verse_section_header_str: str = settings.TRANSLATION_WORD_VERSE_SECTION_HEADER_STR,
-    unordered_list_begin_str: str = settings.UNORDERED_LIST_BEGIN_STR,
-    translation_word_verse_ref_item_fmt_str: str = settings.TRANSLATION_WORD_VERSE_REF_ITEM_FMT_STR,
-    unordered_list_end_str: str = settings.UNORDERED_LIST_END_STR,
-    book_numbers: Mapping[str, str] = bible_books.BOOK_NUMBERS,
-    book_names: Mapping[str, str] = bible_books.BOOK_NAMES,
-    num_zeros: int = NUM_ZEROS,
-) -> model.HtmlContent:
-    """
-    Construct and return the 'Uses:' section which comes at the end of
-    a translation word definition and wherein each item points to
-    verses (as targeted by lang_code, book_id, chapter_num, and
-    verse_num) wherein the word occurs.
-    """
-    html: list[model.HtmlContent] = []
-    html.append(translation_word_verse_section_header_str)
-    html.append(unordered_list_begin_str)
-    for use in uses:
-        html_content_str = model.HtmlContent(
-            translation_word_verse_ref_item_fmt_str.format(
-                use.lang_code,
-                book_numbers[use.book_id].zfill(num_zeros),
-                str(use.chapter_num).zfill(num_zeros),
-                str(use.verse_num).zfill(num_zeros),
-                book_names[use.book_id],
-                use.chapter_num,
-                use.verse_num,
-            )
-        )
-        html.append(html_content_str)
-    html.append(unordered_list_end_str)
-    return model.HtmlContent("\n".join(html))

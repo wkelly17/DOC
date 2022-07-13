@@ -9250,3 +9250,52 @@ def test_en_tw_wa_col_en_bc_wa_col_book_language_order_for_print() -> None:
             },
         )
         check_finished_document_without_verses_success(response)
+
+
+def test_es_419_ulb_col_es_419_ulb_eph_es_419_tn_col_es_419_tq_col_es_419_tw_col_es_419_tw_eph_book_language_order() -> None:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
+        response: requests.Response = client.post(
+            "/documents",
+            json={
+                "email_address": settings.TO_EMAIL_ADDRESS,
+                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
+                "assembly_layout_kind": None,
+                "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
+                "resource_requests": [
+                    {
+                        "lang_code": "es-419",
+                        "resource_type": "ulb",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "es-419",
+                        "resource_type": "ulb",
+                        "resource_code": "eph",
+                    },
+                    {
+                        "lang_code": "es-419",
+                        "resource_type": "tn",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "es-419",
+                        "resource_type": "tq",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "es-419",
+                        "resource_type": "tw",
+                        "resource_code": "col",
+                    },
+                    {
+                        "lang_code": "es-419",
+                        "resource_type": "tw",
+                        "resource_code": "eph",
+                    },
+                ],
+            },
+        )
+        check_finished_document_with_verses_success(response)

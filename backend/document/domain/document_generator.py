@@ -40,6 +40,8 @@ UNDERSCORE = "_"
 
 MAX_FILENAME_LENGTH = 240
 
+NUM_ZEROS = 3
+
 
 def resource_book_content_units(
     found_resource_lookup_dtos: Iterable[model.ResourceLookupDto],
@@ -192,6 +194,100 @@ def document_html_header(
         return template("header_enclosing")
 
 
+def uses_section(
+    uses: Sequence[model.TWUse],
+    translation_word_verse_section_header_str: str = settings.TRANSLATION_WORD_VERSE_SECTION_HEADER_STR,
+    unordered_list_begin_str: str = settings.UNORDERED_LIST_BEGIN_STR,
+    translation_word_verse_ref_item_fmt_str: str = settings.TRANSLATION_WORD_VERSE_REF_ITEM_FMT_STR,
+    unordered_list_end_str: str = settings.UNORDERED_LIST_END_STR,
+    book_numbers: Mapping[str, str] = bible_books.BOOK_NUMBERS,
+    book_names: Mapping[str, str] = bible_books.BOOK_NAMES,
+    num_zeros: int = NUM_ZEROS,
+) -> model.HtmlContent:
+    """
+    Construct and return the 'Uses:' section which comes at the end of
+    a translation word definition and wherein each item points to
+    verses (as targeted by lang_code, book_id, chapter_num, and
+    verse_num) wherein the word occurs.
+    """
+    html: list[model.HtmlContent] = []
+    html.append(translation_word_verse_section_header_str)
+    html.append(unordered_list_begin_str)
+    for use in uses:
+        html_content_str = model.HtmlContent(
+            translation_word_verse_ref_item_fmt_str.format(
+                use.lang_code,
+                book_numbers[use.book_id].zfill(num_zeros),
+                str(use.chapter_num).zfill(num_zeros),
+                str(use.verse_num).zfill(num_zeros),
+                book_names[use.book_id],
+                use.chapter_num,
+                use.verse_num,
+            )
+        )
+        html.append(html_content_str)
+    html.append(unordered_list_end_str)
+    return model.HtmlContent("\n".join(html))
+
+
+def translation_words_section(
+    book_content_unit: model.TWBook,
+    include_uses_section: bool = True,
+    resource_type_name_fmt_str: str = settings.RESOURCE_TYPE_NAME_FMT_STR,
+    opening_h3_fmt_str: str = settings.OPENING_H3_FMT_STR,
+    opening_h3_with_id_fmt_str: str = settings.OPENING_H3_WITH_ID_FMT_STR,
+) -> Iterable[model.HtmlContent]:
+    """
+    Build and return the translation words definition section, i.e.,
+    the list of all translation words for this language, book
+    combination. Include a 'Uses:' section that points from the
+    translation word back to the verses which include the translation
+    word if include_uses_section is True.
+    """
+    if book_content_unit.name_content_pairs:
+        yield model.HtmlContent(
+            resource_type_name_fmt_str.format(book_content_unit.resource_type_name)
+        )
+
+    for name_content_pair in book_content_unit.name_content_pairs:
+        # NOTE Another approach to including all translation words would be to
+        # only include words in the translation section which occur in current
+        # lang_code, book verses. The problem with this is that translation note
+        # 'See also' sections often refer to translation words that are not part
+        # of the lang_code/book content and thus those links are dead unless we
+        # include them even if they don't have any 'Uses' section. In other
+        # words, by limiting the translation words we limit the ability of those
+        # using the interleaved document to gain deeper understanding of the
+        # interrelationships of words.
+
+        # Make linking work: have to add ID to tags for anchor
+        # links to work.
+        name_content_pair.content = model.HtmlContent(
+            name_content_pair.content.replace(
+                opening_h3_fmt_str.format(name_content_pair.localized_word),
+                opening_h3_with_id_fmt_str.format(
+                    book_content_unit.lang_code,
+                    name_content_pair.localized_word,
+                    name_content_pair.localized_word,
+                ),
+            )
+        )
+        uses_section_ = model.HtmlContent("")
+
+        # See comment above.
+        if (
+            include_uses_section
+            and name_content_pair.localized_word in book_content_unit.uses
+        ):
+            uses_section_ = uses_section(
+                book_content_unit.uses[name_content_pair.localized_word]
+            )
+            name_content_pair.content = model.HtmlContent(
+                name_content_pair.content + uses_section_
+            )
+        yield name_content_pair.content
+
+
 def assemble_content(
     document_request_key: str,
     document_request: model.DocumentRequest,
@@ -213,6 +309,36 @@ def assemble_content(
     content = "".join(
         assembly_strategy(book_content_units, document_request.assembly_layout_kind)
     )
+    tw_book_content_units = [
+        book_content_unit
+        for book_content_unit in book_content_units
+        if isinstance(book_content_unit, model.TWBook)
+    ]
+    if tw_book_content_units:
+        tw_book_content_unit = tw_book_content_units[
+            0
+        ]  # There is only one tw_book_content_unit per language
+
+        # Add the translation words definition section.
+        usfm_book_content_units = [
+            book_content_unit
+            for book_content_unit in book_content_units
+            if isinstance(book_content_unit, model.USFMBook)
+        ]
+        if usfm_book_content_units:
+            content = "{}{}".format(
+                content, "".join(translation_words_section(tw_book_content_unit))
+            )
+        else:
+            content = "{}{}".format(
+                content,
+                "".join(
+                    translation_words_section(
+                        tw_book_content_unit, include_uses_section=False
+                    )
+                ),
+            )
+
     # Get the appropriate HTML template header content given the
     # document_request.assembly_layout_kind the user has chosen.
     header = document_html_header(document_request.assembly_layout_kind)
