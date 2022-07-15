@@ -314,22 +314,30 @@ def assemble_content(
         for book_content_unit in book_content_units
         if isinstance(book_content_unit, model.TWBook)
     ]
-    if tw_book_content_units:
-        tw_book_content_unit = tw_book_content_units[
-            0
-        ]  # There is only one tw_book_content_unit per language
 
-        # Add the translation words definition section.
-        usfm_book_content_units = [
-            book_content_unit
-            for book_content_unit in book_content_units
-            if isinstance(book_content_unit, model.USFMBook)
-        ]
+    # We need to see if the document request included any usfm because
+    # if it did we'll generate not only the tw word defs but also the
+    # links to them from the notes area that exists adjacent to the
+    # scripture versees themselves.
+    usfm_book_content_units = [
+        book_content_unit
+        for book_content_unit in book_content_units
+        if isinstance(book_content_unit, model.USFMBook)
+    ]
+    # Add the translation words definition section for each language requested.
+    for tw_book_content_unit in tw_book_content_units:
         if usfm_book_content_units:
+            # There is usfm content in this document request so we can
+            # include the uses section in notes which links to individual word
+            # definitions. The uses section will be incorporated by
+            # assembly_strategies module if print layout is not chosen and
+            # ignored otherwise.
             content = "{}{}".format(
                 content, "".join(translation_words_section(tw_book_content_unit))
             )
         else:
+            # There is no usfm content in this document request so
+            # there is no need for the uses section.
             content = "{}{}".format(
                 content,
                 "".join(
