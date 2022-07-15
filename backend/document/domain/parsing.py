@@ -340,16 +340,21 @@ def verse_ref_and_verse_content_str(
     num_zeros: int = 3,
     css_attribute_type: str = "class",
 ) -> tuple[str, model.HtmlContent]:
-    """Return the verse_ref and verse_content_str."""
+    """
+    Return the verse_ref (representing a single verse or a range of verses) and its
+    associated verse_content_str.
+    """
     # Rather than a single verse num, the item in
     # verse_num may be a verse range, e.g., 1-2.
-    # See test_mr_ulb_mrk_mr_tn_mrk_mr_tq_mrk_mr_tw_mrk_mr_udb_mrk_language_book_order
-    # for test that triggers this situation.
-    # Get the verse num from the verse HTML tag's id value.
+    # See test_mr_ulb_mrk_mr_tn_mrk_mr_tq_mrk_mr_tw_mrk_mr_udb_mrk_language_book_order_*
+    # tests for tests that trigger this situation.
+    # Get the verse ref from the verse HTML tag's id value.
     # NOTE: split is more performant than re.
     # See https://stackoverflow.com/questions/7501609/python-re-split-vs-split
+    # logger.debug("verse_span_tag: %s", verse_span_tag)
     verse_ref = str(verse_span_tag).split("-v-")[1].split('"')[0]
-    # Check for hyphen in the range
+    # Check for hyphen in the range whose presence would indicate that
+    # verse ref is a verse range rather than a single verse.
     verse_ref_components = verse_ref.split("-")
     if len(verse_ref_components) > 1:  # This is a verse ref for a verse range
         upper_bound_value = int(verse_ref_components[1]) + 1
@@ -392,6 +397,7 @@ def verse_ref_and_verse_content_str(
     # logger.debug("lower_tag: %s", lower_tag)
     # logger.debug("upper_tag: %s", upper_tag)
 
+    # NOTE
     # A verse span can be enclosed in a p element parent (but not always)
     # and if this is the arrangement then it is this p element that is a
     # sibling of all other chapter level content. Since
@@ -409,9 +415,6 @@ def verse_ref_and_verse_content_str(
     # know what parsing grammar theory describes the USFM spec to
     # say definitively - something I have not yet investigated.
 
-    # Save the original lower_tag so that we use it for some
-    # corrective actions that we may need to take later.
-    orig_lower_tag = lower_tag
     try:
         # logger.debug("lower_tag.parent: %s", lower_tag.parent)
         # logger.debug("upper_tag.parent: %s", upper_tag.parent)
@@ -436,42 +439,74 @@ def verse_ref_and_verse_content_str(
     #     logger.debug("Using lower_tag: %s", lower_tag)
     #     logger.debug("Using upper_tag: %s", upper_tag)
 
+    # Where the magic happens (and sometimes issues)
     verse_content_tags = html_parsing_utils.tag_elements_between(
         lower_tag,
         upper_tag,
     )
     verse_content_tags = list(verse_content_tags)
     # logger.debug("len(verse_content_tags): %s", len(verse_content_tags))
+    # logger.debug("verse_content_tags: %s", verse_content_tags)
     verse_content = [str(tag) for tag in verse_content_tags]
     # logger.debug("verse_content: %s", verse_content)
     verse_content_str = "".join(verse_content)
     # logger.debug("verse_content_str: %s", verse_content_str)
-    # At this point verse_content_str may recapitulate previous verse spans
-    # that are enclosed in the same p element as the current verse due to
-    # the complexity of the HTML document being parsed (which mirrors the
-    # complexity of the USFM grammar). To remedy this, we get the span id
-    # for the current verse (the one that should be shown) and use it to
-    # find where in the verse_content_str the current verse starts so that
-    # we can effectively discard the recapitulated previous verse spans that
-    # should not be shown.
-    orig_lower_tag_parser = bs4.BeautifulSoup(str(orig_lower_tag), "html.parser")
+
+    lower_tag_parser = bs4.BeautifulSoup(str(lower_tag), "html.parser")
+    # cast to make mypy happy
+    span_tag: bs4.element.Tag = cast(bs4.element.Tag, lower_tag_parser.find("span"))
+
+    verse_content_str = fix_issue_with_beautifulsoup(span_tag, verse_content_str)
+
+    # NOTE
+    # At this opint verse_content_str should only contain the verse content
+    # associated with verse_ref and no other verses. We now alter
+    # the span ID in verse_content_str by prepending it with the
+    # lang_code for the language we are currently parsing to ensure
+    # unique verse references within language scope in a multi-language
+    # document.
+    verse_content_str = re.sub(
+        pattern,
+        format_str.format(lang_code),
+        verse_content_str,
+    )
+    return str(verse_ref), model.HtmlContent(verse_content_str)
+
+
+def fix_issue_with_beautifulsoup(
+    span_tag: bs4.element.Tag,
+    verse_content_str: str,
+    css_attribute_type: str = "class",
+) -> model.HtmlContent:
+    """
+    Encapsulate and workaround weirdness/bugs?/irregularity in
+    beautifulsoup's handling of verse content for the current verse
+    ref.
+
+    Why does this happen? One possible reason: some books, especially
+    books with poetic formatting, like Jonah (see Jonah 2:2 in en
+    without use of this function for a manifestation of this problem),
+    cause our code to fill verse_content_str with more than just the
+    verse (or verses if a verse range) we were aiming for. When it
+    manifests, it can cause verse_content_str to either include a
+    recapitulation of previous verse spans prepended to the current
+    verse and/or future verses appended to the current verse.
+
+    This function, though ugly, handles currently known cases of this
+    occurring. It is possible that some problem may yet be found in
+    some scripture in which case we can modify this function further.
+    TODO replace this hack with a better approach, perhaps using lxml
+    or scrapy or ?
+    """
     # Split the verse_content_str on the id of the span for the
     # current verse.
-    span_tag: bs4.element.Tag = cast(
-        bs4.element.Tag, orig_lower_tag_parser.find("span")
-    )  # Make mypy happy
-    # cast usage to make mypy happy again
-    split_verse_content_str = verse_content_str.split(cast(str, span_tag.get("id")))
-    # logger.debug("split_verse_content_str: %s", split_verse_content_str)
-    # Keep the content for the current verse onward.
-    verse_content_str = '<p>\n<span class="v-num" id="{}'.format(
-        split_verse_content_str[-1]
+    split_verse_content_str = verse_content_str.split(span_tag["id"])  # type: ignore
+
+    # Enclose in paragraph to setup for parsing.
+    verse_content_str = '<p><span class="v-num" id="{}{}'.format(
+        span_tag["id"], split_verse_content_str[-1]
     )
-    # Now it can be the case, e.g., Jonah 2:2, that instead of the verse we
-    # want being prepended with recapitulated verse spans we don't want to
-    # show for this verse, there can also be verse spans being appended to
-    # the current verse that we don't want to show. So we must detect those
-    # and effectively discard them as well.
+
     verse_content_str_parser = bs4.BeautifulSoup(verse_content_str, "html.parser")
     verse_span_tags = verse_content_str_parser.find_all(
         "span", attrs={css_attribute_type: "v-num"}
@@ -481,22 +516,11 @@ def verse_ref_and_verse_content_str(
         first_unwanted_appended_span_tag: bs4.element.Tag = cast(
             bs4.element.Tag, verse_span_tags[1]
         )
-        # cast is to make mypy happy
         verse_content_str_split = verse_content_str.split(
             str(first_unwanted_appended_span_tag)
         )
         verse_content_str = "{}</p>".format(verse_content_str_split[0])
-    # At this point we alter verse_content_str span's ID by prepending the
-    # lang_code to ensure unique verse references within language scope in a
-    # multi-language document.
-    verse_content_str = re.sub(
-        pattern,
-        format_str.format(lang_code),
-        verse_content_str,
-    )
-    # logger.debug("verse_ref: %s", verse_ref)
-    # logger.debug("updated verse_content_str: %s", verse_content_str)
-    return str(verse_ref), model.HtmlContent(verse_content_str)
+    return verse_content_str
 
 
 def tn_book_content(
