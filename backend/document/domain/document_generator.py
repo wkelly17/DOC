@@ -317,32 +317,25 @@ def send_email_with_attachment(
 
 def convert_html_to_pdf(
     html_filepath: str,
-    cover_filepath: str,
     pdf_filepath: str,
     wkhtmltopdf_options: Mapping[str, Optional[str]] = settings.WKHTMLTOPDF_OPTIONS,
 ) -> None:
     """Generate PDF from HTML."""
     assert os.path.exists(html_filepath)
-    assert os.path.exists(cover_filepath)
     pdfkit.from_file(
         html_filepath,
         pdf_filepath,
         options=wkhtmltopdf_options,
-        cover=cover_filepath,
     )
 
 
-# FIXME Use cover page...or should we? Maybe we should integrate what
-# used to be presented on cover page inside the HTML document instead.
 def convert_html_to_epub(
     html_filepath: str,
-    cover_filepath: str,
     epub_filepath: str,
     pandoc_options: str = settings.PANDOC_OPTIONS,
 ) -> None:
     """Generate ePub from HTML."""
     assert os.path.exists(html_filepath)
-    assert os.path.exists(cover_filepath)
     pandoc_command = "pandoc {} {} -o {}".format(
         pandoc_options,
         html_filepath,
@@ -356,13 +349,11 @@ def convert_html_to_epub(
 # used to be presented on cover page inside the HTML document instead.
 def convert_html_to_docx(
     html_filepath: str,
-    cover_filepath: str,
     docx_filepath: str,
     pandoc_options: str = settings.PANDOC_OPTIONS,
 ) -> None:
     """Generate Docx from HTML."""
     assert os.path.exists(html_filepath)
-    assert os.path.exists(cover_filepath)
     pandoc_command = "pandoc {} {} -o {}".format(
         pandoc_options,
         html_filepath,
@@ -493,80 +484,6 @@ def write_html_content_to_file(
     )
 
 
-def write_html_cover_to_file(
-    cover_filepath: str,
-    book_content_units: Iterable[model.BookContent],
-    unfound_resource_lookup_dtos: Iterable[model.ResourceLookupDto],
-    unloaded_resource_lookup_dtos: Iterable[model.ResourceLookupDto],
-    logo_image_path: str = settings.LOGO_IMAGE_PATH,
-    book_names: Mapping[str, str] = bible_books.BOOK_NAMES,
-) -> None:
-    """Generate HTML cover page and write it to file."""
-    now = datetime.datetime.now()
-    revision_date = "Generated on: {}-{}-{}".format(now.year, now.month, now.day)
-    title = "{}".format(
-        COMMASPACE.join(
-            sorted(
-                {
-                    "{}: {}".format(
-                        book_content_unit.lang_name,
-                        book_names[book_content_unit.resource_code],
-                    )
-                    for book_content_unit in book_content_units
-                }
-            )
-        )
-    )
-    unfound = "{}".format(
-        COMMASPACE.join(
-            sorted(
-                {
-                    "{}-{}-{}".format(
-                        unfound_resource_lookup_dto.lang_code,
-                        unfound_resource_lookup_dto.resource_type,
-                        unfound_resource_lookup_dto.resource_code,
-                    )
-                    for unfound_resource_lookup_dto in unfound_resource_lookup_dtos
-                }
-            )
-        )
-    )
-    unloaded = "{}".format(
-        COMMASPACE.join(
-            sorted(
-                {
-                    "{}-{}-{}".format(
-                        unloaded_resource_lookup_dto.lang_code,
-                        unloaded_resource_lookup_dto.resource_type,
-                        unloaded_resource_lookup_dto.resource_code,
-                    )
-                    for unloaded_resource_lookup_dto in unloaded_resource_lookup_dtos
-                }
-            )
-        )
-    )
-    if unloaded:
-        logger.debug("Resource requests that could not be loaded: %s", unloaded)
-    with open(logo_image_path, "rb") as fin:
-        base64_encoded_logo_image = base64.b64encode(fin.read())
-        images: dict[str, str | bytes] = {
-            "logo": base64_encoded_logo_image,
-        }
-    # Use Jinja2 to instantiate the cover page.
-    cover = instantiated_template(
-        "cover",
-        model.CoverPayload(
-            title=title,
-            unfound=unfound,
-            unloaded=unloaded,
-            revision_date=revision_date,
-            images=images,
-        ),
-    )
-    with open(cover_filepath, "w") as fout:
-        fout.write(cover)
-
-
 def copy_pdf_to_docker_output_dir(
     pdf_filepath: str,
     docker_container_document_output_dir: str = settings.DOCKER_CONTAINER_DOCUMENT_OUTPUT_DIR,
@@ -658,7 +575,6 @@ def main(document_request: model.DocumentRequest) -> str:
     pdf_filepath_ = pdf_filepath(document_request_key_)
     epub_filepath_ = epub_filepath(document_request_key_)
     docx_filepath_ = docx_filepath(document_request_key_)
-    cover_filepath_ = cover_filepath(document_request_key_)
 
     if file_utils.asset_file_needs_update(html_filepath_):
         # HTML didn't exist in cache so go ahead and start by getting the
@@ -729,12 +645,6 @@ def main(document_request: model.DocumentRequest) -> str:
             content,
             html_filepath_,
         )
-        write_html_cover_to_file(
-            cover_filepath_,
-            book_content_units,
-            unfound_resource_lookup_dtos,
-            unloaded_resource_lookup_dtos,
-        )
 
     # Immediately return pre-built PDF if the document has previously been
     # generated and is fresh enough. In that case, front run all requests to
@@ -746,7 +656,6 @@ def main(document_request: model.DocumentRequest) -> str:
         logger.info("Generating PDF %s...", pdf_filepath_)
         convert_html_to_pdf(
             html_filepath_,
-            cover_filepath_,
             pdf_filepath_,
         )
         copy_pdf_to_docker_output_dir(pdf_filepath_)
@@ -756,7 +665,6 @@ def main(document_request: model.DocumentRequest) -> str:
     ):
         convert_html_to_epub(
             html_filepath_,
-            cover_filepath_,
             epub_filepath_,
         )
         copy_epub_to_docker_output_dir(epub_filepath_)
@@ -767,7 +675,6 @@ def main(document_request: model.DocumentRequest) -> str:
 
         convert_html_to_docx(
             html_filepath_,
-            cover_filepath_,
             docx_filepath_,
         )
         copy_docx_to_docker_output_dir(docx_filepath_)

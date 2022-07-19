@@ -2723,6 +2723,13 @@ def assemble_content_by_book_then_lang(
 #
 
 
+def tn_book_intro(tn_book_content_unit: model.TNBook) -> Iterable[model.HtmlContent]:
+    "Yield the book intro for the TNBook given."
+    book_intro = tn_book_content_unit.intro_html
+    book_intro = adjust_book_intro_headings(book_intro)
+    yield model.HtmlContent(book_intro)
+
+
 def assemble_by_usfm_as_iterator_for_lang_then_book_2c_sl_hr(
     usfm_book_content_unit: Optional[model.USFMBook],
     tn_book_content_unit: Optional[model.TNBook],
@@ -2748,9 +2755,7 @@ def assemble_by_usfm_as_iterator_for_lang_then_book_2c_sl_hr(
     displayed last in this interleaving strategy.
     """
     if tn_book_content_unit:
-        book_intro = tn_book_content_unit.intro_html
-        book_intro = adjust_book_intro_headings(book_intro)
-        yield model.HtmlContent(book_intro)
+        yield from tn_book_intro(tn_book_content_unit)
 
     if bc_book_content_unit:
         yield book_intro_commentary(bc_book_content_unit)
@@ -2918,10 +2923,9 @@ def assemble_by_usfm_as_iterator_for_lang_then_book_1c(
     where applicable) the first USFM resource. The second USFM resource is
     displayed last in this interleaving strategy.
     """
+
     if tn_book_content_unit:
-        book_intro = tn_book_content_unit.intro_html
-        book_intro = adjust_book_intro_headings(book_intro)
-        yield model.HtmlContent(book_intro)
+        yield from tn_book_intro(tn_book_content_unit)
 
     if bc_book_content_unit:
         yield book_intro_commentary(bc_book_content_unit)
@@ -3081,10 +3085,9 @@ def assemble_by_usfm_as_iterator_for_lang_then_book_1c_c(
     where applicable) the first USFM resource. The second USFM resource is
     displayed last in this interleaving strategy.
     """
+
     if tn_book_content_unit:
-        book_intro = tn_book_content_unit.intro_html
-        book_intro = adjust_book_intro_headings(book_intro)
-        yield model.HtmlContent(book_intro)
+        yield from tn_book_intro(tn_book_content_unit)
 
     if bc_book_content_unit:
         yield book_intro_commentary(bc_book_content_unit)
@@ -3787,9 +3790,7 @@ def assemble_tn_as_iterator_for_lang_then_book(
     and TW exists.
     """
     if tn_book_content_unit:
-        book_intro = tn_book_content_unit.intro_html
-        book_intro = adjust_book_intro_headings(book_intro)
-        yield book_intro
+        yield from tn_book_intro(tn_book_content_unit)
 
         for chapter_num in tn_book_content_unit.chapters:
             # How to get chapter heading for Translation notes when USFM is not
@@ -4020,9 +4021,7 @@ def assemble_usfm_as_iterator_for_book_then_lang_2c_sl_hr(
     # Add book intros for each tn_book_content_unit
     for tn_book_content_unit in tn_book_content_units:
         # Add the book intro
-        book_intro = tn_book_content_unit.intro_html
-        book_intro = adjust_book_intro_headings(book_intro)
-        yield model.HtmlContent(book_intro)
+        yield from tn_book_intro(tn_book_content_unit)
 
     for bc_book_content_unit in bc_book_content_units:
         yield book_intro_commentary(bc_book_content_unit)
