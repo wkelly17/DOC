@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     )
 
     LANGUAGE_FMT_STR: str = "<h1>Language: {}</h1>"
-    RESOURCE_TYPE_NAME_FMT_STR: str = "<h2>{}</h2>"
+    RESOURCE_TYPE_NAME_FMT_STR: str = "<h1>{}</h1>"
     RESOURCE_TYPE_NAME_WITH_REF_FMT_STR: str = "<h3>{} {}:{}</h3>"
     TN_RESOURCE_TYPE_NAME_WITH_ID_AND_REF_FMT_STR: str = (
         '<h3 id="{}-{}-tn-ch-{}-v-{}">{} {}:{}</h3>'
