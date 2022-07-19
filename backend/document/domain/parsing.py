@@ -243,6 +243,8 @@ def usfm_book_content(
     h2: str = H2,
     bs_parser_type: str = "html.parser",
     css_attribute_type: str = "class",
+    pattern: str = settings.VERSE_ANCHOR_ID_FMT_STR,
+    format_str: str = settings.VERSE_ANCHOR_ID_SUBSTITUTION_FMT_STR,
 ) -> model.USFMBook:
     html_content = asset_content(resource_lookup_dto, resource_dir)
     parser = bs4.BeautifulSoup(html_content, bs_parser_type)
@@ -306,15 +308,26 @@ def usfm_book_content(
 
         # Dictionary to hold verse number, verse value pairs.
         chapter_verses: dict[str, str] = {}
-        for verse_span_tag in chapter_verse_span_tags:
-            (verse_ref, verse_content_str) = verse_ref_and_verse_content_str(
-                book_number(resource_lookup_dto.resource_code),
-                resource_lookup_dto.lang_code,
-                chapter_num,
-                chapter_content_parser,
+        for verse_span_tag_str in chapter_verse_span_tags:
+            verse_span_tag = cast(bs4.element.Tag, verse_span_tag_str)
+            verse_ref_, upper_bound_value = verse_ref(verse_span_tag)
+            verse_content_str_ = verse_content_str(
                 verse_span_tag,
+                chapter_content_parser,
+                book_number(resource_lookup_dto.resource_code),
+                chapter_num,
+                upper_bound_value,
             )
-            chapter_verses[verse_ref] = verse_content_str
+            # NOTE We now alter the span ID in verse_content_str by prepending it
+            # with the lang_code for the language we are currently parsing to ensure
+            # unique verse references within language scope in a multi-language
+            # document.
+            updated_verse_content_str = re.sub(
+                pattern,
+                format_str.format(resource_lookup_dto.lang_code),
+                verse_content_str_,
+            )
+            chapter_verses[verse_ref_] = updated_verse_content_str
         chapters[chapter_num] = model.USFMChapter(
             content=chapter_content,
             verses=chapter_verses,
@@ -329,21 +342,8 @@ def usfm_book_content(
     )
 
 
-def verse_ref_and_verse_content_str(
-    book_number: str,
-    lang_code: str,
-    chapter_num: int,
-    chapter_content_parser: bs4.BeautifulSoup,
-    verse_span_tag: str,
-    pattern: str = settings.VERSE_ANCHOR_ID_FMT_STR,
-    format_str: str = settings.VERSE_ANCHOR_ID_SUBSTITUTION_FMT_STR,
-    num_zeros: int = 3,
-    css_attribute_type: str = "class",
-) -> tuple[str, model.HtmlContent]:
-    """
-    Return the verse_ref (representing a single verse or a range of verses) and its
-    associated verse_content_str.
-    """
+def verse_ref(verse_span_tag: bs4.element.Tag) -> tuple[str, int]:
+    """Return the verse_ref value."""
     # Rather than a single verse num, the item in
     # verse_num may be a verse range, e.g., 1-2.
     # See test_mr_ulb_mrk_mr_tn_mrk_mr_tq_mrk_mr_tw_mrk_mr_udb_mrk_language_book_order_*
@@ -371,155 +371,43 @@ def verse_ref_and_verse_content_str(
         upper_bound_value = int(verse_ref) + 1
         # Get rid of leading zeroes.
         verse_ref = str(int(verse_ref))
+    return verse_ref, upper_bound_value
 
-    # Create the lower and upper search bounds for the
-    # BeautifulSoup HTML parser.
-    lower_id = "{}-ch-{}-v-{}".format(
-        str(book_number).zfill(num_zeros),
-        str(chapter_num).zfill(num_zeros),
-        verse_ref.zfill(num_zeros),
-    )
+
+def verse_content_str(
+    lower_tag: bs4.element.Tag,
+    chapter_content_parser: bs4.BeautifulSoup,
+    book_number: str,
+    chapter_num: int,
+    upper_bound_value: int,
+    num_zeros: int = 3,
+    css_attribute_type: str = "class",
+) -> str:
+    """Return the content, i.e., text, of the verse(s)."""
     upper_id = "{}-ch-{}-v-{}".format(
         str(book_number).zfill(num_zeros),
         str(chapter_num).zfill(num_zeros),
         str(upper_bound_value).zfill(num_zeros),
     )
-    # Using the upper and lower tag bounds parse a verse worth of HTML
-    # content.
-    lower_tag = chapter_content_parser.find(
-        "span",
-        attrs={css_attribute_type: "v-num", "id": lower_id},
-    )
     upper_tag = chapter_content_parser.find(
         "span",
         attrs={css_attribute_type: "v-num", "id": upper_id},
     )
-    # logger.debug("lower_tag: %s", lower_tag)
-    # logger.debug("upper_tag: %s", upper_tag)
 
-    # NOTE
-    # A verse span can be enclosed in a p element parent (but not always)
-    # and if this is the arrangement then it is this p element that is a
-    # sibling of all other chapter level content. Since
-    # html-parsing_utils.tag_elements_between uses next sibling to advance
-    # through document elements it is important to give it elements as
-    # parameters to start with that exist at the same level in the document
-    # in a sibling relationship. It turns out that the USFM to HTML parser
-    # emits nearly all document elements as siblings of each other rather
-    # than verses or chapters, say, being enclosed in some verse or chapter
-    # level HTML element. This is because the USFM spec is necessarily open
-    # to accomodate various language elements which can be combined in various
-    # ways that do not enclose one another cleanly - or at least making a
-    # parser that can close over all possible USFM element combinations has
-    # not been created yet and I suspect can't be created. You'd have to
-    # know what parsing grammar theory describes the USFM spec to
-    # say definitively - something I have not yet investigated.
-
-    try:
-        # logger.debug("lower_tag.parent: %s", lower_tag.parent)
-        # logger.debug("upper_tag.parent: %s", upper_tag.parent)
-        # The isinstance checks are to make mypy happy.
-        if (
-            isinstance(lower_tag, bs4.element.Tag)
-            and isinstance(upper_tag, bs4.element.Tag)
-            and lower_tag.parent != upper_tag.parent
-        ):
-            lower_tag = lower_tag.parent
-            upper_tag = upper_tag.parent
-    except Exception:
-        # Handle case where upper_tag is None in which case the last sibling
-        # element in the chapter could be footnotes. We'll set the upper_tag to
-        # that footnotes node (or None if it does not exist) so that we don't
-        # include footnotes in the last verse's content. Footnotes are rendered
-        # after the chapter's verse content so we don't want them included
-        # additionally/accidentally here.
+    # Ensure that chapter footnotes are not accidentally included with
+    # verses from end of chapter.
+    if upper_tag is None:
+        # We'll set the upper_tag to footnotes node (or None if it does not
+        # exist) so that we don't include footnotes in the last verse's content.
+        # Footnotes are rendered in HTML by USFM-TOOLS after the chapter's verse
+        # content so we don't want them included additionally/accidentally here
+        # also.
         footnotes_for_chapter = chapter_content_parser.find("div", class_="footnotes")
         upper_tag = footnotes_for_chapter
-    # finally:
-    #     logger.debug("Using lower_tag: %s", lower_tag)
-    #     logger.debug("Using upper_tag: %s", upper_tag)
 
-    # Where the magic happens (and sometimes issues)
-    verse_content_tags = html_parsing_utils.tag_elements_between(
-        lower_tag,
-        upper_tag,
-    )
-    verse_content_tags = list(verse_content_tags)
-    # logger.debug("len(verse_content_tags): %s", len(verse_content_tags))
-    # logger.debug("verse_content_tags: %s", verse_content_tags)
-    verse_content = [str(tag) for tag in verse_content_tags]
-    # logger.debug("verse_content: %s", verse_content)
-    verse_content_str = "".join(verse_content)
-    # logger.debug("verse_content_str: %s", verse_content_str)
-
-    lower_tag_parser = bs4.BeautifulSoup(str(lower_tag), "html.parser")
-    # cast to make mypy happy
-    span_tag: bs4.element.Tag = cast(bs4.element.Tag, lower_tag_parser.find("span"))
-
-    verse_content_str = fix_issue_with_beautifulsoup(span_tag, verse_content_str)
-
-    # NOTE
-    # At this opint verse_content_str should only contain the verse content
-    # associated with verse_ref and no other verses. We now alter
-    # the span ID in verse_content_str by prepending it with the
-    # lang_code for the language we are currently parsing to ensure
-    # unique verse references within language scope in a multi-language
-    # document.
-    verse_content_str = re.sub(
-        pattern,
-        format_str.format(lang_code),
-        verse_content_str,
-    )
-    return str(verse_ref), model.HtmlContent(verse_content_str)
-
-
-def fix_issue_with_beautifulsoup(
-    span_tag: bs4.element.Tag,
-    verse_content_str: str,
-    css_attribute_type: str = "class",
-) -> model.HtmlContent:
-    """
-    Encapsulate and workaround weirdness/bugs?/irregularity in
-    beautifulsoup's handling of verse content for the current verse
-    ref.
-
-    Why does this happen? One possible reason: some books, especially
-    books with poetic formatting, like Jonah (see Jonah 2:2 in en
-    without use of this function for a manifestation of this problem),
-    cause our code to fill verse_content_str with more than just the
-    verse (or verses if a verse range) we were aiming for. When it
-    manifests, it can cause verse_content_str to either include a
-    recapitulation of previous verse spans prepended to the current
-    verse and/or future verses appended to the current verse.
-
-    This function, though ugly, handles currently known cases of this
-    occurring. It is possible that some problem may yet be found in
-    some scripture in which case we can modify this function further.
-    TODO replace this hack with a better approach, perhaps using lxml
-    or scrapy or ?
-    """
-    # Split the verse_content_str on the id of the span for the
-    # current verse.
-    split_verse_content_str = verse_content_str.split(span_tag["id"])  # type: ignore
-
-    # Enclose in paragraph to setup for parsing.
-    verse_content_str = '<p><span class="v-num" id="{}{}'.format(
-        span_tag["id"], split_verse_content_str[-1]
-    )
-
-    verse_content_str_parser = bs4.BeautifulSoup(verse_content_str, "html.parser")
-    verse_span_tags = verse_content_str_parser.find_all(
-        "span", attrs={css_attribute_type: "v-num"}
-    )
-    if len(verse_span_tags) > 1:
-        # cast is to make mypy happy
-        first_unwanted_appended_span_tag: bs4.element.Tag = cast(
-            bs4.element.Tag, verse_span_tags[1]
-        )
-        verse_content_str_split = verse_content_str.split(
-            str(first_unwanted_appended_span_tag)
-        )
-        verse_content_str = "{}</p>".format(verse_content_str_split[0])
+    chapter_components = str(chapter_content_parser).split(str(lower_tag))
+    section_components = chapter_components[1].split(str(upper_tag))
+    verse_content_str = "{}{}".format(lower_tag, section_components[0])
     return verse_content_str
 
 
