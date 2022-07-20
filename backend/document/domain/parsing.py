@@ -349,9 +349,6 @@ def verse_ref(verse_span_tag: bs4.element.Tag) -> tuple[str, int]:
     # See test_mr_ulb_mrk_mr_tn_mrk_mr_tq_mrk_mr_tw_mrk_mr_udb_mrk_language_book_order_*
     # tests for tests that trigger this situation.
     # Get the verse ref from the verse HTML tag's id value.
-    # NOTE: split is more performant than re.
-    # See https://stackoverflow.com/questions/7501609/python-re-split-vs-split
-    # logger.debug("verse_span_tag: %s", verse_span_tag)
     verse_ref = str(verse_span_tag).split("-v-")[1].split('"')[0]
     # Check for hyphen in the range whose presence would indicate that
     # verse ref is a verse range rather than a single verse.
