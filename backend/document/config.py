@@ -168,7 +168,7 @@ class Settings(BaseSettings):
         return dirname
 
     # For options see https://wkhtmltopdf.org/usage/wkhtmltopdf.txt
-    WKHTMLTOPDF_OPTIONS: Mapping[str, Optional[str]] = {
+    WKHTMLTOPDF_OPTIONS: dict[str, Optional[str]] = {
         "page-size": "Letter",
         # 'margin-top': '0.75in',
         # 'margin-right': '0.75in',
@@ -179,9 +179,11 @@ class Settings(BaseSettings):
         "outline": None,  # Produce an outline
         "outline-depth": "3",  # Only go depth of 3 on the outline
         "enable-internal-links": None,  # enable internal links
+        "header-font-size": "10",
         "header-left": "[section]",
         "header-right": "[subsection]",
         "header-line": None,  # Produce a line under the header
+        "footer-font-size": "10",
         "footer-center": "[page]",
         "footer-line": None,  # Produce a line above the footer
     }
