@@ -346,8 +346,26 @@ def assembly_factory_for_lang_then_book_strategy(
             False,
             False,
             True,
+            False,
+            True,
+            model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT,
+        ): assemble_by_usfm_as_iterator_for_lang_then_book_2c_sl_hr,
+        (
             True,
             False,
+            False,
+            True,
+            True,
+            False,
+            model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
+        ): assemble_by_usfm_as_iterator_for_lang_then_book_2c_sl_hr,
+        (
+            True,
+            False,
+            False,
+            True,
+            False,
+            True,
             model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
         ): assemble_by_usfm_as_iterator_for_lang_then_book_2c_sl_hr,
         (
@@ -374,6 +392,15 @@ def assembly_factory_for_lang_then_book_strategy(
             False,
             True,
             True,
+            True,
+            model.AssemblyLayoutEnum.ONE_COLUMN,
+        ): assemble_by_usfm_as_iterator_for_lang_then_book_1c,
+        (
+            True,
+            False,
+            False,
+            True,
+            False,
             True,
             model.AssemblyLayoutEnum.ONE_COLUMN,
         ): assemble_by_usfm_as_iterator_for_lang_then_book_1c,
@@ -392,6 +419,15 @@ def assembly_factory_for_lang_then_book_strategy(
             False,
             True,
             True,
+            True,
+            model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
+        ): assemble_by_usfm_as_iterator_for_lang_then_book_1c_c,
+        (
+            True,
+            False,
+            False,
+            True,
+            False,
             True,
             model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
         ): assemble_by_usfm_as_iterator_for_lang_then_book_1c_c,
@@ -1159,7 +1195,7 @@ def assembly_factory_for_lang_then_book_strategy(
             False,
             False,
             model.AssemblyLayoutEnum.ONE_COLUMN,
-        ): assemble_tn_as_iterator_for_lang_then_book,
+        ): assemble_tn_as_iterator_for_lang_then_book_1c,
         (
             False,
             True,
@@ -1168,7 +1204,7 @@ def assembly_factory_for_lang_then_book_strategy(
             False,
             True,
             model.AssemblyLayoutEnum.ONE_COLUMN,
-        ): assemble_tn_as_iterator_for_lang_then_book,
+        ): assemble_tn_as_iterator_for_lang_then_book_1c,
         (
             False,
             True,
@@ -1177,7 +1213,7 @@ def assembly_factory_for_lang_then_book_strategy(
             False,
             False,
             model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
-        ): assemble_tn_as_iterator_for_lang_then_book,
+        ): assemble_tn_as_iterator_for_lang_then_book_1c_c,
         (
             False,
             True,
@@ -1186,7 +1222,7 @@ def assembly_factory_for_lang_then_book_strategy(
             False,
             True,
             model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
-        ): assemble_tn_as_iterator_for_lang_then_book,
+        ): assemble_tn_as_iterator_for_lang_then_book_1c_c,
         (
             False,
             True,
@@ -1195,7 +1231,7 @@ def assembly_factory_for_lang_then_book_strategy(
             False,
             False,
             model.AssemblyLayoutEnum.ONE_COLUMN,
-        ): assemble_tn_as_iterator_for_lang_then_book,
+        ): assemble_tn_as_iterator_for_lang_then_book_1c,
         (
             False,
             True,
@@ -1204,7 +1240,7 @@ def assembly_factory_for_lang_then_book_strategy(
             False,
             True,
             model.AssemblyLayoutEnum.ONE_COLUMN,
-        ): assemble_tn_as_iterator_for_lang_then_book,
+        ): assemble_tn_as_iterator_for_lang_then_book_1c,
         (
             False,
             True,
@@ -1213,7 +1249,7 @@ def assembly_factory_for_lang_then_book_strategy(
             False,
             False,
             model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
-        ): assemble_tn_as_iterator_for_lang_then_book,
+        ): assemble_tn_as_iterator_for_lang_then_book_1c_c,
         (
             False,
             True,
@@ -1222,7 +1258,7 @@ def assembly_factory_for_lang_then_book_strategy(
             False,
             True,
             model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
-        ): assemble_tn_as_iterator_for_lang_then_book,
+        ): assemble_tn_as_iterator_for_lang_then_book_1c_c,
         (
             False,
             True,
@@ -1231,7 +1267,7 @@ def assembly_factory_for_lang_then_book_strategy(
             False,
             False,
             model.AssemblyLayoutEnum.ONE_COLUMN,
-        ): assemble_tn_as_iterator_for_lang_then_book,
+        ): assemble_tn_as_iterator_for_lang_then_book_1c,
         (
             False,
             True,
@@ -1240,7 +1276,7 @@ def assembly_factory_for_lang_then_book_strategy(
             False,
             True,
             model.AssemblyLayoutEnum.ONE_COLUMN,
-        ): assemble_tn_as_iterator_for_lang_then_book,
+        ): assemble_tn_as_iterator_for_lang_then_book_1c,
         (
             False,
             True,
@@ -1249,7 +1285,7 @@ def assembly_factory_for_lang_then_book_strategy(
             False,
             False,
             model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
-        ): assemble_tn_as_iterator_for_lang_then_book,
+        ): assemble_tn_as_iterator_for_lang_then_book_1c_c,
         (
             False,
             True,
@@ -1258,7 +1294,7 @@ def assembly_factory_for_lang_then_book_strategy(
             False,
             True,
             model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
-        ): assemble_tn_as_iterator_for_lang_then_book,
+        ): assemble_tn_as_iterator_for_lang_then_book_1c_c,
         (
             False,
             False,
@@ -1267,7 +1303,7 @@ def assembly_factory_for_lang_then_book_strategy(
             False,
             False,
             model.AssemblyLayoutEnum.ONE_COLUMN,
-        ): assemble_tq_tw_for_lang_then_book,
+        ): assemble_tq_tw_for_lang_then_book_1c,
         (
             False,
             False,
@@ -1276,7 +1312,7 @@ def assembly_factory_for_lang_then_book_strategy(
             False,
             True,
             model.AssemblyLayoutEnum.ONE_COLUMN,
-        ): assemble_tq_tw_for_lang_then_book,
+        ): assemble_tq_tw_for_lang_then_book_1c,
         (
             False,
             False,
@@ -1285,7 +1321,7 @@ def assembly_factory_for_lang_then_book_strategy(
             False,
             False,
             model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
-        ): assemble_tq_tw_for_lang_then_book,
+        ): assemble_tq_tw_for_lang_then_book_1c_c,
         (
             False,
             False,
@@ -1294,7 +1330,7 @@ def assembly_factory_for_lang_then_book_strategy(
             False,
             True,
             model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
-        ): assemble_tq_tw_for_lang_then_book,
+        ): assemble_tq_tw_for_lang_then_book_1c_c,
         (
             False,
             False,
@@ -1375,7 +1411,7 @@ def assembly_factory_for_lang_then_book_strategy(
             False,
             False,
             model.AssemblyLayoutEnum.ONE_COLUMN,
-        ): assemble_tn_as_iterator_for_lang_then_book,
+        ): assemble_tn_as_iterator_for_lang_then_book_1c,
         (
             False,
             True,
@@ -1384,7 +1420,7 @@ def assembly_factory_for_lang_then_book_strategy(
             False,
             False,
             model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
-        ): assemble_tn_as_iterator_for_lang_then_book,
+        ): assemble_tn_as_iterator_for_lang_then_book_1c_c,
     }
     # logger.debug(
     #     "usfm_book_content_unit is not None: %s", usfm_book_content_unit is not None
@@ -3172,15 +3208,6 @@ def assemble_by_usfm_as_iterator_for_lang_then_book_1c_c(
                         tq_verses[verse_num],
                     )
 
-                # if tw_book_content_unit:
-                #     # Add the translation words links section.
-                #     yield from translation_word_links(
-                #         tw_book_content_unit,
-                #         chapter_num,
-                #         verse_num,
-                #         verse,
-                #     )
-
             # Add scripture footnotes if available
             if chapter.footnotes:
                 yield footnotes_heading
@@ -3420,14 +3447,6 @@ def assemble_usfm_tq_tw_for_lang_then_book_1c_c(
                         verse_num,
                         tq_verses[verse_num],
                     )
-                # if tw_book_content_unit:
-                #     # Add the translation words links section
-                #     yield from translation_word_links(
-                #         tw_book_content_unit,
-                #         chapter_num,
-                #         verse_num,
-                #         verse,
-                #     )
 
             # Add scripture footnotes if available
             if chapter.footnotes:
@@ -3600,15 +3619,6 @@ def assemble_usfm_tw_for_lang_then_book_1c_c(
                 # Add scripture verse
                 yield verse
 
-                # if tw_book_content_unit:
-                #     # Add the translation words links section
-                #     yield from translation_word_links(
-                #         tw_book_content_unit,
-                #         chapter_num,
-                #         verse_num,
-                #         verse,
-                #     )
-
             # Add scripture footnotes if available
             if chapter.footnotes:
                 yield footnotes_heading
@@ -3741,7 +3751,7 @@ def assemble_usfm_tq_for_lang_then_book_1c(
                 yield chapter.footnotes
 
 
-def assemble_tn_as_iterator_for_lang_then_book(
+def assemble_tn_as_iterator_for_lang_then_book_1c(
     usfm_book_content_unit: Optional[model.USFMBook],
     tn_book_content_unit: Optional[model.TNBook],
     tq_book_content_unit: Optional[model.TQBook],
@@ -3819,6 +3829,75 @@ def assemble_tn_as_iterator_for_lang_then_book(
                         )
 
 
+def assemble_tn_as_iterator_for_lang_then_book_1c_c(
+    usfm_book_content_unit: Optional[model.USFMBook],
+    tn_book_content_unit: Optional[model.TNBook],
+    tq_book_content_unit: Optional[model.TQBook],
+    tw_book_content_unit: Optional[model.TWBook],
+    usfm_book_content_unit2: Optional[model.USFMBook],
+    bc_book_content_unit: Optional[model.BCBook],
+    chapter_header_fmt_str: str = settings.CHAPTER_HEADER_FMT_STR,
+    book_numbers: Mapping[str, str] = bible_books.BOOK_NUMBERS,
+    num_zeros: int = NUM_ZEROS,
+) -> Iterable[model.HtmlContent]:
+    """
+    Construct the HTML for a 'by verse' strategy wherein only TN, TQ,
+    and TW exists.
+    """
+    if tn_book_content_unit:
+        yield from tn_book_intro(tn_book_content_unit)
+
+        for chapter_num in tn_book_content_unit.chapters:
+            # How to get chapter heading for Translation notes when USFM is not
+            # requested? For now we'll use non-localized chapter heading. Add in the
+            # USFM chapter heading.
+            yield model.HtmlContent(
+                chapter_header_fmt_str.format(
+                    tn_book_content_unit.lang_code,
+                    book_numbers[tn_book_content_unit.resource_code].zfill(num_zeros),
+                    str(chapter_num).zfill(num_zeros),
+                    chapter_num,
+                )
+            )
+
+            # Add the translation notes chapter intro.
+            yield chapter_intro(tn_book_content_unit, chapter_num)
+
+            if bc_book_content_unit:
+                # Add the chapter commentary.
+                yield chapter_commentary(bc_book_content_unit, chapter_num)
+
+            tn_verses = verses_for_chapter_tn(tn_book_content_unit, chapter_num)
+            tq_verses = None
+            if tq_book_content_unit:
+                tq_verses = verses_for_chapter_tq(tq_book_content_unit, chapter_num)
+
+            # PEP526 disallows declaration of types in for loops, but allows this.
+            verse_num: str
+            verse: model.HtmlContent
+            # Now let's get all the verse level content.
+            # iterator = tn_verses or tq_verses
+            # if iterator:
+            if tn_verses:
+                for verse_num, verse in tn_verses.items():
+                    # Add TN verse content, if any
+                    if tn_verses and verse_num in tn_verses:
+                        yield from format_tn_verse(
+                            tn_book_content_unit,
+                            chapter_num,
+                            verse_num,
+                            tn_verses[verse_num],
+                        )
+
+                    # Add TQ verse content, if any
+                    if tq_book_content_unit and tq_verses and verse_num in tq_verses:
+                        yield from format_tq_verse(
+                            tq_book_content_unit.resource_type_name,
+                            chapter_num,
+                            verse_num,
+                            tq_verses[verse_num],
+                        )
+
 
 def assemble_tq_as_iterator_for_lang_then_book(
     usfm_book_content_unit: Optional[model.USFMBook],
@@ -3869,7 +3948,7 @@ def assemble_tq_as_iterator_for_lang_then_book(
                     )
 
 
-def assemble_tq_tw_for_lang_then_book(
+def assemble_tq_tw_for_lang_then_book_1c(
     usfm_book_content_unit: Optional[model.USFMBook],
     tn_book_content_unit: Optional[model.TNBook],
     tq_book_content_unit: Optional[model.TQBook],
@@ -3928,6 +4007,58 @@ def assemble_tq_tw_for_lang_then_book(
                         )
 
 
+def assemble_tq_tw_for_lang_then_book_1c_c(
+    usfm_book_content_unit: Optional[model.USFMBook],
+    tn_book_content_unit: Optional[model.TNBook],
+    tq_book_content_unit: Optional[model.TQBook],
+    tw_book_content_unit: Optional[model.TWBook],
+    usfm_book_content_unit2: Optional[model.USFMBook],
+    bc_book_content_unit: Optional[model.BCBook],
+    chapter_header_fmt_str: str = settings.CHAPTER_HEADER_FMT_STR,
+    book_numbers: Mapping[str, str] = bible_books.BOOK_NUMBERS,
+    num_zeros: int = NUM_ZEROS,
+) -> Iterable[model.HtmlContent]:
+    """
+    Construct the HTML for a 'by verse' strategy wherein only TQ and
+    TW exists.
+    """
+
+    if tq_book_content_unit:
+        for chapter_num in tq_book_content_unit.chapters:
+            if bc_book_content_unit:
+                # Add chapter commmentary.
+                yield chapter_commentary(bc_book_content_unit, chapter_num)
+            # How to get chapter heading for Translation questions when there is
+            # not USFM requested? For now we'll use non-localized chapter heading.
+            # Add in the USFM chapter heading.
+            yield model.HtmlContent(
+                chapter_header_fmt_str.format(
+                    tq_book_content_unit.lang_code,
+                    book_numbers[tq_book_content_unit.resource_code].zfill(num_zeros),
+                    str(chapter_num).zfill(num_zeros),
+                    chapter_num,
+                )
+            )
+
+            # Get TQ chapter verses
+            tq_verses = verses_for_chapter_tq(tq_book_content_unit, chapter_num)
+
+            # PEP526 disallows declaration of types in for loops, but allows this.
+            verse_num: str
+            verse: model.HtmlContent
+            # Now let's get all the verse translation notes available.
+            if tq_verses:
+                for verse_num, verse in tq_verses.items():
+                    yield from format_tq_verse(
+                        tq_book_content_unit.resource_type_name,
+                        chapter_num,
+                        verse_num,
+                        verse,
+                    )
+
+
+# FIXME Eventually remove this. When you do you will have to also
+# remove its entries from its respective dispatch table.
 def assemble_tw_as_iterator_for_lang_then_book(
     usfm_book_content_unit: Optional[model.USFMBook],
     tn_book_content_unit: Optional[model.TNBook],
@@ -3937,6 +4068,7 @@ def assemble_tw_as_iterator_for_lang_then_book(
     bc_book_content_unit: Optional[model.BCBook],
 ) -> Iterable[model.HtmlContent]:
     """Construct the HTML for a 'by verse' strategy wherein only TW exists."""
+    yield model.HtmlContent("")
 
 
 #########################################################################
@@ -4117,7 +4249,6 @@ def assemble_usfm_as_iterator_for_book_then_lang_2c_sl_hr(
                     chapter_num,
                 )
                 logger.exception("Caught exception:")
-
 
 
 def languages_in_books(
@@ -4495,7 +4626,6 @@ def assemble_usfm_as_iterator_for_book_then_lang_2c_sl_sr(
                 logger.exception("Caught exception:")
 
 
-
 def assemble_usfm_as_iterator_for_book_then_lang_1c(
     usfm_book_content_units: Sequence[model.USFMBook],
     tn_book_content_units: Sequence[model.TNBook],
@@ -4681,7 +4811,6 @@ def assemble_usfm_as_iterator_for_book_then_lang_1c(
                 logger.exception("Caught exception:")
 
 
-
 def assemble_usfm_as_iterator_for_book_then_lang_1c_c(
     usfm_book_content_units: Sequence[model.USFMBook],
     tn_book_content_units: Sequence[model.TNBook],
@@ -4831,7 +4960,6 @@ def assemble_usfm_as_iterator_for_book_then_lang_1c_c(
                 logger.exception("Caught exception:")
 
 
-
 def assemble_tn_as_iterator_for_book_then_lang(
     usfm_book_content_units: Sequence[model.USFMBook],
     tn_book_content_units: Sequence[model.TNBook],
@@ -4958,7 +5086,6 @@ def assemble_tn_as_iterator_for_book_then_lang(
                     )
 
 
-
 def assemble_tn_as_iterator_for_book_then_lang_c(
     usfm_book_content_units: Sequence[model.USFMBook],
     tn_book_content_units: Sequence[model.TNBook],
@@ -5051,8 +5178,6 @@ def assemble_tn_as_iterator_for_book_then_lang_c(
                         tq_verses[verse_num],
                     )
 
-    # Add the translation word definitions
-
 
 def assemble_tq_as_iterator_for_book_then_lang(
     usfm_book_content_units: Sequence[model.USFMBook],
@@ -5143,7 +5268,6 @@ def assemble_tq_as_iterator_for_book_then_lang(
                     )
 
 
-
 def assemble_tq_as_iterator_for_book_then_lang_c(
     usfm_book_content_units: Sequence[model.USFMBook],
     tn_book_content_units: Sequence[model.TNBook],
@@ -5202,7 +5326,6 @@ def assemble_tq_as_iterator_for_book_then_lang_c(
                     )
 
 
-
 def assemble_tw_as_iterator_for_book_then_lang(
     usfm_book_content_units: Sequence[model.USFMBook],
     tn_book_content_units: Sequence[model.TNBook],
@@ -5222,13 +5345,6 @@ def assemble_tw_as_iterator_for_book_then_lang(
         yield bc_book_content_unit.book_intro
         for chapter in bc_book_content_unit.chapters.values():
             yield chapter.commentary
-
-    # Add the translation word definitions
-    for tw_book_content_unit in tw_book_content_units:
-        # Add the translation words definition section.
-        yield from translation_words_section(
-            tw_book_content_unit, include_uses_section=False
-        )
 
 
 ######################
@@ -5542,5 +5658,3 @@ def translation_word_links(
         yield model.HtmlContent("\n".join(uses_list_items))
         # End list formatting
         yield unordered_list_end_str
-
-
