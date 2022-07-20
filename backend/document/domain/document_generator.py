@@ -684,8 +684,7 @@ def copy_docx_to_docker_output_dir(
 
 def main(document_request: model.DocumentRequest) -> str:
     """
-    This is the main entry point for this module and the
-    backend system as a whole.
+    This is the main entry point for this module.
     """
     # If an assembly_layout_kind has been chosen in the document request,
     # then we know that the request originated from a unit test. The UI does
