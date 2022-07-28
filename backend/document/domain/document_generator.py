@@ -459,10 +459,14 @@ def send_email_with_attachment(
 def convert_html_to_pdf(
     html_filepath: str,
     pdf_filepath: str,
-    wkhtmltopdf_options: Mapping[str, Optional[str]] = settings.WKHTMLTOPDF_OPTIONS,
+    wkhtmltopdf_options: dict[str, Optional[str]] = settings.WKHTMLTOPDF_OPTIONS,
 ) -> None:
     """Generate PDF from HTML."""
     assert os.path.exists(html_filepath)
+    # Create generated on string for use in PDF document header.
+    wkhtmltopdf_options["header-center"] = "generated on {}".format(
+        datetime.datetime.now().strftime("%b %d, %Y at %H:%M:%S")
+    )
     pdfkit.from_file(
         html_filepath,
         pdf_filepath,
