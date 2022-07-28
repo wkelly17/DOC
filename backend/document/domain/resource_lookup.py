@@ -570,9 +570,9 @@ def lang_codes_names_and_resource_types(
     >>> settings.IN_CONTAINER = False
     >>> from document.domain import resource_lookup
     >>> data = resource_lookup.lang_codes_names_and_resource_types()
-    Lookup the resource types available for zh
-    >>> [pair[2] for pair in data if pair[0] == "zh"]
-    [['cuv', 'tn', 'tq', 'tw']]
+    >>> # Lookup the resource types available for zh
+    >>> [triplet.resource_types for triplet in data if triplet.lang_code == "zh"][-1]
+    ['cuv', 'tn', 'tq', 'tw']
     """
     # Using jsonpath in a loop here was prohibitively slow so we
     # use the dictionary in this case.
@@ -607,9 +607,9 @@ def lang_codes_names_resource_types_and_resource_codes(
     >>> settings.IN_CONTAINER = False
     >>> from document.domain import resource_lookup
     >>> data = resource_lookup.lang_codes_names_resource_types_and_resource_codes()
-    Lookup the resource type available for zh
-    >>> [pair[2] for pair in data if pair[0] == "zh"]
-    [[('cuv', ['gen', 'exo', 'lev', 'num', 'deu', 'jos', 'jdg', 'rut',
+    >>> # Lookup the resource type available for zh
+    >>> [triplet[2] for triplet in data if triplet[0] == "zh"][-1] # doctest: +NORMALIZE_WHITESPACE
+    [('cuv', ['gen', 'exo', 'lev', 'num', 'deu', 'jos', 'jdg', 'rut',
     '1sa', '2sa', '1ki', '2ki', '1ch', '2ch', 'ezr', 'neh', 'est',
     'job', 'psa', 'pro', 'ecc', 'sng', 'isa', 'jer', 'lam', 'ezk',
     'dan', 'hos', 'jol', 'amo', 'oba', 'jon', 'mic', 'nam', 'hab',
@@ -617,7 +617,7 @@ def lang_codes_names_resource_types_and_resource_codes(
     'rom', '1co', '2co', 'gal', 'eph', 'php', 'col', '1th', '2th',
     '1ti', '2ti', 'tit', 'phm', 'heb', 'jas', '1pe', '2pe', '1jn',
     '2jn', '3jn', 'jud', 'rev']), ('tn', []), ('tq', []), ('tw',
-    [])]]
+    [])]
     """
     # Using jsonpath in a loop here was prohibitively slow so we
     # use the dictionary in this case.
@@ -676,29 +676,30 @@ def lang_codes_names_and_contents_codes(
             ...
 
     Example usage in repl:
+    >>> from document.config import settings
+    >>> settings.IN_CONTAINER = False
     >>> from document.domain import resource_lookup
     >>> data = resource_lookup.lang_codes_names_and_contents_codes()
-    >>> [(pair[0], pair[1]) for pair in data if pair[2] == "nil"]
-    [('grc', 'Ancient Greek'), ('acq', 'لهجة تعزية-عدنية'), ('gaj-x-ymnk', 'Gadsup Yomunka'), ('mve', 'مارواري (Pakistan)'), ('lus', 'Lushai'), ('mor', 'Moro'), ('tig', 'Tigre')]
-    # Other possible queries:
-    >>> [(pair[0], pair[1]) for pair in data if pair[2] == "reg"]
-    >>> [(pair[0], pair[1]) for pair in data if pair[2] == "ulb"]
-    >>> [(pair[0], pair[1]) for pair in data if pair[2] == "cuv"]
-    >>> [(pair[0], pair[1]) for pair in data if pair[2] == "udb"]
-    >>> [(pair[0], pair[1]) for pair in data if pair[2] == "udb"]
-    # Lookup the resource type available for zh
-    >>> [pair[2] for pair in data if pair[0] == "zh"]
+    >>> [(triplet[0], triplet[1]) for triplet in data if triplet[2] == "nil"]
+    [('hr', 'hrvatski jezik'), ('gaj-x-ymnk', 'Gadsup Yomunka'), ('hu', 'magyar'), ('mve', 'مارواري (Pakistan)'), ('lus', 'Lushai'), ('mor', 'Moro'), ('sr-Latn', 'Serbian'), ('tem', 'Timne'), ('tig', 'Tigre')]
+    >>> # Other possible queries:
+    >>> # [(triplet[0], triplet[1]) for triplet in data if triplet[2] == "reg"]
+    >>> # [(triplet[0], triplet[1]) for triplet in data if triplet[2] == "ulb"]
+    >>> # [(triplet[0], triplet[1]) for triplet in data if triplet[2] == "cuv"]
+    >>> # [(triplet[0], triplet[1]) for triplet in data if triplet[2] == "udb"]
+    >>> # [(triplet[0], triplet[1]) for triplet in data if triplet[2] == "udb"]
+    >>> # Lookup the resource type available for zh
+    >>> [triplet[2] for triplet in data if triplet[0] == "zh"]
     ['cuv']
-    >>> data = sorted(data, key=lambda tuple: tuple[2])
+    >>> data = sorted(data, key=lambda triplet: triplet[2])
     >>> import itertools
-    >>> [tuple[0] for tuple in list(itertools.groupby(data, key=lambda tuple: tuple[2]))]
-    # 'nil' is None
-    >>> ['cuv', 'dkl', 'kar', 'nil', 'pdb', 'reg', 'rg', 'tn', 'tw', 'udb', 'ugnt', 'uhb', 'ulb', 'ulb-wa', 'ust']
-    >>> for resource_type in [tuple[0] for tuple in list(itertools.groupby(data, key=lambda tuple: tuple[2]))]:
-    ...   [(resource_type, pair[0], pair[1]) for pair in data if pair[2] == resource_type]
-    ...
-    # See <project dir>/lang_codes_names_and_contents_codes_groups.json for
-    output dumped to json format.
+    >>> [triplet[0] for triplet in list(itertools.groupby(data, key=lambda triplet: triplet[2]))]
+    ['cuv', 'nil', 'reg', 'rg', 'tn', 'tw', 'udb', 'ugnt', 'uhb', 'ulb', 'ulb-wa']
+    >>> # 'nil' is None
+    >>> # Another example query
+    # >>> for resource_type in [triplet[0] for triplet in list(itertools.groupby(data, key=lambda triplet: triplet[2]))]:
+    # ...   [(resource_type, triplet[0], triplet[1]) for triplet in data if triplet[2] == resource_type]
+    >>> # See <project dir>/lang_codes_names_and_contents_codes_groups.json for output dumped to json format.
     """
     lang_codes_names_and_contents_codes: list[tuple[str, str, str]] = []
     # Using jsonpath in a loop here was prohibitively slow so we
@@ -931,3 +932,16 @@ def is_git(
 ) -> bool:
     """Return true if resource_source is equal to 'git'."""
     return resource_source == asset_source_enum_kind
+
+
+if __name__ == "__main__":
+
+    # To run the doctests in the this module, in the root of the project do:
+    # python backend/document/domain/resource_lookup.py
+    # or
+    # python backend/document/domain/resource_lookup.py -v
+    # See https://docs.python.org/3/library/doctest.html
+    # for more details.
+    import doctest
+
+    doctest.testmod()
