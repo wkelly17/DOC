@@ -309,11 +309,18 @@ def assemble_content(
     content = "".join(
         assembly_strategy(book_content_units, document_request.assembly_layout_kind)
     )
-    tw_book_content_units = [
+    tw_book_content_units = (
         book_content_unit
         for book_content_unit in book_content_units
         if isinstance(book_content_unit, model.TWBook)
-    ]
+    )
+    # Don't allow duplicate languages for tw words. We'd use list(set()) or
+    # toolz.itertoolz.unique, but model.TWWord is not hashable and therefore
+    # cannot be put in a set.
+    unique_tw_book_content_units = []
+    for tw_book_content_unit in tw_book_content_units:
+        if tw_book_content_unit not in unique_tw_book_content_units:
+            unique_tw_book_content_units.append(tw_book_content_unit)
 
     # We need to see if the document request included any usfm because
     # if it did we'll generate not only the tw word defs but also the
@@ -325,7 +332,7 @@ def assemble_content(
         if isinstance(book_content_unit, model.USFMBook)
     ]
     # Add the translation words definition section for each language requested.
-    for tw_book_content_unit in tw_book_content_units:
+    for tw_book_content_unit in unique_tw_book_content_units:
         if usfm_book_content_units:
             # There is usfm content in this document request so we can
             # include the uses section in notes which links to individual word
