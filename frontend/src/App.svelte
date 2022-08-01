@@ -8,6 +8,10 @@
 
   import otBooks from './data/ot_books'
 
+  import Router from 'svelte-spa-router'
+  import routes from './routes.js'
+  import Navbar from './components/Navbar.svelte'
+
   // Wizard components
   // https://github.com/MirrorBytes/MultiStep/tree/main/step-4/src/components
   // FIXME If I use other form elements than select and input then I
@@ -56,15 +60,15 @@
 
   // Language 0
 
-  async function getLang0CodesAndNames(): Promise<string[]> {
-    const response = await fetch(API_ROOT_URL + LANGUAGE_CODES_AND_NAMES)
-    const json = await response.json()
-    if (response.ok) {
-      return <string[]>json
-    } else {
-      throw new Error(json)
-    }
-  }
+  // async function getLang0CodesAndNames(): Promise<string[]> {
+  //   const response = await fetch(API_ROOT_URL + LANGUAGE_CODES_AND_NAMES)
+  //   const json = await response.json()
+  //   if (response.ok) {
+  //     return <string[]>json
+  //   } else {
+  //     throw new Error(json)
+  //   }
+  // }
 
   async function getLang0ResourceTypesAndNames(langCode: string): Promise<string[]> {
     const response = await fetch(
@@ -283,327 +287,332 @@
   }
 </script>
 
-<main>
-  <div class="forms">
-    <div>
-      <h2>{import.meta.env.VITE_TOP_H2_HEADER}</h2>
+<Navbar />
+<div class="container mx-auto w-full lg:w-3/5 px-2 pt-2 mt-2">
+  <Router {routes} />
+</div>
 
-      <form on:submit|preventDefault={submit}>
-        <div>
-          {#await getLang0CodesAndNames()}
-            <LoadingIndicator />
-          {:then data}
-            <Autocomplete
-              items={data.map(function (element) {
-                return element[1]
-              })}
-              bind:selectedItem={lang0NameAndCode}
-            />
-          {:catch error}
-            <p class="error">{error.message}</p>
-          {/await}
-        </div>
-        {#if !isEmpty(lang0NameAndCode)}
-          {@const lang0Code = extractLanguageCode(lang0NameAndCode)}
-          <div>
-            {#await getLang0ResourceTypesAndNames(lang0Code)}
-              <LoadingIndicator />
-            {:then data}
-              <h3>{import.meta.env.VITE_LANG_0_RESOURCE_TYPES_HEADER}</h3>
-              <ul>
-                {#each data as resourceType, i}
-                  <li>
-                    <label for="lang0-resourcetype-{i}">{resourceType[1]}</label>
-                    <input
-                      id="lang0-resourcetype-{i}"
-                      type="checkbox"
-                      bind:group={lang0ResourceTypes}
-                      value={resourceType[0]}
-                      class="checkbox"
-                    />
-                  </li>
-                {/each}
-              </ul>
-            {:catch error}
-              <p class="error">{error.message}</p>
-            {/await}
-          </div>
-        {/if}
+<!-- <main> -->
+<!--   <div class="forms"> -->
+<!--     <div> -->
+<!--       <h2>{import.meta.env.VITE_TOP_H2_HEADER}</h2> -->
 
-        {#if !isEmpty(lang0NameAndCode) && lang0ResourceTypes?.length > 0}
-          {@const lang0Code = extractLanguageCode(lang0NameAndCode)}
-          <div>
-            {#await getLang0ResourceCodes(lang0Code)}
-              <LoadingIndicator />
-            {:then data}
-              {@const otBooksInLang0 = data.filter(function (element) {
-                return otBooks.includes(element[0])
-              })}
-              {@const ntBooksInLang0 = data.filter(function (element) {
-                return !otBooks.includes(element[0])
-              })}
-              <h3>{import.meta.env.VITE_LANG_0_RESOURCE_CODES_HEADER}</h3>
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <h3>Old Testament</h3>
-                  <ul>
-                    {#each otBooksInLang0 as resourceCodeAndName, i}
-                      <li>
-                        <label for="lang0-resourcecode-ot-{i}"
-                          >{resourceCodeAndName[1]}</label
-                        >
-                        <input
-                          id="lang0-resourcecode-ot-{i}"
-                          type="checkbox"
-                          bind:group={lang0ResourceCodes}
-                          value={resourceCodeAndName[0]}
-                          class="checkbox"
-                        />
-                      </li>
-                    {/each}
-                  </ul>
-                </div>
-                <div>
-                  <h3>New Testament</h3>
-                  <ul>
-                    {#each ntBooksInLang0 as resourceCodeAndName, i}
-                      <li>
-                        <label for="lang0-resourcecode-nt-{i}"
-                          >{resourceCodeAndName[1]}</label
-                        >
-                        <input
-                          id="lang0-resourcecode-nt-{i}"
-                          type="checkbox"
-                          bind:group={lang0ResourceCodes}
-                          value={resourceCodeAndName[0]}
-                          class="checkbox"
-                        />
-                      </li>
-                    {/each}
-                  </ul>
-                </div>
-              </div>
-            {:catch error}
-              <p class="error">{error.message}</p>
-            {/await}
-          </div>
-        {/if}
+<!--       <form on:submit|preventDefault={submit}> -->
+<!--         <div> -->
+<!--           {#await getLang0CodesAndNames()} -->
+<!--             <LoadingIndicator /> -->
+<!--           {:then data} -->
+<!--             <Autocomplete -->
+<!--               items={data.map(function (element) { -->
+<!--                 return element[1] -->
+<!--               })} -->
+<!--               bind:selectedItem={lang0NameAndCode} -->
+<!--             /> -->
+<!--           {:catch error} -->
+<!--             <p class="error">{error.message}</p> -->
+<!--           {/await} -->
+<!--         </div> -->
+<!--         {#if !isEmpty(lang0NameAndCode)} -->
+<!--           {@const lang0Code = extractLanguageCode(lang0NameAndCode)} -->
+<!--           <div> -->
+<!--             {#await getLang0ResourceTypesAndNames(lang0Code)} -->
+<!--               <LoadingIndicator /> -->
+<!--             {:then data} -->
+<!--               <h3>{import.meta.env.VITE_LANG_0_RESOURCE_TYPES_HEADER}</h3> -->
+<!--               <ul> -->
+<!--                 {#each data as resourceType, i} -->
+<!--                   <li> -->
+<!--                     <label for="lang0-resourcetype-{i}">{resourceType[1]}</label> -->
+<!--                     <input -->
+<!--                       id="lang0-resourcetype-{i}" -->
+<!--                       type="checkbox" -->
+<!--                       bind:group={lang0ResourceTypes} -->
+<!--                       value={resourceType[0]} -->
+<!--                       class="checkbox" -->
+<!--                     /> -->
+<!--                   </li> -->
+<!--                 {/each} -->
+<!--               </ul> -->
+<!--             {:catch error} -->
+<!--               <p class="error">{error.message}</p> -->
+<!--             {/await} -->
+<!--           </div> -->
+<!--         {/if} -->
 
-        {#if !isEmpty(lang0NameAndCode) && lang0ResourceTypes?.length > 0 && lang0ResourceCodes?.length > 0}
-          <button
-            disabled={showAnotherLang}
-            on:click|preventDefault={handleAddLang}
-            class="btn">{import.meta.env.VITE_ADD_ANOTHER_LANGUAGE_BUTTON_TXT}</button
-          >
-        {/if}
-        {#if showAnotherLang}
-          <div>
-            <h3>{import.meta.env.VITE_LANG_1_HEADER}</h3>
-            {#await getLang1CodesAndNames()}
-              <LoadingIndicator />
-            {:then data}
-              <Autocomplete
-                items={data.map(function (element) {
-                  return element[1]
-                })}
-                bind:selectedItem={lang1NameAndCode}
-              />
-            {:catch error}
-              <p class="error">{error.message}</p>
-            {/await}
-          </div>
-        {/if}
-        {#if !isEmpty(lang1NameAndCode)}
-          {@const lang1Code = extractLanguageCode(lang1NameAndCode)}
-          <div>
-            {#await getLang1ResourceTypesAndNames(lang1Code)}
-              <LoadingIndicator />
-            {:then data}
-              <h3>{import.meta.env.VITE_LANG_1_RESOURCE_TYPES_HEADER}</h3>
-              <ul>
-                {#each data as resourceType, i}
-                  <li>
-                    <label for="lang0-resourcetype-{i}">{resourceType[1]}</label>
-                    <input
-                      id="lang0-resourcetype-{i}"
-                      type="checkbox"
-                      bind:group={lang1ResourceTypes}
-                      value={resourceType[0]}
-                      class="checkbox"
-                    />
-                  </li>
-                {/each}
-              </ul>
-            {:catch error}
-              <p class="error">{error.message}</p>
-            {/await}
-          </div>
-        {/if}
-        {#if !isEmpty(lang1NameAndCode) && lang1ResourceTypes?.length > 0}
-          {@const lang1Code = extractLanguageCode(lang1NameAndCode)}
-          <div>
-            {#await getLang1ResourceCodes(lang1Code)}
-              <LoadingIndicator />
-            {:then data}
-              {@const otBooksInLang1 = data.filter(function (element) {
-                return otBooks.includes(element[0])
-              })}
-              {@const ntBooksInLang1 = data.filter(function (element) {
-                return !otBooks.includes(element[0])
-              })}
-              <h3>{import.meta.env.VITE_LANG_1_RESOURCE_CODES_HEADER}</h3>
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <h3>Old Testament</h3>
-                  <ul>
-                    {#each otBooksInLang1 as resourceCodeAndName, i}
-                      <li>
-                        <label for="lang1-resourcecode-ot-{i}"
-                          >{resourceCodeAndName[1]}</label
-                        >
-                        <input
-                          id="lang1-resourcecode-ot-{i}"
-                          type="checkbox"
-                          bind:group={lang1ResourceCodes}
-                          value={resourceCodeAndName[0]}
-                          class="checkbox"
-                        />
-                      </li>
-                    {/each}
-                  </ul>
-                </div>
-                <div>
-                  <h3>New Testament</h3>
-                  <ul>
-                    {#each ntBooksInLang1 as resourceCodeAndName, i}
-                      <li>
-                        <label for="lang1-resourcecode-nt-{i}"
-                          >{resourceCodeAndName[1]}</label
-                        >
-                        <input
-                          id="lang1-resourcecode-nt-{i}"
-                          type="checkbox"
-                          bind:group={lang1ResourceCodes}
-                          value={resourceCodeAndName[0]}
-                          class="checkbox"
-                        />
-                      </li>
-                    {/each}
-                  </ul>
-                </div>
-              </div>
-            {:catch error}
-              <p class="error">{error.message}</p>
-            {/await}
-          </div>
-        {/if}
-        <div>
-          <label for="layoutForPrint">{import.meta.env.VITE_LAYOUT_FOR_PRINT_LABEL}</label
-          >
-          <input
-            id="layoutForPrint"
-            type="checkbox"
-            bind:checked={layoutForPrint}
-            class="toggle"
-          />
-        </div>
-        <div
-          class:assembly-strategy-invisible={lang1ResourceCodes === undefined ||
-            lang1ResourceCodes.length == 0 ||
-            layoutForPrint}
-        >
-          <AssemblyStrategyComponent bind:assemblyStrategy />
-        </div>
-        <div>
-          <label for="generatePdf">{import.meta.env.VITE_PDF_LABEL}</label>
-          <input
-            id="generatePdf"
-            type="checkbox"
-            bind:checked={generatePdf}
-            class="toggle"
-          />
-        </div>
-        <div>
-          <label for="generateEpub">{import.meta.env.VITE_EPUB_LABEL}</label>
-          <input
-            id="generateEpub"
-            type="checkbox"
-            bind:checked={generateEpub}
-            class="toggle"
-          />
-        </div>
-        <div>
-          <label for="generateDocx">{import.meta.env.VITE_DOCX_LABEL}</label>
-          <input
-            id="generateDocx"
-            type="checkbox"
-            bind:checked={generateDocx}
-            class="toggle"
-          />
-        </div>
+<!--         {#if !isEmpty(lang0NameAndCode) && lang0ResourceTypes?.length > 0} -->
+<!--           {@const lang0Code = extractLanguageCode(lang0NameAndCode)} -->
+<!--           <div> -->
+<!--             {#await getLang0ResourceCodes(lang0Code)} -->
+<!--               <LoadingIndicator /> -->
+<!--             {:then data} -->
+<!--               {@const otBooksInLang0 = data.filter(function (element) { -->
+<!--                 return otBooks.includes(element[0]) -->
+<!--               })} -->
+<!--               {@const ntBooksInLang0 = data.filter(function (element) { -->
+<!--                 return !otBooks.includes(element[0]) -->
+<!--               })} -->
+<!--               <h3>{import.meta.env.VITE_LANG_0_RESOURCE_CODES_HEADER}</h3> -->
+<!--               <div class="grid grid-cols-2 gap-4"> -->
+<!--                 <div> -->
+<!--                   <h3>Old Testament</h3> -->
+<!--                   <ul> -->
+<!--                     {#each otBooksInLang0 as resourceCodeAndName, i} -->
+<!--                       <li> -->
+<!--                         <label for="lang0-resourcecode-ot-{i}" -->
+<!--                           >{resourceCodeAndName[1]}</label -->
+<!--                         > -->
+<!--                         <input -->
+<!--                           id="lang0-resourcecode-ot-{i}" -->
+<!--                           type="checkbox" -->
+<!--                           bind:group={lang0ResourceCodes} -->
+<!--                           value={resourceCodeAndName[0]} -->
+<!--                           class="checkbox" -->
+<!--                         /> -->
+<!--                       </li> -->
+<!--                     {/each} -->
+<!--                   </ul> -->
+<!--                 </div> -->
+<!--                 <div> -->
+<!--                   <h3>New Testament</h3> -->
+<!--                   <ul> -->
+<!--                     {#each ntBooksInLang0 as resourceCodeAndName, i} -->
+<!--                       <li> -->
+<!--                         <label for="lang0-resourcecode-nt-{i}" -->
+<!--                           >{resourceCodeAndName[1]}</label -->
+<!--                         > -->
+<!--                         <input -->
+<!--                           id="lang0-resourcecode-nt-{i}" -->
+<!--                           type="checkbox" -->
+<!--                           bind:group={lang0ResourceCodes} -->
+<!--                           value={resourceCodeAndName[0]} -->
+<!--                           class="checkbox" -->
+<!--                         /> -->
+<!--                       </li> -->
+<!--                     {/each} -->
+<!--                   </ul> -->
+<!--                 </div> -->
+<!--               </div> -->
+<!--             {:catch error} -->
+<!--               <p class="error">{error.message}</p> -->
+<!--             {/await} -->
+<!--           </div> -->
+<!--         {/if} -->
 
-        <div class="fields">
-          <label for="email">{import.meta.env.VITE_EMAIL_LABEL}</label>
-          <input type="text" name="email" id="email" bind:value={email} />
-        </div>
-        <div style="margin-top:3em">
-          <button class="btn submit-button">Generate document</button>
-          <button class="btn reset-button">Reset</button>
-        </div>
-      </form>
+<!--         {#if !isEmpty(lang0NameAndCode) && lang0ResourceTypes?.length > 0 && lang0ResourceCodes?.length > 0} -->
+<!--           <button -->
+<!--             disabled={showAnotherLang} -->
+<!--             on:click|preventDefault={handleAddLang} -->
+<!--             class="btn">{import.meta.env.VITE_ADD_ANOTHER_LANGUAGE_BUTTON_TXT}</button -->
+<!--           > -->
+<!--         {/if} -->
+<!--         {#if showAnotherLang} -->
+<!--           <div> -->
+<!--             <h3>{import.meta.env.VITE_LANG_1_HEADER}</h3> -->
+<!--             {#await getLang1CodesAndNames()} -->
+<!--               <LoadingIndicator /> -->
+<!--             {:then data} -->
+<!--               <Autocomplete -->
+<!--                 items={data.map(function (element) { -->
+<!--                   return element[1] -->
+<!--                 })} -->
+<!--                 bind:selectedItem={lang1NameAndCode} -->
+<!--               /> -->
+<!--             {:catch error} -->
+<!--               <p class="error">{error.message}</p> -->
+<!--             {/await} -->
+<!--           </div> -->
+<!--         {/if} -->
+<!--         {#if !isEmpty(lang1NameAndCode)} -->
+<!--           {@const lang1Code = extractLanguageCode(lang1NameAndCode)} -->
+<!--           <div> -->
+<!--             {#await getLang1ResourceTypesAndNames(lang1Code)} -->
+<!--               <LoadingIndicator /> -->
+<!--             {:then data} -->
+<!--               <h3>{import.meta.env.VITE_LANG_1_RESOURCE_TYPES_HEADER}</h3> -->
+<!--               <ul> -->
+<!--                 {#each data as resourceType, i} -->
+<!--                   <li> -->
+<!--                     <label for="lang0-resourcetype-{i}">{resourceType[1]}</label> -->
+<!--                     <input -->
+<!--                       id="lang0-resourcetype-{i}" -->
+<!--                       type="checkbox" -->
+<!--                       bind:group={lang1ResourceTypes} -->
+<!--                       value={resourceType[0]} -->
+<!--                       class="checkbox" -->
+<!--                     /> -->
+<!--                   </li> -->
+<!--                 {/each} -->
+<!--               </ul> -->
+<!--             {:catch error} -->
+<!--               <p class="error">{error.message}</p> -->
+<!--             {/await} -->
+<!--           </div> -->
+<!--         {/if} -->
+<!--         {#if !isEmpty(lang1NameAndCode) && lang1ResourceTypes?.length > 0} -->
+<!--           {@const lang1Code = extractLanguageCode(lang1NameAndCode)} -->
+<!--           <div> -->
+<!--             {#await getLang1ResourceCodes(lang1Code)} -->
+<!--               <LoadingIndicator /> -->
+<!--             {:then data} -->
+<!--               {@const otBooksInLang1 = data.filter(function (element) { -->
+<!--                 return otBooks.includes(element[0]) -->
+<!--               })} -->
+<!--               {@const ntBooksInLang1 = data.filter(function (element) { -->
+<!--                 return !otBooks.includes(element[0]) -->
+<!--               })} -->
+<!--               <h3>{import.meta.env.VITE_LANG_1_RESOURCE_CODES_HEADER}</h3> -->
+<!--               <div class="grid grid-cols-2 gap-4"> -->
+<!--                 <div> -->
+<!--                   <h3>Old Testament</h3> -->
+<!--                   <ul> -->
+<!--                     {#each otBooksInLang1 as resourceCodeAndName, i} -->
+<!--                       <li> -->
+<!--                         <label for="lang1-resourcecode-ot-{i}" -->
+<!--                           >{resourceCodeAndName[1]}</label -->
+<!--                         > -->
+<!--                         <input -->
+<!--                           id="lang1-resourcecode-ot-{i}" -->
+<!--                           type="checkbox" -->
+<!--                           bind:group={lang1ResourceCodes} -->
+<!--                           value={resourceCodeAndName[0]} -->
+<!--                           class="checkbox" -->
+<!--                         /> -->
+<!--                       </li> -->
+<!--                     {/each} -->
+<!--                   </ul> -->
+<!--                 </div> -->
+<!--                 <div> -->
+<!--                   <h3>New Testament</h3> -->
+<!--                   <ul> -->
+<!--                     {#each ntBooksInLang1 as resourceCodeAndName, i} -->
+<!--                       <li> -->
+<!--                         <label for="lang1-resourcecode-nt-{i}" -->
+<!--                           >{resourceCodeAndName[1]}</label -->
+<!--                         > -->
+<!--                         <input -->
+<!--                           id="lang1-resourcecode-nt-{i}" -->
+<!--                           type="checkbox" -->
+<!--                           bind:group={lang1ResourceCodes} -->
+<!--                           value={resourceCodeAndName[0]} -->
+<!--                           class="checkbox" -->
+<!--                         /> -->
+<!--                       </li> -->
+<!--                     {/each} -->
+<!--                   </ul> -->
+<!--                 </div> -->
+<!--               </div> -->
+<!--             {:catch error} -->
+<!--               <p class="error">{error.message}</p> -->
+<!--             {/await} -->
+<!--           </div> -->
+<!--         {/if} -->
+<!--         <div> -->
+<!--           <label for="layoutForPrint">{import.meta.env.VITE_LAYOUT_FOR_PRINT_LABEL}</label -->
+<!--           > -->
+<!--           <input -->
+<!--             id="layoutForPrint" -->
+<!--             type="checkbox" -->
+<!--             bind:checked={layoutForPrint} -->
+<!--             class="toggle" -->
+<!--           /> -->
+<!--         </div> -->
+<!--         <div -->
+<!--           class:assembly-strategy-invisible={lang1ResourceCodes === undefined || -->
+<!--             lang1ResourceCodes.length == 0 || -->
+<!--             layoutForPrint} -->
+<!--         > -->
+<!--           <AssemblyStrategyComponent bind:assemblyStrategy /> -->
+<!--         </div> -->
+<!--         <div> -->
+<!--           <label for="generatePdf">{import.meta.env.VITE_PDF_LABEL}</label> -->
+<!--           <input -->
+<!--             id="generatePdf" -->
+<!--             type="checkbox" -->
+<!--             bind:checked={generatePdf} -->
+<!--             class="toggle" -->
+<!--           /> -->
+<!--         </div> -->
+<!--         <div> -->
+<!--           <label for="generateEpub">{import.meta.env.VITE_EPUB_LABEL}</label> -->
+<!--           <input -->
+<!--             id="generateEpub" -->
+<!--             type="checkbox" -->
+<!--             bind:checked={generateEpub} -->
+<!--             class="toggle" -->
+<!--           /> -->
+<!--         </div> -->
+<!--         <div> -->
+<!--           <label for="generateDocx">{import.meta.env.VITE_DOCX_LABEL}</label> -->
+<!--           <input -->
+<!--             id="generateDocx" -->
+<!--             type="checkbox" -->
+<!--             bind:checked={generateDocx} -->
+<!--             class="toggle" -->
+<!--           /> -->
+<!--         </div> -->
 
-      {#if waitMessage}
-        <div class="wait-message">
-          <p>{import.meta.env.VITE_WAIT_MSG}</p>
-        </div>
-      {/if}
-      {#if errorMessage}
-        <div class="error-message">
-          <p>{import.meta.env.VITE_ERROR_MSG}</p>
-        </div>
-      {/if}
-      {#if document_request_key.length > 0 && linksMessage}
-        <div class="finished-document-url">
-          <p>
-            {import.meta.env.VITE_HTML_DOCUMENT_READY_MSG_PART1}
-            <a href="{API_ROOT_URL}/html/{document_request_key}" target="_blank"
-              >{import.meta.env.VITE_HTML_DOCUMENT_READY_LINK_TXT}</a
-            >
-            {import.meta.env.VITE_HTML_DOCUMENT_READY_MSG_PART2}
-          </p>
-          {#if generateEpub}
-            <p>
-              {import.meta.env.VITE_EPUB_DOCUMENT_READY_MSG_PART1}
-              <a href="{API_ROOT_URL}/epub/{document_request_key}"
-                >{import.meta.env.VITE_EPUB_DOCUMENT_READY_LINK_TXT}</a
-              >
-              {import.meta.env.VITE_EPUB_DOCUMENT_READY_MSG_PART2}
-            </p>
-          {/if}
-          {#if generatePdf}
-            <p>
-              {import.meta.env.VITE_PDF_DOCUMENT_READY_MSG_PART1}
-              <a href="{API_ROOT_URL}/pdf/{document_request_key}"
-                >{import.meta.env.VITE_PDF_DOCUMENT_READY_LINK_TXT}</a
-              >
-              {import.meta.env.VITE_PDF_DOCUMENT_READY_MSG_PART2}
-            </p>
-          {/if}
-          {#if generateDocx}
-            <p>
-              {import.meta.env.VITE_DOCX_DOCUMENT_READY_MSG_PART1}
-              <a href="{API_ROOT_URL}/docx/{document_request_key}"
-                >{import.meta.env.VITE_DOCX_DOCUMENT_READY_LINK_TXT}</a
-              >
-              {import.meta.env.VITE_DOCX_DOCUMENT_READY_MSG_PART2}
-            </p>
-          {/if}
-        </div>
-      {/if}
-    </div>
-  </div>
-</main>
+<!--         <div class="fields"> -->
+<!--           <label for="email">{import.meta.env.VITE_EMAIL_LABEL}</label> -->
+<!--           <input type="text" name="email" id="email" bind:value={email} /> -->
+<!--         </div> -->
+<!--         <div style="margin-top:3em"> -->
+<!--           <button class="btn submit-button">Generate document</button> -->
+<!--           <button class="btn reset-button">Reset</button> -->
+<!--         </div> -->
+<!--       </form> -->
 
+<!--       {#if waitMessage} -->
+<!--         <div class="wait-message"> -->
+<!--           <p>{import.meta.env.VITE_WAIT_MSG}</p> -->
+<!--         </div> -->
+<!--       {/if} -->
+<!--       {#if errorMessage} -->
+<!--         <div class="error-message"> -->
+<!--           <p>{import.meta.env.VITE_ERROR_MSG}</p> -->
+<!--         </div> -->
+<!--       {/if} -->
+<!--       {#if document_request_key.length > 0 && linksMessage} -->
+<!--         <div class="finished-document-url"> -->
+<!--           <p> -->
+<!--             {import.meta.env.VITE_HTML_DOCUMENT_READY_MSG_PART1} -->
+<!--             <a href="{API_ROOT_URL}/html/{document_request_key}" target="_blank" -->
+<!--               >{import.meta.env.VITE_HTML_DOCUMENT_READY_LINK_TXT}</a -->
+<!--             > -->
+<!--             {import.meta.env.VITE_HTML_DOCUMENT_READY_MSG_PART2} -->
+<!--           </p> -->
+<!--           {#if generateEpub} -->
+<!--             <p> -->
+<!--               {import.meta.env.VITE_EPUB_DOCUMENT_READY_MSG_PART1} -->
+<!--               <a href="{API_ROOT_URL}/epub/{document_request_key}" -->
+<!--                 >{import.meta.env.VITE_EPUB_DOCUMENT_READY_LINK_TXT}</a -->
+<!--               > -->
+<!--               {import.meta.env.VITE_EPUB_DOCUMENT_READY_MSG_PART2} -->
+<!--             </p> -->
+<!--           {/if} -->
+<!--           {#if generatePdf} -->
+<!--             <p> -->
+<!--               {import.meta.env.VITE_PDF_DOCUMENT_READY_MSG_PART1} -->
+<!--               <a href="{API_ROOT_URL}/pdf/{document_request_key}" -->
+<!--                 >{import.meta.env.VITE_PDF_DOCUMENT_READY_LINK_TXT}</a -->
+<!--               > -->
+<!--               {import.meta.env.VITE_PDF_DOCUMENT_READY_MSG_PART2} -->
+<!--             </p> -->
+<!--           {/if} -->
+<!--           {#if generateDocx} -->
+<!--             <p> -->
+<!--               {import.meta.env.VITE_DOCX_DOCUMENT_READY_MSG_PART1} -->
+<!--               <a href="{API_ROOT_URL}/docx/{document_request_key}" -->
+<!--                 >{import.meta.env.VITE_DOCX_DOCUMENT_READY_LINK_TXT}</a -->
+<!--               > -->
+<!--               {import.meta.env.VITE_DOCX_DOCUMENT_READY_MSG_PART2} -->
+<!--             </p> -->
+<!--           {/if} -->
+<!--         </div> -->
+<!--       {/if} -->
+<!--     </div> -->
+<!--   </div> -->
+
+<!-- </main> -->
 <style global lang="postcss">
   @tailwind base;
   @tailwind components;
