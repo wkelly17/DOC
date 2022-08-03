@@ -2,14 +2,12 @@
   import LoadingIndicator from './LoadingIndicator.svelte'
   // @ts-ignore
   import Autocomplete from 'simple-svelte-autocomplete'
-  import { push, pop, replace } from 'svelte-spa-router'
+  import { push } from 'svelte-spa-router'
+  import { lang0NameAndCode, lang1NameAndCode } from '../stores/LanguagesStore'
+  import { isEmpty } from './Utils'
 
   export const API_ROOT_URL: string = <string>import.meta.env.VITE_BACKEND_API_URL
-  console.log('API_ROOT_URL: ', API_ROOT_URL)
   const LANGUAGE_CODES_AND_NAMES: string = '/language_codes_and_names'
-
-  export let lang0NameAndCode: string = ''
-  export let lang1NameAndCode: string = ''
 
   async function getLang0CodesAndNames(): Promise<string[]> {
     const response = await fetch(API_ROOT_URL + LANGUAGE_CODES_AND_NAMES)
@@ -21,13 +19,9 @@
     }
   }
 
-  export let showAnotherLang: boolean = false
+  let showAnotherLang = false
   function handleAddLang() {
     showAnotherLang = true
-  }
-
-  function isEmpty(value: string | null | undefined): boolean {
-    return value === undefined || value === null || value.trim()?.length === 0
   }
 
   async function getLang1CodesAndNames(): Promise<string[]> {
@@ -40,11 +34,16 @@
     }
   }
 
-  // Put chosen languages in svelte store
-  function storeLanguages(): boolean {
-    console.log('store languages: ' + lang0NameAndCode + ', ' + lang1NameAndCode)
-    return true
+  function resetLanguages() {
+    $lang0NameAndCode = ''
+    $lang1NameAndCode = ''
+    showAnotherLang = false
   }
+
+  // Get the part of the lang name and code store that we want to show
+  // reactively.
+  $: lang0Name = $lang0NameAndCode.toString().split(',')[1]?.split('(')[0]
+  $: lang1Name = $lang1NameAndCode.toString().split(',')[1]?.split('(')[0]
 </script>
 
 <div class="bg-white flex">
@@ -72,20 +71,15 @@
   {#await getLang0CodesAndNames()}
     <LoadingIndicator />
   {:then data}
-    <Autocomplete
-      items={data.map(function (element) {
-        return element[1]
-      })}
-      bind:selectedItem={lang0NameAndCode}
-    />
+    <Autocomplete items={data} bind:selectedItem={$lang0NameAndCode} />
   {:catch error}
     <p class="error">{error.message}</p>
   {/await}
 </div>
 
-{#if !isEmpty(lang0NameAndCode)}
+{#if $lang0NameAndCode && !$lang1NameAndCode && !showAnotherLang}
   <div class="mx-auto w-full px-2 pt-2 mt-2">
-    <button disabled={showAnotherLang} on:click|preventDefault={handleAddLang} class="btn"
+    <button on:click|preventDefault={handleAddLang} class="btn"
       >{import.meta.env.VITE_ADD_ANOTHER_LANGUAGE_BUTTON_TXT}</button
     >
   </div>
@@ -97,23 +91,69 @@
     {#await getLang1CodesAndNames()}
       <LoadingIndicator />
     {:then data}
-      <Autocomplete
-        items={data.map(function (element) {
-          return element[1]
-        })}
-        bind:selectedItem={lang1NameAndCode}
-      />
+      <Autocomplete items={data} bind:selectedItem={$lang1NameAndCode} />
     {:catch error}
       <p class="error">{error.message}</p>
     {/await}
   </div>
 {/if}
 
-{#if !isEmpty(lang0NameAndCode)}
-  <div class="mx-auto w-full px-2 pt-2 mt-2">
-    <button on:click|preventDefault={storeLanguages} class="btn"
-      >Add ({#if !isEmpty(lang0NameAndCode) && !isEmpty(lang1NameAndCode)}{2}{:else}{1}{/if})
-      Languages</button
-    >
+{#if $lang0NameAndCode}
+  <div class="toast toast-center">
+    <div class="alert alert-success shadow-lg elementToFadeInAndOut">
+      <div>
+        <span class="capitalize">{lang0Name}</span> successfully stored
+      </div>
+    </div>
+    {#if $lang1NameAndCode}
+      <div class="alert alert-success shadow-lg elementToFadeInAndOut">
+        <div>
+          <span class="capitalize">{lang1Name}</span> successfully stored
+        </div>
+      </div>
+    {/if}
   </div>
 {/if}
+
+<!-- {#if !isEmpty($lang0NameAndCode)} -->
+<!--   <div class="mx-auto w-full px-2 pt-2 mt-2"> -->
+<!--     <button on:click|preventDefault={submitLanguage} class="btn" -->
+<!--       >Add ({#if !isEmpty($lang1NameAndCode)}{2}{:else}{1}{/if}) Languages</button -->
+<!--     > -->
+<!--   </div> -->
+
+{#if $lang0NameAndCode}
+  <div class="mx-auto w-full px-2 pt-2 mt-2">
+    <button on:click|preventDefault={resetLanguages} class="btn">Reset languages</button>
+  </div>
+{/if}
+
+<style>
+  .elementToFadeInAndOut {
+    -webkit-animation: fadeinout 8s linear 1 forwards;
+    animation: fadeinout 8s linear 1 forwards;
+  }
+
+  @-webkit-keyframes fadeinout {
+    0% {
+      opacity: 0;
+    }
+    50% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+  @keyframes fadeinout {
+    0% {
+      opacity: 0;
+    }
+    50% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+</style>

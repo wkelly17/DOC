@@ -22,7 +22,7 @@
   // import Select from './components/Select.svelte'
 
   let API_ROOT_URL: string = <string>import.meta.env.VITE_BACKEND_API_URL
-  console.log('API_ROOT_URL: ', API_ROOT_URL)
+  // console.log('API_ROOT_URL: ', API_ROOT_URL)
 
   function isEmpty(value: string | null | undefined): boolean {
     return value === undefined || value === null || value.trim()?.length === 0
