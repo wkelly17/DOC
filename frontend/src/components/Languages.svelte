@@ -4,7 +4,6 @@
   import Autocomplete from 'simple-svelte-autocomplete'
   import { push } from 'svelte-spa-router'
   import { lang0NameAndCode, lang1NameAndCode } from '../stores/LanguagesStore'
-  import { isEmpty } from './Utils'
 
   export const API_ROOT_URL: string = <string>import.meta.env.VITE_BACKEND_API_URL
   const LANGUAGE_CODES_AND_NAMES: string = '/language_codes_and_names'
@@ -99,7 +98,7 @@
 {/if}
 
 {#if $lang0NameAndCode}
-  <div class="toast toast-center">
+  <div class="toast toast-top toast-center">
     <div class="alert alert-success shadow-lg elementToFadeInAndOut">
       <div>
         <span class="capitalize">{lang0Name}</span> successfully stored
