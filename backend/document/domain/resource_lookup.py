@@ -416,19 +416,24 @@ def lang_codes_and_names(
     working_dir: str = settings.working_dir(),
     translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
     lang_code_filter_list: Sequence[str] = settings.LANG_CODE_FILTER_LIST,
-) -> list[tuple[str, str]]:
+) -> list[str]:
     """
     Convenience method that can be called from UI to get the set
     of all language code, name tuples available through API.
     Presumably this could be called to populate a drop-down menu.
+
+    >>> from document.config import settings
+    >>> settings.IN_CONTAINER = False
+    >>> from document.domain import resource_lookup
+    >>> data = resource_lookup.lang_codes_and_names()
+    >>> data[0]
+    'Abadi, code: kbt'
     """
     values = []
     data = fetch_source_data(working_dir, translations_json_location)
     for d in [lang for lang in data if lang["code"] not in lang_code_filter_list]:
-        values.append(
-            (d["code"], "{} (language code: {})".format(d["name"], d["code"]))
-        )
-    return sorted(values, key=lambda value: value[1])
+        values.append("{}, code: {}".format(d["name"], d["code"]))
+    return sorted(values, key=lambda value: value.split(",")[0])
 
 
 def resource_types(jsonpath_str: str = settings.RESOURCE_TYPES_JSONPATH) -> Any:
@@ -525,6 +530,25 @@ def resource_types_and_names_for_lang(
     if lang_code == "en":
         values.append(("bc-wa", "Bible Commentary (bc-wa)"))
     return sorted(values, key=lambda value: value[0])
+
+
+def shared_resource_codes(lang0_code: str, lang1_code: str) -> Sequence[Any]:
+    """
+    Given two language codes, return the intersection of resource codes between each language.
+
+    >>> from document.config import settings
+    >>> settings.IN_CONTAINER = False
+    >>> from document.domain import resource_lookup
+    >>> data = resource_lookup.shared_resource_codes("en", "kbt")
+    >>> list(data)
+    [['2co', '2 Corinthians']]
+    """
+    # Get resource codes for reach language.
+    lang0_resource_codes = resource_codes_for_lang(lang0_code)
+    lang1_resource_codes = resource_codes_for_lang(lang1_code)
+
+    # Find intersection of resource codes:
+    return [x for x in lang0_resource_codes if x in lang1_resource_codes]
 
 
 def resource_codes_for_lang(

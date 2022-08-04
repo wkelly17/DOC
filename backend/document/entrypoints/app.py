@@ -161,8 +161,10 @@ def lang_codes() -> Iterable[str]:
 
 
 @app.get("/language_codes_and_names")
-def lang_codes_and_names() -> list[tuple[str, str]]:
-    """Return list of all available language code, name tuples."""
+def lang_codes_and_names() -> list[str]:
+    """
+    Return list of all available language code, name tuples.
+    """
     return resource_lookup.lang_codes_and_names()
 
 
@@ -182,6 +184,14 @@ def resource_types_for_lang(lang_code: str) -> Sequence[Any]:
 def resource_types_and_names_for_lang(lang_code: str) -> Sequence[Any]:
     """Return list of all available resource types and their names."""
     return resource_lookup.resource_types_and_names_for_lang(lang_code)
+
+
+@app.get("/shared_resource_codes/{lang0_code}/{lang1_code}")
+def shared_resource_codes(lang0_code: str, lang1_code: str) -> Sequence[Any]:
+    """
+    Return list of available resource codes common to both lang0_code and lang1_code.
+    """
+    return resource_lookup.shared_resource_codes(lang0_code, lang1_code)
 
 
 @app.get("/resource_codes_for_lang/{lang_code}")

@@ -39,10 +39,14 @@
     showAnotherLang = false
   }
 
+  function submitLanguages() {
+    push('#/books')
+  }
+
   // Get the part of the lang name and code store that we want to show
   // reactively.
-  $: lang0Name = $lang0NameAndCode.toString().split(',')[1]?.split('(')[0]
-  $: lang1Name = $lang1NameAndCode.toString().split(',')[1]?.split('(')[0]
+  $: lang0Name = $lang0NameAndCode.toString().split(',')[0]
+  $: lang1Name = $lang1NameAndCode.toString().split(',')[0]
 </script>
 
 <div class="bg-white flex">
@@ -97,31 +101,31 @@
   </div>
 {/if}
 
-{#if $lang0NameAndCode}
-  <div class="toast toast-top toast-center">
-    <div class="alert alert-success shadow-lg elementToFadeInAndOut">
-      <div>
-        <span class="capitalize">{lang0Name}</span> successfully stored
-      </div>
-    </div>
-    {#if $lang1NameAndCode}
-      <div class="alert alert-success shadow-lg elementToFadeInAndOut">
-        <div>
-          <span class="capitalize">{lang1Name}</span> successfully stored
-        </div>
-      </div>
-    {/if}
-  </div>
-{/if}
-
-<!-- {#if !isEmpty($lang0NameAndCode)} -->
-<!--   <div class="mx-auto w-full px-2 pt-2 mt-2"> -->
-<!--     <button on:click|preventDefault={submitLanguage} class="btn" -->
-<!--       >Add ({#if !isEmpty($lang1NameAndCode)}{2}{:else}{1}{/if}) Languages</button -->
-<!--     > -->
+<!-- {#if $lang0NameAndCode} -->
+<!--   <div class="toast toast-top toast-center"> -->
+<!--     <div class="alert alert-success shadow-lg elementToFadeInAndOut"> -->
+<!--       <div> -->
+<!--         <span class="capitalize">{lang0Name}</span> successfully stored -->
+<!--       </div> -->
+<!--     </div> -->
+<!--     {#if $lang1NameAndCode} -->
+<!--       <div class="alert alert-success shadow-lg elementToFadeInAndOut"> -->
+<!--         <div> -->
+<!--           <span class="capitalize">{lang1Name}</span> successfully stored -->
+<!--         </div> -->
+<!--       </div> -->
+<!--     {/if} -->
 <!--   </div> -->
+<!-- {/if} -->
 
 {#if $lang0NameAndCode}
+  <div class="mx-auto w-full px-2 pt-2 mt-2">
+    <button on:click|preventDefault={submitLanguages} class="btn"
+      >Add ({#if $lang1NameAndCode}{2}{:else}{1}{/if}) Languages</button
+    >
+  </div>
+
+  <!-- {#if $lang0NameAndCode} -->
   <div class="mx-auto w-full px-2 pt-2 mt-2">
     <button on:click|preventDefault={resetLanguages} class="btn">Reset languages</button>
   </div>
