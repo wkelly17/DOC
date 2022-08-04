@@ -3,14 +3,8 @@
   import type { AssemblyStrategy } from './types'
   import LoadingIndicator from './components/LoadingIndicator.svelte'
   import AssemblyStrategyComponent from './components/AssemblyStrategy.svelte'
-  import Button, { Label } from '@smui/button'
-  import Autocomplete from '@smui-extra/autocomplete'
-  // import { Text } from '@smui/list'
-  // import CircularProgress from '@smui/circular-progress'
-  import Checkbox from '@smui/checkbox'
-  import FormField from '@smui/form-field'
-  import Switch from '@smui/switch'
-  import LayoutGrid, { Cell } from '@smui/layout-grid'
+  // @ts-ignore
+  import Autocomplete from 'simple-svelte-autocomplete'
 
   import otBooks from './data/ot_books'
 
@@ -241,13 +235,9 @@
     }
 
     // Create the JSON structure to POST.
-    // let documentRequest: DocumentRequest = {
     let documentRequest = {
-      // FIXME Test that email_address is handled correctly with respect to null
-      email_address: email?.trim(), // !isEmpty(email) ? email.trim() : null,
-      // email_address: !isEmpty(email) ? email.trim() : null,
+      email_address: email?.trim(),
       assembly_strategy_kind: assemblyStrategyKind,
-      // assembly_layout_kind: undefined,
       layout_for_print: layoutForPrint,
       generate_pdf: generatePdf,
       generate_epub: generateEpub,
@@ -304,12 +294,10 @@
             <LoadingIndicator />
           {:then data}
             <Autocomplete
-              options={data.map(function (element) {
+              items={data.map(function (element) {
                 return element[1]
               })}
-              bind:value={lang0NameAndCode}
-              showMenuWithNoInput={false}
-              label={import.meta.env.VITE_LANG_0_HEADER}
+              bind:selectedItem={lang0NameAndCode}
             />
           {:catch error}
             <p class="error">{error.message}</p>
@@ -322,16 +310,20 @@
               <LoadingIndicator />
             {:then data}
               <h3>{import.meta.env.VITE_LANG_0_RESOURCE_TYPES_HEADER}</h3>
-              {#each data as resourceType}
-                <FormField align="end">
-                  <Checkbox
-                    bind:group={lang0ResourceTypes}
-                    bind:value={resourceType[0]}
-                  />
-                  <span slot="label">{resourceType[1]}</span>
-                </FormField>
-                <br />
-              {/each}
+              <ul>
+                {#each data as resourceType, i}
+                  <li>
+                    <label for="lang0-resourcetype-{i}">{resourceType[1]}</label>
+                    <input
+                      id="lang0-resourcetype-{i}"
+                      type="checkbox"
+                      bind:group={lang0ResourceTypes}
+                      value={resourceType[0]}
+                      class="checkbox"
+                    />
+                  </li>
+                {/each}
+              </ul>
             {:catch error}
               <p class="error">{error.message}</p>
             {/await}
@@ -351,36 +343,46 @@
                 return !otBooks.includes(element[0])
               })}
               <h3>{import.meta.env.VITE_LANG_0_RESOURCE_CODES_HEADER}</h3>
-              <LayoutGrid>
-                <Cell>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
                   <h3>Old Testament</h3>
-                  {#each otBooksInLang0 as resourceCodeAndName}
-                    <div class="book-cell">
-                      <FormField align="end">
-                        <Checkbox
+                  <ul>
+                    {#each otBooksInLang0 as resourceCodeAndName, i}
+                      <li>
+                        <label for="lang0-resourcecode-ot-{i}"
+                          >{resourceCodeAndName[1]}</label
+                        >
+                        <input
+                          id="lang0-resourcecode-ot-{i}"
+                          type="checkbox"
                           bind:group={lang0ResourceCodes}
-                          bind:value={resourceCodeAndName[0]}
+                          value={resourceCodeAndName[0]}
+                          class="checkbox"
                         />
-                        <span slot="label">{resourceCodeAndName[1]}</span>
-                      </FormField>
-                    </div>
-                  {/each}
-                </Cell>
-                <Cell>
+                      </li>
+                    {/each}
+                  </ul>
+                </div>
+                <div>
                   <h3>New Testament</h3>
-                  {#each ntBooksInLang0 as resourceCodeAndName}
-                    <div class="book-cell">
-                      <FormField align="end">
-                        <Checkbox
+                  <ul>
+                    {#each ntBooksInLang0 as resourceCodeAndName, i}
+                      <li>
+                        <label for="lang0-resourcecode-nt-{i}"
+                          >{resourceCodeAndName[1]}</label
+                        >
+                        <input
+                          id="lang0-resourcecode-nt-{i}"
+                          type="checkbox"
                           bind:group={lang0ResourceCodes}
-                          bind:value={resourceCodeAndName[0]}
+                          value={resourceCodeAndName[0]}
+                          class="checkbox"
                         />
-                        <span slot="label">{resourceCodeAndName[1]}</span>
-                      </FormField>
-                    </div>
-                  {/each}
-                </Cell>
-              </LayoutGrid>
+                      </li>
+                    {/each}
+                  </ul>
+                </div>
+              </div>
             {:catch error}
               <p class="error">{error.message}</p>
             {/await}
@@ -388,8 +390,10 @@
         {/if}
 
         {#if !isEmpty(lang0NameAndCode) && lang0ResourceTypes?.length > 0 && lang0ResourceCodes?.length > 0}
-          <button disabled={showAnotherLang} on:click|preventDefault={handleAddLang}
-            >{import.meta.env.VITE_ADD_ANOTHER_LANGUAGE_BUTTON_TXT}</button
+          <button
+            disabled={showAnotherLang}
+            on:click|preventDefault={handleAddLang}
+            class="btn">{import.meta.env.VITE_ADD_ANOTHER_LANGUAGE_BUTTON_TXT}</button
           >
         {/if}
         {#if showAnotherLang}
@@ -399,12 +403,10 @@
               <LoadingIndicator />
             {:then data}
               <Autocomplete
-                options={data.map(function (element) {
+                items={data.map(function (element) {
                   return element[1]
                 })}
-                bind:value={lang1NameAndCode}
-                showMenuWithNoInput={false}
-                label={import.meta.env.VITE_LANG_1_HEADER}
+                bind:selectedItem={lang1NameAndCode}
               />
             {:catch error}
               <p class="error">{error.message}</p>
@@ -418,17 +420,20 @@
               <LoadingIndicator />
             {:then data}
               <h3>{import.meta.env.VITE_LANG_1_RESOURCE_TYPES_HEADER}</h3>
-              {#each data as resourceType}
-                <div>
-                  <FormField align="end">
-                    <Checkbox
+              <ul>
+                {#each data as resourceType, i}
+                  <li>
+                    <label for="lang0-resourcetype-{i}">{resourceType[1]}</label>
+                    <input
+                      id="lang0-resourcetype-{i}"
+                      type="checkbox"
                       bind:group={lang1ResourceTypes}
-                      bind:value={resourceType[0]}
+                      value={resourceType[0]}
+                      class="checkbox"
                     />
-                    <span slot="label">{resourceType[1]}</span>
-                  </FormField>
-                </div>
-              {/each}
+                  </li>
+                {/each}
+              </ul>
             {:catch error}
               <p class="error">{error.message}</p>
             {/await}
@@ -447,46 +452,60 @@
                 return !otBooks.includes(element[0])
               })}
               <h3>{import.meta.env.VITE_LANG_1_RESOURCE_CODES_HEADER}</h3>
-              <LayoutGrid>
-                <Cell>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
                   <h3>Old Testament</h3>
-                  {#each otBooksInLang1 as resourceCodeAndName}
-                    <div class="book-cell">
-                      <FormField align="end">
-                        <Checkbox
+                  <ul>
+                    {#each otBooksInLang1 as resourceCodeAndName, i}
+                      <li>
+                        <label for="lang1-resourcecode-ot-{i}"
+                          >{resourceCodeAndName[1]}</label
+                        >
+                        <input
+                          id="lang1-resourcecode-ot-{i}"
+                          type="checkbox"
                           bind:group={lang1ResourceCodes}
-                          bind:value={resourceCodeAndName[0]}
+                          value={resourceCodeAndName[0]}
+                          class="checkbox"
                         />
-                        <span slot="label">{resourceCodeAndName[1]}</span>
-                      </FormField>
-                    </div>
-                  {/each}
-                </Cell>
-                <Cell>
+                      </li>
+                    {/each}
+                  </ul>
+                </div>
+                <div>
                   <h3>New Testament</h3>
-                  {#each ntBooksInLang1 as resourceCodeAndName}
-                    <div class="book-cell">
-                      <FormField align="end">
-                        <Checkbox
+                  <ul>
+                    {#each ntBooksInLang1 as resourceCodeAndName, i}
+                      <li>
+                        <label for="lang1-resourcecode-nt-{i}"
+                          >{resourceCodeAndName[1]}</label
+                        >
+                        <input
+                          id="lang1-resourcecode-nt-{i}"
+                          type="checkbox"
                           bind:group={lang1ResourceCodes}
-                          bind:value={resourceCodeAndName[0]}
+                          value={resourceCodeAndName[0]}
+                          class="checkbox"
                         />
-                        <span slot="label">{resourceCodeAndName[1]}</span>
-                      </FormField>
-                    </div>
-                  {/each}
-                </Cell>
-              </LayoutGrid>
+                      </li>
+                    {/each}
+                  </ul>
+                </div>
+              </div>
             {:catch error}
               <p class="error">{error.message}</p>
             {/await}
           </div>
         {/if}
         <div>
-          <FormField align="end">
-            <Switch bind:checked={layoutForPrint} />
-            <span slot="label">{import.meta.env.VITE_LAYOUT_FOR_PRINT_LABEL}</span>
-          </FormField>
+          <label for="layoutForPrint">{import.meta.env.VITE_LAYOUT_FOR_PRINT_LABEL}</label
+          >
+          <input
+            id="layoutForPrint"
+            type="checkbox"
+            bind:checked={layoutForPrint}
+            class="toggle"
+          />
         </div>
         <div
           class:assembly-strategy-invisible={lang1ResourceCodes === undefined ||
@@ -496,22 +515,31 @@
           <AssemblyStrategyComponent bind:assemblyStrategy />
         </div>
         <div>
-          <FormField align="end">
-            <Switch bind:checked={generatePdf} />
-            <span slot="label">{import.meta.env.VITE_PDF_LABEL}</span>
-          </FormField>
+          <label for="generatePdf">{import.meta.env.VITE_PDF_LABEL}</label>
+          <input
+            id="generatePdf"
+            type="checkbox"
+            bind:checked={generatePdf}
+            class="toggle"
+          />
         </div>
         <div>
-          <FormField align="end">
-            <Switch bind:checked={generateEpub} />
-            <span slot="label">{import.meta.env.VITE_EPUB_LABEL}</span>
-          </FormField>
+          <label for="generateEpub">{import.meta.env.VITE_EPUB_LABEL}</label>
+          <input
+            id="generateEpub"
+            type="checkbox"
+            bind:checked={generateEpub}
+            class="toggle"
+          />
         </div>
         <div>
-          <FormField align="end">
-            <Switch bind:checked={generateDocx} />
-            <span slot="label">{import.meta.env.VITE_DOCX_LABEL}</span>
-          </FormField>
+          <label for="generateDocx">{import.meta.env.VITE_DOCX_LABEL}</label>
+          <input
+            id="generateDocx"
+            type="checkbox"
+            bind:checked={generateDocx}
+            class="toggle"
+          />
         </div>
 
         <div class="fields">
@@ -519,22 +547,8 @@
           <input type="text" name="email" id="email" bind:value={email} />
         </div>
         <div style="margin-top:3em">
-          <Button
-            color="secondary"
-            on:click={submit}
-            variant="unelevated"
-            class="submit-button"
-          >
-            <Label>Generate document</Label>
-          </Button>
-          <Button
-            color="secondary"
-            on:click={reset}
-            variant="unelevated"
-            class="reset-button"
-          >
-            <Label>Reset</Label>
-          </Button>
+          <button class="btn submit-button">Generate document</button>
+          <button class="btn reset-button">Reset</button>
         </div>
       </form>
 
@@ -590,34 +604,25 @@
   </div>
 </main>
 
-<style>
-  :global(body) {
-    font-family: Arial, Helvetica, sans-serif;
-    /* background-color: #f3f3f3; */
-  }
-  :global(*, *:before, *:after) {
-    box-sizing: border-box;
-  }
-  :global(input[type='text'], input[type='select'], input[type='password'], input[type='number'], select) {
-    padding: 5px;
-    min-width: 30em;
-  }
-  .fields {
-    margin: 2em 0;
-  }
-  .fields label {
-    display: block;
-    margin-top: 1em;
-  }
-  .forms {
-    margin: 2em 5em 2em 10em;
-  }
-  main {
-    display: flex;
-  }
-  .error {
-    color: red;
-  }
+<style global lang="postcss">
+  @tailwind base;
+  @tailwind components;
+  @tailwind utilities;
+
+  /* :global(body) { */
+  /*   font-family: Arial, Helvetica, sans-serif; */
+  /*   /\* background-color: #f3f3f3; *\/ */
+  /* } */
+  /* :global(*, *:before, *:after) { */
+  /*   box-sizing: border-box; */
+  /* } */
+  /* :global(input[type='text'], input[type='select'], input[type='password'], input[type='number'], select) { */
+  /*   padding: 5px; */
+  /*   min-width: 30em; */
+  /* } */
+  /* .error { */
+  /*   color: red; */
+  /* } */
   * :global(.submit-button) {
     background-color: green;
     border: none;
@@ -636,22 +641,7 @@
     margin: 4px 2px;
     cursor: pointer;
   }
-  * :global(.lang0-codes-text-input) {
-    display: flex;
-    width: 100%;
-    justify-content: center;
-    align-items: center;
-  }
-  * :global(.circular-progress) {
-    height: 24px;
-    width: 24px;
-  }
   .assembly-strategy-invisible {
     display: none;
-  }
-  .book-cell {
-    display: flex;
-    justify-content: left;
-    align-items: center;
   }
 </style>
