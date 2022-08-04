@@ -19,11 +19,35 @@ class Settings(BaseSettings):
     """
 
     REPO_URL_DICT_KEY: str = "../download-scripture?repo_url"
+
+    # The location where the JSON data file that we use to lookup
+    # location of resources is located.
+    TRANSLATIONS_JSON_LOCATION: HttpUrl
+    # The jsonpath format string for the resource's git repo for a given language, resource type, and book.
+    RESOURCE_DOWNLOAD_FORMAT_JSONPATH: str = "$[?code='{}'].contents[?code='{}'].subcontents[?code='{}'].links[?format='Download'].url"
+    # All resource types.
     RESOURCE_TYPES_JSONPATH: str = "$[*].contents[*].code"
+    # The jsonpath format string for resource types for a given language.
     RESOURCE_TYPES_FOR_LANG_JSONPATH: str = "$[?code='{}'].contents[*].code"
+    # jsonpath for all resource codes.
     RESOURCE_CODES_JSONPATH: str = "$[*].contents[*].subcontents[*].code"
+    # jsonpath format string for all resource codes for a given language.
     RESOURCE_CODES_FOR_LANG_JSONPATH: str = (
         "$[?code='{}'].contents[*].subcontents[*].code"
+    )
+    # The jsonpath format string for individual USFM files (per bible book) for a given language, resource type, and book.
+    INDIVIDUAL_USFM_URL_JSONPATH: str = "$[?code='{}'].contents[?code='{}'].subcontents[?code='{}'].links[?format='usfm'].url"
+    # The jsonpath format string for resource URL for a given lanaguage and resource type.
+    RESOURCE_URL_LEVEL1_JSONPATH: str = (
+        "$[?code='{}'].contents[?code='{}'].links[?format='zip'].url"
+    )
+    # The jsonpath format string for a given language's name.
+    RESOURCE_LANG_NAME_JSONPATH: str = "$[?code='{}'].name"
+    # The jsonpath format string to the resource type's name for a given language and resource type.
+    RESOURCE_TYPE_NAME_JSONPATH: str = "$[?code='{}'].contents[?code='{}'].name"
+    # The jsonpath format string for a zip URL for a given language and resource code.
+    RESOURCE_URL_LEVEL2_JSONPATH: str = (
+        "$[?code='{}'].contents[*].subcontents[?code='{}'].links[?format='zip'].url"
     )
 
     LANGUAGE_FMT_STR: str = "<h1>Language: {}</h1>"
@@ -195,38 +219,6 @@ class Settings(BaseSettings):
 
     # Return the message to show to user on failure generating PDF.
     FAILURE_MESSAGE: str = "The document request could not be fulfilled either because the resources requested are not available either currently or at all or because the system does not yet support the resources requested."
-
-    # The location where the JSON data file that we use to lookup
-    # location of resources is located.
-    TRANSLATIONS_JSON_LOCATION: HttpUrl
-
-    # The jsonpath location in TRANSLATIONS_JSON_LOCATION file where
-    # individual USFM files (per bible book) may be found.
-    INDIVIDUAL_USFM_URL_JSONPATH: str = "$[?code='{}'].contents[?code='{}'].subcontents[?code='{}'].links[?format='usfm'].url"
-
-    # The jsonpath location in TRANSLATIONS_JSON_LOCATION file where
-    # resource URL, e.g., tn, tq, tw, ta, obs, ulb, udb, etc., may normally
-    # be found.
-    RESOURCE_URL_LEVEL1_JSONPATH: str = (
-        "$[?code='{}'].contents[?code='{}'].links[?format='zip'].url"
-    )
-
-    # The json path to the language's name.
-    RESOURCE_LANG_NAME_JSONPATH: str = "$[?code='{}'].name"
-
-    #  The json path to the resource type's name.
-    RESOURCE_TYPE_NAME_JSONPATH: str = "$[?code='{}'].contents[?code='{}'].name"
-
-    # The jsonpath location in TRANSLATIONS_JSON_LOCATION file where
-    # resource URL, e.g., tn, tq, tw, ta, obs, ulb, udb, etc., may
-    # additionally/alternatively be found.
-    RESOURCE_URL_LEVEL2_JSONPATH: str = (
-        "$[?code='{}'].contents[*].subcontents[?code='{}'].links[?format='zip'].url"
-    )
-
-    # The jsonpath location in TRANSLATIONS_JSON_LOCATION file where
-    # resource git repo may be found.
-    RESOURCE_DOWNLOAD_FORMAT_JSONPATH: str = "$[?code='{}'].contents[?code='{}'].subcontents[?code='{}'].links[?format='Download'].url"
 
     # BACKEND_CORS_ORIGINS is a JSON-formatted list of origins
     # e.g: '["http://localhost", "http://localhost:4200",
