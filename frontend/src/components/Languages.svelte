@@ -5,7 +5,7 @@
   import { push } from 'svelte-spa-router'
   import { lang0NameAndCode, lang1NameAndCode } from '../stores/LanguagesStore'
 
-  export const API_ROOT_URL: string = <string>import.meta.env.VITE_BACKEND_API_URL
+  const API_ROOT_URL: string = <string>import.meta.env.VITE_BACKEND_API_URL
   const LANGUAGE_CODES_AND_NAMES: string = '/language_codes_and_names'
 
   async function getLang0CodesAndNames(): Promise<string[]> {
@@ -40,7 +40,7 @@
   }
 
   function submitLanguages() {
-    push('#/books')
+    push('#/')
   }
 
   // Get the part of the lang name and code store that we want to show
@@ -88,7 +88,7 @@
   </div>
 {/if}
 
-{#if showAnotherLang}
+{#if $lang1NameAndCode || showAnotherLang}
   <div class="mx-auto w-full px-2 pt-2 mt-2">
     <h3>{import.meta.env.VITE_LANG_1_HEADER}</h3>
     {#await getLang1CodesAndNames()}
@@ -98,6 +98,18 @@
     {:catch error}
       <p class="error">{error.message}</p>
     {/await}
+  </div>
+{/if}
+
+{#if $lang0NameAndCode}
+  <div class="mx-auto w-full px-2 pt-2 mt-2">
+    <button on:click|preventDefault={submitLanguages} class="btn"
+      >Add ({#if $lang1NameAndCode}{2}{:else}{1}{/if}) Languages</button
+    >
+  </div>
+
+  <div class="mx-auto w-full px-2 pt-2 mt-2">
+    <button on:click|preventDefault={resetLanguages} class="btn">Reset languages</button>
   </div>
 {/if}
 
@@ -116,21 +128,8 @@
 <!--       </div> -->
 <!--     {/if} -->
 <!--   </div> -->
+
 <!-- {/if} -->
-
-{#if $lang0NameAndCode}
-  <div class="mx-auto w-full px-2 pt-2 mt-2">
-    <button on:click|preventDefault={submitLanguages} class="btn"
-      >Add ({#if $lang1NameAndCode}{2}{:else}{1}{/if}) Languages</button
-    >
-  </div>
-
-  <!-- {#if $lang0NameAndCode} -->
-  <div class="mx-auto w-full px-2 pt-2 mt-2">
-    <button on:click|preventDefault={resetLanguages} class="btn">Reset languages</button>
-  </div>
-{/if}
-
 <style>
   .elementToFadeInAndOut {
     -webkit-animation: fadeinout 8s linear 1 forwards;
