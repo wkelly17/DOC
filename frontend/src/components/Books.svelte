@@ -2,10 +2,6 @@
   import LoadingIndicator from './LoadingIndicator.svelte'
   import otBooks from '../data/ot_books'
   import { lang0NameAndCode, lang1NameAndCode } from '../stores/LanguagesStore'
-  // import {
-  //   // getSharedResourceCodes
-  //   // SHARED_RESOURCE_CODES
-  // } from '../lib/requests'
   import { bookStore } from '../stores/BooksStore'
   import { push } from 'svelte-spa-router'
 
@@ -61,56 +57,30 @@
     show = false
   }
 
-  function submitBooks() {
+  function storeBooks() {
     for (let book of sharedOtResourceCodes) {
-      // console.log('add book: ' + book)
       bookStore.add(book)
     }
     for (let book of sharedNtResourceCodes) {
-      // console.log('add book: ' + book)
       bookStore.add(book)
     }
     push('#/')
   }
 
-  // function onCheckBook(event: Event) {
-  //   // TODO
-  //   if (event.target.checked) {
-
-  //   }
-  // }
-
-  // https://proseandconst.xyz/blog/select-all-set/
   function selectAllOtResourceCodes(event: Event) {
-    // https://stackoverflow.com/questions/66965210/property-checked-does-not-exist-on-type-eventtarget-ts2339-angular
     if ((<HTMLInputElement>event.target).checked) {
       sharedOtResourceCodes = allSharedOtResourceCodes
     } else {
-      // unchecking select all checkbox means to deselect all old
-      // testament checkboxes
       sharedOtResourceCodes = []
     }
-    console.log('sharedOtResourceCodes: ' + sharedOtResourceCodes)
-    // FIXME Is this really needed?
-    // Trigger svelte to re-render component
-    sharedOtResourceCodes = sharedOtResourceCodes
   }
 
-  // https://proseandconst.xyz/blog/select-all-set/
   function selectAllNtResourceCodes(event: Event) {
-    // https://stackoverflow.com/questions/66965210/property-checked-does-not-exist-on-type-eventtarget-ts2339-angular
     if ((<HTMLInputElement>event.target).checked) {
       sharedNtResourceCodes = allSharedNtResourceCodes
     } else {
-      // unchecking select all checkbox means to deselect all new
-      // testament checkboxes
       sharedNtResourceCodes = []
     }
-    console.log('sharedNtResourceCodes: ' + sharedNtResourceCodes)
-    console.log('typeof sharedNtResourceCodes[0]: ' + typeof sharedNtResourceCodes[0])
-    // FIXME Is this really needed?
-    // Trigger svelte to re-render component
-    sharedNtResourceCodes = sharedNtResourceCodes
   }
 
   // Reactively get the lang code part of the lang name and code store
@@ -119,6 +89,27 @@
   // Reactively get the lang name part of the lang name and code store
   $: lang0Name = $lang0NameAndCode.toString().split(',')[0]
   $: lang1Name = $lang1NameAndCode.toString().split(',')[0]
+
+  // Without the following reactive statements, defaulted initially to
+  // false, you can indeed bind the values checked by select all means,
+  // and add them to the store using the button, but you will not see the
+  // checkboxes visual checked state change when the select all checkbox is
+  // manually clicked. Svelte doesn't allow to do something like
+  // bind:checked={sharedNtResourceCodes.includes(resourceCodeAndName[0])}
+  // on a checkbox element, so these reactive statements are a workaround.
+  let allOtResourceCodesChecked = false
+  let allNtResourceCodesChecked = false
+
+  $: {
+    allOtResourceCodesChecked =
+      allSharedOtResourceCodes &&
+      sharedOtResourceCodes.length === allSharedOtResourceCodes.length
+  }
+  $: {
+    allNtResourceCodesChecked =
+      allSharedNtResourceCodes &&
+      sharedNtResourceCodes.length === allSharedNtResourceCodes.length
+  }
 </script>
 
 {#if $lang0NameAndCode && $lang1NameAndCode}
@@ -143,7 +134,7 @@
                 id="select-all-old-testament"
                 type="checkbox"
                 class="checkbox"
-                checked={sharedOtResourceCodes.length === allSharedOtResourceCodes.length}
+                bind:checked={allOtResourceCodesChecked}
                 on:change={event => selectAllOtResourceCodes(event)}
               />
             </div>
@@ -156,7 +147,7 @@
                   id="lang-resourcecode-ot-{i}"
                   type="checkbox"
                   bind:group={sharedOtResourceCodes}
-                  value={resourceCodeAndName[0]}
+                  value={resourceCodeAndName}
                   class="checkbox"
                 />
               </li>
@@ -185,7 +176,8 @@
                   id="lang-resourcecode-nt-{i}"
                   type="checkbox"
                   bind:group={sharedNtResourceCodes}
-                  value={resourceCodeAndName[0]}
+                  value={resourceCodeAndName}
+                  bind:checked={allNtResourceCodesChecked}
                   class="checkbox"
                 />
               </li>
@@ -201,7 +193,7 @@
 
 {#if sharedOtResourceCodes.length !== 0 || sharedNtResourceCodes.length !== 0}
   <div class="mx-auto w-full px-2 pt-2 mt-2">
-    <button on:click|preventDefault={submitBooks} class="btn"
+    <button on:click|preventDefault={storeBooks} class="btn"
       >Add ({sharedOtResourceCodes.length + sharedNtResourceCodes.length}) Books</button
     >
   </div>
