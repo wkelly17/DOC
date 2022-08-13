@@ -2,20 +2,16 @@
   import LoadingIndicator from './LoadingIndicator.svelte'
   import otBooks from '../data/ot_books'
   import { lang0NameAndCode, lang1NameAndCode } from '../stores/LanguagesStore'
-  import { bookStore } from '../stores/BooksStore'
+  import { otBookStore, ntBookStore } from '../stores/BooksStore'
   import { push } from 'svelte-spa-router'
-
-  // open-close state
-  let show = false
 
   // The list of all old testament books from translations.json api
   let allSharedOtResourceCodes: Array<string>
   // The list of all new testament books from translations.json api
   let allSharedNtResourceCodes: Array<string>
-  // The list of selected old testament resource codes by checkbox
-  let sharedOtResourceCodes: Array<string> = []
-  // The list of selected new testament resource codes by checkbox
-  let sharedNtResourceCodes: Array<string> = []
+
+  let allSharedOtBooksAndCheckboxStates: Array<[string, boolean]> = []
+  let allSharedNtBooksAndCheckboxStates: Array<[string, boolean]> = []
 
   export async function getSharedResourceCodes(
     lang0Code: string,
@@ -29,87 +25,91 @@
     const json = await response.json()
     if (!response.ok) throw new Error(response.statusText)
 
-    // Filter set of all resource codes into old and new testament
-    // resource codes respectively.
+    // Filter set of all resource codes into old testament
+    // resource codes.
     allSharedOtResourceCodes = json.filter(function (element: string) {
       return otBooks.includes(element[0])
     })
+    // allSharedOtResourceCodes = allSharedOtResourceCodes
+
+    // Build up collection of tuples consisting of each
+    // resourceCodeAndName and whether it already exists in the store.
+    if (allSharedOtResourceCodes) {
+      for (const [idx, resourceCodeAndName] of allSharedOtResourceCodes.entries()) {
+        if ($ntBookStore && resourceCodeAndName) {
+          // TODO I'd like to find a better way of comparing than
+          // using toString() which is a hack.
+          allSharedOtBooksAndCheckboxStates[idx] = [
+            resourceCodeAndName,
+            $otBookStore.toString().includes(resourceCodeAndName.toString())
+          ]
+        } else {
+          allSharedOtBooksAndCheckboxStates[idx] = [resourceCodeAndName, false]
+        }
+      }
+    }
+
+    // Filter set of all resource codes into new testament
+    // resource codes.
     allSharedNtResourceCodes = json.filter(function (element: string) {
       return !otBooks.includes(element[0])
     })
+    // allSharedNtResourceCodes = allSharedNtResourceCodes
+
+    // Build up collection of tuples consisting of each
+    // resourceCodeAndName and whether it already exists in the store.
+    if (allSharedNtResourceCodes) {
+      for (const [idx, resourceCodeAndName] of allSharedNtResourceCodes.entries()) {
+        if ($otBookStore && resourceCodeAndName) {
+          // TODO I'd like to find a better way of comparing than
+          // using toString() which is a hack.
+          allSharedNtBooksAndCheckboxStates[idx] = [
+            resourceCodeAndName,
+            $ntBookStore.toString().includes(resourceCodeAndName.toString())
+          ]
+        } else {
+          allSharedNtBooksAndCheckboxStates[idx] = [resourceCodeAndName, false]
+        }
+      }
+    }
     return <string[]>json
   }
 
-  function handleRemove(book: string) {
-    bookStore.remove(book)
-
-    // guard to close popup when there are no more messages
-    if ($bookStore.length === 0) {
-      show = false
-    }
-  }
-
   const resetBooks = () => {
-    bookStore.clear()
-    sharedOtResourceCodes = []
-    sharedNtResourceCodes = []
-    // close popup
-    show = false
+    otBookStore.set([])
+    ntBookStore.set([])
   }
 
-  function storeBooks() {
-    for (let book of sharedOtResourceCodes) {
-      bookStore.add(book)
-    }
-    for (let book of sharedNtResourceCodes) {
-      bookStore.add(book)
-    }
+  function submitBooks() {
     push('#/')
   }
 
   function selectAllOtResourceCodes(event: Event) {
     if ((<HTMLInputElement>event.target).checked) {
-      sharedOtResourceCodes = allSharedOtResourceCodes
+      otBookStore.set(allSharedOtResourceCodes)
     } else {
-      sharedOtResourceCodes = []
+      otBookStore.set([])
     }
+    // TODO Is this necessary?
+    $otBookStore = $otBookStore
   }
 
   function selectAllNtResourceCodes(event: Event) {
     if ((<HTMLInputElement>event.target).checked) {
-      sharedNtResourceCodes = allSharedNtResourceCodes
+      ntBookStore.set(allSharedNtResourceCodes)
     } else {
-      sharedNtResourceCodes = []
+      ntBookStore.set([])
     }
+    // TODO Is this necessary?
+    $ntBookStore = $ntBookStore
   }
 
-  // Reactively get the lang code part of the lang name and code store
+  // Get the lang codes from the store reactively.
   $: lang0Code = $lang0NameAndCode.toString().split(',')[1]?.split(': ')[1]
   $: lang1Code = $lang1NameAndCode.toString().split(',')[1]?.split(': ')[1]
-  // Reactively get the lang name part of the lang name and code store
+  // Get the lang names from the store reactively.
   $: lang0Name = $lang0NameAndCode.toString().split(',')[0]
   $: lang1Name = $lang1NameAndCode.toString().split(',')[0]
-
-  // Without the following reactive statements, defaulted initially to
-  // false, you can indeed bind the values checked by select all means,
-  // and add them to the store using the button, but you will not see the
-  // checkboxes visual checked state change when the select all checkbox is
-  // manually clicked. Svelte doesn't allow to do something like
-  // bind:checked={sharedNtResourceCodes.includes(resourceCodeAndName[0])}
-  // on a checkbox element, so these reactive statements are a workaround.
-  let allOtResourceCodesChecked = false
-  let allNtResourceCodesChecked = false
-
-  $: {
-    allOtResourceCodesChecked =
-      allSharedOtResourceCodes &&
-      sharedOtResourceCodes.length === allSharedOtResourceCodes.length
-  }
-  $: {
-    allNtResourceCodesChecked =
-      allSharedNtResourceCodes &&
-      sharedNtResourceCodes.length === allSharedNtResourceCodes.length
-  }
 </script>
 
 {#if $lang0NameAndCode && $lang1NameAndCode}
@@ -134,7 +134,6 @@
                 id="select-all-old-testament"
                 type="checkbox"
                 class="checkbox"
-                bind:checked={allOtResourceCodesChecked}
                 on:change={event => selectAllOtResourceCodes(event)}
               />
             </div>
@@ -146,8 +145,9 @@
                 <input
                   id="lang-resourcecode-ot-{i}"
                   type="checkbox"
-                  bind:group={sharedOtResourceCodes}
+                  bind:group={$otBookStore}
                   value={resourceCodeAndName}
+                  bind:checked={allSharedOtBooksAndCheckboxStates[i][1]}
                   class="checkbox"
                 />
               </li>
@@ -163,7 +163,6 @@
                 id="select-all-new-testament"
                 type="checkbox"
                 class="checkbox"
-                checked={sharedNtResourceCodes.length === allSharedNtResourceCodes.length}
                 on:change={event => selectAllNtResourceCodes(event)}
               />
             </div>
@@ -175,9 +174,9 @@
                 <input
                   id="lang-resourcecode-nt-{i}"
                   type="checkbox"
-                  bind:group={sharedNtResourceCodes}
+                  bind:group={$ntBookStore}
                   value={resourceCodeAndName}
-                  bind:checked={allNtResourceCodesChecked}
+                  bind:checked={allSharedNtBooksAndCheckboxStates[i][1]}
                   class="checkbox"
                 />
               </li>
@@ -191,10 +190,10 @@
   </div>
 {/if}
 
-{#if sharedOtResourceCodes.length !== 0 || sharedNtResourceCodes.length !== 0}
+{#if $otBookStore.length !== 0 || $ntBookStore.length !== 0}
   <div class="mx-auto w-full px-2 pt-2 mt-2">
-    <button on:click|preventDefault={storeBooks} class="btn"
-      >Add ({sharedOtResourceCodes.length + sharedNtResourceCodes.length}) Books</button
+    <button on:click|preventDefault={submitBooks} class="btn"
+      >Add ({$otBookStore.length + $ntBookStore.length}) Books</button
     >
   </div>
 

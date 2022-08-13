@@ -1,14 +1,14 @@
 <script lang="ts">
   import { lang0NameAndCode, lang1NameAndCode } from '../stores/LanguagesStore'
-  import { bookStore } from '../stores/BooksStore'
+  import { otBookStore, ntBookStore } from '../stores/BooksStore'
   import { push } from 'svelte-spa-router'
 
-  // Get the part of the language name and code store that we want to show
-  // reactively, i.e., the language name.
+  // Get the language name from the store reactively.
   $: lang0Name = $lang0NameAndCode.toString().split(',')[0]
   $: lang1Name = $lang1NameAndCode.toString().split(',')[0]
-  // To limit the number of books to say 5 we can do .slice(0, 4) or similar
-  $: books = $bookStore.map(tuple => tuple[1])
+  // Get the book names from the store reactively.
+  $: otBooks = $otBookStore.map(resourceCodeAndName => resourceCodeAndName[1])
+  $: ntBooks = $ntBookStore.map(resourceCodeAndName => resourceCodeAndName[1])
 </script>
 
 <ul>
@@ -59,9 +59,17 @@
         />
       </svg>
     </button>
-    {#if $bookStore}
+    {#if $otBookStore || $ntBookStore}
       <div>
-        <span class="text-grey-200 text-sm capitalize">{books}</span>
+        <span class="text-grey-200 text-sm capitalize"
+          >{#if otBooks && otBooks.length > 5}{otBooks.slice(
+              0,
+              5
+            )}...{:else}{otBooks}{/if}{#if ntBooks && ntBooks.length > 5}, {ntBooks.slice(
+              0,
+              5
+            )}...{:else}{ntBooks}{/if}</span
+        >
       </div>
     {/if}
   </li>
@@ -84,10 +92,5 @@
         />
       </svg>
     </button>
-    <!-- {#if $resourceTypesStore} -->
-    <!--   <div> -->
-    <!--     <span class="text-grey-200 text-sm capitalize">{resourceTypes}</span> -->
-    <!--   </div> -->
-    <!-- {/if} -->
   </li>
 </ul>
