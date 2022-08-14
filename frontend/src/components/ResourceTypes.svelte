@@ -34,7 +34,10 @@
   }
 </script>
 
-<h3>{$lang0NameAndCode[1]}'s resource types</h3>
+<h3>
+  {#if $lang0NameAndCode}{$lang0NameAndCode.split(',')[0]}{:else}Lang 1{/if}'s resource
+  types
+</h3>
 <div>
   {#await getResourceTypes(lang0Code, [...$otBookStore, ...$ntBookStore])}
     <LoadingIndicator />
@@ -45,7 +48,10 @@
   {/await}
 </div>
 
-<h3>{$lang1NameAndCode[1]}'s resource types</h3>
+<h3>
+  {#if $lang1NameAndCode}{$lang1NameAndCode.split(',')[0]}{:else}Lang 2{/if}'s resource
+  types
+</h3>
 <div>
   {#await getResourceTypes(lang1Code, [...$otBookStore, ...$ntBookStore])}
     <LoadingIndicator />
