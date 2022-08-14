@@ -532,6 +532,67 @@ def resource_types_and_names_for_lang(
     return sorted(values, key=lambda value: value[0])
 
 
+def shared_resource_types(
+    lang_code: str,
+    resource_codes: Sequence[str],
+    working_dir: str = settings.working_dir(),
+    translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
+    lang_code_filter_list: Sequence[str] = settings.LANG_CODE_FILTER_LIST,
+    usfm_resource_types: Sequence[str] = settings.USFM_RESOURCE_TYPES,
+    tn_resource_types: Sequence[str] = settings.TN_RESOURCE_TYPES,
+    en_tn_resource_types: Sequence[str] = settings.EN_TN_RESOURCE_TYPES,
+    tq_resource_types: Sequence[str] = settings.TQ_RESOURCE_TYPES,
+    tw_resource_types: Sequence[str] = settings.TW_RESOURCE_TYPES,
+    bc_resource_types: Sequence[str] = settings.BC_RESOURCE_TYPES,
+) -> Sequence[Any]:
+    """
+    Given a language code and an list (Sequence) of
+    resource_codes, return the collection of resource types available
+    for that language and set of resource codes.
+
+    >>> from document.config import settings
+    >>> settings.IN_CONTAINER = False
+    >>> from document.domain import resource_lookup
+    >>> resource_lookup.shared_resource_types("en", ["2co"])
+    [('ulb-wa', 'Unlocked Literal Bible (ULB) (ulb-wa)'), ('tn-wa', 'ULB Translation Helps (tn-wa)'), ('tq-wa', 'ULB Translation Questions (tq-wa)'), ('tw-wa', 'ULB Translation Words (tw-wa)'), ('bc-wa', 'Bible Commentary (bc-wa)')]
+    >>> resource_lookup.shared_resource_types("kbt", ["2co"])
+    [('reg', 'Bible (reg)')]
+    """
+    resource_types = []
+    data = fetch_source_data(working_dir, translations_json_location)
+    # Get the resource types for lang0
+    for item in [lang for lang in data if lang["code"] == lang_code]:
+        for resource_type in item["contents"]:
+            seleccted_resource_codes_for_resource_type = [
+                resource_code
+                for resource_code in resource_type["subcontents"]
+                if resource_code["code"] in resource_codes
+            ]
+            if (
+                resource_type["code"] in usfm_resource_types
+                or (
+                    resource_type["code"] in en_tn_resource_types
+                    if lang_code == "en"
+                    else resource_type["code"] in tn_resource_types
+                )
+                or resource_type["code"] in tq_resource_types
+                or resource_type["code"] in tw_resource_types
+                or resource_type["code"] in bc_resource_types
+                # Check If there are resource codes associated with this resource type
+                # which conincide with the resource codes that the user selected.
+                and seleccted_resource_codes_for_resource_type
+            ):
+                resource_types.append(
+                    (
+                        resource_type["code"],
+                        "{} ({})".format(resource_type["name"], resource_type["code"]),
+                    )
+                )
+    if lang_code == "en":
+        resource_types.append(("bc-wa", "Bible Commentary (bc-wa)"))
+    return resource_types
+
+
 def shared_resource_codes(lang0_code: str, lang1_code: str) -> Sequence[Any]:
     """
     Given two language codes, return the intersection of resource codes between each language.

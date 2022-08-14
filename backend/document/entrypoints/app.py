@@ -7,7 +7,7 @@ from typing import Any
 
 from document.config import settings
 from document.domain import document_generator, exceptions, model, resource_lookup
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Query, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
@@ -192,6 +192,18 @@ def shared_resource_codes(lang0_code: str, lang1_code: str) -> Sequence[Any]:
     Return list of available resource codes common to both lang0_code and lang1_code.
     """
     return resource_lookup.shared_resource_codes(lang0_code, lang1_code)
+
+
+@app.get("/resource_types/{lang_code}/")
+def shared_resource_types(
+    lang_code: str,
+    resource_codes: Sequence[str] = Query(default=None),
+) -> Sequence[Any]:
+    """
+    Return the list of available resource types for lang_code with
+    resource_codes.
+    """
+    return resource_lookup.shared_resource_types(lang_code, resource_codes)
 
 
 @app.get("/resource_codes_for_lang/{lang_code}")
