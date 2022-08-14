@@ -6,69 +6,67 @@
   import LoadingIndicator from './LoadingIndicator.svelte'
 
   // The list of all old testament books from translations.json api
-  let allSharedOtResourceCodes: Array<string>
+  let otResourceCodes: Array<string>
   // The list of all new testament books from translations.json api
-  let allSharedNtResourceCodes: Array<string>
+  let ntResourceCodes: Array<string>
 
-  let allSharedOtBooksAndCheckboxStates: Array<[string, boolean]> = []
-  let allSharedNtBooksAndCheckboxStates: Array<[string, boolean]> = []
+  let otResrouceCodesCheckboxStates: Array<boolean> = []
+  let ntResourceCodesCheckboxStates: Array<boolean> = []
 
   export async function getSharedResourceCodes(
     lang0Code: string,
     lang1Code: string,
-    api_root_url = <string>import.meta.env.VITE_BACKEND_API_URL,
-    shared_resource_codes_url = <string>import.meta.env.VITE_SHARED_RESOURCE_CODES_URL
+    apiRootUrl = <string>import.meta.env.VITE_BACKEND_API_URL,
+    sharedResourceCodesUrl = <string>import.meta.env.VITE_SHARED_RESOURCE_CODES_URL
   ): Promise<string[]> {
     const response = await fetch(
-      api_root_url + shared_resource_codes_url + lang0Code + '/' + lang1Code
+      apiRootUrl + sharedResourceCodesUrl + lang0Code + '/' + lang1Code
     )
     const json = await response.json()
     if (!response.ok) throw new Error(response.statusText)
 
     // Filter set of all resource codes into old testament
     // resource codes.
-    allSharedOtResourceCodes = json.filter(function (element: string) {
+    otResourceCodes = json.filter(function (element: string) {
       return otBooks.includes(element[0])
     })
-    // allSharedOtResourceCodes = allSharedOtResourceCodes
+    // otResourceCodes = otResourceCodes
 
     // Build up collection of tuples consisting of each
     // resourceCodeAndName and whether it already exists in the store.
-    if (allSharedOtResourceCodes) {
-      for (const [idx, resourceCodeAndName] of allSharedOtResourceCodes.entries()) {
+    if (otResourceCodes) {
+      for (const [idx, resourceCodeAndName] of otResourceCodes.entries()) {
         if ($ntBookStore && resourceCodeAndName) {
           // TODO I'd like to find a better way of comparing than
-          // using toString() which is a hack.
-          allSharedOtBooksAndCheckboxStates[idx] = [
-            resourceCodeAndName,
-            $otBookStore.toString().includes(resourceCodeAndName.toString())
-          ]
+          // using toString().
+          otResrouceCodesCheckboxStates[idx] = otBookStore
+            .toString()
+            .includes(resourceCodeAndName.toString())
         } else {
-          allSharedOtBooksAndCheckboxStates[idx] = [resourceCodeAndName, false]
+          otResrouceCodesCheckboxStates[idx] = false
         }
       }
     }
 
     // Filter set of all resource codes into new testament
     // resource codes.
-    allSharedNtResourceCodes = json.filter(function (element: string) {
+    ntResourceCodes = json.filter(function (element: string) {
       return !otBooks.includes(element[0])
     })
-    // allSharedNtResourceCodes = allSharedNtResourceCodes
+    // ntResourceCodes = ntResourceCodes
 
     // Build up collection of tuples consisting of each
     // resourceCodeAndName and whether it already exists in the store.
-    if (allSharedNtResourceCodes) {
-      for (const [idx, resourceCodeAndName] of allSharedNtResourceCodes.entries()) {
+    if (ntResourceCodes) {
+      for (const [idx, resourceCodeAndName] of ntResourceCodes.entries()) {
         if ($otBookStore && resourceCodeAndName) {
           // TODO I'd like to find a better way of comparing than
-          // using toString() which is a hack.
-          allSharedNtBooksAndCheckboxStates[idx] = [
-            resourceCodeAndName,
-            $ntBookStore.toString().includes(resourceCodeAndName.toString())
-          ]
+          // using toString().
+          ntResourceCodesCheckboxStates[idx] = ntBookStore
+            .toString()
+            .includes(resourceCodeAndName.toString())
         } else {
-          allSharedNtBooksAndCheckboxStates[idx] = [resourceCodeAndName, false]
+          ntResourceCodesCheckboxStates[idx] = false
         }
       }
     }
@@ -86,7 +84,7 @@
 
   function selectAllOtResourceCodes(event: Event) {
     if ((<HTMLInputElement>event.target).checked) {
-      otBookStore.set(allSharedOtResourceCodes)
+      otBookStore.set(otResourceCodes)
     } else {
       otBookStore.set([])
     }
@@ -96,7 +94,7 @@
 
   function selectAllNtResourceCodes(event: Event) {
     if ((<HTMLInputElement>event.target).checked) {
-      ntBookStore.set(allSharedNtResourceCodes)
+      ntBookStore.set(ntResourceCodes)
     } else {
       ntBookStore.set([])
     }
@@ -125,7 +123,7 @@
       <div class="grid grid-cols-2 gap-4">
         <div>
           <h3>Old Testament</h3>
-          {#if allSharedOtResourceCodes.length > 0}
+          {#if otResourceCodes.length > 0}
             <div>
               <label for="select-all-old-testament"
                 ><strong>Select all Old Testament</strong></label
@@ -139,7 +137,7 @@
             </div>
           {/if}
           <ul>
-            {#each allSharedOtResourceCodes as resourceCodeAndName, i}
+            {#each otResourceCodes as resourceCodeAndName, i}
               <li>
                 <label for="lang-resourcecode-ot-{i}">{resourceCodeAndName[1]}</label>
                 <input
@@ -147,7 +145,7 @@
                   type="checkbox"
                   bind:group={$otBookStore}
                   value={resourceCodeAndName}
-                  bind:checked={allSharedOtBooksAndCheckboxStates[i][1]}
+                  bind:checked={otResrouceCodesCheckboxStates[i]}
                   class="checkbox"
                 />
               </li>
@@ -156,7 +154,7 @@
         </div>
         <div>
           <h3>New Testament</h3>
-          {#if allSharedNtResourceCodes.length > 0}
+          {#if ntResourceCodes.length > 0}
             <div>
               <label for="select-all-new-testament">Select all New Testament</label>
               <input
@@ -168,7 +166,7 @@
             </div>
           {/if}
           <ul>
-            {#each allSharedNtResourceCodes as resourceCodeAndName, i}
+            {#each ntResourceCodes as resourceCodeAndName, i}
               <li>
                 <label for="lang-resourcecode-nt-{i}">{resourceCodeAndName[1]}</label>
                 <input
@@ -176,7 +174,7 @@
                   type="checkbox"
                   bind:group={$ntBookStore}
                   value={resourceCodeAndName}
-                  bind:checked={allSharedNtBooksAndCheckboxStates[i][1]}
+                  bind:checked={ntResourceCodesCheckboxStates[i]}
                   class="checkbox"
                 />
               </li>
