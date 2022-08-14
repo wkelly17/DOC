@@ -10,7 +10,7 @@
   // The list of all new testament books from translations.json api
   let ntResourceCodes: Array<string>
 
-  let otResrouceCodesCheckboxStates: Array<boolean> = []
+  let otResourceCodesCheckboxStates: Array<boolean> = []
   let ntResourceCodesCheckboxStates: Array<boolean> = []
 
   export async function getSharedResourceCodes(
@@ -39,11 +39,11 @@
         if ($ntBookStore && resourceCodeAndName) {
           // TODO I'd like to find a better way of comparing than
           // using toString().
-          otResrouceCodesCheckboxStates[idx] = otBookStore
+          otResourceCodesCheckboxStates[idx] = otBookStore
             .toString()
             .includes(resourceCodeAndName.toString())
         } else {
-          otResrouceCodesCheckboxStates[idx] = false
+          otResourceCodesCheckboxStates[idx] = false
         }
       }
     }
@@ -145,7 +145,7 @@
                   type="checkbox"
                   bind:group={$otBookStore}
                   value={resourceCodeAndName}
-                  bind:checked={otResrouceCodesCheckboxStates[i]}
+                  bind:checked={otResourceCodesCheckboxStates[i]}
                   class="checkbox"
                 />
               </li>
