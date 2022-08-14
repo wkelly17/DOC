@@ -12,7 +12,7 @@
     "lint:fix": "eslint --fix './src/**/*.{js,ts,svelte}'",
     "prelint": "npm run format",
     "allbuild": "npm run check && npm run build",
-    "allbuildandrun": "npm run allbuild && npm run preview",
+    "allbuildandrun": "npm run allbuild && npm run preview --host true",
     "test": "vitest"
   },
   "devDependencies": {
