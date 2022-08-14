@@ -1,9 +1,9 @@
 <script lang="ts">
-  import LoadingIndicator from './LoadingIndicator.svelte'
-  import otBooks from '../data/ot_books'
-  import { lang0NameAndCode, lang1NameAndCode } from '../stores/LanguagesStore'
-  import { otBookStore, ntBookStore } from '../stores/BooksStore'
   import { push } from 'svelte-spa-router'
+  import otBooks from '../data/ot_books'
+  import { ntBookStore, otBookStore } from '../stores/BooksStore'
+  import { lang0NameAndCode, lang1NameAndCode } from '../stores/LanguagesStore'
+  import LoadingIndicator from './LoadingIndicator.svelte'
 
   // The list of all old testament books from translations.json api
   let allSharedOtResourceCodes: Array<string>

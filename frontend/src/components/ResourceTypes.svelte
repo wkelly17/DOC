@@ -1,7 +1,7 @@
 <script lang="ts">
-  import LoadingIndicator from './LoadingIndicator.svelte'
+  import { ntBookStore, otBookStore } from '../stores/BooksStore'
   import { lang0NameAndCode, lang1NameAndCode } from '../stores/LanguagesStore'
-  import { otBookStore, ntBookStore } from '../stores/BooksStore'
+  import LoadingIndicator from './LoadingIndicator.svelte'
 
   // Get the lang codes from the store reactively.
   $: lang0Code = $lang0NameAndCode.toString().split(',')[1]?.split(': ')[1]
