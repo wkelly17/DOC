@@ -1,9 +1,4 @@
 import { writable } from 'svelte/store'
 
-export const otBookStore = writable<string[]>([])
-export const ntBookStore = writable<string[]>([])
-
-
-
-
-
+export const otBookStore = writable<Array<[string, string]>>([])
+export const ntBookStore = writable<Array<[string, string]>>([])

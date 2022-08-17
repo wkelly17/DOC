@@ -8,29 +8,29 @@
   const API_ROOT_URL: string = <string>import.meta.env.VITE_BACKEND_API_URL
   const LANGUAGE_CODES_AND_NAMES: string = '/language_codes_and_names'
 
-  async function getLang0CodesAndNames(): Promise<string[]> {
+  async function getLangCodesAndNames(): Promise<Array<string>> {
     const response = await fetch(API_ROOT_URL + LANGUAGE_CODES_AND_NAMES)
-    const json = await response.json()
-    if (response.ok) {
-      return <string[]>json
-    } else {
-      throw new Error(json)
+    const langCodesAndNames: Array<string> = await response.json()
+    if (!response.ok) {
+      console.log(`Error: ${response.statusText}`)
+      throw new Error(response.statusText)
     }
+    return langCodesAndNames
+  }
+
+  // Resolve promise for data
+  let langCodesAndNames: Array<string>
+  $: {
+    getLangCodesAndNames()
+      .then(langCodesAndNames_ => {
+        langCodesAndNames = langCodesAndNames_
+      })
+      .catch(err => console.log(err)) // FIXME Trigger dialog or ? for error
   }
 
   let showAnotherLang = false
   function handleAddLang() {
     showAnotherLang = true
-  }
-
-  async function getLang1CodesAndNames(): Promise<string[]> {
-    const response = await fetch(API_ROOT_URL + LANGUAGE_CODES_AND_NAMES)
-    const json = await response.json()
-    if (response.ok) {
-      return <string[]>json
-    } else {
-      throw new Error(json)
-    }
   }
 
   function resetLanguages() {
@@ -42,11 +42,6 @@
   function submitLanguages() {
     push('#/')
   }
-
-  // Get the part of the lang name and code store that we want to show
-  // reactively.
-  $: lang0Name = $lang0NameAndCode.toString().split(',')[0]
-  $: lang1Name = $lang1NameAndCode.toString().split(',')[0]
 </script>
 
 <div class="bg-white flex">
@@ -71,13 +66,11 @@
 </div>
 <div class="mx-auto w-full px-2 pt-2 mt-2">
   <h3>{import.meta.env.VITE_LANG_0_HEADER}</h3>
-  {#await getLang0CodesAndNames()}
+  {#if !langCodesAndNames}
     <LoadingIndicator />
-  {:then data}
-    <Autocomplete items={data} bind:selectedItem={$lang0NameAndCode} />
-  {:catch error}
-    <p class="error">{error.message}</p>
-  {/await}
+  {:else}
+    <Autocomplete items={langCodesAndNames} bind:selectedItem={$lang0NameAndCode} />
+  {/if}
 </div>
 
 {#if $lang0NameAndCode && !$lang1NameAndCode && !showAnotherLang}
@@ -91,13 +84,11 @@
 {#if $lang1NameAndCode || showAnotherLang}
   <div class="mx-auto w-full px-2 pt-2 mt-2">
     <h3>{import.meta.env.VITE_LANG_1_HEADER}</h3>
-    {#await getLang1CodesAndNames()}
+    {#if !langCodesAndNames}
       <LoadingIndicator />
-    {:then data}
-      <Autocomplete items={data} bind:selectedItem={$lang1NameAndCode} />
-    {:catch error}
-      <p class="error">{error.message}</p>
-    {/await}
+    {:else}
+      <Autocomplete items={langCodesAndNames} bind:selectedItem={$lang1NameAndCode} />
+    {/if}
   </div>
 {/if}
 
@@ -112,50 +103,3 @@
     <button on:click|preventDefault={resetLanguages} class="btn">Reset languages</button>
   </div>
 {/if}
-
-<!-- {#if $lang0NameAndCode} -->
-<!--   <div class="toast toast-top toast-center"> -->
-<!--     <div class="alert alert-success shadow-lg elementToFadeInAndOut"> -->
-<!--       <div> -->
-<!--         <span class="capitalize">{lang0Name}</span> successfully stored -->
-<!--       </div> -->
-<!--     </div> -->
-<!--     {#if $lang1NameAndCode} -->
-<!--       <div class="alert alert-success shadow-lg elementToFadeInAndOut"> -->
-<!--         <div> -->
-<!--           <span class="capitalize">{lang1Name}</span> successfully stored -->
-<!--         </div> -->
-<!--       </div> -->
-<!--     {/if} -->
-<!--   </div> -->
-
-<!-- {/if} -->
-<style>
-  .elementToFadeInAndOut {
-    -webkit-animation: fadeinout 8s linear 1 forwards;
-    animation: fadeinout 8s linear 1 forwards;
-  }
-
-  @-webkit-keyframes fadeinout {
-    0% {
-      opacity: 0;
-    }
-    50% {
-      opacity: 1;
-    }
-    100% {
-      opacity: 0;
-    }
-  }
-  @keyframes fadeinout {
-    0% {
-      opacity: 0;
-    }
-    50% {
-      opacity: 1;
-    }
-    100% {
-      opacity: 0;
-    }
-  }
-</style>

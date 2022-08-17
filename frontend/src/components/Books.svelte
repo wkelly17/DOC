@@ -5,72 +5,90 @@
   import { lang0NameAndCode, lang1NameAndCode } from '../stores/LanguagesStore'
   import LoadingIndicator from './LoadingIndicator.svelte'
 
-  // The list of all old testament books from translations.json api
-  let otResourceCodes: Array<string>
-  // The list of all new testament books from translations.json api
-  let ntResourceCodes: Array<string>
-
-  let otResourceCodesCheckboxStates: Array<boolean> = []
-  let ntResourceCodesCheckboxStates: Array<boolean> = []
-
-  export async function getSharedResourceCodes(
+  async function getSharedResourceCodes(
     lang0Code: string,
     lang1Code: string,
     apiRootUrl = <string>import.meta.env.VITE_BACKEND_API_URL,
     sharedResourceCodesUrl = <string>import.meta.env.VITE_SHARED_RESOURCE_CODES_URL
-  ): Promise<string[]> {
+  ): Promise<Array<[string, string]>> {
     const response = await fetch(
       apiRootUrl + sharedResourceCodesUrl + lang0Code + '/' + lang1Code
     )
-    const json = await response.json()
+    const sharedResourceCodes: Array<[string, string]> = await response.json()
     if (!response.ok) throw new Error(response.statusText)
+    return sharedResourceCodes
+  }
 
-    // Filter set of all resource codes into old testament
-    // resource codes.
-    otResourceCodes = json.filter(function (element: string) {
-      return otBooks.includes(element[0])
-    })
-    // otResourceCodes = otResourceCodes
+  // Get the lang codes from the store reactively.
+  $: lang0Code = $lang0NameAndCode.split(',')[1]?.split(': ')[1]
+  $: lang1Code = $lang1NameAndCode.split(',')[1]?.split(': ')[1]
+  // Get the lang names from the store reactively.
+  $: lang0Name = $lang0NameAndCode.split(',')[0]
+  $: lang1Name = $lang1NameAndCode.split(',')[0]
 
+  // Resolve promise for data reactively
+  // The list of all old testament books from translations.json api
+  let otResourceCodes: Array<[string, string]>
+  // The list of all new testament books from translations.json api
+  let ntResourceCodes: Array<[string, string]>
+  $: {
+    if (lang0Code && lang1Code) {
+      getSharedResourceCodes(lang0Code, lang1Code)
+        .then(resourceCodesAndNames => {
+          // Filter set of all resource codes into old testament
+          // resource codes.
+          otResourceCodes = resourceCodesAndNames.filter(function (
+            element: [string, string]
+          ) {
+            return otBooks.some(item => item === element[0])
+          })
+
+          // Filter set of all resource codes into new testament
+          // resource codes.
+          ntResourceCodes = resourceCodesAndNames.filter(function (
+            element: [string, string]
+          ) {
+            return !otBooks.some(item => item === element[0])
+          })
+        })
+        .catch(err => console.error(err))
+    }
+  }
+
+  // Maintain the checkbox states reactively
+  let otResourceCodesCheckboxStates: Array<boolean> = []
+  $: {
     // Build up collection of tuples consisting of each
     // resourceCodeAndName and whether it already exists in the store.
     if (otResourceCodes) {
       for (const [idx, resourceCodeAndName] of otResourceCodes.entries()) {
         if ($ntBookStore && resourceCodeAndName) {
-          // TODO I'd like to find a better way of comparing than
-          // using toString().
-          otResourceCodesCheckboxStates[idx] = otBookStore
-            .toString()
-            .includes(resourceCodeAndName.toString())
+          otResourceCodesCheckboxStates[idx] = $otBookStore.some(
+            item => item[0] === resourceCodeAndName[0]
+          )
         } else {
           otResourceCodesCheckboxStates[idx] = false
         }
       }
     }
+  }
 
-    // Filter set of all resource codes into new testament
-    // resource codes.
-    ntResourceCodes = json.filter(function (element: string) {
-      return !otBooks.includes(element[0])
-    })
-    // ntResourceCodes = ntResourceCodes
-
+  // Maintain the checkbox states reactively
+  let ntResourceCodesCheckboxStates: Array<boolean> = []
+  $: {
     // Build up collection of tuples consisting of each
     // resourceCodeAndName and whether it already exists in the store.
     if (ntResourceCodes) {
       for (const [idx, resourceCodeAndName] of ntResourceCodes.entries()) {
         if ($otBookStore && resourceCodeAndName) {
-          // TODO I'd like to find a better way of comparing than
-          // using toString().
-          ntResourceCodesCheckboxStates[idx] = ntBookStore
-            .toString()
-            .includes(resourceCodeAndName.toString())
+          ntResourceCodesCheckboxStates[idx] = $ntBookStore.some(
+            item => item[0] === resourceCodeAndName[0]
+          )
         } else {
           ntResourceCodesCheckboxStates[idx] = false
         }
       }
     }
-    return <string[]>json
   }
 
   const resetBooks = () => {
@@ -88,8 +106,6 @@
     } else {
       otBookStore.set([])
     }
-    // TODO Is this necessary?
-    $otBookStore = $otBookStore
   }
 
   function selectAllNtResourceCodes(event: Event) {
@@ -98,23 +114,34 @@
     } else {
       ntBookStore.set([])
     }
-    // TODO Is this necessary?
-    $ntBookStore = $ntBookStore
   }
 
-  // Get the lang codes from the store reactively.
-  $: lang0Code = $lang0NameAndCode.toString().split(',')[1]?.split(': ')[1]
-  $: lang1Code = $lang1NameAndCode.toString().split(',')[1]?.split(': ')[1]
-  // Get the lang names from the store reactively.
-  $: lang0Name = $lang0NameAndCode.toString().split(',')[0]
-  $: lang1Name = $lang1NameAndCode.toString().split(',')[0]
+  // Keep track of how many books are currently stored reactively.
+  let nonEmptyOtBooks: boolean
+  $: nonEmptyOtBooks = $otBookStore.every(item => item.length > 0)
+
+  let nonEmptyNtBooks: boolean
+  $: nonEmptyNtBooks = $ntBookStore.every(item => item.length > 0)
+
+  let bookCount: number
+  $: {
+    if (nonEmptyOtBooks && nonEmptyNtBooks) {
+      bookCount = $otBookStore.length + $ntBookStore.length
+    } else if (nonEmptyOtBooks && !nonEmptyNtBooks) {
+      bookCount = $otBookStore.length
+    } else if (!nonEmptyOtBooks && nonEmptyNtBooks) {
+      bookCount = $ntBookStore.length
+    } else {
+      bookCount = 0
+    }
+  }
 </script>
 
 {#if $lang0NameAndCode && $lang1NameAndCode}
   <div>
-    {#await getSharedResourceCodes(lang0Code, lang1Code)}
+    {#if !(otResourceCodes && otResourceCodesCheckboxStates) || !(ntResourceCodes && ntResourceCodesCheckboxStates)}
       <LoadingIndicator />
-    {:then data}
+    {:else}
       <h3 class="text-xl capitalize">
         {import.meta.env.VITE_RESOURCE_CODES_HEADER}
         {#if $lang1NameAndCode}in common{/if} for {#if $lang1NameAndCode}languages:{:else}language:{/if}
@@ -182,16 +209,14 @@
           </ul>
         </div>
       </div>
-    {:catch error}
-      <p class="error">{error.message}</p>
-    {/await}
+    {/if}
   </div>
 {/if}
 
-{#if $otBookStore.length !== 0 || $ntBookStore.length !== 0}
+{#if bookCount > 0}
   <div class="mx-auto w-full px-2 pt-2 mt-2">
     <button on:click|preventDefault={submitBooks} class="btn"
-      >Add ({$otBookStore.length + $ntBookStore.length}) Books</button
+      >Add ({bookCount}) Books</button
     >
   </div>
 

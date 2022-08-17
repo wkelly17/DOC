@@ -198,10 +198,10 @@ def shared_resource_codes(lang0_code: str, lang1_code: str) -> Sequence[Any]:
 def shared_resource_types(
     lang_code: str,
     resource_codes: Sequence[str] = Query(default=None),
-) -> Sequence[Any]:
+) -> Sequence[tuple[str, str]]:
     """
-    Return the list of available resource types for lang_code with
-    resource_codes.
+    Return the list of available resource types tuples for lang_code
+    with resource_codes.
     """
     return resource_lookup.shared_resource_types(lang_code, resource_codes)
 

@@ -1,6 +1,10 @@
 <script lang="ts">
   import { lang0NameAndCode, lang1NameAndCode } from '../stores/LanguagesStore'
   import { otBookStore, ntBookStore } from '../stores/BooksStore'
+  import {
+    lang0ResourceTypesStore,
+    lang1ResourceTypesStore
+  } from '../stores/ResourceTypesStore'
   import { push } from 'svelte-spa-router'
 
   // Get the language name from the store reactively.
@@ -9,6 +13,13 @@
   // Get the book names from the store reactively.
   $: otBooks = $otBookStore.map(resourceCodeAndName => resourceCodeAndName[1])
   $: ntBooks = $ntBookStore.map(resourceCodeAndName => resourceCodeAndName[1])
+
+  $: lang0ResourceTypeNames = $lang0ResourceTypesStore.map(
+    resourceTypeAndNAme => resourceTypeAndNAme[1]
+  )
+  $: lang1ResourceTypeNames = $lang1ResourceTypesStore.map(
+    resourceTypeAndNAme => resourceTypeAndNAme[1]
+  )
 </script>
 
 <ul>
@@ -92,5 +103,19 @@
         />
       </svg>
     </button>
+    {#if $lang0ResourceTypesStore || $lang1ResourceTypesStore}
+      <div>
+        <span class="text-grey-200 text-sm capitalize"
+          >{#if lang0ResourceTypeNames && lang0ResourceTypeNames.length > 5}{lang0ResourceTypeNames.slice(
+              0,
+              5
+            )}...{:else}{lang0ResourceTypeNames}{/if}{#if lang1ResourceTypeNames && lang1ResourceTypeNames.length > 5},
+            {lang1ResourceTypeNames.slice(
+              0,
+              5
+            )}...{:else}{lang1ResourceTypeNames}{/if}</span
+        >
+      </div>
+    {/if}
   </li>
 </ul>

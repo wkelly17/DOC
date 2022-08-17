@@ -544,7 +544,7 @@ def shared_resource_types(
     tq_resource_types: Sequence[str] = settings.TQ_RESOURCE_TYPES,
     tw_resource_types: Sequence[str] = settings.TW_RESOURCE_TYPES,
     bc_resource_types: Sequence[str] = settings.BC_RESOURCE_TYPES,
-) -> Sequence[Any]:
+) -> Sequence[tuple[str, str]]:
     """
     Given a language code and an list (Sequence) of
     resource_codes, return the collection of resource types available
@@ -558,7 +558,7 @@ def shared_resource_types(
     >>> resource_lookup.shared_resource_types("kbt", ["2co"])
     [('reg', 'Bible (reg)')]
     """
-    resource_types = []
+    resource_types: list[tuple[str, str]] = []
     data = fetch_source_data(working_dir, translations_json_location)
     # Get the resource types for lang0
     for item in [lang for lang in data if lang["code"] == lang_code]:
@@ -593,7 +593,9 @@ def shared_resource_types(
     return resource_types
 
 
-def shared_resource_codes(lang0_code: str, lang1_code: str) -> Sequence[Any]:
+def shared_resource_codes(
+    lang0_code: str, lang1_code: str
+) -> Sequence[tuple[str, str]]:
     """
     Given two language codes, return the intersection of resource codes between each language.
 
@@ -617,16 +619,16 @@ def resource_codes_for_lang(
     jsonpath_str: str = settings.RESOURCE_CODES_FOR_LANG_JSONPATH,
     book_names: Mapping[str, str] = bible_books.BOOK_NAMES,
     book_numbers: Mapping[str, str] = bible_books.BOOK_NUMBERS,
-) -> Sequence[Sequence[Any]]:
+) -> Sequence[tuple[str, str]]:
     """
     Convenience method that can be called, e.g., from the UI, to
     get the set of all resource codes for a particular lang_code.
     """
-    resource_codes = [
-        [resource_code, book_names[resource_code]]
+    resource_codes = (
+        (resource_code, book_names[resource_code])
         for resource_code in _lookup(jsonpath_str.format(lang_code))
         if resource_code
-    ]
+    )
     return sorted(
         resource_codes,
         key=lambda resource_code_name_pair: book_numbers[resource_code_name_pair[0]],
