@@ -5,7 +5,7 @@
   import { lang0NameAndCode, lang1NameAndCode } from '../stores/LanguagesStore'
   import LoadingIndicator from './LoadingIndicator.svelte'
 
-  async function getSharedResourceCodes(
+  async function getSharedResourceCodesAndNames(
     lang0Code: string,
     lang1Code: string,
     apiRootUrl = <string>import.meta.env.VITE_BACKEND_API_URL,
@@ -17,6 +17,20 @@
     const sharedResourceCodes: Array<[string, string]> = await response.json()
     if (!response.ok) throw new Error(response.statusText)
     return sharedResourceCodes
+  }
+
+  async function getResourceCodesAndNames(
+    langCode: string,
+    apiRootUrl = <string>import.meta.env.VITE_BACKEND_API_URL,
+    resourceCodesUrl = <string>import.meta.env.VITE_RESOURCE_CODES_URL
+  ): Promise<Array<[string, string]>> {
+    const response = await fetch(`${apiRootUrl}${resourceCodesUrl}${langCode}`)
+    const resourceCodesAndNames: Array<[string, string]> = await response.json()
+    if (!response.ok) {
+      console.error(response.statusText)
+      throw new Error(response.statusText)
+    }
+    return resourceCodesAndNames
   }
 
   // Get the lang codes from the store reactively.
@@ -33,7 +47,27 @@
   let ntResourceCodes: Array<[string, string]>
   $: {
     if (lang0Code && lang1Code) {
-      getSharedResourceCodes(lang0Code, lang1Code)
+      getSharedResourceCodesAndNames(lang0Code, lang1Code)
+        .then(resourceCodesAndNames => {
+          // Filter set of all resource codes into old testament
+          // resource codes.
+          otResourceCodes = resourceCodesAndNames.filter(function (
+            element: [string, string]
+          ) {
+            return otBooks.some(item => item === element[0])
+          })
+
+          // Filter set of all resource codes into new testament
+          // resource codes.
+          ntResourceCodes = resourceCodesAndNames.filter(function (
+            element: [string, string]
+          ) {
+            return !otBooks.some(item => item === element[0])
+          })
+        })
+        .catch(err => console.error(err))
+    } else {
+      getResourceCodesAndNames(lang0Code)
         .then(resourceCodesAndNames => {
           // Filter set of all resource codes into old testament
           // resource codes.
@@ -137,7 +171,7 @@
   }
 </script>
 
-{#if $lang0NameAndCode && $lang1NameAndCode}
+{#if $lang0NameAndCode || $lang1NameAndCode}
   <div>
     {#if !(otResourceCodes && otResourceCodesCheckboxStates) || !(ntResourceCodes && ntResourceCodesCheckboxStates)}
       <LoadingIndicator />

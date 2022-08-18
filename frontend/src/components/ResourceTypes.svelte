@@ -15,7 +15,7 @@
   $: lang0Name = $lang0NameAndCode.split(',')[0]
   $: lang1Name = $lang1NameAndCode.split(',')[0]
 
-  async function getResourceTypes(
+  async function getResourceTypesAndNames(
     langCode: string,
     resourceCodeAndNames: Array<[string, string]>,
     apiRootUrl = <string>import.meta.env.VITE_BACKEND_API_URL,
@@ -43,7 +43,7 @@
   let lang0ResourceTypesAndNames: Array<[string, string]>
   $: {
     if (lang0Code) {
-      getResourceTypes(lang0Code, [...$otBookStore, ...$ntBookStore])
+      getResourceTypesAndNames(lang0Code, [...$otBookStore, ...$ntBookStore])
         .then(resourceTypesAndNames => {
           lang0ResourceTypesAndNames = resourceTypesAndNames
         })
@@ -55,7 +55,7 @@
   let lang1ResourceTypesAndNames: Array<[string, string]>
   $: {
     if (lang1Code) {
-      getResourceTypes(lang1Code, [...$otBookStore, ...$ntBookStore])
+      getResourceTypesAndNames(lang1Code, [...$otBookStore, ...$ntBookStore])
         .then(resourceTypesAndNames => {
           lang1ResourceTypesAndNames = resourceTypesAndNames
         })
@@ -142,7 +142,7 @@
   }
 </script>
 
-{#if $lang0NameAndCode && $lang1NameAndCode}
+{#if $lang0NameAndCode}
   <div>
     {#if !(lang0ResourceTypesAndNames && lang0ResourceTypesCheckboxStates)}
       <LoadingIndicator />
@@ -183,6 +183,8 @@
       </div>
     {/if}
   </div>
+{/if}
+{#if $lang1NameAndCode}
   <div>
     {#if !(lang1ResourceTypesAndNames && lang1ResourceTypesCheckboxStates)}
       <LoadingIndicator />

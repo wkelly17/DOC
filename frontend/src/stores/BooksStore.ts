@@ -1,4 +1,8 @@
-import { writable } from 'svelte/store'
+import { writable, Writable } from 'svelte/store'
 
-export const otBookStore = writable<Array<[string, string]>>([])
-export const ntBookStore = writable<Array<[string, string]>>([])
+export const otBookStore: Writable<Array<[string, string]>> = writable<
+  Array<[string, string]>
+>([])
+export const ntBookStore: Writable<Array<[string, string]>> = writable<
+  Array<[string, string]>
+>([])
