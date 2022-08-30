@@ -155,13 +155,13 @@ def _location(
         resource_type_name = ""
     return model.ResourceLookupDto(
         lang_code=lang_code,
+        lang_name=lang_name,
         resource_type=resource_type,
+        resource_type_name=resource_type_name,
         resource_code=resource_code,
         url=url,
         source=asset_source_enum_kind,
         jsonpath=jsonpath_str,
-        lang_name=lang_name,
-        resource_type_name=resource_type_name,
     )
 
 

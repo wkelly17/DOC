@@ -4,6 +4,7 @@ import Languages from './components/Languages.svelte'
 import Home from './components/Home.svelte'
 import About from './components/About.svelte'
 import Settings from './components/Settings.svelte'
+import Result from './components/Result.svelte'
 import ViewNotFound from './components/ViewNotFound.svelte'
 export default {
   '/': Home,
@@ -11,7 +12,7 @@ export default {
   '/books': Books,
   '/resource_types': ResourceTypes,
   '/settings': Settings,
+  '/result': Result,
   '/about': About,
-  // '/object/:objectId': ViewObject,
   '*': ViewNotFound
 }

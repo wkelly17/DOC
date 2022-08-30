@@ -1,19 +1,21 @@
 <script lang="ts">
   import { push } from 'svelte-spa-router'
   import { ntBookStore, otBookStore } from '../stores/BooksStore'
-  import { lang0NameAndCode, lang1NameAndCode } from '../stores/LanguagesStore'
+  import {
+    lang0CodeStore,
+    lang1CodeStore,
+    lang0NameStore,
+    lang1NameStore,
+    langCountStore
+  } from '../stores/LanguagesStore'
   import {
     lang0ResourceTypesStore,
-    lang1ResourceTypesStore
+    lang1ResourceTypesStore,
+    resourceTypesCountStore
   } from '../stores/ResourceTypesStore'
-  import LoadingIndicator from './LoadingIndicator.svelte'
-
-  // Get the lang codes from the store reactively.
-  $: lang0Code = $lang0NameAndCode.split(',')[1]?.split(': ')[1]
-  $: lang1Code = $lang1NameAndCode.split(',')[1]?.split(': ')[1]
-  // Get the lang names from the store reactively.
-  $: lang0Name = $lang0NameAndCode.split(',')[0]
-  $: lang1Name = $lang1NameAndCode.split(',')[0]
+  import LeftArrow from './LeftArrow.svelte'
+  import ProgressIndicator from './ProgressIndicator.svelte'
+  import { resetStores } from '../lib/utils'
 
   async function getResourceTypesAndNames(
     langCode: string,
@@ -40,58 +42,52 @@
   }
 
   // Resolve promise for data
-  let lang0ResourceTypesAndNames: Array<[string, string]>
+  let lang0ResourceTypesAndNames: Array<string>
   $: {
-    if (lang0Code) {
-      getResourceTypesAndNames(lang0Code, [...$otBookStore, ...$ntBookStore])
+    if ($lang0CodeStore) {
+      let otResourceCodes_: Array<[string, string]> = $otBookStore.map(item => [
+        item.split(', ')[0],
+        item.split(', ')[1]
+      ])
+      let ntResourceCodes_: Array<[string, string]> = $ntBookStore.map(item => [
+        item.split(', ')[0],
+        item.split(', ')[1]
+      ])
+      getResourceTypesAndNames($lang0CodeStore, [
+        ...otResourceCodes_,
+        ...ntResourceCodes_
+      ])
         .then(resourceTypesAndNames => {
-          lang0ResourceTypesAndNames = resourceTypesAndNames
+          lang0ResourceTypesAndNames = resourceTypesAndNames.map(
+            tuple => `${tuple[0]}, ${tuple[1]}`
+          )
         })
         .catch(err => console.error(err))
     }
   }
 
   // Resolve promise for data for language
-  let lang1ResourceTypesAndNames: Array<[string, string]>
+  let lang1ResourceTypesAndNames: Array<string>
   $: {
-    if (lang1Code) {
-      getResourceTypesAndNames(lang1Code, [...$otBookStore, ...$ntBookStore])
+    if ($lang1CodeStore) {
+      let otResourceCodes_: Array<[string, string]> = $otBookStore.map(item => [
+        item.split(', ')[0],
+        item.split(', ')[1]
+      ])
+      let ntResourceCodes_: Array<[string, string]> = $ntBookStore.map(item => [
+        item.split(', ')[0],
+        item.split(', ')[1]
+      ])
+      getResourceTypesAndNames($lang1CodeStore, [
+        ...otResourceCodes_,
+        ...ntResourceCodes_
+      ])
         .then(resourceTypesAndNames => {
-          lang1ResourceTypesAndNames = resourceTypesAndNames
+          lang1ResourceTypesAndNames = resourceTypesAndNames.map(
+            tuple => `${tuple[0]}, ${tuple[1]}`
+          )
         })
         .catch(err => console.error(err))
-    }
-  }
-
-  // Maintain the checkbox states reactively
-  let lang0ResourceTypesCheckboxStates: Array<boolean> = []
-  $: {
-    if (lang0ResourceTypesAndNames) {
-      for (const [idx, resourceTypeAndName] of lang0ResourceTypesAndNames.entries()) {
-        if ($lang0ResourceTypesStore && resourceTypeAndName) {
-          lang0ResourceTypesCheckboxStates[idx] = $lang0ResourceTypesStore.some(
-            item => item[0] === resourceTypeAndName[0]
-          )
-        } else {
-          lang0ResourceTypesCheckboxStates[idx] = false
-        }
-      }
-    }
-  }
-
-  // Maintain the checkbox states reactively
-  let lang1ResourceTypesCheckboxStates: Array<boolean> = []
-  $: {
-    if (lang1ResourceTypesAndNames) {
-      for (const [idx, resourceTypeAndName] of lang1ResourceTypesAndNames.entries()) {
-        if ($lang1ResourceTypesStore && resourceTypeAndName) {
-          lang1ResourceTypesCheckboxStates[idx] = $lang1ResourceTypesStore.some(
-            item => item[0] === resourceTypeAndName[0]
-          )
-        } else {
-          lang1ResourceTypesCheckboxStates[idx] = false
-        }
-      }
     }
   }
 
@@ -111,9 +107,8 @@
     }
   }
 
-  const resetResourceTypes = () => {
-    lang0ResourceTypesStore.set([])
-    lang1ResourceTypesStore.set([])
+  function resetResourceTypes() {
+    resetStores('resource_types')
   }
 
   function submitResourceTypes() {
@@ -127,117 +122,150 @@
   let nonEmptyLang1Resourcetypes: boolean
   $: nonEmptyLang1Resourcetypes = $lang1ResourceTypesStore.every(item => item.length > 0)
 
-  let resourceTypesCount: number
   $: {
     if (nonEmptyLang0Resourcetypes && nonEmptyLang1Resourcetypes) {
-      resourceTypesCount =
+      resourceTypesCountStore.set(
         $lang0ResourceTypesStore.length + $lang1ResourceTypesStore.length
+      )
     } else if (nonEmptyLang0Resourcetypes && !nonEmptyLang1Resourcetypes) {
-      resourceTypesCount = $lang0ResourceTypesStore.length
+      resourceTypesCountStore.set($lang0ResourceTypesStore.length)
     } else if (!nonEmptyLang0Resourcetypes && nonEmptyLang1Resourcetypes) {
-      resourceTypesCount = $lang1ResourceTypesStore.length
+      resourceTypesCountStore.set($lang1ResourceTypesStore.length)
     } else {
-      resourceTypesCount = 0
+      resourceTypesCountStore.set(0)
     }
   }
 </script>
 
-{#if $lang0NameAndCode}
-  <div>
-    {#if !(lang0ResourceTypesAndNames && lang0ResourceTypesCheckboxStates)}
-      <LoadingIndicator />
-    {:else}
-      <h3 class="text-xl capitalize">Resource types header goes here</h3>
-      <div class="grid grid-cols-2 gap-4">
+<div class="bg-primary flex">
+  <button
+    class="bg-primary hover:bg-grey-100 text-grey-darkest font-bold py-2 px-4 rounded inline-flex items-center"
+    on:click={() => push('#/')}
+  >
+    <LeftArrow backLabel="Resource Types" />
+  </button>
+</div>
+<div class="grid grid-cols-2 gap-4 bg-primary">
+  {#if $langCountStore > 0}
+    <div>
+      {#if !lang0ResourceTypesAndNames}
+        <ProgressIndicator />
+      {:else}
+        <!-- <h3 class="text-xl capitalize">Resource types header goes here</h3> -->
         <div>
-          <h3>An appropriate header goes here</h3>
-          {#if lang0ResourceTypesAndNames.length > 0}
-            <div>
-              <label for="select-all-lang0-resource-types"
-                ><strong>Select all {lang0Name}'s resource types</strong></label
-              >
-              <input
-                id="select-all-lang0-resource-types"
-                type="checkbox"
-                class="checkbox"
-                on:change={event => selectAllLang0ResourceTypes(event)}
-              />
-            </div>
-          {/if}
-          <ul>
-            {#each lang0ResourceTypesAndNames as resourceTypeAndName, i}
-              <li>
-                <label for="lang0-resourcetype-{i}">{resourceTypeAndName[1]}</label>
+          <div>
+            <h3 class="text-primary-content mb-4">
+              Resource types available for
+              {$lang0NameStore}
+            </h3>
+            {#if lang0ResourceTypesAndNames.length > 0}
+              <div>
+                <label for="select-all-lang0-resource-types" class="text-primary-content"
+                  >Select all {$lang0NameStore}'s resource types</label
+                >
                 <input
-                  id="lang0-resourcetype-{i}"
+                  id="select-all-lang0-resource-types"
                   type="checkbox"
-                  bind:group={$lang0ResourceTypesStore}
-                  value={resourceTypeAndName}
-                  bind:checked={lang0ResourceTypesCheckboxStates[i]}
                   class="checkbox"
+                  on:change={event => selectAllLang0ResourceTypes(event)}
                 />
-              </li>
-            {/each}
-          </ul>
+              </div>
+            {/if}
+            <ul>
+              {#each lang0ResourceTypesAndNames as resourceTypeAndName, index}
+                <li>
+                  <label for="lang0-resourcetype-{index}" class="text-primary-content"
+                    >{resourceTypeAndName.split(', ')[1]}</label
+                  >
+                  <input
+                    id="lang0-resourcetype-{index}"
+                    type="checkbox"
+                    bind:group={$lang0ResourceTypesStore}
+                    value={resourceTypeAndName}
+                    class="checkbox"
+                  />
+                </li>
+              {/each}
+            </ul>
+          </div>
         </div>
-      </div>
-    {/if}
-  </div>
-{/if}
-{#if $lang1NameAndCode}
-  <div>
-    {#if !(lang1ResourceTypesAndNames && lang1ResourceTypesCheckboxStates)}
-      <LoadingIndicator />
-    {:else}
-      <h3 class="text-xl capitalize">Resource types header goes here</h3>
-      <div class="grid grid-cols-2 gap-4">
+      {/if}
+    </div>
+  {/if}
+  {#if $langCountStore > 1}
+    <div>
+      {#if !lang1ResourceTypesAndNames}
+        <ProgressIndicator />
+      {:else}
+        <!-- <h3 class="text-xl capitalize">Resource types header goes here</h3> -->
         <div>
-          <h3>An appropriate header here</h3>
-          {#if lang1ResourceTypesAndNames.length > 0}
-            <div>
-              <label for="select-all-lang1-resource-types"
-                >Select all
-                {lang1Name}'s resource types</label
-              >
-              <input
-                id="select-all-lang1-resource-types"
-                type="checkbox"
-                class="checkbox"
-                on:change={event => selectAllLang1ResourceTypes(event)}
-              />
-            </div>
-          {/if}
-          <ul>
-            {#each lang1ResourceTypesAndNames as resourceTypeAndName, i}
-              <li>
-                <label for="lang1-resourcetype-{i}">{resourceTypeAndName[1]}</label>
+          <div>
+            <h3 class="text-primary-content mb-4">
+              Resource types available for {$lang1NameStore}
+            </h3>
+            {#if lang1ResourceTypesAndNames.length > 0}
+              <div>
+                <label for="select-all-lang1-resource-types" class="text-primary-content"
+                  >Select all
+                  {$lang1NameStore}'s resource types</label
+                >
                 <input
-                  id="lang1-resourcetype-{i}"
+                  id="select-all-lang1-resource-types"
                   type="checkbox"
-                  bind:group={$lang1ResourceTypesStore}
-                  value={resourceTypeAndName}
-                  bind:checked={lang1ResourceTypesCheckboxStates[i]}
                   class="checkbox"
+                  on:change={event => selectAllLang1ResourceTypes(event)}
                 />
-              </li>
-            {/each}
-          </ul>
+              </div>
+            {/if}
+            <ul>
+              {#each lang1ResourceTypesAndNames as resourceTypeAndName, index}
+                <li>
+                  <label for="lang1-resourcetype-{index}" class="text-primary-content"
+                    >{resourceTypeAndName.split(', ')[1]}</label
+                  >
+                  <input
+                    id="lang1-resourcetype-{index}"
+                    type="checkbox"
+                    bind:group={$lang1ResourceTypesStore}
+                    value={resourceTypeAndName}
+                    class="checkbox"
+                  />
+                </li>
+              {/each}
+            </ul>
+          </div>
         </div>
-      </div>
-    {/if}
-  </div>
-{/if}
+      {/if}
+    </div>
+  {/if}
+</div>
 
-{#if resourceTypesCount > 0}
-  <div class="mx-auto w-full px-2 pt-2 mt-2">
-    <button on:click|preventDefault={submitResourceTypes} class="btn"
-      >Add ({resourceTypesCount}) Resource Types</button
+{#if $resourceTypesCountStore > 0}
+  <div class="m-auto px-2 pt-2 mb-8 mt-2">
+    <button
+      on:click|preventDefault={submitResourceTypes}
+      class="btn w-5/6 orange-gradient text-primary-content capitalize"
+      >Add ({$resourceTypesCountStore}) Resource Types</button
     >
   </div>
 
-  <div class="mx-auto w-full px-2 pt-2 mt-2">
-    <button on:click|preventDefault={resetResourceTypes} class="btn"
-      >Reset resource types</button
-    >
-  </div>
+  <!-- <div class="mx-auto w-full px-2 pt-2 mt-2"> -->
+  <!--   <button on:click|preventDefault={resetResourceTypes} class="btn reset-button" -->
+  <!--     >Reset resource types</button -->
+  <!--   > -->
+  <!-- </div> -->
 {/if}
+
+<style global lang="postcss">
+  @tailwind base;
+  @tailwind components;
+  @tailwind utilities;
+  * :global(.reset-button) {
+    background-color: red;
+  }
+
+  * :global(.orange-gradient) {
+    background: linear-gradient(180deg, #fdd231 0%, #fdad29 100%),
+      linear-gradient(0deg, rgba(20, 14, 8, 0.6), rgba(20, 14, 8, 0.6));
+  }
+</style>

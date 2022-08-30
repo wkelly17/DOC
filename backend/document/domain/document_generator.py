@@ -7,6 +7,7 @@ import base64
 import datetime
 import more_itertools
 import os
+import requests
 import smtplib
 import subprocess
 import toolz  # type: ignore
@@ -15,7 +16,9 @@ from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from fastapi import HTTPException, status
 from itertools import tee
+from requests.exceptions import HTTPError
 from typing import Optional, Union
 
 import jinja2
@@ -29,6 +32,8 @@ from document.domain import (
     resource_lookup,
 )
 from document.utils import file_utils, number_utils
+
+# from document.domain import exceptions
 from more_itertools import partition
 from pydantic import BaseModel
 
@@ -693,6 +698,63 @@ def copy_docx_to_docker_output_dir(
         subprocess.call(copy_command, shell=True)
 
 
+def verify_resource_assets_available(
+    resource_lookup_dto: model.ResourceLookupDto,
+    # FIXME For some reason mypy and Python runtime don't believe
+    # settings.NOT_FOUND_MESSAGE_FMT_STR is defined? So I am
+    # hardcoding the format string instead as a default argument value.
+    # failure_message: str = settings.NOT_FOUND_MESSAGE_FMT_STR,
+    failure_message: str = "Book {} and resource type {} for language {} is not available.",
+) -> bool:
+    """
+    We've got a non-None URL, but now let's check that the URL
+    actually exists in the cloud because this URL points to assets
+    associated with the resource that we need to build our document.
+    If it doesn't response ok to an HTTP GET request then raise an
+    InvalidDocumentRequestException to notify the front end there was a
+    problem and otherwise return true if the URL returned an ok reponse.
+    """
+    if resource_lookup_dto.url:
+        try:
+            response = requests.get(resource_lookup_dto.url)
+            response.raise_for_status()
+        except HTTPError as http_err:
+            logger.debug(http_err)
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=failure_message.format(
+                    resource_lookup_dto.resource_code,
+                    resource_lookup_dto.resource_type_name,
+                    resource_lookup_dto.lang_name,
+                ),
+            )
+
+            return False  # This won't ever execute, this is also not needed by mypy. Just being consistent with types for self-documentation purposes.
+        except Exception as err:
+            logger.debug(f"Other error occurred: {err}")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=failure_message.format(
+                    resource_lookup_dto.resource_code,
+                    resource_lookup_dto.resource_type,
+                    resource_lookup_dto.lang_name,
+                ),
+            )
+            return False
+        else:
+            return True
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=failure_message.format(
+                resource_lookup_dto.resource_code,
+                resource_lookup_dto.resource_type,
+                resource_lookup_dto.lang_name,
+            ),
+        )
+        return False
+
+
 def main(document_request: model.DocumentRequest) -> str:
     """
     This is the main entry point for this module.
@@ -735,18 +797,13 @@ def main(document_request: model.DocumentRequest) -> str:
 
         # Determine which resources were actually found and which were
         # not.
-        (
-            unfound_resource_lookup_dtos_iter,
-            found_resource_lookup_dtos_iter,
-        ) = partition(
-            lambda resource_lookup_dto: resource_lookup_dto.url is not None,
+        _, found_resource_lookup_dtos_iter = partition(
+            lambda resource_lookup_dto: resource_lookup_dto.url is not None
+            and verify_resource_assets_available(resource_lookup_dto),
             resource_lookup_dtos,
         )
 
-        # Save results for more than one use (generators exhaust on
-        # first use).
         found_resource_lookup_dtos = list(found_resource_lookup_dtos_iter)
-        unfound_resource_lookup_dtos = list(unfound_resource_lookup_dtos_iter)
 
         # For each found resource lookup DTO, now actually provision
         # to disk the assets associated with the resources and return

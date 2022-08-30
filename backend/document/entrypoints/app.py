@@ -7,7 +7,7 @@ from typing import Any
 
 from document.config import settings
 from document.domain import document_generator, exceptions, model, resource_lookup
-from fastapi import FastAPI, Query, Request, status
+from fastapi import FastAPI, Query, Request, status, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
@@ -39,6 +39,7 @@ app.add_middleware(
 def invalid_document_request_exception_handler(
     request: Request, exc: exceptions.InvalidDocumentRequestException
 ) -> JSONResponse:
+    logger.error(f"{request}: {exc}")
     return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
         content={
@@ -73,23 +74,25 @@ def document_endpoint(
     subsequently caught in the frontend UI.
     """
     # Top level exception handler
-    try:
-        document_request_key = document_generator.main(document_request)
-    except Exception:
-        logger.exception(
-            "There was an error while attempting to fulfill the document "
-            "request. Likely reason is the following exception:"
-        )
-        # NOTE It might not always be the case that an exception here
-        # is as a result of an invalid document request, but it often
-        # is.
-        raise exceptions.InvalidDocumentRequestException(message=failure_message)
-    else:
-        details = model.FinishedDocumentDetails(
-            finished_document_request_key=document_request_key,
-            message=success_message,
-        )
-        logger.debug("FinishedDocumentDetails: %s", details)
+    # try:
+    document_request_key = document_generator.main(document_request)
+    # except httpexception as exc:
+    #     raise exc
+    # except exception:  # catch any exceptions we weren't expecting, handlers handle the ones we do expect.
+    #     logger.exception(
+    #         "There was an error while attempting to fulfill the document "
+    #         "request. Likely reason is the following exception:"
+    #     )
+    #     # Handle exceptions that aren't handled otherwise
+    #     raise HTTPException(
+    #         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=failure_message
+    #     )
+    # else:
+    details = model.FinishedDocumentDetails(
+        finished_document_request_key=document_request_key,
+        message=success_message,
+    )
+    logger.debug("FinishedDocumentDetails: %s", details)
     return details
 
 

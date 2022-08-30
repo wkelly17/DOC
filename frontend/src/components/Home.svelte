@@ -1,89 +1,96 @@
 <script lang="ts">
-  import { lang0NameAndCode, lang1NameAndCode } from '../stores/LanguagesStore'
-  import { otBookStore, ntBookStore } from '../stores/BooksStore'
+  import { langCodeAndNamesStore } from '../stores/LanguagesStore'
+  import { otBookStore, ntBookStore, bookCountStore } from '../stores/BooksStore'
   import {
     lang0ResourceTypesStore,
-    lang1ResourceTypesStore
+    // lang1ResourceTypesStore,
+    resourceTypesCountStore
   } from '../stores/ResourceTypesStore'
   import { push } from 'svelte-spa-router'
+  import GenerateDocument from './GenerateDocument.svelte'
+  import RightArrow from './RightArrow.svelte'
 
-  // Get the language name from the store reactively.
-  $: lang0Name = $lang0NameAndCode.toString().split(',')[0]
-  $: lang1Name = $lang1NameAndCode.toString().split(',')[0]
   // Get the book names from the store reactively.
-  $: otBooks = $otBookStore.map(resourceCodeAndName => resourceCodeAndName[1])
-  $: ntBooks = $ntBookStore.map(resourceCodeAndName => resourceCodeAndName[1])
+  $: otBookNames = $otBookStore.map(
+    resourceCodeAndName => resourceCodeAndName.split(', ')[1]
+  )
+  $: ntBookNames = $ntBookStore.map(
+    resourceCodeAndName => resourceCodeAndName.split(', ')[1]
+  )
 
-  // FIXME Using .env value here always yields undefinhed
-  // const numBooksToShow = <number>import.meta.env.NUM_BOOKS_TO_SHOW
   const numBooksToShow = 5
-  $: console.log(`numBooksToShow: ${numBooksToShow}`)
-  $: otBooksAbbr = otBooks.slice(0, numBooksToShow)
-  $: ntBooksAbbr = ntBooks.slice(0, numBooksToShow)
+  $: otBookNamesAbbr = otBookNames.slice(0, numBooksToShow)
+  $: ntBookNamesAbbr = ntBookNames.slice(0, numBooksToShow)
 
   $: lang0ResourceTypeNames = $lang0ResourceTypesStore.map(
-    resourceTypeAndNAme => resourceTypeAndNAme[1]
-  )
-  $: lang1ResourceTypeNames = $lang1ResourceTypesStore.map(
-    resourceTypeAndNAme => resourceTypeAndNAme[1]
+    resourceTypeAndName => resourceTypeAndName.split(', ')[1]
   )
 
-  // FIXME Using .env value here always yields undefinhed
-  // const numResourceTypesToShow = <number>import.meta.env.NUM_RESOURCE_TYPES_TO_SHOW
   const numResourceTypesToShow = 3
-  $: console.log(`numResourceTypesToShow: ${numResourceTypesToShow}`)
   $: lang0ResourceTypeNamesAbbr = lang0ResourceTypeNames.slice(0, numResourceTypesToShow)
-  // $: lang1ResourceTypeNamesAbbr = lang1ResourceTypeNames.slice(
-  //   0,
-  //   numResourceTypesToShow
-  // )
 
-  // Keep track of how many books are currently stored reactively.
-  let nonEmptyOtBooks: boolean
-  $: nonEmptyOtBooks = $otBookStore.every(item => item.length > 0)
-
-  let nonEmptyNtBooks: boolean
-  $: nonEmptyNtBooks = $ntBookStore.every(item => item.length > 0)
-
-  let bookCount: number
+  let languagesDisplayString: string = ''
   $: {
-    if (nonEmptyOtBooks && nonEmptyNtBooks) {
-      bookCount = $otBookStore.length + $ntBookStore.length
-    } else if (nonEmptyOtBooks && !nonEmptyNtBooks) {
-      bookCount = $otBookStore.length
-    } else if (!nonEmptyOtBooks && nonEmptyNtBooks) {
-      bookCount = $ntBookStore.length
-    } else {
-      bookCount = 0
+    if ($langCodeAndNamesStore.length > 0) {
+      languagesDisplayString = $langCodeAndNamesStore
+        .map(item => item.split(', code: ')[0])
+        .join(', ')
     }
   }
 
-  // Keep track of how many resources are currently stored reactively.
-  let nonEmptyLang0Resourcetypes: boolean
-  $: nonEmptyLang0Resourcetypes = $lang0ResourceTypesStore.every(item => item.length > 0)
-
-  let nonEmptyLang1Resourcetypes: boolean
-  $: nonEmptyLang1Resourcetypes = $lang1ResourceTypesStore.every(item => item.length > 0)
-
-  let resourceTypesCount: number
+  let otBooksDisplayString: string = ''
   $: {
-    if (nonEmptyLang0Resourcetypes && nonEmptyLang1Resourcetypes) {
-      resourceTypesCount =
-        $lang0ResourceTypesStore.length + $lang1ResourceTypesStore.length
-    } else if (nonEmptyLang0Resourcetypes && !nonEmptyLang1Resourcetypes) {
-      resourceTypesCount = $lang0ResourceTypesStore.length
-    } else if (!nonEmptyLang0Resourcetypes && nonEmptyLang1Resourcetypes) {
-      resourceTypesCount = $lang1ResourceTypesStore.length
+    if (otBookNames && otBookNames.length > numBooksToShow) {
+      otBooksDisplayString = `${otBookNamesAbbr.join(', ')}...`
+    } else if (
+      otBookNames &&
+      otBookNames.length > 0 &&
+      otBookNames.length <= numBooksToShow
+    ) {
+      otBooksDisplayString = `${otBookNames.join(', ')}`
+    }
+  }
+
+  let ntBooksDisplayString: string = ''
+  $: {
+    if (ntBookNames && ntBookNames.length > numBooksToShow) {
+      ntBooksDisplayString = `${ntBookNamesAbbr.join(', ')}...`
+    } else if (
+      ntBookNames &&
+      ntBookNames.length > 0 &&
+      ntBookNames.length <= numBooksToShow
+    ) {
+      ntBooksDisplayString = `${ntBookNames.join(', ')}`
+    }
+  }
+
+  let booksDisplayString: string = ''
+  $: {
+    if (otBookNames.length > 0 && ntBookNames.length > 0) {
+      booksDisplayString = [otBooksDisplayString, ntBooksDisplayString].join(', ')
+    } else if (otBookNames.length > 0 && ntBookNames.length === 0) {
+      booksDisplayString = otBooksDisplayString
+    } else if (otBookNames.length === 0 && ntBookNames.length > 0) {
+      booksDisplayString = ntBooksDisplayString
+    }
+  }
+  let resourceTypesDisplayString: string = ''
+  $: {
+    if (
+      lang0ResourceTypeNames &&
+      lang0ResourceTypeNames.length > numResourceTypesToShow
+    ) {
+      resourceTypesDisplayString = `${lang0ResourceTypeNamesAbbr.join(', ')}...`
     } else {
-      resourceTypesCount = 0
+      resourceTypesDisplayString = lang0ResourceTypeNames.join(', ')
     }
   }
 </script>
 
 <ul>
-  <li class="bg-white border-b-4 border-grey-500 p-2">
+  <li class="bg-primary border-b-2 border-grey-500 p-2">
     <button
-      class="inline-flex items-center w-full justify-between text-xl text-orange-500 font-bold py-2 px-4 rounded"
+      class="inline-flex items-center w-full justify-between py-2 px-4 rounded"
       on:click={() => push('#/languages')}
     >
       <div class="flex items-center">
@@ -100,37 +107,25 @@
             fill-opacity="0.6"
           />
         </svg>
-        <span class="ml-4">1. Languages</span>
+        <span class="ml-4 font-bold text-secondary-content text-xl">1. Languages</span>
       </div>
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 16 16"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M0 7.00002V9.00002H12L6.5 14.5L7.92 15.92L15.84 8.00002L7.92 0.0800171L6.5 1.50002L12 7.00002H0Z"
-          fill="#140E08"
-        />
-      </svg>
+      <RightArrow />
     </button>
-    {#if $lang0NameAndCode}
+    {#if $langCodeAndNamesStore.length > 0}
       <div>
-        <span class="text-grey-200 text-sm ml-14 capitalize"
-          >{lang0Name}{#if $lang1NameAndCode},
-            {lang1Name}{/if}</span
-        >
+        <span class="text-neutral-content text-sm ml-14 capitalize">
+          {languagesDisplayString}
+        </span>
       </div>
     {:else}
       <div>
-        <span class="text-grey-200 text-sm ml-14">Select languages</span>
+        <span class="text-neutral-content text-sm ml-14">Select languages</span>
       </div>
     {/if}
   </li>
-  <li class="bg-white border-b-4 border-grey-500 p-2">
+  <li class="bg-primary border-b-2 border-grey-500 p-2">
     <button
-      class="inline-flex items-center w-full justify-between text-xl text-orange-500 font-bold py-2 px-4 rounded"
+      class="inline-flex items-center w-full justify-between py-2 px-4 rounded"
       on:click={() => push('#/books')}
     >
       <div class="flex items-center">
@@ -146,37 +141,29 @@
             fill="#140E08"
           />
         </svg>
-        <span class="ml-4">2. Books</span>
+        {#if $bookCountStore > 0}
+          <span class="ml-4 font-bold text-xl text-secondary-content">2. Books</span>
+        {:else}
+          <span class="ml-4 text-xl text-neutral-content">2. Books</span>
+        {/if}
       </div>
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 16 16"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M0 7.00002V9.00002H12L6.5 14.5L7.92 15.92L15.84 8.00002L7.92 0.0800171L6.5 1.50002L12 7.00002H0Z"
-          fill="#140E08"
-        />
-      </svg>
+      <RightArrow />
     </button>
-    {#if bookCount > 0}
+    {#if $bookCountStore > 0}
       <div>
-        <span class="text-grey-200 text-sm ml-14 capitalize"
-          >{#if otBooks && otBooks.length > numBooksToShow}{otBooksAbbr}...{:else}{otBooks}{/if}{#if ntBooks && ntBooks.length > numBooksToShow},
-            {ntBooksAbbr}...{:else}{ntBooks}{/if}</span
+        <span class="text-neutral-content text-sm ml-14 capitalize"
+          >{booksDisplayString}</span
         >
       </div>
     {:else}
       <div>
-        <span class="text-grey-200 text-sm ml-14">Select books</span>
+        <span class="text-neutral-content text-sm ml-14">Select books</span>
       </div>
     {/if}
   </li>
-  <li class="bg-white p-2">
+  <li class="bg-primary p-2">
     <button
-      class="inline-flex items-center w-full justify-between text-xl text-orange-500 font-bold py-2 px-4 rounded"
+      class="inline-flex items-center w-full justify-between  py-2 px-4 rounded"
       on:click={() => push('#/resource_types')}
     >
       <div class="flex items-center">
@@ -193,39 +180,27 @@
             fill-opacity="0.6"
           />
         </svg>
-        <span class="ml-4">3. Resource types</span>
+        {#if $resourceTypesCountStore > 0}
+          <span class="ml-4 font-bold text-xl text-secondary-content"
+            >3. Resource types</span
+          >
+        {:else}
+          <span class="ml-4 text-xl text-neutral-content">3. Resource types</span>
+        {/if}
       </div>
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 16 16"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M0 7.00002V9.00002H12L6.5 14.5L7.92 15.92L15.84 8.00002L7.92 0.0800171L6.5 1.50002L12 7.00002H0Z"
-          fill="#140E08"
-        />
-      </svg>
+      <RightArrow />
     </button>
-    {#if resourceTypesCount > 0}
+    {#if $resourceTypesCountStore > 0}
       <div>
-        <span class="text-grey-200 text-sm ml-14 capitalize"
-          >{#if lang0ResourceTypeNames && lang0ResourceTypeNames.length > numResourceTypesToShow}{lang0ResourceTypeNamesAbbr}...{:else}{lang0ResourceTypeNames}{/if}
+        <span class="text-neutral-content text-sm ml-14 capitalize"
+          >{resourceTypesDisplayString}
         </span>
       </div>
     {:else}
       <div>
-        <span class="text-grey-200 text-sm ml-14">Select resource types</span>
+        <span class="text-neutral-content text-sm ml-14">Select resource types</span>
       </div>
     {/if}
   </li>
 </ul>
-<div class="flex items-center justify-center h-28 bg-white">
-  <button
-    class="flex btn  btn-disabled w-5/6 rounded"
-    on:click={() => console.log('generate document...')}
-  >
-    <span class="text-xl py-2 px-4 text-gray-500 capitalize">Generate Document</span>
-  </button>
-</div>
+<GenerateDocument />

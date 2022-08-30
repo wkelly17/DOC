@@ -192,13 +192,13 @@ class ResourceLookupDto(BaseModel):
     """
 
     lang_code: str
+    lang_name: str
     resource_type: str
+    resource_type_name: str
     resource_code: str
     url: Optional[AnyUrl]
     source: AssetSourceEnum
     jsonpath: Optional[str]
-    lang_name: str
-    resource_type_name: str
 
 
 @final
