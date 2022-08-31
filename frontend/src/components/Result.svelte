@@ -2,14 +2,6 @@
   import ProgressIndicator from './ProgressIndicator.svelte'
   import DownloadButton from './DownloadButton.svelte'
   import { push } from 'svelte-spa-router'
-  import {
-    lang0NameAndCodeStore,
-    lang1NameAndCodeStore,
-    lang0CodeStore,
-    lang1CodeStore,
-    lang0NameStore,
-    lang1NameStore
-  } from '../stores/LanguagesStore'
   import { documentReadyStore, errorStore } from '../stores/NotificationStore'
   import LeftArrow from './LeftArrow.svelte'
   import {
@@ -40,15 +32,15 @@
   }
 </script>
 
-<div class="bg-primary flex">
+<div class="bg-white flex">
   <button
-    class="bg-primary hover:bg-grey-100 text-primary-content font-bold py-2 px-4 rounded inline-flex items-center"
+    class="bg-white hover:bg-grey-100 text-primary-content font-bold py-2 px-4 rounded inline-flex items-center"
     on:click={() => push('#/')}
   >
     <LeftArrow backLabel="Go Back" />
   </button>
 </div>
-<div class="bg-primary m-auto w-full px-2 pt-2 mt-2">
+<div class="bg-white m-auto w-full px-2 pt-2 mt-2">
   {#if !$documentReadyStore && !$errorStore}
     <h3 class="text-center text-secondary-content">Your document is being generated.</h3>
     <div class="m-auto text-center">
@@ -59,7 +51,7 @@
     </p>
   {/if}
   {#if $documentReadyStore && !$errorStore}
-    <div class="bg-primary">
+    <div class="bg-white">
       <svg
         class="m-auto"
         width="20"
@@ -121,7 +113,7 @@
     </div>
   {/if}
   {#if $errorStore}
-    <div class="bg-primary">
+    <div class="bg-white">
       <svg
         class="m-auto"
         width="44"
@@ -147,7 +139,7 @@
 </div>
 
 {#if !$documentReadyStore && !$errorStore}
-  <div class="text-center bg-primary px-2 pt-2 mt-2">
+  <div class="text-center bg-white px-2 pt-2 mt-2">
     <button
       on:click|preventDefault={cancelDocument}
       class="btn w-5/6 gray-gradiant capitalize">Cancel</button

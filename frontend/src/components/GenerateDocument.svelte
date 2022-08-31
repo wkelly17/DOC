@@ -100,36 +100,30 @@
   }
 </script>
 
-<div class="m-auto text-center h-28 bg-primary">
-  {#if $langCountStore === 2 && $assemblyStrategyKindStore && $bookCountStore > 0 && $resourceTypesCountStore > 0}
-    <button
-      class="btn orange-gradient w-5/6 rounded mt-8 mb-4"
-      on:click={() => generateDocument()}
-    >
-      <span class="py-2 px-4 text-secondary-content capitalize">Generate Document</span>
-    </button>
-
-    <button
-      class="btn gray-gradiant w-5/6 text-neutral-content rounded capitalize mb-8"
-      on:click={() => reset()}>Reset</button
-    >
-  {:else if $langCountStore === 1 && $bookCountStore > 0 && $resourceTypesCountStore > 0}
-    <button
-      class="btn orange-gradient w-5/6 rounded mt-8 mb-4"
-      on:click={() => generateDocument()}
-    >
-      <span class="py-2 px-4 text-secondary-content capitalize">Generate Document</span>
-    </button>
-    <button
-      class="btn gray-gradiant text-neutral-content w-5/6 rounded capitalize mb-8"
-      on:click={() => reset()}>Reset</button
-    >
-  {:else}
-    <button class="btn  btn-disabled w-5/6 rounded mt-8">
-      <span class="text-xl py-2 px-4 text-secondary-content capitalize"
-        >Generate Document</span
+<div class="text-center h-28 bg-white pt-8 pb-4">
+  {#if ($langCountStore > 0 || $langCountStore <= 2) && $assemblyStrategyKindStore && $bookCountStore > 0 && $resourceTypesCountStore > 0}
+    <div class="pb-4">
+      <button
+        class="btn orange-gradient w-5/6 rounded"
+        on:click={() => generateDocument()}
       >
-    </button>
+        <span class="py-2 px-4 text-secondary-content capitalize">Generate Document</span>
+      </button>
+    </div>
+    <!-- <div class="pb-4"> -->
+    <!--   <button -->
+    <!--     class="btn gray-gradiant hover:focus:gray-gradiant w-5/6 text-neutral-content rounded capitalize" -->
+    <!--     on:click={() => reset()}>Reset</button -->
+    <!--   > -->
+    <!-- </div> -->
+  {:else}
+    <div class="pb-4">
+      <button class="btn  btn-disabled gray-gradiant w-5/6 rounded">
+        <span class="py-2 px-4 text-secondary-content capitalize" style="color: #140E0866"
+          >Generate Document</span
+        >
+      </button>
+    </div>
   {/if}
 </div>
 
@@ -137,13 +131,12 @@
   @tailwind base;
   @tailwind components;
   @tailwind utilities;
-  * :global(.reset-button) {
-    background-color: red;
-  }
 
   * :global(.gray-gradiant) {
-    background: linear-gradient(0deg, rgba(20, 14, 8, 0.2), rgba(20, 14, 8, 0.2)),
-      linear-gradient(0deg, rgba(20, 14, 8, 0.05), rgba(20, 14, 8, 0.05));
+    background: linear-gradient(0deg, rgba(20, 14, 8, 0.05), rgba(20, 14, 8, 0.05)),
+      linear-gradient(0deg, rgba(20, 14, 8, 0), rgba(20, 14, 8, 0));
+    /* background: linear-gradient(0deg, rgba(20, 14, 8, 0.2), rgba(20, 14, 8, 0.2)), */
+    /*   linear-gradient(0deg, rgba(20, 14, 8, 0.05), rgba(20, 14, 8, 0.05)); */
   }
 
   * :global(.orange-gradient) {

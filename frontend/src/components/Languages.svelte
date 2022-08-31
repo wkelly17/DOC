@@ -3,8 +3,6 @@
   import LeftArrow from './LeftArrow.svelte'
   import { push } from 'svelte-spa-router'
   import {
-    lang0NameAndCodeStore,
-    lang1NameAndCodeStore,
     lang0CodeStore,
     lang1CodeStore,
     lang0NameStore,
@@ -74,10 +72,10 @@
   $: lang1NameStore.set($langCodeAndNamesStore[1]?.split(', code: ')[0])
 </script>
 
-<div class="bg-primary">
-  <div class="bg-primary flex">
+<div class="bg-white">
+  <div class="bg-white flex">
     <button
-      class="bg-primary hover:bg-grey-100 py-2 px-4 rounded inline-flex items-center"
+      class="bg-white hover:bg-grey-100 py-2 px-4 rounded inline-flex items-center"
       on:click={() => push('#/')}
     >
       <LeftArrow backLabel="Languages" />
@@ -92,16 +90,16 @@
           id="filter-langs"
           bind:value={langSearchTerm}
           placeholder="Filter languages"
-          class="input input-bordered bg-primary w-full max-w-xs mb-4"
+          class="input input-bordered bg-white w-full max-w-xs mb-4"
         />
       </label>
-      <p class="text-neutral-content mb-4">
+      <p class="text-neutral-content pl-2 mb-4">
         Please select up to 2 languages you want to add.
       </p>
     {/if}
   </div>
 
-  <ul>
+  <ul class="py-2 px-4">
     {#each langCodesAndNames as langCodeAndName, index}
       <li
         style={filteredlangCodeAndNames.includes(langCodeAndName) ? '' : 'display :none'}
@@ -120,14 +118,14 @@
     {/each}
   </ul>
   {#if $langCountStore > 0 && $langCountStore <= maxLanguages}
-    <div class="mx-auto  px-2 pt-2 mt-2 mb-4">
+    <div class="text-center px-2 pt-2 mt-2 mb-4">
       <button
         on:click|preventDefault={submitLanguages}
         class="btn orange-gradient w-5/6 capitalize"
         >Add ({$langCountStore}) Languages</button
       >
     </div>
-    <div class="mx-auto w-full px-2 pt-2 mb-8">
+    <div class="text-center px-2 pt-2 mb-8">
       <button
         class="btn gray-gradiant text-neutral-content w-5/6 rounded capitalize"
         on:click|preventDefault={() => resetLanguages()}>Reset languages</button

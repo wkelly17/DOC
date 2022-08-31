@@ -11,29 +11,33 @@
   import { lang1CodeStore } from '../stores/LanguagesStore'
   import GenerateDocument from './GenerateDocument.svelte'
 
-  let book_language_order_strategy: AssemblyStrategy = {
+  let bookLanguageOrderStrategy: AssemblyStrategy = {
     id: 'blo',
     label: <string>import.meta.env.VITE_BOOK_LANGUAGE_ORDER_LABEL
   }
-  let language_book_order_strategy: AssemblyStrategy = {
+  let languageBookOrderStrategy: AssemblyStrategy = {
     id: 'lbo',
     label: <string>import.meta.env.VITE_LANGUAGE_BOOK_ORDER_LABEL
   }
-  let assemblyStrategies = [book_language_order_strategy, language_book_order_strategy]
+  let assemblyStrategies = [bookLanguageOrderStrategy, languageBookOrderStrategy]
 
   const assemblyStrategyHeader = <string>import.meta.env.VITE_ASSEMBLY_STRATEGY_HEADER
 
   $: console.log(`$assemblyStrategyKindStore: ${$assemblyStrategyKindStore}`)
 </script>
 
-<h3 class="bg-primary text-secondary-content text-lg pb-8 pt-2 pl-2">
+<h3 class="bg-white text-secondary-content text-lg pb-8 pt-2 pl-2">
   Interleave Settings
 </h3>
 <ul>
-  <li class="bg-primary p-2">
+  <li class="bg-white p-2">
     <div class="flex justify-between">
-      <span class="text-neutral-content">Print Optimization</span>
-      <input type="checkbox" bind:checked={$layoutForPrintStore} class="toggle" />
+      <span class="text-primary-content">Print Optimization</span>
+      <input
+        type="checkbox"
+        bind:checked={$layoutForPrintStore}
+        class="toggle toggle-primary"
+      />
     </div>
     <div>
       <span class="text-sm text-neutral-content"
@@ -42,12 +46,14 @@
     </div>
   </li>
   {#if $lang1CodeStore}
-    <li class="bg-primary p-2">
+    <li class="bg-white p-2">
       <div class="flex justify-between">
-        <span class="text-neutral-content">{assemblyStrategyHeader}</span>
+        <span class="text-primary-content">{assemblyStrategyHeader}</span>
         <select bind:value={$assemblyStrategyKindStore} name="assemblyStrategy">
           {#each assemblyStrategies as assemblyStrategy}
-            <option value={assemblyStrategy.id}>{assemblyStrategy.label}</option>
+            <option value={assemblyStrategy.id}
+              ><span class="text-primary-content">{assemblyStrategy.label}</span></option
+            >
           {/each}
         </select>
       </div>
@@ -63,42 +69,56 @@
       </div>
     </li>
   {/if}
-  <li class="bg-primary p-2">
+  <li class="bg-white p-2">
     <div class="flex justify-between">
-      <span class="text-neutral-content">Generate PDF</span>
-      <input type="checkbox" bind:checked={$generatePdfStore} class="toggle" />
+      <span class="text-primary-content">Generate PDF</span>
+      <input
+        type="checkbox"
+        bind:checked={$generatePdfStore}
+        class="toggle toggle-primary"
+      />
     </div>
     <div>
       <span class="text-sm text-neutral-content"
-        >Enabling this option will cause a PDF of the document to be generated.</span
+        >Enabling this option will generate a PDF of the document.</span
       >
     </div>
   </li>
-  <li class="bg-primary p-2">
+  {#if $assemblyStrategyKindStore === languageBookOrderStrategy.id}
+    <li class="bg-white p-2">
+      <div class="flex justify-between">
+        <span class="text-primary-content">Generate Epub</span>
+        <input
+          type="checkbox"
+          bind:checked={$generateEpubStore}
+          class="toggle toggle-primary"
+        />
+      </div>
+      <div>
+        <span class="text-sm text-neutral-content"
+          >Enabling this option will generate an ePub of the document.</span
+        >
+      </div>
+    </li>
+    <li class="bg-white p-2">
+      <div class="flex justify-between">
+        <span class="text-primary-content">Generate Docx</span>
+        <input
+          type="checkbox"
+          bind:checked={$generateDocxStore}
+          class="toggle toggle-primary"
+        />
+      </div>
+      <div>
+        <span class="text-sm text-neutral-content"
+          >Enabling this option will generate a Docx of the document.</span
+        >
+      </div>
+    </li>
+  {/if}
+  <li class="bg-white p-2">
     <div class="flex justify-between">
-      <span class="text-neutral-content">Generate Epub</span>
-      <input type="checkbox" bind:checked={$generateEpubStore} class="toggle" />
-    </div>
-    <div>
-      <span class="text-sm text-neutral-content"
-        >Enabling this option will cause a ePub of the document to be generated.</span
-      >
-    </div>
-  </li>
-  <li class="bg-primary p-2">
-    <div class="flex justify-between">
-      <span class="text-neutral-content">Generate Docx</span>
-      <input type="checkbox" bind:checked={$generateDocxStore} class="toggle" />
-    </div>
-    <div>
-      <span class="text-sm text-neutral-content"
-        >Enabling this option will cause a Docx of the document to be generated.</span
-      >
-    </div>
-  </li>
-  <li class="bg-primary p-2">
-    <div class="flex justify-between">
-      <label for="email" class="text-neutral-content"
+      <label for="email" class="text-primary-content"
         >{import.meta.env.VITE_EMAIL_LABEL}</label
       >
       <input
@@ -107,7 +127,7 @@
         id="email"
         bind:value={$emailStore}
         placeholder="Type email address here (optional)"
-        class="input input-bordered bg-primary w-full max-w-xs"
+        class="input input-bordered bg-white w-full max-w-xs"
       />
     </div>
     <div>

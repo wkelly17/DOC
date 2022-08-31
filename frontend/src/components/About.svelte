@@ -1,5 +1,5 @@
 <ul>
-  <li class="bg-primary p-2">
+  <li class="bg-white p-2">
     <span class="text-secondary-content text-lg">About this tool</span>
     <div>
       <span class="text-neutral-content"
@@ -12,7 +12,7 @@
     </div>
   </li>
 
-  <li class="bg-primary p-2">
+  <li class="bg-white p-2">
     <span class="text-secondary-content text-lg">Tech Support</span>
     <div>
       <span class="text-neutral-content">
@@ -20,7 +20,7 @@
       </span>
     </div>
   </li>
-  <li class="bg-primary p-2">
+  <li class="bg-white p-2">
     <span class="text-secondary-content text-lg">Licensing</span>
     <div>
       <span class="text-neutral-content">

@@ -137,124 +137,128 @@
   }
 </script>
 
-<div class="bg-primary flex">
+<div class="bg-white flex">
   <button
-    class="bg-primary hover:bg-grey-100 text-grey-darkest font-bold py-2 px-4 rounded inline-flex items-center"
+    class="bg-white hover:bg-grey-100 text-grey-darkest font-bold py-2 px-4 rounded inline-flex items-center"
     on:click={() => push('#/')}
   >
     <LeftArrow backLabel="Resource Types" />
   </button>
 </div>
-<div class="grid grid-cols-2 gap-4 bg-primary">
-  {#if $langCountStore > 0}
-    <div>
-      {#if !lang0ResourceTypesAndNames}
-        <ProgressIndicator />
-      {:else}
-        <!-- <h3 class="text-xl capitalize">Resource types header goes here</h3> -->
-        <div>
+<div class="bg-white pl-4">
+  <div class="grid grid-cols-2 gap-4 bg-white">
+    {#if $langCountStore > 0}
+      <div>
+        {#if !lang0ResourceTypesAndNames}
+          <ProgressIndicator />
+        {:else}
           <div>
-            <h3 class="text-primary-content mb-4">
-              Resource types available for
-              {$lang0NameStore}
-            </h3>
-            {#if lang0ResourceTypesAndNames.length > 0}
-              <div>
-                <label for="select-all-lang0-resource-types" class="text-primary-content"
-                  >Select all {$lang0NameStore}'s resource types</label
-                >
-                <input
-                  id="select-all-lang0-resource-types"
-                  type="checkbox"
-                  class="checkbox"
-                  on:change={event => selectAllLang0ResourceTypes(event)}
-                />
-              </div>
-            {/if}
-            <ul>
-              {#each lang0ResourceTypesAndNames as resourceTypeAndName, index}
-                <li>
-                  <label for="lang0-resourcetype-{index}" class="text-primary-content"
-                    >{resourceTypeAndName.split(', ')[1]}</label
+            <div>
+              <h3 class="text-primary-content mb-4">
+                Resource types available for
+                {$lang0NameStore}
+              </h3>
+              {#if lang0ResourceTypesAndNames.length > 0}
+                <div>
+                  <label
+                    for="select-all-lang0-resource-types"
+                    class="text-primary-content"
+                    >Select all {$lang0NameStore}'s resource types</label
                   >
                   <input
-                    id="lang0-resourcetype-{index}"
+                    id="select-all-lang0-resource-types"
                     type="checkbox"
-                    bind:group={$lang0ResourceTypesStore}
-                    value={resourceTypeAndName}
                     class="checkbox"
+                    on:change={event => selectAllLang0ResourceTypes(event)}
                   />
-                </li>
-              {/each}
-            </ul>
+                </div>
+              {/if}
+              <ul class="pb-4">
+                {#each lang0ResourceTypesAndNames as resourceTypeAndName, index}
+                  <li>
+                    <label for="lang0-resourcetype-{index}" class="text-primary-content"
+                      >{resourceTypeAndName.split(', ')[1]}</label
+                    >
+                    <input
+                      id="lang0-resourcetype-{index}"
+                      type="checkbox"
+                      bind:group={$lang0ResourceTypesStore}
+                      value={resourceTypeAndName}
+                      class="checkbox"
+                    />
+                  </li>
+                {/each}
+              </ul>
+            </div>
           </div>
-        </div>
-      {/if}
-    </div>
-  {/if}
-  {#if $langCountStore > 1}
-    <div>
-      {#if !lang1ResourceTypesAndNames}
-        <ProgressIndicator />
-      {:else}
-        <!-- <h3 class="text-xl capitalize">Resource types header goes here</h3> -->
-        <div>
+        {/if}
+      </div>
+    {/if}
+    {#if $langCountStore > 1}
+      <div>
+        {#if !lang1ResourceTypesAndNames}
+          <ProgressIndicator />
+        {:else}
           <div>
-            <h3 class="text-primary-content mb-4">
-              Resource types available for {$lang1NameStore}
-            </h3>
-            {#if lang1ResourceTypesAndNames.length > 0}
-              <div>
-                <label for="select-all-lang1-resource-types" class="text-primary-content"
-                  >Select all
-                  {$lang1NameStore}'s resource types</label
-                >
-                <input
-                  id="select-all-lang1-resource-types"
-                  type="checkbox"
-                  class="checkbox"
-                  on:change={event => selectAllLang1ResourceTypes(event)}
-                />
-              </div>
-            {/if}
-            <ul>
-              {#each lang1ResourceTypesAndNames as resourceTypeAndName, index}
-                <li>
-                  <label for="lang1-resourcetype-{index}" class="text-primary-content"
-                    >{resourceTypeAndName.split(', ')[1]}</label
+            <div>
+              <h3 class="text-primary-content mb-4">
+                Resource types available for {$lang1NameStore}
+              </h3>
+              {#if lang1ResourceTypesAndNames.length > 0}
+                <div>
+                  <label
+                    for="select-all-lang1-resource-types"
+                    class="text-primary-content"
+                    >Select all
+                    {$lang1NameStore}'s resource types</label
                   >
                   <input
-                    id="lang1-resourcetype-{index}"
+                    id="select-all-lang1-resource-types"
                     type="checkbox"
-                    bind:group={$lang1ResourceTypesStore}
-                    value={resourceTypeAndName}
                     class="checkbox"
+                    on:change={event => selectAllLang1ResourceTypes(event)}
                   />
-                </li>
-              {/each}
-            </ul>
+                </div>
+              {/if}
+              <ul>
+                {#each lang1ResourceTypesAndNames as resourceTypeAndName, index}
+                  <li>
+                    <label for="lang1-resourcetype-{index}" class="text-primary-content"
+                      >{resourceTypeAndName.split(', ')[1]}</label
+                    >
+                    <input
+                      id="lang1-resourcetype-{index}"
+                      type="checkbox"
+                      bind:group={$lang1ResourceTypesStore}
+                      value={resourceTypeAndName}
+                      class="checkbox"
+                    />
+                  </li>
+                {/each}
+              </ul>
+            </div>
           </div>
-        </div>
-      {/if}
-    </div>
-  {/if}
-</div>
-
-{#if $resourceTypesCountStore > 0}
-  <div class="m-auto px-2 pt-2 mb-8 mt-2">
-    <button
-      on:click|preventDefault={submitResourceTypes}
-      class="btn w-5/6 orange-gradient text-primary-content capitalize"
-      >Add ({$resourceTypesCountStore}) Resource Types</button
-    >
+        {/if}
+      </div>
+    {/if}
   </div>
 
-  <!-- <div class="mx-auto w-full px-2 pt-2 mt-2"> -->
-  <!--   <button on:click|preventDefault={resetResourceTypes} class="btn reset-button" -->
-  <!--     >Reset resource types</button -->
-  <!--   > -->
-  <!-- </div> -->
-{/if}
+  {#if $resourceTypesCountStore > 0}
+    <div class="text-center px-2 pt-2 mb-8 mt-2">
+      <button
+        on:click|preventDefault={submitResourceTypes}
+        class="btn w-5/6 orange-gradient text-primary-content capitalize"
+        >Add ({$resourceTypesCountStore}) Resource Types</button
+      >
+    </div>
+
+    <!-- <div class="mx-auto w-full px-2 pt-2 mt-2"> -->
+    <!--   <button on:click|preventDefault={resetResourceTypes} class="btn reset-button" -->
+    <!--     >Reset resource types</button -->
+    <!--   > -->
+    <!-- </div> -->
+  {/if}
+</div>
 
 <style global lang="postcss">
   @tailwind base;

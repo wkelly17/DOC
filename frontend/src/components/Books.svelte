@@ -195,179 +195,178 @@
   }
 </script>
 
-<div class="bg-primary flex">
-  <button
-    class="bg-primary hover:bg-grey-100 text-grey-darkest font-bold py-2 px-4 rounded inline-flex items-center"
-    on:click={() => push('#/')}
-  >
-    <LeftArrow backLabel="Books" />
-  </button>
+<div class="bg-white">
+  <div class="bg-white flex">
+    <button
+      class="bg-white hover:bg-grey-100 text-grey-darkest font-bold py-2 px-4 rounded inline-flex items-center"
+      on:click={() => push('#/')}
+    >
+      <LeftArrow backLabel="Books" />
+    </button>
+  </div>
+  {#if $langCountStore > 0}
+    <div class="bg-white px-4">
+      {#if !otResourceCodes || !ntResourceCodes}
+        <ProgressIndicator />
+      {:else}
+        <h3 class="text-xl text-secondary-content capitalize">
+          {headerDisplayString}
+        </h3>
+        {#if showOldTestament}
+          <label id="label-for-filter-ot-books" for="filter-ot-books">
+            <input
+              id="filter-ot-books"
+              bind:value={otSearchTerm}
+              placeholder="Filter OT books"
+              class="input input-bordered bg-white w-full max-w-xs mb-4"
+            />
+          </label>
+          <div class="btn-group">
+            <input
+              type="radio"
+              name="testament"
+              data-title="Old Testament"
+              class="btn capitalize"
+              on:click={() => (showOldTestament = true)}
+              checked
+            />
+            <input
+              type="radio"
+              name="testament"
+              data-title="New Testament"
+              class="btn capitalize"
+              bind:group={showOldTestament}
+              on:click={() => (showOldTestament = false)}
+            />
+          </div>
+        {:else}
+          <label id="label-for-filter-nt-books" for="filter-nt-books">
+            <input
+              id="filter-nt-books"
+              bind:value={ntSearchTerm}
+              placeholder="Filter NT books"
+              class="input input-bordered bg-white w-full max-w-xs mb-4"
+            />
+          </label>
+          <div class="btn-group">
+            <input
+              type="radio"
+              name="testament"
+              data-title="Old Testament"
+              class="btn capitalize"
+              on:click={() => (showOldTestament = true)}
+            />
+            <input
+              type="radio"
+              name="testament"
+              data-title="New Testament"
+              class="btn capitalize"
+              bind:group={showOldTestament}
+              on:click={() => (showOldTestament = false)}
+              checked
+            />
+          </div>
+        {/if}
+        <p class="text-neutral-content mt-4">Please select the books you want to add.</p>
+        {#if showOldTestament}
+          <div>
+            {#if otResourceCodes.length > 0}
+              <div>
+                <label for="select-all-old-testament" class="text-secondary-content"
+                  >Select all Old Testament</label
+                >
+                <input
+                  id="select-all-old-testament"
+                  type="checkbox"
+                  class="checkbox"
+                  on:change={event => selectAllOtResourceCodes(event)}
+                />
+              </div>
+            {/if}
+            <ul>
+              {#each otResourceCodes as resourceCodeAndName, index}
+                <li
+                  style={filteredOtResourceCodes.includes(resourceCodeAndName)
+                    ? ''
+                    : 'display: none'}
+                >
+                  <label for="lang-resourcecode-ot-{index}" class="text-secondary-content"
+                    >{resourceCodeAndName.split(', ')[1]}</label
+                  >
+                  <input
+                    id="lang-resourcecode-ot-{index}"
+                    type="checkbox"
+                    bind:group={$otBookStore}
+                    value={resourceCodeAndName}
+                    class="checkbox"
+                  />
+                </li>
+              {/each}
+            </ul>
+          </div>
+        {:else}
+          <div>
+            {#if ntResourceCodes.length > 0}
+              <div>
+                <label for="select-all-new-testament" class="text-secondary-content"
+                  >Select all New Testament</label
+                >
+                <input
+                  id="select-all-new-testament"
+                  type="checkbox"
+                  class="checkbox"
+                  on:change={event => selectAllNtResourceCodes(event)}
+                />
+              </div>
+            {/if}
+            <ul>
+              {#each ntResourceCodes as resourceCodeAndName, index}
+                <li
+                  style={filteredNtResourceCodes.includes(resourceCodeAndName)
+                    ? ''
+                    : 'display: none'}
+                >
+                  <label for="lang-resourcecode-nt-{index}" class="text-secondary-content"
+                    >{resourceCodeAndName.split(', ')[1]}</label
+                  >
+                  <input
+                    id="lang-resourcecode-nt-{index}"
+                    type="checkbox"
+                    bind:group={$ntBookStore}
+                    value={resourceCodeAndName}
+                    class="checkbox"
+                  />
+                </li>
+              {/each}
+            </ul>
+          </div>
+        {/if}
+      {/if}
+    </div>
+  {/if}
+
+  {#if $bookCountStore > 0 && (otResourceCodes || ntResourceCodes)}
+    <div class="bg-white text-center px-2 pt-6">
+      <button
+        on:click|preventDefault={submitBooks}
+        class="btn w-5/6 orange-gradient text-primary-content capitalize"
+        >Add ({$bookCountStore}) Books</button
+      >
+    </div>
+
+    <div class="text-center  px-2 pb-8 pt-2">
+      <button
+        class="btn gray-gradiant text-neutral-content w-5/6 rounded capitalize"
+        on:click|preventDefault={() => resetBooks()}>Reset Books</button
+      >
+    </div>
+  {/if}
 </div>
-{#if $langCountStore > 0}
-  <div class="bg-primary">
-    {#if !otResourceCodes || !ntResourceCodes}
-      <ProgressIndicator />
-    {:else}
-      <h3 class="text-xl text-secondary-content capitalize">
-        {headerDisplayString}
-      </h3>
-      {#if showOldTestament}
-        <label id="label-for-filter-ot-books" for="filter-ot-books">
-          <input
-            id="filter-ot-books"
-            bind:value={otSearchTerm}
-            placeholder="Filter OT books"
-            class="input input-bordered bg-primary w-full max-w-xs mb-4"
-          />
-        </label>
-        <div class="btn-group">
-          <input
-            type="radio"
-            name="testament"
-            data-title="Old Testament"
-            class="btn capitalize"
-            on:click={() => (showOldTestament = true)}
-            checked
-          />
-          <input
-            type="radio"
-            name="testament"
-            data-title="New Testament"
-            class="btn capitalize"
-            bind:group={showOldTestament}
-            on:click={() => (showOldTestament = false)}
-          />
-        </div>
-      {:else}
-        <label id="label-for-filter-nt-books" for="filter-nt-books">
-          <input
-            id="filter-nt-books"
-            bind:value={ntSearchTerm}
-            placeholder="Filter NT books"
-            class="input input-bordered bg-primary w-full max-w-xs mb-4"
-          />
-        </label>
-        <div class="btn-group">
-          <input
-            type="radio"
-            name="testament"
-            data-title="Old Testament"
-            class="btn capitalize"
-            on:click={() => (showOldTestament = true)}
-          />
-          <input
-            type="radio"
-            name="testament"
-            data-title="New Testament"
-            class="btn capitalize"
-            bind:group={showOldTestament}
-            on:click={() => (showOldTestament = false)}
-            checked
-          />
-        </div>
-      {/if}
-      <p class="text-neutral-content mt-4">Please select the books you want to add.</p>
-      {#if showOldTestament}
-        <div>
-          {#if otResourceCodes.length > 0}
-            <div>
-              <label for="select-all-old-testament" class="text-secondary-content"
-                >Select all Old Testament</label
-              >
-              <input
-                id="select-all-old-testament"
-                type="checkbox"
-                class="checkbox"
-                on:change={event => selectAllOtResourceCodes(event)}
-              />
-            </div>
-          {/if}
-          <ul>
-            {#each otResourceCodes as resourceCodeAndName, index}
-              <li
-                style={filteredOtResourceCodes.includes(resourceCodeAndName)
-                  ? ''
-                  : 'display: none'}
-              >
-                <label for="lang-resourcecode-ot-{index}" class="text-secondary-content"
-                  >{resourceCodeAndName.split(', ')[1]}</label
-                >
-                <input
-                  id="lang-resourcecode-ot-{index}"
-                  type="checkbox"
-                  bind:group={$otBookStore}
-                  value={resourceCodeAndName}
-                  class="checkbox"
-                />
-              </li>
-            {/each}
-          </ul>
-        </div>
-      {:else}
-        <div>
-          {#if ntResourceCodes.length > 0}
-            <div>
-              <label for="select-all-new-testament" class="text-secondary-content"
-                >Select all New Testament</label
-              >
-              <input
-                id="select-all-new-testament"
-                type="checkbox"
-                class="checkbox"
-                on:change={event => selectAllNtResourceCodes(event)}
-              />
-            </div>
-          {/if}
-          <ul>
-            {#each ntResourceCodes as resourceCodeAndName, index}
-              <li
-                style={filteredNtResourceCodes.includes(resourceCodeAndName)
-                  ? ''
-                  : 'display: none'}
-              >
-                <label for="lang-resourcecode-nt-{index}" class="text-secondary-content"
-                  >{resourceCodeAndName.split(', ')[1]}</label
-                >
-                <input
-                  id="lang-resourcecode-nt-{index}"
-                  type="checkbox"
-                  bind:group={$ntBookStore}
-                  value={resourceCodeAndName}
-                  class="checkbox"
-                />
-              </li>
-            {/each}
-          </ul>
-        </div>
-      {/if}
-    {/if}
-  </div>
-{/if}
-
-{#if $bookCountStore > 0}
-  <div class="bg-primary m-auto px-2 pt-2 mb-4 mt-2">
-    <button
-      on:click|preventDefault={submitBooks}
-      class="btn w-5/6 orange-gradient text-primary-content capitalize"
-      >Add ({$bookCountStore}) Books</button
-    >
-  </div>
-
-  <div class="mx-auto w-full px-2 pt-2 mb-8">
-    <button
-      class="btn gray-gradiant text-neutral-content w-5/6 rounded capitalize"
-      on:click|preventDefault={() => resetBooks()}>Reset Books</button
-    >
-  </div>
-{/if}
 
 <style global lang="postcss">
   @tailwind base;
   @tailwind components;
   @tailwind utilities;
-  * :global(.reset-button) {
-    background-color: red;
-  }
 
   * :global(label[id='label-for-filter-ot-books']) {
     position: relative;
