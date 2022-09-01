@@ -6,9 +6,21 @@
     // lang1ResourceTypesStore,
     resourceTypesCountStore
   } from '../stores/ResourceTypesStore'
+  import { resetValuesStore } from '../stores/NotificationStore'
   import { push } from 'svelte-spa-router'
   import GenerateDocument from './GenerateDocument.svelte'
   import RightArrow from './RightArrow.svelte'
+
+  // Handle notification of reset of values originating from other
+  // pages.
+  let showResetValuesMessage: boolean = false
+  $: {
+    if ($resetValuesStore) {
+      showResetValuesMessage = true
+    }
+  }
+
+  $: console.log(`$resetValuesStore: ${$resetValuesStore}`)
 
   // Get the book names from the store reactively.
   $: otBookNames = $otBookStore.map(
@@ -205,4 +217,43 @@
     </li>
   </ul>
   <GenerateDocument />
+  <!-- NOTE For unsophisticated users and for users whose language is not -->
+  <!-- English it might be wise not to show a toast or modal and instead -->
+  <!-- just carry out the action. The system is designed such that they -->
+  <!-- will be guided to the correct result anyway without the message  -->
+  <!-- which might be more confusing to such a user than no message at all. -->
+  <!-- {#if showResetValuesMessage} -->
+  <!--   <div class="toast toast-center toast-middle"> -->
+  <!--     <div class="alert alert-info"> -->
+  <!--       <div> -->
+  <!--         <span> -->
+  <!--           Languages, books, resource types, and settings are interdependent. Since -->
+  <!--           you've made a change here, we've reset your other values to ensure you create -->
+  <!--           a valid document. Now you can continue on to books to make your selections. -->
+  <!--         </span> -->
+  <!--       </div> -->
+  <!--     </div> -->
+  <!--   </div> -->
+  <!-- {/if} -->
+  <!-- NOTE We need to use a modal instead of a toast so that we can use the -->
+  <!-- 'Ok' button to trigger an event which we catch to set the value of -->
+  <!-- resetValuesMessageStore.set(false) -->
+  <!-- {#if showResetValuesMessage} -->
+  <!--   <input type="checkbox" id="my-modal" class="modal-toggle" checked /> -->
+  <!--   <div class="modal"> -->
+  <!--     <div class="modal-box"> -->
+  <!--       <h3 class="text-primary-content font-bold text-lg">Info message:</h3> -->
+  <!--       <p class="py-4 text-primary-content"> -->
+  <!--         Languages, books, resource types, and settings are interdependent. Since you've -->
+  <!--         made a change here, we've reset your other values to ensure you create a valid -->
+  <!--         document. Now you can continue on to books to make your selections. -->
+  <!--       </p> -->
+  <!--       <div class="modal-action"> -->
+  <!--         <label for="my-modal" class="btn" on:click={() => resetValuesStore.set(false)} -->
+  <!--           >Ok</label -->
+  <!--         > -->
+  <!--       </div> -->
+  <!--     </div> -->
+  <!--   </div> -->
+  <!-- {/if} -->
 </div>

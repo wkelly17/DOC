@@ -1,4 +1,4 @@
-<a href="https://www.wycliffeassociates.org">
+<a tabindex="0" href="https://www.wycliffeassociates.org">
   <svg
     width="107"
     height="32"

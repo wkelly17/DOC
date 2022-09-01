@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { AssemblyStrategy } from '../types'
+  import Switch from './Switch.svelte'
   import {
     layoutForPrintStore,
     assemblyStrategyKindStore,
@@ -33,11 +34,7 @@
   <li class="bg-white p-2">
     <div class="flex justify-between">
       <span class="text-primary-content">Print Optimization</span>
-      <input
-        type="checkbox"
-        bind:checked={$layoutForPrintStore}
-        class="toggle toggle-primary"
-      />
+      <Switch bind:checked={$layoutForPrintStore} id="layout-for-print-store" />
     </div>
     <div>
       <span class="text-sm text-neutral-content"
@@ -72,11 +69,7 @@
   <li class="bg-white p-2">
     <div class="flex justify-between">
       <span class="text-primary-content">Generate PDF</span>
-      <input
-        type="checkbox"
-        bind:checked={$generatePdfStore}
-        class="toggle toggle-primary"
-      />
+      <Switch bind:checked={$generatePdfStore} id="generate-pdf-store" />
     </div>
     <div>
       <span class="text-sm text-neutral-content"
@@ -88,11 +81,7 @@
     <li class="bg-white p-2">
       <div class="flex justify-between">
         <span class="text-primary-content">Generate Epub</span>
-        <input
-          type="checkbox"
-          bind:checked={$generateEpubStore}
-          class="toggle toggle-primary"
-        />
+        <Switch bind:checked={$generateEpubStore} id="generate-epub-store" />
       </div>
       <div>
         <span class="text-sm text-neutral-content"
@@ -103,11 +92,7 @@
     <li class="bg-white p-2">
       <div class="flex justify-between">
         <span class="text-primary-content">Generate Docx</span>
-        <input
-          type="checkbox"
-          bind:checked={$generateDocxStore}
-          class="toggle toggle-primary"
-        />
+        <Switch bind:checked={$generateDocxStore} id="generate-docx-store" />
       </div>
       <div>
         <span class="text-sm text-neutral-content"

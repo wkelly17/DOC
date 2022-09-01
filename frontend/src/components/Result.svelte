@@ -148,10 +148,6 @@
 {/if}
 
 <style global lang="postcss">
-  @tailwind base;
-  @tailwind components;
-  @tailwind utilities;
-
   * :global(.gray-gradiant) {
     background: linear-gradient(0deg, rgba(20, 14, 8, 0.2), rgba(20, 14, 8, 0.2)),
       linear-gradient(0deg, rgba(20, 14, 8, 0.05), rgba(20, 14, 8, 0.05));

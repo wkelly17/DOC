@@ -25,10 +25,6 @@
 >
 
 <style global lang="postcss">
-  @tailwind base;
-  @tailwind components;
-  @tailwind utilities;
-
   * :global(.orange-gradient) {
     background: linear-gradient(180deg, #fdd231 0%, #fdad29 100%),
       linear-gradient(0deg, rgba(20, 14, 8, 0.6), rgba(20, 14, 8, 0.6));

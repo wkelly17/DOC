@@ -193,6 +193,22 @@
       )
     }
   }
+  let otLabel: string = 'Old Testament'
+  $: {
+    if ($otBookStore.length) {
+      otLabel = `Old Testament (${$otBookStore.length})`
+    } else {
+      otLabel = 'Old Testament'
+    }
+  }
+  let ntLabel: string = 'New Testament'
+  $: {
+    if ($ntBookStore.length) {
+      ntLabel = `New Testament (${$ntBookStore.length})`
+    } else {
+      ntLabel = 'New Testament'
+    }
+  }
 </script>
 
 <div class="bg-white">
@@ -225,7 +241,7 @@
             <input
               type="radio"
               name="testament"
-              data-title="Old Testament"
+              data-title={otLabel}
               class="btn capitalize"
               on:click={() => (showOldTestament = true)}
               checked
@@ -233,7 +249,7 @@
             <input
               type="radio"
               name="testament"
-              data-title="New Testament"
+              data-title={ntLabel}
               class="btn capitalize"
               bind:group={showOldTestament}
               on:click={() => (showOldTestament = false)}
@@ -252,14 +268,14 @@
             <input
               type="radio"
               name="testament"
-              data-title="Old Testament"
+              data-title={otLabel}
               class="btn capitalize"
               on:click={() => (showOldTestament = true)}
             />
             <input
               type="radio"
               name="testament"
-              data-title="New Testament"
+              data-title={ntLabel}
               class="btn capitalize"
               bind:group={showOldTestament}
               on:click={() => (showOldTestament = false)}
@@ -346,7 +362,7 @@
   {/if}
 
   {#if $bookCountStore > 0 && (otResourceCodes || ntResourceCodes)}
-    <div class="bg-white text-center px-2 pt-6">
+    <div class="bg-white text-center px-2 pt-6 pb-8">
       <button
         on:click|preventDefault={submitBooks}
         class="btn w-5/6 orange-gradient text-primary-content capitalize"
@@ -354,20 +370,16 @@
       >
     </div>
 
-    <div class="text-center  px-2 pb-8 pt-2">
-      <button
-        class="btn gray-gradiant text-neutral-content w-5/6 rounded capitalize"
-        on:click|preventDefault={() => resetBooks()}>Reset Books</button
-      >
-    </div>
+    <!-- <div class="text-center  px-2 pb-8 pt-2"> -->
+    <!--   <button -->
+    <!--     class="btn gray-gradiant text-neutral-content w-5/6 rounded capitalize" -->
+    <!--     on:click|preventDefault={() => resetBooks()}>Reset Books</button -->
+    <!--   > -->
+    <!-- </div> -->
   {/if}
 </div>
 
 <style global lang="postcss">
-  @tailwind base;
-  @tailwind components;
-  @tailwind utilities;
-
   * :global(label[id='label-for-filter-ot-books']) {
     position: relative;
   }

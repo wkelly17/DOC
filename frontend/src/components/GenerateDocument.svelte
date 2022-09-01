@@ -1,8 +1,6 @@
 <script lang="ts">
   import { push } from 'svelte-spa-router'
   import {
-    lang0NameAndCodeStore,
-    lang1NameAndCodeStore,
     lang0CodeStore,
     lang1CodeStore,
     langCountStore
@@ -128,10 +126,6 @@
 </div>
 
 <style global lang="postcss">
-  @tailwind base;
-  @tailwind components;
-  @tailwind utilities;
-
   * :global(.gray-gradiant) {
     background: linear-gradient(0deg, rgba(20, 14, 8, 0.05), rgba(20, 14, 8, 0.05)),
       linear-gradient(0deg, rgba(20, 14, 8, 0), rgba(20, 14, 8, 0));

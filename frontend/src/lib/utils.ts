@@ -14,7 +14,11 @@ import {
   lang1ResourceTypesStore,
   resourceTypesCountStore
 } from '../stores/ResourceTypesStore'
-import { documentReadyStore, errorStore } from '../stores/NotificationStore'
+import {
+  documentReadyStore,
+  errorStore,
+  resetValuesStore
+} from '../stores/NotificationStore'
 import {
   layoutForPrintStore,
   assemblyStrategyKindStore,

@@ -10,6 +10,9 @@
     langCodeAndNamesStore,
     langCountStore
   } from '../stores/LanguagesStore'
+  import { bookCountStore } from '../stores/BooksStore'
+  import { resourceTypesCountStore } from '../stores/ResourceTypesStore'
+  import { resetValuesStore } from '../stores/NotificationStore'
   import { resetStores } from '../lib/utils'
 
   const apiRootUrl: string = <string>import.meta.env.VITE_BACKEND_API_URL
@@ -42,6 +45,17 @@
   }
 
   function submitLanguages() {
+    // If books store or resource types store are not empty, then we
+    // should reset them when we change the languages. Per the design
+    // spec we also need to indicate that books and resource types
+    // must be changed by changing the color on the Home page to red.
+    if ($bookCountStore > 0 || $resourceTypesCountStore > 0) {
+      resetValuesStore.set(true)
+    }
+    resetStores('books')
+    resetStores('resource_types')
+    // resetStores('settings')
+    resetStores('notifications')
     push('#/')
   }
 
@@ -118,19 +132,19 @@
     {/each}
   </ul>
   {#if $langCountStore > 0 && $langCountStore <= maxLanguages}
-    <div class="text-center px-2 pt-2 mt-2 mb-4">
+    <div class="text-center px-2 pt-2 pt-2 pb-8">
       <button
         on:click|preventDefault={submitLanguages}
         class="btn orange-gradient w-5/6 capitalize"
         >Add ({$langCountStore}) Languages</button
       >
     </div>
-    <div class="text-center px-2 pt-2 mb-8">
-      <button
-        class="btn gray-gradiant text-neutral-content w-5/6 rounded capitalize"
-        on:click|preventDefault={() => resetLanguages()}>Reset languages</button
-      >
-    </div>
+    <!-- <div class="text-center px-2 pt-2 mb-8"> -->
+    <!--   <button -->
+    <!--     class="btn gray-gradiant text-neutral-content w-5/6 rounded capitalize" -->
+    <!--     on:click|preventDefault={() => resetLanguages()}>Reset languages</button -->
+    <!--   > -->
+    <!-- </div> -->
   {/if}
   {#if $langCountStore > maxLanguages}
     <div class="toast toast-center toast-middle">
@@ -146,9 +160,6 @@
 </div>
 
 <style global lang="postcss">
-  @tailwind base;
-  @tailwind components;
-  @tailwind utilities;
   * :global(label[id='label-for-filter-langs']) {
     position: relative;
   }

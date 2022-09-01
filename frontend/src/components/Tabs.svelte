@@ -5,7 +5,7 @@
 <div class="bg-secondary">
   <div class="flex justify-center border-b border-gray-200 dark:border-gray-700">
     <a
-      class="h-10 px-4 py-2 -mb-px text-sm text-center bg-transparent border-b-2 sm:text-base whitespace-nowrap focus:outline-none"
+      class="h-10 px-4 py-2 -mb-px text-sm text-center bg-transparent border-b-2 sm:text-base whitespace-nowrap"
       use:active={{
         className:
           'border-primary text-primary dark:border-primary-400 dark:text-primary-300',
@@ -17,7 +17,7 @@
       Content
     </a>
     <a
-      class="h-10 px-4 py-2 -mb-px text-sm text-center bg-transparent border-b-2 sm:text-base whitespace-nowrap focus:outline-none"
+      class="h-10 px-4 py-2 -mb-px text-sm text-center bg-transparent border-b-2 sm:text-base whitespace-nowrap"
       use:active={{
         className:
           'border-primary text-primary dark:border-primary-400 dark:text-primary-300',
@@ -29,7 +29,7 @@
       Settings
     </a>
     <a
-      class="h-10 px-4 py-2 -mb-px text-sm text-center bg-transparent border-b-2 sm:text-base whitespace-nowrap focus:outline-none"
+      class="h-10 px-4 py-2 -mb-px text-sm text-center bg-transparent border-b-2 sm:text-base whitespace-nowrap"
       use:active={{
         className:
           'border-primary text-primary dark:border-primary-400 dark:text-primary-300',

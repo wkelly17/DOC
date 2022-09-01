@@ -4,6 +4,7 @@
 
 <div class="flex border-gray-700">
   <button
+    tabindex="-1"
     class="text-gray-500 hover:text-gray-700 cursor-pointer mr-2 border-none focus:outline-none"
     class:open
     on:click={() => (open = !open)}
@@ -30,11 +31,11 @@
   }
 
   button {
-    z-index: 20;
+    z-index: 30;
   }
 
   .open svg {
-    transform: scale(0.7);
+    transform: scale(1.4);
   }
 
   .open #top {

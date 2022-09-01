@@ -1,13 +1,21 @@
 <script>
+  import Logo from './Logo.svelte'
   export let open = false
 </script>
 
-<aside class="absolute w-full h-full bg-secondary border-r-2 shadow-lg" class:open>
-  <nav class="p-12 text-xl">
-    <a class="block" href="">Processes</a>
-    <a class="block" href="">Tools</a>
-    <a class="block" href="">Resources</a>
-    <a class="block" href="">Support</a>
+<aside
+  tabindex="-1"
+  class="fixed w-full h-full bg-secondary border-r-2 shadow-lg"
+  class:open
+>
+  <div class="flex justify-start pl-16 pt-8">
+    <Logo />
+  </div>
+  <nav tabindex="-1" class="pl-20 p-12 text-xl">
+    <a tabindex="-1" class="block" href="">Processes</a>
+    <a tabindex="-1" class="block" href="">Tools</a>
+    <a tabindex="-1" class="block" href="">Resources</a>
+    <a tabindex="-1" class="block" href="">Support</a>
   </nav>
 </aside>
 
@@ -15,6 +23,7 @@
   aside {
     right: -100%;
     transition: right 0.3s ease-in-out;
+    z-index: 30;
   }
 
   .open {
