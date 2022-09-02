@@ -2,25 +2,29 @@
   export let open = false
 </script>
 
-<div class="flex border-gray-700">
-  <button
-    tabindex="-1"
-    class="text-gray-500 hover:text-gray-700 cursor-pointer mr-2 border-none focus:outline-none"
-    class:open
-    on:click={() => (open = !open)}
+<button
+  tabindex="-1"
+  class="flex items-center btn-sm text-white hover:text-gray-100 cursor-pointer mr-2 focus:outline-none border-2 rounded"
+  class:open
+  on:click={() => (open = !open)}
+>
+  <svg width="18" height="14">
+    <line id="top" x1="0" y1="2" x2="18" y2="2" />
+    <line id="middle" x1="0" y1="7" x2="18" y2="7" />
+    <line id="bottom" x1="0" y1="12" x2="18" y2="12" />
+  </svg>
+  <span class="pl-2 capitalize" class:open
+    >{#if open}Close{:else}Menu{/if}</span
   >
-    <svg width="32" height="24">
-      <line id="top" x1="0" y1="2" x2="32" y2="2" />
-      <line id="middle" x1="0" y1="12" x2="32" y2="12" />
-      <line id="bottom" x1="0" y1="22" x2="32" y2="22" />
-    </svg>
-  </button>
-  <span>Menu</span>
-</div>
+</button>
 
 <style>
+  button {
+    border-color: #ffffff4d;
+  }
+
   svg {
-    min-height: 24px;
+    min-height: 14px;
     transition: transform 0.3s ease-in-out;
   }
 
@@ -34,12 +38,12 @@
     z-index: 30;
   }
 
-  .open svg {
-    transform: scale(1.4);
-  }
+  /* .open svg { */
+  /*   transform: scale(1.2); */
+  /* } */
 
   .open #top {
-    transform: translate(6px, 0px) rotate(45deg);
+    transform: translate(3px, 0px) rotate(45deg);
   }
 
   .open #middle {
@@ -47,6 +51,6 @@
   }
 
   .open #bottom {
-    transform: translate(-12px, 9px) rotate(-45deg);
+    transform: translate(-6px, 6px) rotate(-45deg);
   }
 </style>
