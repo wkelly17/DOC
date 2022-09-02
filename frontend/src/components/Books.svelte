@@ -237,23 +237,23 @@
               class="input input-bordered bg-white w-full max-w-xs mb-4"
             />
           </label>
-          <div class="btn-group">
-            <input
-              type="radio"
-              name="testament"
-              data-title={otLabel}
-              class="btn capitalize"
-              on:click={() => (showOldTestament = true)}
-              checked
-            />
-            <input
-              type="radio"
-              name="testament"
-              data-title={ntLabel}
-              class="btn capitalize"
-              bind:group={showOldTestament}
-              on:click={() => (showOldTestament = false)}
-            />
+          <div class="flex items-center">
+            <div class="inline-flex" role="group">
+              <button
+                class="rounded-l px-6 py-2.5 bg-[#feeed8]
+                       text-primary-content capitalize font-medium
+                       leading-tight border-x-2 border-t-2 border-b-2 border-[#1a130b99] hover:bg-[#feeee1] focus:bg-[#feeee1] focus:outline-none focus:ring-0 active:bg-[#feeed8] transition duration-150 ease-in-out"
+                on:click={() => (showOldTestament = true)}
+              >
+                {otLabel}
+              </button>
+              <button
+                class="rounded-r px-6 py-2.5 bg-white text-primary-content capitalize font-medium leading-tight border-r-2 border-t-2 border-b-2 border-[#1a130b99] hover:bg-white focus:bg-white focus:outline-none focus:ring-0 active:bg-white transition duration-150 ease-in-out"
+                on:click={() => (showOldTestament = false)}
+              >
+                {ntLabel}
+              </button>
+            </div>
           </div>
         {:else}
           <label id="label-for-filter-nt-books" for="filter-nt-books">
@@ -264,23 +264,21 @@
               class="input input-bordered bg-white w-full max-w-xs mb-4"
             />
           </label>
-          <div class="btn-group">
-            <input
-              type="radio"
-              name="testament"
-              data-title={otLabel}
-              class="btn capitalize"
-              on:click={() => (showOldTestament = true)}
-            />
-            <input
-              type="radio"
-              name="testament"
-              data-title={ntLabel}
-              class="btn capitalize"
-              bind:group={showOldTestament}
-              on:click={() => (showOldTestament = false)}
-              checked
-            />
+          <div class="flex items-center">
+            <div class="inline-flex" role="group">
+              <button
+                class="rounded-r px-6 py-2.5 bg-white text-primary-content capitalize font-medium leading-tight border-x-2 border-t-2 border-b-2 border-[#1a130b99] hover:bg-white focus:bg-white focus:outline-none focus:ring-0 active:bg-white transition duration-150 ease-in-out"
+                on:click={() => (showOldTestament = true)}
+              >
+                {otLabel}
+              </button>
+              <button
+                class="rounded-l px-6 py-2.5 bg-[#feeed8] text-primary-content capitalize font-medium leading-tight border-r-2 border-t-2 border-b-2 border-[#1a130b99] hover:bg-[#feeee1] focus:bg-[#feeee1] focus:outline-none focus:ring-0 active:bg-[#feeed8] transition duration-150 ease-in-out"
+                on:click={() => (showOldTestament = false)}
+              >
+                {ntLabel}
+              </button>
+            </div>
           </div>
         {/if}
         <p class="text-neutral-content mt-4">Please select the books you want to add.</p>
