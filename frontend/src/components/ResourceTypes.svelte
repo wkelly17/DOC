@@ -253,7 +253,7 @@
     </div>
 
     <!-- <div class="mx-auto w-full px-2 pt-2 mt-2"> -->
-    <!--   <button on:click|preventDefault={resetResourceTypes} class="btn reset-button" -->
+    <!--   <button on:click|preventDefault={resetResourceTypes} class="btn" -->
     <!--     >Reset resource types</button -->
     <!--   > -->
     <!-- </div> -->
