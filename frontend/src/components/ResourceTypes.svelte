@@ -152,44 +152,40 @@
         {#if !lang0ResourceTypesAndNames}
           <ProgressIndicator />
         {:else}
-          <div>
-            <div>
-              <h3 class="text-primary-content mb-4">
-                Resource types available for
-                {$lang0NameStore}
-              </h3>
-              {#if lang0ResourceTypesAndNames.length > 0}
-                <div>
-                  <label
-                    for="select-all-lang0-resource-types"
-                    class="text-primary-content"
-                    >Select all {$lang0NameStore}'s resource types</label
+          <div class="w-96">
+            <h3 class="text-primary-content mb-4">
+              Resource types available for
+              {$lang0NameStore}
+            </h3>
+            {#if lang0ResourceTypesAndNames.length > 0}
+              <div class="flex items-center justify-between">
+                <label for="select-all-lang0-resource-types" class="text-primary-content"
+                  >Select all {$lang0NameStore}'s resource types</label
+                >
+                <input
+                  id="select-all-lang0-resource-types"
+                  type="checkbox"
+                  class="checkbox checkbox-dark-bordered"
+                  on:change={event => selectAllLang0ResourceTypes(event)}
+                />
+              </div>
+            {/if}
+            <ul class="pb-4">
+              {#each lang0ResourceTypesAndNames as resourceTypeAndName, index}
+                <li class="flex items-center justify-between">
+                  <label for="lang0-resourcetype-{index}" class="text-primary-content"
+                    >{resourceTypeAndName.split(', ')[1]}</label
                   >
                   <input
-                    id="select-all-lang0-resource-types"
+                    id="lang0-resourcetype-{index}"
                     type="checkbox"
+                    bind:group={$lang0ResourceTypesStore}
+                    value={resourceTypeAndName}
                     class="checkbox checkbox-dark-bordered"
-                    on:change={event => selectAllLang0ResourceTypes(event)}
                   />
-                </div>
-              {/if}
-              <ul class="pb-4">
-                {#each lang0ResourceTypesAndNames as resourceTypeAndName, index}
-                  <li>
-                    <label for="lang0-resourcetype-{index}" class="text-primary-content"
-                      >{resourceTypeAndName.split(', ')[1]}</label
-                    >
-                    <input
-                      id="lang0-resourcetype-{index}"
-                      type="checkbox"
-                      bind:group={$lang0ResourceTypesStore}
-                      value={resourceTypeAndName}
-                      class="checkbox checkbox-dark-bordered"
-                    />
-                  </li>
-                {/each}
-              </ul>
-            </div>
+                </li>
+              {/each}
+            </ul>
           </div>
         {/if}
       </div>
@@ -199,44 +195,40 @@
         {#if !lang1ResourceTypesAndNames}
           <ProgressIndicator />
         {:else}
-          <div>
-            <div>
-              <h3 class="text-primary-content mb-4">
-                Resource types available for {$lang1NameStore}
-              </h3>
-              {#if lang1ResourceTypesAndNames.length > 0}
-                <div>
-                  <label
-                    for="select-all-lang1-resource-types"
-                    class="text-primary-content"
-                    >Select all
-                    {$lang1NameStore}'s resource types</label
+          <div class="w-96">
+            <h3 class="text-primary-content mb-4">
+              Resource types available for {$lang1NameStore}
+            </h3>
+            {#if lang1ResourceTypesAndNames.length > 0}
+              <div class="flex items-center justify-between">
+                <label for="select-all-lang1-resource-types" class="text-primary-content"
+                  >Select all
+                  {$lang1NameStore}'s resource types</label
+                >
+                <input
+                  id="select-all-lang1-resource-types"
+                  type="checkbox"
+                  class="checkbox checkbox-dark-bordered"
+                  on:change={event => selectAllLang1ResourceTypes(event)}
+                />
+              </div>
+            {/if}
+            <ul>
+              {#each lang1ResourceTypesAndNames as resourceTypeAndName, index}
+                <li class="flex items-center justify-between">
+                  <label for="lang1-resourcetype-{index}" class="text-primary-content"
+                    >{resourceTypeAndName.split(', ')[1]}</label
                   >
                   <input
-                    id="select-all-lang1-resource-types"
+                    id="lang1-resourcetype-{index}"
                     type="checkbox"
+                    bind:group={$lang1ResourceTypesStore}
+                    value={resourceTypeAndName}
                     class="checkbox checkbox-dark-bordered"
-                    on:change={event => selectAllLang1ResourceTypes(event)}
                   />
-                </div>
-              {/if}
-              <ul>
-                {#each lang1ResourceTypesAndNames as resourceTypeAndName, index}
-                  <li>
-                    <label for="lang1-resourcetype-{index}" class="text-primary-content"
-                      >{resourceTypeAndName.split(', ')[1]}</label
-                    >
-                    <input
-                      id="lang1-resourcetype-{index}"
-                      type="checkbox"
-                      bind:group={$lang1ResourceTypesStore}
-                      value={resourceTypeAndName}
-                      class="checkbox checkbox-dark-bordered"
-                    />
-                  </li>
-                {/each}
-              </ul>
-            </div>
+                </li>
+              {/each}
+            </ul>
           </div>
         {/if}
       </div>

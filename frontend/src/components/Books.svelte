@@ -283,9 +283,9 @@
         {/if}
         <p class="text-neutral-content mt-4">Please select the books you want to add.</p>
         {#if showOldTestament}
-          <div>
+          <div class="w-96">
             {#if otResourceCodes.length > 0}
-              <div>
+              <div class="flex items-center justify-between">
                 <label for="select-all-old-testament" class="text-secondary-content"
                   >Select all Old Testament</label
                 >
@@ -303,6 +303,7 @@
                   style={filteredOtResourceCodes.includes(resourceCodeAndName)
                     ? ''
                     : 'display: none'}
+                  class="flex items-center justify-between"
                 >
                   <label for="lang-resourcecode-ot-{index}" class="text-secondary-content"
                     >{resourceCodeAndName.split(', ')[1]}</label
@@ -319,9 +320,9 @@
             </ul>
           </div>
         {:else}
-          <div>
+          <div class="w-96">
             {#if ntResourceCodes.length > 0}
-              <div>
+              <div class="flex items-center justify-between">
                 <label for="select-all-new-testament" class="text-secondary-content"
                   >Select all New Testament</label
                 >
@@ -339,6 +340,7 @@
                   style={filteredNtResourceCodes.includes(resourceCodeAndName)
                     ? ''
                     : 'display: none'}
+                  class="flex items-center justify-between"
                 >
                   <label for="lang-resourcecode-nt-{index}" class="text-secondary-content"
                     >{resourceCodeAndName.split(', ')[1]}</label

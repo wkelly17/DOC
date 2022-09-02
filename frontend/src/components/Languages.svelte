@@ -113,10 +113,11 @@
     {/if}
   </div>
 
-  <ul class="py-2 px-4">
+  <ul class="py-2 px-4 w-96">
     {#each langCodesAndNames as langCodeAndName, index}
       <li
         style={filteredlangCodeAndNames.includes(langCodeAndName) ? '' : 'display :none'}
+        class="flex items-center justify-between"
       >
         <label for="lang-code-{index}" class="text-secondary-content"
           >{langCodeAndName.split(', code: ')[0]}</label
