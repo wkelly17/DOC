@@ -1,6 +1,11 @@
-<script>
+<script lang="ts">
   import Logo from './Logo.svelte'
+  import { uiLanguages, selectedUiLanguageStore } from '../stores/UiSettingsStore'
   export let open = false
+
+  function handleLanguageChange(event: Event) {
+    console.log('Changed UI display language')
+  }
 </script>
 
 <aside
@@ -16,6 +21,21 @@
     <a tabindex="-1" class="block" href="">Tools</a>
     <a tabindex="-1" class="block" href="">Resources</a>
     <a tabindex="-1" class="block" href="">Support</a>
+
+    <div class="flex justify-between pt-4">
+      <select
+        bind:value={$selectedUiLanguageStore}
+        on:change={event => handleLanguageChange(event)}
+        class="bg-secondary"
+      >
+        {#each uiLanguages as language}
+          <option value={language}
+            ><span class="text-primary-content text-white bg-secondary">{language}</span
+            ></option
+          >
+        {/each}
+      </select>
+    </div>
   </nav>
 </aside>
 
