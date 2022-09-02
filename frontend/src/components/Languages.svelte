@@ -126,7 +126,7 @@
           type="checkbox"
           bind:group={$langCodeAndNamesStore}
           value={langCodeAndName}
-          class="checkbox"
+          class="checkbox checkbox-dark-bordered"
         />
       </li>
     {/each}
@@ -182,5 +182,13 @@
   * :global(.orange-gradient) {
     background: linear-gradient(180deg, #fdd231 0%, #fdad29 100%),
       linear-gradient(0deg, rgba(20, 14, 8, 0.6), rgba(20, 14, 8, 0.6));
+  }
+
+  * :global(.checkbox-dark-bordered) {
+    /* --chkbg: #1a130b; */
+    border-color: #1a130b;
+    border-radius: 3px;
+    width: 1em;
+    height: 1em;
   }
 </style>
