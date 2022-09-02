@@ -9,7 +9,9 @@
     lang1NameStore,
     langCountStore
   } from '../stores/LanguagesStore'
+  import { resourceTypesCountStore } from '../stores/ResourceTypesStore'
   import ProgressIndicator from './ProgressIndicator.svelte'
+  import { resetValuesStore } from '../stores/NotificationStore'
   import LeftArrow from './LeftArrow.svelte'
   import { resetStores } from '../lib/utils'
 
@@ -95,11 +97,16 @@
   }
 
   function submitBooks() {
-    // TODO We likely need to do documentReadyStore.set(false) here
-    // And we may want to reset other items too. The same
-    // probably needs to be done when languages or resource types
-    // are updated too either through adding or removing or resetting
-    // which, of course, is just a form of removikng.
+    // If books store or resource types store are not empty, then we
+    // should reset them when we change the languages. Per the design
+    // spec we also need to indicate that books and resource types
+    // must be changed by changing the color on the Home page to red.
+    if ($resourceTypesCountStore > 0) {
+      resetValuesStore.set(true)
+    }
+    resetStores('resource_types')
+    resetStores('settings')
+    resetStores('notifications')
     push('#/')
   }
 

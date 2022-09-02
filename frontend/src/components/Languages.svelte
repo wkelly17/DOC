@@ -54,7 +54,7 @@
     }
     resetStores('books')
     resetStores('resource_types')
-    // resetStores('settings')
+    resetStores('settings')
     resetStores('notifications')
     push('#/')
   }

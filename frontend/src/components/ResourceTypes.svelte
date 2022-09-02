@@ -13,6 +13,7 @@
     lang1ResourceTypesStore,
     resourceTypesCountStore
   } from '../stores/ResourceTypesStore'
+  import { resetValuesStore } from '../stores/NotificationStore'
   import LeftArrow from './LeftArrow.svelte'
   import ProgressIndicator from './ProgressIndicator.svelte'
   import { resetStores } from '../lib/utils'
@@ -112,6 +113,13 @@
   }
 
   function submitResourceTypes() {
+    // If books store or resource types store are not empty, then we
+    // should reset them when we change the languages. Per the design
+    // spec we also need to indicate that books and resource types
+    // must be changed by changing the color on the Home page to red.
+    resetValuesStore.set(true)
+    resetStores('settings')
+    resetStores('notifications')
     push('#/')
   }
 
