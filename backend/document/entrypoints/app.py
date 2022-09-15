@@ -74,26 +74,26 @@ def document_endpoint(
     subsequently caught in the frontend UI.
     """
     # Top level exception handler
-    # try:
-    document_request_key = document_generator.main(document_request)
-    # except httpexception as exc:
-    #     raise exc
-    # except exception:  # catch any exceptions we weren't expecting, handlers handle the ones we do expect.
-    #     logger.exception(
-    #         "There was an error while attempting to fulfill the document "
-    #         "request. Likely reason is the following exception:"
-    #     )
-    #     # Handle exceptions that aren't handled otherwise
-    #     raise HTTPException(
-    #         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=failure_message
-    #     )
-    # else:
-    details = model.FinishedDocumentDetails(
-        finished_document_request_key=document_request_key,
-        message=success_message,
-    )
-    logger.debug("FinishedDocumentDetails: %s", details)
-    return details
+    try:
+        document_request_key = document_generator.main(document_request)
+    except HTTPException as exc:
+        raise exc
+    except Exception:  # catch any exceptions we weren't expecting, handlers handle the ones we do expect.
+        logger.exception(
+            "There was an error while attempting to fulfill the document "
+            "request. Likely reason is the following exception:"
+        )
+        # Handle exceptions that aren't handled otherwise
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=failure_message
+        )
+    else:
+        details = model.FinishedDocumentDetails(
+            finished_document_request_key=document_request_key,
+            message=success_message,
+        )
+        logger.debug("FinishedDocumentDetails: %s", details)
+        return details
 
 
 @app.get("/epub/{document_request_key}")
