@@ -22,7 +22,7 @@
     sharedResourceCodesUrl = <string>import.meta.env.VITE_SHARED_RESOURCE_CODES_URL
   ): Promise<Array<[string, string]>> {
     const response = await fetch(
-      apiRootUrl + sharedResourceCodesUrl + lang0Code + '/' + lang1Code
+      `${apiRootUrl}${sharedResourceCodesUrl}${lang0Code}/${lang1Code}`
     )
     const sharedResourceCodes: Array<[string, string]> = await response.json()
     if (!response.ok) throw new Error(response.statusText)
