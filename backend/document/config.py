@@ -125,6 +125,7 @@ class Settings(BaseSettings):
         "hr",
         "hu",
         "id",
+        "kbt",
         "kip",
         "lus",
         "mor",
