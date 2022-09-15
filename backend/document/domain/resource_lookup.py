@@ -75,6 +75,7 @@ def _lookup(
 def _parse_repo_url(
     url: str,
     repo_url_dict_key: str = settings.REPO_URL_DICT_KEY,
+    alt_repo_url_dict_key: str = settings.ALT_REPO_URL_DICT_KEY,
 ) -> Optional[str]:
     """
     Given a URL of the form
@@ -84,7 +85,17 @@ def _parse_repo_url(
     if url is None:
         return None
     result = urllib_parse.parse_qs(url)
-    result_lst = result[repo_url_dict_key]
+    result_lst = []
+    try:
+        result_lst = result[repo_url_dict_key]
+    except KeyError:
+        logger.debug(
+            "repo_url_dict_key: %s, is not the right key for this url: %s, trying %s key instead",
+            repo_url_dict_key,
+            url,
+            alt_repo_url_dict_key,
+        )
+        result_lst = result[alt_repo_url_dict_key]
     if result_lst:
         return result_lst[0]
     return None
