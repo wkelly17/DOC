@@ -13,7 +13,8 @@ import subprocess
 import urllib
 from collections.abc import Iterable, Sequence
 from contextlib import closing
-from typing import Any, Callable, Mapping, Optional
+from fastapi import HTTPException, status
+from typing import Any, Callable, Mapping, Optional, cast
 from urllib import parse as urllib_parse
 from urllib.request import urlopen
 
@@ -969,6 +970,10 @@ def clone_git_repo(
         except subprocess.SubprocessError:
             logger.debug("git command: %s", command)
             logger.debug("git clone failed!")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="git clone was empty",
+            )
         else:
             logger.debug("git command: %s", command)
             logger.debug("git clone succeeded.")
@@ -983,6 +988,10 @@ def clone_git_repo(
         except Exception:
             # except pygit2.errors.GitError:
             logger.debug("git clone failed!")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="git clone was empty",
+            )
         else:
             logger.debug("git clone succeeded.")
 
