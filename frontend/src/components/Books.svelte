@@ -146,7 +146,7 @@
     }
   }
 
-  let otSearchTerm: string = ''
+  let otSearchTerm = ''
   let filteredOtResourceCodes: Array<string> = []
   $: {
     if (otResourceCodes) {
@@ -155,7 +155,7 @@
       )
     }
   }
-  let ntSearchTerm: string = ''
+  let ntSearchTerm = ''
   let filteredNtResourceCodes: Array<string> = []
   $: {
     if (ntResourceCodes) {
@@ -165,8 +165,7 @@
     }
   }
 
-  let showOldTestament: boolean
-  $: showOldTestament = true
+  let showOldTestament = true
 
   let headerDisplayString: string = ''
   $: {
