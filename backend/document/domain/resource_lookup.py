@@ -575,19 +575,58 @@ def resource_types_and_names_for_lang(
     return sorted(values, key=lambda value: value[0])
 
 
-def shared_resource_types(
+def supported_language_scoped_resource_type(
     lang_code: str,
-    resource_codes: Sequence[str],
-    working_dir: str = settings.working_dir(),
-    translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
-    lang_code_filter_list: Sequence[str] = settings.LANG_CODE_FILTER_LIST,
+    resource_type: str,
+    tn_resource_types: Sequence[str] = settings.TN_RESOURCE_TYPES,
+    en_tn_resource_types: Sequence[str] = settings.EN_TN_RESOURCE_TYPES,
+    tq_resource_types: Sequence[str] = settings.TQ_RESOURCE_TYPES,
+    tw_resource_types: Sequence[str] = settings.TW_RESOURCE_TYPES,
+) -> bool:
+    """
+    Check if resource_type is a TN, TQ, TW type.
+    """
+    if (
+        (
+            resource_type in en_tn_resource_types
+            if lang_code == "en"
+            else resource_type in tn_resource_types
+        )
+        or resource_type in tq_resource_types
+        or resource_type in tw_resource_types
+    ):
+        return True
+    return False
+
+
+def supported_resource_type(
+    lang_code: str,
+    resource_type: str,
     usfm_resource_types: Sequence[str] = settings.USFM_RESOURCE_TYPES,
     tn_resource_types: Sequence[str] = settings.TN_RESOURCE_TYPES,
     en_tn_resource_types: Sequence[str] = settings.EN_TN_RESOURCE_TYPES,
     tq_resource_types: Sequence[str] = settings.TQ_RESOURCE_TYPES,
     tw_resource_types: Sequence[str] = settings.TW_RESOURCE_TYPES,
     bc_resource_types: Sequence[str] = settings.BC_RESOURCE_TYPES,
-) -> Sequence[tuple[str, str]]:
+) -> bool:
+    """
+    Check if resource_type complies with the resource types we currently support.
+    """
+    if (
+        resource_type in usfm_resource_types
+        or (
+            resource_type in en_tn_resource_types
+            if lang_code == "en"
+            else resource_type in tn_resource_types
+        )
+        or resource_type in tq_resource_types
+        or resource_type in tw_resource_types
+        or resource_type in bc_resource_types
+    ):
+        return True
+    return False
+
+
 # def shared_resource_codes_and_types(
 #     lang0_code: str, lang1_code: str
 # ) -> dict[str, list[tuple[str, str, str]]]:
@@ -957,41 +996,83 @@ def resource_codes_and_types_for_lang(
                     resource_type["code"]
                 ] = resource_type_with_max_resource_codes
     return resource_type_max_resource_codes_map
-    [('reg', 'Bible (reg)')]
+
+
+def shared_resource_types(
+    lang_code: str,
+    resource_codes: Sequence[str],
+    working_dir: str = settings.working_dir(),
+    translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
+    lang_code_filter_list: Sequence[str] = settings.LANG_CODE_FILTER_LIST,
+) -> Iterable[tuple[str, str]]:
     """
-    resource_types: list[tuple[str, str]] = []
+    Given a language code and a list of resource_codes, return the
+    collection of resource types available.
+
+    >>> from document.config import settings
+    >>> settings.IN_CONTAINER = False
+    >>> from document.domain import resource_lookup
+    >>> list(resource_lookup.shared_resource_types("en", ["2co"]))
+    [('ulb-wa', 'Unlocked Literal Bible (ULB) (ulb-wa)'), ('tn-wa', 'ULB Translation Helps (tn-wa)'), ('bc-wa', 'Bible Commentary (bc-wa)')]
+    >>> list(resource_lookup.shared_resource_types("kbt", ["2co"]))
+    [('reg', 'Bible (reg)')]
+    >>> # FIXME TW type won't be included because it is scoped at language level
+    >>> # and this function checks things at the book level.
+    >>> list(resource_lookup.shared_resource_types("pt-br", ["gen"]))
+    [('tn', 'Translation Notes (tn)'), ('ulb', 'Brazilian Portuguese Unlocked Literal Bible (ulb)'), ('tq', 'Translation Questions (tq)'), ('tw', 'Translation Words (tw)')]
+    >>> list(resource_lookup.shared_resource_types("fr", ["gen"]))
+    [('tn', 'Translation Notes (tn)'), ('tq', 'Translation Questions (tq)'), ('tw', 'Translation Words (tw)'), ('f10', 'French Louis Segond 1910 Bible (f10)')]
+    """
     data = fetch_source_data(working_dir, translations_json_location)
     # Get the resource types for lang0
+    # rcfrt = resource_types_for_resource_codes(data, lang_code, resource_codes)
     for item in [lang for lang in data if lang["code"] == lang_code]:
         for resource_type in item["contents"]:
-            seleccted_resource_codes_for_resource_type = [
+            # NOTE An issue that may need to be addressed though is that some resources
+            # may not provide the full list of resource codes actually available in
+            # the translations.json file. In such cases it would be necessary to
+            # actually acquire the asset and then look for the manifest file or glob
+            # the files to see if the resource code is provided. I have experimental
+            # code checked in which addresses this, but which I am not using
+            # currently (and may never be).
+            seleccted_resource_types_for_resource_codes = [
                 resource_code
                 for resource_code in resource_type["subcontents"]
                 if resource_code["code"] in resource_codes
             ]
+            # Determine if suitable link(s) exist for "contents"-scoped resource
+            # types We use this in the conditional below to assert that TN, TQ, and
+            # TW resource types have a downloadable or cloneable asset and thus
+            # should be included as avaiable resdurce types along with book specific
+            # assets like those for USFM, BC.
+            links_for_resource_type = [
+                link
+                for link in resource_type["links"]
+                if link["format"] == "zip"
+                or link["format"] == "Download"
+                and link["url"]
+            ]
             if (
-                resource_type["code"] in usfm_resource_types
-                or (
-                    resource_type["code"] in en_tn_resource_types
-                    if lang_code == "en"
-                    else resource_type["code"] in tn_resource_types
-                )
-                or resource_type["code"] in tq_resource_types
-                or resource_type["code"] in tw_resource_types
-                or resource_type["code"] in bc_resource_types
+                supported_resource_type(lang_code, resource_type["code"])
                 # Check If there are resource codes associated with this resource type
                 # which conincide with the resource codes that the user selected.
-                and seleccted_resource_codes_for_resource_type
-            ):
-                resource_types.append(
-                    (
-                        resource_type["code"],
-                        "{} ({})".format(resource_type["name"], resource_type["code"]),
+                and (
+                    seleccted_resource_types_for_resource_codes
+                    or (
+                        supported_language_scoped_resource_type(
+                            lang_code, resource_type["code"]
+                        )
+                        and links_for_resource_type
                     )
                 )
+            ):
+                yield (
+                    resource_type["code"],
+                    "{} ({})".format(resource_type["name"], resource_type["code"]),
+                )
+
     if lang_code == "en":
-        resource_types.append(("bc-wa", "Bible Commentary (bc-wa)"))
-    return resource_types
+        yield ("bc-wa", "Bible Commentary (bc-wa)")
 
 
 def shared_resource_codes(
