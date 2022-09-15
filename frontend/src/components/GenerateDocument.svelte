@@ -41,8 +41,8 @@
       for (let resourceType of $lang0ResourceTypesStore) {
         rr.push({
           lang_code: $lang0CodeStore,
-          resource_type: resourceType[0],
-          resource_code: resourceCode[0]
+          resource_type: resourceType.split(', ')[0],
+          resource_code: resourceCode.split(', ')[0]
         })
       }
     }
@@ -51,8 +51,8 @@
       for (let resourceType of $lang1ResourceTypesStore) {
         rr.push({
           lang_code: $lang1CodeStore,
-          resource_type: resourceType[0],
-          resource_code: resourceCode[0]
+          resource_type: resourceType.split(', ')[0],
+          resource_code: resourceCode.split(', ')[0]
         })
       }
     }
