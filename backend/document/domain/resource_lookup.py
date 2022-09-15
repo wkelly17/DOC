@@ -251,7 +251,27 @@ def usfm_resource_lookup(
     )
 
     # Individual USFM file was not available, now try getting it
-    # from a git repo.
+    # from a zip file.
+    if resource_lookup_dto.url is None:
+        resource_lookup_dto = _location(
+            lang_code,
+            resource_type,
+            resource_code,
+            jsonpath_str=resource_url_level1_jsonpath_fmt_str.format(
+                lang_code,
+                resource_type,
+            ),
+            lang_name_jsonpath_str=resource_lang_name_jsonpath_fmt_str.format(
+                lang_code
+            ),
+            resource_type_name_jsonpath_str=resource_type_name_jsonpath_fmt_str.format(
+                lang_code, resource_type
+            ),
+            asset_source_enum_kind=asset_source_enum_zip_kind,
+        )
+
+    # Zip file was not available, now try getting it
+    # from a git repo (which is the slowest way to get assets).
     if resource_lookup_dto.url is None:
         resource_lookup_dto = _location(
             lang_code,
@@ -270,24 +290,6 @@ def usfm_resource_lookup(
             ),
             asset_source_enum_kind=asset_source_enum_git_kind,
             url_parsing_fn=_parse_repo_url,
-        )
-
-    if resource_lookup_dto.url is None:
-        resource_lookup_dto = _location(
-            lang_code,
-            resource_type,
-            resource_code,
-            jsonpath_str=resource_url_level1_jsonpath_fmt_str.format(
-                lang_code,
-                resource_type,
-            ),
-            lang_name_jsonpath_str=resource_lang_name_jsonpath_fmt_str.format(
-                lang_code
-            ),
-            resource_type_name_jsonpath_str=resource_type_name_jsonpath_fmt_str.format(
-                lang_code, resource_type
-            ),
-            asset_source_enum_kind=asset_source_enum_zip_kind,
         )
 
     return resource_lookup_dto
