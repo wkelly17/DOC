@@ -80,6 +80,9 @@
     }
     console.log('document request: ', JSON.stringify(documentRequest, null, 2))
     push('#/result')
+    errorStore.set(null)
+    documentReadyStore.set(false)
+    documentRequestKeyStore.set('')
     const response = await fetch(`${apiRootUrl}/documents`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

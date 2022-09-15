@@ -113,7 +113,6 @@
   }
 
   function submitResourceTypes() {
-    resetValuesStore.set(true)
     resetStores('settings')
     resetStores('notifications')
     push('#/')
