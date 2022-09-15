@@ -767,7 +767,8 @@ def main(document_request: model.DocumentRequest) -> str:
         "document_request: %s",
         document_request,
     )
-    # Generate the document request key that identifies this and identical document requests.
+    # Generate the document request key that identifies this and
+    # identical document requests.
     document_request_key_ = document_request_key(
         document_request.resource_requests,
         document_request.assembly_strategy_kind,
