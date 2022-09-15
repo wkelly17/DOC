@@ -44,7 +44,16 @@
   {#if !$documentReadyStore && !$errorStore}
     <h3 class="text-center text-secondary-content">Your document is being generated.</h3>
     <div class="m-auto text-center">
-      <ProgressIndicator graphicStyle={true} graphicClass="w-56" />
+      <!-- TODO Would be nice to use SSE to get progress events from -->
+      <!-- backend and update a graphical progress bar (which we have as -->
+      <!-- in the front-end with actual messages next to the bar, like -->
+      <!-- acquiring assets, parsing assets, assembling document, -->
+      <!-- converting to PDF, etc. -->
+      <!-- <ProgressIndicator graphicStyle={true} graphicClass="w-56" /> -->
+      <ProgressIndicator
+        parClass="text-center text-secondary-content"
+        labelString="Generating document"
+      />
     </div>
     <p class="text-center">
       We appreciate your patience as this can take several minutes for larger documents.
