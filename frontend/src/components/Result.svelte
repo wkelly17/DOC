@@ -55,7 +55,7 @@
         labelString="Generating document"
       />
     </div>
-    <p class="text-center">
+    <p class="text-center text-secondary-content">
       We appreciate your patience as this can take several minutes for larger documents.
     </p>
   {/if}
@@ -77,12 +77,10 @@
           stroke-linejoin="round"
         />
       </svg>
-      <div class="m-auto"><h3 class="text-green-600 text-center">Success!</h3></div>
-      <!-- <div class="m-auto"> -->
-      <p class="text-center text-neutral-content">
+      <div class="m-auto"><h3 class="text-[#82A93F] text-center">Success!</h3></div>
+      <p class="text-center text-secondary-content">
         Your document was generated successfully. You may download it or view it online.
       </p>
-      <!-- </div> -->
       {#if $generatePdfStore}
         <div class="m-auto text-center mt-8">
           <DownloadButton buttonText="Download PDF" url={pdfDownloadUrl} />
@@ -100,10 +98,11 @@
       {/if}
       <div class="m-auto text-center mt-8">
         <button
-          class="btn gray-gradient w-5/6 rounded capitalize"
+          class="btn gray-gradient hover:gray-gradient-hover w-5/6 rounded capitalize"
           on:click={() => viewFromUrl(htmlDownloadUrl)}
         >
           <svg
+            class="rm-3"
             width="23"
             height="16"
             viewBox="0 0 23 16"
@@ -136,11 +135,11 @@
           fill="#B85659"
         />
       </svg>
-      <div class="m-auto"><h3 class="text-red=600 text-center">Uh Oh...</h3></div>
+      <div class="m-auto"><h3 class="text-[#B85659] text-center">Uh Oh...</h3></div>
       <div class="m-auto">
-        <p class="text-center">
-          Something went wrong: {$errorStore}. Please review your selections or contact
-          tech support for assistance.
+        <p class="text-center text-secondary-content">
+          Something went wrong. Please review your selections or contact tech support for
+          assistance.
         </p>
       </div>
     </div>
@@ -151,14 +150,19 @@
   <div class="text-center bg-white px-2 pt-2 mt-2">
     <button
       on:click|preventDefault={cancelDocument}
-      class="btn w-5/6 gray-gradiant capitalize">Cancel</button
+      class="btn w-5/6 gray-gradient hover:gray-gradient capitalize">Cancel</button
     >
   </div>
 {/if}
 
 <style global lang="postcss">
-  * :global(.gray-gradiant) {
+  * :global(.gray-gradient) {
     background: linear-gradient(0deg, rgba(20, 14, 8, 0.2), rgba(20, 14, 8, 0.2)),
+      linear-gradient(0deg, rgba(20, 14, 8, 0.05), rgba(20, 14, 8, 0.05));
+  }
+  /* FIXME hover class is not being applied */
+  * :global(.gray-gradient-hover) {
+    background: linear-gradient(0deg, rgba(20, 14, 8, 0.3), rgba(20, 14, 8, 0.3)),
       linear-gradient(0deg, rgba(20, 14, 8, 0.05), rgba(20, 14, 8, 0.05));
   }
 </style>
