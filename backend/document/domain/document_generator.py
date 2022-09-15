@@ -794,8 +794,8 @@ def main(document_request: model.DocumentRequest) -> str:
         # Determine which resources were actually found and which were
         # not.
         _, found_resource_lookup_dtos_iter = partition(
-            lambda resource_lookup_dto: resource_lookup_dto.url is not None
-            and verify_resource_assets_available(resource_lookup_dto),
+            lambda resource_lookup_dto: resource_lookup_dto.url is not None,
+            # and verify_resource_assets_available(resource_lookup_dto),
             resource_lookup_dtos,
         )
 
