@@ -728,8 +728,6 @@ def verify_resource_assets_available(
                     resource_lookup_dto.lang_name,
                 ),
             )
-
-            return False  # This won't ever execute, this is also not needed by mypy. Just being consistent with types for self-documentation purposes.
         except Exception as err:
             logger.debug(f"Other error occurred: {err}")
             raise HTTPException(
@@ -740,7 +738,6 @@ def verify_resource_assets_available(
                     resource_lookup_dto.lang_name,
                 ),
             )
-            return False
         else:
             return True
     else:
@@ -752,7 +749,6 @@ def verify_resource_assets_available(
                 resource_lookup_dto.lang_name,
             ),
         )
-        return False
 
 
 def main(document_request: model.DocumentRequest) -> str:
