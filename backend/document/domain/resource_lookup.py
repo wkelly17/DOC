@@ -1079,21 +1079,29 @@ def shared_resource_codes(
     lang0_code: str, lang1_code: str
 ) -> Sequence[tuple[str, str]]:
     """
-    Given two language codes, return the intersection of resource codes between each language.
+    Given two language codes, return the intersection of resource
+    codes between the two languages.
 
     >>> from document.config import settings
     >>> settings.IN_CONTAINER = False
     >>> from document.domain import resource_lookup
-    >>> data = resource_lookup.shared_resource_codes("en", "kbt")
+    >>> # Hack to ignore logging output: https://stackoverflow.com/a/33400983/3034580
+    >>> # FIXME kbt shouldn't be obtainable due to an invalid URL in translations.json
+    >>> ();data = resource_lookup.shared_resource_codes("pt-br", "kbt");() # doctest: +ELLIPSIS
+    (...)
     >>> list(data)
-    [['2co', '2 Corinthians']]
+    [('2co', '2 Corinthians')]
     """
     # Get resource codes for reach language.
     lang0_resource_codes = resource_codes_for_lang(lang0_code)
     lang1_resource_codes = resource_codes_for_lang(lang1_code)
 
     # Find intersection of resource codes:
-    return [x for x in lang0_resource_codes if x in lang1_resource_codes]
+    return [
+        (x, y)
+        for x, y in lang0_resource_codes
+        if x in [s for s, t in lang1_resource_codes]
+    ]
 
 
 def resource_codes_for_lang(
@@ -1101,10 +1109,22 @@ def resource_codes_for_lang(
     jsonpath_str: str = settings.RESOURCE_CODES_FOR_LANG_JSONPATH,
     book_names: Mapping[str, str] = bible_books.BOOK_NAMES,
     book_numbers: Mapping[str, str] = bible_books.BOOK_NUMBERS,
+    working_dir: str = settings.working_dir(),
+    translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
+    usfm_resource_types: Sequence[str] = settings.USFM_RESOURCE_TYPES,
 ) -> Sequence[tuple[str, str]]:
     """
     Convenience method that can be called, e.g., from the UI, to
     get the set of all resource codes for a particular lang_code.
+
+    >>> from document.config import settings
+    >>> settings.IN_CONTAINER = False
+    >>> from document.domain import resource_lookup
+    >>> # Hack to ignore logging output causing doctest failure: https://stackoverflow.com/a/33400983/3034580
+    >>> ();data = resource_lookup.resource_codes_for_lang("fr");() # doctest:+ELLIPSIS
+    (...)
+    >>> list(data)
+    [('gen', 'Genesis'), ('exo', 'Exodus'), ('lev', 'Leviticus'), ('num', 'Numbers'), ('deu', 'Deuteronomy'), ('jos', 'Joshua'), ('jdg', 'Judges'), ('rut', 'Ruth'), ('1sa', '1 Samuel'), ('2sa', '2 Samuel'), ('1ki', '1 Kings'), ('2ki', '2 Kings'), ('1ch', '1 Chronicles'), ('2ch', '2 Chronicles'), ('ezr', 'Ezra'), ('neh', 'Nehemiah'), ('est', 'Esther'), ('job', 'Job'), ('psa', 'Psalms'), ('pro', 'Proverbs'), ('ecc', 'Ecclesiastes'), ('sng', 'Song of Solomon'), ('isa', 'Isaiah'), ('jer', 'Jeremiah'), ('lam', 'Lamentations'), ('ezk', 'Ezekiel'), ('dan', 'Daniel'), ('hos', 'Hosea'), ('jol', 'Joel'), ('amo', 'Amos'), ('oba', 'Obadiah'), ('jon', 'Jonah'), ('mic', 'Micah'), ('nam', 'Nahum'), ('hab', 'Habakkuk'), ('zep', 'Zephaniah'), ('hag', 'Haggai'), ('zec', 'Zechariah'), ('mal', 'Malachi'), ('mat', 'Matthew'), ('mrk', 'Mark'), ('luk', 'Luke'), ('jhn', 'John'), ('act', 'Acts'), ('rom', 'Romans'), ('1co', '1 Corinthians'), ('2co', '2 Corinthians'), ('gal', 'Galatians'), ('eph', 'Ephesians'), ('php', 'Philippians'), ('col', 'Colossians'), ('1th', '1 Thessalonians'), ('2th', '2 Thessalonians'), ('1ti', '1 Timothy'), ('2ti', '2 Timothy'), ('tit', 'Titus'), ('phm', 'Philemon'), ('heb', 'Hebrews'), ('jas', 'James'), ('1pe', '1 Peter'), ('2pe', '2 Peter'), ('1jn', '1 John'), ('2jn', '2 John'), ('3jn', '3 John'), ('jud', 'Jude'), ('rev', 'Revelation')]
     """
     resource_codes = (
         (resource_code, book_names[resource_code])
@@ -1369,7 +1389,6 @@ def acquire_resource_assets(resource_lookup_dto: model.ResourceLookupDto) -> str
     if (
         resource_lookup_dto.url is not None
     ):  # We know that resource_url is not None because of how we got here, but mypy isn't convinced. Let's convince mypy.
-
         resource_filepath = os.path.join(
             resource_dir,
             resource_lookup_dto.url.rpartition(os.path.sep)[2],
