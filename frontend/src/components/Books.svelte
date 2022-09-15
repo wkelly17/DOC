@@ -97,10 +97,8 @@
   }
 
   function submitBooks() {
-    // If books store or resource types store are not empty, then we
-    // should reset them when we change the languages. Per the design
-    // spec we also need to indicate that books and resource types
-    // must be changed by changing the color on the Home page to red.
+    // If resource types store is not empty, then we
+    // should reset it when we change books.
     if ($resourceTypesCountStore > 0) {
       resetValuesStore.set(true)
     }
