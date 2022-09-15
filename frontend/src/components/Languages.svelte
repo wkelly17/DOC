@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { z } from 'zod'
   import ProgressIndicator from './ProgressIndicator.svelte'
   import LeftArrow from './LeftArrow.svelte'
   import { push } from 'svelte-spa-router'
@@ -10,15 +11,15 @@
     langCodeAndNamesStore,
     langCountStore
   } from '../stores/LanguagesStore'
-  import { bookCountStore } from '../stores/BooksStore'
+  import { bookCountStore, otBookStore } from '../stores/BooksStore'
   import { resourceTypesCountStore } from '../stores/ResourceTypesStore'
   import { resetValuesStore } from '../stores/NotificationStore'
   import { resetStores } from '../lib/utils'
 
-  const apiRootUrl: string = <string>import.meta.env.VITE_BACKEND_API_URL
-  const langCodesAndNamesUrl: string = <string>import.meta.env.VITE_LANG_CODES_NAMES_URL
-
-  async function getLangCodesNames(): Promise<Array<string>> {
+  async function getLangCodesNames(
+    apiRootUrl: string = <string>import.meta.env.VITE_BACKEND_API_URL,
+    langCodesAndNamesUrl: string = <string>import.meta.env.VITE_LANG_CODES_NAMES_URL
+  ): Promise<Array<string>> {
     const response = await fetch(`${apiRootUrl}${langCodesAndNamesUrl}`)
     const langCodesAndNames: Array<string> = await response.json()
     if (!response.ok) {
@@ -38,6 +39,71 @@
       .catch(err => console.log(err)) // FIXME Trigger toast for error
   }
 
+  let resourceCodesAndTypesMapSchema = z.map(
+    z.string().min(1),
+    z.array(z.tuple([z.string(), z.string(), z.string()]))
+  )
+  type ResourceCodesAndTypesMap = z.infer<typeof resourceCodesAndTypesMapSchema>
+
+  // let resourceCodesAndTypesMap: Map<string, Array<[string, string, string]>>
+  let resourceCodesAndTypesMap: ResourceCodesAndTypesMap
+  $: {
+    if (resourceCodesAndTypesMap) {
+      // TODO Extract OT books into otBookStore, NT books into
+      // ntBookStore, and resource types into
+      // lang0ResourceTypesStore, lang1ResourceTypesStore. But be
+      // careful about what stores you store into since Books.svelte
+      // logic uses these and you could mess up the logic. For instance,
+      // Books.svelte sets otBookStore in bound checkboxes. So in that case we
+      // probably want to create another store that represents not the chosen
+      // books, but the books available.
+      console.log(`resourceCodesAndTypesMap: ${resourceCodesAndTypesMap}`)
+    }
+  }
+
+  async function getResourceCodesAndTypes(
+    langCode: string,
+    apiRootUrl: string = <string>import.meta.env.VITE_BACKEND_API_URL,
+    resourceCodesAndTypesForLangUrl: string = <string>(
+      import.meta.env.VITE_RESOURCE_CODES_AND_TYPES_URL
+    )
+  ): Promise<Map<string, Array<[string, string, string]>>> {
+    const response = await fetch(
+      `${apiRootUrl}${resourceCodesAndTypesForLangUrl}${langCode}`
+    )
+    const resourceCodesAndTypesMap: Map<
+      string,
+      Array<[string, string, string]>
+    > = await response.json()
+    if (!response.ok) {
+      console.log(`Error: ${response.statusText}`)
+      throw new Error(response.statusText)
+    }
+    return resourceCodesAndTypesMap
+  }
+
+  async function getSharedResourceCodesAndTypes(
+    lang0Code: string,
+    lang1Code: string,
+    apiRootUrl: string = <string>import.meta.env.VITE_BACKEND_API_URL,
+    sharedResourceCodesAndTypesUrl: string = <string>(
+      import.meta.env.VITE_SHARED_RESOURCE_CODES_AND_TYPES_URL
+    )
+  ): Promise<Map<string, Array<[string, string, string]>>> {
+    const response = await fetch(
+      `${apiRootUrl}${sharedResourceCodesAndTypesUrl}${lang0Code}/${lang1Code}`
+    )
+    const resourceCodesAndTypesMap: Map<
+      string,
+      Array<[string, string, string]>
+    > = await response.json()
+    if (!response.ok) {
+      console.log(`Error: ${response.statusText}`)
+      throw new Error(response.statusText)
+    }
+    return resourceCodesAndTypesMap
+  }
+
   const maxLanguages = 2
 
   function resetLanguages() {
@@ -54,6 +120,44 @@
     resetStores('resource_types')
     resetStores('settings')
     resetStores('notifications')
+    // if ($langCountStore > 1) {
+    //   getSharedResourceCodesAndTypes($lang0CodeStore, $lang1CodeStore)
+    //     .then(resourceCodesAndTypesMap_ => {
+    //       resourceCodesAndTypesMap = resourceCodesAndTypesMap_
+
+    //       for (const [key, value] of Object.entries(resourceCodesAndTypesMap)) {
+    //         console.log(`${key}: ${value}`)
+    //       }
+    //       console.log(
+    //         `keys of resourceCodesAndTypesMap: ${Object.keys(resourceCodesAndTypesMap)}`
+    //       )
+    //       console.log(
+    //         `typeof resourceCodesAndTypesMap: ${typeof resourceCodesAndTypesMap}`
+    //       )
+    //       console.log(
+    //         `resourceCodesAndTypesMap: ${JSON.stringify(resourceCodesAndTypesMap)}`
+    //       )
+    //     })
+    //     .catch(err => console.log(err))
+    // } else if ($langCountStore > 0) {
+    //   getResourceCodesAndTypes($lang0CodeStore)
+    //     .then(resourceCodesAndTypesMap_ => {
+    //       resourceCodesAndTypesMap = resourceCodesAndTypesMap_
+    //       for (const [key, value] of Object.entries(resourceCodesAndTypesMap)) {
+    //         console.log(`${key}: ${value}`)
+    //       }
+    //       console.log(
+    //         `keys of resourceCodesAndTypesMap: ${Object.keys(resourceCodesAndTypesMap)}`
+    //       )
+    //       console.log(
+    //         `typeof resourceCodesAndTypesMap: ${typeof resourceCodesAndTypesMap}`
+    //       )
+    //       console.log(
+    //         `resourceCodesAndTypesMap: ${JSON.stringify(resourceCodesAndTypesMap)}`
+    //       )
+    //     })
+    //     .catch(err => console.log(err))
+    // }
     push('#/')
   }
 
