@@ -3,7 +3,7 @@
   import { otBookStore, ntBookStore, bookCountStore } from '../stores/BooksStore'
   import {
     lang0ResourceTypesStore,
-    // lang1ResourceTypesStore,
+    lang1ResourceTypesStore,
     resourceTypesCountStore
   } from '../stores/ResourceTypesStore'
   import { resetValuesStore } from '../stores/NotificationStore'
@@ -37,9 +37,13 @@
   $: lang0ResourceTypeNames = $lang0ResourceTypesStore.map(
     resourceTypeAndName => resourceTypeAndName.split(', ')[1]
   )
+  $: lang1ResourceTypeNames = $lang1ResourceTypesStore.map(
+    resourceTypeAndName => resourceTypeAndName.split(', ')[1]
+  )
 
   const numResourceTypesToShow = 3
   $: lang0ResourceTypeNamesAbbr = lang0ResourceTypeNames.slice(0, numResourceTypesToShow)
+  $: lang1ResourceTypeNamesAbbr = lang1ResourceTypeNames.slice(0, numResourceTypesToShow)
 
   let languagesDisplayString: string = ''
   $: {
@@ -88,6 +92,7 @@
   }
   let resourceTypesDisplayString: string = ''
   $: {
+    // Update for the first language
     if (
       lang0ResourceTypeNames &&
       lang0ResourceTypeNames.length > numResourceTypesToShow
@@ -95,6 +100,32 @@
       resourceTypesDisplayString = `${lang0ResourceTypeNamesAbbr.join(', ')}...`
     } else {
       resourceTypesDisplayString = lang0ResourceTypeNames.join(', ')
+    }
+    // Update for the second language
+    if (
+      resourceTypesDisplayString &&
+      lang1ResourceTypeNames &&
+      lang1ResourceTypeNames.length > numResourceTypesToShow
+    ) {
+      resourceTypesDisplayString = `${resourceTypesDisplayString}, ${lang1ResourceTypeNamesAbbr.join(
+        ', '
+      )}...`
+    } else if (
+      !resourceTypesDisplayString &&
+      lang1ResourceTypeNames &&
+      lang1ResourceTypeNames.length > numResourceTypesToShow
+    ) {
+      resourceTypesDisplayString = `${lang1ResourceTypeNamesAbbr.join(', ')}...`
+    } else if (
+      resourceTypesDisplayString &&
+      lang1ResourceTypeNames &&
+      !(lang1ResourceTypeNames.length > numResourceTypesToShow)
+    ) {
+      resourceTypesDisplayString = `${resourceTypesDisplayString}, ${lang1ResourceTypeNames.join(
+        ', '
+      )}`
+    } else {
+      resourceTypesDisplayString = `${lang1ResourceTypeNames.join(', ')}`
     }
   }
 </script>
