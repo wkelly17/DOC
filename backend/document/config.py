@@ -122,6 +122,7 @@ class Settings(BaseSettings):
     LANG_CODE_FILTER_LIST: Sequence[str] = [
         "acq",
         "gaj-x-ymnk",
+        "fa",
         "hr",
         "hu",
         "id",
