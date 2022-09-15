@@ -1137,6 +1137,64 @@ def resource_codes_for_lang(
     )
 
 
+# NOTE An alternative/experimental (different approach), yet ultimately non-performant version.
+# def resource_codes_for_lang(
+#     lang_code: str,
+#     jsonpath_str: str = settings.RESOURCE_CODES_FOR_LANG_JSONPATH,
+#     book_names: Mapping[str, str] = bible_books.BOOK_NAMES,
+#     book_numbers: Mapping[str, str] = bible_books.BOOK_NUMBERS,
+#     working_dir: str = settings.working_dir(),
+#     translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
+#     usfm_resource_types: Sequence[str] = settings.USFM_RESOURCE_TYPES,
+# ) -> Sequence[tuple[str, str]]:
+#     """
+#     Convenience method that can be called, e.g., from the UI, to
+#     get the set of all resource codes for a particular lang_code.
+
+#     >>> from document.config import settings
+#     >>> settings.IN_CONTAINER = False
+#     >>> from document.domain import resource_lookup
+#     >>> # Hack to ignore logging output: https://stackoverflow.com/a/33400983/3034580
+#     >>> ();data = resource_lookup.resource_codes_for_lang("fr");() # doctest:+ELLIPSIS
+#     (...)
+#     >>> list(data)
+#     [('gen', 'Genesis'), ('exo', 'Exodus'), ('lev', 'Leviticus'), ('num', 'Numbers'), ('deu', 'Deuteronomy'), ('jos', 'Joshua'), ('jdg', 'Judges'), ('rut', 'Ruth'), ('1sa', '1 Samuel'), ('2sa', '2 Samuel'), ('1ki', '1 Kings'), ('2ki', '2 Kings'), ('1ch', '1 Chronicles'), ('2ch', '2 Chronicles'), ('ezr', 'Ezra'), ('neh', 'Nehemiah'), ('est', 'Esther'), ('job', 'Job'), ('psa', 'Psalms'), ('pro', 'Proverbs'), ('ecc', 'Ecclesiastes'), ('sng', 'Song of Solomon'), ('isa', 'Isaiah'), ('jer', 'Jeremiah'), ('lam', 'Lamentations'), ('ezk', 'Ezekiel'), ('dan', 'Daniel'), ('hos', 'Hosea'), ('jol', 'Joel'), ('amo', 'Amos'), ('oba', 'Obadiah'), ('jon', 'Jonah'), ('mic', 'Micah'), ('nam', 'Nahum'), ('hab', 'Habakkuk'), ('zep', 'Zephaniah'), ('hag', 'Haggai'), ('zec', 'Zechariah'), ('mal', 'Malachi'), ('mat', 'Matthew'), ('mrk', 'Mark'), ('luk', 'Luke'), ('jhn', 'John'), ('act', 'Acts'), ('rom', 'Romans'), ('1co', '1 Corinthians'), ('2co', '2 Corinthians'), ('gal', 'Galatians'), ('eph', 'Ephesians'), ('php', 'Philippians'), ('col', 'Colossians'), ('1th', '1 Thessalonians'), ('2th', '2 Thessalonians'), ('1ti', '1 Timothy'), ('2ti', '2 Timothy'), ('tit', 'Titus'), ('phm', 'Philemon'), ('heb', 'Hebrews'), ('jas', 'James'), ('1pe', '1 Peter'), ('2pe', '2 Peter'), ('1jn', '1 John'), ('2jn', '2 John'), ('3jn', '3 John'), ('jud', 'Jude'), ('rev', 'Revelation')]
+#     """
+#     results = resource_codes_and_types_for_lang(lang_code)
+#     usfm_resource_type_with_max_resource_codes: list[tuple[str, str, str]] = []
+#     usfm_keys = [key for key in results.keys() if key in usfm_resource_types]
+#     if (
+#         usfm_keys and len(usfm_keys) > 1
+#     ):  # More than one USFM type is available for lang_code
+#         # logger.debug("usfm_keys: %s", usfm_keys)
+#         # logger.debug(
+#         #     "resource_codes for %s: %s",
+#         #     usfm_keys[0],
+#         #     [code for code, name, link in results[usfm_keys[0]]],
+#         # )
+#         # logger.debug(
+#         #     "resource_codes for %s: %s",
+#         #     usfm_keys[1],
+#         #     [code for code, name, link in results[usfm_keys[1]]],
+#         # )
+#         usfm_resource_type_with_max_resource_codes = max(
+#             [results[usfm_keys[0]], results[usfm_keys[1]]], key=lambda entry: len(entry)
+#         )
+#     elif (
+#         usfm_keys and len(usfm_keys) == 1
+#     ):  # Just one USFM type is available for lang_code
+#         usfm_resource_type_with_max_resource_codes = results[usfm_keys[0]]
+
+#     resource_codes = [
+#         (code, name) for code, name, link in usfm_resource_type_with_max_resource_codes
+#     ]
+#     logger.debug("resource_codes: %s", resource_codes)
+#     return sorted(
+#         resource_codes,
+#         key=lambda resource_code_name_pair: book_numbers[resource_code_name_pair[0]],
+#     )
+
+
 def resource_codes(jsonpath_str: str = settings.RESOURCE_CODES_JSONPATH) -> Any:
     """
     Convenience method that can be called, e.g., from the UI, to
