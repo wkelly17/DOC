@@ -163,6 +163,7 @@
     }
   }
 
+  // let showNoBooksInCommonMessage = false
   let showOldTestament = true
 
   let headerDisplayString: string = ''
@@ -381,6 +382,19 @@
     <!--   > -->
     <!-- </div> -->
   {/if}
+
+  <!-- {#if showNoBooksInCommonMessage} -->
+  <!--   <div class="toast toast-center toast-middle"> -->
+  <!--     <div class="alert alert-error"> -->
+  <!--       <div> -->
+  <!--         <span -->
+  <!--           >There are no available books in common between the two languages you chose, -->
+  <!--           you can try a different language combination.</span -->
+  <!--         > -->
+  <!--       </div> -->
+  <!--     </div> -->
+  <!--   </div> -->
+  <!-- {/if} -->
 </div>
 
 <style global lang="postcss">
