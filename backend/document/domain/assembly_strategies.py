@@ -4134,13 +4134,14 @@ def assemble_usfm_as_iterator_for_book_then_lang_2c_sl_hr(
         # Use the usfm_book_content_unit that has the most verses for
         # this chapter_num chapter as a verse_num pump.
         # I.e., realize the most amount of content displayed to user.
-        usfm_with_most_verses = max(
-            usfm_book_content_units,
-            key=lambda usfm_book_content_unit: usfm_book_content_unit.chapters[
-                chapter_num
-            ].verses.keys(),
-        )
-        for verse_num in usfm_with_most_verses.chapters[chapter_num].verses.keys():
+        # usfm_with_most_verses = max(
+        #     usfm_book_content_units,
+        #     key=lambda usfm_book_content_unit: usfm_book_content_unit.chapters[
+        #         chapter_num
+        #     ].verses.keys(),
+        # )
+        # for verse_num in usfm_with_most_verses.chapters[chapter_num].verses.keys():
+        for verse_num in chapter.verses.keys():
             yield html_row_begin
             yield html_column_begin
             # Add the interleaved USFM verses
@@ -4469,13 +4470,14 @@ def assemble_usfm_as_iterator_for_book_then_lang_2c_sl_sr(
         # Use the usfm_book_content_unit that has the most verses for
         # this chapter_num chapter as a verse_num pump.
         # I.e., realize the most amount of content displayed to user.
-        usfm_with_most_verses = max(
-            usfm_book_content_units,
-            key=lambda usfm_book_content_unit: usfm_book_content_unit.chapters[
-                chapter_num
-            ].verses.keys(),
-        )
-        for verse_num in usfm_with_most_verses.chapters[chapter_num].verses.keys():
+        # usfm_with_most_verses = max(
+        #     usfm_book_content_units,
+        #     key=lambda usfm_book_content_unit: usfm_book_content_unit.chapters[
+        #         chapter_num
+        #     ].verses.keys(),
+        # )
+        # for verse_num in usfm_with_most_verses.chapters[chapter_num].verses.keys():
+        for verse_num in chapter.verses.keys():
             # Get lang_code of first USFM so that we can use it later
             # to make sure USFMs of the same language are on the same
             # side of the two column layout.
@@ -4703,13 +4705,14 @@ def assemble_usfm_as_iterator_for_book_then_lang_1c(
         # Use the usfm_book_content_unit that has the most verses for
         # this chapter_num chapter as a verse_num pump.
         # I.e., realize the most amount of content displayed to user.
-        usfm_with_most_verses = max(
-            usfm_book_content_units,
-            key=lambda usfm_book_content_unit: usfm_book_content_unit.chapters[
-                chapter_num
-            ].verses.keys(),
-        )
-        for verse_num in usfm_with_most_verses.chapters[chapter_num].verses.keys():
+        # usfm_with_most_verses = max(
+        #     usfm_book_content_units,
+        #     key=lambda usfm_book_content_unit: usfm_book_content_unit.chapters[
+        #         chapter_num
+        #     ].verses.keys(),
+        # )
+        # for verse_num in usfm_with_most_verses.chapters[chapter_num].verses.keys():
+        for verse_num in chapter.verses.keys():
             # Add the interleaved USFM verses
             for usfm_book_content_unit in usfm_book_content_units:
                 if (
@@ -4891,13 +4894,14 @@ def assemble_usfm_as_iterator_for_book_then_lang_1c_c(
         # Use the usfm_book_content_unit that has the most verses for
         # this chapter_num chapter as a verse_num pump.
         # I.e., realize the most amount of content displayed to user.
-        usfm_with_most_verses = max(
-            usfm_book_content_units,
-            key=lambda usfm_book_content_unit: usfm_book_content_unit.chapters[
-                chapter_num
-            ].verses.keys(),
-        )
-        for verse_num in usfm_with_most_verses.chapters[chapter_num].verses.keys():
+        # usfm_with_most_verses = max(
+        #     usfm_book_content_units,
+        #     key=lambda usfm_book_content_unit: usfm_book_content_unit.chapters[
+        #         chapter_num
+        #     ].verses.keys(),
+        # )
+        # for verse_num in usfm_with_most_verses.chapters[chapter_num].verses.keys():
+        for verse_num in chapter.verses.keys():
             # Add the interleaved USFM verses
             for usfm_book_content_unit in usfm_book_content_units:
                 if (
