@@ -442,7 +442,7 @@ def lang_codes_and_names(
     >>> from document.domain import resource_lookup
     >>> data = resource_lookup.lang_codes_and_names()
     >>> data[0]
-    'Abadi, code: kbt'
+    'Abuhaina, code: tbg-x-abuhaina'
     """
     values = []
     data = fetch_source_data(working_dir, translations_json_location)
