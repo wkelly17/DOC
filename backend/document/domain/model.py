@@ -160,14 +160,14 @@ class DocumentRequest(BaseModel):
     # document request. This happens in
     # document_generator.select_assembly_layout_kind if
     # assembly_layout_kind is None in the document request.
-    layout_for_print: bool
+    layout_for_print: bool = False
     resource_requests: Sequence[ResourceRequest]
     # Indicate whether PDF should be generated.
-    generate_pdf: bool
+    generate_pdf: bool = False
     # Indicate whether ePub should be generated.
-    generate_epub: bool
+    generate_epub: bool = False
     # Indicate whether Docx should be generated.
-    generate_docx: bool
+    generate_docx: bool = False
 
 
 @final
