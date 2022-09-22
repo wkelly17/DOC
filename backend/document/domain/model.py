@@ -163,7 +163,7 @@ class DocumentRequest(BaseModel):
     layout_for_print: bool = False
     resource_requests: Sequence[ResourceRequest]
     # Indicate whether PDF should be generated.
-    generate_pdf: bool = False
+    generate_pdf: bool = True
     # Indicate whether ePub should be generated.
     generate_epub: bool = False
     # Indicate whether Docx should be generated.
