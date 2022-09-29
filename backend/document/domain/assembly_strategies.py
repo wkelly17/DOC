@@ -4256,14 +4256,17 @@ def languages_in_books(
     usfm_book_content_units: Sequence[model.BookContent],
 ) -> Sequence[str]:
     """Return the distinct languages in the usfm_book_content_units."""
-    languages = list(
-        set(
-            [
-                lang_group[0]
-                for lang_group in itertools.groupby(
-                    usfm_book_content_units, key=lambda unit: unit.lang_code
-                )
-            ]
+    languages = sorted(
+        list(
+            set(
+                [
+                    lang_group[0]
+                    for lang_group in itertools.groupby(
+                        usfm_book_content_units,
+                        key=lambda unit: unit.lang_code,
+                    )
+                ]
+            )
         )
     )
     logger.debug("languages: %s", languages)
