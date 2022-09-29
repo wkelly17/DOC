@@ -53,6 +53,91 @@ def assembly_strategy_factory(
     return strategies[assembly_strategy_kind]
 
 
+def assemble_content_by_lang_then_book(
+    book_content_units: Iterable[model.BookContent],
+    assembly_layout_kind: model.AssemblyLayoutEnum,
+    language_fmt_str: str = settings.LANGUAGE_FMT_STR,
+    book_fmt_str: str = settings.BOOK_FMT_STR,
+    book_names: Mapping[str, str] = bible_books.BOOK_NAMES,
+) -> Iterable[str]:
+    """
+    Assemble by language then by book in lexicographical order before
+    delegating more atomic ordering/interleaving to an assembly
+    sub-strategy.
+    """
+    book_units_sorted_by_language = sorted(
+        book_content_units,
+        key=lambda book_content_unit: book_content_unit.lang_name,
+    )
+    language: str
+    for language, group_by_lang in itertools.groupby(
+        book_units_sorted_by_language,
+        lambda book_content_unit: book_content_unit.lang_name,
+    ):
+        yield language_fmt_str.format(language)
+
+        # Sort the books in canonical order for groupby's sake.
+        book_id_map = dict(
+            (id, pos) for pos, id in enumerate(bible_books.BOOK_NAMES.keys())
+        )
+        book_content_units_sorted_by_book = sorted(
+            group_by_lang,
+            key=lambda book_content_unit: book_id_map[book_content_unit.resource_code],
+        )
+        for book, book_content_units_grouped_by_book in itertools.groupby(
+            book_content_units_sorted_by_book,
+            lambda book_content_unit: book_content_unit.resource_code,
+        ):
+            yield book_fmt_str.format(book_names[book])
+
+            # Save grouper generator values in list since it will get exhausted
+            # when first used and exhausted generators cannot be reused.
+            book_content_units_ = list(book_content_units_grouped_by_book)
+            usfm_book_content_unit: Optional[
+                model.USFMBook
+            ] = first_usfm_book_content_unit(book_content_units_)
+            tn_book_content_unit_: Optional[model.TNBook] = tn_book_content_unit(
+                book_content_units_
+            )
+            tq_book_content_unit_: Optional[model.TQBook] = tq_book_content_unit(
+                book_content_units_
+            )
+            tw_book_content_unit_: Optional[model.TWBook] = tw_book_content_unit(
+                book_content_units_
+            )
+            usfm_book_content_unit2: Optional[
+                model.USFMBook
+            ] = second_usfm_book_content_unit(book_content_units_)
+            bc_book_content_unit_: Optional[model.BCBook] = bc_book_content_unit(
+                book_content_units_
+            )
+
+            # We've got the resources, now we can use the sub-strategy factory
+            # method to choose the right function to use from here on out.
+            assembly_layout_strategy = assembly_factory_for_lang_then_book_strategy(
+                usfm_book_content_unit,
+                tn_book_content_unit_,
+                tq_book_content_unit_,
+                tw_book_content_unit_,
+                usfm_book_content_unit2,
+                bc_book_content_unit_,
+                assembly_layout_kind,
+            )
+
+            logger.debug("assembly_layout_strategy: %s", str(assembly_layout_strategy))
+
+            # Now that we have the sub-strategy, let's run it and
+            # generate the HTML output.
+            yield from assembly_layout_strategy(
+                usfm_book_content_unit,
+                tn_book_content_unit_,
+                tq_book_content_unit_,
+                tw_book_content_unit_,
+                usfm_book_content_unit2,
+                bc_book_content_unit_,
+            )
+
+
 def assembly_factory_for_lang_then_book_strategy(
     usfm_book_content_unit: Optional[model.USFMBook],
     tn_book_content_unit: Optional[model.TNBook],
@@ -1453,6 +1538,90 @@ def assembly_factory_for_lang_then_book_strategy(
     ]
 
 
+def assemble_content_by_book_then_lang(
+    book_content_units: Iterable[model.BookContent],
+    assembly_layout_kind: model.AssemblyLayoutEnum,
+    book_as_grouper_fmt_str: str = settings.BOOK_AS_GROUPER_FMT_STR,
+    book_names: Mapping[str, str] = bible_books.BOOK_NAMES,
+) -> Iterable[str]:
+    """
+    Assemble by book then by language in alphabetic order before
+    delegating more atomic ordering/interleaving to an assembly
+    sub-strategy.
+    """
+    # Sort the books in canonical order.
+    book_id_map = dict(
+        (id, pos) for pos, id in enumerate(bible_books.BOOK_NAMES.keys())
+    )
+    book_content_units_sorted_by_book = sorted(
+        book_content_units,
+        key=lambda book_content_unit: book_id_map[book_content_unit.resource_code],
+    )
+    book: str
+    for book, group_by_book in itertools.groupby(
+        book_content_units_sorted_by_book,
+        lambda book_content_unit: book_content_unit.resource_code,
+    ):
+        yield book_as_grouper_fmt_str.format(book_names[book])
+
+        # Save grouper generator values in list since it will get exhausted
+        # when used and exhausted generators cannot be reused.
+        book_content_units_grouped_by_book = list(group_by_book)
+        usfm_book_content_units: Sequence[model.USFMBook] = [
+            book_content_unit
+            for book_content_unit in book_content_units_grouped_by_book
+            if isinstance(book_content_unit, model.USFMBook)
+        ]
+        tn_book_content_units: Sequence[model.TNBook] = [
+            book_content_unit
+            for book_content_unit in book_content_units_grouped_by_book
+            if isinstance(book_content_unit, model.TNBook)
+        ]
+        tq_book_content_units: Sequence[model.TQBook] = [
+            book_content_unit
+            for book_content_unit in book_content_units_grouped_by_book
+            if isinstance(book_content_unit, model.TQBook)
+        ]
+        tw_book_content_units: Sequence[model.TWBook] = [
+            book_content_unit
+            for book_content_unit in book_content_units_grouped_by_book
+            if isinstance(book_content_unit, model.TWBook)
+        ]
+        bc_book_content_units: Sequence[model.BCBook] = [
+            book_content_unit
+            for book_content_unit in book_content_units_grouped_by_book
+            if isinstance(book_content_unit, model.BCBook)
+        ]
+
+        # We've got the resources, now we can use the layout factory
+        # function to choose the right function to use from here on out.
+        assembly_layout_for_book_then_lang_strategy = (
+            assembly_factory_for_book_then_lang_strategy(
+                usfm_book_content_units,
+                tn_book_content_units,
+                tq_book_content_units,
+                tw_book_content_units,
+                bc_book_content_units,
+                assembly_layout_kind,
+            )
+        )
+
+        logger.debug(
+            "assembly_layout_for_book_then_lang_strategy: %s",
+            str(assembly_layout_for_book_then_lang_strategy),
+        )
+
+        # Now that we have the sub-strategy, let's run it and
+        # generate the HTML output.
+        yield from assembly_layout_for_book_then_lang_strategy(
+            usfm_book_content_units,
+            tn_book_content_units,
+            tq_book_content_units,
+            tw_book_content_units,
+            bc_book_content_units,
+        )
+
+
 def assembly_factory_for_book_then_lang_strategy(
     usfm_book_content_units: Sequence[model.USFMBook],
     tn_book_content_units: Sequence[model.TNBook],
@@ -2525,180 +2694,6 @@ def assembly_factory_for_book_then_lang_strategy(
             assembly_layout_kind,
         )
     ]
-
-
-def assemble_content_by_lang_then_book(
-    book_content_units: Iterable[model.BookContent],
-    assembly_layout_kind: model.AssemblyLayoutEnum,
-    language_fmt_str: str = settings.LANGUAGE_FMT_STR,
-    book_fmt_str: str = settings.BOOK_FMT_STR,
-    book_names: Mapping[str, str] = bible_books.BOOK_NAMES,
-) -> Iterable[str]:
-    """
-    Assemble by language then by book in lexicographical order before
-    delegating more atomic ordering/interleaving to an assembly
-    sub-strategy.
-    """
-    book_units_sorted_by_language = sorted(
-        book_content_units,
-        key=lambda book_content_unit: book_content_unit.lang_name,
-    )
-    language: str
-    for language, group_by_lang in itertools.groupby(
-        book_units_sorted_by_language,
-        lambda book_content_unit: book_content_unit.lang_name,
-    ):
-        yield language_fmt_str.format(language)
-
-        # For groupby's sake, we need to first sort
-        # group_by_lang before doing a groupby operation on it so that
-        # resources will be clumped together by resource code, i.e.,
-        # by language, otherwise a new group will be created every time a new
-        # resource_code is sequentially encountered.
-        # Sort the books in canonical order.
-        book_id_map = dict(
-            (id, pos) for pos, id in enumerate(bible_books.BOOK_NAMES.keys())
-        )
-        book_content_units_sorted_by_book = sorted(
-            group_by_lang,
-            key=lambda book_content_unit: book_id_map[book_content_unit.resource_code],
-        )
-        for book, book_content_units_grouped_by_book in itertools.groupby(
-            book_content_units_sorted_by_book,
-            lambda book_content_unit: book_content_unit.resource_code,
-        ):
-            yield book_fmt_str.format(book_names[book])
-
-            # Save grouper generator values in list since it will get exhausted
-            # when used and exhausted generators cannot be reused.
-            book_content_units_ = list(book_content_units_grouped_by_book)
-            usfm_book_content_unit: Optional[
-                model.USFMBook
-            ] = first_usfm_book_content_unit(book_content_units_)
-            tn_book_content_unit_: Optional[model.TNBook] = tn_book_content_unit(
-                book_content_units_
-            )
-            tq_book_content_unit_: Optional[model.TQBook] = tq_book_content_unit(
-                book_content_units_
-            )
-            tw_book_content_unit_: Optional[model.TWBook] = tw_book_content_unit(
-                book_content_units_
-            )
-            usfm_book_content_unit2: Optional[
-                model.USFMBook
-            ] = second_usfm_book_content_unit(book_content_units_)
-            bc_book_content_unit_: Optional[model.BCBook] = bc_book_content_unit(
-                book_content_units_
-            )
-
-            # We've got the resources, now we can use the sub-strategy factory
-            # method to choose the right function to use from here on out.
-            assembly_layout_strategy = assembly_factory_for_lang_then_book_strategy(
-                usfm_book_content_unit,
-                tn_book_content_unit_,
-                tq_book_content_unit_,
-                tw_book_content_unit_,
-                usfm_book_content_unit2,
-                bc_book_content_unit_,
-                assembly_layout_kind,
-            )
-
-            logger.debug("assembly_layout_strategy: %s", str(assembly_layout_strategy))
-
-            # Now that we have the sub-strategy, let's run it and
-            # generate the HTML output.
-            yield from assembly_layout_strategy(
-                usfm_book_content_unit,
-                tn_book_content_unit_,
-                tq_book_content_unit_,
-                tw_book_content_unit_,
-                usfm_book_content_unit2,
-                bc_book_content_unit_,
-            )
-
-
-def assemble_content_by_book_then_lang(
-    book_content_units: Iterable[model.BookContent],
-    assembly_layout_kind: model.AssemblyLayoutEnum,
-    book_as_grouper_fmt_str: str = settings.BOOK_AS_GROUPER_FMT_STR,
-    book_names: Mapping[str, str] = bible_books.BOOK_NAMES,
-) -> Iterable[str]:
-    """
-    Assemble by book then by language in alphabetic order before
-    delegating more atomic ordering/interleaving to an assembly
-    sub-strategy.
-    """
-    # Sort the books in canonical order.
-    book_id_map = dict(
-        (id, pos) for pos, id in enumerate(bible_books.BOOK_NAMES.keys())
-    )
-    book_content_units_sorted_by_book = sorted(
-        book_content_units,
-        key=lambda book_content_unit: book_id_map[book_content_unit.resource_code],
-    )
-    book: str
-    for book, group_by_book in itertools.groupby(
-        book_content_units_sorted_by_book,
-        lambda book_content_unit: book_content_unit.resource_code,
-    ):
-        yield book_as_grouper_fmt_str.format(book_names[book])
-
-        # Save grouper generator values in list since it will get exhausted
-        # when used and exhausted generators cannot be reused.
-        book_content_units_grouped_by_book = list(group_by_book)
-        usfm_book_content_units: Sequence[model.USFMBook] = [
-            book_content_unit
-            for book_content_unit in book_content_units_grouped_by_book
-            if isinstance(book_content_unit, model.USFMBook)
-        ]
-        tn_book_content_units: Sequence[model.TNBook] = [
-            book_content_unit
-            for book_content_unit in book_content_units_grouped_by_book
-            if isinstance(book_content_unit, model.TNBook)
-        ]
-        tq_book_content_units: Sequence[model.TQBook] = [
-            book_content_unit
-            for book_content_unit in book_content_units_grouped_by_book
-            if isinstance(book_content_unit, model.TQBook)
-        ]
-        tw_book_content_units: Sequence[model.TWBook] = [
-            book_content_unit
-            for book_content_unit in book_content_units_grouped_by_book
-            if isinstance(book_content_unit, model.TWBook)
-        ]
-        bc_book_content_units: Sequence[model.BCBook] = [
-            book_content_unit
-            for book_content_unit in book_content_units_grouped_by_book
-            if isinstance(book_content_unit, model.BCBook)
-        ]
-
-        # We've got the resources, now we can use the layout factory
-        # function to choose the right function to use from here on out.
-        assembly_layout_for_book_then_lang_strategy = (
-            assembly_factory_for_book_then_lang_strategy(
-                usfm_book_content_units,
-                tn_book_content_units,
-                tq_book_content_units,
-                tw_book_content_units,
-                bc_book_content_units,
-                assembly_layout_kind,
-            )
-        )
-
-        logger.debug(
-            "assembly_layout_for_book_then_lang_strategy: %s",
-            str(assembly_layout_for_book_then_lang_strategy),
-        )
-
-        # Now that we have the sub-strategy, let's run it and
-        # generate the HTML output.
-        yield from assembly_layout_for_book_then_lang_strategy(
-            usfm_book_content_units,
-            tn_book_content_units,
-            tq_book_content_units,
-            tw_book_content_units,
-            bc_book_content_units,
-        )
 
 
 #########################################################################
