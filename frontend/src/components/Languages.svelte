@@ -49,14 +49,6 @@
   let resourceCodesAndTypesMap: ResourceCodesAndTypesMap
   $: {
     if (resourceCodesAndTypesMap) {
-      // TODO Extract OT books into otBookStore, NT books into
-      // ntBookStore, and resource types into
-      // lang0ResourceTypesStore, lang1ResourceTypesStore. But be
-      // careful about what stores you store into since Books.svelte
-      // logic uses these and you could mess up the logic. For instance,
-      // Books.svelte sets otBookStore in bound checkboxes. So in that case we
-      // probably want to create another store that represents not the chosen
-      // books, but the books available.
       console.log(`resourceCodesAndTypesMap: ${resourceCodesAndTypesMap}`)
     }
   }
