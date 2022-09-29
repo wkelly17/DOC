@@ -10,10 +10,16 @@
     generateDocxStore,
     documentRequestKeyStore
   } from '../stores/SettingsStore'
+  import { resetStores } from '../lib/utils'
 
-  // TODO
   function cancelDocument() {
     console.log('Called cancelDocument')
+    resetStores('languages')
+    resetStores('books')
+    resetStores('resource_types')
+    resetStores('settings')
+    resetStores('notifications')
+    push('#/')
   }
 
   let apiRootUrl: string = <string>import.meta.env.VITE_BACKEND_API_URL
