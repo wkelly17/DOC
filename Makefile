@@ -73,7 +73,7 @@ unit-tests: up
 
 .PHONY: e2e-tests
 e2e-tests: up clean-local-docker-output-dir
-	# FIXME parallel pytests via pytest_xdist fail for e2e tests in Docker but
+	# NOTE parallel pytests via pytest_xdist fail for e2e tests in Docker but
 	# work for unit tests in Docker and work everywhere outside of
 	# Docker. So we utilize them everywhere we can pending a fix.
 	# docker-compose run --rm --no-deps --entrypoint=pytest api -n auto /tests/e2e
