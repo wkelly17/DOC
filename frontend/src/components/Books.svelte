@@ -92,7 +92,7 @@
     }
   }
 
-  const resetBooks = () => {
+  function resetBooks() {
     resetStores('books')
   }
 
