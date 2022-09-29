@@ -51,8 +51,8 @@
     <h3 class="text-center text-secondary-content">Your document is being generated.</h3>
     <div class="m-auto text-center">
       <!-- TODO Would be nice to use SSE to get progress events from -->
-      <!-- backend and update a graphical progress bar (which we have as -->
-      <!-- in the front-end with actual messages next to the bar, like -->
+      <!-- backend and update a graphical progress bar (which we have -->
+      <!-- avail. in the front-end with actual messages next to the bar, like -->
       <!-- acquiring assets, parsing assets, assembling document, -->
       <!-- converting to PDF, etc. -->
       <!-- <ProgressIndicator graphicStyle={true} graphicClass="w-56" /> -->
