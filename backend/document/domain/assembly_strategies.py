@@ -34,11 +34,11 @@ logger = settings.logger(__name__)
 H1, H2, H3, H4, H5, H6 = "h1", "h2", "h3", "h4", "h5", "h6"
 NUM_ZEROS = 3
 
-# TODO More accurate return type than Any that mypy likes.
+# TODO Find More accurate return type than Any that mypy will accept.
 # NOTE Every return type I tried based on the possible actual return
 # types failed. I also used pyre type checker, pyre-check, to try to
 # unearth a more accurate type and it did find a possible type, but it
-# failed at runtime type check.
+# also failed at runtime type check.
 def assembly_strategy_factory(
     assembly_strategy_kind: model.AssemblyStrategyEnum,
 ) -> Any:
@@ -191,7 +191,7 @@ def assembly_factory_for_lang_then_book_strategy(
             ],
             Iterable[model.HtmlContent],
         ],
-    ] = {  # This is a big truth table that ensures every case is handled explicitly.
+    ] = {  # This is a big truth/dispatch table that ensures every case is handled explicitly.
         (
             True,
             True,
@@ -4319,7 +4319,7 @@ def assemble_usfm_as_iterator_for_book_then_lang_2c_sl_sr(
     right layout.
 
     Ensure that different languages' USFMs ends up next to each other
-    horizontally in the two column layout.
+    in the two column layout.
 
     Discussion:
 
@@ -4359,7 +4359,7 @@ def assemble_usfm_as_iterator_for_book_then_lang_2c_sl_sr(
     1                 1                1             0
     1                 1                1             1
 
-    which we then reorder columns to make the subsequent step easier:
+    Let's now reorder columns to make the subsequent step easier:
 
     primary_lang0, secondary_lang0, primary_lang1, secondary_lang1
 
@@ -4372,7 +4372,7 @@ def assemble_usfm_as_iterator_for_book_then_lang_2c_sl_sr(
     1                   1             1              0
     1                   1             1              1
 
-    which yields the following possible USFM layouts when we admit
+    which yields the following possible USFM layouts when we fix
     that lang0 always appears on the left and lang1 always appears on
     the right of the two column layout:
 

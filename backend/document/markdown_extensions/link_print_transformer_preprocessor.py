@@ -573,7 +573,7 @@ class LinkPrintTransformerPreprocessor(markdown.preprocessors.Preprocessor):
         """
         for match in re.finditer(link_regexes.TN_OBS_MARKDOWN_LINK_RE, source):
             # Build the anchor links
-            # FIXME Actually create a meaningful link rather than just
+            # TODO Actually create a meaningful link rather than just
             # link text
             source = source.replace(match.group(0), match.group("link_text"))
         return source

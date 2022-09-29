@@ -140,7 +140,7 @@ TN_MARKDOWN_RELATIVE_TO_CURRENT_BOOK_SCRIPTURE_LINK_RE = re.compile(
 # TN OBS markdown link regex
 # NOTE Not currently used since TN bible reference and OBS bible
 # reference sections are removed by remove_section_preprocessor.py
-# FIXME OBS yet to be supported. We need to find out what URL(s) to
+# TODO OBS yet to be supported. We need to find out what URL(s) to
 # use for TN OBS resources.
 # [21:9](rc://gu/tn/help/obs/21/09)
 # __[14:02](rc://en/tn/help/obs/14/02)__

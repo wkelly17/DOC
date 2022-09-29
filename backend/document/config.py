@@ -156,13 +156,7 @@ class Settings(BaseSettings):
         """Non-secure local URL for running the Fastapi server for testing."""
         return "http://localhost:{}".format(self.API_LOCAL_PORT)
 
-    # Get API prefix. Useful to have a prefix for versioning of the API.
-    # TODO Consider using API_ROOT in router prefix
-
     API_LOCAL_PORT: int
-
-    # FIXME HTTPS shouldn't be hardcoded. fastapi will have a sane way
-    # to deal with this that I've yet to research.
 
     # Location where resource assets will be downloaded.
     RESOURCE_ASSETS_DIR: str = "/working/temp"

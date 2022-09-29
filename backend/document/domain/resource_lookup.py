@@ -636,6 +636,7 @@ def supported_resource_type(
 #     return lang0_results
 
 
+# Experimental alternative
 def resource_codes_and_types_for_lang(
     lang_code: str,
     working_dir: str = settings.working_dir(),
@@ -719,6 +720,7 @@ def resource_codes_and_types_for_lang(
             for resource_code, name, link in tuples
         ]
 
+    # Experimental alternative
     def resource_code_and_link_from_contents_zips(
         format: str,
         lang_code: str,
@@ -802,6 +804,7 @@ def resource_codes_and_types_for_lang(
         ]
         return contents_resource_codes
 
+    # Experimental alternative
     def resource_code_and_link_from_contents_git_repos(
         format: str,
         lang_code: str,
@@ -1016,8 +1019,6 @@ def shared_resource_types(
     [('ulb-wa', 'Unlocked Literal Bible (ULB) (ulb-wa)'), ('tn-wa', 'ULB Translation Helps (tn-wa)'), ('bc-wa', 'Bible Commentary (bc-wa)')]
     >>> list(resource_lookup.shared_resource_types("kbt", ["2co"]))
     [('reg', 'Bible (reg)')]
-    >>> # FIXME TW type won't be included because it is scoped at language level
-    >>> # and this function checks things at the book level.
     >>> list(resource_lookup.shared_resource_types("pt-br", ["gen"]))
     [('tn', 'Translation Notes (tn)'), ('ulb', 'Brazilian Portuguese Unlocked Literal Bible (ulb)'), ('tq', 'Translation Questions (tq)'), ('tw', 'Translation Words (tw)')]
     >>> list(resource_lookup.shared_resource_types("fr", ["gen"]))

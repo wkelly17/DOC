@@ -300,7 +300,7 @@ def assemble_content(
 ) -> str:
     """
     Assemble the content from all requested resources according to the
-    assembly_strategy requested and write out to a single HTML file
+    assembly_strategy requested and write out to an HTML file
     for subsequent use.
     """
     # Get the assembly strategy function appropriate given the users
@@ -308,7 +308,7 @@ def assemble_content(
     assembly_strategy = assembly_strategies.assembly_strategy_factory(
         document_request.assembly_strategy_kind
     )
-    # Now, actually do the actual assembly given the additional
+    # Now, actually do the assembly given the additional
     # information of the document_request.assembly_layout_kind and
     # return it as a string.
     content = "".join(
@@ -319,9 +319,10 @@ def assemble_content(
         for book_content_unit in book_content_units
         if isinstance(book_content_unit, model.TWBook)
     )
-    # Don't allow duplicate languages for tw words. We'd use list(set()) or
-    # toolz.itertoolz.unique, but model.TWWord is not hashable and therefore
-    # cannot be put in a set.
+    # Don't allow duplicate tw book content units.
+    # NOTE We'd use list(set()) or toolz.itertoolz.unique, but model.TWWord
+    # is not hashable and therefore cannot be put in a set, hence the ugly
+    # imperitave code here.
     unique_tw_book_content_units = []
     for tw_book_content_unit in tw_book_content_units:
         if tw_book_content_unit not in unique_tw_book_content_units:
@@ -495,8 +496,6 @@ def convert_html_to_epub(
     subprocess.call(pandoc_command, shell=True)
 
 
-# FIXME Use cover page...or should we? Maybe we should integrate what
-# used to be presented on cover page inside the HTML document instead.
 def convert_html_to_docx(
     html_filepath: str,
     docx_filepath: str,
@@ -700,9 +699,10 @@ def copy_docx_to_docker_output_dir(
 
 def verify_resource_assets_available(
     resource_lookup_dto: model.ResourceLookupDto,
-    # FIXME For some reason mypy and Python runtime don't believe
+    # NOTE For some reason mypy and Python runtime don't believe
     # settings.NOT_FOUND_MESSAGE_FMT_STR is defined? So I am
-    # hardcoding the format string instead as a default argument value.
+    # hardcoding the format string instead as a default argument value
+    # from the config module.
     # failure_message: str = settings.NOT_FOUND_MESSAGE_FMT_STR,
     failure_message: str = "Book {} and resource type {} for language {} is not available.",
 ) -> bool:
