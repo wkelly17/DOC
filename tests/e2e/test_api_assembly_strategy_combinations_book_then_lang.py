@@ -8769,3 +8769,67 @@ def test_es_419_ulb_col_es_419_ulb_eph_es_419_tn_col_es_419_tq_col_es_419_tw_col
             },
         )
         check_finished_document_with_verses_success(response)
+
+
+def test_kbt_reg_2co_fr_ulb_2co_sl_sr() -> None:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
+        response: requests.Response = client.post(
+            "/documents",
+            json={
+                "email_address": settings.TO_EMAIL_ADDRESS,
+                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
+                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT,
+                "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
+                "resource_requests": [
+                    {
+                        "lang_code": "kbt",
+                        "resource_type": "reg",
+                        "resource_code": "2co",
+                    },
+                    {
+                        "lang_code": "fr",
+                        "resource_type": "ulb",
+                        "resource_code": "2co",
+                    },
+                ],
+            },
+        )
+        # kbt has a malformed asset URL in translations.json so we
+        # expect to fail obtaining it through git cloning.
+        with pytest.raises(Exception):
+            check_finished_document_with_verses_success(response)
+
+
+def test_kbt_reg_2co_fr_ulb_2co_sl_sr() -> None:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
+        response: requests.Response = client.post(
+            "/documents",
+            json={
+                "email_address": settings.TO_EMAIL_ADDRESS,
+                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
+                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT,
+                "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
+                "resource_requests": [
+                    {
+                        "lang_code": "kbt",
+                        "resource_type": "reg",
+                        "resource_code": "2co",
+                    },
+                    {
+                        "lang_code": "fr",
+                        "resource_type": "ulb",
+                        "resource_code": "2co",
+                    },
+                ],
+            },
+        )
+        # kbt has a malformed asset URL in translations.json so we
+        # expect to fail obtaining it through git cloning.
+        with pytest.raises(Exception):
+            check_finished_document_with_verses_success(response)
