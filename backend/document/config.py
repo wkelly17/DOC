@@ -53,10 +53,6 @@ class Settings(BaseSettings):
 
     LANGUAGE_FMT_STR: str = "<h1>Language: {}</h1>"
     RESOURCE_TYPE_NAME_FMT_STR: str = "<h1>{}</h1>"
-    RESOURCE_TYPE_NAME_WITH_REF_FMT_STR: str = "<h3>{} {}:{}</h3>"
-    TN_RESOURCE_TYPE_NAME_WITH_ID_AND_REF_FMT_STR: str = (
-        '<h3 id="{}-{}-tn-ch-{}-v-{}">{} {}:{}</h3>'
-    )
     HTML_ROW_BEGIN: str = model.HtmlContent("<div class='row'>")
     HTML_ROW_END: str = model.HtmlContent("</div>")
     HTML_COLUMN_BEGIN: str = model.HtmlContent("<div class='column'>")
