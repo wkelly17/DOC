@@ -1,0 +1,9 @@
+version: "3"
+services:
+  api:
+    volumes:
+      - ./docker_document_output:/document_output
+
+  fileserver:
+    volumes:
+      - ./docker_document_output:/srv/content
