@@ -202,6 +202,7 @@ class Settings(BaseSettings):
         "header-line": None,  # Produce a line under the header
         "footer-font-size": "10",
         "footer-center": "[page]",
+        "footer-right": "generated on [isodate] at [time]",
         "footer-line": None,  # Produce a line above the footer
     }
     PANDOC_OPTIONS: str = "--quiet"

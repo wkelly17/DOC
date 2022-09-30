@@ -469,10 +469,6 @@ def convert_html_to_pdf(
 ) -> None:
     """Generate PDF from HTML."""
     assert os.path.exists(html_filepath)
-    # Create generated on string for use in PDF document header.
-    wkhtmltopdf_options["footer-right"] = "generated on {}".format(
-        datetime.datetime.now().strftime("%b %d, %Y at %H:%M:%S")
-    )
     pdfkit.from_file(
         html_filepath,
         pdf_filepath,
