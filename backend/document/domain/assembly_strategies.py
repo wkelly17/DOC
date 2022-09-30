@@ -34,7 +34,7 @@ logger = settings.logger(__name__)
 H1, H2, H3, H4, H5, H6 = "h1", "h2", "h3", "h4", "h5", "h6"
 NUM_ZEROS = 3
 
-# TODO Find More accurate return type than Any that mypy will accept.
+# TODO Find more accurate return type than Any that mypy will accept.
 # NOTE Every return type I tried based on the possible actual return
 # types failed. I also used pyre type checker, pyre-check, to try to
 # unearth a more accurate type and it did find a possible type, but it
