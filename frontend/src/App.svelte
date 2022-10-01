@@ -4,6 +4,7 @@
   import Mast from './components/Mast.svelte'
   import Tabs from './components/Tabs.svelte'
   import Sidebar from './components/Sidebar.svelte'
+  import 'fluent-svelte/theme.css' // Required for ProgressRing component
   let open = false
 </script>
 

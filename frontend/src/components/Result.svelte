@@ -1,5 +1,5 @@
 <script lang="ts">
-  import ProgressIndicator from './ProgressIndicator.svelte'
+  import { ProgressRing } from 'fluent-svelte'
   import DownloadButton from './DownloadButton.svelte'
   import { push } from 'svelte-spa-router'
   import { documentReadyStore, errorStore } from '../stores/NotificationStore'
@@ -49,17 +49,8 @@
 <div class="bg-white m-auto w-full px-2 pt-2 mt-2">
   {#if !$documentReadyStore && !$errorStore}
     <h3 class="text-center text-secondary-content">Your document is being generated.</h3>
-    <div class="m-auto text-center">
-      <!-- TODO Would be nice to use SSE to get progress events from -->
-      <!-- backend and update a graphical progress bar (which we have -->
-      <!-- avail. in the front-end with actual messages next to the bar, like -->
-      <!-- acquiring assets, parsing assets, assembling document, -->
-      <!-- converting to PDF, etc. -->
-      <!-- <ProgressIndicator graphicStyle={true} graphicClass="w-56" /> -->
-      <ProgressIndicator
-        parClass="text-center text-secondary-content"
-        labelString="Generating document"
-      />
+    <div class="flex justify-center">
+      <ProgressRing />
     </div>
     <p class="text-center text-secondary-content">
       We appreciate your patience as this can take several minutes for larger documents.
