@@ -149,7 +149,7 @@
   <div class="text-center bg-white px-2 pt-2 mt-2">
     <button
       on:click|preventDefault={cancelDocument}
-      class="btn w-5/6 gray-gradient hover:gray-gradient capitalize">Cancel</button
+      class="btn w-5/6 gray-gradient capitalize">Cancel</button
     >
   </div>
 {/if}
@@ -159,8 +159,7 @@
     background: linear-gradient(0deg, rgba(20, 14, 8, 0.2), rgba(20, 14, 8, 0.2)),
       linear-gradient(0deg, rgba(20, 14, 8, 0.05), rgba(20, 14, 8, 0.05));
   }
-  /* FIXME hover class is not being applied */
-  * :global(.gray-gradient-hover) {
+  * :global(.gray-gradient:hover) {
     background: linear-gradient(0deg, rgba(20, 14, 8, 0.3), rgba(20, 14, 8, 0.3)),
       linear-gradient(0deg, rgba(20, 14, 8, 0.05), rgba(20, 14, 8, 0.05));
   }
