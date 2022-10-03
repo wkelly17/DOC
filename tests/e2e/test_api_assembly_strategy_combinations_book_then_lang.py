@@ -1222,88 +1222,6 @@ def test_fr_f10_col_fr_tn_col_fr_tq_col_fr_tw_col_book_language_order_2c_sl_hr_c
         check_finished_document_with_verses_success(response)
 
 
-# FIXME This would require two languages to use the layout desired.
-@pytest.mark.skip
-def test_fr_f10_col_fr_tn_col_fr_tq_col_fr_tw_col_book_language_order_2c_sl_sr() -> None:
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": None,
-                "layout_for_print": False,
-                "generate_pdf": True,
-                "generate_epub": False,
-                "generate_docx": False,
-                "resource_requests": [
-                    {
-                        "lang_code": "fr",
-                        "resource_type": "f10",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "fr",
-                        "resource_type": "tn",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "fr",
-                        "resource_type": "tq",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "fr",
-                        "resource_type": "tw",
-                        "resource_code": "col",
-                    },
-                ],
-            },
-        )
-        check_finished_document_with_verses_success(response)
-
-
-# FIXME This would require two languages to use the layout desired.
-@pytest.mark.skip
-def test_fr_f10_col_fr_tn_col_fr_tq_col_fr_tw_col_book_language_order_2c_sl_sr_c() -> None:
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
-                "layout_for_print": False,
-                "generate_pdf": True,
-                "generate_epub": False,
-                "generate_docx": False,
-                "resource_requests": [
-                    {
-                        "lang_code": "fr",
-                        "resource_type": "f10",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "fr",
-                        "resource_type": "tn",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "fr",
-                        "resource_type": "tq",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "fr",
-                        "resource_type": "tw",
-                        "resource_code": "col",
-                    },
-                ],
-            },
-        )
-        check_finished_document_with_verses_success(response)
-
-
 def test_fr_f10_col_fr_tn_col_fr_tq_col_fr_tw_col_book_language_order_1c() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -1826,70 +1744,6 @@ def test_en_ulb_wa_tit_en_tn_wa_tit_book_language_order_2c_sl_hr_c() -> None:
         check_finished_document_with_verses_success(response)
 
 
-# FIXME This would require two languages to use the layout desired.
-@pytest.mark.skip
-def test_en_ulb_wa_tit_en_tn_wa_tit_book_language_order_2c_sl_sr() -> None:
-    "English ulb-wa and tn-wa for book of Timothy."
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT,
-                "layout_for_print": False,
-                "generate_pdf": True,
-                "generate_epub": False,
-                "generate_docx": False,
-                "resource_requests": [
-                    {
-                        "lang_code": "en",
-                        "resource_type": "ulb-wa",
-                        "resource_code": "tit",
-                    },
-                    {
-                        "lang_code": "en",
-                        "resource_type": "tn-wa",
-                        "resource_code": "tit",
-                    },
-                ],
-            },
-        )
-        check_finished_document_with_verses_success(response)
-
-
-# FIXME This would require two languages to use the layout desired.
-@pytest.mark.skip
-def test_en_ulb_wa_tit_en_tn_wa_tit_book_language_order_2c_sl_sr_c() -> None:
-    "English ulb-wa and tn-wa for book of Timothy."
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
-                "layout_for_print": False,
-                "generate_pdf": True,
-                "generate_epub": False,
-                "generate_docx": False,
-                "resource_requests": [
-                    {
-                        "lang_code": "en",
-                        "resource_type": "ulb-wa",
-                        "resource_code": "tit",
-                    },
-                    {
-                        "lang_code": "en",
-                        "resource_type": "tn-wa",
-                        "resource_code": "tit",
-                    },
-                ],
-            },
-        )
-        check_finished_document_with_verses_success(response)
-
-
 def test_en_ulb_wa_tit_en_tn_wa_tit_book_language_order_1c() -> None:
     "English ulb-wa and tn-wa for book of Timothy."
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
@@ -1987,68 +1841,6 @@ def test_sw_ulb_col_sw_tn_col_book_language_order_2c_sl_hr_c() -> None:
                 "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
-                "layout_for_print": True,
-                "generate_pdf": True,
-                "generate_epub": False,
-                "generate_docx": False,
-                "resource_requests": [
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "ulb",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "tn",
-                        "resource_code": "col",
-                    },
-                ],
-            },
-        )
-        check_finished_document_with_verses_success(response)
-
-
-# FIXME This would require two languages to use the layout desired.
-@pytest.mark.skip
-def test_sw_ulb_col_sw_tn_col_book_language_order_2c_sl_sr() -> None:
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT,
-                "layout_for_print": True,
-                "generate_pdf": True,
-                "generate_epub": False,
-                "generate_docx": False,
-                "resource_requests": [
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "ulb",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "tn",
-                        "resource_code": "col",
-                    },
-                ],
-            },
-        )
-        check_finished_document_with_verses_success(response)
-
-
-# FIXME This would require two languages to use the layout desired.
-@pytest.mark.skip
-def test_sw_ulb_col_sw_tn_col_book_language_order_2c_sl_sr_c() -> None:
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
                 "layout_for_print": True,
                 "generate_pdf": True,
                 "generate_epub": False,
@@ -2176,47 +1968,6 @@ def test_sw_ulb_col_sw_tn_col_sw_ulb_tit_sw_tn_tit_book_language_order_2c_sl_hr_
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
                 "layout_for_print": True,
-                "generate_pdf": True,
-                "generate_epub": False,
-                "generate_docx": False,
-                "resource_requests": [
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "ulb",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "tn",
-                        "resource_code": "col",
-                    },
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "ulb",
-                        "resource_code": "tit",
-                    },
-                    {
-                        "lang_code": "sw",
-                        "resource_type": "tn",
-                        "resource_code": "tit",
-                    },
-                ],
-            },
-        )
-        check_finished_document_with_verses_success(response)
-
-
-# FIXME This would require two languages to use the layout desired.
-@pytest.mark.skip
-def test_sw_ulb_col_sw_tn_col_sw_ulb_tit_sw_tn_tit_book_language_order_2c_sl_sr_c() -> None:
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
-                "layout_for_print": False,
                 "generate_pdf": True,
                 "generate_epub": False,
                 "generate_docx": False,
@@ -5177,68 +4928,6 @@ def test_mr_ulb_mrk_mr_tq_mrk_mr_udb_mrk_book_language_order_1c_c() -> None:
         check_finished_document_with_verses_success(response)
 
 
-# FIXME This would require helps to use the layout desired.
-@pytest.mark.skip
-def test_tl_ulb_gen_tl_udb_gen_book_language_order_2c_sl_hr() -> None:
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT,
-                "layout_for_print": False,
-                "generate_pdf": True,
-                "generate_epub": False,
-                "generate_docx": False,
-                "resource_requests": [
-                    {
-                        "lang_code": "tl",
-                        "resource_type": "ulb",
-                        "resource_code": "gen",
-                    },
-                    {
-                        "lang_code": "tl",
-                        "resource_type": "udb",
-                        "resource_code": "gen",
-                    },
-                ],
-            },
-        )
-        check_finished_document_with_verses_success(response)
-
-
-# FIXME This would require helps to use the layout desired.
-@pytest.mark.skip
-def test_tl_ulb_gen_tl_udb_gen_book_language_order_2c_sl_hr_c() -> None:
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
-                "layout_for_print": True,
-                "generate_pdf": True,
-                "generate_epub": False,
-                "generate_docx": False,
-                "resource_requests": [
-                    {
-                        "lang_code": "tl",
-                        "resource_type": "ulb",
-                        "resource_code": "gen",
-                    },
-                    {
-                        "lang_code": "tl",
-                        "resource_type": "udb",
-                        "resource_code": "gen",
-                    },
-                ],
-            },
-        )
-        check_finished_document_with_verses_success(response)
-
-
 def test_tl_ulb_gen_tl_udb_gen_book_language_order_1c() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -5841,68 +5530,6 @@ def test_tl_tq_gen_tl_udb_gen_book_language_order_1c_c() -> None:
         check_finished_document_with_verses_success(response)
 
 
-# FIXME This would require helps to use the layout desired.
-@pytest.mark.skip
-def test_tl_tw_gen_tl_udb_gen_book_language_order_2c_sl_hr() -> None:
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT,
-                "layout_for_print": False,
-                "generate_pdf": True,
-                "generate_epub": False,
-                "generate_docx": False,
-                "resource_requests": [
-                    {
-                        "lang_code": "tl",
-                        "resource_type": "tw",
-                        "resource_code": "gen",
-                    },
-                    {
-                        "lang_code": "tl",
-                        "resource_type": "udb",
-                        "resource_code": "gen",
-                    },
-                ],
-            },
-        )
-        check_finished_document_with_verses_success(response)
-
-
-# FIXME This would require helps to use the layout desired.
-@pytest.mark.skip
-def test_tl_tw_gen_tl_udb_gen_book_language_order_2c_sl_hr_c() -> None:
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
-                "layout_for_print": True,
-                "generate_pdf": True,
-                "generate_epub": False,
-                "generate_docx": False,
-                "resource_requests": [
-                    {
-                        "lang_code": "tl",
-                        "resource_type": "tw",
-                        "resource_code": "gen",
-                    },
-                    {
-                        "lang_code": "tl",
-                        "resource_type": "udb",
-                        "resource_code": "gen",
-                    },
-                ],
-            },
-        )
-        check_finished_document_with_verses_success(response)
-
-
 def test_tl_tw_gen_tl_udb_gen_book_language_order_1c() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -5950,58 +5577,6 @@ def test_tl_tw_gen_tl_udb_gen_book_language_order_1c_c() -> None:
                         "resource_type": "tw",
                         "resource_code": "gen",
                     },
-                    {
-                        "lang_code": "tl",
-                        "resource_type": "udb",
-                        "resource_code": "gen",
-                    },
-                ],
-            },
-        )
-        check_finished_document_with_verses_success(response)
-
-
-# FIXME This would require helps to use the layout desired.
-@pytest.mark.skip
-def test_tl_udb_gen_book_language_order_2c_sl_hr() -> None:
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT,
-                "layout_for_print": False,
-                "generate_pdf": True,
-                "generate_epub": False,
-                "generate_docx": False,
-                "resource_requests": [
-                    {
-                        "lang_code": "tl",
-                        "resource_type": "udb",
-                        "resource_code": "gen",
-                    },
-                ],
-            },
-        )
-        check_finished_document_with_verses_success(response)
-
-
-# FIXME This would require helps to use the layout desired.
-@pytest.mark.skip
-def test_tl_udb_gen_book_language_order_2c_sl_hr_c() -> None:
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
-                "layout_for_print": True,
-                "generate_pdf": True,
-                "generate_epub": False,
-                "generate_docx": False,
-                "resource_requests": [
                     {
                         "lang_code": "tl",
                         "resource_type": "udb",
@@ -6587,80 +6162,6 @@ def test_fr_ulb_rev_fr_tq_rev_fr_tw_rev_fr_f10_rev_book_language_order_1c_c() ->
                     {
                         "lang_code": "fr",
                         "resource_type": "tq",
-                        "resource_code": "rev",
-                    },
-                    {
-                        "lang_code": "fr",
-                        "resource_type": "tw",
-                        "resource_code": "rev",
-                    },
-                    {
-                        "lang_code": "fr",
-                        "resource_type": "f10",
-                        "resource_code": "rev",
-                    },
-                ],
-            },
-        )
-        check_finished_document_with_verses_success(response)
-
-
-# FIXME This would require helps to use the layout desired.
-@pytest.mark.skip
-def test_fr_ulb_rev_fr_tw_rev_fr_udb_rev_book_language_order_2c_sl_hr() -> None:
-    """Demonstrate listing unfound resources, in this case fr-udb-rev"""
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT,
-                "layout_for_print": False,
-                "generate_pdf": True,
-                "generate_epub": False,
-                "generate_docx": False,
-                "resource_requests": [
-                    {
-                        "lang_code": "fr",
-                        "resource_type": "ulb",
-                        "resource_code": "rev",
-                    },
-                    {
-                        "lang_code": "fr",
-                        "resource_type": "tw",
-                        "resource_code": "rev",
-                    },
-                    {
-                        "lang_code": "fr",
-                        "resource_type": "f10",
-                        "resource_code": "rev",
-                    },
-                ],
-            },
-        )
-        check_finished_document_with_verses_success(response)
-
-
-# FIXME This would require helps to use the layout desired.
-@pytest.mark.skip
-def test_fr_ulb_rev_fr_tw_rev_fr_udb_rev_book_language_order_2c_sl_hr_c() -> None:
-    """Demonstrate listing unfound resources, in this case fr-udb-rev"""
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
-                "layout_for_print": True,
-                "generate_pdf": True,
-                "generate_epub": False,
-                "generate_docx": False,
-                "resource_requests": [
-                    {
-                        "lang_code": "fr",
-                        "resource_type": "ulb",
                         "resource_code": "rev",
                     },
                     {
@@ -8796,37 +8297,6 @@ def test_wyy_reg_gen_wyy_reg_mic_book_language_order_2c_sl_hr() -> None:
         check_finished_document_without_verses_success(response)
 
 
-# FIXME This would require helps to use the layout desired.
-@pytest.mark.skip
-def test_wyy_reg_gen_wyy_reg_mic_book_language_order_2c_sl_hr_c() -> None:
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
-            "/documents",
-            json={
-                "email_address": settings.TO_EMAIL_ADDRESS,
-                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT,
-                "layout_for_print": True,
-                "generate_pdf": True,
-                "generate_epub": False,
-                "generate_docx": False,
-                "resource_requests": [
-                    {
-                        "lang_code": "wyy",
-                        "resource_type": "reg",
-                        "resource_code": "gen",
-                    },
-                    {
-                        "lang_code": "wyy",
-                        "resource_type": "reg",
-                        "resource_code": "mic",
-                    },
-                ],
-            },
-        )
-        check_finished_document_without_verses_success(response)
-
-
 def test_wyy_reg_gen_wyy_reg_mic_book_language_order_1c() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -9299,3 +8769,35 @@ def test_es_419_ulb_col_es_419_ulb_eph_es_419_tn_col_es_419_tq_col_es_419_tw_col
             },
         )
         check_finished_document_with_verses_success(response)
+
+
+def test_kbt_reg_2co_fr_ulb_2co_sl_sr() -> None:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
+        response: requests.Response = client.post(
+            "/documents",
+            json={
+                "email_address": settings.TO_EMAIL_ADDRESS,
+                "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
+                "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT,
+                "layout_for_print": False,
+                "generate_pdf": True,
+                "generate_epub": False,
+                "generate_docx": False,
+                "resource_requests": [
+                    {
+                        "lang_code": "kbt",
+                        "resource_type": "reg",
+                        "resource_code": "2co",
+                    },
+                    {
+                        "lang_code": "fr",
+                        "resource_type": "ulb",
+                        "resource_code": "2co",
+                    },
+                ],
+            },
+        )
+        # kbt has a malformed asset URL in translations.json so we
+        # expect to fail obtaining it through git cloning.
+        with pytest.raises(Exception):
+            check_finished_document_with_verses_success(response)

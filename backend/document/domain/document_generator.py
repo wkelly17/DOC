@@ -7,6 +7,7 @@ import base64
 import datetime
 import more_itertools
 import os
+import requests
 import smtplib
 import subprocess
 import toolz  # type: ignore
@@ -15,7 +16,9 @@ from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from fastapi import HTTPException, status
 from itertools import tee
+from requests.exceptions import HTTPError
 from typing import Optional, Union
 
 import jinja2
@@ -29,6 +32,8 @@ from document.domain import (
     resource_lookup,
 )
 from document.utils import file_utils, number_utils
+
+# from document.domain import exceptions
 from more_itertools import partition
 from pydantic import BaseModel
 
@@ -295,7 +300,7 @@ def assemble_content(
 ) -> str:
     """
     Assemble the content from all requested resources according to the
-    assembly_strategy requested and write out to a single HTML file
+    assembly_strategy requested and write out to an HTML file
     for subsequent use.
     """
     # Get the assembly strategy function appropriate given the users
@@ -303,7 +308,7 @@ def assemble_content(
     assembly_strategy = assembly_strategies.assembly_strategy_factory(
         document_request.assembly_strategy_kind
     )
-    # Now, actually do the actual assembly given the additional
+    # Now, actually do the assembly given the additional
     # information of the document_request.assembly_layout_kind and
     # return it as a string.
     content = "".join(
@@ -314,9 +319,10 @@ def assemble_content(
         for book_content_unit in book_content_units
         if isinstance(book_content_unit, model.TWBook)
     )
-    # Don't allow duplicate languages for tw words. We'd use list(set()) or
-    # toolz.itertoolz.unique, but model.TWWord is not hashable and therefore
-    # cannot be put in a set.
+    # Don't allow duplicate tw book content units.
+    # NOTE We'd use list(set()) or toolz.itertoolz.unique, but model.TWWord
+    # is not hashable and therefore cannot be put in a set, hence the ugly
+    # imperitave code here.
     unique_tw_book_content_units = []
     for tw_book_content_unit in tw_book_content_units:
         if tw_book_content_unit not in unique_tw_book_content_units:
@@ -464,7 +470,7 @@ def convert_html_to_pdf(
     """Generate PDF from HTML."""
     assert os.path.exists(html_filepath)
     # Create generated on string for use in PDF document header.
-    wkhtmltopdf_options["header-center"] = "generated on {}".format(
+    wkhtmltopdf_options["footer-right"] = "generated on {}".format(
         datetime.datetime.now().strftime("%b %d, %Y at %H:%M:%S")
     )
     pdfkit.from_file(
@@ -490,8 +496,6 @@ def convert_html_to_epub(
     subprocess.call(pandoc_command, shell=True)
 
 
-# FIXME Use cover page...or should we? Maybe we should integrate what
-# used to be presented on cover page inside the HTML document instead.
 def convert_html_to_docx(
     html_filepath: str,
     docx_filepath: str,
@@ -693,6 +697,60 @@ def copy_docx_to_docker_output_dir(
         subprocess.call(copy_command, shell=True)
 
 
+def verify_resource_assets_available(
+    resource_lookup_dto: model.ResourceLookupDto,
+    # NOTE For some reason mypy and Python runtime don't believe
+    # settings.NOT_FOUND_MESSAGE_FMT_STR is defined? So I am
+    # hardcoding the format string instead as a default argument value
+    # from the config module.
+    # failure_message: str = settings.NOT_FOUND_MESSAGE_FMT_STR,
+    failure_message: str = "Book {} and resource type {} for language {} is not available.",
+) -> bool:
+    """
+    We've got a non-None URL, but now let's check that the URL
+    actually exists in the cloud because this URL points to assets
+    associated with the resource that we need to build our document.
+    If it doesn't response ok to an HTTP GET request then raise an
+    InvalidDocumentRequestException to notify the front end there was a
+    problem and otherwise return true if the URL returned an ok reponse.
+    """
+    if resource_lookup_dto.url:
+        try:
+            response = requests.get(resource_lookup_dto.url)
+            response.raise_for_status()
+        except HTTPError as http_err:
+            logger.debug(http_err)
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=failure_message.format(
+                    resource_lookup_dto.resource_code,
+                    resource_lookup_dto.resource_type_name,
+                    resource_lookup_dto.lang_name,
+                ),
+            )
+        except Exception as err:
+            logger.debug(f"Other error occurred: {err}")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=failure_message.format(
+                    resource_lookup_dto.resource_code,
+                    resource_lookup_dto.resource_type,
+                    resource_lookup_dto.lang_name,
+                ),
+            )
+        else:
+            return True
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=failure_message.format(
+                resource_lookup_dto.resource_code,
+                resource_lookup_dto.resource_type,
+                resource_lookup_dto.lang_name,
+            ),
+        )
+
+
 def main(document_request: model.DocumentRequest) -> str:
     """
     This is the main entry point for this module.
@@ -709,7 +767,8 @@ def main(document_request: model.DocumentRequest) -> str:
         "document_request: %s",
         document_request,
     )
-    # Generate the document request key that identifies this and identical document requests.
+    # Generate the document request key that identifies this and
+    # identical document requests.
     document_request_key_ = document_request_key(
         document_request.resource_requests,
         document_request.assembly_strategy_kind,
@@ -735,18 +794,13 @@ def main(document_request: model.DocumentRequest) -> str:
 
         # Determine which resources were actually found and which were
         # not.
-        (
-            unfound_resource_lookup_dtos_iter,
-            found_resource_lookup_dtos_iter,
-        ) = partition(
+        _, found_resource_lookup_dtos_iter = partition(
             lambda resource_lookup_dto: resource_lookup_dto.url is not None,
+            # and verify_resource_assets_available(resource_lookup_dto),
             resource_lookup_dtos,
         )
 
-        # Save results for more than one use (generators exhaust on
-        # first use).
         found_resource_lookup_dtos = list(found_resource_lookup_dtos_iter)
-        unfound_resource_lookup_dtos = list(unfound_resource_lookup_dtos_iter)
 
         # For each found resource lookup DTO, now actually provision
         # to disk the assets associated with the resources and return

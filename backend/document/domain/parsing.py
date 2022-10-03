@@ -181,13 +181,16 @@ def asset_content(
             output_dir,
             resource_filename_,
         )
-        # Read the HTML file into _content.
         html_file = os.path.join(output_dir, "{}.html".format(resource_filename_))
         assert os.path.exists(html_file)
         html_content = file_utils.read_file(html_file)
     return html_content
 
 
+# NOTE Avoiding use of polymorphism via functools function dispatch because
+# mypyc doesn't like use of decorators for the most part and won't
+# compile the code where they are used unless the decorators are typed
+# correctly, i.e., strictly.
 def book_content(
     resource_lookup_dto: model.ResourceLookupDto,
     resource_dir: str,

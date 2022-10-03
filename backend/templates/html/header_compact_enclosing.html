@@ -42,13 +42,13 @@
           content: "\A";
           white-space: pre;
       }
-      h5:after {
-          content: "\A";
-          white-space: pre;
-      }
       h5 {
         font-size: 9pt;
         display: inline;
+      }
+      h5:after {
+          content: "\A";
+          white-space: pre;
       }
       p {
         display: inline;
@@ -73,6 +73,13 @@
       }
       li {
         display: inline;
+      }
+      .chunk-break {
+        display: inline;
+      }
+      .chunk-break:after {
+        content: "\A";
+        white-space: pre;
       }
       .indent-0 {
           margin-left: 0em;

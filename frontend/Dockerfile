@@ -1,5 +1,5 @@
 # Stage 0: build the frontend.
-FROM node:18.4.0-bullseye-slim as development-stage
+FROM node:18.9.0-bullseye-slim as development-stage
 
 RUN apt-get update && apt-get install -y \
     python3  \

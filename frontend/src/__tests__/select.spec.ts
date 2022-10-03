@@ -1,4 +1,5 @@
 import { get } from 'svelte/store'
+import { expect, test } from 'vitest'
 import { render, fireEvent } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'

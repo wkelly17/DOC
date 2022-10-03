@@ -7,7 +7,7 @@ from typing import Any
 
 from document.config import settings
 from document.domain import document_generator, exceptions, model, resource_lookup
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Query, Request, status, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
@@ -39,6 +39,7 @@ app.add_middleware(
 def invalid_document_request_exception_handler(
     request: Request, exc: exceptions.InvalidDocumentRequestException
 ) -> JSONResponse:
+    logger.error(f"{request}: {exc}")
     return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
         content={
@@ -75,22 +76,24 @@ def document_endpoint(
     # Top level exception handler
     try:
         document_request_key = document_generator.main(document_request)
-    except Exception:
+    except HTTPException as exc:
+        raise exc
+    except Exception:  # catch any exceptions we weren't expecting, handlers handle the ones we do expect.
         logger.exception(
             "There was an error while attempting to fulfill the document "
             "request. Likely reason is the following exception:"
         )
-        # NOTE It might not always be the case that an exception here
-        # is as a result of an invalid document request, but it often
-        # is.
-        raise exceptions.InvalidDocumentRequestException(message=failure_message)
+        # Handle exceptions that aren't handled otherwise
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=failure_message
+        )
     else:
         details = model.FinishedDocumentDetails(
             finished_document_request_key=document_request_key,
             message=success_message,
         )
         logger.debug("FinishedDocumentDetails: %s", details)
-    return details
+        return details
 
 
 @app.get("/epub/{document_request_key}")
@@ -161,8 +164,10 @@ def lang_codes() -> Iterable[str]:
 
 
 @app.get("/language_codes_and_names")
-def lang_codes_and_names() -> list[tuple[str, str]]:
-    """Return list of all available language code, name tuples."""
+def lang_codes_and_names() -> list[str]:
+    """
+    Return list of all available language code, name tuples.
+    """
     return resource_lookup.lang_codes_and_names()
 
 
@@ -184,8 +189,49 @@ def resource_types_and_names_for_lang(lang_code: str) -> Sequence[Any]:
     return resource_lookup.resource_types_and_names_for_lang(lang_code)
 
 
+@app.get("/shared_resource_codes/{lang0_code}/{lang1_code}")
+def shared_resource_codes(lang0_code: str, lang1_code: str) -> Sequence[Any]:
+    """
+    Return list of available resource codes common to both lang0_code and lang1_code.
+    """
+    return resource_lookup.shared_resource_codes(lang0_code, lang1_code)
+
+
+@app.get("/resources_codes_and_types_for_lang/{lang_code}")
+def resource_codes_and_types_for_lang(
+    lang_code: str,
+) -> dict[str, list[tuple[str, str, str]]]:
+    """
+    Return dictionary in which keys are resource types for the
+    language that have available resource codes for lang_code.
+    """
+    return resource_lookup.resource_codes_and_types_for_lang(lang_code)
+
+
+# @app.get("/shared_resource_codes_and_types/{lang0_code}/{lang1_code}")
+# def shared_resource_codes_and_types(
+#     lang0_code: str, lang1_code: str
+# ) -> dict[str, list[tuple[str, str, str]]]:
+#     """
+#     Return list of available resource codes and types where resource code are common to both lang0_code and lang1_code.
+#     """
+#     return resource_lookup.shared_resource_codes_and_types(lang0_code, lang1_code)
+
+
+@app.get("/resource_types/{lang_code}/")
+def shared_resource_types(
+    lang_code: str,
+    resource_codes: Sequence[str] = Query(default=None),
+) -> Iterable[tuple[str, str]]:
+    """
+    Return the list of available resource types tuples for lang_code
+    with resource_codes.
+    """
+    return resource_lookup.shared_resource_types(lang_code, resource_codes)
+
+
 @app.get("/resource_codes_for_lang/{lang_code}")
-def resource_codes_for_lang(lang_code: str) -> Sequence[Sequence[Any]]:
+def resource_codes_for_lang(lang_code: str) -> Sequence[tuple[str, str]]:
     """Return list of all available resource codes."""
     return resource_lookup.resource_codes_for_lang(lang_code)
 
