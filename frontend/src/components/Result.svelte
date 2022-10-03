@@ -95,7 +95,7 @@
           <DownloadButton buttonText="Download Docx" url={docxDownloadUrl} />
         </div>
       {/if}
-      <div class="m-auto text-center mt-8">
+      <div class="m-auto text-center mt-4">
         <button
           class="btn gray-gradient hover:gray-gradient-hover w-5/6 rounded capitalize"
           on:click={() => viewFromUrl(htmlDownloadUrl)}
