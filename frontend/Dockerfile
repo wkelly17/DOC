@@ -10,7 +10,6 @@ WORKDIR /app
 
 RUN mkdir dist # Output directory for color theme
 COPY ./ /app/
-RUN npx smui-theme template src/theme
 RUN npm install
 
 # Comment out the next line to disable tests
@@ -28,7 +27,15 @@ RUN npm run build
 
 # Stage 1: Let nginx serve the built front-end in production.
 FROM nginx:1.23
+
+RUN apt-get update && apt-get install -y \
+    moreutils # For sponge
+
 COPY --from=development-stage /app/nginx.conf /etc/nginx/conf.d/default.conf
 COPY ./nginx-backend-not-found.conf /etc/nginx/extra-conf.d/backend-not-found.conf
 COPY --from=development-stage /app/dist/ /usr/share/nginx/html
+COPY --from=development-stage /app/envvars.js /usr/share/nginx/html/assets/
 EXPOSE 80
+
+# When the container starts, replace the envvars.js with values from environment variables
+CMD ["/bin/sh",  "-c",  "envsubst < /usr/share/nginx/html/assets/envvars.js | sponge /usr/share/nginx/html/assets/envvars.js && exec nginx -g 'daemon off;'"]

@@ -72,3 +72,10 @@ export function resetStores(storeGroup: StoreGroup) {
     errorStore.set(null)
   }
 }
+
+export function getApiRootUrl(): string {
+  // @ts-ignore
+  console.log(`BACKEND_API_URL: ${window.env.BACKEND_API_URL}`)
+  // @ts-ignore
+  return <string>window.env.BACKEND_API_URL
+}

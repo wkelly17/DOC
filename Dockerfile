@@ -62,12 +62,12 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 COPY ./backend/requirements.txt .
 COPY ./backend/requirements-prod.txt .
+RUN pip install --no-cache-dir --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install --no-cache-dir -r requirements-prod.txt
 
 COPY ./backend/ /backend/
 COPY ./tests/ /tests/
-# COPY ./language_codes.json /tests/
 
 # Inside the Python virtual env: check types, install any missing mypy stub
 # types packages, and compile most modules into C using mypyc

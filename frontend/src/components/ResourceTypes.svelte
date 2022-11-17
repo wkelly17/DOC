@@ -16,12 +16,12 @@
   import { resetValuesStore } from '../stores/NotificationStore'
   import LeftArrow from './LeftArrow.svelte'
   import ProgressIndicator from './ProgressIndicator.svelte'
-  import { resetStores } from '../lib/utils'
+  import { getApiRootUrl, resetStores } from '../lib/utils'
 
   async function getResourceTypesAndNames(
     langCode: string,
     resourceCodeAndNames: Array<[string, string]>,
-    apiRootUrl = <string>import.meta.env.VITE_BACKEND_API_URL,
+    apiRootUrl = getApiRootUrl(),
     resourceTypesUrl = <string>import.meta.env.VITE_RESOURCE_TYPES_URL
   ): Promise<Array<[string, string]>> {
     const url_ = `${apiRootUrl}${resourceTypesUrl}${langCode}/`

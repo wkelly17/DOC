@@ -14,12 +14,13 @@
   import { bookCountStore, otBookStore } from '../stores/BooksStore'
   import { resourceTypesCountStore } from '../stores/ResourceTypesStore'
   import { resetValuesStore } from '../stores/NotificationStore'
-  import { resetStores } from '../lib/utils'
+  import { getApiRootUrl, resetStores } from '../lib/utils'
 
   async function getLangCodesNames(
-    apiRootUrl: string = <string>import.meta.env.VITE_BACKEND_API_URL,
+    apiRootUrl: string = getApiRootUrl(),
     langCodesAndNamesUrl: string = <string>import.meta.env.VITE_LANG_CODES_NAMES_URL
   ): Promise<Array<string>> {
+    console.log(`apiRootUrl: ${getApiRootUrl}`)
     const response = await fetch(`${apiRootUrl}${langCodesAndNamesUrl}`)
     const langCodesAndNames: Array<string> = await response.json()
     if (!response.ok) {
@@ -55,7 +56,7 @@
 
   async function getResourceCodesAndTypes(
     langCode: string,
-    apiRootUrl: string = <string>import.meta.env.VITE_BACKEND_API_URL,
+    apiRootUrl: string = getApiRootUrl(),
     resourceCodesAndTypesForLangUrl: string = <string>(
       import.meta.env.VITE_RESOURCE_CODES_AND_TYPES_URL
     )
@@ -77,7 +78,7 @@
   async function getSharedResourceCodesAndTypes(
     lang0Code: string,
     lang1Code: string,
-    apiRootUrl: string = <string>import.meta.env.VITE_BACKEND_API_URL,
+    apiRootUrl: string = getApiRootUrl(),
     sharedResourceCodesAndTypesUrl: string = <string>(
       import.meta.env.VITE_SHARED_RESOURCE_CODES_AND_TYPES_URL
     )

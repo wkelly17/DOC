@@ -6,5 +6,8 @@ export default defineConfig({
   plugins: [svelte()],
   server: {
     host: '0.0.0.0'
+  },
+  build: {
+    emptyOutDir: true // deletes the dist folder before building
   }
 })

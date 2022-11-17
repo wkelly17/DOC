@@ -77,7 +77,7 @@
       >
     </div>
   </li>
-  {#if $assemblyStrategyKindStore === languageBookOrderStrategy.id}
+  {#if $assemblyStrategyKindStore === languageBookOrderStrategy.id && !$layoutForPrintStore}
     <li class="bg-white p-2">
       <div class="flex justify-between">
         <span class="text-primary-content">Generate Epub</span>

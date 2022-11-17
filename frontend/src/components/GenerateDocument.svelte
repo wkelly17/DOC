@@ -21,9 +21,9 @@
     documentRequestKeyStore
   } from '../stores/SettingsStore'
   import { documentReadyStore, errorStore } from '../stores/NotificationStore'
-  import { resetStores } from '../lib/utils'
+  import { getApiRootUrl, resetStores } from '../lib/utils'
 
-  let apiRootUrl: string = <string>import.meta.env.VITE_BACKEND_API_URL
+  let apiRootUrl = getApiRootUrl()
 
   function reset() {
     resetStores('languages')

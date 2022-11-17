@@ -9,18 +9,15 @@ flake8-bandit
 flake8-eradicate
 flake8-fixme
 flake8-mypy
-flake8-todo
 flake8-type-annotations
 isort
 mypy
-pre-commit
 pygount
 pylint
-pyls-mypy
+pylsp-mypy
 pytest
 pytest-datafiles
 pytest-icdiff
 pytest-xdist[psutil]
 radon
 vulture
-# wemake-python-styleguide

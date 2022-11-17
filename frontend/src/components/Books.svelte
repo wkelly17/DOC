@@ -13,12 +13,12 @@
   import ProgressIndicator from './ProgressIndicator.svelte'
   import { resetValuesStore } from '../stores/NotificationStore'
   import LeftArrow from './LeftArrow.svelte'
-  import { resetStores } from '../lib/utils'
+  import { getApiRootUrl, resetStores } from '../lib/utils'
 
   async function getSharedResourceCodesAndNames(
     lang0Code: string,
     lang1Code: string,
-    apiRootUrl = <string>import.meta.env.VITE_BACKEND_API_URL,
+    apiRootUrl = getApiRootUrl(),
     sharedResourceCodesUrl = <string>import.meta.env.VITE_SHARED_RESOURCE_CODES_URL
   ): Promise<Array<[string, string]>> {
     const response = await fetch(
@@ -31,7 +31,7 @@
 
   async function getResourceCodesAndNames(
     langCode: string,
-    apiRootUrl = <string>import.meta.env.VITE_BACKEND_API_URL,
+    apiRootUrl = getApiRootUrl(),
     resourceCodesUrl = <string>import.meta.env.VITE_RESOURCE_CODES_URL
   ): Promise<Array<[string, string]>> {
     const response = await fetch(`${apiRootUrl}${resourceCodesUrl}${langCode}`)

@@ -8,8 +8,12 @@ ifeq ("$(VIRTUAL_ENV)","")
 	exit 1
 endif
 
+.PHONY: pipupgrade
+pipupgrade: checkvenv
+	pip install --upgrade pip
+
 .PHONY: pyupgrade
-pyupgrade: checkvenv
+pyupgrade: checkvenv pipupgrade
 # checks if pip-tools is installed
 ifeq ("$(wildcard .venv/bin/pip-compile)","")
 	@echo "Installing Pip-tools..."
@@ -36,60 +40,19 @@ build-no-cache: checkvenv
 .PHONY: up
 up: checkvenv
 	export IMAGE_TAG=local && \
-	docker-compose up -d
+	BACKEND_API_URL=http://localhost:5005 docker-compose up
 
-# This runs just the backend
-.PHONY: server
-server: up
-	docker-compose run api
+.PHONY: up-as-daemon
+up-as-daemon: checkvenv
+	export IMAGE_TAG=local && \
+	BACKEND_API_URL=http://localhost:5005 docker-compose up -d
 
-# This runs both the backend and the frontend
-.PHONY: frontend-server
-frontend-server: up
-	docker-compose run frontend
 
-# This builds the frontend and then runs both the backend and the
-# frontend. This is the entryoint for a non-technical user who just
+# This is the entryoint for a non-technical user who just
 # wants to type one command and have it work.
 .PHONY: build-and-run
 build-and-run: build up
-	docker-compose run frontend
 
-
-.PHONY: test
-test: up
-	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/unit /tests/integration /tests/e2e
-
-
-.PHONY: clean-local-docker-output-dir
-clean-local-docker-output-dir:
-	find docker_document_output/ -type f -name "*.pdf" -exec rm -- {} +
-	find docker_document_output/ -type f -name "*.epub" -exec rm -- {} +
-	find docker_document_output/ -type f -name "*.docx" -exec rm -- {} +
-
-.PHONY: unit-tests
-unit-tests: up
-	docker-compose run --rm --no-deps --entrypoint=pytest api -n auto /tests/unit
-
-.PHONY: e2e-tests
-e2e-tests: up clean-local-docker-output-dir
-	# NOTE parallel pytests via pytest_xdist fail for e2e tests in Docker but
-	# work for unit tests in Docker and work everywhere outside of
-	# Docker. So we utilize them everywhere we can pending a fix.
-	# docker-compose run --rm --no-deps --entrypoint=pytest api -n auto /tests/e2e
-	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/e2e
-
-.PHONY: smoke-test-with-translation-words
-smoke-test-with-translation-words: up clean-local-docker-output-dir
-	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/e2e -k test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_pt_br_ulb_col_pt_br_tn_col_pt_br_tq_col_pt_br_tw_col_book_language_order_2c_sl_hr
-
-.PHONY: smoke-test-with-translation-words2
-smoke-test-with-translation-words2: up clean-local-docker-output-dir
-	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/e2e -k test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_es_419_ulb_col_es_419_tn_col_es_419_tq_col_es_419_tw_col_book_language_order_2c_sl_hr
-
-.PHONY: smoke-test-with-translation-words3
-smoke-test-with-translation-words3: up clean-local-docker-output-dir
-	docker-compose run --rm --no-deps --entrypoint=pytest api /tests/e2e -k test_pt_br_ulb_tn_en_ulb_wa_tn_wa_luk_language_book_order_2c_sl_hr
 
 .PHONY: down
 down:
@@ -99,6 +62,42 @@ down:
 stop-and-remove:
 	docker ps -q | xargs docker stop
 	docker ps -a -q -f status=exited | xargs docker rm
+
+
+.PHONY: test
+test: up-as-daemon
+	BACKEND_API_URL="http://localhost:5005" docker-compose run --rm --no-deps --entrypoint=pytest api /tests/unit /tests/integration /tests/e2e
+
+
+.PHONY: clean-local-docker-output-dir
+clean-local-docker-output-dir:
+	find docker_document_output/ -type f -name "*.pdf" -exec rm -- {} +
+	find docker_document_output/ -type f -name "*.epub" -exec rm -- {} +
+	find docker_document_output/ -type f -name "*.docx" -exec rm -- {} +
+
+.PHONY: unit-tests
+unit-tests: up-as-daemon
+	BACKEND_API_URL="http://localhost:5005" docker-compose run --rm --no-deps --entrypoint=pytest api -n auto /tests/unit
+
+.PHONY: e2e-tests
+e2e-tests: up-as-daemon clean-local-docker-output-dir
+	# NOTE parallel pytests via pytest_xdist fail for e2e tests in Docker but
+	# work for unit tests in Docker and work everywhere outside of
+	# Docker. So we utilize them everywhere we can pending a fix.
+	# docker-compose run --rm --no-deps --entrypoint=pytest api -n auto /tests/e2e
+	BACKEND_API_URL="http://localhost:5005" docker-compose run --rm --no-deps --entrypoint=pytest api /tests/e2e
+
+.PHONY: smoke-test-with-translation-words
+smoke-test-with-translation-words: up-as-daemon clean-local-docker-output-dir
+	BACKEND_API_URL="http://localhost:5005" docker-compose run --rm --no-deps --entrypoint=pytest api /tests/e2e -k test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_pt_br_ulb_col_pt_br_tn_col_pt_br_tq_col_pt_br_tw_col_book_language_order_2c_sl_hr
+
+.PHONY: smoke-test-with-translation-words2
+smoke-test-with-translation-words2: up-as-daemon clean-local-docker-output-dir
+	BACKEND_API_URL="http://localhost:5005" docker-compose run --rm --no-deps --entrypoint=pytest api /tests/e2e -k test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_es_419_ulb_col_es_419_tn_col_es_419_tq_col_es_419_tw_col_book_language_order_2c_sl_hr
+
+.PHONY: smoke-test-with-translation-words3
+smoke-test-with-translation-words3: up-as-daemon clean-local-docker-output-dir
+	BACKEND_API_URL="http://localhost:5005" docker-compose run --rm --no-deps --entrypoint=pytest api /tests/e2e -k test_stream_ar_nav_jud_pdf
 
 .PHONY: mypy
 mypy: checkvenv
@@ -150,7 +149,7 @@ all-plus-linting: mypy down build up test
 # Run a local Uvicorn server outside Docker
 .PHONY: local-server
 local-server: checkvenv
-	IN_CONTAINER=false uvicorn document.entrypoints.app:app --reload --host "0.0.0.0" --port "5005" --app-dir "./backend/"
+	BACKEND_API_URL="http://localhost:5005" IN_CONTAINER=false uvicorn document.entrypoints.app:app --reload --host "0.0.0.0" --port "5005" --app-dir "./backend/"
 
 # Run a local Gunicorn server outside Docker
 .PHONY: local-gunicorn-server
@@ -304,7 +303,7 @@ local-smoke-test-with-translation-words22: local-prepare-for-tests
 
 .PHONY: local-smoke-test-with-translation-words23
 local-smoke-test-with-translation-words23: local-prepare-for-tests
-	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=false FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -k test_es_419_ulb_nam_es_419_reg_nam_es_419_tn_nam_es_419_tw_nam_sw_ulb_lam_sw_reg_lam_sw_tn_lam_sw_tw_lam_book_language_order_sl_sr
+	IN_CONTAINER=false ENABLE_ASSET_CACHING=true SEND_EMAIL=false FROM_EMAIL="foo@example.com" TO_EMAIL="foo@example.com" pytest tests/e2e/ -k test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_fr_f10_col_fr_tn_col_fr_tq_col_fr_tw_col_book_language_order_2c_sl_sr
 
 
 .PHONY: local-smoke-test-with-translation-words24

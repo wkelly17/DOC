@@ -105,6 +105,7 @@ def serve_epub_document(
     return FileResponse(
         path=path,
         filename=pathlib.Path(path).name,
+        media_type="application/epub+zip",
         headers={"Content-Disposition": "attachment"},
     )
 
@@ -118,6 +119,7 @@ def serve_pdf_document(
     return FileResponse(
         path=path,
         filename=pathlib.Path(path).name,
+        media_type="application/pdf",
         headers={"Content-Disposition": "attachment"},
     )
 
@@ -131,6 +133,7 @@ def serve_docx_document(
     return FileResponse(
         path=path,
         filename=pathlib.Path(path).name,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         headers={"Content-Disposition": "attachment"},
     )
 

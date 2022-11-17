@@ -89,7 +89,7 @@ make e2e-tests
 *** Run server so that you can test in browser
 #+begin_src shell
 make build
-make frontend-server
+make up
 #+end_src
 *** Run demo outside Docker container
 **** Create and activate the virtual environment

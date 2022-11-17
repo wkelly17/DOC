@@ -1,10 +1,10 @@
 Markdown
 PyYAML
 aiofiles
-bs4
+beautifulsoup4
 fastapi
 GitPython
-git+https://github.com/linearcombination/USFM-Tools.git@develop#egg=USFM-Tools
+git+https://github.com/linearcombination/USFM-Tools.git@0.0.8#egg=USFM-Tools
 gunicorn
 jinja2
 jsonpath-rw
@@ -12,7 +12,6 @@ jsonpath-rw-ext
 more-itertools
 pdfkit
 pydantic[email,dotenv]
-pyparsing
 pytest-repeat
 pytest-xdist[psutil]
 requests
