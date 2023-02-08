@@ -5,14 +5,17 @@ pydantic.BaseModel as FastAPI can use these classes to do automatic
 validation and JSON serialization.
 """
 
-from dataclasses import dataclass
 from enum import Enum
-from collections.abc import Sequence
-from typing import Optional, Union, final
+from typing import Any, Callable, NamedTuple, Optional, Sequence, Union, final
 
-from pydantic import AnyUrl, BaseModel, EmailStr
+import orjson
 
-# These Type Aliases give us more self-documenting code, but of course
+from document.utils.number_utils import is_even
+from toolz import itertoolz  # type: ignore
+from more_itertools import all_equal
+from pydantic import BaseModel, EmailStr, root_validator
+
+# These type aliases give us more self-documenting code, but of course
 # aren't strictly necessary.
 HtmlContent = str
 MarkdownContent = str
@@ -20,27 +23,11 @@ VerseRef = str
 ChapterNum = int
 
 
-# https://blog.meadsteve.dev/programming/2020/02/10/types-at-the-edges-in-python/
-# https://pydantic-docs.helpmanual.io/usage/models/
-@final
-class ResourceRequest(BaseModel):
-    """
-    This class is used to encode a request for a resource, e.g.,
-    language 'English', en, resource type 'ulb', resource code, i.e.,
-    book, 'gen'. A document request composes n of these resource
-    request instances. Because this class inherits from pydantic's
-    BaseModel we get validation and JSON serialization for free.
-    """
-
-    lang_code: str
-    resource_type: str
-    resource_code: str
+def orjson_dumps(v: Any, *, default: Optional[Callable[[Any], Any]]) -> str:
+    # orjson.dumps returns bytes, to match standard json.dumps we need to decode
+    return orjson.dumps(v, default=default).decode()
 
 
-# See
-# https://pydantic-docs.helpmanual.io/usage/types/#enums-and-choices
-# for where this pattern of combining Enum and BaseModel comes from in
-# pydantic.
 @final
 class AssemblyStrategyEnum(str, Enum):
     """
@@ -66,48 +53,33 @@ class AssemblyStrategyEnum(str, Enum):
     LANGUAGE_BOOK_ORDER = "lbo"
     BOOK_LANGUAGE_ORDER = "blo"
 
+    class Config:
+        json_loads = orjson.loads
+        json_dumps = orjson_dumps
+
 
 @final
 class AssemblyLayoutEnum(str, Enum):
     """
-    A enum used by the assembly_strategies module to know how
+    An enum used by the assembly_strategies module to know how
     to layout the content.
 
     We can have N such layouts and each can be completely
     arbitrary, simply based on the desires of content designers.
-
-    Said another way: the enum is just a name that is arbitrarily
-    chosen to be compact but adequate to express the type of layout
-    that is to be accomplished in the HTML document (prior to conversion
-    to PDF).
 
     Layouts:
 
     * ONE_COLUMN
       One column verse and associated content interleave
 
-    * TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT
-      Two columns, with scripture on the left and its associated helps
-      on the right. This layout causes excessive whitespace on the
-      left side because helps are much longer than verses typically.
-
-    * TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT
-      Two columns, with scripture on the left and a different
-      scripture on the right. Obviously only applicable when at least
-      two languages have been chosen. This layout has less whitespace
-      than TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT because verses on
-      the left are typically about the same size as verses on the right
-      and helps are shown vertically spanning the whole horizontal space
-      after each verse.
-
     * ONE_COLUMN_COMPACT
       This layout minimizes whitespace in a one column layout so as to
       be appropriate for printing to paper.
 
-    * TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT
-      This layout minimizes whitespace by using
-      TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT layout but with a different
-      CSS styling that results in less whitespace.
+    * TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT
+      Two columns, with scripture on the left and a different
+      scripture on the right. Obviously only applicable when at least
+      two languages have been chosen.
 
     * TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT
       This layout minimizes whitespace by using
@@ -117,26 +89,78 @@ class AssemblyLayoutEnum(str, Enum):
 
     ONE_COLUMN = "1c"
     ONE_COLUMN_COMPACT = "1c_c"
-    TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT = "2c_sl_hr"
     # fmt: off
-    TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT_COMPACT = "2c_sl_hr_c"
-    # NOTE The next two layouts would only make sense
+    # NOTE The next two layouts only make sense
     # with an AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER assembly
-    # strategy when more than one language is chosen for the same
+    # strategy and when more than one language is chosen for the same
     # book.
     TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT = "2c_sl_sr"
     TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT = "2c_sl_sr_c"
     # fmt: on
 
+    class Config:
+        json_loads = orjson.loads
+        json_dumps = orjson_dumps
+
+
+@final
+class ChunkSizeEnum(str, Enum):
+    """
+    The length of content to burst out at a time when interleaving.
+    E.g., if VERSE is chosen as the chunk size then the interleaving will
+    do so in verse chunks (one verse of scripture, then one verse of helps,
+    etc.). This exists because translators want to be able to choose
+    the chunk size of scripture that should be grouped together for the
+    purpose of translational cohesion.
+
+    * VERSE
+      - This enum value signals to make each chunk of interleaved
+        content be one verse's worth in length.
+    * CHAPTER
+      - This enum value signals to make each chunk of interleaved
+        content be one chapter's worth in length.
+
+    NOTE
+    We could later add others. As an arbitrary example,
+    Perhaps we'd want to chunk by a certain number of verses.
+    """
+
+    VERSE = "verse"
+    CHAPTER = "chapter"
+
+    class Config:
+        json_loads = orjson.loads
+        json_dumps = orjson_dumps
+
+
+# https://blog.meadsteve.dev/programming/2020/02/10/types-at-the-edges-in-python/
+# https://pydantic-docs.helpmanual.io/usage/models/
+@final
+class ResourceRequest(BaseModel):
+    """
+    This class is used to encode a request for a resource, e.g.,
+    language 'French', fr, resource type 'ulb', resource code, i.e.,
+    book, 'gen'. A document request composes N of these resource
+    request instances. Because this class inherits from pydantic's
+    BaseModel we get validation and JSON serialization for free.
+    """
+
+    lang_code: str
+    resource_type: str
+    resource_code: str
+
+    class Config:
+        json_loads = orjson.loads
+        json_dumps = orjson_dumps
+
 
 @final
 class DocumentRequest(BaseModel):
     """
-    This class is used to send in a document generation request from
-    the front end client. A document request is composed of n resource
-    requests. Because this class inherits from pydantic's BaseModel we
-    get validation, serialization, and special dunder functions for
-    free.
+    This class reifies a document generation request from a client of
+    the API. A document request is composed of N resource requests.
+    Because this class inherits from pydantic's BaseModel we get
+    validation, serialization, and special dunder functions for free.
     """
 
     email_address: Optional[EmailStr]
@@ -157,9 +181,7 @@ class DocumentRequest(BaseModel):
     # The user can choose whether the result should be formatted to
     # print. When the user selects yes/True to format for print
     # then we'll choose a compact layout that makes sense for their
-    # document request. This happens in
-    # document_generator.select_assembly_layout_kind if
-    # assembly_layout_kind is None in the document request.
+    # document request.
     layout_for_print: bool = False
     resource_requests: Sequence[ResourceRequest]
     # Indicate whether PDF should be generated.
@@ -168,6 +190,135 @@ class DocumentRequest(BaseModel):
     generate_epub: bool = False
     # Indicate whether Docx should be generated.
     generate_docx: bool = False
+    # Indicate the chunk size to burst at a time when a document is
+    # being interleaved. Default to chapter.
+    chunk_size: ChunkSizeEnum = ChunkSizeEnum.CHAPTER
+
+    @root_validator
+    def ensure_valid_document_request(cls, values: Any) -> Any:
+        """
+        See ValueError messages below for the rules we are enforcing.
+        """
+        if values.get("layout_for_print") and (
+            values.get("generate_epub") or values.get("generate_docx")
+        ):
+            raise ValueError(
+                "Only PDF (or HTML which is the same as not choosing any output format) is a valid output format option when layout for print is chosen."
+            )
+        # NOTE Commented out because, actually, we allow users to
+        # specify the non-compact assembly layout kinds and we then set them to
+        # the compact version if layout for print
+        # is chosen (and all other requirements are met) to provide a
+        # better UX.
+        # elif values.get("layout_for_print") and not (
+        #     values.get("assembly_layout_kind") == AssemblyLayoutEnum.ONE_COLUMN_COMPACT
+        #     or values.get("assembly_layout_kind")
+        #     == AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT
+        # ):
+        #     raise ValueError(
+        #         "Only one column compact assembly layout kind or two column scripture left, scripture right compact assembly layout kind is suitable when layout for print is chosen."
+        #     )
+
+        from document.config import settings
+
+        usfm_resource_types = [
+            *settings.USFM_RESOURCE_TYPES,
+            *settings.EN_USFM_RESOURCE_TYPES,
+        ]
+
+        # Partition ulb resource requests by language.
+        language_groups = itertoolz.groupby(
+            lambda r: r.lang_code,
+            filter(
+                lambda r: r.resource_type in usfm_resource_types,
+                values.get("resource_requests"),
+            ),
+        )
+        # Get a list of the sorted set of books for each language for later
+        # comparison.
+        sorted_book_set_for_each_language = [
+            sorted({item.resource_code for item in value})
+            for key, value in language_groups.items()
+        ]
+
+        # Get the unique number of languages
+        number_of_usfm_languages = len(
+            set(
+                [
+                    resource_request.lang_code
+                    for resource_request in values.get("resource_requests")
+                    if resource_request.resource_type in usfm_resource_types
+                ]
+            )
+        )
+
+        if (
+            values.get("assembly_layout_kind")
+            == AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT
+            and values.get("assembly_strategy_kind")
+            != AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER
+        ):
+            raise ValueError(
+                "Two column scripture left, scripture right layout is only compatible with book language order assembly strategy."
+            )
+        elif (
+            values.get("assembly_layout_kind")
+            == AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT
+            and values.get("assembly_strategy_kind")
+            == AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER
+            # Because book content for different languages will be side by side for
+            # the scripture left scripture right layout, we make sure there are a non-zero
+            # even number of languages so that we can display them left and right in
+            # pairs.
+            and not (number_of_usfm_languages > 1 and is_even(number_of_usfm_languages))
+        ):
+            raise ValueError(
+                "Two column scripture left, scripture right layout requires a non-zero even number of languages. For an uneven number of languages you'll want to use the one column layout kind."
+            )
+        elif (
+            values.get("assembly_layout_kind")
+            == AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT
+            and values.get("assembly_strategy_kind")
+            == AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER
+            # Because book content for different languages will be side by side for
+            # the scripture left scripture right layout, we make sure there are a non-zero
+            # even number of languages so that we can display them left and right in
+            # pairs.
+            and number_of_usfm_languages > 1
+            and is_even(number_of_usfm_languages)
+            # Each language must have the same set of books in order to
+            # use the scripture left scripture right layout strategy. As an example,
+            # you wouldn't want to allow the sl-sr layout if the document request
+            # asked for swahili ulb for lamentations and spanish ulb for nahum -
+            # the set of books in each language are not the same and so do not make
+            # sense to be displayed side by side.
+            and not all_equal(sorted_book_set_for_each_language)
+        ):
+            raise ValueError(
+                "Two column scripture left, scripture right layout requires the same books for each language chosen since they are displayed side by side. If you want a different set of books for each language you'll instead need to use the one column layout."
+            )
+
+        return values
+
+    class Config:
+        json_loads = orjson.loads
+        json_dumps = orjson_dumps
+
+
+@final
+class FinishedDocumentDetails(BaseModel):
+    """
+    Pydantic model that we use as a return value to send back via
+    FastAPI to the client. For now it just contains the finished
+    document filepath on disk.
+    """
+
+    finished_document_request_key: Optional[str]
+    message: str
+
+    class Config:
+        json_loads = orjson.loads
+        json_dumps = orjson_dumps
 
 
 @final
@@ -185,10 +336,10 @@ class AssetSourceEnum(str, Enum):
 
 
 @final
-class ResourceLookupDto(BaseModel):
+class ResourceLookupDto(NamedTuple):
     """
-    'Data transfer object' that we use to send lookup related info to
-    the resource.
+    'Data transfer object' that we use to send resource lookup related
+    info around in the system.
     """
 
     lang_code: str
@@ -196,25 +347,13 @@ class ResourceLookupDto(BaseModel):
     resource_type: str
     resource_type_name: str
     resource_code: str
-    url: Optional[AnyUrl]
+    url: Optional[str]
     source: AssetSourceEnum
     jsonpath: Optional[str]
 
 
 @final
-class FinishedDocumentDetails(BaseModel):
-    """
-    Pydantic model that we use as a return value to send back via
-    FastAPI to the client. For now it just contains the finished
-    document filepath on disk.
-    """
-
-    finished_document_request_key: Optional[str]
-    message: str
-
-
-@final
-class TNChapter(BaseModel):
+class TNChapter(NamedTuple):
     """
     A class to hold a chapter's intro translation notes and a mapping
     of its verse references to translation notes HTML content.
@@ -225,7 +364,7 @@ class TNChapter(BaseModel):
 
 
 @final
-class TNBook(BaseModel):
+class TNBook(NamedTuple):
     """
     A class to hold a book's intro translation notes and a mapping
     of chapter numbers to translation notes HTML content.
@@ -240,7 +379,7 @@ class TNBook(BaseModel):
 
 
 @final
-class TQChapter(BaseModel):
+class TQChapter(NamedTuple):
     """
     A class to hold a mapping of verse references to translation
     questions HTML content.
@@ -250,7 +389,7 @@ class TQChapter(BaseModel):
 
 
 @final
-class TQBook(BaseModel):
+class TQBook(NamedTuple):
     """
     A class to hold a mapping of chapter numbers to translation questions
     HTML content.
@@ -264,7 +403,7 @@ class TQBook(BaseModel):
 
 
 @final
-class TWUse(BaseModel):
+class TWUse(NamedTuple):
     """
     A class to reify a reference to a translation word occurring
     in a USFM verse.
@@ -279,18 +418,19 @@ class TWUse(BaseModel):
 
 
 @final
-class TWNameContentPair(BaseModel):
+class TWNameContentPair:
     """
     A class to hold the localized translation word and its associated
     HTML content (which was converted from its Markdown).
     """
 
-    localized_word: str
-    content: HtmlContent
+    def __init__(self, localized_word: str, content: HtmlContent):
+        self.localized_word = localized_word
+        self.content = content  # content gets mutated after instantiation therefore we can't use a NamedTuple (which is immutable).
 
 
 @final
-class TWBook(BaseModel):
+class TWBook(NamedTuple):
     """
     A class to hold a list of TWNameContentPair instances and a list
     of TWUses instances.
@@ -305,7 +445,7 @@ class TWBook(BaseModel):
 
 
 @final
-class BCChapter(BaseModel):
+class BCChapter(NamedTuple):
     """
     A class to hold a mapping of verse references to bible
     commentary HTML content.
@@ -315,7 +455,7 @@ class BCChapter(BaseModel):
 
 
 @final
-class BCBook(BaseModel):
+class BCBook(NamedTuple):
     """
     A class to hold a mapping of chapter numbers to translation questions
     HTML content.
@@ -330,18 +470,16 @@ class BCBook(BaseModel):
 
 
 @final
-class USFMChapter(BaseModel):
+class USFMChapter(NamedTuple):
     """
     A class to hold the USFM converted to HTML content for a chapter
     in total (including things like 'chunk breaks' and other verse
-    formatting HTML elements), chapter_content, and by verse per
-    chapter (missing the 'chunk breaks' and other inter-verse HTML
-    formatting elements), chapter_verses. The purpose of
-    'chapter_content' is so that you can display a whole chapter at a
-    time should the system wish to do so. The purpose of
-    'chapter_verses' is so that you can display verses in a particular
-    chapter one at a time or a range of them at a time should the
-    system desire to do so.
+    formatting HTML elements), content, and by verse per chapter (missing
+    the 'chunk breaks' and other inter-verse HTML formatting elements),
+    verses. The purpose of 'content' is so that you can display a whole
+    chapter at a time when desired. The purpose of 'verses' is so that you
+    can display verses in a particular chapter one at a time or a range of
+    them at a time.
     """
 
     content: list[HtmlContent]
@@ -350,7 +488,7 @@ class USFMChapter(BaseModel):
 
 
 @final
-class USFMBook(BaseModel):
+class USFMBook(NamedTuple):
     """A class to hold a book's USFMChapter instances."""
 
     lang_code: str
@@ -364,27 +502,6 @@ BookContent = Union[USFMBook, TNBook, TQBook, TWBook, BCBook]
 
 
 @final
-class CoverPayload(BaseModel):
-    """
-    A class to hold a PDF cover sheet, i.e., first page, HTML template
-    variable values.
-    """
-
-    title: str
-    unfound: str
-    unloaded: str
-    revision_date: str
-    images: dict[str, Union[str, bytes]]
-
-
-@final
-class EmailPayload(BaseModel):
-    """A class to hold an HTML email body."""
-
-    document_request_key: str
-
-
-@final
 class CodeNameTypeTriplet(BaseModel):
     """A utility class to provide validation in resource_lookup module."""
 
@@ -392,20 +509,13 @@ class CodeNameTypeTriplet(BaseModel):
     lang_name: str
     resource_types: list[str]
 
-
-@final
-class MarkdownLink(BaseModel):
-    """
-    Reify a markdown link for use in link_transformer_preprocessor
-    module.
-    """
-
-    url: str
-    link_text: str
+    class Config:
+        json_loads = orjson.loads
+        json_dumps = orjson_dumps
 
 
 @final
-class WikiLink(BaseModel):
+class WikiLink(NamedTuple):
     """
     Reify a wiki link for use in link_transformer_preprocessor
     module.
@@ -415,7 +525,10 @@ class WikiLink(BaseModel):
 
 
 @final
-@dataclass
-class Attachment:
+class Attachment(NamedTuple):
+    """
+    An email attachment.
+    """
+
     filepath: str
     mime_type: tuple[str, str]

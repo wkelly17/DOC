@@ -13,7 +13,6 @@
     lang1ResourceTypesStore,
     resourceTypesCountStore
   } from '../stores/ResourceTypesStore'
-  import { resetValuesStore } from '../stores/NotificationStore'
   import LeftArrow from './LeftArrow.svelte'
   import ProgressIndicator from './ProgressIndicator.svelte'
   import { getApiRootUrl, resetStores } from '../lib/utils'
@@ -22,9 +21,11 @@
     langCode: string,
     resourceCodeAndNames: Array<[string, string]>,
     apiRootUrl = getApiRootUrl(),
-    resourceTypesUrl = <string>import.meta.env.VITE_RESOURCE_TYPES_URL
+    sharedResourceTypesUrl = <string>import.meta.env.VITE_SHARED_RESOURCE_TYPES_URL
   ): Promise<Array<[string, string]>> {
-    const url_ = `${apiRootUrl}${resourceTypesUrl}${langCode}/`
+    // Form the URL to ultimately invoke
+    // resource_lookup.shared_resource_types.
+    const url_ = `${apiRootUrl}${sharedResourceTypesUrl}${langCode}/`
     const url = new URL(url_)
     resourceCodeAndNames.map(resourceCodeAndName =>
       url.searchParams.append('resource_codes', resourceCodeAndName[0])
@@ -36,8 +37,6 @@
       console.log(`Error: ${response.statusText}`)
       throw new Error(response.statusText)
     }
-    // const codes = resourceTypesAndNames.map((x: [string, string]) => x[0])
-    // console.log(`codes: ${codes}`)
 
     return resourceTypesAndNames
   }
@@ -152,15 +151,15 @@
   <div class="grid grid-cols-2 gap-4 bg-white">
     {#if $langCountStore > 0}
       <div>
-        {#if !lang0ResourceTypesAndNames}
+        {#if lang0ResourceTypesAndNames && lang0ResourceTypesAndNames.length == 0}
           <ProgressIndicator />
         {:else}
-          <div class="w-96">
+          <div>
             <h3 class="text-primary-content mb-4">
               Resource types available for
               {$lang0NameStore}
             </h3>
-            {#if lang0ResourceTypesAndNames.length > 0}
+            {#if lang0ResourceTypesAndNames && lang0ResourceTypesAndNames.length > 0}
               <div class="flex items-center justify-between">
                 <label for="select-all-lang0-resource-types" class="text-primary-content"
                   >Select all {$lang0NameStore}'s resource types</label
@@ -172,7 +171,6 @@
                   on:change={event => selectAllLang0ResourceTypes(event)}
                 />
               </div>
-            {/if}
             <ul class="pb-4">
               {#each lang0ResourceTypesAndNames as resourceTypeAndName, index}
                 <li class="flex items-center justify-between">
@@ -189,6 +187,7 @@
                 </li>
               {/each}
             </ul>
+            {/if}
           </div>
         {/if}
       </div>
@@ -198,11 +197,11 @@
         {#if !lang1ResourceTypesAndNames}
           <ProgressIndicator />
         {:else}
-          <div class="w-96">
+          <div>
             <h3 class="text-primary-content mb-4">
               Resource types available for {$lang1NameStore}
             </h3>
-            {#if lang1ResourceTypesAndNames.length > 0}
+            {#if lang1ResourceTypesAndNames && lang1ResourceTypesAndNames.length > 0}
               <div class="flex items-center justify-between">
                 <label for="select-all-lang1-resource-types" class="text-primary-content"
                   >Select all
@@ -215,7 +214,6 @@
                   on:change={event => selectAllLang1ResourceTypes(event)}
                 />
               </div>
-            {/if}
             <ul>
               {#each lang1ResourceTypesAndNames as resourceTypeAndName, index}
                 <li class="flex items-center justify-between">
@@ -232,7 +230,8 @@
                 </li>
               {/each}
             </ul>
-          </div>
+          {/if}
+        </div>
         {/if}
       </div>
     {/if}

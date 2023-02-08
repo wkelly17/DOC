@@ -191,7 +191,7 @@
     </button>
   </div>
   <div class="mx-auto w-full px-2 pt-2 mt-2">
-    {#if !langCodesAndNames}
+    {#if langCodesAndNames.length == 0}
       <ProgressIndicator />
     {:else}
       <label id="label-for-filter-langs" for="filter-langs">

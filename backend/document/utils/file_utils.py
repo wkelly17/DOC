@@ -9,7 +9,6 @@ from datetime import datetime, timedelta
 from typing import Any, Optional, Union
 
 import yaml
-
 from document.config import settings
 
 logger = settings.logger(__name__)
@@ -113,6 +112,7 @@ def __file_needs_update(file_path: Union[str, pathlib.Path]) -> bool:
     updated within settings.ASSET_CACHING_PERIOD hours.
     """
     if not os.path.exists(file_path):
+        logger.debug("Cache miss for %s", file_path)
         return True
     file_mod_time: datetime = datetime.fromtimestamp(os.stat(file_path).st_mtime)
     now: datetime = datetime.today()

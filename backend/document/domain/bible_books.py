@@ -3,7 +3,7 @@ This module provides various dictionaries used in the lookup of bible
 book information.
 """
 
-from collections.abc import Mapping
+from typing import Mapping
 
 BOOK_NAMES: Mapping[str, str] = {
     "gen": "Genesis",
@@ -1344,3 +1344,11 @@ BOOK_CHAPTER_VERSES: Mapping[str, Mapping[str, str]] = {
         "22": "21",
     },
 }
+
+
+def book_number(resource_code: str) -> str:
+    """
+    Return the book number associated with the resource_code, e.g., gen ->
+    01.
+    """
+    return BOOK_NUMBERS[resource_code]

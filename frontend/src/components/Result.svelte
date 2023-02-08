@@ -10,7 +10,8 @@
     generateDocxStore,
     documentRequestKeyStore
   } from '../stores/SettingsStore'
-  import { getApiRootUrl, resetStores } from '../lib/utils'
+  import { taskIdStore, taskStateStore } from '../stores/TaskStore'
+  import { getApiRootUrl, getFileServerUrl, resetStores } from '../lib/utils'
 
   function cancelDocument() {
     console.log('Called cancelDocument')
@@ -23,15 +24,16 @@
   }
 
   let apiRootUrl: string = getApiRootUrl()
+  let fileServerUrl: string = getFileServerUrl()
 
   let pdfDownloadUrl: string
-  $: pdfDownloadUrl = `${apiRootUrl}/pdf/${$documentRequestKeyStore}`
+  $: pdfDownloadUrl = `${fileServerUrl}/${$documentRequestKeyStore}.pdf`
   let ePubDownloadUrl: string
-  $: ePubDownloadUrl = `${apiRootUrl}/epub/${$documentRequestKeyStore}`
+  $: ePubDownloadUrl = `${fileServerUrl}/${$documentRequestKeyStore}.epub`
   let docxDownloadUrl: string
-  $: docxDownloadUrl = `${apiRootUrl}/docx/${$documentRequestKeyStore}`
+  $: docxDownloadUrl = `${fileServerUrl}/${$documentRequestKeyStore}.docx`
   let htmlDownloadUrl: string
-  $: htmlDownloadUrl = `${apiRootUrl}/html/${$documentRequestKeyStore}`
+  $: htmlDownloadUrl = `${fileServerUrl}/${$documentRequestKeyStore}.html`
 
   function viewFromUrl(url: string) {
     console.log(`url: ${url}`)
@@ -56,6 +58,16 @@
     <p class="text-center text-secondary-content">
       We appreciate your patience as this can take several minutes for larger documents.
     </p>
+    {#if $taskIdStore}
+      <p class="text-center text-secondary-content">
+        Task id: {$taskIdStore}
+      </p>
+    {/if}
+    {#if $taskStateStore}
+      <p id="state" class="text-center  text-secondary-content">
+        Task state: {$taskStateStore}
+      </p>
+    {/if}
   {/if}
   {#if $documentReadyStore && !$errorStore}
     <div class="bg-white">
@@ -115,7 +127,7 @@
               fill-opacity="0.8"
             />
           </svg>
-          View Online</button
+          View HTML Online</button
         >
       </div>
     </div>

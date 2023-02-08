@@ -1,5 +1,5 @@
 # Stage 0: build the frontend.
-FROM node:18.9.0-bullseye-slim as development-stage
+FROM node:19-bullseye-slim as development-stage
 
 RUN apt-get update && apt-get install -y \
     python3  \
@@ -8,12 +8,8 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-RUN mkdir dist # Output directory for color theme
-COPY ./ /app/
+COPY . .
 RUN npm install
-
-# Comment out the next line to disable tests
-# RUN npm run test:unit
 
 # Enforce typescript strict type checking and if no errors, proceed.
 RUN npm run check

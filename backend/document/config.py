@@ -53,6 +53,8 @@ class Settings(BaseSettings):
 
     LANGUAGE_FMT_STR: str = "<h1>Language: {}</h1>"
     RESOURCE_TYPE_NAME_FMT_STR: str = "<h1>{}</h1>"
+    TN_VERSE_NOTES_ENCLOSING_DIV_FMT_STR: str = "<div style='column-count: 2;'>{}</div>"
+    TQ_HEADING_FMT_STR: str = "<h3>{}</h3>"
     HTML_ROW_BEGIN: str = model.HtmlContent("<div class='row'>")
     HTML_ROW_END: str = model.HtmlContent("</div>")
     HTML_COLUMN_BEGIN: str = model.HtmlContent("<div class='column'>")
@@ -86,13 +88,12 @@ class Settings(BaseSettings):
     TRANSLATION_WORD_FMT_STR: str = "{}"
     TRANSLATION_WORD_PREFIX_ANCHOR_LINK_FMT_STR: str = "({}: [{}](#{}-{}))"
     TRANSLATION_WORD_PREFIX_FMT_STR: str = "({}: {})"
-    TRANSLATION_NOTE_ANCHOR_LINK_FMT_STR: str = "[{}](#{}-{}-tn-ch-{}-v-{})"
+    # TRANSLATION_NOTE_ANCHOR_LINK_FMT_STR: str = "[{}](#{}-{}-tn-ch-{}-v-{})"
+    TRANSLATION_NOTE_ANCHOR_LINK_FMT_STR: str = "[{}](#{}-{}-ch-{}-v-{})"
     # FIXME Tighten up the '.' usage in the following regex
     VERSE_ANCHOR_ID_FMT_STR: str = 'id="(.+?)-ch-(.+?)-v-(.+?)"'
     VERSE_ANCHOR_ID_SUBSTITUTION_FMT_STR: str = r"id='{}-\1-ch-\2-v-\3'"
 
-    LOGGING_CONFIG_FILE_PATH: str = "backend/document/logging_config.yaml"
-    DOCKER_CONTAINER_DOCUMENT_OUTPUT_DIR: str = "/document_output"
     USFM_RESOURCE_TYPES: Sequence[str] = [
         "cuv",
         "f10",
@@ -103,13 +104,15 @@ class Settings(BaseSettings):
         "ugnt",
         # "uhb", # parser blows on: AttributeError: 'SingleHTMLRenderer' object has no attribute 'renderCAS'
         "ulb",
-        "ulb-wa",
         "usfm",
     ]
+    EN_USFM_RESOURCE_TYPES: Sequence[str] = ["ulb-wa"]
     TN_RESOURCE_TYPES: Sequence[str] = ["tn"]
     EN_TN_RESOURCE_TYPES: Sequence[str] = ["tn-wa"]
-    TQ_RESOURCE_TYPES: Sequence[str] = ["tq", "tq-wa"]
-    TW_RESOURCE_TYPES: Sequence[str] = ["tw", "tw-wa"]
+    TQ_RESOURCE_TYPES: Sequence[str] = ["tq"]
+    EN_TQ_RESOURCE_TYPES: Sequence[str] = ["tq-wa"]
+    TW_RESOURCE_TYPES: Sequence[str] = ["tw"]
+    EN_TW_RESOURCE_TYPES: Sequence[str] = ["tw-wa"]
     BC_RESOURCE_TYPES: Sequence[str] = ["bc-wa"]
     # List of language codes for which there is an issue in
     # translations.json such that a complete document request cannot
@@ -150,39 +153,24 @@ class Settings(BaseSettings):
 
     def api_test_url(self) -> str:
         """Non-secure local URL for running the Fastapi server for testing."""
-        return "http://localhost:{}".format(self.API_LOCAL_PORT)
+        return "http://{}:{}".format(self.API_TEST_BASE_URL, self.API_LOCAL_PORT)
+
+    API_TEST_BASE_URL: str = "http://localhost"
 
     API_LOCAL_PORT: int
 
-    # Location where resource assets will be downloaded.
-    RESOURCE_ASSETS_DIR: str = "/working/temp"
-
-    # Indicate whether running in Docker container.
-    IN_CONTAINER: bool = False
-
     USE_GIT_CLI: bool = False
 
-    def working_dir(self) -> str:
-        """
-        The directory where the resources will be placed once
-        acquired.
-        """
-        if self.IN_CONTAINER:
-            return self.RESOURCE_ASSETS_DIR
-        else:
-            return self.RESOURCE_ASSETS_DIR[1:]
+    LOGGING_CONFIG_FILE_PATH: str = "backend/document/logging_config.yaml"
+
+    # Location where resource assets will be downloaded.
+    RESOURCE_ASSETS_DIR: str = "working/temp"
 
     # Location where generated PDFs will be written to.
-    DOCUMENT_OUTPUT_DIR: str = "/working/output"
+    DOCUMENT_OUTPUT_DIR: str = "working/output"
 
-    def output_dir(self) -> str:
-        """The directory where the generated documents are placed."""
-        dirname = ""
-        if self.IN_CONTAINER:
-            dirname = self.DOCUMENT_OUTPUT_DIR
-        else:
-            dirname = self.DOCUMENT_OUTPUT_DIR[1:]
-        return dirname
+    # Location where generated PDFs will be written to.
+    DOCUMENT_SERVE_DIR: str = "document_output"
 
     # For options see https://wkhtmltopdf.org/usage/wkhtmltopdf.txt
     WKHTMLTOPDF_OPTIONS: dict[str, Optional[str]] = {
@@ -211,9 +199,6 @@ class Settings(BaseSettings):
     # PDF.
     SUCCESS_MESSAGE: str = "Success! Please retrieve your generated document using a GET REST request to /pdf/{document_request_key} or /epub/{document_request_key} or /docx/{document_request_key} (depending on whether you requested PDF, ePub, or Docx result) where document_request_key is the finished_document_request_key in this payload."
 
-    # Return the message to show to user on failure generating PDF.
-    FAILURE_MESSAGE: str = "The document request could not be fulfilled either because the resources requested are not available either currently or at all or because the system does not yet support the resources requested."
-
     # BACKEND_CORS_ORIGINS is a JSON-formatted list of origins
     # e.g: '["http://localhost", "http://localhost:4200",
     # "http://localhost:8000"]'
@@ -225,7 +210,7 @@ class Settings(BaseSettings):
             return [i.strip() for i in v.split(",")]
         elif isinstance(v, (list, str)):
             return v
-        raise ValueError(v)
+        raise ValueError("Malformed JSON for BACKEND_CORS_ORIGINS value.")
 
     # Return the file names, excluding suffix, of files that do not
     # contain content but which may be in the same directory or
@@ -243,7 +228,7 @@ class Settings(BaseSettings):
 
     ENGLISH_RESOURCE_TYPE_MAP: Mapping[str, str] = {
         "ulb-wa": "Unlocked Literal Bible (ULB)",
-        "udb-wa": "Unlocked Dynamic Bible (UDB)",
+        # "udb-wa": "Unlocked Dynamic Bible (UDB)",
         "tn-wa": "ULB Translation Helps",
         "tq-wa": "ULB Translation Questions",
         "tw-wa": "ULB Translation Words",
@@ -268,10 +253,6 @@ class Settings(BaseSettings):
     # the case of resource asset files) or re-generating them (in the
     # case of the final PDF). In hours.
     ASSET_CACHING_PERIOD: int
-
-    # Get the path to the logo image that will be used on the PDF cover,
-    # i.e., first, page.
-    LOGO_IMAGE_PATH: str = "icon-tn.png"
 
     # It doesn't yet make sense to offer the (high level)
     # assembly strategy _and_ the assembly sub-strategy to the end user
@@ -316,6 +297,9 @@ class Settings(BaseSettings):
     # files. Other values could possibly work. This value definitely
     # works.
     USER_AGENT: str = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11"
+
+    # Used in assembly_strategy_utils modeule when zero-filling various strings
+    NUM_ZEROS = 3
 
     # Pydantic uses this inner class convention to configure the
     # Settings class.

@@ -3,3 +3,6 @@
 /**/.mypy_cache/
 /**/**/**/*-darwin.so
 /**/**/**/.hypothesis/
+/frontend/test-results/
+/frontend/playwright-report/
+/frontend/playwright/.cache/

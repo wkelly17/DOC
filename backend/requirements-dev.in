@@ -1,23 +1,26 @@
 -c requirements.txt
-git+https://github.com/psf/black
+black
 cohesion
 dlint
 flake8
-flake8-annotations-complexity
+# flake8-annotations-complexity # not Python 3.11 ready
 flake8-annotations-coverage
-flake8-bandit
+# flake8-bandit # not Python 3.11 ready
 flake8-eradicate
 flake8-fixme
 flake8-mypy
 flake8-type-annotations
 isort
 mypy
+psutil
 pygount
 pylint
 pylsp-mypy
 pytest
+pytest-celery
 pytest-datafiles
 pytest-icdiff
-pytest-xdist[psutil]
+pytest-repeat
+pytest-xdist
 radon
 vulture

@@ -1,42 +1,32 @@
 from document.config import settings
-from document.domain import model, resource_lookup
 
-## Test the API:
+from document.domain import model, resource_lookup
 
 
 def test_lookup_successes() -> None:
     assembly_strategy_kind: model.AssemblyStrategyEnum = (
         model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER
     )
-    assembly_layout_kind: model.AssemblyLayoutEnum = (
-        model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT
-    )
-    resource_requests: list[model.ResourceRequest] = []
-    resource_requests.append(
+    assembly_layout_kind: model.AssemblyLayoutEnum = model.AssemblyLayoutEnum.ONE_COLUMN
+    resource_requests: list[model.ResourceRequest] = [
         model.ResourceRequest(
             lang_code="en", resource_type="ulb-wa", resource_code="gen"
-        )
-    )
-    resource_requests.append(
+        ),
         model.ResourceRequest(
             lang_code="en", resource_type="tn-wa", resource_code="gen"
-        )
-    )
-    resource_requests.append(
-        model.ResourceRequest(lang_code="mr", resource_type="ulb", resource_code="gen")
-    )
-    resource_requests.append(
+        ),
+        model.ResourceRequest(lang_code="mr", resource_type="ulb", resource_code="gen"),
         model.ResourceRequest(
             lang_code="erk-x-erakor", resource_type="reg", resource_code="eph"
-        )
-    )
+        ),
+    ]
     document_request = model.DocumentRequest(
         email_address=settings.FROM_EMAIL_ADDRESS,
         assembly_strategy_kind=assembly_strategy_kind,
         assembly_layout_kind=assembly_layout_kind,
         layout_for_print=True,
-        generate_pdf=False,
-        generate_epub=True,
+        generate_pdf=True,
+        generate_epub=False,
         generate_docx=False,
         resource_requests=resource_requests,
     )
@@ -55,13 +45,10 @@ def test_lookup_failures() -> None:
     assembly_strategy_kind: model.AssemblyStrategyEnum = (
         model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER
     )
-    assembly_layout_kind: model.AssemblyLayoutEnum = (
-        model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_HELPS_RIGHT
-    )
-    resource_requests: list[model.ResourceRequest] = []
-    resource_requests.append(
+    assembly_layout_kind: model.AssemblyLayoutEnum = model.AssemblyLayoutEnum.ONE_COLUMN
+    resource_requests: list[model.ResourceRequest] = [
         model.ResourceRequest(lang_code="zh", resource_type="ulb", resource_code="jol")
-    )
+    ]
     document_request = model.DocumentRequest(
         email_address=settings.FROM_EMAIL_ADDRESS,
         assembly_strategy_kind=assembly_strategy_kind,

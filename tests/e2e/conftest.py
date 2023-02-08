@@ -5,7 +5,7 @@ import os
 import pathlib
 import random
 from collections.abc import Sequence
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
 import pydantic
 import pytest
@@ -13,15 +13,14 @@ from document.config import settings
 from document.domain import bible_books, model
 from document.utils import file_utils
 
-# A blessed set of language codes that can be used to generate tests
-# that pass, i.e., they are well supported for all their resource
-# types and (hopefully) all their resource codes (i.e., books). This
-# is by no means the only language codes that are supported. It is
-# just that the more language codes we add here the longer the
-# e2e-tests suite will take to complete.
+# A blessed set of language codes that can be used to randomly generate
+# tests that pass, i.e., they are well supported for all their resource
+# types and (hopefully) all their resource codes (i.e., books). These
+# are by no means the only language codes that are supported. The more
+# included the longer the tests marked 'randomized' will take to run.
 PASSING_NON_ENGLISH_LANG_CODES: Sequence[str] = [
     "es-419",
-    "f10",
+    "fr",
     "gu",
     "mr",
     "pt-br",
@@ -30,13 +29,12 @@ PASSING_NON_ENGLISH_LANG_CODES: Sequence[str] = [
     "zh",
 ]
 
-# Every once in a while, outside the Docker environment, it is good to
-# allow tests against more language codes. Here we use all language
-# codes. The system randomized fixtures that use
-# PASSING_NON_ENGLISH_LANG_CODES will then have all languages to
-# choose from randomly of which it will choose a subset.
-if not os.environ.get("IN_CONTAINER"):
-    json_filepath = "./language_codes.json"
+# Every once in a while, it is good to allow tests against more language
+# codes. Here we use all language codes. The system randomized fixtures
+# that use PASSING_NON_ENGLISH_LANG_CODES will then have all languages
+# to choose from randomly of which it will choose a subset.
+if os.environ.get("ALL_LANGUAGE_CODES"):
+    json_filepath = "../../language_codes.json"
     ALL_LANGUAGE_CODES = file_utils.load_json_object(pathlib.Path(json_filepath))
     PASSING_NON_ENGLISH_LANG_CODES = ALL_LANGUAGE_CODES
 
@@ -107,7 +105,7 @@ def resource_code(request: Any) -> Any:
 @pytest.fixture()
 def random_resource_code() -> str:
     """One random book name chosen at random."""
-    book_ids = list(bible_books.BOOK_NAMES.keys())
+    book_ids: list[str] = list(bible_books.BOOK_NAMES.keys())
     return random.choice(book_ids)
 
 
@@ -116,22 +114,25 @@ def random_resource_code2() -> str:
     """One random book name chosen at random. This fixture exists so
     that we can have a separate book chosen in a two language document
     request."""
-    book_ids = list(bible_books.BOOK_NAMES.keys())
+    book_ids: list[str] = list(bible_books.BOOK_NAMES.keys())
     return random.choice(book_ids)
 
 
 @pytest.fixture()
 def email_address() -> str:
-    return settings.TO_EMAIL_ADDRESS
+    return cast(str, settings.TO_EMAIL_ADDRESS)
 
 
 @pytest.fixture()
 def assembly_strategy_kind() -> str:
-    return random.choice(
-        [
-            model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
-            model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
-        ]
+    return cast(
+        str,
+        random.choice(
+            [
+                model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
+                model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
+            ]
+        ),
     )
 
 
@@ -241,15 +242,14 @@ def english_resource_requests(
     resource types passed in as a parameter and a resource_code. This
     will cycle through all resource_codes.
     """
-    resource_requests = []
-    for resource_type in random_english_resource_type_combo:
-        resource_requests.append(
-            model.ResourceRequest(
-                lang_code=english_lang_code,
-                resource_type=resource_type,
-                resource_code=resource_code,
-            )
+    resource_requests = [
+        model.ResourceRequest(
+            lang_code=english_lang_code,
+            resource_type=resource_type,
+            resource_code=resource_code,
         )
+        for resource_type in random_english_resource_type_combo
+    ]
     return resource_requests
 
 
@@ -264,15 +264,14 @@ def random_english_resource_requests(
     resource types passed in as a parameter and a randomly chosen
     resource code.
     """
-    resource_requests = []
-    for resource_type in random_english_resource_type_combo:
-        resource_requests.append(
-            model.ResourceRequest(
-                lang_code=english_lang_code,
-                resource_type=resource_type,
-                resource_code=random_resource_code,
-            )
+    resource_requests = [
+        model.ResourceRequest(
+            lang_code=english_lang_code,
+            resource_type=resource_type,
+            resource_code=random_resource_code,
         )
+        for resource_type in random_english_resource_type_combo
+    ]
     return resource_requests
 
 
@@ -287,15 +286,14 @@ def random_non_english_resource_requests(
     non-English lang_code, the set of non-English resource types
     passed in as a parameter, and a randomly chosen resource code.
     """
-    resource_requests = []
-    for resource_type in random_non_english_resource_type_combo:
-        resource_requests.append(
-            model.ResourceRequest(
-                lang_code=random_non_english_lang_code,
-                resource_type=resource_type,
-                resource_code=random_resource_code2,
-            )
+    resource_requests = [
+        model.ResourceRequest(
+            lang_code=random_non_english_lang_code,
+            resource_type=resource_type,
+            resource_code=random_resource_code2,
         )
+        for resource_type in random_non_english_resource_type_combo
+    ]
     return resource_requests
 
 
@@ -306,20 +304,20 @@ def random_failing_non_english_resource_requests(
     random_resource_code2: str,
 ) -> Sequence[model.ResourceRequest]:
     """
-    Build a list of resource request instances for a randomly chosen
-    non-English lang_code that has ill-formed USFM and thus can fail
-    if USFM is requested, the set of non-English resource types
-    passed in as a parameter, and a randomly chosen resource code.
+    Build a list of resource request instances for:
+    - a randomly chosen non-English lang_code that has ill-formed USFM and thus can fail
+    if USFM is requested,
+    - the set of non-English resource types passed in as a parameter, and
+    - a randomly chosen resource code.
     """
-    resource_requests = []
-    for resource_type in random_non_english_resource_type_combo:
-        resource_requests.append(
-            model.ResourceRequest(
-                lang_code=random_failing_non_english_lang_code,
-                resource_type=resource_type,
-                resource_code=random_resource_code2,
-            )
+    resource_requests = [
+        model.ResourceRequest(
+            lang_code=random_failing_non_english_lang_code,
+            resource_type=resource_type,
+            resource_code=random_resource_code2,
         )
+        for resource_type in random_non_english_resource_type_combo
+    ]
     return resource_requests
 
 
@@ -330,19 +328,20 @@ def random_non_english_resource_requests2(
     random_resource_code: str,
 ) -> Sequence[model.ResourceRequest]:
     """
-    Build a list of resource request instances for a randomly chosen
-    non-English lang_code, the set of non-English resource types
-    passed in as a parameter, and a randomly chosen resource code.
+    Build a list of resource request instances for:
+    - a randomly chosen non-English lang_code,
+    - the set of non-English resource types
+    passed in as a parameter, and,
+    - a randomly chosen resource code.
     """
-    resource_requests = []
-    for resource_type in random_non_english_resource_type_combo:
-        resource_requests.append(
-            model.ResourceRequest(
-                lang_code=random_non_english_lang_code2,
-                resource_type=resource_type,
-                resource_code=random_resource_code,
-            )
+    resource_requests = [
+        model.ResourceRequest(
+            lang_code=random_non_english_lang_code2,
+            resource_type=resource_type,
+            resource_code=random_resource_code,
         )
+        for resource_type in random_non_english_resource_type_combo
+    ]
     return resource_requests
 
 
@@ -354,9 +353,15 @@ def english_document_request(
     layout_for_print: bool,
     generate_pdf: bool,
     generate_epub: bool,
+    generate_docx: bool,
     english_resource_requests: Sequence[model.ResourceRequest],
 ) -> model.DocumentRequest:
     """Build one English language document request."""
+    # Force values in this case since random combinations can yield an
+    # invalid document request.
+    if layout_for_print:
+        generate_epub = False
+        generate_docx = False
     return model.DocumentRequest(
         email_address=email_address,
         assembly_strategy_kind=assembly_strategy_kind,
@@ -364,31 +369,8 @@ def english_document_request(
         layout_for_print=layout_for_print,
         generate_pdf=generate_pdf,
         generate_epub=generate_epub,
+        generate_docx=generate_docx,
         resource_requests=english_resource_requests,
-    )
-
-
-@pytest.fixture()
-def random_english_document_request(
-    email_address: pydantic.EmailStr,
-    assembly_strategy_kind: model.AssemblyStrategyEnum,
-    assembly_layout_kind: model.AssemblyLayoutEnum,
-    layout_for_print: bool,
-    generate_pdf: bool,
-    generate_epub: bool,
-    english_resource_requests: Sequence[model.ResourceRequest],
-) -> model.DocumentRequest:
-    """
-    Build one randomly chosen English language document request.
-    """
-    return model.DocumentRequest(
-        email_address=email_address,
-        assembly_strategy_kind=assembly_strategy_kind,
-        assembly_layout_kind=assembly_layout_kind,
-        layout_for_print=layout_for_print,
-        generate_pdf=generate_pdf,
-        generate_epub=generate_epub,
-        resource_requests=random_english_resource_requests,
     )
 
 
@@ -416,6 +398,11 @@ def random_non_english_document_request(
     short of that, to help guide us to implementing the graceful
     raising of exceptions and their handlers for such failures.
     """
+    # Force values in this case since random combinations can yield an
+    # invalid document request.
+    if layout_for_print:
+        generate_epub = False
+        generate_docx = False
     return model.DocumentRequest(
         email_address=email_address,
         assembly_strategy_kind=assembly_strategy_kind,
@@ -470,8 +457,6 @@ def random_failing_non_english_document_request(
     )
 
 
-# @pytest.fixture(params=[pytest.lazy_fixture("document_request")])
-
 ## Multi-language combination fixtures start here:
 
 
@@ -500,6 +485,11 @@ def random_english_and_non_english_document_request(
     short of that, to help guide us to implementing the graceful
     raising of exceptions and their handlers for such failures.
     """
+    # Force values in this case since random combinations can yield an
+    # invalid document request.
+    if layout_for_print:
+        generate_epub = False
+        generate_docx = False
     return model.DocumentRequest(
         email_address=email_address,
         assembly_strategy_kind=assembly_strategy_kind,
@@ -531,6 +521,11 @@ def random_two_non_english_languages_document_request(
     Build two non-English language document requests. Each
     language has its own randomly chosen set of resource requests.
     """
+    # Force values in this case since random combinations can yield an
+    # invalid document request.
+    if layout_for_print:
+        generate_epub = False
+        generate_docx = False
     return model.DocumentRequest(
         email_address=email_address,
         assembly_strategy_kind=assembly_strategy_kind,

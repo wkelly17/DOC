@@ -2,10 +2,9 @@ import re
 from typing import Any, final
 
 import markdown
+from document.config import settings
 from markdown import Extension
 from markdown.preprocessors import Preprocessor
-
-from document.config import settings
 
 logger = settings.logger(__name__)
 
@@ -35,7 +34,7 @@ class RemoveSectionPreprocessor(Preprocessor):
         text contained in the section.
         """
         header_regex = re.compile("^#.*$")
-        section_regex = re.compile("^#+ {}".format(section_name))
+        section_regex = re.compile("^#+ *{}.*".format(section_name))
         out_md = ""
         in_section = False
         for line in md.splitlines():

@@ -1,0 +1,23 @@
+version: "3"
+services:
+  frontend-test-runner:
+    image: wycliffeassociates/doc-ui-tests:local
+    ipc: "host"
+    depends_on:
+      api:
+        condition: service_healthy
+      worker:
+        condition: service_healthy
+      fileserver:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    # environment:
+    #   - FRONTEND_API_URL=http://frontend/
+    network_mode: host
+
+volumes:
+  shared:
+
+networks:
+  test-runner:

@@ -1,4 +1,4 @@
-export type AssemblyStrategy = {
+export type SelectElement = {
   id: string
   label: string
 }

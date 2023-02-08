@@ -2,6 +2,7 @@
 
 import re
 
+
 # Handle TW wikilink inner text
 TW_RC_LINK_RE = re.compile(
     (
@@ -125,14 +126,24 @@ TN_MARKDOWN_RELATIVE_SCRIPTURE_LINK_RE = re.compile(
     r"\(\[(?P<scripture_ref>.+?)\]\((\.\.\/)+(?P<resource_code>\w+?)\/(?P<chapter_num>\d+?)\/(?P<verse_ref>.+?).md\)\)"
 )
 
-
-# NOTE ([Colossians 1:7](../01/07.md)) and
-# [Colossians 2:8](../02/08.md) still show up, but
-# this is because technically the link is malformed as it is missing
-# the resource_code, i.e., the book_id: col.
-# TN_MARKDOWN_RELATIVE_TO_CURRENT_BOOK_SCRIPTURE_LINK_RE = r"\[(?P<scripture_ref>.+?)\]\((?:\.\.\/)+(?P<chapter_num>.+?)\/(?P<verse_ref>.+?).md\)"
+# ([Matthew 1:11](../01/11.md))
 TN_MARKDOWN_RELATIVE_TO_CURRENT_BOOK_SCRIPTURE_LINK_RE = re.compile(
     r"\(\[(?P<scripture_ref>.+?)\]\((?:\.\.\/)+(?P<chapter_num>\d+?)\/(?P<verse_ref>.+?).md\)\)"
+)
+
+# [1 Chronicles 1:17](../01/17.md)
+TN_MARKDOWN_RELATIVE_TO_CURRENT_BOOK_SCRIPTURE_LINK_RE_NO_PARENS = re.compile(
+    r"\[(?P<scripture_ref>.+?)\]\((?:\.\.\/)+(?P<chapter_num>\d+?)\/(?P<verse_ref>.+?).md\)"
+)
+
+# [Genesis 1:11,12](./11.md)
+TN_MARKDOWN_RELATIVE_TO_CURRENT_CHAPTER_SCRIPTURE_LINK_RE_NO_PARENS = re.compile(
+    r"\[(?P<scripture_ref>.+?)\]\((?:\.\/)+(?P<verse_ref>.+?).md\)"
+)
+
+# [James 2:13](../../jas/02/13.md)
+TN_MARKDOWN_RELATIVE_SCRIPTURE_LINK_RE_NO_PARENS = re.compile(
+    r"\[(?P<scripture_ref>.+?)\]\((\.\.\/)+(?P<resource_code>\w+?)\/(?P<chapter_num>\d+?)\/(?P<verse_ref>.+?).md\)"
 )
 
 # TN_MARKDOWN_RELATIVE_TO_CURRENT_CHAPTER_SCRIPTURE_LINK_RE = r"\(\[(?P<scripture_ref>.+?)\]\((?:\.\.\/)+(?P<chapter_num>\d+?)\/(?P<verse_ref>.+?).md\)\)"

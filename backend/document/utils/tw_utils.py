@@ -6,8 +6,7 @@ resources that we use in multiple places.
 import os
 import pathlib
 from glob import glob
-from typing import Any, Optional
-from collections.abc import Iterable, Sequence
+from typing import Any, Iterable, Optional, Sequence
 
 from document.config import settings
 from document.domain import model
@@ -70,7 +69,9 @@ def tw_resource_dir(lang_code: str) -> Optional[str]:
     # to pass the value of TWResource's resource_dir to Resource
     # subclasses otherwise. It is a design tradeoff.
     tw_resource_dir_candidates = glob(
-        "{}/{}_{}*/{}_{}*".format(settings.working_dir(), lang_code, TW, lang_code, TW)
+        "{}/{}_{}*/{}_{}*".format(
+            settings.RESOURCE_ASSETS_DIR, lang_code, TW, lang_code, TW
+        )
     )
     # If tw_resource_dir_candidates is empty it is because the user
     # did not request a TW resource as part of their document request

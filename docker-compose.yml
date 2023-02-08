@@ -1,5 +1,13 @@
 version: "3"
 services:
+  redis:
+    image: redis:latest
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 1s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
   api:
     image: wycliffeassociates/doc:${IMAGE_TAG}
     env_file:
@@ -12,27 +20,91 @@ services:
       SEND_EMAIL: ${SEND_EMAIL}
       TRANSLATIONS_JSON_LOCATION: ${TRANSLATIONS_JSON_LOCATION}
       BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/0}
     ports:
       - 5005:5005
+    command: gunicorn --name document:entrypoints:app --worker-class uvicorn.workers.UvicornWorker --pythonpath /app/backend --conf /app/backend/gunicorn.conf.py document.entrypoints.app:app
     volumes:
-      - docker_document_output:/document_output
+      - shared:/app/document_output
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5005/health/status"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+  worker:
+    image: wycliffeassociates/doc:${IMAGE_TAG}
+    command: celery --app=document.domain.worker.app worker --hostname=worker@%h --loglevel=DEBUG -E
+    environment:
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/0}
+    volumes:
+      - shared:/app/document_output
+    depends_on:
+      api:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: celery -A document.domain.worker.app inspect ping
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+    restart: unless-stopped    
+  celery-dashboard:
+    image: mher/flower
+    environment:
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/0}
+      FLOWER_PORT: 5555
+    ports:
+      - 5555:5555
+    depends_on:
+      redis:
+        condition: service_healthy
+      worker:
+        condition: service_healthy
     restart: unless-stopped
   fileserver:
     build: ./web
     ports:
       - 8089:80
     volumes:
-      - docker_document_output:/srv/content
+      - shared:/srv/content
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
   frontend:
     image: wycliffeassociates/doc-ui:${IMAGE_TAG}
     environment:
-      BACKEND_API_URL: ${BACKEND_API_URL}
+      BACKEND_API_URL: ${BACKEND_API_URL:-http://localhost:5005}
+      FILE_SERVER_URL: ${FILE_SERVER_URL:-http://localhost:8089}
     ports:
       - 8001:80
     depends_on:
-      - api
+      api:
+        condition: service_healthy
+      worker:
+        condition: service_healthy
+      fileserver:
+        condition: service_healthy
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      
 
 volumes:
-  docker_document_output:
+  shared:

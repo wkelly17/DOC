@@ -5,24 +5,34 @@ assets.
 """
 
 
-import git
-import os
 import pathlib
 import shutil
 import subprocess
 import urllib
-import yaml
-from collections.abc import Iterable, Sequence
 from contextlib import closing
-from fastapi import HTTPException, status
-from typing import Any, Callable, Mapping, Optional, cast
+from os import mkdir, scandir
+from os.path import exists, join, sep
+from typing import Any, Callable, Iterable, Mapping, Optional, Sequence
 from urllib import parse as urllib_parse
 from urllib.request import urlopen
 
+import git
 import jsonpath_rw_ext as jp  # type: ignore
 from document.config import settings
-from document.domain import bible_books, exceptions, model
-from document.utils import file_utils
+from document.domain import bible_books, exceptions
+from document.domain.model import (
+    AssetSourceEnum,
+    CodeNameTypeTriplet,
+    ResourceLookupDto,
+)
+from document.utils.file_utils import (
+    asset_file_needs_update,
+    load_json_object,
+    source_file_needs_update,
+    unzip,
+)
+from fastapi import HTTPException, status
+from yaml import safe_load
 
 logger = settings.logger(__name__)
 
@@ -46,22 +56,20 @@ def fetch_source_data(working_dir: str, json_file_url: str) -> Any:
     Obtain the source data, by downloading it from json_file_url, and
     then reifying it into its JSON object form.
     """
-    json_file = pathlib.Path(
-        os.path.join(working_dir, json_file_url.rpartition(os.path.sep)[2])
-    )
-    if file_utils.source_file_needs_update(json_file):
+    json_file = pathlib.Path(join(working_dir, json_file_url.rpartition(sep)[2]))
+    if source_file_needs_update(json_file):
         logger.debug("Downloading %s...", json_file_url)
         download_file(json_file_url, str(json_file.resolve()))
 
     try:
-        return file_utils.load_json_object(json_file)
+        return load_json_object(json_file)
     except Exception:
         logger.exception("Caught exception: ")
 
 
 def _lookup(
     json_path: str,
-    working_dir: str = settings.working_dir(),
+    working_dir: str = settings.RESOURCE_ASSETS_DIR,
     translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
 ) -> Any:
     """Return jsonpath value or empty list if JSON node doesn't exist."""
@@ -109,10 +117,10 @@ def _english_git_repo_location(
     resource_code: str,
     url: str,
     resource_type_name: str,
-    asset_source_enum_kind: str = model.AssetSourceEnum.GIT,
-) -> model.ResourceLookupDto:
+    asset_source_enum_kind: AssetSourceEnum = AssetSourceEnum.GIT,
+) -> ResourceLookupDto:
     """Return a model.ResourceLookupDto."""
-    return model.ResourceLookupDto(
+    return ResourceLookupDto(
         lang_code=lang_code,
         resource_type=resource_type,
         resource_code=resource_code,
@@ -136,9 +144,9 @@ def _location(
     jsonpath_str: str,
     lang_name_jsonpath_str: str,
     resource_type_name_jsonpath_str: str,
-    asset_source_enum_kind: str,
+    asset_source_enum_kind: AssetSourceEnum,
     url_parsing_fn: Callable[[str], Optional[str]] = const,
-) -> model.ResourceLookupDto:
+) -> ResourceLookupDto:
     """Return a model.ResourceLookupDto."""
     # Many languages have a git repo found by
     # format='Download' that is parallel to the
@@ -166,7 +174,7 @@ def _location(
         resource_type_name = resource_type_name_lst[0]
     else:
         resource_type_name = ""
-    return model.ResourceLookupDto(
+    return ResourceLookupDto(
         lang_code=lang_code,
         lang_name=lang_name,
         resource_type=resource_type,
@@ -184,7 +192,7 @@ def english_resource_type_name(
 ) -> str:
     """
     This is a hack to compensate for translations.json which only
-    provides information for non-English languages.
+    provides accurate information for non-English languages.
     """
     return english_resource_type_map[resource_type]
 
@@ -195,7 +203,7 @@ def english_git_repo_url(
 ) -> str:
     """
     This is a hack to compensate for translations.json which only
-    provides URLs in non-English languages.
+    provides accurate URLs in non-English languages.
     """
     return english_git_repo_map[resource_type]
 
@@ -207,32 +215,18 @@ def usfm_resource_lookup(
     individual_usfm_url_jsonpath_fmt_str: str = settings.INDIVIDUAL_USFM_URL_JSONPATH,
     resource_lang_name_jsonpath_fmt_str: str = settings.RESOURCE_LANG_NAME_JSONPATH,
     resource_type_name_jsonpath_fmt_str: str = settings.RESOURCE_TYPE_NAME_JSONPATH,
-    asset_source_enum_usfm_kind: str = model.AssetSourceEnum.USFM,
-    asset_source_enum_git_kind: str = model.AssetSourceEnum.GIT,
-    asset_source_enum_zip_kind: str = model.AssetSourceEnum.ZIP,
+    asset_source_enum_usfm_kind: AssetSourceEnum = AssetSourceEnum.USFM,
+    asset_source_enum_git_kind: AssetSourceEnum = AssetSourceEnum.GIT,
+    asset_source_enum_zip_kind: AssetSourceEnum = AssetSourceEnum.ZIP,
     resource_download_format_jsonpath_fmt_str: str = settings.RESOURCE_DOWNLOAD_FORMAT_JSONPATH,
     resource_url_level1_jsonpath_fmt_str: str = settings.RESOURCE_URL_LEVEL1_JSONPATH,
-) -> model.ResourceLookupDto:
+) -> ResourceLookupDto:
     """
-    Given a resource, comprised of language code, e.g., 'en', a
-    resource type, e.g., 'ulb-wa', and a resource code, e.g., 'gen',
+    Given a resource, comprised of language code, e.g., 'fr', a
+    resource type, e.g., 'ulb', and a resource code, e.g., 'gen',
     return model.ResourceLookupDto for resource.
     """
-    resource_lookup_dto: model.ResourceLookupDto
-
-    # Special case:
-    # For English, translations.json file only contains URLs to PDF assets
-    # rather than anything useful for our purposes. Therefore, we have this
-    # guard to handle English resource requests separately and outside of
-    # translations.json by retrieving them from their git repos.
-    if lang_code == "en":
-        return _english_git_repo_location(
-            lang_code,
-            resource_type,
-            resource_code,
-            url=english_git_repo_url(resource_type),
-            resource_type_name=english_resource_type_name(resource_type),
-        )
+    resource_lookup_dto: ResourceLookupDto
 
     # Prefer getting USFM files individually rather than
     # introducing the latency of cloning a git repo.
@@ -305,27 +299,15 @@ def t_resource_lookup(
     resource_type_name_jsonpath_fmt_str: str = settings.RESOURCE_TYPE_NAME_JSONPATH,
     resource_url_level1_jsonpath_fmt_str: str = settings.RESOURCE_URL_LEVEL1_JSONPATH,
     resource_url_level2_jsonpath_fmt_str: str = settings.RESOURCE_URL_LEVEL2_JSONPATH,
-    asset_source_enum_kind: str = model.AssetSourceEnum.ZIP,
-) -> model.ResourceLookupDto:
+    asset_source_enum_kind: AssetSourceEnum = AssetSourceEnum.ZIP,
+) -> ResourceLookupDto:
     """
-    Given a resource, comprised of language code, e.g., 'wum', a
-    resource type, e.g., 'tn', and a resource code, e.g., 'gen',
-    return model.ResourceLookupDto instance for resource.
+    Given a non-English language resource, comprised of language code,
+    e.g., 'wum', a resource type, e.g., 'tn', and a resource code,
+    e.g., 'gen', return a model.ResourceLookupDto instance for
+    resource.
     """
-    resource_lookup_dto: model.ResourceLookupDto
-
-    # For English, with the exception of tn resource type, translations.json
-    # file only contains URLs to PDF assets rather than anything useful for
-    # our purposes. Therefore, we have this guard to handle English resource
-    # requests separately outside of translations.json.
-    if lang_code == "en" and resource_type != "tn":
-        return _english_git_repo_location(
-            lang_code,
-            resource_type,
-            resource_code,
-            url=english_git_repo_url(resource_type),
-            resource_type_name=english_resource_type_name(resource_type),
-        )
+    resource_lookup_dto: ResourceLookupDto
 
     resource_lookup_dto = _location(
         lang_code,
@@ -392,28 +374,8 @@ def t_resource_lookup(
     return resource_lookup_dto
 
 
-def bc_resource_lookup(
-    lang_code: str,
-    resource_type: str,
-    resource_code: str,
-    asset_source_enum_kind: str = model.AssetSourceEnum.GIT,
-) -> model.ResourceLookupDto:
-    """
-    Given a resource, comprised of language code, e.g., 'wum', a
-    resource type, e.g., 'tn', and a resource code, e.g., 'gen',
-    return model.ResourceLookupDto instance for resource.
-    """
-    return _english_git_repo_location(
-        lang_code,
-        resource_type,
-        resource_code,
-        url=english_git_repo_url(resource_type),
-        resource_type_name=english_resource_type_name(resource_type),
-    )
-
-
 def lang_codes(
-    working_dir: str = settings.working_dir(),
+    working_dir: str = settings.RESOURCE_ASSETS_DIR,
     translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
     lang_code_filter_list: Sequence[str] = settings.LANG_CODE_FILTER_LIST,
 ) -> Iterable[Any]:
@@ -428,7 +390,7 @@ def lang_codes(
 
 
 def lang_codes_and_names(
-    working_dir: str = settings.working_dir(),
+    working_dir: str = settings.RESOURCE_ASSETS_DIR,
     translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
     lang_code_filter_list: Sequence[str] = settings.LANG_CODE_FILTER_LIST,
 ) -> list[str]:
@@ -437,17 +399,16 @@ def lang_codes_and_names(
     of all language code, name tuples available through API.
     Presumably this could be called to populate a drop-down menu.
 
-    >>> from document.config import settings
-    >>> settings.IN_CONTAINER = False
     >>> from document.domain import resource_lookup
     >>> data = resource_lookup.lang_codes_and_names()
     >>> data[0]
     'Abuhaina, code: tbg-x-abuhaina'
     """
-    values = []
     data = fetch_source_data(working_dir, translations_json_location)
-    for d in [lang for lang in data if lang["code"] not in lang_code_filter_list]:
-        values.append("{}, code: {}".format(d["name"], d["code"]))
+    values = [
+        "{}, code: {}".format(d["name"], d["code"])
+        for d in [lang for lang in data if lang["code"] not in lang_code_filter_list]
+    ]
     return sorted(values, key=lambda value: value.split(",")[0])
 
 
@@ -455,6 +416,9 @@ def resource_types(jsonpath_str: str = settings.RESOURCE_TYPES_JSONPATH) -> Any:
     """
     Convenience method that can be called, e.g., from the UI, to
     get the set of all resource types.
+    >>> from document.domain import resource_lookup
+    >>> sorted(resource_lookup.resource_types())
+    ['Reg', 'avd', 'bc', 'blv', 'cuv', 'dot', 'f10', 'nav', 'nva', 'reg', 'rg', 'rlv', 'ta', 'ta-wa', 'tn', 'tn-wa', 'tq', 'tq-wa', 'tw', 'tw-wa', 'udb', 'udb-wa', 'ugnt', 'uhb', 'ulb', 'ulb-wa']
     """
     return _lookup(jsonpath_str)
 
@@ -468,8 +432,6 @@ def resource_types_for_langs(
     one USFM resource type as this relates to a bug I need to handle.
 
     Commenting out for now so that I can run other doctests as this takes a while.
-    >>> # from document.config import settings
-    >>> # settings.IN_CONTAINER = False
     >>> # from document.domain import resource_lookup
     >>> # data = resource_lookup.resource_types_for_langs()
     >>> # list(data)
@@ -533,45 +495,57 @@ def resource_types_for_lang(
 
 def resource_types_and_names_for_lang(
     lang_code: str,
-    working_dir: str = settings.working_dir(),
+    working_dir: str = settings.RESOURCE_ASSETS_DIR,
+    english_resource_type_map: Mapping[str, str] = settings.ENGLISH_RESOURCE_TYPE_MAP,
     translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
-    lang_code_filter_list: Sequence[str] = settings.LANG_CODE_FILTER_LIST,
     usfm_resource_types: Sequence[str] = settings.USFM_RESOURCE_TYPES,
     tn_resource_types: Sequence[str] = settings.TN_RESOURCE_TYPES,
-    en_tn_resource_types: Sequence[str] = settings.EN_TN_RESOURCE_TYPES,
     tq_resource_types: Sequence[str] = settings.TQ_RESOURCE_TYPES,
     tw_resource_types: Sequence[str] = settings.TW_RESOURCE_TYPES,
-    bc_resource_types: Sequence[str] = settings.BC_RESOURCE_TYPES,
 ) -> list[tuple[str, str]]:
     """
     Convenience method that can be called from UI to get the set
     of all resource type, name tuples for a given language available
     through API. Presumably this could be called to populate a
     drop-down menu.
+
+    >>> from document.domain import resource_lookup
+    >>> import logging
+    >>> import sys
+    >>> logger.addHandler(logging.StreamHandler(sys.stdout))
+    >>> import pprint
+    >>> # pprint.pprint(resource_lookup.resource_codes_and_types_for_lang("fr"))
+    >>> pprint.pprint(resource_lookup.resource_types_and_names_for_lang("en"))
+    [('ulb-wa', 'Unlocked Literal Bible (ULB)'),
+     ('tn-wa', 'ULB Translation Helps'),
+     ('tq-wa', 'ULB Translation Questions'),
+     ('tw-wa', 'ULB Translation Words'),
+     ('bc-wa', 'Bible Commentary')]
+    >>> pprint.pprint(resource_lookup.resource_types_and_names_for_lang("es-419"))
+    [('tn', 'Translation Notes (tn)'),
+     ('tq', 'Translation Questions (tq)'),
+     ('tw', 'Translation Words (tw)'),
+     ('udb', 'Unlocked Dynamic Bible (UDB) (udb)'),
+     ('ulb', 'Español Latino Americano ULB (ulb)')]
     """
-    values = []
+    if lang_code == "en":
+        return [(key, value) for key, value in english_resource_type_map.items()]
+
     data = fetch_source_data(working_dir, translations_json_location)
     for item in [lang for lang in data if lang["code"] in [lang_code]]:
-        for resource_type in item["contents"]:
+        values = [
+            (
+                resource_type["code"],
+                "{} ({})".format(resource_type["name"], resource_type["code"]),
+            )
+            for resource_type in item["contents"]
             if (
                 resource_type["code"] in usfm_resource_types
-                or (
-                    resource_type["code"] in en_tn_resource_types
-                    if lang_code == "en"
-                    else resource_type["code"] in tn_resource_types
-                )
+                or resource_type["code"] in tn_resource_types
                 or resource_type["code"] in tq_resource_types
                 or resource_type["code"] in tw_resource_types
-                or resource_type["code"] in bc_resource_types
-            ):
-                values.append(
-                    (
-                        resource_type["code"],
-                        "{} ({})".format(resource_type["name"], resource_type["code"]),
-                    )
-                )
-    if lang_code == "en":
-        values.append(("bc-wa", "Bible Commentary (bc-wa)"))
+            )
+        ]
     return sorted(values, key=lambda value: value[0])
 
 
@@ -639,7 +613,7 @@ def supported_resource_type(
 # Experimental alternative
 def resource_codes_and_types_for_lang(
     lang_code: str,
-    working_dir: str = settings.working_dir(),
+    working_dir: str = settings.RESOURCE_ASSETS_DIR,
     translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
     tw_resource_types: Sequence[str] = settings.TW_RESOURCE_TYPES,
     bc_resource_types: Sequence[str] = settings.BC_RESOURCE_TYPES,
@@ -648,10 +622,6 @@ def resource_codes_and_types_for_lang(
     Obtain the max resource codes available for each supported
     resource type for a particular language.
 
-    >>> from document.config import settings
-    >>> settings.IN_CONTAINER = False
-    >>> settings.IN_CONTAINER
-    False
     >>> from document.domain import resource_lookup
     >>> import logging
     >>> import sys
@@ -715,7 +685,7 @@ def resource_codes_and_types_for_lang(
             (
                 resource_code,
                 name,
-                cast(str, link[0] if isinstance(link, list) else link),
+                link[0] if isinstance(link, list) else link,
             )
             for resource_code, name, link in tuples
         ]
@@ -735,33 +705,37 @@ def resource_codes_and_types_for_lang(
             for link in resource_type["links"]
             if link["url"] and link["format"] == format
         ]
+        resource_type_code = resource_type["code"]
         for url in links:
-            resource_filepath = os.path.join(
+            resource_filepath = join(
                 resource_dir,
-                url.rpartition(os.path.sep)[2],
+                url.rpartition(sep)[2],
             )
             # logger.debug("resource_filepath: %s", resource_filepath)
-            if file_utils.asset_file_needs_update(resource_filepath):
+            if asset_file_needs_update(resource_filepath):
                 prepare_resource_directory(lang_code, resource_type["code"])
                 download_asset(url, resource_filepath)
                 unzip_asset(
                     lang_code,
-                    resource_type["code"],
+                    resource_type_code,
                     resource_filepath,
                 )
+            else:
+                logger.debug("Cache hit for %s", resource_filepath)
+
             # When a git repo is cloned or when a zip file is
             # unzipped, a subdirectory of resource_dir is created
             # as a result. Update resource_dir to point to that
             # subdirectory.
-            resource_dir = update_resource_dir(lang_code, resource_type["code"])
+            resource_dir = update_resource_dir(lang_code, resource_type_code)
             # Now look for manifest and if it is avialable use it to return the list of resource codes.
 
             manifest_path = ""
             # if resource_type["code"] not in tw_resource_types:
-            if os.path.exists(f"{resource_dir}/manifest.yaml"):
+            if exists(f"{resource_dir}/manifest.yaml"):
                 manifest_path = f"{resource_dir}/manifest.yaml"
                 with open(manifest_path, "r") as file:
-                    yaml_content = yaml.safe_load(file)
+                    yaml_content = safe_load(file)
                     resource_codes = [
                         (
                             resource_code["identifier"],
@@ -775,10 +749,10 @@ def resource_codes_and_types_for_lang(
                         for resource_code in yaml_content["projects"]
                     ]
 
-            elif os.path.exists(f"{resource_dir}/projects.yaml"):
+            elif exists(f"{resource_dir}/projects.yaml"):
                 manifest_path = f"{resource_dir}/projects.yaml"
                 with open(manifest_path, "r") as file:
-                    yaml_content = yaml.safe_load(file)
+                    yaml_content = safe_load(file)
                     resource_codes = [
                         (
                             resource_code["identifier"],
@@ -813,6 +787,8 @@ def resource_codes_and_types_for_lang(
         book_names: Mapping[str, str] = bible_books.BOOK_NAMES,
     ) -> list[tuple[str, str, str]]:
 
+        ldebug = logger.debug
+
         links = [
             link_transformer_fn(link["url"])
             for link in resource_type["links"]
@@ -822,13 +798,16 @@ def resource_codes_and_types_for_lang(
         resource_codes: list[tuple[str, str, str]] = []
         resource_dir = resource_directory(lang_code, resource_type["code"])
         for url in links:
-            resource_filepath = os.path.join(
+            resource_filepath = join(
                 resource_dir,
-                url.rpartition(os.path.sep)[2],
+                url.rpartition(sep)[2],
             )
             # logger.debug("resource_filepath: %s", resource_filepath)
-            if file_utils.asset_file_needs_update(resource_filepath):
+            if asset_file_needs_update(resource_filepath):
                 clone_git_repo(url, resource_filepath)
+            else:
+                logger.debug("Cache hit for %s", resource_filepath)
+
             # When a git repo is cloned or when a zip file is
             # unzipped, a subdirectory of resource_dir is created
             # as a result. Update resource_dir to point to that
@@ -837,10 +816,10 @@ def resource_codes_and_types_for_lang(
             # Now look for manifest and if it is avialable use it to return the list of resource codes.
             manifest_path = ""
             # if resource_type["code"] not in tw_resource_types:
-            if os.path.exists(f"{resource_dir}/manifest.yaml"):
+            if exists(f"{resource_dir}/manifest.yaml"):
                 manifest_path = f"{resource_dir}/manifest.yaml"
                 with open(manifest_path, "r") as file:
-                    yaml_content = yaml.safe_load(file)
+                    yaml_content = safe_load(file)
                     resource_codes = [
                         (
                             resource_code["identifier"],
@@ -854,10 +833,10 @@ def resource_codes_and_types_for_lang(
                         for resource_code in yaml_content["projects"]
                     ]
 
-            elif os.path.exists(f"{resource_dir}/projects.yaml"):
+            elif exists(f"{resource_dir}/projects.yaml"):
                 manifest_path = f"{resource_dir}/projects.yaml"
                 with open(manifest_path, "r") as file:
-                    yaml_content = yaml.safe_load(file)
+                    yaml_content = safe_load(file)
                     resource_codes = [
                         (
                             resource_code["identifier"],
@@ -873,7 +852,7 @@ def resource_codes_and_types_for_lang(
 
             # TODO If manifest was not found, then glob filenames for resource codes provided.
             if not resource_codes:
-                logger.debug("resource_codes empty")
+                ldebug("resource_codes empty")
                 pass
 
         contents_resource_codes = [
@@ -1004,26 +983,32 @@ def resource_codes_and_types_for_lang(
 def shared_resource_types(
     lang_code: str,
     resource_codes: Sequence[str],
-    working_dir: str = settings.working_dir(),
+    working_dir: str = settings.RESOURCE_ASSETS_DIR,
+    english_resource_type_map: Mapping[str, str] = settings.ENGLISH_RESOURCE_TYPE_MAP,
     translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
     lang_code_filter_list: Sequence[str] = settings.LANG_CODE_FILTER_LIST,
-) -> Iterable[tuple[str, str]]:
+) -> list[tuple[str, str]]:
     """
     Given a language code and a list of resource_codes, return the
     collection of resource types available.
 
-    >>> from document.config import settings
-    >>> settings.IN_CONTAINER = False
     >>> from document.domain import resource_lookup
     >>> list(resource_lookup.shared_resource_types("en", ["2co"]))
-    [('ulb-wa', 'Unlocked Literal Bible (ULB) (ulb-wa)'), ('tn-wa', 'ULB Translation Helps (tn-wa)'), ('bc-wa', 'Bible Commentary (bc-wa)')]
+    [('ulb-wa', 'Unlocked Literal Bible (ULB)'), ('tn-wa', 'ULB Translation Helps'), ('tq-wa', 'ULB Translation Questions'), ('tw-wa', 'ULB Translation Words'), ('bc-wa', 'Bible Commentary')]
     >>> list(resource_lookup.shared_resource_types("kbt", ["2co"]))
     [('reg', 'Bible (reg)')]
     >>> list(resource_lookup.shared_resource_types("pt-br", ["gen"]))
-    [('tn', 'Translation Notes (tn)'), ('ulb', 'Brazilian Portuguese Unlocked Literal Bible (ulb)'), ('tq', 'Translation Questions (tq)'), ('tw', 'Translation Words (tw)')]
+    [('tn', 'Translation Notes (tn)'), ('tq', 'Translation Questions (tq)'), ('tw', 'Translation Words (tw)'), ('ulb', 'Brazilian Portuguese Unlocked Literal Bible (ulb)')]
     >>> list(resource_lookup.shared_resource_types("fr", ["gen"]))
-    [('tn', 'Translation Notes (tn)'), ('tq', 'Translation Questions (tq)'), ('tw', 'Translation Words (tw)'), ('f10', 'French Louis Segond 1910 Bible (f10)')]
+    [('f10', 'French Louis Segond 1910 Bible (f10)'), ('tn', 'Translation Notes (tn)'), ('tq', 'Translation Questions (tq)'), ('tw', 'Translation Words (tw)')]
+    >>> list(resource_lookup.shared_resource_types("es-419", ["gen"]))
+    [('tn', 'Translation Notes (tn)'), ('tq', 'Translation Questions (tq)'), ('tw', 'Translation Words (tw)'), ('ulb', 'Español Latino Americano ULB (ulb)')]
     """
+
+    if lang_code == "en":
+        return [(key, value) for key, value in english_resource_type_map.items()]
+
+    values = []
     data = fetch_source_data(working_dir, translations_json_location)
     # Get the resource types for lang0
     # rcfrt = resource_types_for_resource_codes(data, lang_code, resource_codes)
@@ -1067,13 +1052,14 @@ def shared_resource_types(
                     )
                 )
             ):
-                yield (
-                    resource_type["code"],
-                    "{} ({})".format(resource_type["name"], resource_type["code"]),
+                values.append(
+                    (
+                        resource_type["code"],
+                        "{} ({})".format(resource_type["name"], resource_type["code"]),
+                    )
                 )
 
-    if lang_code == "en":
-        yield ("bc-wa", "Bible Commentary (bc-wa)")
+    return sorted(values, key=lambda value: value[0])
 
 
 def shared_resource_codes(
@@ -1083,8 +1069,6 @@ def shared_resource_codes(
     Given two language codes, return the intersection of resource
     codes between the two languages.
 
-    >>> from document.config import settings
-    >>> settings.IN_CONTAINER = False
     >>> from document.domain import resource_lookup
     >>> # Hack to ignore logging output: https://stackoverflow.com/a/33400983/3034580
     >>> # FIXME kbt shouldn't be obtainable due to an invalid URL in translations.json
@@ -1110,7 +1094,7 @@ def resource_codes_for_lang(
     jsonpath_str: str = settings.RESOURCE_CODES_FOR_LANG_JSONPATH,
     book_names: Mapping[str, str] = bible_books.BOOK_NAMES,
     book_numbers: Mapping[str, str] = bible_books.BOOK_NUMBERS,
-    working_dir: str = settings.working_dir(),
+    working_dir: str = settings.RESOURCE_ASSETS_DIR,
     translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
     usfm_resource_types: Sequence[str] = settings.USFM_RESOURCE_TYPES,
 ) -> Sequence[tuple[str, str]]:
@@ -1118,8 +1102,6 @@ def resource_codes_for_lang(
     Convenience method that can be called, e.g., from the UI, to
     get the set of all resource codes for a particular lang_code.
 
-    >>> from document.config import settings
-    >>> settings.IN_CONTAINER = False
     >>> from document.domain import resource_lookup
     >>> # Hack to ignore logging output causing doctest failure: https://stackoverflow.com/a/33400983/3034580
     >>> ();data = resource_lookup.resource_codes_for_lang("fr");() # doctest:+ELLIPSIS
@@ -1127,11 +1109,11 @@ def resource_codes_for_lang(
     >>> list(data)
     [('gen', 'Genesis'), ('exo', 'Exodus'), ('lev', 'Leviticus'), ('num', 'Numbers'), ('deu', 'Deuteronomy'), ('jos', 'Joshua'), ('jdg', 'Judges'), ('rut', 'Ruth'), ('1sa', '1 Samuel'), ('2sa', '2 Samuel'), ('1ki', '1 Kings'), ('2ki', '2 Kings'), ('1ch', '1 Chronicles'), ('2ch', '2 Chronicles'), ('ezr', 'Ezra'), ('neh', 'Nehemiah'), ('est', 'Esther'), ('job', 'Job'), ('psa', 'Psalms'), ('pro', 'Proverbs'), ('ecc', 'Ecclesiastes'), ('sng', 'Song of Solomon'), ('isa', 'Isaiah'), ('jer', 'Jeremiah'), ('lam', 'Lamentations'), ('ezk', 'Ezekiel'), ('dan', 'Daniel'), ('hos', 'Hosea'), ('jol', 'Joel'), ('amo', 'Amos'), ('oba', 'Obadiah'), ('jon', 'Jonah'), ('mic', 'Micah'), ('nam', 'Nahum'), ('hab', 'Habakkuk'), ('zep', 'Zephaniah'), ('hag', 'Haggai'), ('zec', 'Zechariah'), ('mal', 'Malachi'), ('mat', 'Matthew'), ('mrk', 'Mark'), ('luk', 'Luke'), ('jhn', 'John'), ('act', 'Acts'), ('rom', 'Romans'), ('1co', '1 Corinthians'), ('2co', '2 Corinthians'), ('gal', 'Galatians'), ('eph', 'Ephesians'), ('php', 'Philippians'), ('col', 'Colossians'), ('1th', '1 Thessalonians'), ('2th', '2 Thessalonians'), ('1ti', '1 Timothy'), ('2ti', '2 Timothy'), ('tit', 'Titus'), ('phm', 'Philemon'), ('heb', 'Hebrews'), ('jas', 'James'), ('1pe', '1 Peter'), ('2pe', '2 Peter'), ('1jn', '1 John'), ('2jn', '2 John'), ('3jn', '3 John'), ('jud', 'Jude'), ('rev', 'Revelation')]
     """
-    resource_codes = (
+    resource_codes = [
         (resource_code, book_names[resource_code])
         for resource_code in _lookup(jsonpath_str.format(lang_code))
         if resource_code
-    )
+    ]
     return sorted(
         resource_codes,
         key=lambda resource_code_name_pair: book_numbers[resource_code_name_pair[0]],
@@ -1144,7 +1126,7 @@ def resource_codes_for_lang(
 #     jsonpath_str: str = settings.RESOURCE_CODES_FOR_LANG_JSONPATH,
 #     book_names: Mapping[str, str] = bible_books.BOOK_NAMES,
 #     book_numbers: Mapping[str, str] = bible_books.BOOK_NUMBERS,
-#     working_dir: str = settings.working_dir(),
+#     working_dir: str = settings.RESOURCE_ASSETS_DIR,
 #     translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
 #     usfm_resource_types: Sequence[str] = settings.USFM_RESOURCE_TYPES,
 # ) -> Sequence[tuple[str, str]]:
@@ -1152,8 +1134,6 @@ def resource_codes_for_lang(
 #     Convenience method that can be called, e.g., from the UI, to
 #     get the set of all resource codes for a particular lang_code.
 
-#     >>> from document.config import settings
-#     >>> settings.IN_CONTAINER = False
 #     >>> from document.domain import resource_lookup
 #     >>> # Hack to ignore logging output: https://stackoverflow.com/a/33400983/3034580
 #     >>> ();data = resource_lookup.resource_codes_for_lang("fr");() # doctest:+ELLIPSIS
@@ -1205,17 +1185,15 @@ def resource_codes(jsonpath_str: str = settings.RESOURCE_CODES_JSONPATH) -> Any:
 
 
 def lang_codes_names_and_resource_types(
-    working_dir: str = settings.working_dir(),
+    working_dir: str = settings.RESOURCE_ASSETS_DIR,
     translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
-) -> Iterable[model.CodeNameTypeTriplet]:
+) -> Iterable[CodeNameTypeTriplet]:
     """
     Convenience method that can be called to get the list of all
     tuples containing language code, language name, and list of
     resource types available for that language.
 
     Example usage in repl:
-    >>> from document.config import settings
-    >>> settings.IN_CONTAINER = False
     >>> from document.domain import resource_lookup
     >>> data = resource_lookup.lang_codes_names_and_resource_types()
     >>> # Lookup the resource types available for zh
@@ -1232,7 +1210,7 @@ def lang_codes_names_and_resource_types(
                 resource_types.append(resource_type)
             except Exception:
                 resource_type = None
-            yield model.CodeNameTypeTriplet(
+            yield CodeNameTypeTriplet(
                 lang_code=lang["code"],
                 lang_name=lang["name"],
                 resource_types=resource_types,
@@ -1240,7 +1218,7 @@ def lang_codes_names_and_resource_types(
 
 
 def lang_codes_names_resource_types_and_resource_codes(
-    working_dir: str = settings.working_dir(),
+    working_dir: str = settings.RESOURCE_ASSETS_DIR,
     translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
 ) -> Iterable[tuple[str, str, Sequence[tuple[str, Sequence[str]]]]]:
     """
@@ -1251,8 +1229,6 @@ def lang_codes_names_resource_types_and_resource_codes(
     type.
 
     Example usage in repl:
-    >>> from document.config import settings
-    >>> settings.IN_CONTAINER = False
     >>> from document.domain import resource_lookup
     >>> data = resource_lookup.lang_codes_names_resource_types_and_resource_codes()
     >>> # Lookup the resource type available for zh
@@ -1302,7 +1278,7 @@ def lang_codes_names_resource_types_and_resource_codes(
 # NOTE Only used for debugging and testing. Not part of long-term
 # API.
 def lang_codes_names_and_contents_codes(
-    working_dir: str = settings.working_dir(),
+    working_dir: str = settings.RESOURCE_ASSETS_DIR,
     translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
 ) -> Sequence[tuple[str, str, str]]:
     """
@@ -1324,12 +1300,10 @@ def lang_codes_names_and_contents_codes(
             ...
 
     Example usage in repl:
-    >>> from document.config import settings
-    >>> settings.IN_CONTAINER = False
     >>> from document.domain import resource_lookup
     >>> data = resource_lookup.lang_codes_names_and_contents_codes()
     >>> [(triplet[0], triplet[1]) for triplet in data if triplet[2] == "nil"]
-    [('hr', 'hrvatski jezik'), ('gaj-x-ymnk', 'Gadsup Yomunka'), ('hu', 'magyar'), ('mve', 'مارواري (Pakistan)'), ('lus', 'Lushai'), ('mor', 'Moro'), ('sr-Latn', 'Serbian'), ('tem', 'Timne'), ('tig', 'Tigre')]
+    [('hr', 'hrvatski jezik'), ('gaj-x-ymnk', 'Gadsup Yomunka'), ('hu', 'magyar'), ('lus', 'Lushai'), ('mor', 'Moro'), ('sr-Latn', 'Serbian'), ('tem', 'Timne'), ('tig', 'Tigre')]
     >>> # Other possible queries:
     >>> # [(triplet[0], triplet[1]) for triplet in data if triplet[2] == "reg"]
     >>> # [(triplet[0], triplet[1]) for triplet in data if triplet[2] == "ulb"]
@@ -1368,34 +1342,59 @@ def resource_lookup_dto(
     resource_type: str,
     resource_code: str,
     usfm_resource_types: Sequence[str] = settings.USFM_RESOURCE_TYPES,
+    en_usfm_resource_types: Sequence[str] = settings.EN_USFM_RESOURCE_TYPES,
     tn_resource_types: Sequence[str] = settings.TN_RESOURCE_TYPES,
     en_tn_resource_types: Sequence[str] = settings.EN_TN_RESOURCE_TYPES,
     tq_resource_types: Sequence[str] = settings.TQ_RESOURCE_TYPES,
+    en_tq_resource_types: Sequence[str] = settings.EN_TQ_RESOURCE_TYPES,
     tw_resource_types: Sequence[str] = settings.TW_RESOURCE_TYPES,
+    en_tw_resource_types: Sequence[str] = settings.EN_TW_RESOURCE_TYPES,
     bc_resource_types: Sequence[str] = settings.BC_RESOURCE_TYPES,
-) -> model.ResourceLookupDto:
+) -> ResourceLookupDto:
     """
     Get the model.ResourceLookupDto instance for the given lang_code,
     resource_type, resource_code combination.
     """
-    if resource_type in usfm_resource_types:
-        return usfm_resource_lookup(lang_code, resource_type, resource_code)
-    elif (
-        (lang_code == "en" and resource_type in en_tn_resource_types)
-        or (lang_code != "en" and resource_type in tn_resource_types)
-        or resource_type in tq_resource_types
-        or resource_type in tw_resource_types
-    ):
-        return t_resource_lookup(lang_code, resource_type, resource_code)
-    elif lang_code == "en" and resource_type in bc_resource_types:
-        return bc_resource_lookup(lang_code, resource_type, resource_code)
-    else:
-        raise exceptions.InvalidDocumentRequestException(
-            message="{} resource type requested is invalid.".format(resource_type)
-        )
+    # For English, with the exception of tn resource type, translations.json
+    # file only contains URLs to PDF assets rather than anything useful for
+    # our purposes with a few inconsistent exceptions. Therefore, we have
+    # this guard to handle English resource requests separately outside of
+    # translations.json.
+    if lang_code == "en":
+        if (
+            resource_type in en_usfm_resource_types
+            or resource_type in en_tn_resource_types
+            or resource_type in en_tq_resource_types
+            or resource_type in en_tw_resource_types
+            or resource_type in bc_resource_types
+        ):
+            return _english_git_repo_location(
+                lang_code,
+                resource_type,
+                resource_code,
+                url=english_git_repo_url(resource_type),
+                resource_type_name=english_resource_type_name(resource_type),
+            )
+        else:  # This would be an invalid English resource type
+            raise exceptions.InvalidDocumentRequestException(
+                message="{} resource type requested is invalid.".format(resource_type)
+            )
+    else:  # Non-English lang_code
+        if resource_type in usfm_resource_types:
+            return usfm_resource_lookup(lang_code, resource_type, resource_code)
+        elif (
+            resource_type in tn_resource_types
+            or resource_type in tq_resource_types
+            or resource_type in tw_resource_types
+        ):
+            return t_resource_lookup(lang_code, resource_type, resource_code)
+        else:
+            raise exceptions.InvalidDocumentRequestException(
+                message="{} resource type requested is invalid.".format(resource_type)
+            )
 
 
-def provision_asset_files(resource_lookup_dto: model.ResourceLookupDto) -> str:
+def provision_asset_files(resource_lookup_dto: ResourceLookupDto) -> str:
     """
     Prepare the resource directory and then download the
     resource's file assets into that directory. Return resource_dir.
@@ -1409,10 +1408,10 @@ def provision_asset_files(resource_lookup_dto: model.ResourceLookupDto) -> str:
 def resource_directory(
     lang_code: str,
     resource_type: str,
-    working_dir: str = settings.working_dir(),
+    working_dir: str = settings.RESOURCE_ASSETS_DIR,
 ) -> str:
     """Return the resource directory for the resource_lookup_dto."""
-    return os.path.join(
+    return join(
         working_dir,
         "{}_{}".format(lang_code, resource_type),
     )
@@ -1426,17 +1425,17 @@ def prepare_resource_directory(lang_code: str, resource_type: str) -> None:
 
     resource_dir = resource_directory(lang_code, resource_type)
 
-    if not os.path.exists(resource_dir):
+    if not exists(resource_dir):
         logger.debug("About to create directory %s", resource_dir)
         try:
-            os.mkdir(resource_dir)
+            mkdir(resource_dir)
         except FileExistsError:
             logger.exception("Directory {} already existed".format(resource_dir))
         else:
             logger.debug("Created directory %s", resource_dir)
 
 
-def acquire_resource_assets(resource_lookup_dto: model.ResourceLookupDto) -> str:
+def acquire_resource_assets(resource_lookup_dto: ResourceLookupDto) -> str:
     """
     Download or git clone resource and unzip resulting file if it
     is a zip file. Return the resource_dir path.
@@ -1448,15 +1447,15 @@ def acquire_resource_assets(resource_lookup_dto: model.ResourceLookupDto) -> str
     if (
         resource_lookup_dto.url is not None
     ):  # We know that resource_url is not None because of how we got here, but mypy isn't convinced. Let's convince mypy.
-        resource_filepath = os.path.join(
+        resource_filepath = join(
             resource_dir,
-            resource_lookup_dto.url.rpartition(os.path.sep)[2],
+            resource_lookup_dto.url.rpartition(sep)[2],
         )
 
         logger.debug("resource_filepath: %s", resource_filepath)
         # Check if resource assets need updating otherwise use
         # what we already have on disk.
-        if file_utils.asset_file_needs_update(resource_filepath):
+        if asset_file_needs_update(resource_filepath):
             if is_git(resource_lookup_dto.source):
                 clone_git_repo(resource_lookup_dto.url, resource_filepath)
             else:
@@ -1468,6 +1467,8 @@ def acquire_resource_assets(resource_lookup_dto: model.ResourceLookupDto) -> str
                     resource_lookup_dto.resource_type,
                     resource_filepath,
                 )
+        else:
+            logger.debug("Cache hit for %s", resource_filepath)
         if is_git(resource_lookup_dto.source) or is_zip(resource_lookup_dto.source):
             # When a git repo is cloned or when a zip file is
             # unzipped, a subdirectory of resource_dir is created
@@ -1483,19 +1484,22 @@ def unzip_asset(lang_code: str, resource_type: str, resource_filepath: str) -> N
     """Unzip the asset in its resource directory."""
     resource_dir = resource_directory(lang_code, resource_type)
     logger.debug("Unzipping %s into %s", resource_filepath, resource_dir)
-    file_utils.unzip(resource_filepath, resource_dir)
+    unzip(resource_filepath, resource_dir)
     logger.info("Unzipping finished.")
 
 
 def clone_git_repo(
-    url: str, resource_filepath: str, use_git_cli: bool = settings.USE_GIT_CLI
+    url: str,
+    resource_filepath: str,
+    branch: Optional[str] = None,
+    use_git_cli: bool = settings.USE_GIT_CLI,
 ) -> None:
     """
     Clone the git repo. If the repo was previously cloned but
     the ASSET_CACHING_PERIOD has expired then delete the repo and
     clone it again to get updates.
     """
-    if os.path.exists(resource_filepath):
+    if exists(resource_filepath):
         logger.debug(
             "About to delete pre-existing git repo %s in order to recreate it due to cache staleness.",
             resource_filepath,
@@ -1509,7 +1513,12 @@ def clone_git_repo(
             )
             logger.exception("Caught exception: ")
     if use_git_cli:
-        command = "git clone --depth=1 '{}' '{}'".format(url, resource_filepath)
+        if branch:  # CLient specified a particular branch
+            command = "git clone --depth=1 --branch '{}' '{}' '{}'".format(
+                branch, url, resource_filepath
+            )
+        else:
+            command = "git clone --depth=1 '{}' '{}'".format(url, resource_filepath)
         logger.debug("Attempting to clone into %s ...", resource_filepath)
         try:
             subprocess.call(command, shell=True)
@@ -1518,7 +1527,7 @@ def clone_git_repo(
             logger.debug("git clone failed!")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="git clone was empty",
+                detail="git clone failed",
             )
         else:
             logger.debug("git command: %s", command)
@@ -1526,9 +1535,19 @@ def clone_git_repo(
     else:
         logger.debug("Attempting to clone into %s ...", resource_filepath)
         try:
-            git.repo.Repo.clone_from(
-                url=url, to_path=resource_filepath, multi_options=["--depth=1"]
-            )
+            if branch:  # CLient specified a particular branch
+                git.repo.Repo.clone_from(
+                    url=url,
+                    to_path=resource_filepath,
+                    multi_options=["--depth=1", "--branch '{}'".format(branch)],
+                )
+            else:
+                git.repo.Repo.clone_from(
+                    url=url,
+                    to_path=resource_filepath,
+                    multi_options=["--depth=1"],
+                )
+
             # with git_clone_options(...) ?
             #   pygit2.clone_repository(url, resource_filepath)
         except Exception:
@@ -1536,7 +1555,7 @@ def clone_git_repo(
             logger.debug("git clone failed!")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="git clone was empty",
+                detail="git clone failed",
             )
         else:
             logger.debug("git clone succeeded.")
@@ -1563,7 +1582,7 @@ def update_resource_dir(lang_code: str, resource_type: str) -> str:
     resource_dir to point to that subdirectory.
     """
     resource_dir = resource_directory(lang_code, resource_type)
-    subdirs = [file.path for file in os.scandir(resource_dir) if file.is_dir()]
+    subdirs = [file.path for file in scandir(resource_dir) if file.is_dir()]
     if subdirs:
         resource_dir = subdirs[0]
         logger.debug(
@@ -1574,16 +1593,16 @@ def update_resource_dir(lang_code: str, resource_type: str) -> str:
 
 
 def is_zip(
-    resource_source: model.AssetSourceEnum,
-    asset_source_enum_kind: str = model.AssetSourceEnum.ZIP,
+    resource_source: AssetSourceEnum,
+    asset_source_enum_kind: str = AssetSourceEnum.ZIP,
 ) -> bool:
     """Return true if resource_source is equal to 'zip'."""
     return resource_source == asset_source_enum_kind
 
 
 def is_git(
-    resource_source: model.AssetSourceEnum,
-    asset_source_enum_kind: str = model.AssetSourceEnum.GIT,
+    resource_source: AssetSourceEnum,
+    asset_source_enum_kind: str = AssetSourceEnum.GIT,
 ) -> bool:
     """Return true if resource_source is equal to 'git'."""
     return resource_source == asset_source_enum_kind

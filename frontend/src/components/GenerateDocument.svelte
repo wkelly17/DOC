@@ -14,6 +14,7 @@
   import {
     layoutForPrintStore,
     assemblyStrategyKindStore,
+    assemblyStrategyChunkSizeStore,
     generatePdfStore,
     generateEpubStore,
     generateDocxStore,
@@ -21,6 +22,7 @@
     documentRequestKeyStore
   } from '../stores/SettingsStore'
   import { documentReadyStore, errorStore } from '../stores/NotificationStore'
+  import { taskIdStore, taskStateStore } from '../stores/TaskStore'
   import { getApiRootUrl, resetStores } from '../lib/utils'
 
   let apiRootUrl = getApiRootUrl()
@@ -31,6 +33,20 @@
     resetStores('resource_types')
     resetStores('settings')
     resetStores('notifications')
+  }
+
+  async function poll(taskId: string): Promise<string | [string, string]> {
+    console.log(`taskId in poll: ${taskId}`)
+    let res = await fetch(`${apiRootUrl}/task_status/${taskId}`, {
+      method: 'GET'
+    })
+    let json = await res.json()
+    let state = json?.state
+    if (state === 'SUCCESS') {
+      let result = json?.result
+      return [state, result]
+    }
+    return state
   }
 
   async function generateDocument() {
@@ -94,9 +110,31 @@
       errorStore.set(data.detail)
     } else {
       console.log(`data: ${JSON.stringify(data)}`)
-      documentReadyStore.set(true)
-      documentRequestKeyStore.set(data['finished_document_request_key'])
-      errorStore.set(null)
+      $taskIdStore = data.task_id
+      console.log(`$taskIdStore: ${$taskIdStore}`)
+      const timer = setInterval(async function () {
+        // Poll the server for the task state and result, if ready
+        let results = await poll($taskIdStore)
+        console.log(`results: ${results}`)
+        $taskStateStore = Array.isArray(results) ? results[0] : results
+        console.log(`$taskStateStore: ${$taskStateStore}`)
+        if ($taskStateStore === 'SUCCESS' && Array.isArray(results) && results[1]) {
+          let finishedDocumentRequestKey = results[1]
+          console.log(`finishedDocumentReuestKey: ${finishedDocumentRequestKey}`)
+          documentReadyStore.set(true)
+          documentRequestKeyStore.set(finishedDocumentRequestKey)
+          errorStore.set(null)
+          taskStateStore.set('')
+          clearInterval(timer)
+        } else if ($taskStateStore === 'FAILURE') {
+          console.log("We're sorry, an internal error occurred which we'll investigate.")
+          errorStore.set(
+            "We're sorry. An error occurred. The document you requested may not yet be supported or we may have experienced an internal problem which we'll investigate. Please try another document request."
+          )
+          taskStateStore.set('')
+          clearInterval(timer)
+        }
+      }, 5000)
     }
   }
 </script>

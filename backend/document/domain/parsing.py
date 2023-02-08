@@ -2,25 +2,58 @@
 This module provides an API for parsing content.
 """
 
-import os
-import pathlib
-import re
 import time
-from collections.abc import Mapping, Sequence
 from glob import glob
-from typing import Optional, cast
+from os import scandir
+from os.path import exists, join, split
+from pathlib import Path
+from re import compile, sub
+from typing import Mapping, Optional, Sequence, cast
 
-import bs4
 import markdown
+from bs4 import BeautifulSoup
+from bs4.element import Tag
 from document.config import settings
-from document.domain import bible_books, model
+from document.domain.bible_books import BOOK_NAMES, book_number
+from document.domain.assembly_strategies.assembly_strategy_utils import (
+    adjust_book_intro_headings,
+    adjust_chapter_intro_headings,
+    adjust_commentary_headings,
+)
+from document.domain.model import (
+    BCBook,
+    BCChapter,
+    BookContent,
+    ChapterNum,
+    ChunkSizeEnum,
+    HtmlContent,
+    MarkdownContent,
+    ResourceLookupDto,
+    ResourceRequest,
+    TNBook,
+    TNChapter,
+    TQBook,
+    TQChapter,
+    TWBook,
+    TWNameContentPair,
+    USFMBook,
+    USFMChapter,
+    VerseRef,
+)
 from document.markdown_extensions import (
-    link_transformer_preprocessor,
     link_print_transformer_preprocessor,
+    link_transformer_preprocessor,
     remove_section_preprocessor,
 )
-from document.utils import file_utils, html_parsing_utils, tw_utils
-from usfm_tools.transform import UsfmTransform  # type: ignore
+from document.utils.file_utils import read_file
+from document.utils.html_parsing_utils import tag_elements_between
+from document.utils.tw_utils import (
+    localized_translation_word,
+    translation_word_filepaths,
+    translation_words_dict,
+    tw_resource_dir,
+)
+from usfm_tools import transform
 
 logger = settings.logger(__name__)
 
@@ -29,8 +62,8 @@ H1, H2, H3, H4 = "h1", "h2", "h3", "h4"
 
 def attempt_asset_content_rescue(
     resource_dir: str,
-    resource_lookup_dto: model.ResourceLookupDto,
-    bible_book_names: Mapping[str, str] = bible_books.BOOK_NAMES,
+    resource_lookup_dto: ResourceLookupDto,
+    bible_book_names: Mapping[str, str] = BOOK_NAMES,
 ) -> str:
     """
     Attempt to assemble and construct parseable USFM content for USFM
@@ -39,7 +72,7 @@ def attempt_asset_content_rescue(
     """
     subdirs = [
         file
-        for file in os.scandir(resource_dir)
+        for file in scandir(resource_dir)
         if file.is_dir()
         and file.name != ".git"
         and file.name != "front"
@@ -64,7 +97,7 @@ def attempt_asset_content_rescue(
         chapter_verse_files = sorted(
             [
                 file.path
-                for file in os.scandir(chapter_dir)
+                for file in scandir(chapter_dir)
                 if file.is_file() and file.name != "title.txt"
             ]
         )
@@ -78,7 +111,7 @@ def attempt_asset_content_rescue(
 
     # Write the concatenated markdown content to a
     # non-clobberable filename.
-    filename = os.path.join(
+    filename = join(
         resource_dir,
         "{}_{}_{}_{}.md".format(
             resource_lookup_dto.lang_code,
@@ -94,9 +127,9 @@ def attempt_asset_content_rescue(
 
 
 def asset_content(
-    resource_lookup_dto: model.ResourceLookupDto,
+    resource_lookup_dto: ResourceLookupDto,
     resource_dir: str,
-    output_dir: str = settings.output_dir(),
+    output_dir: str = settings.DOCUMENT_OUTPUT_DIR,
     usfm_glob_fmt_str: str = "{}**/*.usfm",
     usfm_ending_in_txt_glob_fmt_str: str = "{}**/*.txt",
     usfm_ending_in_txt_in_subdirectoy_glob_fmt_str: str = "{}**/**/*.txt",
@@ -176,81 +209,159 @@ def asset_content(
         # raise MalformedUsfmError when the following code is called. The
         # document_generator module will catch that error but continue with
         # other resource requests in the same document request.
-        UsfmTransform.buildSingleHtmlFromFile(
-            pathlib.Path(content_files[0]),
+        t0 = time.time()
+        transform.buildSingleHtmlFromFile(
+            Path(content_files[0]),
             output_dir,
             resource_filename_,
         )
-        html_file = os.path.join(output_dir, "{}.html".format(resource_filename_))
-        assert os.path.exists(html_file)
-        html_content = file_utils.read_file(html_file)
+        t1 = time.time()
+        logger.debug(
+            "Time to convert USFM to HTML (parsing to AST + convert AST to HTML) for %s-%s-%s: %s",
+            resource_lookup_dto.lang_code,
+            resource_lookup_dto.resource_type,
+            resource_lookup_dto.resource_code,
+            t1 - t0,
+        )
+        html_file = join(output_dir, "{}.html".format(resource_filename_))
+        assert exists(html_file)
+        html_content = read_file(html_file)
     return html_content
 
 
-# NOTE Avoiding use of polymorphism via functools function dispatch because
-# mypyc doesn't like use of decorators for the most part and won't
-# compile the code where they are used unless the decorators are typed
-# correctly, i.e., strictly.
 def book_content(
-    resource_lookup_dto: model.ResourceLookupDto,
+    resource_lookup_dto: ResourceLookupDto,
     resource_dir: str,
-    resource_requests: Sequence[model.ResourceRequest],
+    resource_requests: Sequence[ResourceRequest],
     layout_for_print: bool,
+    chunk_size: str,
     usfm_resource_types: Sequence[str] = settings.USFM_RESOURCE_TYPES,
+    en_usfm_resource_types: Sequence[str] = settings.EN_USFM_RESOURCE_TYPES,
     tn_resource_types: Sequence[str] = settings.TN_RESOURCE_TYPES,
     en_tn_resource_types: Sequence[str] = settings.EN_TN_RESOURCE_TYPES,
     tq_resource_types: Sequence[str] = settings.TQ_RESOURCE_TYPES,
+    en_tq_resource_types: Sequence[str] = settings.EN_TQ_RESOURCE_TYPES,
     tw_resource_types: Sequence[str] = settings.TW_RESOURCE_TYPES,
+    en_tw_resource_types: Sequence[str] = settings.EN_TW_RESOURCE_TYPES,
     bc_resource_types: Sequence[str] = settings.BC_RESOURCE_TYPES,
-) -> model.BookContent:
-    """Build and return the HTML book content instance."""
-    book_content: model.BookContent
-    if resource_lookup_dto.resource_type in usfm_resource_types:
+) -> BookContent:
+    """Build and return the BookContent instance."""
+    book_content: BookContent
+    if (
+        resource_lookup_dto.resource_type in usfm_resource_types
+        or resource_lookup_dto.resource_type in en_usfm_resource_types
+    ):
+        t0 = time.time()
         book_content = usfm_book_content(
             resource_lookup_dto, resource_dir, resource_requests, layout_for_print
         )
-    elif resource_lookup_dto.resource_type in cast(list[str], tn_resource_types) + cast(
-        list[str], en_tn_resource_types
+        t1 = time.time()
+        logger.debug(
+            "Time splitting HTML into chapters and verses for interleaving for %s-%s-%s: %s",
+            resource_lookup_dto.lang_code,
+            resource_lookup_dto.resource_type,
+            resource_lookup_dto.resource_code,
+            t1 - t0,
+        )
+    elif (
+        resource_lookup_dto.resource_type in tn_resource_types
+        or resource_lookup_dto.resource_type in en_tn_resource_types
     ):
+        t0 = time.time()
         book_content = tn_book_content(
-            resource_lookup_dto, resource_dir, resource_requests, layout_for_print
+            resource_lookup_dto,
+            resource_dir,
+            resource_requests,
+            layout_for_print,
+            chunk_size,
         )
-    elif resource_lookup_dto.resource_type in tq_resource_types:
+        t1 = time.time()
+        logger.debug(
+            "Time processing and converting TN Markdown to HTML for interleaving for %s-%s-%s: %s",
+            resource_lookup_dto.lang_code,
+            resource_lookup_dto.resource_type,
+            resource_lookup_dto.resource_code,
+            t1 - t0,
+        )
+    elif (
+        resource_lookup_dto.resource_type in tq_resource_types
+        or resource_lookup_dto.resource_type in en_tq_resource_types
+    ):
+        t0 = time.time()
         book_content = tq_book_content(
-            resource_lookup_dto, resource_dir, resource_requests, layout_for_print
+            resource_lookup_dto,
+            resource_dir,
+            resource_requests,
+            layout_for_print,
+            chunk_size,
         )
-    elif resource_lookup_dto.resource_type in tw_resource_types:
+        t1 = time.time()
+        logger.debug(
+            "Time processing and converting TQ Markdown to HTML for interleaving for %s-%s-%s: %s",
+            resource_lookup_dto.lang_code,
+            resource_lookup_dto.resource_type,
+            resource_lookup_dto.resource_code,
+            t1 - t0,
+        )
+    elif (
+        resource_lookup_dto.resource_type in tw_resource_types
+        or resource_lookup_dto.resource_type in en_tw_resource_types
+    ):
+        t0 = time.time()
         book_content = tw_book_content(
             resource_lookup_dto, resource_dir, resource_requests, layout_for_print
         )
+        t1 = time.time()
+        logger.debug(
+            "Time processing, converting, and linking TW Markdown to HTML for interleaving for %s-%s-%s: %s",
+            resource_lookup_dto.lang_code,
+            resource_lookup_dto.resource_type,
+            resource_lookup_dto.resource_code,
+            t1 - t0,
+        )
     elif resource_lookup_dto.resource_type in bc_resource_types:
+        t0 = time.time()
         book_content = bc_book_content(
             resource_lookup_dto, resource_dir, resource_requests, layout_for_print
+        )
+        t1 = time.time()
+        logger.debug(
+            "Time processing, converting, and linking BC Markdown to HTML for interleaving for %s-%s-%s: %s",
+            resource_lookup_dto.lang_code,
+            resource_lookup_dto.resource_type,
+            resource_lookup_dto.resource_code,
+            t1 - t0,
         )
     return book_content
 
 
-def is_footnote_ref(id: str) -> bool:
+def is_footnote_ref(id: Optional[str]) -> bool:
     """
     Predicate function used to find links that have an href value that
     we expect footnote references to have.
     """
-    return id is not None and re.compile("ref-fn-.*").match(id) is not None
+    return id is not None and compile("ref-fn-.*").match(id) is not None
 
 
 def usfm_book_content(
-    resource_lookup_dto: model.ResourceLookupDto,
+    resource_lookup_dto: ResourceLookupDto,
     resource_dir: str,
-    resource_requests: Sequence[model.ResourceRequest],
+    resource_requests: Sequence[ResourceRequest],
     layout_for_print: bool,
     h2: str = H2,
-    bs_parser_type: str = "html.parser",
+    bs_parser_type: str = "lxml",
     css_attribute_type: str = "class",
     pattern: str = settings.VERSE_ANCHOR_ID_FMT_STR,
     format_str: str = settings.VERSE_ANCHOR_ID_SUBSTITUTION_FMT_STR,
-) -> model.USFMBook:
+) -> USFMBook:
+    """
+    First produce HTML content from USFM content through call to
+    asset_content and then break the HTML content returned from that
+    into a model.USFMBook data structure containing chapters, verses,
+    footnotes, for use during interleaving with other resource assets.
+    """
     html_content = asset_content(resource_lookup_dto, resource_dir)
-    parser = bs4.BeautifulSoup(html_content, bs_parser_type)
+    parser = BeautifulSoup(html_content, bs_parser_type)
 
     if layout_for_print:
         # Find all verse level footnote references for this chapter
@@ -265,21 +376,21 @@ def usfm_book_content(
             verse_footnote_ref.i.a.replace_with(span)
 
     chapter_break_tags = parser.find_all(h2, attrs={css_attribute_type: "c-num"})
-    chapters: dict[model.ChapterNum, model.USFMChapter] = {}
+    chapters: dict[ChapterNum, USFMChapter] = {}
     for chapter_break in chapter_break_tags:
         chapter_num = int(chapter_break.get_text().split()[1])
-        chapter_content = html_parsing_utils.tag_elements_between(
+        chapter_content = tag_elements_between(
             parser.find(
                 h2,
-                text=re.compile(".* {}".format(chapter_num)),
+                text=compile(".* {}".format(chapter_num)),
             ),
             parser.find(
                 h2,
-                text=re.compile(".* {}".format(chapter_num + 1)),
+                text=compile(".* {}".format(chapter_num + 1)),
             ),
         )
         chapter_content = [str(tag) for tag in list(chapter_content)]
-        chapter_content_parser = bs4.BeautifulSoup(
+        chapter_content_parser = BeautifulSoup(
             "".join(chapter_content),
             bs_parser_type,
         )
@@ -292,7 +403,7 @@ def usfm_book_content(
         if layout_for_print:
             if chapter_footnote_tag:
                 chapter_footnote_str = str(chapter_footnote_tag)
-                chapter_footnotes_parser = bs4.BeautifulSoup(
+                chapter_footnotes_parser = BeautifulSoup(
                     chapter_footnote_str, bs_parser_type
                 )
                 a_tags = chapter_footnotes_parser.find_all("a")
@@ -304,15 +415,15 @@ def usfm_book_content(
                 # which is executed for either case.
                 chapter_footnote_tag = chapter_footnotes_parser
         chapter_footnotes = (
-            model.HtmlContent(str(chapter_footnote_tag))
+            HtmlContent(str(chapter_footnote_tag))
             if chapter_footnote_tag
-            else model.HtmlContent("")
+            else HtmlContent("")
         )
 
         # Dictionary to hold verse number, verse value pairs.
         chapter_verses: dict[str, str] = {}
         for verse_span_tag_str in chapter_verse_span_tags:
-            verse_span_tag = cast(bs4.element.Tag, verse_span_tag_str)
+            verse_span_tag = cast(Tag, verse_span_tag_str)
             verse_ref_, upper_bound_value = verse_ref(verse_span_tag)
             verse_content_str_ = verse_content_str(
                 verse_span_tag,
@@ -325,18 +436,18 @@ def usfm_book_content(
             # with the lang_code for the language we are currently parsing to ensure
             # unique verse references within language scope in a multi-language
             # document.
-            updated_verse_content_str = re.sub(
+            updated_verse_content_str = sub(
                 pattern,
                 format_str.format(resource_lookup_dto.lang_code),
                 verse_content_str_,
             )
             chapter_verses[verse_ref_] = updated_verse_content_str
-        chapters[chapter_num] = model.USFMChapter(
+        chapters[chapter_num] = USFMChapter(
             content=chapter_content,
             verses=chapter_verses,
             footnotes=chapter_footnotes,
         )
-    return model.USFMBook(
+    return USFMBook(
         lang_code=resource_lookup_dto.lang_code,
         lang_name=resource_lookup_dto.lang_name,
         resource_code=resource_lookup_dto.resource_code,
@@ -345,7 +456,7 @@ def usfm_book_content(
     )
 
 
-def verse_ref(verse_span_tag: bs4.element.Tag) -> tuple[str, int]:
+def verse_ref(verse_span_tag: Tag) -> tuple[str, int]:
     """Return the verse_ref value."""
     # Rather than a single verse num, the item in
     # verse_num may be a verse range, e.g., 1-2.
@@ -375,8 +486,8 @@ def verse_ref(verse_span_tag: bs4.element.Tag) -> tuple[str, int]:
 
 
 def verse_content_str(
-    lower_tag: bs4.element.Tag,
-    chapter_content_parser: bs4.BeautifulSoup,
+    lower_tag: Tag,
+    chapter_content_parser: BeautifulSoup,
     book_number: str,
     chapter_num: int,
     upper_bound_value: int,
@@ -412,10 +523,11 @@ def verse_content_str(
 
 
 def tn_book_content(
-    resource_lookup_dto: model.ResourceLookupDto,
+    resource_lookup_dto: ResourceLookupDto,
     resource_dir: str,
-    resource_requests: Sequence[model.ResourceRequest],
+    resource_requests: Sequence[ResourceRequest],
     layout_for_print: bool,
+    chunk_size: str,
     chapter_dirs_glob_fmt_str: str = "{}/**/*{}/*[0-9]*",
     chapter_dirs_glob_alt_fmt_str: str = "{}/*{}/*[0-9]*",
     intro_paths_glob_fmt_str: str = "{}/*intro.md",
@@ -424,7 +536,10 @@ def tn_book_content(
     verse_paths_glob_alt_fmt_str: str = "{}/*[0-9]*.txt",
     book_intro_paths_glob_fmt_str: str = "{}/*{}/front/intro.md",
     book_intro_paths_glob_alt_fmt_str: str = "{}/*{}/front/intro.txt",
-) -> model.TNBook:
+    h1: str = H1,
+    h4: str = H4,
+    verse_label_fmt_str: str = "<h3>{} {}:{}</h3>\n{}",
+) -> TNBook:
     # Initialize the Python-Markdown extensions that get invoked
     # when md.convert is called.
     md: markdown.Markdown = markdown_instance(
@@ -453,9 +568,9 @@ def tn_book_content(
                 )
             )
         )
-    chapter_verses: dict[int, model.TNChapter] = {}
+    chapter_verses: dict[int, TNChapter] = {}
     for chapter_dir in chapter_dirs:
-        chapter_num = int(os.path.split(chapter_dir)[-1])
+        chapter_num = int(split(chapter_dir)[-1])
         intro_paths = glob(intro_paths_glob_fmt_str.format(chapter_dir))
         # For some languages, TN assets are stored in .txt files
         # rather than .md files.
@@ -465,20 +580,31 @@ def tn_book_content(
         intro_md = ""
         intro_html = ""
         if intro_path:
-            intro_md = file_utils.read_file(intro_path)
+            intro_md = read_file(intro_path)
             intro_html = md.convert(intro_md)
         verse_paths = sorted(glob(verse_paths_glob_fmt_str.format(chapter_dir)))
         # For some languages, TN assets are stored in .txt files
         # rather than .md files.
         if not verse_paths:
             verse_paths = sorted(glob(verse_paths_glob_alt_fmt_str.format(chapter_dir)))
-        verses_html: dict[int, str] = {}
+        verses_html: dict[VerseRef, str] = {}
         for filepath in verse_paths:
-            verse_num = int(pathlib.Path(filepath).stem)
-            verse_md_content = file_utils.read_file(filepath)
+            verse_ref = Path(filepath).stem
+            verse_md_content = read_file(filepath)
             verse_html_content = md.convert(verse_md_content)
-            verses_html[verse_num] = verse_html_content
-        chapter_payload = model.TNChapter(intro_html=intro_html, verses=verses_html)
+            adjusted_verse_html_content = sub(h1, h4, verse_html_content)
+            # Chapter chunking needs verse level labeling
+            if chunk_size == ChunkSizeEnum.CHAPTER:
+                verses_html[verse_ref] = verse_label_fmt_str.format(
+                    BOOK_NAMES[resource_lookup_dto.resource_code],
+                    chapter_num,
+                    str(int(verse_ref)) if "0" in verse_ref else verse_ref,
+                    adjusted_verse_html_content,
+                )
+            else:
+                verses_html[verse_ref] = adjusted_verse_html_content
+        adjusted_intro_html = adjust_chapter_intro_headings(intro_html)
+        chapter_payload = TNChapter(intro_html=adjusted_intro_html, verses=verses_html)
         chapter_verses[chapter_num] = chapter_payload
     # Get the book intro if it exists
     book_intro_path = glob(
@@ -495,29 +621,34 @@ def tn_book_content(
                 resource_dir, resource_lookup_dto.resource_code
             )
         )
-    book_intro_html = model.HtmlContent("")
+    adjusted_book_intro_html = HtmlContent("")
     if book_intro_path:
-        book_intro_html = file_utils.read_file(book_intro_path[0])
+        book_intro_html = read_file(book_intro_path[0])
         book_intro_html = md.convert(book_intro_html)
-    return model.TNBook(
+        adjusted_book_intro_html = adjust_book_intro_headings(book_intro_html)
+    return TNBook(
         lang_code=resource_lookup_dto.lang_code,
         lang_name=resource_lookup_dto.lang_name,
         resource_code=resource_lookup_dto.resource_code,
         resource_type_name=resource_lookup_dto.resource_type_name,
-        intro_html=book_intro_html,
+        intro_html=adjusted_book_intro_html,
         chapters=chapter_verses,
     )
 
 
 def tq_book_content(
-    resource_lookup_dto: model.ResourceLookupDto,
+    resource_lookup_dto: ResourceLookupDto,
     resource_dir: str,
-    resource_requests: Sequence[model.ResourceRequest],
+    resource_requests: Sequence[ResourceRequest],
     layout_for_print: bool,
+    chunk_size: str,
     chapter_dirs_glob_fmt_str: str = "{}/**/*{}/*[0-9]*",
     chapter_dirs_glob_alt_fmt_str: str = "{}/*{}/*[0-9]*",
     verse_paths_glob_fmt_str: str = "{}/*[0-9]*.md",
-) -> model.TQBook:
+    h1: str = H1,
+    h4: str = H4,
+    verse_label_fmt_str: str = "<h3>{} {}:{}</h3>\n{}",
+) -> TQBook:
     # Create the Markdown instance once and have it use our markdown
     # extensions.
     md: markdown.Markdown = markdown_instance(
@@ -544,9 +675,9 @@ def tq_book_content(
                 )
             )
         )
-    chapter_verses: dict[int, model.TQChapter] = {}
+    chapter_verses: dict[int, TQChapter] = {}
     for chapter_dir in chapter_dirs:
-        chapter_num = int(os.path.split(chapter_dir)[-1])
+        chapter_num = int(split(chapter_dir)[-1])
         verse_paths = sorted(glob(verse_paths_glob_fmt_str.format(chapter_dir)))
         # NOTE For some languages, TN assets may be stored in .txt files
         # rather of .md files. Though I have not yet seen this, this
@@ -554,14 +685,24 @@ def tq_book_content(
         # commented out code would suffice.
         # if not verse_paths:
         #     verse_paths = sorted(glob("{}/*[0-9]*.txt".format(chapter_dir)))
-        verses_html: dict[int, str] = {}
+        verses_html: dict[VerseRef, str] = {}
         for filepath in verse_paths:
-            verse_num = int(pathlib.Path(filepath).stem)
-            verse_md_content = file_utils.read_file(filepath)
+            verse_ref = Path(filepath).stem
+            verse_md_content = read_file(filepath)
             verse_html_content = md.convert(verse_md_content)
-            verses_html[verse_num] = verse_html_content
-        chapter_verses[chapter_num] = model.TQChapter(verses=verses_html)
-    return model.TQBook(
+            adjusted_verse_html_content = sub(h1, h4, verse_html_content)
+            # Chapter chunking needs verse level labeling
+            if chunk_size == ChunkSizeEnum.CHAPTER:
+                verses_html[verse_ref] = verse_label_fmt_str.format(
+                    BOOK_NAMES[resource_lookup_dto.resource_code],
+                    chapter_num,
+                    str(int(verse_ref)) if "0" in verse_ref else verse_ref,
+                    adjusted_verse_html_content,
+                )
+            else:
+                verses_html[verse_ref] = adjusted_verse_html_content
+        chapter_verses[chapter_num] = TQChapter(verses=verses_html)
+    return TQBook(
         lang_code=resource_lookup_dto.lang_code,
         lang_name=resource_lookup_dto.lang_name,
         resource_code=resource_lookup_dto.resource_code,
@@ -571,15 +712,15 @@ def tq_book_content(
 
 
 def tw_book_content(
-    resource_lookup_dto: model.ResourceLookupDto,
+    resource_lookup_dto: ResourceLookupDto,
     resource_dir: str,
-    resource_requests: Sequence[model.ResourceRequest],
+    resource_requests: Sequence[ResourceRequest],
     layout_for_print: bool,
     h1: str = H1,
     h2: str = H2,
     h3: str = H3,
     h4: str = H4,
-) -> model.TWBook:
+) -> TWBook:
     # Create the Markdown instance once and have it use our markdown
     # extensions.
     md: markdown.Markdown = markdown_instance(
@@ -589,37 +730,33 @@ def tw_book_content(
         layout_for_print,
         resource_dir,
     )
-    translation_word_filepaths = tw_utils.translation_word_filepaths(resource_dir)
-    name_content_pairs: list[model.TWNameContentPair] = []
-    for translation_word_filepath in translation_word_filepaths:
-        translation_word_content = model.MarkdownContent(
-            file_utils.read_file(translation_word_filepath)
-        )
+    translation_word_filepaths_: list[str] = translation_word_filepaths(resource_dir)
+    name_content_pairs: list[TWNameContentPair] = []
+    for translation_word_filepath in translation_word_filepaths_:
+        translation_word_content = MarkdownContent(read_file(translation_word_filepath))
         # Translation words are bidirectional. By that I mean that when you are
         # at a verse there follows, after translation questions, links to the
         # translation words that occur in that verse. But then when you navigate
         # to the word by clicking such a link, at the end of the resulting
         # translation word note there is a section called 'Uses:' that also has
         # links back to the verses wherein the word occurs.
-        localized_translation_word = tw_utils.localized_translation_word(
+        localized_translation_word_ = localized_translation_word(
             translation_word_content
         )
         html_word_content = md.convert(translation_word_content)
         # Make adjustments to the HTML here.
-        html_word_content = re.sub(h2, h4, html_word_content)
-        html_word_content = re.sub(h1, h3, html_word_content)
+        html_word_content = sub(h2, h4, html_word_content)
+        html_word_content = sub(h1, h3, html_word_content)
         name_content_pairs.append(
-            model.TWNameContentPair(
-                localized_word=localized_translation_word, content=html_word_content
-            )
+            TWNameContentPair(localized_translation_word_, html_word_content)
         )
 
     # Make mypy --strict happy; mypy doesn't pick up types in a
     # lambda.
-    def sort_key(name_content_pair: model.TWNameContentPair) -> str:
+    def sort_key(name_content_pair: TWNameContentPair) -> str:
         return name_content_pair.localized_word
 
-    return model.TWBook(
+    return TWBook(
         lang_code=resource_lookup_dto.lang_code,
         lang_name=resource_lookup_dto.lang_name,
         resource_code=resource_lookup_dto.resource_code,
@@ -630,15 +767,15 @@ def tw_book_content(
 
 
 def bc_book_content(
-    resource_lookup_dto: model.ResourceLookupDto,
+    resource_lookup_dto: ResourceLookupDto,
     resource_dir: str,
-    resource_requests: Sequence[model.ResourceRequest],
+    resource_requests: Sequence[ResourceRequest],
     layout_for_print: bool,
     book_intro_glob_path_fmt_str: str = "{}/*{}/intro.md",
     chapter_dirs_glob_fmt_str: str = "{}/*{}/*[0-9]*",
     parser_type: str = "html.parser",
     url_fmt_str: str = settings.BC_ARTICLE_URL_FMT_STR,
-) -> model.BCBook:
+) -> BCBook:
     # Create the Markdown instance once and have it use our markdown
     # extensions.
     md: markdown.Markdown = markdown_instance(
@@ -652,9 +789,7 @@ def bc_book_content(
             resource_dir, resource_lookup_dto.resource_code
         )
     )
-    book_intro_md_content = (
-        file_utils.read_file(book_intro_paths[0]) if book_intro_paths else ""
-    )
+    book_intro_md_content = read_file(book_intro_paths[0]) if book_intro_paths else ""
     book_intro_html_content = md.convert(book_intro_md_content)
     chapter_dirs = sorted(
         glob(
@@ -663,12 +798,12 @@ def bc_book_content(
             )
         )
     )
-    chapters: dict[int, model.BCChapter] = {}
+    chapters: dict[int, BCChapter] = {}
     for chapter_dir in chapter_dirs:
-        chapter_num = int(pathlib.Path(chapter_dir).stem)
-        chapter_commentary_md_content = file_utils.read_file(chapter_dir)
+        chapter_num = int(Path(chapter_dir).stem)
+        chapter_commentary_md_content = read_file(chapter_dir)
         chapter_commentary_html_content = md.convert(chapter_commentary_md_content)
-        parser = bs4.BeautifulSoup(chapter_commentary_html_content, parser_type)
+        parser = BeautifulSoup(chapter_commentary_html_content, parser_type)
         if chapter_num == 1:
             # Change the chapter heading to indicate that it is
             # commentary.
@@ -683,9 +818,14 @@ def bc_book_content(
             new_link = parser.new_tag("a", href=new_link_ref, target="_blank")
             new_link.string = link.string
             link.parent.a.replace_with(new_link)
-        chapters[chapter_num] = model.BCChapter(commentary=str(parser))
-    return model.BCBook(
-        book_intro=book_intro_html_content,
+        chapters[chapter_num] = BCChapter(
+            commentary=adjust_commentary_headings(str(parser))
+        )
+    adjusted_book_intro_html_content = adjust_commentary_headings(
+        book_intro_html_content
+    )
+    return BCBook(
+        book_intro=adjusted_book_intro_html_content,
         lang_code=resource_lookup_dto.lang_code,
         lang_name=resource_lookup_dto.lang_name,
         resource_code=resource_lookup_dto.resource_code,
@@ -697,9 +837,9 @@ def bc_book_content(
 def markdown_instance(
     lang_code: str,
     resource_type: str,
-    resource_requests: Sequence[model.ResourceRequest],
+    resource_requests: Sequence[ResourceRequest],
     layout_for_print: bool,
-    tw_resource_dir: Optional[str] = None,
+    tw_resource_dir_: Optional[str] = None,
     sections_to_remove: list[str] = settings.MARKDOWN_SECTIONS_TO_REMOVE,
 ) -> markdown.Markdown:
     """
@@ -708,10 +848,10 @@ def markdown_instance(
     exists to implement the Law of Demeter and to clean up the
     code of TResource subclasses by DRYing things up.
     """
-    if not tw_resource_dir:
-        tw_resource_dir = tw_utils.tw_resource_dir(lang_code)
-    translation_words_dict = tw_utils.translation_words_dict(tw_resource_dir)
-    if not layout_for_print:  # User doesn't want to print result
+    if not tw_resource_dir_:
+        tw_resource_dir_ = tw_resource_dir(lang_code)
+    translation_words_dict_ = translation_words_dict(tw_resource_dir_)
+    if not layout_for_print:  # User doesn't want to compact layout
         return markdown.Markdown(
             extensions=[
                 remove_section_preprocessor.RemoveSectionExtension(
@@ -727,7 +867,7 @@ def markdown_instance(
                         "The list of resource requests contained in the document request.",
                     ],
                     translation_words_dict=[
-                        translation_words_dict,
+                        translation_words_dict_,
                         "Dictionary mapping translation word asset file name sans suffix to translation word asset file path.",
                     ],
                 ),
@@ -747,7 +887,7 @@ def markdown_instance(
                     "The list of resource requests contained in the document request.",
                 ],
                 translation_words_dict=[
-                    translation_words_dict,
+                    translation_words_dict_,
                     "Dictionary mapping translation word asset file name sans suffix to translation word asset file path.",
                 ],
             ),
@@ -761,11 +901,3 @@ def resource_filename(lang_code: str, resource_type: str, resource_code: str) ->
     resource_type, and resource_code.
     """
     return "{}_{}_{}".format(lang_code, resource_type, resource_code)
-
-
-def book_number(resource_code: str) -> str:
-    """
-    Return the book number associated with the resource_code, e.g., gen ->
-    01.
-    """
-    return bible_books.BOOK_NUMBERS[resource_code]
