@@ -118,9 +118,9 @@ jobs:
           echo "DOC_TAG_LATEST=wycliffeassociates/doc:latest" >> $GITHUB_ENV
       - name: Set DOC-UI docker tags
         run: |
-          echo "DOC_UI_TAG_SHA=wycliffeassociates/doc:$GITHUB_SHA" >> $GITHUB_ENV && \
-          echo "DOC_UI_TAG_BRANCH=wycliffeassociates/doc:$CI_REF_NAME_SLUG" >> $GITHUB_ENV && \
-          echo "DOC_UI_TAG_LATEST=wycliffeassociates/doc:latest" >> $GITHUB_ENV
+          echo "DOC_UI_TAG_SHA=wycliffeassociates/doc-ui:$GITHUB_SHA" >> $GITHUB_ENV && \
+          echo "DOC_UI_TAG_BRANCH=wycliffeassociates/doc-ui:$CI_REF_NAME_SLUG" >> $GITHUB_ENV && \
+          echo "DOC_UI_TAG_LATEST=wycliffeassociates/doc-ui:latest" >> $GITHUB_ENV
 
       - name: Build and conditional push API image
         uses: docker/build-push-action@v3
