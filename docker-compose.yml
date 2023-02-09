@@ -23,7 +23,7 @@ services:
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
       CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/0}
     ports:
-      - 5005:5005
+      - ${API_HOST_PORT:-5005}:5005
     command: gunicorn --name document:entrypoints:app --worker-class uvicorn.workers.UvicornWorker --pythonpath /app/backend --conf /app/backend/gunicorn.conf.py document.entrypoints.app:app
     volumes:
       - shared:/app/document_output
@@ -65,7 +65,7 @@ services:
       CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/0}
       FLOWER_PORT: 5555
     ports:
-      - 5555:5555
+      - ${CELERY_DASHBOARD_HOST_PORT:-5555}:5555
     depends_on:
       redis:
         condition: service_healthy
@@ -75,7 +75,7 @@ services:
   fileserver:
     build: ./web
     ports:
-      - 8089:80
+      - ${FILESERVER_HOST_PORT:-8089}:80
     volumes:
       - shared:/srv/content
     restart: unless-stopped
@@ -90,7 +90,7 @@ services:
       BACKEND_API_URL: ${BACKEND_API_URL:-http://localhost:5005}
       FILE_SERVER_URL: ${FILE_SERVER_URL:-http://localhost:8089}
     ports:
-      - 8001:80
+      - ${FRONTEND_HOST_PORT:-8001}:80
     depends_on:
       api:
         condition: service_healthy
