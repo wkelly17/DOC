@@ -55,12 +55,16 @@ class Settings(BaseSettings):
     RESOURCE_TYPE_NAME_FMT_STR: str = "<h1>{}</h1>"
     TN_VERSE_NOTES_ENCLOSING_DIV_FMT_STR: str = "<div style='column-count: 2;'>{}</div>"
     TQ_HEADING_FMT_STR: str = "<h3>{}</h3>"
+    TQ_HEADING_AND_QUESTIONS_FMT_STR: str = (
+        "<h3>{}</h3>\n<div style='column-count: 2;'>{}</div>"
+    )
     HTML_ROW_BEGIN: str = model.HtmlContent("<div class='row'>")
     HTML_ROW_END: str = model.HtmlContent("</div>")
     HTML_COLUMN_BEGIN: str = model.HtmlContent("<div class='column'>")
     HTML_COLUMN_END: str = model.HtmlContent("</div>")
     HTML_COLUMN_LEFT_BEGIN: str = model.HtmlContent("<div class='column-left'>")
     HTML_COLUMN_RIGHT_BEGIN: str = model.HtmlContent("<div class='column-right'>")
+    BOOK_NAME_FMT_STR: str = "<h2 style='text-align: center;'>{}</h2>"
     BOOK_FMT_STR: str = "<h2>Book: {}</h2>"
     BOOK_AS_GROUPER_FMT_STR: str = "<h1>Book: {}</h1>"
     VERSE_FMT_STR: str = "<h3>Verse {}:{}</h3>"
@@ -95,6 +99,7 @@ class Settings(BaseSettings):
     VERSE_ANCHOR_ID_SUBSTITUTION_FMT_STR: str = r"id='{}-\1-ch-\2-v-\3'"
 
     USFM_RESOURCE_TYPES: Sequence[str] = [
+        "ayt",
         "cuv",
         "f10",
         "nav",
@@ -106,6 +111,20 @@ class Settings(BaseSettings):
         "ulb",
         "usfm",
     ]
+    # f10 for fr, and udb for many other languages are secondary USFM types,
+    # meaning: for those languages that have them those same languages have
+    # a primary USFM type such as ulb (there can be other primary USFM types
+    # besides ulb such as cuv, reg, nav, etc.). For v1, we only allow use of
+    # a primary USFM type since v1 has a requirement that the user is not to
+    # choose resource types in the UI, so we use this next list to manage
+    # that when we automatically choose the reesource types (from the USFM
+    # and TN resource types that translations.json lists as available) for
+    # the GL languages and books chosen.
+    USFM_RESOURCE_TYPES_MINUS_SECONDARY: Sequence[str] = [
+        usfm_resource_type
+        for usfm_resource_type in USFM_RESOURCE_TYPES
+        if usfm_resource_type not in ["udb", "f10"]
+    ]
     EN_USFM_RESOURCE_TYPES: Sequence[str] = ["ulb-wa"]
     TN_RESOURCE_TYPES: Sequence[str] = ["tn"]
     EN_TN_RESOURCE_TYPES: Sequence[str] = ["tn-wa"]
@@ -114,6 +133,12 @@ class Settings(BaseSettings):
     TW_RESOURCE_TYPES: Sequence[str] = ["tw"]
     EN_TW_RESOURCE_TYPES: Sequence[str] = ["tw-wa"]
     BC_RESOURCE_TYPES: Sequence[str] = ["bc-wa"]
+    V1_APPROVED_RESOURCE_TYPES: Sequence[str] = [
+        *EN_USFM_RESOURCE_TYPES,
+        *USFM_RESOURCE_TYPES_MINUS_SECONDARY,
+        *TN_RESOURCE_TYPES,
+        *EN_TN_RESOURCE_TYPES,
+    ]
     # List of language codes for which there is an issue in
     # translations.json such that a complete document request cannot
     # be formed for these languages due to some issue with respect to
@@ -125,16 +150,55 @@ class Settings(BaseSettings):
         "fa",
         "hr",
         "hu",
-        "id",
+        "id",  # Currently doesn't provide USFM, but might soon
         "kbt",
         "kip",
         "lus",
         "mor",
         "mve",
-        "pmy",
+        "pmy",  # Currently doesn't provide USFM, but might soon
         "sr-Latn",
         "tig",
         "tem",
+    ]
+    GATEWAY_LANGUAGES: Sequence[str] = [
+        "am",
+        "arb",
+        "as",
+        "bn",
+        "pt-br",
+        "my",
+        "ceb",
+        "zh",
+        "en",
+        "fr",
+        "gu",
+        "ha",
+        "hi",
+        "ilo",
+        "id",
+        "kn",
+        "km",
+        "lo",
+        "es-419",
+        "plt",
+        "ml",
+        "mr",
+        "ne",
+        "or",
+        "pmy",
+        "fa",
+        "pa",
+        "ru",
+        "sw",
+        "tl",
+        "ta",
+        "te",
+        "th",
+        "tpi",
+        "ur",
+        "ur-deva",
+        "vi",
     ]
 
     # fmt: off
@@ -234,16 +298,24 @@ class Settings(BaseSettings):
         "tw-wa": "ULB Translation Words",
         "bc-wa": "Bible Commentary",
     }
+    ENGLISH_RESOURCE_TYPE_MAP_USFM_AND_TN_ONLY: Mapping[str, str] = {
+        "ulb-wa": "Unlocked Literal Bible (ULB)",
+        # "udb-wa": "Unlocked Dynamic Bible (UDB)",
+        "tn-wa": "ULB Translation Helps",
+    }
 
     TEMPLATE_PATHS_MAP: Mapping[str, str] = {
         "book_intro": "backend/templates/tn/book_intro_template.md",
         "header_enclosing": "backend/templates/html/header_enclosing.html",
+        "header_no_css_enclosing": "backend/templates/html/header_no_css_enclosing.html",
         "header_compact_enclosing": "backend/templates/html/header_compact_enclosing.html",
         "footer_enclosing": "backend/templates/html/footer_enclosing.html",
         "cover": "backend/templates/html/cover.html",
         "email-html": "backend/templates/html/email.html",
         "email": "backend/templates/text/email.txt",
     }
+
+    DOCX_TEMPLATE_PATH: str = "/app/template.docx"
 
     # Return boolean indicating if caching of generated documents should be
     # cached.

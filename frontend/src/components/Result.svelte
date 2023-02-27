@@ -12,6 +12,10 @@
   } from '../stores/SettingsStore'
   import { taskIdStore, taskStateStore } from '../stores/TaskStore'
   import { getApiRootUrl, getFileServerUrl, resetStores } from '../lib/utils'
+  import Mast from './Mast.svelte'
+  import Tabs from './Tabs.svelte'
+  import Sidebar from './Sidebar.svelte'
+  import { setShowTopMatter } from '../lib/utils'
 
   function cancelDocument() {
     console.log('Called cancelDocument')
@@ -39,7 +43,18 @@
     console.log(`url: ${url}`)
     window.open(url, '_blank')
   }
+
+
+  // For sidebar
+  let open = false
+  let showTopMatter: boolean = setShowTopMatter()
 </script>
+
+{#if showTopMatter}
+<Sidebar bind:open />
+<Mast bind:sidebar="{open}" />
+<Tabs />
+{/if}
 
 <div class="bg-white flex">
   <button
@@ -89,9 +104,7 @@
       </svg>
       <div class="m-auto"><h3 class="text-[#82A93F] text-center">Success!</h3></div>
       <p class="text-center text-secondary-content">
-        Your document was generated successfully. You may {#if $generatePdfStore || $generateEpubStore || $generateDocxStore}download
-          it or
-        {/if}view it online.
+        Your document was generated successfully. You may {#if $generatePdfStore || $generateEpubStore || $generateDocxStore}download it{/if}{#if !$generateDocxStore} or view it online{/if}.
       </p>
       {#if $generatePdfStore}
         <div class="m-auto text-center mt-4">
@@ -108,6 +121,7 @@
           <DownloadButton buttonText="Download Docx" url={docxDownloadUrl} />
         </div>
       {/if}
+      {#if !$generateDocxStore}
       <div class="m-auto text-center mt-4">
         <button
           class="btn gray-gradient hover:gray-gradient-hover w-5/6 rounded capitalize"
@@ -130,6 +144,7 @@
           View HTML Online</button
         >
       </div>
+      {/if}
     </div>
   {/if}
   {#if $errorStore}

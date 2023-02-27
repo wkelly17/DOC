@@ -9,11 +9,11 @@
   <div class="flex pl-16 pt-8">
     <Logo />
   </div>
-  <div class="flex pr-16 pt-8">
-    <div>
-      <nav class="flex">
-        <Hamburger bind:open={sidebar} />
-      </nav>
-    </div>
-  </div>
+  <!-- <div class="flex pr-16 pt-8"> -->
+  <!--   <div> -->
+  <!--     <nav class="flex"> -->
+  <!--       <Hamburger bind:open={sidebar} /> -->
+  <!--     </nav> -->
+  <!--   </div> -->
+  <!-- </div> -->
 </header>

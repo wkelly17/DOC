@@ -16,6 +16,10 @@
   import LeftArrow from './LeftArrow.svelte'
   import ProgressIndicator from './ProgressIndicator.svelte'
   import { getApiRootUrl, resetStores } from '../lib/utils'
+  import Mast from './Mast.svelte'
+  import Tabs from './Tabs.svelte'
+  import Sidebar from './Sidebar.svelte'
+  import { setShowTopMatter } from '../lib/utils'
 
   async function getResourceTypesAndNames(
     langCode: string,
@@ -23,7 +27,7 @@
     apiRootUrl = getApiRootUrl(),
     sharedResourceTypesUrl = <string>import.meta.env.VITE_SHARED_RESOURCE_TYPES_URL
   ): Promise<Array<[string, string]>> {
-    // Form the URL to ultimately invoke
+    // NOTE Form the URL to ultimately invoke
     // resource_lookup.shared_resource_types.
     const url_ = `${apiRootUrl}${sharedResourceTypesUrl}${langCode}/`
     const url = new URL(url_)
@@ -137,7 +141,18 @@
       resourceTypesCountStore.set(0)
     }
   }
+
+
+  // For sidebar
+  let open = false
+  let showTopMatter: boolean = setShowTopMatter()
 </script>
+
+{#if showTopMatter}
+<Sidebar bind:open />
+<Mast bind:sidebar="{open}" />
+<Tabs />
+{/if}
 
 <div class="bg-white flex">
   <button

@@ -10,6 +10,10 @@
   import { push } from 'svelte-spa-router'
   import GenerateDocument from './GenerateDocument.svelte'
   import RightArrow from './RightArrow.svelte'
+  import Mast from './Mast.svelte'
+  import Tabs from './Tabs.svelte'
+  import Sidebar from './Sidebar.svelte'
+  import { setShowTopMatter } from '../lib/utils'
 
   // Handle notification of reset of values originating from other
   // pages.
@@ -128,7 +132,18 @@
       resourceTypesDisplayString = `${lang1ResourceTypeNames.join(', ')}`
     }
   }
+
+  // For sidebar
+  let open = false
+  let showTopMatter: boolean = setShowTopMatter()
+  $: console.log(`showTopMatter: ${showTopMatter}`)
 </script>
+
+{#if showTopMatter}
+<Sidebar bind:open />
+<Mast bind:sidebar="{open}" />
+<Tabs />
+{/if}
 
 <div class="bg-white">
   <ul>

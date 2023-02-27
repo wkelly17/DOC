@@ -100,3 +100,16 @@ export function getFileServerUrl(): string {
     return <string>import.meta.env.VITE_DEV_FILE_SERVER_URL
   }
 }
+
+/**
+ * Indicate whether to show Mast, Tabs, and Sidebar
+ **/
+export function setShowTopMatter(): boolean {
+  let showTopMatter = false
+  // .env vars come over as strings always by default (PROD .env var
+  //  above is an exception because Vite handles setting it.
+  if (<string>import.meta.env.VITE_SHOW_TOP_MATTER === 'true') {
+    showTopMatter = true
+  }
+  return showTopMatter
+}

@@ -5,6 +5,7 @@
     layoutForPrintStore,
     assemblyStrategyKindStore,
     assemblyStrategyChunkSizeStore,
+    docTypeStore,
     generatePdfStore,
     generateEpubStore,
     generateDocxStore,
@@ -12,6 +13,10 @@
   } from '../stores/SettingsStore'
   import { lang1CodeStore } from '../stores/LanguagesStore'
   import GenerateDocument from './GenerateDocument.svelte'
+  import Mast from './Mast.svelte'
+  import Tabs from './Tabs.svelte'
+  import Sidebar from './Sidebar.svelte'
+  import { setShowTopMatter } from '../lib/utils'
 
   let bookLanguageOrderStrategy: SelectElement = {
     id: 'blo',
@@ -48,10 +53,21 @@
     if ($layoutForPrintStore) {
       $generateDocxStore = false
       $generateEpubStore = false
-      console.log("Print optimization selected, therefore Docx and ePub output disabled")
+      console.log('Print optimization selected, therefore Docx and ePub output disabled')
     }
   }
+
+  // For sidebar
+  let open = false
+
+  let showTopMatter: boolean = setShowTopMatter()
 </script>
+
+{#if showTopMatter}
+<Sidebar bind:open />
+<Mast bind:sidebar="{open}" />
+<Tabs />
+{/if}
 
 <h3 class="bg-white text-secondary-content text-lg pb-8 pt-2 pl-2">
   Interleave Settings
@@ -89,7 +105,7 @@
       >
     </div>
   </li>
-  {/if}
+  {/if} {#if false}
   <li class="bg-white p-2">
     <div class="flex justify-between">
       <span class="text-primary-content">{assemblyStrategyChunkingHeader}</span>
@@ -117,10 +133,13 @@
       >
     </div>
   </li>
+  {/if}
   <li class="bg-white p-2">
     <div class="flex justify-between">
-      <span class="text-primary-content">{import.meta.env.VITE_PDF_LABEL}</span>
-      <Switch bind:checked="{$generatePdfStore}" id="generate-pdf-store" />
+      <label>
+        <input name="docType" value={"pdf"} bind:group={$docTypeStore} type="radio">
+        <span class="text-primary-content">{import.meta.env.VITE_PDF_LABEL}</span>
+      </label>
     </div>
     <div>
       <span class="text-sm text-neutral-content"
@@ -132,8 +151,10 @@
   !$layoutForPrintStore}
   <li class="bg-white p-2">
     <div class="flex justify-between">
-      <span class="text-primary-content">{import.meta.env.VITE_EPUB_LABEL}</span>
-      <Switch bind:checked="{$generateEpubStore}" id="generate-epub-store" />
+      <label>
+        <input name="docType" value={"epub"} bind:group={$docTypeStore} type="radio">
+        <span class="text-primary-content">{import.meta.env.VITE_EPUB_LABEL}</span>
+      </label>
     </div>
     <div>
       <span class="text-sm text-neutral-content"
@@ -143,8 +164,10 @@
   </li>
   <li class="bg-white p-2">
     <div class="flex justify-between">
-      <span class="text-primary-content">{import.meta.env.VITE_DOCX_LABEL}</span>
-      <Switch bind:checked="{$generateDocxStore}" id="generate-docx-store" />
+      <label>
+        <input name="docType" value={"docx"} bind:group={$docTypeStore} type="radio">
+        <span class="text-primary-content">{import.meta.env.VITE_DOCX_LABEL}</span>
+      </label>
     </div>
     <div>
       <span class="text-sm text-neutral-content"

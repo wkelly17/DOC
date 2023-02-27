@@ -126,7 +126,7 @@ def attempt_asset_content_rescue(
     return filename
 
 
-def asset_content(
+def usfm_asset_content(
     resource_lookup_dto: ResourceLookupDto,
     resource_dir: str,
     output_dir: str = settings.DOCUMENT_OUTPUT_DIR,
@@ -360,7 +360,7 @@ def usfm_book_content(
     into a model.USFMBook data structure containing chapters, verses,
     footnotes, for use during interleaving with other resource assets.
     """
-    html_content = asset_content(resource_lookup_dto, resource_dir)
+    html_content = usfm_asset_content(resource_lookup_dto, resource_dir)
     parser = BeautifulSoup(html_content, bs_parser_type)
 
     if layout_for_print:

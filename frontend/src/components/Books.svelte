@@ -14,6 +14,10 @@
   import { resetValuesStore } from '../stores/NotificationStore'
   import LeftArrow from './LeftArrow.svelte'
   import { getApiRootUrl, resetStores } from '../lib/utils'
+  import Mast from './Mast.svelte'
+  import Tabs from './Tabs.svelte'
+  import Sidebar from './Sidebar.svelte'
+  import { setShowTopMatter } from '../lib/utils'
 
   async function getSharedResourceCodesAndNames(
     lang0Code: string,
@@ -214,7 +218,19 @@
       ntLabel = 'New Testament'
     }
   }
+
+
+  // For sidebar
+  let open = false
+  let showTopMatter: boolean = setShowTopMatter()
 </script>
+
+
+{#if showTopMatter}
+<Sidebar bind:open />
+<Mast bind:sidebar="{open}" />
+<Tabs />
+{/if}
 
 <div class="bg-white">
   <div class="bg-white flex">

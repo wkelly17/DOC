@@ -62,28 +62,26 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
             chapter,
         ) in usfm_book_content_unit.chapters.items():
             # Add in the USFM chapter heading.
-            chapter_heading = HtmlContent("")
-            chapter_heading = chapter.content[0]
-            yield chapter_heading
+            # chapter_heading = HtmlContent("")
+            # chapter_heading = chapter.content[0]
+            # yield chapter_heading
             tn_verses: Optional[dict[VerseRef, HtmlContent]] = None
             tq_verses: Optional[dict[VerseRef, HtmlContent]] = None
+
+            # Now let's interleave USFM chapter with its translation notes, translation
+            # questions, and translation words if available.
+            yield "".join(chapter.content)
+
+            # Add scripture footnotes if available
+            if chapter.footnotes:
+                yield footnotes_heading
+                yield chapter.footnotes
             if tn_book_content_unit:
                 # Add the translation notes chapter intro.
                 yield chapter_intro(tn_book_content_unit, chapter_num)
                 tn_verses = verses_for_chapter_tn(tn_book_content_unit, chapter_num)
             if bc_book_content_unit:
                 yield chapter_commentary(bc_book_content_unit, chapter_num)
-            if tq_book_content_unit:
-                tq_verses = verses_for_chapter_tq(tq_book_content_unit, chapter_num)
-
-            # Now let's interleave USFM chapter with its translation notes, translation
-            # questions, and translation words if available.
-            yield "".join(chapter.verses.values())
-            # Here we return the whole chapter's worth of verses for the secondary usfm
-            if usfm_book_content_unit2:
-                yield "".join(
-                    usfm_book_content_unit2.chapters[chapter_num].verses.values()
-                )
 
             # Add TN verse content, if any
             if tn_book_content_unit and tn_verses is not None and tn_verses:
@@ -105,6 +103,8 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
                 yield html_column_end
                 yield html_row_end
 
+            if tq_book_content_unit:
+                tq_verses = verses_for_chapter_tq(tq_book_content_unit, chapter_num)
             # Add TQ verse content, if any
             if tq_book_content_unit and tq_verses:
                 yield tq_heading_fmt_str.format(tq_book_content_unit.resource_type_name)
@@ -126,23 +126,9 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
                 yield html_column_end
                 yield html_row_end
 
-            # Add scripture footnotes if available
-            if chapter.footnotes:
-                yield footnotes_heading
-                yield chapter.footnotes
-
-    if not usfm_book_content_unit and usfm_book_content_unit2:
-        # Add the usfm_book_content_unit2, e.g., udb, scripture verses.
-        for (
-            chapter_num_,
-            chapter_,
-        ) in usfm_book_content_unit2.chapters.items():
-            # Add in the USFM chapter heading.
-            chapter_heading = HtmlContent("")
-            chapter_heading = chapter_.content[0]
-            yield chapter_heading
-            # Now let's interleave USFM chapter verses
-            yield "".join(chapter_.content)
+            # Here we return the whole chapter's worth of verses for the secondary usfm
+            if usfm_book_content_unit2:
+                yield "".join(usfm_book_content_unit2.chapters[chapter_num].content)
 
 
 def assemble_tn_as_iterator_by_chapter_for_lang_then_book_1c(

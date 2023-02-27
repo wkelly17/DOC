@@ -29,6 +29,7 @@ def test_stream_pdf() -> None:
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT,
                 "layout_for_print": False,
+                "chunk_size": model.ChunkSizeEnum.CHAPTER,
                 "generate_pdf": True,
                 "generate_epub": False,
                 "generate_docx": False,

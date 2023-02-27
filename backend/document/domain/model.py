@@ -12,6 +12,7 @@ import orjson
 
 from document.utils.number_utils import is_even
 from toolz import itertoolz  # type: ignore
+from docx import Document  # type: ignore
 from more_itertools import all_equal
 from pydantic import BaseModel, EmailStr, root_validator
 

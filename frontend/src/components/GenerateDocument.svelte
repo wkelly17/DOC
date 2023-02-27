@@ -15,6 +15,7 @@
     layoutForPrintStore,
     assemblyStrategyKindStore,
     assemblyStrategyChunkSizeStore,
+    docTypeStore,
     generatePdfStore,
     generateEpubStore,
     generateDocxStore,
@@ -84,6 +85,19 @@
       emailStore.set($emailStore.trim())
     }
 
+    if ($docTypeStore === 'pdf') {
+      $generatePdfStore = true
+      $generateEpubStore = false
+      $generateDocxStore = false
+    } else if ($docTypeStore === 'epub') {
+      $generatePdfStore = false
+      $generateEpubStore = true
+      $generateDocxStore = false
+    } else if ($docTypeStore === 'docx') {
+      $generatePdfStore = false
+      $generateEpubStore = false
+      $generateDocxStore = true
+    }
     // Create the JSON structure to POST.
     let documentRequest = {
       email_address: $emailStore,
@@ -99,7 +113,11 @@
     errorStore.set(null)
     documentReadyStore.set(false)
     documentRequestKeyStore.set('')
-    const response = await fetch(`${apiRootUrl}/documents`, {
+    let endpointUrl = "documents"
+    if ($generateDocxStore) {
+      endpointUrl = "documents_docx"
+    }
+    const response = await fetch(`${apiRootUrl}/${endpointUrl}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(documentRequest)

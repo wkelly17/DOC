@@ -1,0 +1,33 @@
+version: "3"
+services:
+  frontend:
+    # use nginx as a mock frontend since the frontend isn't built or used at this stage
+    image: nginx:alpine
+
+  test-runner:
+    image: wycliffeassociates/doc:${IMAGE_TAG}
+    depends_on:
+      api:
+        condition: service_healthy
+      worker:
+        condition: service_healthy
+      fileserver:
+        condition: service_healthy
+      # FIXME This fails for some reason even though healthcheck is defined correctly in docker-compose.yml
+      # celery-dashboard:
+      #   condition: service_healthy
+
+    entrypoint: pytest
+    command:
+      ["-v", "-m", "docx", "-n", "auto", "/app/tests/unit", "/app/tests/e2e"]
+    environment:
+      BACKEND_API_URL: http://localhost:5005
+      FILE_SERVER_URL: http://localhost:8089
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/0}
+      FLOWER_PORT: 5555
+    volumes:
+      - shared:/app/document_output
+
+volumes:
+  shared:

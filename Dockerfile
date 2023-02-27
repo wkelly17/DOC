@@ -37,13 +37,6 @@ RUN fc-cache -f -v
 # to ePub conversion.
 RUN wget -nv -O- https://download.calibre-ebook.com/linux-installer.sh | sh /dev/stdin install_dir=/calibre-bin isolated=y
 
-# Get and install Pandoc for HTML to Docx conversion.
-ARG PANDOC_LOC=https://github.com/jgm/pandoc/releases/download/2.19.2/pandoc-2.19.2-1-amd64.deb
-RUN PANDOC_TEMP="$(mktemp)" && \
-    wget -O ${PANDOC_TEMP} ${PANDOC_LOC} && \
-    dpkg -i ${PANDOC_TEMP} && \
-    rm -f ${PANDOC_TEMP}
-
 # Install wkhtmltopdf
 # Source: https://github.com/wkhtmltopdf/wkhtmltopdf/issues/2037
 # Source: https://gist.github.com/lobermann/ca0e7bb2558b3b08923c6ae2c37a26ce
@@ -68,6 +61,7 @@ RUN mkdir -p document_output
 COPY .env .
 COPY ./backend/requirements.txt .
 COPY ./backend/requirements-prod.txt .
+COPY template.docx .
 
 # See https://pythonspeed.com/articles/activate-virtualenv-dockerfile/
 # for why a Python virtual env is used inside Docker.

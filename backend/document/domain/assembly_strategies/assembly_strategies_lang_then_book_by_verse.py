@@ -60,15 +60,16 @@ def assemble_by_usfm_as_iterator_for_lang_then_book_1c(
             yield chapter_heading
             tn_verses = None
             tq_verses = None
+
             if tn_book_content_unit:
                 # Add the translation notes chapter intro.
                 yield chapter_intro(tn_book_content_unit, chapter_num)
                 tn_verses = verses_for_chapter_tn(tn_book_content_unit, chapter_num)
             if bc_book_content_unit:
                 yield chapter_commentary(bc_book_content_unit, chapter_num)
+
             if tq_book_content_unit:
                 tq_verses = verses_for_chapter_tq(tq_book_content_unit, chapter_num)
-
             # Now let's interleave USFM verse with its translation note, translation
             # questions, and translation words if available.
             for verse_num, verse in chapter.verses.items():
@@ -89,15 +90,10 @@ def assemble_by_usfm_as_iterator_for_lang_then_book_1c(
                         yield verse_
 
                 # Add TN verse content, if any
-                if (
-                    tn_book_content_unit
-                    and tn_verses is not None
-                    and tn_verses
-                    and verse_num in tn_verses
-                ):
+                if tn_verses is not None and tn_verses and verse_num in tn_verses:
                     yield tn_verses[verse_num]
                 # Add TQ verse content, if any
-                if tq_book_content_unit and tq_verses and verse_num in tq_verses:
+                if tq_verses and verse_num in tq_verses:
                     yield tq_verses[verse_num]
 
                 if tw_book_content_unit:
@@ -113,22 +109,6 @@ def assemble_by_usfm_as_iterator_for_lang_then_book_1c(
             if chapter.footnotes:
                 yield footnotes_heading
                 yield chapter.footnotes
-
-    if not usfm_book_content_unit and usfm_book_content_unit2:
-        # Add the usfm_book_content_unit2, e.g., udb, scripture verses.
-        for (
-            chapter_num_,
-            chapter_,
-        ) in usfm_book_content_unit2.chapters.items():
-            # Add in the USFM chapter heading.
-            chapter_heading = HtmlContent("")
-            chapter_heading = chapter_.content[0]
-            yield chapter_heading
-            # Now let's interleave USFM verse with its translation note, translation
-            # questions, and translation words if available.
-            for verse_num, verse in chapter_.verses.items():
-                # Add scripture verse
-                yield verse
 
 
 def assemble_by_usfm_as_iterator_for_lang_then_book_1c_c(
@@ -168,12 +148,7 @@ def assemble_by_usfm_as_iterator_for_lang_then_book_1c_c(
             tn_verses = None
             tq_verses = None
             if tn_book_content_unit:
-                # Add the translation notes chapter intro.
-                yield chapter_intro(tn_book_content_unit, chapter_num)
-
                 tn_verses = verses_for_chapter_tn(tn_book_content_unit, chapter_num)
-            if bc_book_content_unit:
-                yield chapter_commentary(bc_book_content_unit, chapter_num)
             if tq_book_content_unit:
                 tq_verses = verses_for_chapter_tq(tq_book_content_unit, chapter_num)
 
@@ -213,21 +188,11 @@ def assemble_by_usfm_as_iterator_for_lang_then_book_1c_c(
                 yield footnotes_heading
                 yield chapter.footnotes
 
-    if not usfm_book_content_unit and usfm_book_content_unit2:
-        # Add the usfm_book_content_unit2, e.g., udb, scripture verses.
-        for (
-            chapter_num_,
-            chapter_,
-        ) in usfm_book_content_unit2.chapters.items():
-            # Add in the USFM chapter heading.
-            chapter_heading = HtmlContent("")
-            chapter_heading = chapter_.content[0]
-            yield chapter_heading
-            # Now let's interleave USFM verse with its translation note, translation
-            # questions, and translation words if available.
-            for verse_num, verse in chapter_.verses.items():
-                # Add scripture verse
-                yield verse
+            if tn_book_content_unit:
+                # Add the translation notes chapter intro.
+                yield chapter_intro(tn_book_content_unit, chapter_num)
+            if bc_book_content_unit:
+                yield chapter_commentary(bc_book_content_unit, chapter_num)
 
 
 def assemble_usfm_tq_tw_for_lang_then_book_1c(

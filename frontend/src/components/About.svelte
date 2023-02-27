@@ -1,11 +1,29 @@
+<script lang="ts">
+  import Mast from './Mast.svelte'
+  import Tabs from './Tabs.svelte'
+  import Sidebar from './Sidebar.svelte'
+  import { setShowTopMatter } from '../lib/utils'
+
+  // For sidebar
+  let open = false
+  let showTopMatter: boolean = setShowTopMatter()
+</script>
+
+{#if showTopMatter}
+<Sidebar bind:open />
+<Mast bind:sidebar="{open}" />
+<Tabs />
+{/if}
+
 <ul>
   <li class="bg-white p-2">
     <span class="text-secondary-content text-lg">About this tool</span>
     <div>
       <span class="text-neutral-content"
         ><p>
-          This resource generator allows you to interleave different types of resources
-          and languages into a single document.
+          This document generator allows you to interleave different types of resources
+          from different languages into a single document. You can find a more basic
+          (limited) version of this app <a href="#/v1/">here</a>.
         </p>
         <p>Larger documents will take more time to generate.</p></span
       >
@@ -28,7 +46,8 @@
         <a
           href="https://creativecommons.org/licenses/by-sa/4.0/"
           target="_blank"
-          class="link">CCBYSA 4.0 ShareAlike license</a
+          class="link"
+          >CCBYSA 4.0 ShareAlike license</a
         >.
       </span>
     </div>

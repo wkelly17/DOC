@@ -20,7 +20,7 @@ def check_result(
     response: requests.Response,
     /,
     suffix: AcceptedSuffixes,
-    poll_duration: int,
+    poll_duration: int = 4,
     status_url_fmt_str: str = "/task_status/{}",
     success_state: str = "SUCCESS",
     failure_state: str = "FAILURE",
@@ -67,15 +67,8 @@ def check_finished_document_with_verses_success(
 ) -> None:
     """
     Helper to keep tests DRY.
-
-    Check that the finished_document_path exists and also check that
-    the HTML file associated with it exists and includes verses_html.
     """
     finished_document_request_key = check_result(response, suffix, poll_duration)
-    # assert response.ok
-    # content = response.json()
-    # assert "finished_document_request_key" in content
-    # assert "message" in content
     html_filepath = os.path.join(
         settings.DOCUMENT_SERVE_DIR,
         "{}.html".format(finished_document_request_key),
@@ -103,10 +96,6 @@ def check_finished_document_without_verses_success(
 ) -> None:
     """
     Helper to keep tests DRY.
-
-    Check that the finished_document_path exists and also check that
-    the HTML file associated with it exists and includes body but not
-    verses_html.
     """
     finished_document_request_key = check_result(response, suffix, poll_duration)
     html_filepath = os.path.join(
@@ -129,9 +118,6 @@ def check_finished_document_with_body_success(
 ) -> None:
     """
     Helper to keep tests DRY.
-
-    Check that the finished_document_path exists and also check that
-    the HTML file associated with it exists and includes body.
     """
     finished_document_request_key = check_result(response, suffix, poll_duration)
     html_filepath = os.path.join(
@@ -143,4 +129,3 @@ def check_finished_document_with_body_success(
         parser = bs4.BeautifulSoup(html, "html.parser")
         body = parser.find_all("body")
         assert body
-    assert response.ok

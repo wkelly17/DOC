@@ -3,6 +3,7 @@ Entrypoint for backend. Here incoming document requests are processed
 and eventually a final document produced.
 """
 
+import re
 import shutil
 import smtplib
 import subprocess
@@ -12,19 +13,16 @@ from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from os.path import basename, exists, join
+from pathlib import Path
 from typing import Any, Iterable, Mapping, Optional, Sequence
 
 import jinja2
 import pdfkit  # type: ignore
 from celery import current_task
 from document.config import settings
-from document.domain import (
-    bible_books,
-    parsing,
-    resource_lookup,
-    worker,
-)
+from document.domain import bible_books, parsing, resource_lookup, worker
 from document.domain.assembly_strategies import assembly_strategies
+from document.domain.assembly_strategies_docx import assembly_strategies as asd
 from document.domain.model import (
     AssemblyLayoutEnum,
     AssemblyStrategyEnum,
@@ -39,6 +37,13 @@ from document.domain.model import (
     USFMBook,
 )
 from document.utils import file_utils
+from docx import Document  # type: ignore
+from docx.enum.section import WD_SECTION  # type: ignore
+from docx.oxml import OxmlElement  # type: ignore
+from docx.oxml.ns import qn  # type: ignore
+from docxcompose.composer import Composer  # type: ignore
+from docxtpl import DocxTemplate  # type: ignore
+from htmldocx import HtmlToDocx  # type: ignore
 from pydantic import Json
 from toolz import unique  # type: ignore
 
@@ -141,7 +146,7 @@ def enclose_html_content(
 
 
 def document_html_header(
-    assembly_layout_kind: Optional[AssemblyLayoutEnum],
+    assembly_layout_kind: Optional[AssemblyLayoutEnum], generate_docx: bool
 ) -> str:
     """
     Choose the appropriate HTML header given the
@@ -149,13 +154,16 @@ def document_html_header(
     definitions and they in turn can be used to affect visual
     compactness.
     """
+    if generate_docx:
+        return template("header_no_css_enclosing")
+
     if assembly_layout_kind and assembly_layout_kind in [
         AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
         AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
     ]:
         return template("header_compact_enclosing")
-    else:
-        return template("header_enclosing")
+
+    return template("header_enclosing")
 
 
 def uses_section(
@@ -324,11 +332,82 @@ def assemble_content(
 
     # Get the appropriate HTML template header content given the
     # document_request.assembly_layout_kind the user has chosen.
-    header = document_html_header(document_request.assembly_layout_kind)
+    header = document_html_header(
+        document_request.assembly_layout_kind, document_request.generate_docx
+    )
     # Finally compose the HTML document into one string that includes
     # the header template content.
     content = enclose_html_content(content, document_html_header=header)
     return content
+
+
+def assemble_docx_content(
+    document_request_key: str,
+    document_request: DocumentRequest,
+    book_content_units: Iterable[BookContent],
+) -> Composer:
+    """
+    Assemble and return the content from all requested resources according to the
+    assembly_strategy requested.
+    """
+    # Get the assembly strategy function appropriate given the users
+    # choice of document_request.assembly_strategy_kind
+    assembly_strategy = asd.assembly_strategy_factory(
+        document_request.assembly_strategy_kind
+    )
+    t0 = time.time()
+    # Now, actually do the assembly given the additional
+    # information of the document_request.assembly_layout_kind.
+    composers = assembly_strategy(
+        book_content_units,
+        document_request.assembly_layout_kind,
+        document_request.chunk_size,
+    )
+    # Save the generator
+    composers = list(composers)
+    t1 = time.time()
+    logger.debug("Time for interleaving document: %s", t1 - t0)
+
+    tw_book_content_units = [
+        book_content_unit
+        for book_content_unit in book_content_units
+        if isinstance(book_content_unit, TWBook)
+    ]
+
+    tw_subdocs = []
+    if tw_book_content_units:
+        # Get last composer so that we can add TW to it
+        # last_composer = composers[-1]
+        html_to_docx = HtmlToDocx()
+        t0 = time.time()
+        # Add the translation words definition section for each language requested.
+        for tw_book_content_unit in unique(
+            tw_book_content_units, key=lambda unit: unit.lang_code
+        ):
+            tw_subdoc = html_to_docx.parse_html_string(
+                "".join(
+                    translation_words_section(
+                        tw_book_content_unit, include_uses_section=False
+                    )
+                )
+            )
+            tw_subdocs.append(tw_subdoc)
+            # last_composer.append(subdoc)
+
+        t1 = time.time()
+        logger.debug("Time for adding TW content to document: %s", t1 - t0)
+
+    # Now lets add each composer's document instance to the first
+    # composer.
+    first_composer = composers[0]
+    for composer in composers[1:]:
+        first_composer.append(composer.doc)
+
+    # Add the TW subdocs to the composer
+    for tw_subdoc_ in tw_subdocs:
+        first_composer.append(tw_subdoc_)
+
+    return first_composer
 
 
 def should_send_email(
@@ -496,36 +575,52 @@ def convert_html_to_epub(
         )
 
 
-# HTML to DOCX conversion:
-# pandoc cannot handle two column layouts (manually created or with
-# column-count),
-# ebook-convert handles two column, but the page breaking is buggy,
-# python-docx can build Docx from scratch but would require change in
-# pipeline as it doesn't do HTML to DOCX conversion. Ironically, if python-docx
-# gave the greatest control over document creation we could get PDFs
-# from the Docx possibly. If we went this direction it would mean
-# modifying the USFM parser to have a Docx renderer.
-# pdf2docx can (with some bugginess/imperfections) create a Docx from
-# a PDF including two column layout, but it takes a really long time
-# and for documents that include, say, TW resource, it could take hours.
 def convert_html_to_docx(
     html_filepath: str,
     docx_filepath: str,
+    composer: Composer,
     email_address: Optional[str],
     document_request_key: str,
-    pandoc_options: str = settings.PANDOC_OPTIONS,
+    resource_requests: Sequence[ResourceRequest],
+    title1: str = "title1",
+    title2: str = "title2",
+    title3: str = "Formatted for Translators",
+    docx_template_path: str = settings.DOCX_TEMPLATE_PATH,
 ) -> None:
-    """Generate Docx from HTML, possibly send to email_address as attachment."""
-    assert exists(html_filepath)
-    pandoc_command = "pandoc {} {} -o {}".format(
-        pandoc_options,
-        html_filepath,
-        docx_filepath,
-    )
-    logger.debug("Generate Docx command: %s", pandoc_command)
+    """Generate Docx and possibly send to email_address as attachment."""
     t0 = time.time()
-    subprocess.call(pandoc_command, shell=True)
+    # Get data for front page of Docx template.
+    title1 = title1
+    title2 = title2
+    title3 = title3
+
+    # TODO HtmlToDocx relies on CSS style tags in HTML rather than CSS
+    # classes. Because the USFM-Tools parser spits out HTML that references
+    # CSS classes, we could substitute the CSS class definition into a style
+    # tag as a replacement for the class tag. That way HtmlToDocx can pick
+    # up those CSS styles that it knows how to interpret.
+
+    doc = DocxTemplate(docx_template_path)
+    toc_path = generate_docx_toc(docx_filepath)
+    toc = doc.new_subdoc(toc_path)
+    context = {
+        "title1": title1,
+        "title2": title2,
+        "title3": title3,
+        "TOC": toc,
+    }
+    doc.render(context)
+
+    # Start new section for different column layout
+    new_section = doc.add_section(WD_SECTION.CONTINUOUS)
+    new_section.start_type
+
+    master = Composer(doc)
+    # Add the main content.
+    master.append(composer.doc)
+    master.save(docx_filepath)
     t1 = time.time()
+
     logger.debug("Time for converting HTML to Docx: %s", t1 - t0)
     copy_file_to_docker_output_dir(docx_filepath)
     if should_send_email(email_address):
@@ -544,6 +639,62 @@ def convert_html_to_docx(
             attachments,
             document_request_key,
         )
+
+
+def generate_docx_toc(docx_filepath: str) -> str:
+    """
+    Create subdocument that contains only the code to generate (on
+    first open of document) the table of contents.
+    """
+
+    toc_path = "{}_toc.docx".format(Path(docx_filepath).with_suffix(""))
+
+    # from docx.shared import Inches
+    document = Document()
+
+    paragraph = document.add_paragraph()
+    run = paragraph.add_run()
+    fldChar = OxmlElement("w:fldChar")  # creates a new element
+    fldChar.set(qn("w:fldCharType"), "begin")  # sets attribute on element
+    instrText = OxmlElement("w:instrText")
+    instrText.set(qn("xml:space"), "preserve")  # sets attribute on element
+    instrText.text = (
+        # r'TOC \o "1-3" \h \z \u'  # change 1-3 depending on heading levels you need
+        r'TOC \o "1-2" \h \z \u'  # change 1-3 depending on heading levels you need
+    )
+
+    fldChar2 = OxmlElement("w:fldChar")
+    fldChar2.set(qn("w:fldCharType"), "separate")
+    fldChar3 = OxmlElement("w:t")
+    fldChar3.text = (
+        "Right-click to update field (doing so will insert table of contents)."
+    )
+    fldChar2.append(fldChar3)
+
+    fldChar4 = OxmlElement("w:fldChar")
+    fldChar4.set(qn("w:fldCharType"), "end")
+
+    r_element = run._r
+    r_element.append(fldChar)
+    r_element.append(instrText)
+    r_element.append(fldChar2)
+    r_element.append(fldChar4)
+    p_element = paragraph._p
+
+    document.save(toc_path)
+    return toc_path
+
+
+# TODO Find real source of extraneous tags and deal with them there
+# rather than here.
+def clean_html(html_content: str) -> str:
+    """
+    Remove or alter tags, content, or CSS that interfere with
+    conversion from HTML to Docx.
+    """
+    # Remove superfluous </body></html> at end of every USFM chapter
+    updated_html_content = re.sub("<\/body><\/html>", "", html_content)
+    return updated_html_content
 
 
 def html_filepath(
@@ -638,11 +789,12 @@ def write_html_content_to_file(
     """
     Write HTML content to file.
     """
+    content_updated = clean_html(content)
     logger.debug("About to write HTML to %s", output_filename)
     # Write the HTML file to disk.
     file_utils.write_file(
         output_filename,
-        content,
+        content_updated,
     )
     copy_file_to_docker_output_dir(output_filename)
 
@@ -687,7 +839,6 @@ def main(document_request_json: Json[Any]) -> Json[Any]:
     html_filepath_ = html_filepath(document_request_key_)
     pdf_filepath_ = pdf_filepath(document_request_key_)
     epub_filepath_ = epub_filepath(document_request_key_)
-    docx_filepath_ = docx_filepath(document_request_key_)
 
     if file_utils.asset_file_needs_update(html_filepath_):
         # Update the state of the worker process. This is used by the
@@ -783,15 +934,101 @@ def main(document_request_json: Json[Any]) -> Json[Any]:
     else:
         logger.debug("Cache hit for %s", epub_filepath_)
 
+    return document_request_key_
+
+
+@worker.app.task()
+def alt_main(document_request_json: Json[Any]) -> Json[Any]:
+    """
+    This is the alternative entry point for Docx document creation only.
+    """
+    document_request = DocumentRequest.parse_raw(document_request_json)
+    logger.debug(
+        "document_request: %s",
+        document_request,
+    )
+    document_request.assembly_layout_kind = select_assembly_layout_kind(
+        document_request
+    )
+    # Generate the document request key that identifies this and
+    # identical document requests.
+    document_request_key_ = document_request_key(
+        document_request.resource_requests,
+        document_request.assembly_strategy_kind,
+        document_request.assembly_layout_kind,
+        document_request.chunk_size,
+    )
+    html_filepath_ = html_filepath(document_request_key_)
+    docx_filepath_ = docx_filepath(document_request_key_)
+
     if document_request.generate_docx and file_utils.asset_file_needs_update(
         docx_filepath_
     ):
+        # Update the state of the worker process. This is used by the
+        # UI to report status.
+        current_task.update_state(state="Locating assets")
+        # Docx didn't exist in cache so go ahead and start by getting the
+        # resource lookup DTOs for each resource request in the document
+        # request.
+        resource_lookup_dtos = [
+            resource_lookup.resource_lookup_dto(
+                resource_request.lang_code,
+                resource_request.resource_type,
+                resource_request.resource_code,
+            )
+            for resource_request in document_request.resource_requests
+        ]
+
+        # Determine which resource URLs were actually found.
+        found_resource_lookup_dtos = [
+            resource_lookup_dto
+            for resource_lookup_dto in resource_lookup_dtos
+            if resource_lookup_dto.url is not None
+        ]
+
+        current_task.update_state(state="Provisioning asset files")
+        t0 = time.time()
+        resource_dirs = [
+            resource_lookup.provision_asset_files(dto)
+            for dto in found_resource_lookup_dtos
+        ]
+        t1 = time.time()
+        logger.debug(
+            "Time to provision asset files (acquire and write to disk): %s", t1 - t0
+        )
+
+        current_task.update_state(state="Parsing asset files")
+        # Initialize found resources from their provisioned assets.
+        t0 = time.time()
+        book_content_units = [
+            parsing.book_content(
+                resource_lookup_dto,
+                resource_dir,
+                document_request.resource_requests,
+                document_request.layout_for_print,
+                document_request.chunk_size,
+            )
+            for resource_lookup_dto, resource_dir in zip(
+                found_resource_lookup_dtos, resource_dirs
+            )
+        ]
+
+        t1 = time.time()
+        logger.debug("Time to parse all resource content: %s", t1 - t0)
+
+        current_task.update_state(state="Assembling content")
+        composer = assemble_docx_content(
+            document_request_key_, document_request, book_content_units
+        )
+
         current_task.update_state(state="Converting to Docx format")
         convert_html_to_docx(
             html_filepath_,
             docx_filepath_,
+            composer,
             document_request.email_address,
             document_request_key_,
+            document_request.resource_requests,
         )
     else:
         logger.debug("Cache hit for %s", docx_filepath_)

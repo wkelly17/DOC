@@ -181,7 +181,6 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr(
         chapter_heading = chapter.content[0]
         yield HtmlContent(chapter_heading)
 
-        # Add chapter intro for each language
         for tn_book_content_unit2 in tn_book_content_units:
             # Add the translation notes chapter intro.
             yield chapter_intro(tn_book_content_unit2, chapter_num)
@@ -218,8 +217,24 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr(
                 else:
                     yield html_column_right_begin
 
-                # Add scripture verse
+                # Add scripture chapter
                 yield "".join(usfm_book_content_unit.chapters[chapter_num].content)
+                # Add the footnotes
+                # try:
+                chapter_footnotes = usfm_book_content_unit.chapters[
+                    chapter_num
+                ].footnotes
+                if chapter_footnotes:
+                    yield footnotes_heading
+                    yield chapter_footnotes
+                # except KeyError:
+                #     ldebug(
+                #         "usfm_book_content_unit: %s, does not have chapter: %s",
+                #         usfm_book_content_unit,
+                #         chapter_num,
+                #     )
+                #     lexception("Caught exception:")
+
             yield html_column_end
             if not is_even(idx):  # Non-even indexes signal the end of the current row.
                 yield html_row_end
@@ -252,23 +267,6 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr(
         yield html_row_end
 
         yield html_row_end
-
-        # Add the footnotes
-        for usfm_book_content_unit in usfm_book_content_units:
-            try:
-                chapter_footnotes = usfm_book_content_unit.chapters[
-                    chapter_num
-                ].footnotes
-                if chapter_footnotes:
-                    yield footnotes_heading
-                    yield chapter_footnotes
-            except KeyError:
-                ldebug(
-                    "usfm_book_content_unit: %s, does not have chapter: %s",
-                    usfm_book_content_unit,
-                    chapter_num,
-                )
-                lexception("Caught exception:")
 
 
 def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
@@ -326,9 +324,29 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
         # chapter headings for other usfm_book_content_units because it would
         # be strange to have more than one chapter heading per chapter
         # for this assembly sub-strategy.
-        chapter_heading = HtmlContent("")
-        chapter_heading = chapter.content[0]
-        yield HtmlContent(chapter_heading)
+        # chapter_heading = HtmlContent("")
+        # chapter_heading = chapter.content[0]
+        # yield HtmlContent(chapter_heading)
+
+        # Add the interleaved USFM chapter
+        for usfm_book_content_unit in usfm_book_content_units:
+            if chapter_num in usfm_book_content_unit.chapters:
+                # Add scripture chapter
+                yield "".join(usfm_book_content_unit.chapters[chapter_num].content)
+                # try:
+                chapter_footnotes = usfm_book_content_unit.chapters[
+                    chapter_num
+                ].footnotes
+                if chapter_footnotes:
+                    yield footnotes_heading
+                    yield chapter_footnotes
+                # except KeyError:
+                #     ldebug(
+                #         "usfm_book_content_unit: %s, does not have chapter: %s",
+                #         usfm_book_content_unit,
+                #         chapter_num,
+                #     )
+                #     lexception("Caught exception:")
 
         # Add chapter intro for each language
         for tn_book_content_unit2 in tn_book_content_units:
@@ -338,14 +356,6 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
         for bc_book_content_unit in bc_book_content_units:
             # Add the chapter commentary.
             yield chapter_commentary(bc_book_content_unit, chapter_num)
-
-        # Add the interleaved USFM verses
-        for usfm_book_content_unit in usfm_book_content_units:
-            if chapter_num in usfm_book_content_unit.chapters:
-                # Add scripture chapter
-                yield "".join(
-                    usfm_book_content_unit.chapters[chapter_num].verses.values()
-                )
 
         # Add the interleaved tn notes
         tn_verses = None
@@ -395,22 +405,6 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
                 yield html_column_end
                 yield html_row_end
 
-        # Add the footnotes
-        for usfm_book_content_unit in usfm_book_content_units:
-            try:
-                chapter_footnotes = usfm_book_content_unit.chapters[
-                    chapter_num
-                ].footnotes
-                if chapter_footnotes:
-                    yield footnotes_heading
-                    yield chapter_footnotes
-            except KeyError:
-                ldebug(
-                    "usfm_book_content_unit: %s, does not have chapter: %s",
-                    usfm_book_content_unit,
-                    chapter_num,
-                )
-                lexception("Caught exception:")
 
 
 def assemble_tn_as_iterator_by_chapter_for_book_then_lang(

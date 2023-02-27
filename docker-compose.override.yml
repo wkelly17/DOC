@@ -2,7 +2,7 @@ version: "3"
 services:
   api:
     volumes:
-      - ./docker_document_output:/document_output
+      - ./docker_document_output:/app/document_output
 
   fileserver:
     volumes:

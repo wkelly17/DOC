@@ -61,7 +61,7 @@ async def validation_exception_handler(
 
 
 @app.post("/documents")
-async def generate_document(
+async def generate_non_docx_document(
     document_request: model.DocumentRequest,
     success_message: str = settings.SUCCESS_MESSAGE,
 ) -> ORJSONResponse:
@@ -91,6 +91,37 @@ async def generate_document(
         return ORJSONResponse({"task_id": task.id})
 
 
+@app.post("/documents_docx")
+async def generate_docx_document(
+    document_request: model.DocumentRequest,
+    success_message: str = settings.SUCCESS_MESSAGE,
+) -> ORJSONResponse:
+    """
+    Get the document request and hand it off to the document_generator
+    module for processing. Return model.FinishedDocumentDetails instance
+    containing URL of resulting Docx, or, raise an
+    InvalidDocumentRequestException if there is an exception which is
+    subsequently caught in the frontend UI.
+    """
+    # Top level exception handler
+    try:
+        task = document_generator.alt_main.apply_async(args=(document_request.json(),))
+    except HTTPException as exc:
+        raise exc
+    except Exception as exc:  # catch any exceptions we weren't expecting, handlers handle the ones we do expect.
+        logger.exception(
+            "There was an error while attempting to fulfill the document "
+            "request. Likely reason is the following exception:"
+        )
+        # Handle exceptions that aren't handled otherwise
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)
+        )
+    else:
+        logger.debug("task_id: %s", task.id)
+        return ORJSONResponse({"task_id": task.id})
+
+
 @app.get("/task_status/{task_id}")
 async def task_status(task_id: str) -> ORJSONResponse:
     res: AsyncResult[dict[str, str]] = AsyncResult(task_id)
@@ -101,61 +132,6 @@ async def task_status(task_id: str) -> ORJSONResponse:
             "state": res.state,
         }
     )
-
-
-# @app.get("/epub/{document_request_key}")
-# async def serve_epub_document(
-#     document_request_key: str, output_dir: str = settings.DOCUMENT_SERVE_DIR
-# ) -> FileResponse:
-#     """Serve the requested ePub document."""
-#     path = "{}.epub".format(os.path.join(output_dir, document_request_key))
-#     return FileResponse(
-#         path=path,
-#         filename=pathlib.Path(path).name,
-#         media_type="application/epub+zip",
-#         headers={"Content-Disposition": "attachment"},
-#     )
-
-
-# @app.get("/pdf/{document_request_key}")
-# async def serve_pdf_document(
-#     document_request_key: str, output_dir: str = settings.DOCUMENT_SERVE_DIR
-# ) -> FileResponse:
-#     """Serve the requested PDF document."""
-#     path = "{}.pdf".format(os.path.join(output_dir, document_request_key))
-#     return FileResponse(
-#         path=path,
-#         filename=pathlib.Path(path).name,
-#         media_type="application/pdf",
-#         headers={"Content-Disposition": "attachment"},
-#     )
-
-
-# @app.get("/docx/{document_request_key}")
-# async def serve_docx_document(
-#     document_request_key: str, output_dir: str = settings.DOCUMENT_SERVE_DIR
-# ) -> FileResponse:
-#     """Serve the requested Docx document."""
-#     path = "{}.docx".format(os.path.join(output_dir, document_request_key))
-#     return FileResponse(
-#         path=path,
-#         filename=pathlib.Path(path).name,
-#         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-#         headers={"Content-Disposition": "attachment"},
-#     )
-
-
-# @app.get("/html/{document_request_key}")
-# async def serve_html_document(
-#     document_request_key: str, output_dir: str = settings.DOCUMENT_SERVE_DIR
-# ) -> FileResponse:
-#     """Serve the requested HTML document."""
-#     path = "{}.html".format(os.path.join(output_dir, document_request_key))
-#     return FileResponse(
-#         path=path,
-#         filename=pathlib.Path(path).name,
-#         headers={"Content-Disposition": "inline"},
-#     )
 
 
 @app.get("/language_codes_names_and_resource_types")
@@ -181,10 +157,24 @@ async def lang_codes_and_names() -> list[str]:
     return resource_lookup.lang_codes_and_names()
 
 
+@app.get("/language_codes_and_names_v1")
+async def lang_codes_and_names_for_v1() -> list[str]:
+    """
+    Return list of available gateway language code, name tuples.
+    """
+    return resource_lookup.lang_codes_and_names_for_v1()
+
+
 @app.get("/resource_types")
 async def resource_types() -> Any:
     """Return list of all available resource types."""
     return resource_lookup.resource_types()
+
+
+@app.get("/resource_types_v1")
+async def resource_types_for_v1() -> Any:
+    """Return list of resource types approved for v1 release."""
+    return resource_lookup.resource_types_for_v1()
 
 
 @app.get("/resource_types_for_lang/{lang_code}")
@@ -199,33 +189,20 @@ async def resource_types_and_names_for_lang(lang_code: str) -> Sequence[Any]:
     return resource_lookup.resource_types_and_names_for_lang(lang_code)
 
 
+@app.get("/resource_types_and_names_for_lang_v1/{lang_code}")
+async def resource_types_and_names_for_lang_for_v1_release(
+    lang_code: str,
+) -> Sequence[Any]:
+    """Return list of available resource types and their names for lang_code."""
+    return resource_lookup.resource_types_and_names_for_lang_for_v1_release(lang_code)
+
+
 @app.get("/shared_resource_codes/{lang0_code}/{lang1_code}")
 async def shared_resource_codes(lang0_code: str, lang1_code: str) -> Sequence[Any]:
     """
     Return list of available resource codes common to both lang0_code and lang1_code.
     """
     return resource_lookup.shared_resource_codes(lang0_code, lang1_code)
-
-
-@app.get("/resources_codes_and_types_for_lang/{lang_code}")
-async def resource_codes_and_types_for_lang(
-    lang_code: str,
-) -> dict[str, list[tuple[str, str, str]]]:
-    """
-    Return dictionary in which keys are resource types for the
-    language that have available resource codes for lang_code.
-    """
-    return resource_lookup.resource_codes_and_types_for_lang(lang_code)
-
-
-# @app.get("/shared_resource_codes_and_types/{lang0_code}/{lang1_code}")
-# def shared_resource_codes_and_types(
-#     lang0_code: str, lang1_code: str
-# ) -> dict[str, list[tuple[str, str, str]]]:
-#     """
-#     Return list of available resource codes and types where resource code are common to both lang0_code and lang1_code.
-#     """
-#     return resource_lookup.shared_resource_codes_and_types(lang0_code, lang1_code)
 
 
 @app.get("/resource_types/{lang_code}/")
@@ -238,6 +215,18 @@ async def shared_resource_types(
     with resource_codes.
     """
     return resource_lookup.shared_resource_types(lang_code, resource_codes)
+
+
+@app.get("/resource_types_v1/{lang_code}/")
+async def shared_resource_types_for_v1(
+    lang_code: str,
+    resource_codes: Sequence[str] = Query(default=None),
+) -> Iterable[tuple[str, str]]:
+    """
+    Return the list of v1 release approved resource types tuples for lang_code
+    with resource_codes.
+    """
+    return resource_lookup.shared_resource_types_for_v1(lang_code, resource_codes)
 
 
 @app.get("/resource_codes_for_lang/{lang_code}")

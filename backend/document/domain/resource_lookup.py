@@ -412,6 +412,35 @@ def lang_codes_and_names(
     return sorted(values, key=lambda value: value.split(",")[0])
 
 
+def lang_codes_and_names_for_v1(
+    working_dir: str = settings.RESOURCE_ASSETS_DIR,
+    translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
+    gateway_languages: Sequence[str] = settings.GATEWAY_LANGUAGES,
+    lang_code_filter_list: Sequence[str] = settings.LANG_CODE_FILTER_LIST,
+) -> list[str]:
+    """
+    Convenience method that can be called from UI to get the set
+    of gateway only (for v1) language code, name tuples available
+    through API.
+
+    >>> from document.domain import resource_lookup
+    >>> data = resource_lookup.lang_codes_and_names_for_v1()
+    >>> data[0]
+    'Amharic, code: am'
+    """
+    data = fetch_source_data(working_dir, translations_json_location)
+    values = [
+        "{}, code: {}".format(d["name"], d["code"])
+        for d in [
+            lang
+            for lang in data
+            if lang["code"] in gateway_languages
+            and lang["code"] not in lang_code_filter_list
+        ]
+    ]
+    return sorted(values, key=lambda value: value.split(",")[0])
+
+
 def resource_types(jsonpath_str: str = settings.RESOURCE_TYPES_JSONPATH) -> Any:
     """
     Convenience method that can be called, e.g., from the UI, to
@@ -421,6 +450,28 @@ def resource_types(jsonpath_str: str = settings.RESOURCE_TYPES_JSONPATH) -> Any:
     ['Reg', 'avd', 'bc', 'blv', 'cuv', 'dot', 'f10', 'nav', 'nva', 'reg', 'rg', 'rlv', 'ta', 'ta-wa', 'tn', 'tn-wa', 'tq', 'tq-wa', 'tw', 'tw-wa', 'udb', 'udb-wa', 'ugnt', 'uhb', 'ulb', 'ulb-wa']
     """
     return _lookup(jsonpath_str)
+
+
+def resource_types_for_v1(
+    jsonpath_str: str = settings.RESOURCE_TYPES_JSONPATH,
+    v1_version_approved_resource_types: Sequence[
+        str
+    ] = settings.V1_APPROVED_RESOURCE_TYPES,
+) -> Any:
+    """
+    Convenience method that can be called, e.g., from the UI, to
+    get the set of resource types approved for v1 release that are available in translations.json.
+    >>> from document.domain import resource_lookup
+    >>> sorted(resource_lookup.resource_types_for_v1())
+    ['cuv', 'nav', 'reg', 'tn', 'tn-wa', 'ugnt', 'ulb', 'ulb-wa']
+    """
+    # Filter the resource types available to be only USFM and TN
+    # types that have been approved for v1 release.
+    return [
+        resource_type
+        for resource_type in _lookup(jsonpath_str)
+        if resource_type in v1_version_approved_resource_types
+    ]
 
 
 # FIXME Remove when no longer needed.
@@ -510,6 +561,7 @@ def resource_types_and_names_for_lang(
     drop-down menu.
 
     >>> from document.domain import resource_lookup
+    >>> from document.config import settings
     >>> import logging
     >>> import sys
     >>> logger.addHandler(logging.StreamHandler(sys.stdout))
@@ -527,12 +579,518 @@ def resource_types_and_names_for_lang(
      ('tw', 'Translation Words (tw)'),
      ('udb', 'Unlocked Dynamic Bible (UDB) (udb)'),
      ('ulb', 'Español Latino Americano ULB (ulb)')]
+
+    >>> pprint.pprint(sorted([(lang_code,resource_lookup.resource_types_and_names_for_lang(lang_code)) for lang_code in settings.GATEWAY_LANGUAGES], key=lambda group: group[0]))
+    [('am',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Unlocked Literal Bible (ULB) (ulb)')]),
+     ('arb',
+      [('nav', 'New Arabic Version (Ketab El Hayat) (nav)'),
+       ('tw', 'Translation Words (tw)')]),
+     ('as',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Assamese Unlocked Literal Bible (ulb)')]),
+     ('bn',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Bengali Unlocked Literal Bible (ulb)')]),
+     ('ceb',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Cebuano Unlocked Literal Bible (ulb)')]),
+     ('en',
+      [('ulb-wa', 'Unlocked Literal Bible (ULB)'),
+       ('tn-wa', 'ULB Translation Helps'),
+       ('tq-wa', 'ULB Translation Questions'),
+       ('tw-wa', 'ULB Translation Words'),
+       ('bc-wa', 'Bible Commentary')]),
+     ('es-419',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('udb', 'Unlocked Dynamic Bible (UDB) (udb)'),
+       ('ulb', 'Español Latino Americano ULB (ulb)')]),
+     ('fa',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Henry Martyn Open Source Bible (1876) (ulb)')]),
+     ('fr',
+      [('f10', 'French Louis Segond 1910 Bible (f10)'),
+       ('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'French ULB (ulb)')]),
+     ('gu',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('udb', 'Gujarati Unlocked Dynamic Bible (udb)'),
+       ('ulb', 'Gujarati Unlocked Literal Bible (ulb)')]),
+     ('ha',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Unlocked Literal Bible - Hausa (ulb)')]),
+     ('hi',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('udb', 'Unlocked Dynamic Bible - Hindi (udb)'),
+       ('ulb', 'Unlocked Literal Bible - Hindi (ulb)')]),
+     ('id',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)')]),
+     ('ilo',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('udb', 'Ilocano Unlocked Dynamic Bible (udb)'),
+       ('ulb', 'Unlocked Literal Bible - Ilocano (ulb)')]),
+     ('km',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Unlocked Literal Bible - Khmer (ulb)')]),
+     ('kn',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Kannada Unlocked Literal Bible (ulb)')]),
+     ('lo',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Lao ULB (ulb)')]),
+     ('ml',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Unlocked Literal Bible - Malayalam (ulb)')]),
+     ('mr',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('udb', 'Unlocked Dynamic Bible - Marathi (udb)'),
+       ('ulb', 'Unlocked Literal Bible - Marathi (ulb)')]),
+     ('my',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Burmese Judson Bible (ulb)')]),
+     ('ne',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('udb', 'Unlocked Dynamic Bible - Nepali (udb)'),
+       ('ulb', 'Unlocked Literal Bible - Nepali (ulb)')]),
+     ('or',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('udb', 'Oriya Unlocked Dynamic Bible (udb)'),
+       ('ulb', 'Oriya Unlocked Literal Bible (ulb)')]),
+     ('pa',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Punjabi Unlocked Literal Bible (ulb)')]),
+     ('plt',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Plateau Malagasy Unlocked Literal Bible (ulb)')]),
+     ('pmy',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)')]),
+     ('pt-br',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Brazilian Portuguese Unlocked Literal Bible (ulb)')]),
+     ('ru',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Russian Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Russian Unlocked Literal Bible (ulb)')]),
+     ('sw',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Swahili Unlocked Literal Bible (ulb)')]),
+     ('ta',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Unlocked Literal Bible - Tamil (ulb)')]),
+     ('te',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Unlocked Literal Bible - Telugu (ulb)')]),
+     ('th',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Unlocked Literal Bible (ULB) (ulb)')]),
+     ('tl',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('udb', 'Tagalog Unlocked Dynamic Bible (udb)'),
+       ('ulb', 'Tagalog Unlocked Literal Bible (ulb)')]),
+     ('tpi', [('ulb', 'Tok Pisin Unlocked Literal Bible (ulb)')]),
+     ('ur', [('ulb', 'Unlocked Literal Bible (ULB) (ulb)')]),
+     ('ur-deva',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Unlocked Literal Bible - Urdu (ulb)')]),
+     ('vi',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('udb', 'Vietnamese Unlocked Dynamic Bible (udb)'),
+       ('ulb', 'Vietnamese Unlocked Literal Bible (ulb)')]),
+     ('zh',
+      [('cuv', '新标点和合本 (cuv)'),
+       ('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)')])]
+
+    >>> pprint.pprint(sorted([(lang_code,resource_lookup.resource_types_and_names_for_lang(lang_code)) for lang_code in settings.GATEWAY_LANGUAGES if lang_code not in settings.LANG_CODE_FILTER_LIST], key=lambda group: group[0]))
+    [('am',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Unlocked Literal Bible (ULB) (ulb)')]),
+     ('arb',
+      [('nav', 'New Arabic Version (Ketab El Hayat) (nav)'),
+       ('tw', 'Translation Words (tw)')]),
+     ('as',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Assamese Unlocked Literal Bible (ulb)')]),
+     ('bn',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Bengali Unlocked Literal Bible (ulb)')]),
+     ('ceb',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Cebuano Unlocked Literal Bible (ulb)')]),
+     ('en',
+      [('ulb-wa', 'Unlocked Literal Bible (ULB)'),
+       ('tn-wa', 'ULB Translation Helps'),
+       ('tq-wa', 'ULB Translation Questions'),
+       ('tw-wa', 'ULB Translation Words'),
+       ('bc-wa', 'Bible Commentary')]),
+     ('es-419',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('udb', 'Unlocked Dynamic Bible (UDB) (udb)'),
+       ('ulb', 'Español Latino Americano ULB (ulb)')]),
+     ('fr',
+      [('f10', 'French Louis Segond 1910 Bible (f10)'),
+       ('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'French ULB (ulb)')]),
+     ('gu',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('udb', 'Gujarati Unlocked Dynamic Bible (udb)'),
+       ('ulb', 'Gujarati Unlocked Literal Bible (ulb)')]),
+     ('ha',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Unlocked Literal Bible - Hausa (ulb)')]),
+     ('hi',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('udb', 'Unlocked Dynamic Bible - Hindi (udb)'),
+       ('ulb', 'Unlocked Literal Bible - Hindi (ulb)')]),
+     ('ilo',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('udb', 'Ilocano Unlocked Dynamic Bible (udb)'),
+       ('ulb', 'Unlocked Literal Bible - Ilocano (ulb)')]),
+     ('km',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Unlocked Literal Bible - Khmer (ulb)')]),
+     ('kn',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Kannada Unlocked Literal Bible (ulb)')]),
+     ('lo',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Lao ULB (ulb)')]),
+     ('ml',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Unlocked Literal Bible - Malayalam (ulb)')]),
+     ('mr',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('udb', 'Unlocked Dynamic Bible - Marathi (udb)'),
+       ('ulb', 'Unlocked Literal Bible - Marathi (ulb)')]),
+     ('my',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Burmese Judson Bible (ulb)')]),
+     ('ne',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('udb', 'Unlocked Dynamic Bible - Nepali (udb)'),
+       ('ulb', 'Unlocked Literal Bible - Nepali (ulb)')]),
+     ('or',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('udb', 'Oriya Unlocked Dynamic Bible (udb)'),
+       ('ulb', 'Oriya Unlocked Literal Bible (ulb)')]),
+     ('pa',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Punjabi Unlocked Literal Bible (ulb)')]),
+     ('plt',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Plateau Malagasy Unlocked Literal Bible (ulb)')]),
+     ('pt-br',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Brazilian Portuguese Unlocked Literal Bible (ulb)')]),
+     ('ru',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Russian Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Russian Unlocked Literal Bible (ulb)')]),
+     ('sw',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Swahili Unlocked Literal Bible (ulb)')]),
+     ('ta',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Unlocked Literal Bible - Tamil (ulb)')]),
+     ('te',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Unlocked Literal Bible - Telugu (ulb)')]),
+     ('th',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Unlocked Literal Bible (ULB) (ulb)')]),
+     ('tl',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('udb', 'Tagalog Unlocked Dynamic Bible (udb)'),
+       ('ulb', 'Tagalog Unlocked Literal Bible (ulb)')]),
+     ('tpi', [('ulb', 'Tok Pisin Unlocked Literal Bible (ulb)')]),
+     ('ur', [('ulb', 'Unlocked Literal Bible (ULB) (ulb)')]),
+     ('ur-deva',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('ulb', 'Unlocked Literal Bible - Urdu (ulb)')]),
+     ('vi',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)'),
+       ('udb', 'Vietnamese Unlocked Dynamic Bible (udb)'),
+       ('ulb', 'Vietnamese Unlocked Literal Bible (ulb)')]),
+     ('zh',
+      [('cuv', '新标点和合本 (cuv)'),
+       ('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)')])]
+
+    >>> pprint.pprint(sorted([(lang_code,resource_lookup.resource_types_and_names_for_lang(lang_code)) for lang_code in settings.GATEWAY_LANGUAGES if lang_code in settings.LANG_CODE_FILTER_LIST], key=lambda group: group[0]))
+    [('fa',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Henry Martyn Open Source Bible (1876) (ulb)')]),
+     ('id',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)')]),
+     ('pmy',
+      [('tn', 'Translation Notes (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)')])]
+
+    >>> sorted([lang_code for lang_code in settings.GATEWAY_LANGUAGES if lang_code not in settings.LANG_CODE_FILTER_LIST])
+    ['am', 'arb', 'as', 'bn', 'ceb', 'en', 'es-419', 'fr', 'gu', 'ha', 'hi', 'ilo', 'km', 'kn', 'lo', 'ml', 'mr', 'my', 'ne', 'or', 'pa', 'plt', 'pt-br', 'ru', 'sw', 'ta', 'te', 'th', 'tl', 'tpi', 'ur', 'ur-deva', 'vi', 'zh']
+    >>> sorted([lang_code for lang_code in settings.GATEWAY_LANGUAGES if lang_code in settings.LANG_CODE_FILTER_LIST])
+    ['fa', 'id', 'pmy']
+
+
+    List of GL languages and their translations.json listed resource
+    types (filtered, but including udb and f10) USFM and (all) TN
+    types that translations.json lists as available for the GL
+    languages:
+
+    >>> data = resource_lookup.fetch_source_data(settings.RESOURCE_ASSETS_DIR, settings.TRANSLATIONS_JSON_LOCATION)
+    >>> values = []
+    >>> for item in [lang for lang in data if lang["code"] in settings.GATEWAY_LANGUAGES]:
+    ...    values.append(
+    ...        (item["code"],
+    ...           [
+    ...               resource_type["code"]
+    ...               for resource_type in item["contents"]
+    ...               if (
+    ...                   resource_type["code"] in settings.EN_USFM_RESOURCE_TYPES
+    ...                   or resource_type["code"] in settings.USFM_RESOURCE_TYPES
+    ...                   or resource_type["code"] in settings.EN_TN_RESOURCE_TYPES
+    ...                   or resource_type["code"] in settings.TN_RESOURCE_TYPES
+    ...               )
+    ...           ]
+    ...        )
+    ...    )
+    >>> sorted_values = sorted(values, key=lambda value: value[0])
+    >>> pprint.pprint(sorted_values)
+    [('am', ['tn', 'ulb']),
+     ('arb', ['nav']),
+     ('as', ['tn', 'ulb']),
+     ('bn', ['tn', 'ulb']),
+     ('ceb', ['tn', 'ulb']),
+     ('en', ['ulb-wa', 'tn-wa', 'tn']),
+     ('es-419', ['tn', 'ulb', 'udb']),
+     ('fa', ['tn', 'ulb']),
+     ('fr', ['tn', 'ulb', 'f10']),
+     ('gu', ['tn', 'ulb', 'udb']),
+     ('ha', ['tn', 'ulb']),
+     ('hi', ['tn', 'ulb', 'udb']),
+     ('id', ['tn']),
+     ('ilo', ['tn', 'ulb', 'udb']),
+     ('km', ['tn', 'ulb']),
+     ('kn', ['tn', 'ulb']),
+     ('lo', ['tn', 'ulb']),
+     ('ml', ['tn', 'ulb']),
+     ('mr', ['tn', 'ulb', 'udb']),
+     ('my', ['tn', 'ulb']),
+     ('ne', ['tn', 'ulb', 'udb']),
+     ('or', ['tn', 'ulb', 'udb']),
+     ('pa', ['tn', 'ulb']),
+     ('plt', ['tn', 'ulb']),
+     ('pmy', ['tn']),
+     ('pt-br', ['tn', 'ulb']),
+     ('ru', ['tn', 'ulb']),
+     ('sw', ['tn', 'ulb']),
+     ('ta', ['tn', 'ulb']),
+     ('te', ['tn', 'ulb']),
+     ('th', ['tn', 'ulb']),
+     ('tl', ['tn', 'ulb', 'udb']),
+     ('tpi', ['ulb']),
+     ('ur', ['ulb']),
+     ('ur-deva', ['tn', 'ulb']),
+     ('vi', ['tn', 'ulb', 'udb']),
+     ('zh', ['cuv', 'tn'])]
+
+    Here we experiment with returning only (filtered more aggressively
+    to remove all secondary USFMs, i.e., udb and f10 for fr) USFM and
+    (all) TN types that translations.json lists as available for the
+    GL languages:
+
+    >>> data = resource_lookup.fetch_source_data(settings.RESOURCE_ASSETS_DIR, settings.TRANSLATIONS_JSON_LOCATION)
+    >>> values = []
+    >>> for item in [lang for lang in data if lang["code"] in settings.GATEWAY_LANGUAGES]:
+    ...    values.append(
+    ...        (item["code"],
+    ...           [
+    ...               resource_type["code"]
+    ...               for resource_type in item["contents"]
+    ...               if (
+    ...                   resource_type["code"] in settings.EN_USFM_RESOURCE_TYPES
+    ...                   or resource_type["code"] in settings.USFM_RESOURCE_TYPES_MINUS_SECONDARY
+    ...                   or resource_type["code"] in settings.EN_TN_RESOURCE_TYPES
+    ...                   or resource_type["code"] in settings.TN_RESOURCE_TYPES
+    ...               )
+    ...           ]
+    ...        )
+    ...    )
+    >>> sorted_values = sorted(values, key=lambda value: value[0])
+    >>> pprint.pprint(sorted_values)
+    [('am', ['tn', 'ulb']),
+     ('arb', ['nav']),
+     ('as', ['tn', 'ulb']),
+     ('bn', ['tn', 'ulb']),
+     ('ceb', ['tn', 'ulb']),
+     ('en', ['ulb-wa', 'tn-wa', 'tn']),
+     ('es-419', ['tn', 'ulb']),
+     ('fa', ['tn', 'ulb']),
+     ('fr', ['tn', 'ulb']),
+     ('gu', ['tn', 'ulb']),
+     ('ha', ['tn', 'ulb']),
+     ('hi', ['tn', 'ulb']),
+     ('id', ['tn']),
+     ('ilo', ['tn', 'ulb']),
+     ('km', ['tn', 'ulb']),
+     ('kn', ['tn', 'ulb']),
+     ('lo', ['tn', 'ulb']),
+     ('ml', ['tn', 'ulb']),
+     ('mr', ['tn', 'ulb']),
+     ('my', ['tn', 'ulb']),
+     ('ne', ['tn', 'ulb']),
+     ('or', ['tn', 'ulb']),
+     ('pa', ['tn', 'ulb']),
+     ('plt', ['tn', 'ulb']),
+     ('pmy', ['tn']),
+     ('pt-br', ['tn', 'ulb']),
+     ('ru', ['tn', 'ulb']),
+     ('sw', ['tn', 'ulb']),
+     ('ta', ['tn', 'ulb']),
+     ('te', ['tn', 'ulb']),
+     ('th', ['tn', 'ulb']),
+     ('tl', ['tn', 'ulb']),
+     ('tpi', ['ulb']),
+     ('ur', ['ulb']),
+     ('ur-deva', ['tn', 'ulb']),
+     ('vi', ['tn', 'ulb']),
+     ('zh', ['cuv', 'tn'])]
+    >>> [tuple for tuple in sorted_values if len(tuple[1]) == 1]
+    [('arb', ['nav']), ('id', ['tn']), ('pmy', ['tn']), ('tpi', ['ulb']), ('ur', ['ulb'])]
+
+
+    Of the GL languages that have only USFM or TN, but not both, do we want to filter them out or just produce the document using just USFM or just TN (whatever is available for that language) since you have specified that the user is not to be allowed to choose resource types in v1 release?
+
     """
     if lang_code == "en":
         return [(key, value) for key, value in english_resource_type_map.items()]
 
     data = fetch_source_data(working_dir, translations_json_location)
-    for item in [lang for lang in data if lang["code"] in [lang_code]]:
+    for item in [lang for lang in data if lang["code"] == lang_code]:
         values = [
             (
                 resource_type["code"],
@@ -544,6 +1102,384 @@ def resource_types_and_names_for_lang(
                 or resource_type["code"] in tn_resource_types
                 or resource_type["code"] in tq_resource_types
                 or resource_type["code"] in tw_resource_types
+            )
+        ]
+    return sorted(values, key=lambda value: value[0])
+
+
+def resource_types_and_names_for_lang_for_v1_release(
+    lang_code: str,
+    working_dir: str = settings.RESOURCE_ASSETS_DIR,
+    english_resource_type_map: Mapping[
+        str, str
+    ] = settings.ENGLISH_RESOURCE_TYPE_MAP_USFM_AND_TN_ONLY,
+    translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
+    usfm_resource_types: Sequence[str] = settings.USFM_RESOURCE_TYPES_MINUS_SECONDARY,
+    tn_resource_types: Sequence[str] = settings.TN_RESOURCE_TYPES,
+) -> list[tuple[str, str]]:
+    """
+    Convenience method that can be called from UI to get the set
+    of all resource type, name tuples for a given language available
+    through API. Presumably this could be called to populate a
+    drop-down menu.
+
+    >>> from document.domain import resource_lookup
+    >>> from document.config import settings
+    >>> import logging
+    >>> import sys
+    >>> logger.addHandler(logging.StreamHandler(sys.stdout))
+    >>> import pprint
+    >>> # pprint.pprint(resource_lookup.resource_codes_and_types_for_lang_for_v1_release("fr"))
+    >>> pprint.pprint(resource_lookup.resource_types_and_names_for_lang_for_v1_release("en"))
+    [('ulb-wa', 'Unlocked Literal Bible (ULB)'), ('tn-wa', 'ULB Translation Helps')]
+    >>> pprint.pprint(resource_lookup.resource_types_and_names_for_lang_for_v1_release("es-419"))
+    [('tn', 'Translation Notes (tn)'),
+     ('ulb', 'Español Latino Americano ULB (ulb)')]
+
+    >>> pprint.pprint(sorted([(lang_code,resource_lookup.resource_types_and_names_for_lang_for_v1_release(lang_code)) for lang_code in settings.GATEWAY_LANGUAGES], key=lambda group: group[0]))
+    [('am',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Unlocked Literal Bible (ULB) (ulb)')]),
+     ('arb', [('nav', 'New Arabic Version (Ketab El Hayat) (nav)')]),
+     ('as',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Assamese Unlocked Literal Bible (ulb)')]),
+     ('bn',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Bengali Unlocked Literal Bible (ulb)')]),
+     ('ceb',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Cebuano Unlocked Literal Bible (ulb)')]),
+     ('en',
+      [('ulb-wa', 'Unlocked Literal Bible (ULB)'),
+       ('tn-wa', 'ULB Translation Helps')]),
+     ('es-419',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Español Latino Americano ULB (ulb)')]),
+     ('fa',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Henry Martyn Open Source Bible (1876) (ulb)')]),
+     ('fr', [('tn', 'Translation Notes (tn)'), ('ulb', 'French ULB (ulb)')]),
+     ('gu',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Gujarati Unlocked Literal Bible (ulb)')]),
+     ('ha',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Unlocked Literal Bible - Hausa (ulb)')]),
+     ('hi',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Unlocked Literal Bible - Hindi (ulb)')]),
+     ('id', [('tn', 'Translation Notes (tn)')]),
+     ('ilo',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Unlocked Literal Bible - Ilocano (ulb)')]),
+     ('km',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Unlocked Literal Bible - Khmer (ulb)')]),
+     ('kn',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Kannada Unlocked Literal Bible (ulb)')]),
+     ('lo', [('tn', 'Translation Notes (tn)'), ('ulb', 'Lao ULB (ulb)')]),
+     ('ml',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Unlocked Literal Bible - Malayalam (ulb)')]),
+     ('mr',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Unlocked Literal Bible - Marathi (ulb)')]),
+     ('my',
+      [('tn', 'Translation Notes (tn)'), ('ulb', 'Burmese Judson Bible (ulb)')]),
+     ('ne',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Unlocked Literal Bible - Nepali (ulb)')]),
+     ('or',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Oriya Unlocked Literal Bible (ulb)')]),
+     ('pa',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Punjabi Unlocked Literal Bible (ulb)')]),
+     ('plt',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Plateau Malagasy Unlocked Literal Bible (ulb)')]),
+     ('pmy', [('tn', 'Translation Notes (tn)')]),
+     ('pt-br',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Brazilian Portuguese Unlocked Literal Bible (ulb)')]),
+     ('ru',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Russian Unlocked Literal Bible (ulb)')]),
+     ('sw',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Swahili Unlocked Literal Bible (ulb)')]),
+     ('ta',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Unlocked Literal Bible - Tamil (ulb)')]),
+     ('te',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Unlocked Literal Bible - Telugu (ulb)')]),
+     ('th',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Unlocked Literal Bible (ULB) (ulb)')]),
+     ('tl',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Tagalog Unlocked Literal Bible (ulb)')]),
+     ('tpi', [('ulb', 'Tok Pisin Unlocked Literal Bible (ulb)')]),
+     ('ur', [('ulb', 'Unlocked Literal Bible (ULB) (ulb)')]),
+     ('ur-deva',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Unlocked Literal Bible - Urdu (ulb)')]),
+     ('vi',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Vietnamese Unlocked Literal Bible (ulb)')]),
+     ('zh', [('cuv', '新标点和合本 (cuv)'), ('tn', 'Translation Notes (tn)')])]
+
+    >>> pprint.pprint(sorted([(lang_code,resource_lookup.resource_types_and_names_for_lang_for_v1_release(lang_code)) for lang_code in settings.GATEWAY_LANGUAGES if lang_code not in settings.LANG_CODE_FILTER_LIST], key=lambda group: group[0]))
+    [('am',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Unlocked Literal Bible (ULB) (ulb)')]),
+     ('arb', [('nav', 'New Arabic Version (Ketab El Hayat) (nav)')]),
+     ('as',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Assamese Unlocked Literal Bible (ulb)')]),
+     ('bn',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Bengali Unlocked Literal Bible (ulb)')]),
+     ('ceb',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Cebuano Unlocked Literal Bible (ulb)')]),
+     ('en',
+      [('ulb-wa', 'Unlocked Literal Bible (ULB)'),
+       ('tn-wa', 'ULB Translation Helps')]),
+     ('es-419',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Español Latino Americano ULB (ulb)')]),
+     ('fr', [('tn', 'Translation Notes (tn)'), ('ulb', 'French ULB (ulb)')]),
+     ('gu',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Gujarati Unlocked Literal Bible (ulb)')]),
+     ('ha',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Unlocked Literal Bible - Hausa (ulb)')]),
+     ('hi',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Unlocked Literal Bible - Hindi (ulb)')]),
+     ('ilo',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Unlocked Literal Bible - Ilocano (ulb)')]),
+     ('km',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Unlocked Literal Bible - Khmer (ulb)')]),
+     ('kn',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Kannada Unlocked Literal Bible (ulb)')]),
+     ('lo', [('tn', 'Translation Notes (tn)'), ('ulb', 'Lao ULB (ulb)')]),
+     ('ml',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Unlocked Literal Bible - Malayalam (ulb)')]),
+     ('mr',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Unlocked Literal Bible - Marathi (ulb)')]),
+     ('my',
+      [('tn', 'Translation Notes (tn)'), ('ulb', 'Burmese Judson Bible (ulb)')]),
+     ('ne',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Unlocked Literal Bible - Nepali (ulb)')]),
+     ('or',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Oriya Unlocked Literal Bible (ulb)')]),
+     ('pa',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Punjabi Unlocked Literal Bible (ulb)')]),
+     ('plt',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Plateau Malagasy Unlocked Literal Bible (ulb)')]),
+     ('pt-br',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Brazilian Portuguese Unlocked Literal Bible (ulb)')]),
+     ('ru',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Russian Unlocked Literal Bible (ulb)')]),
+     ('sw',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Swahili Unlocked Literal Bible (ulb)')]),
+     ('ta',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Unlocked Literal Bible - Tamil (ulb)')]),
+     ('te',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Unlocked Literal Bible - Telugu (ulb)')]),
+     ('th',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Unlocked Literal Bible (ULB) (ulb)')]),
+     ('tl',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Tagalog Unlocked Literal Bible (ulb)')]),
+     ('tpi', [('ulb', 'Tok Pisin Unlocked Literal Bible (ulb)')]),
+     ('ur', [('ulb', 'Unlocked Literal Bible (ULB) (ulb)')]),
+     ('ur-deva',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Unlocked Literal Bible - Urdu (ulb)')]),
+     ('vi',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Vietnamese Unlocked Literal Bible (ulb)')]),
+     ('zh', [('cuv', '新标点和合本 (cuv)'), ('tn', 'Translation Notes (tn)')])]
+
+    >>> pprint.pprint(sorted([(lang_code,resource_lookup.resource_types_and_names_for_lang_for_v1_release(lang_code)) for lang_code in settings.GATEWAY_LANGUAGES if lang_code in settings.LANG_CODE_FILTER_LIST], key=lambda group: group[0]))
+    [('fa',
+      [('tn', 'Translation Notes (tn)'),
+       ('ulb', 'Henry Martyn Open Source Bible (1876) (ulb)')]),
+     ('id', [('tn', 'Translation Notes (tn)')]),
+     ('pmy', [('tn', 'Translation Notes (tn)')])]
+
+    >>> sorted([lang_code for lang_code in settings.GATEWAY_LANGUAGES if lang_code not in settings.LANG_CODE_FILTER_LIST])
+    ['am', 'arb', 'as', 'bn', 'ceb', 'en', 'es-419', 'fr', 'gu', 'ha', 'hi', 'ilo', 'km', 'kn', 'lo', 'ml', 'mr', 'my', 'ne', 'or', 'pa', 'plt', 'pt-br', 'ru', 'sw', 'ta', 'te', 'th', 'tl', 'tpi', 'ur', 'ur-deva', 'vi', 'zh']
+    >>> sorted([lang_code for lang_code in settings.GATEWAY_LANGUAGES if lang_code in settings.LANG_CODE_FILTER_LIST])
+    ['fa', 'id', 'pmy']
+
+
+    List of GL languages and their translations.json listed resource
+    types (filtered, but including udb and f10) USFM and (all) TN
+    types that translations.json lists as available for the GL
+    languages:
+
+    >>> data = resource_lookup.fetch_source_data(settings.RESOURCE_ASSETS_DIR, settings.TRANSLATIONS_JSON_LOCATION)
+    >>> values = []
+    >>> for item in [lang for lang in data if lang["code"] in settings.GATEWAY_LANGUAGES]:
+    ...    values.append(
+    ...        (item["code"],
+    ...           [
+    ...               resource_type["code"]
+    ...               for resource_type in item["contents"]
+    ...               if (
+    ...                   resource_type["code"] in settings.EN_USFM_RESOURCE_TYPES
+    ...                   or resource_type["code"] in settings.USFM_RESOURCE_TYPES
+    ...                   or resource_type["code"] in settings.EN_TN_RESOURCE_TYPES
+    ...                   or resource_type["code"] in settings.TN_RESOURCE_TYPES
+    ...               )
+    ...           ]
+    ...        )
+    ...    )
+    >>> sorted_values = sorted(values, key=lambda value: value[0])
+    >>> pprint.pprint(sorted_values)
+    [('am', ['tn', 'ulb']),
+     ('arb', ['nav']),
+     ('as', ['tn', 'ulb']),
+     ('bn', ['tn', 'ulb']),
+     ('ceb', ['tn', 'ulb']),
+     ('en', ['ulb-wa', 'tn-wa', 'tn']),
+     ('es-419', ['tn', 'ulb', 'udb']),
+     ('fa', ['tn', 'ulb']),
+     ('fr', ['tn', 'ulb', 'f10']),
+     ('gu', ['tn', 'ulb', 'udb']),
+     ('ha', ['tn', 'ulb']),
+     ('hi', ['tn', 'ulb', 'udb']),
+     ('id', ['tn']),
+     ('ilo', ['tn', 'ulb', 'udb']),
+     ('km', ['tn', 'ulb']),
+     ('kn', ['tn', 'ulb']),
+     ('lo', ['tn', 'ulb']),
+     ('ml', ['tn', 'ulb']),
+     ('mr', ['tn', 'ulb', 'udb']),
+     ('my', ['tn', 'ulb']),
+     ('ne', ['tn', 'ulb', 'udb']),
+     ('or', ['tn', 'ulb', 'udb']),
+     ('pa', ['tn', 'ulb']),
+     ('plt', ['tn', 'ulb']),
+     ('pmy', ['tn']),
+     ('pt-br', ['tn', 'ulb']),
+     ('ru', ['tn', 'ulb']),
+     ('sw', ['tn', 'ulb']),
+     ('ta', ['tn', 'ulb']),
+     ('te', ['tn', 'ulb']),
+     ('th', ['tn', 'ulb']),
+     ('tl', ['tn', 'ulb', 'udb']),
+     ('tpi', ['ulb']),
+     ('ur', ['ulb']),
+     ('ur-deva', ['tn', 'ulb']),
+     ('vi', ['tn', 'ulb', 'udb']),
+     ('zh', ['cuv', 'tn'])]
+
+    Here we experiment with returning only (filtered more aggressively
+    to remove all secondary USFMs, i.e., udb and f10 for fr) USFM and
+    (all) TN types that translations.json lists as available for the
+    GL languages:
+
+    >>> data = resource_lookup.fetch_source_data(settings.RESOURCE_ASSETS_DIR, settings.TRANSLATIONS_JSON_LOCATION)
+    >>> values = []
+    >>> for item in [lang for lang in data if lang["code"] in settings.GATEWAY_LANGUAGES]:
+    ...    values.append(
+    ...        (item["code"],
+    ...           [
+    ...               resource_type["code"]
+    ...               for resource_type in item["contents"]
+    ...               if (
+    ...                   resource_type["code"] in settings.EN_USFM_RESOURCE_TYPES
+    ...                   or resource_type["code"] in settings.USFM_RESOURCE_TYPES_MINUS_SECONDARY
+    ...                   or resource_type["code"] in settings.EN_TN_RESOURCE_TYPES
+    ...                   or resource_type["code"] in settings.TN_RESOURCE_TYPES
+    ...               )
+    ...           ]
+    ...        )
+    ...    )
+    >>> sorted_values = sorted(values, key=lambda value: value[0])
+    >>> pprint.pprint(sorted_values)
+    [('am', ['tn', 'ulb']),
+     ('arb', ['nav']),
+     ('as', ['tn', 'ulb']),
+     ('bn', ['tn', 'ulb']),
+     ('ceb', ['tn', 'ulb']),
+     ('en', ['ulb-wa', 'tn-wa', 'tn']),
+     ('es-419', ['tn', 'ulb']),
+     ('fa', ['tn', 'ulb']),
+     ('fr', ['tn', 'ulb']),
+     ('gu', ['tn', 'ulb']),
+     ('ha', ['tn', 'ulb']),
+     ('hi', ['tn', 'ulb']),
+     ('id', ['tn']),
+     ('ilo', ['tn', 'ulb']),
+     ('km', ['tn', 'ulb']),
+     ('kn', ['tn', 'ulb']),
+     ('lo', ['tn', 'ulb']),
+     ('ml', ['tn', 'ulb']),
+     ('mr', ['tn', 'ulb']),
+     ('my', ['tn', 'ulb']),
+     ('ne', ['tn', 'ulb']),
+     ('or', ['tn', 'ulb']),
+     ('pa', ['tn', 'ulb']),
+     ('plt', ['tn', 'ulb']),
+     ('pmy', ['tn']),
+     ('pt-br', ['tn', 'ulb']),
+     ('ru', ['tn', 'ulb']),
+     ('sw', ['tn', 'ulb']),
+     ('ta', ['tn', 'ulb']),
+     ('te', ['tn', 'ulb']),
+     ('th', ['tn', 'ulb']),
+     ('tl', ['tn', 'ulb']),
+     ('tpi', ['ulb']),
+     ('ur', ['ulb']),
+     ('ur-deva', ['tn', 'ulb']),
+     ('vi', ['tn', 'ulb']),
+     ('zh', ['cuv', 'tn'])]
+    >>> [tuple for tuple in sorted_values if len(tuple[1]) == 1]
+    [('arb', ['nav']), ('id', ['tn']), ('pmy', ['tn']), ('tpi', ['ulb']), ('ur', ['ulb'])]
+
+
+    Of the GL languages that have only USFM or TN, but not both, do we want to filter them out or just produce the document using just USFM or just TN (whatever is available for that language) since you have specified that the user is not to be allowed to choose resource types in v1 release?
+
+    """
+    if lang_code == "en":
+        return [(key, value) for key, value in english_resource_type_map.items()]
+
+    data = fetch_source_data(working_dir, translations_json_location)
+    for item in [lang for lang in data if lang["code"] == lang_code]:
+        values = [
+            (
+                resource_type["code"],
+                "{} ({})".format(resource_type["name"], resource_type["code"]),
+            )
+            for resource_type in item["contents"]
+            if (
+                resource_type["code"] in usfm_resource_types
+                or resource_type["code"] in tn_resource_types
             )
         ]
     return sorted(values, key=lambda value: value[0])
@@ -601,385 +1537,6 @@ def supported_resource_type(
     return False
 
 
-# def shared_resource_codes_and_types(
-#     lang0_code: str, lang1_code: str
-# ) -> dict[str, list[tuple[str, str, str]]]:
-#     lang0_results = resource_codes_and_types_for_lang(lang0_code)
-#     lang1_results = resource_codes_and_types_for_lang(lang1_code)
-#     # FIXME
-#     return lang0_results
-
-
-# Experimental alternative
-def resource_codes_and_types_for_lang(
-    lang_code: str,
-    working_dir: str = settings.RESOURCE_ASSETS_DIR,
-    translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
-    tw_resource_types: Sequence[str] = settings.TW_RESOURCE_TYPES,
-    bc_resource_types: Sequence[str] = settings.BC_RESOURCE_TYPES,
-) -> dict[str, list[tuple[str, str, str]]]:
-    """
-    Obtain the max resource codes available for each supported
-    resource type for a particular language.
-
-    >>> from document.domain import resource_lookup
-    >>> import logging
-    >>> import sys
-    >>> logger.addHandler(logging.StreamHandler(sys.stdout))
-    >>> import pprint
-    >>> # pprint.pprint(resource_lookup.resource_codes_and_types_for_lang("fr"))
-    >>> # pprint.pprint(resource_lookup.resource_codes_and_types_for_lang("en"))
-    >>> pprint.pprint(resource_lookup.resource_codes_and_types_for_lang("ndh-x-chindali"))
-    {'reg': [('mat',
-              'Matthew',
-              'https://content.bibletranslationtools.org/richard/ndh-x-chindali_mat_text_reg'),
-             ('mrk',
-              'Mark',
-              'https://content.bibletranslationtools.org/richard/ndh-x-chindali_mrk_text_reg'),
-             ('luk',
-              'Luke',
-              'https://content.bibletranslationtools.org/richard/ndh-x-chindali_luk_text_reg'),
-             ('act',
-              'Acts',
-              'https://content.bibletranslationtools.org/richard/ndh-x-chindali_act_text_ulb'),
-             ('gal',
-              'Galatians',
-              'https://content.bibletranslationtools.org/richard/ndh-x-chindali_gal_text_ulb')]}
-    >>> # resource_lookup.resource_codes_and_types_for_lang("kbt")
-    >>> # pprint.pprint(resource_lookup.resource_codes_and_types_for_lang("pt-br"))
-    """
-
-    # Local functions:
-
-    def identity(url: str) -> str:
-        return url
-
-    def resource_codes_and_links(
-        format: str,
-        subcontents: Any,
-        link_transformer_fn: Callable[[str], str],
-        book_names: Mapping[str, str] = bible_books.BOOK_NAMES,
-    ) -> list[tuple[str, str, str]]:
-        tuples = [
-            (
-                resource_code["code"],
-                # Deal with TW manifests which have the
-                # only project in projects as 'bible'.
-                book_names[resource_code["code"]]
-                if resource_code["code"] in book_names.keys()
-                else "",
-                [
-                    link_transformer_fn(link["url"])
-                    for link in resource_code["links"]
-                    if link["url"] and link["format"] == format
-                ],
-            )
-            for resource_code in resource_type["subcontents"]
-            if [
-                link_transformer_fn(link["url"])
-                for link in resource_code["links"]
-                if link["url"] and link["format"] == format
-            ]
-        ]
-        return [
-            (
-                resource_code,
-                name,
-                link[0] if isinstance(link, list) else link,
-            )
-            for resource_code, name, link in tuples
-        ]
-
-    # Experimental alternative
-    def resource_code_and_link_from_contents_zips(
-        format: str,
-        lang_code: str,
-        resource_type: Any,
-        link_transformer_fn: Callable[[str], str],
-        book_names: Mapping[str, str] = bible_books.BOOK_NAMES,
-    ) -> list[tuple[str, str, str]]:
-        resource_dir = resource_directory(lang_code, resource_type["code"])
-        resource_codes: list[tuple[str, str, str]] = []
-        links = [
-            link["url"]
-            for link in resource_type["links"]
-            if link["url"] and link["format"] == format
-        ]
-        resource_type_code = resource_type["code"]
-        for url in links:
-            resource_filepath = join(
-                resource_dir,
-                url.rpartition(sep)[2],
-            )
-            # logger.debug("resource_filepath: %s", resource_filepath)
-            if asset_file_needs_update(resource_filepath):
-                prepare_resource_directory(lang_code, resource_type["code"])
-                download_asset(url, resource_filepath)
-                unzip_asset(
-                    lang_code,
-                    resource_type_code,
-                    resource_filepath,
-                )
-            else:
-                logger.debug("Cache hit for %s", resource_filepath)
-
-            # When a git repo is cloned or when a zip file is
-            # unzipped, a subdirectory of resource_dir is created
-            # as a result. Update resource_dir to point to that
-            # subdirectory.
-            resource_dir = update_resource_dir(lang_code, resource_type_code)
-            # Now look for manifest and if it is avialable use it to return the list of resource codes.
-
-            manifest_path = ""
-            # if resource_type["code"] not in tw_resource_types:
-            if exists(f"{resource_dir}/manifest.yaml"):
-                manifest_path = f"{resource_dir}/manifest.yaml"
-                with open(manifest_path, "r") as file:
-                    yaml_content = safe_load(file)
-                    resource_codes = [
-                        (
-                            resource_code["identifier"],
-                            # Deal with TW manifests which have the
-                            # only project in projects as 'bible'.
-                            book_names[resource_code["identifier"]]
-                            if resource_code["identifier"] in book_names.keys()
-                            else "",
-                            resource_code["path"],
-                        )
-                        for resource_code in yaml_content["projects"]
-                    ]
-
-            elif exists(f"{resource_dir}/projects.yaml"):
-                manifest_path = f"{resource_dir}/projects.yaml"
-                with open(manifest_path, "r") as file:
-                    yaml_content = safe_load(file)
-                    resource_codes = [
-                        (
-                            resource_code["identifier"],
-                            # Deal with TW manifests which have the
-                            # only project in projects as 'bible'.
-                            book_names[resource_code["identifier"]]
-                            if resource_code["identifier"] in book_names.keys()
-                            else "",
-                            resource_code["path"],
-                        )
-                        for resource_code in yaml_content
-                    ]
-
-            # TODO If manifest was not found, then glob filenames for resource codes provided.
-            if not resource_codes:
-                logger.debug("resource_codes is empty")
-                pass
-
-        contents_resource_codes = [
-            # (resource_code_path_tuple[0], resource_code_path_tuple[1], [])
-            (resource_code_tuple[0], resource_code_tuple[1], resource_code_tuple[2])
-            for resource_code_tuple in resource_codes
-        ]
-        return contents_resource_codes
-
-    # Experimental alternative
-    def resource_code_and_link_from_contents_git_repos(
-        format: str,
-        lang_code: str,
-        resource_type: Any,
-        link_transformer_fn: Callable[[str], str],
-        book_names: Mapping[str, str] = bible_books.BOOK_NAMES,
-    ) -> list[tuple[str, str, str]]:
-
-        ldebug = logger.debug
-
-        links = [
-            link_transformer_fn(link["url"])
-            for link in resource_type["links"]
-            if link["url"] and link["format"] == format
-        ]
-        # logger.debug("contents_links_git_repos: %s", contents_links_git_repos)
-        resource_codes: list[tuple[str, str, str]] = []
-        resource_dir = resource_directory(lang_code, resource_type["code"])
-        for url in links:
-            resource_filepath = join(
-                resource_dir,
-                url.rpartition(sep)[2],
-            )
-            # logger.debug("resource_filepath: %s", resource_filepath)
-            if asset_file_needs_update(resource_filepath):
-                clone_git_repo(url, resource_filepath)
-            else:
-                logger.debug("Cache hit for %s", resource_filepath)
-
-            # When a git repo is cloned or when a zip file is
-            # unzipped, a subdirectory of resource_dir is created
-            # as a result. Update resource_dir to point to that
-            # subdirectory.
-            resource_dir = update_resource_dir(lang_code, resource_type["code"])
-            # Now look for manifest and if it is avialable use it to return the list of resource codes.
-            manifest_path = ""
-            # if resource_type["code"] not in tw_resource_types:
-            if exists(f"{resource_dir}/manifest.yaml"):
-                manifest_path = f"{resource_dir}/manifest.yaml"
-                with open(manifest_path, "r") as file:
-                    yaml_content = safe_load(file)
-                    resource_codes = [
-                        (
-                            resource_code["identifier"],
-                            # Deal with TW manifests which have the
-                            # only project in projects as 'bible'.
-                            book_names[resource_code["identifier"]]
-                            if resource_code["identifier"] in book_names.keys()
-                            else "",
-                            resource_code["path"],
-                        )
-                        for resource_code in yaml_content["projects"]
-                    ]
-
-            elif exists(f"{resource_dir}/projects.yaml"):
-                manifest_path = f"{resource_dir}/projects.yaml"
-                with open(manifest_path, "r") as file:
-                    yaml_content = safe_load(file)
-                    resource_codes = [
-                        (
-                            resource_code["identifier"],
-                            # Deal with TW manifests which have the
-                            # only project in projects as 'bible'.
-                            book_names[resource_code["identifier"]]
-                            if resource_code["identifier"] in book_names.keys()
-                            else "",
-                            resource_code["path"],
-                        )
-                        for resource_code in yaml_content
-                    ]
-
-            # TODO If manifest was not found, then glob filenames for resource codes provided.
-            if not resource_codes:
-                ldebug("resource_codes empty")
-                pass
-
-        contents_resource_codes = [
-            # (resource_code_path_tuple[0], resource_code_path_tuple[1], [])
-            (resource_code_tuple[0], resource_code_tuple[1], resource_code_tuple[2])
-            for resource_code_tuple in resource_codes
-        ]
-        return contents_resource_codes
-
-    # Make mypy and max function where this is used happy
-    def parse_repo_url(url: str) -> str:
-        parsed_url = _parse_repo_url(url)
-        if not parsed_url:
-            parsed_url = ""
-        return parsed_url
-
-    # Algo:
-
-    resource_type_max_resource_codes_map: dict[str, list[tuple[str, str, str]]] = {}
-    data = fetch_source_data(working_dir, translations_json_location)
-    for item in [lang for lang in data if lang["code"] == lang_code]:
-        lang_code = item["code"]
-        # if lang_code in lang_code_filter_list:
-        #     logger.debug("skipping lang_code: %s", lang_code)
-        #     continue
-        # logger.debug("lang_code: %s", lang_code)
-        for resource_type in item["contents"]:
-            if supported_resource_type(lang_code, resource_type["code"]):
-                # logger.debug("resource_type: %s", resource_type["code"])
-
-                subcontents_resource_codes_having_single_usfms = (
-                    resource_codes_and_links(
-                        "usfm", resource_type["subcontents"], identity
-                    )
-                )
-                # logger.debug(
-                #     "subcontents_resource_codes_having_single_usfms: %s",
-                #     subcontents_resource_codes_having_single_usfms,
-                # )
-                subcontents_resource_codes_having_zips: list[tuple[str, str, str]] = []
-                subcontents_resource_codes_having_git_repos: list[
-                    tuple[str, str, str]
-                ] = []
-                contents_resource_codes_having_zips: list[tuple[str, str, str]] = []
-                contents_resource_codes_having_git_repos: list[
-                    tuple[str, str, str]
-                ] = []
-                if not subcontents_resource_codes_having_single_usfms:
-                    subcontents_resource_codes_having_zips = resource_codes_and_links(
-                        "zip", resource_type["subcontents"], identity
-                    )
-                    # logger.debug(
-                    #     "subcontents_resource_codes_having_zips: %s",
-                    #     subcontents_resource_codes_having_zips,
-                    # )
-                    if not subcontents_resource_codes_having_zips:
-                        subcontents_resource_codes_having_git_repos = (
-                            resource_codes_and_links(
-                                "Download", resource_type["subcontents"], parse_repo_url
-                            )
-                        )
-                        # logger.debug(
-                        #     "subcontents_resource_codes_having_git_repos: %s",
-                        #     subcontents_resource_codes_having_git_repos,
-                        # )
-                        if not subcontents_resource_codes_having_git_repos:
-                            # Typically TN, TQ, and TW asset files are not addressed according to a
-                            # resource code in translations.json. Rather, in translations.json they
-                            # are usually located at the contents > links level and their URL points
-                            # to a zip or git repo whith contains asset files for many resource
-                            # codes. You have to acquire and unzip or clone said files and look in
-                            # the resulting directory (for a manifest file, if provided, or by
-                            # globbing for file names) to determine what resource codes are
-                            # supported.
-                            contents_resource_codes_having_zips = (
-                                resource_code_and_link_from_contents_zips(
-                                    "zip", lang_code, resource_type, identity
-                                )
-                            )
-                            # logger.debug(
-                            #     "contents_resource_codes_having_zips: %s",
-                            #     contents_resource_codes_having_zips,
-                            # )
-                            if not contents_resource_codes_having_zips:
-                                contents_resource_codes_having_git_repos = (
-                                    resource_code_and_link_from_contents_git_repos(
-                                        "Download",
-                                        lang_code,
-                                        resource_type,
-                                        parse_repo_url,
-                                    )
-                                )
-                                # logger.debug(
-                                #     "contents_resource_codes_having_git_repos: %s",
-                                #     contents_resource_codes_having_git_repos,
-                                # )
-
-                # Each loop iteration covers a different resource type for the current
-                # lang_code. Amongst the assets found for the current resource type,
-                # which one has the max number of resource codes:
-                all_lists = [
-                    subcontents_resource_codes_having_single_usfms,
-                    subcontents_resource_codes_having_zips,
-                    subcontents_resource_codes_having_git_repos,
-                    contents_resource_codes_having_zips,
-                    contents_resource_codes_having_git_repos,
-                ]
-                # logger.debug("all_lists: %s", all_lists)
-                non_empty_lists = [lst for lst in all_lists if lst]
-                # logger.debug("non_empty_lists: %s", non_empty_lists)
-                if non_empty_lists:
-                    resource_type_with_max_resource_codes = max(
-                        non_empty_lists,
-                        key=lambda lst: len(lst),
-                    )
-                else:
-                    resource_type_with_max_resource_codes = []
-                # logger.debug(
-                #     "resource_type_with_max_resource_codes: %s",
-                #     resource_type_with_max_resource_codes,
-                # )
-                resource_type_max_resource_codes_map[
-                    resource_type["code"]
-                ] = resource_type_with_max_resource_codes
-    return resource_type_max_resource_codes_map
-
-
 def shared_resource_types(
     lang_code: str,
     resource_codes: Sequence[str],
@@ -1018,9 +1575,9 @@ def shared_resource_types(
             # may not provide the full list of resource codes actually available in
             # the translations.json file. In such cases it would be necessary to
             # actually acquire the asset and then look for the manifest file or glob
-            # the files to see if the resource code is provided. I have experimental
+            # the files to see if the resource code is provided. I had experimental
             # code checked in which addresses this, but which I am not using
-            # currently (and may never be).
+            # currently (and may never be). See git history for this module.
             seleccted_resource_types_for_resource_codes = [
                 resource_code
                 for resource_code in resource_type["subcontents"]
@@ -1060,6 +1617,33 @@ def shared_resource_types(
                 )
 
     return sorted(values, key=lambda value: value[0])
+
+
+def shared_resource_types_for_v1(
+    lang_code: str,
+    resource_codes: Sequence[str],
+    v1_approved_resource_types: Sequence[str] = settings.V1_APPROVED_RESOURCE_TYPES,
+) -> list[tuple[str, str]]:
+    """
+    Given a language code and a list of resource_codes, return the
+    collection of resource types available.
+
+    >>> from document.domain import resource_lookup
+    >>> list(resource_lookup.shared_resource_types_for_v1("en", ["2co"]))
+    [('ulb-wa', 'Unlocked Literal Bible (ULB)'), ('tn-wa', 'ULB Translation Helps')]
+    >>> list(resource_lookup.shared_resource_types_for_v1("pt-br", ["gen"]))
+    [('tn', 'Translation Notes (tn)'), ('ulb', 'Brazilian Portuguese Unlocked Literal Bible (ulb)')]
+    >>> list(resource_lookup.shared_resource_types_for_v1("fr", ["gen"]))
+    [('tn', 'Translation Notes (tn)')]
+    >>> list(resource_lookup.shared_resource_types_for_v1("es-419", ["gen"]))
+    [('tn', 'Translation Notes (tn)'), ('ulb', 'Español Latino Americano ULB (ulb)')]
+    """
+    resource_types_and_names = [
+        resource_type_and_name
+        for resource_type_and_name in shared_resource_types(lang_code, resource_codes)
+        if resource_type_and_name[0] in v1_approved_resource_types
+    ]
+    return resource_types_and_names
 
 
 def shared_resource_codes(

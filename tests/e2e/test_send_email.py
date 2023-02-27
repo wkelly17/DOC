@@ -28,6 +28,7 @@ def test_send_email_with_es_419_ulb_jud_pdf() -> None:
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN,
                 "layout_for_print": False,
+                "chunk_size": model.ChunkSizeEnum.CHAPTER,
                 "generate_pdf": True,
                 "generate_epub": False,
                 "generate_docx": False,

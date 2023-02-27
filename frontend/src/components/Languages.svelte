@@ -15,6 +15,10 @@
   import { resourceTypesCountStore } from '../stores/ResourceTypesStore'
   import { resetValuesStore } from '../stores/NotificationStore'
   import { getApiRootUrl, resetStores } from '../lib/utils'
+  import Mast from './Mast.svelte'
+  import Tabs from './Tabs.svelte'
+  import Sidebar from './Sidebar.svelte'
+  import { setShowTopMatter } from '../lib/utils'
 
   async function getLangCodesNames(
     apiRootUrl: string = getApiRootUrl(),
@@ -54,49 +58,6 @@
     }
   }
 
-  async function getResourceCodesAndTypes(
-    langCode: string,
-    apiRootUrl: string = getApiRootUrl(),
-    resourceCodesAndTypesForLangUrl: string = <string>(
-      import.meta.env.VITE_RESOURCE_CODES_AND_TYPES_URL
-    )
-  ): Promise<Map<string, Array<[string, string, string]>>> {
-    const response = await fetch(
-      `${apiRootUrl}${resourceCodesAndTypesForLangUrl}${langCode}`
-    )
-    const resourceCodesAndTypesMap: Map<
-      string,
-      Array<[string, string, string]>
-    > = await response.json()
-    if (!response.ok) {
-      console.log(`Error: ${response.statusText}`)
-      throw new Error(response.statusText)
-    }
-    return resourceCodesAndTypesMap
-  }
-
-  async function getSharedResourceCodesAndTypes(
-    lang0Code: string,
-    lang1Code: string,
-    apiRootUrl: string = getApiRootUrl(),
-    sharedResourceCodesAndTypesUrl: string = <string>(
-      import.meta.env.VITE_SHARED_RESOURCE_CODES_AND_TYPES_URL
-    )
-  ): Promise<Map<string, Array<[string, string, string]>>> {
-    const response = await fetch(
-      `${apiRootUrl}${sharedResourceCodesAndTypesUrl}${lang0Code}/${lang1Code}`
-    )
-    const resourceCodesAndTypesMap: Map<
-      string,
-      Array<[string, string, string]>
-    > = await response.json()
-    if (!response.ok) {
-      console.log(`Error: ${response.statusText}`)
-      throw new Error(response.statusText)
-    }
-    return resourceCodesAndTypesMap
-  }
-
   const maxLanguages = 2
 
   function resetLanguages() {
@@ -113,44 +74,6 @@
     resetStores('resource_types')
     resetStores('settings')
     resetStores('notifications')
-    // if ($langCountStore > 1) {
-    //   getSharedResourceCodesAndTypes($lang0CodeStore, $lang1CodeStore)
-    //     .then(resourceCodesAndTypesMap_ => {
-    //       resourceCodesAndTypesMap = resourceCodesAndTypesMap_
-
-    //       for (const [key, value] of Object.entries(resourceCodesAndTypesMap)) {
-    //         console.log(`${key}: ${value}`)
-    //       }
-    //       console.log(
-    //         `keys of resourceCodesAndTypesMap: ${Object.keys(resourceCodesAndTypesMap)}`
-    //       )
-    //       console.log(
-    //         `typeof resourceCodesAndTypesMap: ${typeof resourceCodesAndTypesMap}`
-    //       )
-    //       console.log(
-    //         `resourceCodesAndTypesMap: ${JSON.stringify(resourceCodesAndTypesMap)}`
-    //       )
-    //     })
-    //     .catch(err => console.log(err))
-    // } else if ($langCountStore > 0) {
-    //   getResourceCodesAndTypes($lang0CodeStore)
-    //     .then(resourceCodesAndTypesMap_ => {
-    //       resourceCodesAndTypesMap = resourceCodesAndTypesMap_
-    //       for (const [key, value] of Object.entries(resourceCodesAndTypesMap)) {
-    //         console.log(`${key}: ${value}`)
-    //       }
-    //       console.log(
-    //         `keys of resourceCodesAndTypesMap: ${Object.keys(resourceCodesAndTypesMap)}`
-    //       )
-    //       console.log(
-    //         `typeof resourceCodesAndTypesMap: ${typeof resourceCodesAndTypesMap}`
-    //       )
-    //       console.log(
-    //         `resourceCodesAndTypesMap: ${JSON.stringify(resourceCodesAndTypesMap)}`
-    //       )
-    //     })
-    //     .catch(err => console.log(err))
-    // }
     push('#/')
   }
 
@@ -179,7 +102,18 @@
   $: lang1CodeStore.set($langCodeAndNamesStore[1]?.split(', code: ')[1])
   $: lang0NameStore.set($langCodeAndNamesStore[0]?.split(', code: ')[0])
   $: lang1NameStore.set($langCodeAndNamesStore[1]?.split(', code: ')[0])
+
+
+  // For sidebar
+  let open = false
+  let showTopMatter: boolean = setShowTopMatter()
 </script>
+
+{#if showTopMatter}
+<Sidebar bind:open />
+<Mast bind:sidebar="{open}" />
+<Tabs />
+{/if}
 
 <div class="bg-white">
   <div class="bg-white flex">

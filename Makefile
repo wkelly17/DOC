@@ -63,12 +63,12 @@ build-no-cache-no-pip-update: checkvenv down clean-mypyc-artifacts
 .PHONY: up
 up: checkvenv
 	export IMAGE_TAG=local && \
-	BACKEND_API_URL=http://localhost:5005 FILE_SERVER_URL=http://localhost:8089 docker-compose up
+	BACKEND_API_URL=http://localhost:5005 FILE_SERVER_URL=http://localhost:8089 docker compose up
 
 .PHONY: up-as-daemon
 up-as-daemon: checkvenv
 	export IMAGE_TAG=local && \
-	BACKEND_API_URL=http://localhost:5005 FILE_SERVER_URL=http://localhost:8089 docker-compose up -d
+	BACKEND_API_URL=http://localhost:5005 FILE_SERVER_URL=http://localhost:8089 docker compose up -d
 
 
 # This is the entrypoint for a non-technical user who just
@@ -79,7 +79,7 @@ build-and-run: build up
 
 .PHONY: down
 down:
-	BACKEND_API_URL=http://localhost:5005 FILE_SERVER_URL=http://localhost:8089 docker-compose down --remove-orphans
+	BACKEND_API_URL=http://localhost:5005 FILE_SERVER_URL=http://localhost:8089 docker compose down --remove-orphans
 
 .PHONY: stop-and-remove
 stop-and-remove:
@@ -97,57 +97,45 @@ clean-local-docker-output-dir:
 	find docker_document_output/ -type f -name "*.docx" -exec rm -- {} +
 
 .PHONY: test
-test: up-as-daemon
-	BACKEND_API_URL=http://localhost:5005 FILE_SERVER_URL=http://localhost:8089 docker-compose run --rm --no-deps --entrypoint=pytest api -v -m "not randomized" -n auto /app/tests/unit /app/tests/e2e
+test:
+	docker compose -f docker-compose.yml -f docker-compose.api-test.yml -f docker-compose.override.yml up  test-runner
 
 .PHONY: unit-tests
-unit-tests: up-as-daemon
-	BACKEND_API_URL=http://localhost:5005 FILE_SERVER_URL=http://localhost:8089 docker-compose run --rm --no-deps --entrypoint=pytest api -v -m "not randomized" -n auto /app/tests/unit
+unit-tests:
+	docker compose -f docker-compose.yml -f docker-compose.api-test.yml -f docker-compose.override.yml up  test-runner
 
 .PHONY: e2e-tests
-e2e-tests: up-as-daemon clean-local-docker-output-dir
-	BACKEND_API_URL=http://localhost:5005 FILE_SERVER_URL=http://localhost:8089 docker-compose run --rm --no-deps --entrypoint=pytest api -v -m "not randomized" -n auto /app/tests/e2e
+e2e-tests: clean-local-docker-output-dir
+	docker compose -f docker-compose.yml -f docker-compose.api-test.yml -f docker-compose.override.yml up  test-runner
+
+
+.PHONY: e2e-docx-tests
+e2e-docx-tests: clean-local-docker-output-dir
+	docker compose -f docker-compose.yml -f docker-compose.api-docx-test.yml -f docker-compose.override.yml up  test-runner
+	# docker compose -f docker-compose.yml -f docker-compose.api-docx-test.yml up --exit-code-from test-runner
+	# BACKEND_API_URL=http://localhost:5005 FILE_SERVER_URL=http://localhost:8089 docker compose run --rm --no-deps --entrypoint=pytest api -v -m "docx" -n auto /app/tests/e2e
+
 
 .PHONY: frontend-tests
-frontend-tests: up-as-daemon
+frontend-tests:
+	# NOTE While we are experiencing some issues with the docker
+	# compose running of frontend tests, we can still use the
+	# non-Dockerized approach successfully. Doing so requires that
+	# 'make up' be called first though.
 	cd frontend && FRONTEND_API_URL=http://localhost:8001 FILE_SERVER_URL=http://localhost:8089 envsubst < playwright.config.ts | sponge playwright.config.ts
 	cd frontend && npx playwright install --with-deps && npx playwright test
-
-.PHONY: smoke-test
-smoke-test: up-as-daemon clean-local-docker-output-dir
-	BACKEND_API_URL=http://localhost:5005 docker-compose run --rm --no-deps --entrypoint=pytest api /app/tests/e2e -k test_stream_pdf
-
-.PHONY: smoke-test2
-smoke-test2: up-as-daemon clean-local-docker-output-dir
-	BACKEND_API_URL=http://localhost:5005 docker-compose run --rm --no-deps --entrypoint=pytest api /app/tests/e2e -k test_resource_types_and_names_for_lang
-
-.PHONY: smoke-test3
-smoke-test3: up-as-daemon clean-local-docker-output-dir
-	BACKEND_API_URL=http://localhost:5005 docker-compose run --rm --no-deps --entrypoint=pytest api /app/tests/e2e -k test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_tl_ulb_col_tl_tn_col_tl_tq_col_tl_tw_col_tl_udb_col_book_language_order_2c_sl_sr_c
-
-.PHONY: smoke-test4
-smoke-test4: up-as-daemon clean-local-docker-output-dir
-	BACKEND_API_URL=http://localhost:5005 docker-compose run --rm --no-deps --entrypoint=pytest api /app/tests/e2e -k test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_tl_ulb_col_tl_tn_col_tl_tq_col_tl_tw_col_tl_udb_col_book_language_order_1c
-
-.PHONY: smoke-test5
-smoke-test5: up-as-daemon clean-local-docker-output-dir
-	BACKEND_API_URL=http://localhost:5005 docker-compose run --rm --no-deps --entrypoint=pytest api /app/tests/e2e -k test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_tl_ulb_col_tl_tn_col_tl_tq_col_tl_tw_col_tl_udb_col_book_language_order_1c_c
-
-.PHONY: smoke-test6
-smoke-test6: up-as-daemon clean-local-docker-output-dir
-	BACKEND_API_URL=http://localhost:5005 docker-compose run --rm --no-deps --entrypoint=pytest api /app/tests/e2e -k test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_fr_f10_col_fr_tn_col_fr_tq_col_fr_tw_col_book_language_order_1c
-
-.PHONY: smoke-test7
-smoke-test7: up-as-daemon clean-local-docker-output-dir
-	BACKEND_API_URL=http://localhost:5005 docker-compose run --rm --no-deps --entrypoint=pytest api /app/tests/e2e -k test_en_ulb_wa_tit_en_tn_wa_tit_language_book_order_1c_by_chapter
-
-.PHONY: smoke-test8
-smoke-test8: up-as-daemon clean-local-docker-output-dir
-	BACKEND_API_URL=http://localhost:5005 docker-compose run --rm --no-deps --entrypoint=pytest api /app/tests/e2e -k test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_sw_ulb_col_sw_tn_col_sw_tq_col_sw_ulb_tit_sw_tn_tit_sw_tq_tit_language_book_order_1c_by_chapter
+	# NOTE The preferred way to run the tests is with docker
+	# compose as in the next cli line, however, this times out
+	# when run locally as the Dockerfile for the frontend tests
+	# does not appear to be putting the playwright.config.ts
+	# config file in the correct location for the playwright
+	# Docker container to find it and thus default timeouts are
+	# used which are not long enough for some tests to complete.
+	# docker compose -f docker-compose.yml -f docker-compose.frontend-test.yml up --exit-code-from frontend-test-runner
 
 .PHONY: test-randomized
-test-randomized: up-as-daemon
-	BACKEND_API_URL=http://localhost:5005 docker-compose run --rm --no-deps --entrypoint=pytest api -v -m randomized -n auto /app/tests/unit /app/tests/e2e
+test-randomized:
+	BACKEND_API_URL=http://localhost:5005 docker compose run --rm --no-deps --entrypoint=pytest api -v -m randomized -n auto /app/tests/unit /app/tests/e2e
 
 # NOTE This is only needed if mypyc is not used and you wish to run
 # just mypy instead as part of Docker build process.
