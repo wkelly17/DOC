@@ -1,0 +1,19 @@
+name: Develop deploy on successful develop build
+
+on:
+  workflow_run:
+    workflows: ["Docker"]
+    types:
+      - completed
+
+jobs:
+  deploy-develop:
+    runs-on: ubuntu-latest
+    environment: develop
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Call Deploy Webhook
+        run: |
+          curl ${{ env.DEV_DEPLOY_HOOK }}
+        env:
+          DEV_DEPLOY_HOOK: ${{ secrets.DEV_DEPLOY_HOOK }}
