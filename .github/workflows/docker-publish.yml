@@ -145,4 +145,16 @@ jobs:
             ${{ env.DOC_UI_TAG_LATEST }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+  Deploy-develop:
+    name: Develop deploy on successful develop build
+    needs: [Push-Images]
+    if: ${{ github.ref_name == 'develop' }}
+    runs-on: ubuntu-20.04
+    environment: develop
+    steps:
+      - name: Call Deploy Webhook
+        run: |
+          curl ${{ env.DEV_DEPLOY_HOOK }}
+        env:
+          DEV_DEPLOY_HOOK: ${{ secrets.DEV_DEPLOY_HOOK }}
         
