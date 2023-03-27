@@ -1,161 +1,191 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>Bible</title>
+    <style media="all" type="text/css">
+      /* Weasyprint page directives for headers and footers */
+      @page {
+        size: letter;
+        @top-center {
+          content: string(chapterstring);
+          font-size: 0.8em;
+        }
+        /*
+        @top-right {
+          content: string(subchapterstring);
+        }
+        */
+        @bottom-center {
+          content: "Page " counter(page) " of " counter(pages);
+          font-size: 0.7em;
+          color: gray;
+        }
+        @bottom-right {
+          content: "{%if timestring%} generated on {{ timestring }}{% endif %}";
+          font-size: 0.5em;
+          color: gray;
+        }
+      }
 
-<head>
-  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <title>Bible</title>
-  <!-- <link
-         rel="stylesheet"
-         href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
-         /> -->
-  <style media="all" type="text/css">
-    h1 {
-      font-size: 14pt;
-      margin-bottom: 0px;
-      padding-bottom: 0px;
-      display: inline;
-    }
+      h3 {
+        /* page-break-before: always; */
+        string-set: chapterstring content();
+      }
 
-    h1:after {
-      content: "\A";
-      white-space: pre;
-    }
+      h4 {
+        string-set: subchapterstring content();
+      }
 
-    h2 {
-      font-size: 12pt;
-      display: inline;
-    }
+      /* End of Weasy page directives for headers and footers */
 
-    h2:after {
-      content: "\A";
-      white-space: pre;
-    }
+      h1 {
+        font-size: 14pt;
+        margin-bottom: 0px;
+        padding-bottom: 0px;
+        display: inline;
+      }
 
-    h3 {
-      font-size: 11pt;
-      display: inline;
-    }
+      h1:after {
+        content: "\A";
+        white-space: pre;
+      }
 
-    h3:after {
-      content: "\A";
-      white-space: pre;
-    }
+      h2 {
+        font-size: 12pt;
+        display: inline;
+      }
 
-    h4 {
-      font-size: 10pt;
-      display: inline;
-    }
+      h2:after {
+        content: "\A";
+        white-space: pre;
+      }
 
-    h4:after {
-      content: "\A";
-      white-space: pre;
-    }
+      h3 {
+        font-size: 11pt;
+        display: inline;
+      }
 
-    h5 {
-      font-size: 9pt;
-      display: inline;
-    }
+      h3:after {
+        content: "\A";
+        white-space: pre;
+      }
 
-    h5:after {
-      content: "\A";
-      white-space: pre;
-    }
+      h4 {
+        font-size: 10pt;
+        display: inline;
+      }
 
-    p {
-      display: inline;
-    }
+      h4:after {
+        content: "\A";
+        white-space: pre;
+      }
 
-    p:after {
-      content: "\A";
-      white-space: pre;
-    }
+      h5 {
+        font-size: 9pt;
+        display: inline;
+      }
 
-    ol {
-      display: inline;
-    }
+      h5:after {
+        content: "\A";
+        white-space: pre;
+      }
 
-    ol:after {
-      content: "\A";
-      white-space: pre;
-    }
+      p {
+        display: inline;
+      }
 
-    ul {
-      display: inline;
-    }
+      p:after {
+        content: "\A";
+        white-space: pre;
+      }
 
-    ul:after {
-      content: "\A";
-      white-space: pre;
-    }
+      ol {
+        display: inline;
+      }
 
-    li {
-      display: inline;
-    }
+      ol:after {
+        content: "\A";
+        white-space: pre;
+      }
 
-    .chunk-break {
-      display: inline;
-    }
+      ul {
+        display: inline;
+      }
 
-    .chunk-break:after {
-      content: "\A";
-      white-space: pre;
-    }
+      ul:after {
+        content: "\A";
+        white-space: pre;
+      }
 
-    .indent-0 {
-      margin-left: 0em;
-      margin-bottom: 0em;
-      margin-top: 0em;
-    }
+      li {
+        display: inline;
+      }
 
-    .indent-1 {
-      margin-left: 0em;
-      margin-bottom: 0em;
-      margin-top: 0em;
-    }
+      .chunk-break {
+        display: inline;
+      }
 
-    .indent-2 {
-      margin-left: 1em;
-      margin-bottom: 0em;
-      margin-top: 0em;
-    }
+      .chunk-break:after {
+        content: "\A";
+        white-space: pre;
+      }
 
-    .indent-3 {
-      margin-left: 2em;
-      margin-bottom: 0em;
-      margin-top: 0em;
-    }
+      .indent-0 {
+        margin-left: 0em;
+        margin-bottom: 0em;
+        margin-top: 0em;
+      }
 
-    .c-num {
-      color: gray;
-    }
+      .indent-1 {
+        margin-left: 0em;
+        margin-bottom: 0em;
+        margin-top: 0em;
+      }
 
-    .v-num {
-      color: gray;
-    }
+      .indent-2 {
+        margin-left: 1em;
+        margin-bottom: 0em;
+        margin-top: 0em;
+      }
 
-    .tetragrammaton {
-      font-variant: small-caps;
-    }
+      .indent-3 {
+        margin-left: 2em;
+        margin-bottom: 0em;
+        margin-top: 0em;
+      }
 
-    .footnotes {
-      font-size: 0.8em;
-    }
+      .c-num {
+        /* color: gray; */
+      }
 
-    .footnotes-hr {
-      display: none;
-    }
+      .v-num {
+        /* color: gray; */
+      }
 
-    .column {
-      float: left;
-      width: 50%;
-    }
+      .tetragrammaton {
+        font-variant: small-caps;
+      }
 
-    .row:after {
-      content: "";
-      display: table;
-      clear: both;
-    }
-  </style>
-</head>
+      .footnotes {
+        font-size: 0.8em;
+      }
 
-<body>
+      .footnotes-hr {
+        display: none;
+      }
+
+      .column {
+        float: left;
+        width: 50%;
+      }
+
+      .row:after {
+        content: "";
+        display: table;
+        clear: both;
+      }
+    </style>
+  </head>
+
+  <body>

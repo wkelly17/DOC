@@ -178,7 +178,7 @@ class DocumentRequest(BaseModel):
     # The system knows which make sense and which do not given your
     # document request and if you choose one that does not make sense
     # then you'll get an exception on purpose.
-    assembly_layout_kind: Optional[AssemblyLayoutEnum]
+    assembly_layout_kind: Optional[AssemblyLayoutEnum] = AssemblyLayoutEnum.ONE_COLUMN
     # The user can choose whether the result should be formatted to
     # print. When the user selects yes/True to format for print
     # then we'll choose a compact layout that makes sense for their
@@ -196,7 +196,10 @@ class DocumentRequest(BaseModel):
     chunk_size: ChunkSizeEnum = ChunkSizeEnum.CHAPTER
 
     @root_validator
-    def ensure_valid_document_request(cls, values: Any) -> Any:
+    def ensure_valid_document_request(
+        cls,
+        values: Any,
+    ) -> Any:
         """
         See ValueError messages below for the rules we are enforcing.
         """
@@ -222,12 +225,19 @@ class DocumentRequest(BaseModel):
 
         from document.config import settings
 
+        non_en_usfm_resource_types: tuple[Sequence[str]] = (
+            settings.USFM_RESOURCE_TYPES,
+        )
+        en_usfm_resource_types: tuple[Sequence[str]] = (
+            settings.EN_USFM_RESOURCE_TYPES,
+        )
+
         usfm_resource_types = [
-            *settings.USFM_RESOURCE_TYPES,
-            *settings.EN_USFM_RESOURCE_TYPES,
+            *non_en_usfm_resource_types,
+            *en_usfm_resource_types,
         ]
 
-        # Partition ulb resource requests by language.
+        # Partition USFM resource requests by language.
         language_groups = itertoolz.groupby(
             lambda r: r.lang_code,
             filter(
@@ -244,13 +254,13 @@ class DocumentRequest(BaseModel):
 
         # Get the unique number of languages
         number_of_usfm_languages = len(
-            set(
-                [
-                    resource_request.lang_code
-                    for resource_request in values.get("resource_requests")
-                    if resource_request.resource_type in usfm_resource_types
-                ]
-            )
+            # set(
+            [
+                resource_request.lang_code
+                for resource_request in values.get("resource_requests")
+                if resource_request.resource_type in usfm_resource_types
+            ]
+            # )
         )
 
         if (
@@ -271,7 +281,8 @@ class DocumentRequest(BaseModel):
             # the scripture left scripture right layout, we make sure there are a non-zero
             # even number of languages so that we can display them left and right in
             # pairs.
-            and not (number_of_usfm_languages > 1 and is_even(number_of_usfm_languages))
+            # and not (number_of_usfm_languages > 1 and is_even(number_of_usfm_languages))
+            and not is_even(number_of_usfm_languages)
         ):
             raise ValueError(
                 "Two column scripture left, scripture right layout requires a non-zero even number of languages. For an uneven number of languages you'll want to use the one column layout kind."
@@ -285,7 +296,7 @@ class DocumentRequest(BaseModel):
             # the scripture left scripture right layout, we make sure there are a non-zero
             # even number of languages so that we can display them left and right in
             # pairs.
-            and number_of_usfm_languages > 1
+            # and number_of_usfm_languages > 1
             and is_even(number_of_usfm_languages)
             # Each language must have the same set of books in order to
             # use the scripture left scripture right layout strategy. As an example,

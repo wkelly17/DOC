@@ -75,6 +75,9 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
         )
 
     if one_column_html:
+        # TODO If we set language in Word section, then this is a placeholder
+        # for where that would likely happen. Setting the language keeps Word's
+        # spellcheck process from complaining in a multi-language environment.
         subdoc = html_to_docx.parse_html_string("".join(one_column_html))
         composer.append(subdoc)
 
@@ -246,6 +249,9 @@ def assemble_tn_as_iterator_by_chapter_for_lang_then_book_1c(
                 one_column_html.append(bc_book_content_unit.book_intro)
 
         if one_column_html:
+            # TODO If we set language in Word section, then this is a placeholder
+            # for where that would likely happen. Setting the language keeps Word's
+            # spellcheck process from complaining in a multi-language environment.
             subdoc = html_to_docx.parse_html_string("".join(one_column_html))
             composer.append(subdoc)
 
@@ -380,6 +386,10 @@ def assemble_tq_tw_for_by_chapter_lang_then_book_1c(
                 )
             )
             if one_column_html:
+                # TODO If we set language in Word section, then this is a placeholder
+                # for where that would likely happen. Setting the language keeps Word's
+                # spellcheck process from complaining in a multi-language environment.
+                #
                 # Get ready for one column again (at top of loop)
                 new_section = doc.add_section(WD_SECTION.CONTINUOUS)
                 new_section.start_type
@@ -429,7 +439,7 @@ def assemble_tw_as_iterator_by_chapter_for_lang_then_book(
     tw_book_content_unit: Optional[TWBook],
     usfm_book_content_unit2: Optional[USFMBook],
     bc_book_content_unit: Optional[BCBook],
-) -> Iterable[HtmlContent]:
+) -> Composer:
 
     """
     This function handles the following dispatch table
@@ -443,7 +453,18 @@ def assemble_tw_as_iterator_by_chapter_for_lang_then_book(
     TW is handled outside this module, that is why no
     code for TW is explicitly included here.
     """
+    html_to_docx = HtmlToDocx()
+    doc = Document()
+    composer = Composer(doc)
+
+    html = []
     if bc_book_content_unit:
-        yield bc_book_content_unit.book_intro
+        html.append(bc_book_content_unit.book_intro)
         for chapter in bc_book_content_unit.chapters.values():
-            yield chapter.commentary
+            html.append(chapter.commentary)
+
+    if html:
+        subdoc = html_to_docx.parse_html_string(html)
+        composer.append(subdoc)
+
+    return composer

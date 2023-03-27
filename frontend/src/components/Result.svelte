@@ -120,6 +120,31 @@
         <div class="m-auto text-center mt-4">
           <DownloadButton buttonText="Download Docx" url={docxDownloadUrl} />
         </div>
+        <div class="text-center text-secondary-content mt-4">
+          <p>
+          Any missing fonts on your computer may be downloaded here:
+          <span style="text-decoration-line: underline;">
+            <a href="https://github.com/Bible-Translation-Tools/ScriptureAppBuilder-pipeline/tree/base/ContainerImage/home/fonts"
+               target="_blank">fonts</a>
+          </span>
+          </p>
+        </div>
+        <div class="text-center text-secondary-content mt-4">
+          <p>
+            Once you have downloaded and installed any missing fonts,
+            select the document text which looks like little empty boxes
+            (indicating a missing font), and change the font for that
+            highlighted text to the appropriate installed font in
+            Word, then save the Word document.
+          </p>
+        </div>
+        <div class="text-center text-secondary-content mt-4">
+          <p>
+            You may want to turn off spell checking in Word also as
+            multi-language Word documents can cause spell check to run
+            excessively.
+          </p>
+        </div>
       {/if}
       {#if !$generateDocxStore}
       <div class="m-auto text-center mt-4">

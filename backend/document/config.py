@@ -51,7 +51,7 @@ class Settings(BaseSettings):
         "$[?code='{}'].contents[*].subcontents[?code='{}'].links[?format='zip'].url"
     )
 
-    LANGUAGE_FMT_STR: str = "<h1>Language: {}</h1>"
+    LANGUAGE_FMT_STR: str = "<h1 style='text-align: center'>Language: {}</h1>"
     RESOURCE_TYPE_NAME_FMT_STR: str = "<h1>{}</h1>"
     TN_VERSE_NOTES_ENCLOSING_DIV_FMT_STR: str = "<div style='column-count: 2;'>{}</div>"
     TQ_HEADING_FMT_STR: str = "<h3>{}</h3>"
@@ -65,7 +65,7 @@ class Settings(BaseSettings):
     HTML_COLUMN_LEFT_BEGIN: str = model.HtmlContent("<div class='column-left'>")
     HTML_COLUMN_RIGHT_BEGIN: str = model.HtmlContent("<div class='column-right'>")
     BOOK_NAME_FMT_STR: str = "<h2 style='text-align: center;'>{}</h2>"
-    BOOK_FMT_STR: str = "<h2>Book: {}</h2>"
+    BOOK_FMT_STR: str = "<h2 style='text-align: center;'>Book: {}</h2>"
     BOOK_AS_GROUPER_FMT_STR: str = "<h1>Book: {}</h1>"
     VERSE_FMT_STR: str = "<h3>Verse {}:{}</h3>"
     TRANSLATION_NOTE_FMT_STR: str = "<h3>Translation note {}:{}</h3>"
@@ -85,7 +85,7 @@ class Settings(BaseSettings):
     TRANSLATION_WORD_VERSE_REF_ITEM_FMT_STR: str = (
         '<li><a href="#{}-{}-ch-{}-v-{}">{} {}:{}</a></li>'
     )
-    FOOTNOTES_HEADING: model.HtmlContent = model.HtmlContent("<h3>Footnotes</h3>")
+    FOOTNOTES_HEADING: model.HtmlContent = model.HtmlContent("<h4>Footnotes</h4>")
     OPENING_H3_FMT_STR: str = "<h3>{}"
     OPENING_H3_WITH_ID_FMT_STR: str = '<h3 id="{}-{}">{}'
     TRANSLATION_WORD_ANCHOR_LINK_FMT_STR: str = "[{}](#{}-{})"

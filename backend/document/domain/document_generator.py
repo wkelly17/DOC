@@ -8,6 +8,7 @@ import shutil
 import smtplib
 import subprocess
 import time
+from datetime import datetime
 from email.encoders import encode_base64
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
@@ -31,6 +32,7 @@ from document.domain.model import (
     ChunkSizeEnum,
     DocumentRequest,
     HtmlContent,
+    ResourceLookupDto,
     ResourceRequest,
     TWBook,
     TWUse,
@@ -45,7 +47,7 @@ from docxcompose.composer import Composer  # type: ignore
 from docxtpl import DocxTemplate  # type: ignore
 from htmldocx import HtmlToDocx  # type: ignore
 from pydantic import Json
-from toolz import unique  # type: ignore
+from toolz import itertoolz, unique  # type: ignore
 
 logger = settings.logger(__name__)
 
@@ -122,15 +124,25 @@ def template(template_lookup_key: str) -> str:
     return template
 
 
-def instantiated_template(template_lookup_key: str, document_request_key: str) -> str:
+def instantiated_email_template(document_request_key: str) -> str:
     """
-    Instantiate Jinja2 template with dto BaseModel instance. Return
-    instantiated template as string.
+    Instantiate Jinja2 template. Return instantiated template as string.
+    """
+    with open(template_path("email"), "r") as filepath:
+        template = filepath.read()
+    env = jinja2.Environment(autoescape=True).from_string(template)
+    return env.render(data=document_request_key)
+
+
+def instantiated_html_header_template(template_lookup_key: str) -> str:
+    """
+    Instantiate Jinja2 template. Return instantiated template as string.
     """
     with open(template_path(template_lookup_key), "r") as filepath:
         template = filepath.read()
     env = jinja2.Environment(autoescape=True).from_string(template)
-    return env.render(data=document_request_key)
+    timestring = datetime.now().ctime()
+    return env.render(timestring=timestring)
 
 
 def enclose_html_content(
@@ -161,9 +173,9 @@ def document_html_header(
         AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
         AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
     ]:
-        return template("header_compact_enclosing")
+        return instantiated_html_header_template("header_compact_enclosing")
 
-    return template("header_enclosing")
+    return instantiated_html_header_template("header_enclosing")
 
 
 def uses_section(
@@ -474,7 +486,7 @@ def send_email_with_attachment(
                 lexception("Unable to open one of the attachments. Caught exception: ")
 
         # Get the email body
-        message_body = instantiated_template("email", document_request_key)
+        message_body = instantiated_email_template(document_request_key)
         logger.debug("instantiated email template: %s", message_body)
 
         outer.attach(MIMEText(message_body, "plain"))
@@ -509,7 +521,6 @@ def convert_html_to_pdf(
     pdf_filepath: str,
     email_address: Optional[str],
     document_request_key: str,
-    wkhtmltopdf_options: dict[str, Optional[str]] = settings.WKHTMLTOPDF_OPTIONS,
 ) -> None:
     """
     Generate PDF from HTML, copy it to output directory, possibly send to email_address as attachment.
@@ -518,11 +529,9 @@ def convert_html_to_pdf(
     logger.info("Generating PDF %s...", pdf_filepath)
 
     t0 = time.time()
-    pdfkit.from_file(
-        html_filepath,
-        pdf_filepath,
-        options=wkhtmltopdf_options,
-    )
+    weasyprint_command = "weasyprint {} {}".format(html_filepath, pdf_filepath)
+    logger.debug("Generate PDF command: %s", weasyprint_command)
+    subprocess.call(weasyprint_command, shell=True)
     t1 = time.time()
     logger.debug("Time for converting HTML to PDF: %s", t1 - t0)
     copy_file_to_docker_output_dir(pdf_filepath)
@@ -616,7 +625,7 @@ def convert_html_to_docx(
     new_section.start_type
 
     master = Composer(doc)
-    # Add the main content.
+    # Add the main (non-front-matter) content.
     master.append(composer.doc)
     master.save(docx_filepath)
     t1 = time.time()
@@ -778,6 +787,11 @@ def select_assembly_layout_kind(
         and document_request.assembly_strategy_kind == book_language_order
     ):
         return sl_sr
+    # elif (
+    #     document_request.layout_for_print
+    #     and document_request.assembly_strategy_kind == book_language_order
+    # ):
+    #     return sl_sr_compact
 
     return one_column
 
@@ -1020,6 +1034,16 @@ def alt_main(document_request_json: Json[Any]) -> Json[Any]:
         composer = assemble_docx_content(
             document_request_key_, document_request, book_content_units
         )
+        # Construct sensical phrases to display for title1 and title2 on first
+        # page of Word document.
+        titles = [
+            "{}: {}".format(pair[0], ", ".join(pair[1]))
+            for pair in _languages_and_books_requested(found_resource_lookup_dtos)
+        ]
+
+        # Isolate each title
+        title1 = titles[0]  # Example: 'Engish: Matthew, Mark'
+        title2 = titles[1] if len(titles) >= 2 else ""  # Example: 'Chinese: Genesis'
 
         current_task.update_state(state="Converting to Docx format")
         convert_html_to_docx(
@@ -1029,8 +1053,85 @@ def alt_main(document_request_json: Json[Any]) -> Json[Any]:
             document_request.email_address,
             document_request_key_,
             document_request.resource_requests,
+            title1,
+            title2,
         )
     else:
         logger.debug("Cache hit for %s", docx_filepath_)
 
     return document_request_key_
+
+
+def _languages_and_books_requested(
+    resource_lookup_dtos: Sequence[ResourceLookupDto],
+    # non_en_usfm_resource_types: Sequence[str] = settings.USFM_RESOURCE_TYPES,
+    # en_usfm_resource_types: Sequence[str] = settings.EN_USFM_RESOURCE_TYPES,
+) -> Sequence[tuple[str, Sequence[str]]]:
+    """
+    Return a list of tuples with the following form:
+    [(lang_name, [resource_code1, resource_code2, ...]), ...]
+
+    E.g.,
+    [("English", ["mat", "mrk"]), ("français (French)", ["mat", "mrk"])]
+
+    >>> from document.domain import document_generator, model
+    >>> resource_lookup_dtos=[model.ResourceLookupDto(lang_code="en", lang_name="English", resource_type="ulb-wa", resource_type_name="Scripture", resource_code="mat", source="usfm"), model.ResourceLookupDto(lang_code="fr", lang_name="français (French)", resource_type="ulb", resource_type_name="Translation Notes", resource_code="mat", source="usfm")]
+    >>> resource_lookup_dtos
+    >>> document_generator._languages_and_books_requested(resource_lookup_dtos)
+    [('English', ['Matthew']), ('français (French)', ['Matthew'])]
+    """
+
+    unique_resource_lookup_dtos = unique(
+        resource_lookup_dtos, key=lambda dto: (dto.lang_name, dto.resource_code)
+    )
+
+    # for tw_book_content_unit in unique(
+    #     tw_book_content_units, key=lambda unit: unit.lang_code
+    # ):
+
+    # Get frontmatter titles for Word doc
+    # usfm_resource_types = [
+    #     *non_en_usfm_resource_types,
+    #     *en_usfm_resource_types,
+    # ]
+
+    # Partition USFM resource requests by language.
+    language_groups = itertoolz.groupby(
+        lambda r: r.lang_name,
+        unique_resource_lookup_dtos,
+        # filter(
+        #     lambda r: r.resource_type in usfm_resource_types,
+        #     resource_lookup_dtos,
+        # ),
+    )
+
+    # Example language_groups: [{English, [resource_lookup_dto{ulb}]}, [{Chinese, [resource_request{cuv}]}]]
+
+    # Get a list of the sorted set of books for each language for later
+    # use.
+    list_of_language_to_books_tuples = [
+        (
+            lang_name,
+            sorted(
+                {
+                    bible_books.BOOK_NAMES[resource_lookup_dto.resource_code]
+                    for resource_lookup_dto in resource_lookup_dtos
+                }
+            ),
+        )
+        for lang_name, resource_lookup_dtos in language_groups.items()
+    ]
+    return list_of_language_to_books_tuples
+
+
+if __name__ == "__main__":
+
+    # To run the doctests in the this module, in the root of the project do:
+    # python backend/document/domain/resource_lookup.py
+    # or
+    # python backend/document/domain/resource_lookup.py -v
+    # See https://docs.python.org/3/library/doctest.html
+    # for more details.
+    import doctest
+
+    doctest.testmod()

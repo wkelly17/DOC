@@ -95,9 +95,10 @@ clean-local-docker-output-dir:
 	find docker_document_output/ -type f -name "*.pdf" -exec rm -- {} +
 	find docker_document_output/ -type f -name "*.epub" -exec rm -- {} +
 	find docker_document_output/ -type f -name "*.docx" -exec rm -- {} +
+	find docker_document_output/ -type f -name "*.html" -exec rm -- {} +
 
 .PHONY: test
-test:
+test: clean-local-docker-output-dir
 	docker compose -f docker-compose.yml -f docker-compose.api-test.yml -f docker-compose.override.yml up  test-runner
 
 .PHONY: unit-tests
@@ -112,8 +113,6 @@ e2e-tests: clean-local-docker-output-dir
 .PHONY: e2e-docx-tests
 e2e-docx-tests: clean-local-docker-output-dir
 	docker compose -f docker-compose.yml -f docker-compose.api-docx-test.yml -f docker-compose.override.yml up  test-runner
-	# docker compose -f docker-compose.yml -f docker-compose.api-docx-test.yml up --exit-code-from test-runner
-	# BACKEND_API_URL=http://localhost:5005 FILE_SERVER_URL=http://localhost:8089 docker compose run --rm --no-deps --entrypoint=pytest api -v -m "docx" -n auto /app/tests/e2e
 
 
 .PHONY: frontend-tests
@@ -130,7 +129,10 @@ frontend-tests:
 	# does not appear to be putting the playwright.config.ts
 	# config file in the correct location for the playwright
 	# Docker container to find it and thus default timeouts are
-	# used which are not long enough for some tests to complete.
+	# used which are not long enough for some tests to complete
+	# with our local network latency. They do seem to complete
+	# fine within the timeouts in the github actions network
+	# environment though.
 	# docker compose -f docker-compose.yml -f docker-compose.frontend-test.yml up --exit-code-from frontend-test-runner
 
 .PHONY: test-randomized

@@ -1,15 +1,19 @@
-from typing import Iterable, Sequence
+from re import search
+from typing import Iterable, Mapping, Sequence
 
 from document.config import settings
 from document.domain.assembly_strategies.assembly_strategy_utils import (
+    # partition_verses_content_in_half,
     adjust_book_intro_headings,
     book_intro_commentary,
     chapter_commentary,
     chapter_intro,
+    chapter_verse_content_sans_footnotes,
     ensure_primary_usfm_books_for_different_languages_are_adjacent,
     verses_for_chapter_tn,
     verses_for_chapter_tq,
 )
+from document.domain.bible_books import BOOK_NAMES
 from document.domain.model import (
     BCBook,
     BookContent,
@@ -37,6 +41,8 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr(
     html_column_right_begin: str = settings.HTML_COLUMN_RIGHT_BEGIN,
     html_column_end: str = settings.HTML_COLUMN_END,
     html_row_end: str = settings.HTML_ROW_END,
+    book_names: Mapping[str, str] = BOOK_NAMES,
+    book_name_fmt_str: str = settings.BOOK_NAME_FMT_STR,
 ) -> Iterable[HtmlContent]:
     """
     Construct the HTML for the two column scripture left scripture
@@ -172,6 +178,13 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr(
         usfm_book_content_units,
         key=lambda usfm_book_content_unit: usfm_book_content_unit.chapters.keys(),
     )
+    if usfm_with_most_chapters:
+        # Book title centered
+        # TODO One day book title could be localized.
+        yield book_name_fmt_str.format(
+            book_names[usfm_with_most_chapters.resource_code]
+        )
+
     for chapter_num, chapter in usfm_with_most_chapters.chapters.items():
         # Add the first USFM resource's chapter heading. We ignore
         # chapter headings for other usfm_book_content_units because it would
@@ -179,7 +192,7 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr(
         # for this assembly sub-strategy.
         chapter_heading = HtmlContent("")
         chapter_heading = chapter.content[0]
-        yield HtmlContent(chapter_heading)
+        yield chapter_heading
 
         for tn_book_content_unit2 in tn_book_content_units:
             # Add the translation notes chapter intro.
@@ -218,7 +231,9 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr(
                     yield html_column_right_begin
 
                 # Add scripture chapter
-                yield "".join(usfm_book_content_unit.chapters[chapter_num].content)
+                yield chapter_verse_content_sans_footnotes(
+                    usfm_book_content_unit.chapters[chapter_num].content
+                )
                 # Add the footnotes
                 # try:
                 chapter_footnotes = usfm_book_content_unit.chapters[
@@ -278,12 +293,15 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
     footnotes_heading: HtmlContent = settings.FOOTNOTES_HEADING,
     tn_verse_notes_enclosing_div_fmt_str: str = settings.TN_VERSE_NOTES_ENCLOSING_DIV_FMT_STR,
     tq_heading_fmt_str: str = settings.TQ_HEADING_FMT_STR,
-    html_row_begin: str = settings.HTML_ROW_BEGIN,
-    html_column_begin: str = settings.HTML_COLUMN_BEGIN,
-    html_column_left_begin: str = settings.HTML_COLUMN_LEFT_BEGIN,
-    html_column_right_begin: str = settings.HTML_COLUMN_RIGHT_BEGIN,
-    html_column_end: str = settings.HTML_COLUMN_END,
-    html_row_end: str = settings.HTML_ROW_END,
+    tq_heading_and_questions_fmt_str: str = settings.TQ_HEADING_AND_QUESTIONS_FMT_STR,
+    # html_row_begin: str = settings.HTML_ROW_BEGIN,
+    # html_column_begin: str = settings.HTML_COLUMN_BEGIN,
+    # html_column_left_begin: str = settings.HTML_COLUMN_LEFT_BEGIN,
+    # html_column_right_begin: str = settings.HTML_COLUMN_RIGHT_BEGIN,
+    # html_column_end: str = settings.HTML_COLUMN_END,
+    # html_row_end: str = settings.HTML_ROW_END,
+    book_names: Mapping[str, str] = BOOK_NAMES,
+    book_name_fmt_str: str = settings.BOOK_NAME_FMT_STR,
 ) -> Iterable[HtmlContent]:
     """
     Construct the HTML wherein at least one USFM resource exists, one column
@@ -319,6 +337,13 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
         usfm_book_content_units,
         key=lambda usfm_book_content_unit: usfm_book_content_unit.chapters.keys(),
     )
+    if usfm_with_most_chapters:
+        # Book title centered
+        # TODO One day book title could be localized.
+        yield book_name_fmt_str.format(
+            book_names[usfm_with_most_chapters.resource_code]
+        )
+
     for chapter_num, chapter in usfm_with_most_chapters.chapters.items():
         # Add the first USFM resource's chapter heading. We ignore
         # chapter headings for other usfm_book_content_units because it would
@@ -332,7 +357,13 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
         for usfm_book_content_unit in usfm_book_content_units:
             if chapter_num in usfm_book_content_unit.chapters:
                 # Add scripture chapter
-                yield "".join(usfm_book_content_unit.chapters[chapter_num].content)
+                # yield "".join(usfm_book_content_unit.chapters[chapter_num].content)
+
+                # Add scripture chapter
+                yield chapter_verse_content_sans_footnotes(
+                    usfm_book_content_unit.chapters[chapter_num].content
+                )
+
                 # try:
                 chapter_footnotes = usfm_book_content_unit.chapters[
                     chapter_num
@@ -365,20 +396,28 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
                 # Divide TN verse notes across two columns.
                 # wkthmltopdf can't handle css column-count directive so we overcome
                 # that here manually by creating our own two column layout.
-                left_half_tn_verses = list(tn_verses.values())[
-                    0 : int(len(tn_verses.keys()) / 2) + 1
-                ]
-                right_half_tn_verses = list(tn_verses.values())[
-                    int(len(tn_verses.keys()) / 2) + 1 : -1
-                ]
-                yield html_row_begin
-                yield html_column_left_begin
-                yield "".join(left_half_tn_verses)
-                yield html_column_end
-                yield html_column_right_begin
-                yield "".join(right_half_tn_verses)
-                yield html_column_end
-                yield html_row_end
+                # (
+                #     left_half_tn_verses,
+                #     right_half_tn_verses,
+                # ) = partition_verses_content_in_half(list(tn_verses.values()))
+
+                ## left_half_tn_verses = list(tn_verses.values())[
+                ##     0 : int(len(tn_verses.keys()) / 2) + 1
+                ## ]
+                ## right_half_tn_verses = list(tn_verses.values())[
+                ##     int(len(tn_verses.keys()) / 2) + 1 : -1
+                ## ]
+                # yield html_row_begin
+                # yield html_column_left_begin
+                # yield "".join(left_half_tn_verses)
+                # yield html_column_end
+                # yield html_column_right_begin
+                # yield "".join(right_half_tn_verses)
+                # yield html_column_end
+                # yield html_row_end
+                yield tn_verse_notes_enclosing_div_fmt_str.format(
+                    "".join(tn_verses.values())
+                )
 
         # Add the interleaved tq questions
         tq_verses = None
@@ -386,25 +425,33 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
             tq_verses = verses_for_chapter_tq(tq_book_content_unit, chapter_num)
             # Add TQ verse content, if any
             if tq_verses:
-                yield tq_heading_fmt_str.format(tq_book_content_unit.resource_type_name)
+                # yield tq_heading_fmt_str.format(tq_book_content_unit.resource_type_name)
                 # Divide TQ verse notes across two columns.
                 # wkthmltopdf can't handle css column-count directive so we overcome
                 # that here manually by creating our own two column layout.
-                left_half_tq_verses = list(tq_verses.values())[
-                    0 : int(len(tq_verses.keys()) / 2) + 1
-                ]
-                right_half_tq_verses = list(tq_verses.values())[
-                    int(len(tq_verses.keys()) / 2) + 1 : -1
-                ]
-                yield html_row_begin
-                yield html_column_left_begin
-                yield "".join(left_half_tq_verses)
-                yield html_column_end
-                yield html_column_right_begin
-                yield "".join(right_half_tq_verses)
-                yield html_column_end
-                yield html_row_end
+                # (
+                #     left_half_tq_verses,
+                #     right_half_tq_verses,
+                # ) = partition_verses_content_in_half(list(tq_verses.values()))
 
+                ## left_half_tq_verses = list(tq_verses.values())[
+                ##     0 : int(len(tq_verses.keys()) / 2) + 1
+                ## ]
+                ## right_half_tq_verses = list(tq_verses.values())[
+                ##     int(len(tq_verses.keys()) / 2) + 1 : -1
+                ## ]
+                # yield html_row_begin
+                # yield html_column_left_begin
+                # yield "".join(left_half_tq_verses)
+                # yield html_column_end
+                # yield html_column_right_begin
+                # yield "".join(right_half_tq_verses)
+                # yield html_column_end
+                # yield html_row_end
+                yield tq_heading_and_questions_fmt_str.format(
+                    tq_book_content_unit.resource_type_name,
+                    "".join(tq_verses.values()),
+                )
 
 
 def assemble_tn_as_iterator_by_chapter_for_book_then_lang(
@@ -414,12 +461,14 @@ def assemble_tn_as_iterator_by_chapter_for_book_then_lang(
     tw_book_content_units: Sequence[TWBook],
     bc_book_content_units: Sequence[BCBook],
     tq_heading_fmt_str: str = settings.TQ_HEADING_FMT_STR,
-    html_row_begin: str = settings.HTML_ROW_BEGIN,
-    html_column_begin: str = settings.HTML_COLUMN_BEGIN,
-    html_column_left_begin: str = settings.HTML_COLUMN_LEFT_BEGIN,
-    html_column_right_begin: str = settings.HTML_COLUMN_RIGHT_BEGIN,
-    html_column_end: str = settings.HTML_COLUMN_END,
-    html_row_end: str = settings.HTML_ROW_END,
+    # html_row_begin: str = settings.HTML_ROW_BEGIN,
+    # html_column_begin: str = settings.HTML_COLUMN_BEGIN,
+    # html_column_left_begin: str = settings.HTML_COLUMN_LEFT_BEGIN,
+    # html_column_right_begin: str = settings.HTML_COLUMN_RIGHT_BEGIN,
+    # html_column_end: str = settings.HTML_COLUMN_END,
+    # html_row_end: str = settings.HTML_ROW_END,
+    tn_verse_notes_enclosing_div_fmt_str: str = settings.TN_VERSE_NOTES_ENCLOSING_DIV_FMT_STR,
+    tq_heading_and_questions_fmt_str: str = settings.TQ_HEADING_AND_QUESTIONS_FMT_STR,
 ) -> Iterable[HtmlContent]:
     """
     Construct the HTML for a 'by chapter' strategy wherein at least
@@ -466,48 +515,65 @@ def assemble_tn_as_iterator_by_chapter_for_book_then_lang(
         # Add the interleaved tn notes
         for tn_book_content_unit in tn_book_content_units:
             tn_verses = verses_for_chapter_tn(tn_book_content_unit, chapter_num)
-            if tn_verses:  # and verse_num in tn_verses:
+            if tn_verses:
                 # Divide TN verse notes across two columns.
                 # wkthmltopdf can't handle css column-count directive so we overcome
                 # that here manually by creating our own two column layout.
-                left_half_tn_verses = list(tn_verses.values())[
-                    0 : int(len(tn_verses.keys()) / 2) + 1
-                ]
-                right_half_tn_verses = list(tn_verses.values())[
-                    int(len(tn_verses.keys()) / 2) + 1 : -1
-                ]
-                yield html_row_begin
-                yield html_column_left_begin
-                yield "".join(left_half_tn_verses)
-                yield html_column_end
-                yield html_column_right_begin
-                yield "".join(right_half_tn_verses)
-                yield html_column_end
-                yield html_row_end
+                # (
+                #     left_half_tn_verses,
+                #     right_half_tn_verses,
+                # ) = partition_verses_content_in_half(list(tn_verses.values()))
+
+                ## left_half_tn_verses = list(tn_verses.values())[
+                ##     0 : int(len(tn_verses.keys()) / 2) + 1
+                ## ]
+                ## right_half_tn_verses = list(tn_verses.values())[
+                ##     int(len(tn_verses.keys()) / 2) + 1 : -1
+                ## ]
+                # yield html_row_begin
+                # yield html_column_left_begin
+                # yield "".join(left_half_tn_verses)
+                # yield html_column_end
+                # yield html_column_right_begin
+                # yield "".join(right_half_tn_verses)
+                # yield html_column_end
+                # yield html_row_end
+                yield tn_verse_notes_enclosing_div_fmt_str.format(
+                    "".join(tn_verses.values())
+                )
 
         # Add the interleaved tq questions
         for tq_book_content_unit in tq_book_content_units:
             tq_verses = verses_for_chapter_tq(tq_book_content_unit, chapter_num)
             # Add TQ verse content, if any
             if tq_verses:
-                yield tq_heading_fmt_str.format(tq_book_content_unit.resource_type_name)
+                # yield tq_heading_fmt_str.format(tq_book_content_unit.resource_type_name)
                 # Divide TQ verse notes across two columns.
                 # wkthmltopdf can't handle css column-count directive so we overcome
                 # that here manually by creating our own two column layout.
-                left_half_tq_verses = list(tq_verses.values())[
-                    0 : int(len(tq_verses.keys()) / 2) + 1
-                ]
-                right_half_tq_verses = list(tq_verses.values())[
-                    int(len(tq_verses.keys()) / 2) + 1 : -1
-                ]
-                yield html_row_begin
-                yield html_column_left_begin
-                yield "".join(left_half_tq_verses)
-                yield html_column_end
-                yield html_column_right_begin
-                yield "".join(right_half_tq_verses)
-                yield html_column_end
-                yield html_row_end
+                # (
+                #     left_half_tq_verses,
+                #     right_half_tq_verses,
+                # ) = partition_verses_content_in_half(list(tq_verses.values()))
+
+                ## left_half_tq_verses = list(tq_verses.values())[
+                ##     0 : int(len(tq_verses.keys()) / 2) + 1
+                ## ]
+                ## right_half_tq_verses = list(tq_verses.values())[
+                ##     int(len(tq_verses.keys()) / 2) + 1 : -1
+                ## ]
+                # yield html_row_begin
+                # yield html_column_left_begin
+                # yield "".join(left_half_tq_verses)
+                # yield html_column_end
+                # yield html_column_right_begin
+                # yield "".join(right_half_tq_verses)
+                # yield html_column_end
+                # yield html_row_end
+                yield tq_heading_and_questions_fmt_str.format(
+                    tq_book_content_unit.resource_type_name,
+                    "".join(tq_verses.values()),
+                )
 
 
 def assemble_tq_as_iterator_by_chapter_for_book_then_lang(
@@ -517,12 +583,13 @@ def assemble_tq_as_iterator_by_chapter_for_book_then_lang(
     tw_book_content_units: Sequence[TWBook],
     bc_book_content_units: Sequence[BCBook],
     tq_heading_fmt_str: str = settings.TQ_HEADING_FMT_STR,
-    html_row_begin: str = settings.HTML_ROW_BEGIN,
-    html_column_begin: str = settings.HTML_COLUMN_BEGIN,
-    html_column_left_begin: str = settings.HTML_COLUMN_LEFT_BEGIN,
-    html_column_right_begin: str = settings.HTML_COLUMN_RIGHT_BEGIN,
-    html_column_end: str = settings.HTML_COLUMN_END,
-    html_row_end: str = settings.HTML_ROW_END,
+    # html_row_begin: str = settings.HTML_ROW_BEGIN,
+    # html_column_begin: str = settings.HTML_COLUMN_BEGIN,
+    # html_column_left_begin: str = settings.HTML_COLUMN_LEFT_BEGIN,
+    # html_column_right_begin: str = settings.HTML_COLUMN_RIGHT_BEGIN,
+    # html_column_end: str = settings.HTML_COLUMN_END,
+    # html_row_end: str = settings.HTML_ROW_END,
+    tq_heading_and_questions_fmt_str: str = settings.TQ_HEADING_AND_QUESTIONS_FMT_STR,
 ) -> Iterable[HtmlContent]:
     """
     Construct the HTML for a 'by chapter' strategy wherein at least
@@ -554,24 +621,33 @@ def assemble_tq_as_iterator_by_chapter_for_book_then_lang(
             tq_verses = verses_for_chapter_tq(tq_book_content_unit, chapter_num)
             # Add TQ verse content, if any
             if tq_verses:
-                yield tq_heading_fmt_str.format(tq_book_content_unit.resource_type_name)
+                # yield tq_heading_fmt_str.format(tq_book_content_unit.resource_type_name)
                 # Divide TQ verse notes across two columns.
                 # wkthmltopdf can't handle css column-count directive so we overcome
                 # that here manually by creating our own two column layout.
-                left_half_tq_verses = list(tq_verses.values())[
-                    0 : int(len(tq_verses.keys()) / 2) + 1
-                ]
-                right_half_tq_verses = list(tq_verses.values())[
-                    int(len(tq_verses.keys()) / 2) + 1 : -1
-                ]
-                yield html_row_begin
-                yield html_column_left_begin
-                yield "".join(left_half_tq_verses)
-                yield html_column_end
-                yield html_column_right_begin
-                yield "".join(right_half_tq_verses)
-                yield html_column_end
-                yield html_row_end
+                # (
+                #     left_half_tq_verses,
+                #     right_half_tq_verses,
+                # ) = partition_verses_content_in_half(list(tq_verses.values()))
+
+                ## left_half_tq_verses = list(tq_verses.values())[
+                ##     0 : int(len(tq_verses.keys()) / 2) + 1
+                ## ]
+                ## right_half_tq_verses = list(tq_verses.values())[
+                ##     int(len(tq_verses.keys()) / 2) + 1 : -1
+                ## ]
+                # yield html_row_begin
+                # yield html_column_left_begin
+                # yield "".join(left_half_tq_verses)
+                # yield html_column_end
+                # yield html_column_right_begin
+                # yield "".join(right_half_tq_verses)
+                # yield html_column_end
+                # yield html_row_end
+                yield tq_heading_and_questions_fmt_str.format(
+                    tq_book_content_unit.resource_type_name,
+                    "".join(tq_verses.values()),
+                )
 
 
 def assemble_tw_as_iterator_by_chapter_for_book_then_lang(

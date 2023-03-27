@@ -4,6 +4,47 @@
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <title>Bible</title>
     <style media="all" type="text/css">
+      /* Weasyprint page directives for headers and footers */
+      @page {
+        size: letter;
+        @top-center {
+          content: string(chapterstring);
+          font-size: 0.8em;
+          color: gray;
+        }
+        /*
+        @top-right {
+          content: string(subchapterstring);
+        }
+        */
+        @bottom-center {
+          content: "Page " counter(page) " of " counter(pages);
+          font-size: 0.7em;
+          color: gray;
+        }
+        @bottom-right {
+          content: "{%if timestring%} generated on {{ timestring }}{% endif %}";
+          font-size: 0.5em;
+          color: gray;
+        }
+      }
+
+      h3 {
+        /* page-break-before: always; */
+        string-set: chapterstring content();
+      }
+
+      h4 {
+        string-set: subchapterstring content();
+      }
+
+      /* End of Weasy page directives for headers and footers */
+
+      body {
+        /* Browsers typically default to 16px, let's make our default 12px */
+        font-size: 75%;
+      }
+
       .chunk-break {
         display: block;
       }
@@ -33,11 +74,11 @@
       }
 
       .c-num {
-        color: gray;
+        /* color: gray; */
       }
 
       .v-num {
-        color: gray;
+        /* color: gray; */
       }
 
       .tetragrammaton {

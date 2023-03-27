@@ -18,6 +18,7 @@ from document.domain.model import (
     TWNameContentPair,
     TWUse,
     USFMBook,
+    VerseRef,
 )
 from document.utils.tw_utils import uniq
 
@@ -147,6 +148,7 @@ def adjust_book_intro_headings(
     book_intro = sub(h2, h6, book_intro)
     book_intro = sub(h1, h2, book_intro)
     book_intro = sub(h3, h4, book_intro)
+    book_intro = sub(h2, h3, book_intro)
     # Now adjust the temporary H6s.
     return HtmlContent(sub(h6, h3, book_intro))
 
@@ -348,3 +350,109 @@ def ensure_primary_usfm_books_for_different_languages_are_adjacent(
                 )
             )
         )
+
+
+# NOTE This method works, but often still leaves unbalanced columns. To
+# be more effective, the algorithm would have to work at the intra-verse
+# content level to determine the midpoint to split columnar data. The
+# difficulty with this though is that the data is HTML not simple
+# content. This would mean getting into parsing HTML which in turn means
+# more complexity. Instead we can use an alternative HTML to PDF engine,
+# in our case Weasyprint, that understands CSS columns whereas
+# WKHTMLTOPDF does not. Weasyprint recently got header and footer
+# capability which was the only reason we were not using it before. Also
+# WKHTMLTOPDF has just fallen out of maintenance at the start of 2023 so
+# it is an easy decision. I am retaining this code for now and its
+# commented out invocations in case we need later (for some yet unknown
+# reason). It will likely disappear in a future PR.
+def partition_verses_content_in_half(
+    tn_verses: Sequence[HtmlContent],
+) -> tuple[Sequence[HtmlContent], Sequence[HtmlContent]]:
+    """
+    Return two lists of verses such that they are balanced with
+    respect to the number of words in each.
+
+    >>> from document.domain.model import VerseRef, HtmlContent
+    >>> from document.domain.assembly_strategies import assembly_strategy_utils
+    >>> tn_verses: Sequence[HtmlContent] = ["foo bar batz boink bonk", "blip dip sip drip", "floink dink pink sink wink", "doink moink lemon orange", "oink flip trip crypt", "joink loink", "loink blap dap", "moink slink dink", "wink"]
+    >>> assert len(tn_verses) == 9
+    >>> words_per_verse = [len(content.split()) for content in tn_verses]
+    >>> words_per_verse
+    [5, 4, 5, 4, 4, 2, 3, 3, 1]
+    >>> total_words = sum(words_per_verse)
+    >>> total_words
+    31
+    >>> half_the_words = int(total_words / 2)
+    >>> half_the_words
+    15
+    >>> left_half_tn_verses, right_half_tn_verses = assembly_strategy_utils.partition_verses_content_in_half(tn_verses)
+    >>> assert len(left_half_tn_verses) == 3
+    >>> assert len(right_half_tn_verses) == 6
+    """
+    logger.debug("tn_verses[0]: %s", tn_verses[0])
+    words_per_verse = [len(content.split()) for content in tn_verses]
+    total_words = sum(words_per_verse)
+    half_the_words = int(total_words / 2)
+    running_word_total = 0
+    idx_of_verse_to_stop_at = 0
+    for idx, verse in enumerate(tn_verses):
+        running_word_total += len(verse.split())
+        # logger.debug("running_word_total: %s", running_word_total)
+        if running_word_total <= half_the_words:
+            idx_of_verse_to_stop_at = idx
+            continue
+        else:
+            break
+    # logger.debug("idx_of_verse_to_stop_at: %s", idx_of_verse_to_stop_at)
+    left_half_tn_verses = list(tn_verses)[0 : idx_of_verse_to_stop_at + 1]
+    right_half_tn_verses = list(tn_verses)[idx_of_verse_to_stop_at + 1 :]
+    # logger.debug("left_half_tn_verses: %s", left_half_tn_verses)
+    # logger.debug("right_half_tn_verses: %s", right_half_tn_verses)
+    return left_half_tn_verses, right_half_tn_verses
+
+
+def adjust_chapter_heading(
+    chapter_content: list[str],
+    h2: str = H2,
+    h3: str = H3,
+) -> list[HtmlContent]:
+    """Change chapter label from h2 to h3."""
+    # Move the H4 out of the way, we'll deal with it last.
+    return [sub(h2, h3, chapter_component) for chapter_component in chapter_content]
+
+
+def chapter_verse_content_sans_footnotes(chapter_content: Sequence[HtmlContent]) -> str:
+    """
+    Return chapter content sans footnotes at end of each chapter.
+    """
+    # NOTE Footnotes are rendered to HTML by USFM-TOOLS at the end of each
+    # chapter's verse content. So, we have to make sure we remove footnotes
+    # from the end of chapter content when displaying chapter verse content
+    # because we display footnotes explicitly later below.
+    #
+    # Find the index of where footnotes occur at the end of
+    # chapter.content, if the chapter has footnotes.
+    index_of_footnotes = 0
+    for idx, element in enumerate(chapter_content):
+        if search("footnotes", element):
+            index_of_footnotes = idx
+
+    # Now let's interleave USFM chapter.
+    if index_of_footnotes != 0:  # chapter_content includes footnote
+        chapter_content_sans_footnotes = chapter_content[0 : index_of_footnotes - 1]
+        return "".join(chapter_content_sans_footnotes)
+    else:
+        return "".join(chapter_content)
+
+
+if __name__ == "__main__":
+
+    # To run the doctests in the this module, in the root of the project do:
+    # python backend/document/domain/resource_lookup.py
+    # or
+    # python backend/document/domain/resource_lookup.py -v
+    # See https://docs.python.org/3/library/doctest.html
+    # for more details.
+    import doctest
+
+    doctest.testmod()

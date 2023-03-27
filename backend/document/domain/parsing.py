@@ -19,6 +19,7 @@ from document.domain.assembly_strategies.assembly_strategy_utils import (
     adjust_book_intro_headings,
     adjust_chapter_intro_headings,
     adjust_commentary_headings,
+    adjust_chapter_heading,
 )
 from document.domain.model import (
     BCBook,
@@ -57,7 +58,7 @@ from usfm_tools import transform
 
 logger = settings.logger(__name__)
 
-H1, H2, H3, H4 = "h1", "h2", "h3", "h4"
+H1, H2, H3, H4, H5 = "h1", "h2", "h3", "h4", "h5"
 
 
 def attempt_asset_content_rescue(
@@ -443,7 +444,7 @@ def usfm_book_content(
             )
             chapter_verses[verse_ref_] = updated_verse_content_str
         chapters[chapter_num] = USFMChapter(
-            content=chapter_content,
+            content=adjust_chapter_heading(chapter_content),
             verses=chapter_verses,
             footnotes=chapter_footnotes,
         )
@@ -537,8 +538,8 @@ def tn_book_content(
     book_intro_paths_glob_fmt_str: str = "{}/*{}/front/intro.md",
     book_intro_paths_glob_alt_fmt_str: str = "{}/*{}/front/intro.txt",
     h1: str = H1,
-    h4: str = H4,
-    verse_label_fmt_str: str = "<h3>{} {}:{}</h3>\n{}",
+    h5: str = H5,
+    verse_label_fmt_str: str = "<h4>{} {}:{}</h4>\n{}",
 ) -> TNBook:
     # Initialize the Python-Markdown extensions that get invoked
     # when md.convert is called.
@@ -592,7 +593,7 @@ def tn_book_content(
             verse_ref = Path(filepath).stem
             verse_md_content = read_file(filepath)
             verse_html_content = md.convert(verse_md_content)
-            adjusted_verse_html_content = sub(h1, h4, verse_html_content)
+            adjusted_verse_html_content = sub(h1, h5, verse_html_content)
             # Chapter chunking needs verse level labeling
             if chunk_size == ChunkSizeEnum.CHAPTER:
                 verses_html[verse_ref] = verse_label_fmt_str.format(
@@ -646,8 +647,8 @@ def tq_book_content(
     chapter_dirs_glob_alt_fmt_str: str = "{}/*{}/*[0-9]*",
     verse_paths_glob_fmt_str: str = "{}/*[0-9]*.md",
     h1: str = H1,
-    h4: str = H4,
-    verse_label_fmt_str: str = "<h3>{} {}:{}</h3>\n{}",
+    h5: str = H5,
+    verse_label_fmt_str: str = "<h4>{} {}:{}</h4>\n{}",
 ) -> TQBook:
     # Create the Markdown instance once and have it use our markdown
     # extensions.
@@ -690,7 +691,7 @@ def tq_book_content(
             verse_ref = Path(filepath).stem
             verse_md_content = read_file(filepath)
             verse_html_content = md.convert(verse_md_content)
-            adjusted_verse_html_content = sub(h1, h4, verse_html_content)
+            adjusted_verse_html_content = sub(h1, h5, verse_html_content)
             # Chapter chunking needs verse level labeling
             if chunk_size == ChunkSizeEnum.CHAPTER:
                 verses_html[verse_ref] = verse_label_fmt_str.format(

@@ -18,8 +18,7 @@ services:
       #   condition: service_healthy
 
     entrypoint: pytest
-    command:
-      ["-v", "-m", "docx", "-n", "auto", "/app/tests/unit", "/app/tests/e2e"]
+    command: ["-v", "-m", "docx", "-n", "auto"]
     environment:
       BACKEND_API_URL: http://localhost:5005
       FILE_SERVER_URL: http://localhost:8089

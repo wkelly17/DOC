@@ -814,11 +814,6 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_tl_ulb_col_tl_tn_c
                         "resource_type": "tw",
                         "resource_code": "col",
                     },
-                    {
-                        "lang_code": "tl",
-                        "resource_type": "udb",
-                        "resource_code": "col",
-                    },
                 ],
             },
         )
