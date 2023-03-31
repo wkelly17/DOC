@@ -2741,3 +2741,33 @@ def test_kbt_reg_2co_ajg_x_adjtalagbe_reg_2co_pmm_reg_mrk_language_book_order_1c
         # expect to fail obtaining it through git cloning.
         with pytest.raises(Exception):
             check_finished_document_with_verses_success(response)
+
+
+def test_id_ayt_tit_id_tn_tit_language_book_order_1c_by_chapter() -> None:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
+        response: requests.Response = client.post(
+            "/documents",
+            json={
+                "email_address": settings.TO_EMAIL_ADDRESS,
+                "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
+                "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN,
+                "layout_for_print": False,
+                "chunk_size": model.ChunkSizeEnum.CHAPTER,
+                "generate_pdf": False,
+                "generate_epub": False,
+                "generate_docx": False,
+                "resource_requests": [
+                    {
+                        "lang_code": "id",
+                        "resource_type": "ayt",
+                        "resource_code": "tit",
+                    },
+                    {
+                        "lang_code": "id",
+                        "resource_type": "tn",
+                        "resource_code": "tit",
+                    },
+                ],
+            },
+        )
+        check_finished_document_with_verses_success(response)

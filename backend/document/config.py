@@ -150,7 +150,7 @@ class Settings(BaseSettings):
         "fa",
         "hr",
         "hu",
-        "id",  # Currently doesn't provide USFM, but might soon
+        # "id",  # Currently doesn't provide USFM, but might soon
         "kbt",
         "kip",
         "lus",
@@ -289,6 +289,12 @@ class Settings(BaseSettings):
         "tq-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_tq",
         "bc-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_bc",
     }
+    ID_GIT_REPO_MAP: Mapping[str, str] = {
+        "ayt": "https://content.bibletranslationtools.org/WA-Catalog/id_ayt",
+        "tn": "https://content.bibletranslationtools.org/WA-Catalog/id_tn",
+        "tq": "https://content.bibletranslationtools.org/WA-Catalog/id_tq",
+        "tw": "https://content.bibletranslationtools.org/WA-Catalog/id_tw",
+    }
 
     ENGLISH_RESOURCE_TYPE_MAP: Mapping[str, str] = {
         "ulb-wa": "Unlocked Literal Bible (ULB)",
@@ -298,10 +304,22 @@ class Settings(BaseSettings):
         "tw-wa": "ULB Translation Words",
         "bc-wa": "Bible Commentary",
     }
+
+    ID_LANGUAGE_NAME = "Bahasa Indonesian"
+    ID_RESOURCE_TYPE_MAP: Mapping[str, str] = {
+        "ayt": "Bahasa Indonesian Bible (ayt)",
+        "tn": "Translation Helps (tn)",
+        "tq": "Translation Questions (tq)",
+        "tw": "Translation Words (tw)",
+    }
     ENGLISH_RESOURCE_TYPE_MAP_USFM_AND_TN_ONLY: Mapping[str, str] = {
         "ulb-wa": "Unlocked Literal Bible (ULB)",
         # "udb-wa": "Unlocked Dynamic Bible (UDB)",
         "tn-wa": "ULB Translation Helps",
+    }
+    ID_RESOURCE_TYPE_MAP_USFM_AND_TN_ONLY: Mapping[str, str] = {
+        "ayt": "Bahasa Indonesian Bible (ayt)",
+        "tn": "Translation Helps",
     }
 
     TEMPLATE_PATHS_MAP: Mapping[str, str] = {

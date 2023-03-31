@@ -786,12 +786,14 @@ def select_assembly_layout_kind(
         not document_request.layout_for_print
         and document_request.assembly_strategy_kind == book_language_order
     ):
-        return sl_sr
+        # return sl_sr
+        return one_column
     # elif (
     #     document_request.layout_for_print
     #     and document_request.assembly_strategy_kind == book_language_order
     # ):
-    #     return sl_sr_compact
+    ##     return sl_sr_compact
+    #     return one_column_compact
 
     return one_column
 

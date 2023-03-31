@@ -132,6 +132,28 @@ def _english_git_repo_location(
     )
 
 
+def _id_git_repo_location(
+    lang_code: str,
+    resource_type: str,
+    resource_code: str,
+    url: str,
+    resource_type_name: str,
+    asset_source_enum_kind: AssetSourceEnum = AssetSourceEnum.GIT,
+    id_lang_name: str = settings.ID_LANGUAGE_NAME,
+) -> ResourceLookupDto:
+    """Return a model.ResourceLookupDto."""
+    return ResourceLookupDto(
+        lang_code=lang_code,
+        resource_type=resource_type,
+        resource_code=resource_code,
+        url=url,
+        source=asset_source_enum_kind,
+        jsonpath=None,
+        lang_name=id_lang_name,
+        resource_type_name=resource_type_name,
+    )
+
+
 def const(url: str) -> Optional[str]:
     """Classic functional constant function."""
     return url
@@ -197,6 +219,17 @@ def english_resource_type_name(
     return english_resource_type_map[resource_type]
 
 
+def id_resource_type_name(
+    resource_type: str,
+    id_resource_type_map: Mapping[str, str] = settings.ID_RESOURCE_TYPE_MAP,
+) -> str:
+    """
+    This is a hack to compensate for translations.json which only
+    provides accurate information for non-English languages and lang_code ID.
+    """
+    return id_resource_type_map[resource_type]
+
+
 def english_git_repo_url(
     resource_type: str,
     english_git_repo_map: Mapping[str, str] = settings.ENGLISH_GIT_REPO_MAP,
@@ -206,6 +239,17 @@ def english_git_repo_url(
     provides accurate URLs in non-English languages.
     """
     return english_git_repo_map[resource_type]
+
+
+def id_git_repo_url(
+    resource_type: str,
+    id_git_repo_map: Mapping[str, str] = settings.ID_GIT_REPO_MAP,
+) -> str:
+    """
+    This is a hack to compensate for translations.json which only
+    provides accurate URLs in non-English languages and lang_code ID.
+    """
+    return id_git_repo_map[resource_type]
 
 
 def usfm_resource_lookup(
@@ -548,6 +592,7 @@ def resource_types_and_names_for_lang(
     lang_code: str,
     working_dir: str = settings.RESOURCE_ASSETS_DIR,
     english_resource_type_map: Mapping[str, str] = settings.ENGLISH_RESOURCE_TYPE_MAP,
+    id_resource_type_map: Mapping[str, str] = settings.ID_RESOURCE_TYPE_MAP,
     translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
     usfm_resource_types: Sequence[str] = settings.USFM_RESOURCE_TYPES,
     tn_resource_types: Sequence[str] = settings.TN_RESOURCE_TYPES,
@@ -643,7 +688,8 @@ def resource_types_and_names_for_lang(
        ('udb', 'Unlocked Dynamic Bible - Hindi (udb)'),
        ('ulb', 'Unlocked Literal Bible - Hindi (ulb)')]),
      ('id',
-      [('tn', 'Translation Notes (tn)'),
+      [('ayt', 'Bahasa Indonesian Bible (ayt)'),
+       ('tn', 'Translation Helps (tn)'),
        ('tq', 'Translation Questions (tq)'),
        ('tw', 'Translation Words (tw)')]),
      ('ilo',
@@ -823,6 +869,11 @@ def resource_types_and_names_for_lang(
        ('tw', 'Translation Words (tw)'),
        ('udb', 'Unlocked Dynamic Bible - Hindi (udb)'),
        ('ulb', 'Unlocked Literal Bible - Hindi (ulb)')]),
+     ('id',
+      [('ayt', 'Bahasa Indonesian Bible (ayt)'),
+       ('tn', 'Translation Helps (tn)'),
+       ('tq', 'Translation Questions (tq)'),
+       ('tw', 'Translation Words (tw)')]),
      ('ilo',
       [('tn', 'Translation Notes (tn)'),
        ('tq', 'Translation Questions (tq)'),
@@ -941,19 +992,15 @@ def resource_types_and_names_for_lang(
     [('fa',
       [('tn', 'Translation Notes (tn)'),
        ('ulb', 'Henry Martyn Open Source Bible (1876) (ulb)')]),
-     ('id',
-      [('tn', 'Translation Notes (tn)'),
-       ('tq', 'Translation Questions (tq)'),
-       ('tw', 'Translation Words (tw)')]),
      ('pmy',
       [('tn', 'Translation Notes (tn)'),
        ('tq', 'Translation Questions (tq)'),
        ('tw', 'Translation Words (tw)')])]
 
     >>> sorted([lang_code for lang_code in settings.GATEWAY_LANGUAGES if lang_code not in settings.LANG_CODE_FILTER_LIST])
-    ['am', 'arb', 'as', 'bn', 'ceb', 'en', 'es-419', 'fr', 'gu', 'ha', 'hi', 'ilo', 'km', 'kn', 'lo', 'ml', 'mr', 'my', 'ne', 'or', 'pa', 'plt', 'pt-br', 'ru', 'sw', 'ta', 'te', 'th', 'tl', 'tpi', 'ur', 'ur-deva', 'vi', 'zh']
+    ['am', 'arb', 'as', 'bn', 'ceb', 'en', 'es-419', 'fr', 'gu', 'ha', 'hi', 'id', 'ilo', 'km', 'kn', 'lo', 'ml', 'mr', 'my', 'ne', 'or', 'pa', 'plt', 'pt-br', 'ru', 'sw', 'ta', 'te', 'th', 'tl', 'tpi', 'ur', 'ur-deva', 'vi', 'zh']
     >>> sorted([lang_code for lang_code in settings.GATEWAY_LANGUAGES if lang_code in settings.LANG_CODE_FILTER_LIST])
-    ['fa', 'id', 'pmy']
+    ['fa', 'pmy']
 
 
     List of GL languages and their translations.json listed resource
@@ -1088,6 +1135,8 @@ def resource_types_and_names_for_lang(
     """
     if lang_code == "en":
         return [(key, value) for key, value in english_resource_type_map.items()]
+    if lang_code == "id":
+        return [(key, value) for key, value in id_resource_type_map.items()]
 
     data = fetch_source_data(working_dir, translations_json_location)
     for item in [lang for lang in data if lang["code"] == lang_code]:
@@ -1113,6 +1162,9 @@ def resource_types_and_names_for_lang_for_v1_release(
     english_resource_type_map: Mapping[
         str, str
     ] = settings.ENGLISH_RESOURCE_TYPE_MAP_USFM_AND_TN_ONLY,
+    id_resource_type_map: Mapping[
+        str, str
+    ] = settings.ID_RESOURCE_TYPE_MAP_USFM_AND_TN_ONLY,
     translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
     usfm_resource_types: Sequence[str] = settings.USFM_RESOURCE_TYPES_MINUS_SECONDARY,
     tn_resource_types: Sequence[str] = settings.TN_RESOURCE_TYPES,
@@ -1169,7 +1221,8 @@ def resource_types_and_names_for_lang_for_v1_release(
      ('hi',
       [('tn', 'Translation Notes (tn)'),
        ('ulb', 'Unlocked Literal Bible - Hindi (ulb)')]),
-     ('id', [('tn', 'Translation Notes (tn)')]),
+     ('id',
+      [('ayt', 'Bahasa Indonesian Bible (ayt)'), ('tn', 'Translation Helps')]),
      ('ilo',
       [('tn', 'Translation Notes (tn)'),
        ('ulb', 'Unlocked Literal Bible - Ilocano (ulb)')]),
@@ -1262,6 +1315,8 @@ def resource_types_and_names_for_lang_for_v1_release(
      ('hi',
       [('tn', 'Translation Notes (tn)'),
        ('ulb', 'Unlocked Literal Bible - Hindi (ulb)')]),
+     ('id',
+      [('ayt', 'Bahasa Indonesian Bible (ayt)'), ('tn', 'Translation Helps')]),
      ('ilo',
       [('tn', 'Translation Notes (tn)'),
        ('ulb', 'Unlocked Literal Bible - Ilocano (ulb)')]),
@@ -1327,13 +1382,12 @@ def resource_types_and_names_for_lang_for_v1_release(
     [('fa',
       [('tn', 'Translation Notes (tn)'),
        ('ulb', 'Henry Martyn Open Source Bible (1876) (ulb)')]),
-     ('id', [('tn', 'Translation Notes (tn)')]),
      ('pmy', [('tn', 'Translation Notes (tn)')])]
 
     >>> sorted([lang_code for lang_code in settings.GATEWAY_LANGUAGES if lang_code not in settings.LANG_CODE_FILTER_LIST])
-    ['am', 'arb', 'as', 'bn', 'ceb', 'en', 'es-419', 'fr', 'gu', 'ha', 'hi', 'ilo', 'km', 'kn', 'lo', 'ml', 'mr', 'my', 'ne', 'or', 'pa', 'plt', 'pt-br', 'ru', 'sw', 'ta', 'te', 'th', 'tl', 'tpi', 'ur', 'ur-deva', 'vi', 'zh']
+    ['am', 'arb', 'as', 'bn', 'ceb', 'en', 'es-419', 'fr', 'gu', 'ha', 'hi', 'id', 'ilo', 'km', 'kn', 'lo', 'ml', 'mr', 'my', 'ne', 'or', 'pa', 'plt', 'pt-br', 'ru', 'sw', 'ta', 'te', 'th', 'tl', 'tpi', 'ur', 'ur-deva', 'vi', 'zh']
     >>> sorted([lang_code for lang_code in settings.GATEWAY_LANGUAGES if lang_code in settings.LANG_CODE_FILTER_LIST])
-    ['fa', 'id', 'pmy']
+    ['fa', 'pmy']
 
 
     List of GL languages and their translations.json listed resource
@@ -1468,6 +1522,8 @@ def resource_types_and_names_for_lang_for_v1_release(
     """
     if lang_code == "en":
         return [(key, value) for key, value in english_resource_type_map.items()]
+    if lang_code == "id":
+        return [(key, value) for key, value in id_resource_type_map.items()]
 
     data = fetch_source_data(working_dir, translations_json_location)
     for item in [lang for lang in data if lang["code"] == lang_code]:
@@ -1542,6 +1598,7 @@ def shared_resource_types(
     resource_codes: Sequence[str],
     working_dir: str = settings.RESOURCE_ASSETS_DIR,
     english_resource_type_map: Mapping[str, str] = settings.ENGLISH_RESOURCE_TYPE_MAP,
+    id_resource_type_map: Mapping[str, str] = settings.ID_RESOURCE_TYPE_MAP,
     translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
     lang_code_filter_list: Sequence[str] = settings.LANG_CODE_FILTER_LIST,
 ) -> list[tuple[str, str]]:
@@ -1560,10 +1617,15 @@ def shared_resource_types(
     [('f10', 'French Louis Segond 1910 Bible (f10)'), ('tn', 'Translation Notes (tn)'), ('tq', 'Translation Questions (tq)'), ('tw', 'Translation Words (tw)')]
     >>> list(resource_lookup.shared_resource_types("es-419", ["gen"]))
     [('tn', 'Translation Notes (tn)'), ('tq', 'Translation Questions (tq)'), ('tw', 'Translation Words (tw)'), ('ulb', 'Español Latino Americano ULB (ulb)')]
+    >>> list(resource_lookup.shared_resource_types("id", ["mat"]))
+    [('ayt', 'Bahasa Indonesian Bible (ayt)'), ('tn', 'Translation Helps (tn)'), ('tq', 'Translation Questions (tq)'), ('tw', 'Translation Words (tw)')]
+
     """
 
     if lang_code == "en":
         return [(key, value) for key, value in english_resource_type_map.items()]
+    if lang_code == "id":
+        return [(key, value) for key, value in id_resource_type_map.items()]
 
     values = []
     data = fetch_source_data(working_dir, translations_json_location)
@@ -1692,16 +1754,28 @@ def resource_codes_for_lang(
     (...)
     >>> list(data)
     [('gen', 'Genesis'), ('exo', 'Exodus'), ('lev', 'Leviticus'), ('num', 'Numbers'), ('deu', 'Deuteronomy'), ('jos', 'Joshua'), ('jdg', 'Judges'), ('rut', 'Ruth'), ('1sa', '1 Samuel'), ('2sa', '2 Samuel'), ('1ki', '1 Kings'), ('2ki', '2 Kings'), ('1ch', '1 Chronicles'), ('2ch', '2 Chronicles'), ('ezr', 'Ezra'), ('neh', 'Nehemiah'), ('est', 'Esther'), ('job', 'Job'), ('psa', 'Psalms'), ('pro', 'Proverbs'), ('ecc', 'Ecclesiastes'), ('sng', 'Song of Solomon'), ('isa', 'Isaiah'), ('jer', 'Jeremiah'), ('lam', 'Lamentations'), ('ezk', 'Ezekiel'), ('dan', 'Daniel'), ('hos', 'Hosea'), ('jol', 'Joel'), ('amo', 'Amos'), ('oba', 'Obadiah'), ('jon', 'Jonah'), ('mic', 'Micah'), ('nam', 'Nahum'), ('hab', 'Habakkuk'), ('zep', 'Zephaniah'), ('hag', 'Haggai'), ('zec', 'Zechariah'), ('mal', 'Malachi'), ('mat', 'Matthew'), ('mrk', 'Mark'), ('luk', 'Luke'), ('jhn', 'John'), ('act', 'Acts'), ('rom', 'Romans'), ('1co', '1 Corinthians'), ('2co', '2 Corinthians'), ('gal', 'Galatians'), ('eph', 'Ephesians'), ('php', 'Philippians'), ('col', 'Colossians'), ('1th', '1 Thessalonians'), ('2th', '2 Thessalonians'), ('1ti', '1 Timothy'), ('2ti', '2 Timothy'), ('tit', 'Titus'), ('phm', 'Philemon'), ('heb', 'Hebrews'), ('jas', 'James'), ('1pe', '1 Peter'), ('2pe', '2 Peter'), ('1jn', '1 John'), ('2jn', '2 John'), ('3jn', '3 John'), ('jud', 'Jude'), ('rev', 'Revelation')]
+    >>> ();data = resource_lookup.resource_codes_for_lang("id");() # doctest:+ELLIPSIS
+    (...)
+    >>> list(data)
+    [('gen', 'Genesis'), ('exo', 'Exodus'), ('lev', 'Leviticus'), ('num', 'Numbers'), ('deu', 'Deuteronomy'), ('jos', 'Joshua'), ('jdg', 'Judges'), ('rut', 'Ruth'), ('1sa', '1 Samuel'), ('2sa', '2 Samuel'), ('1ki', '1 Kings'), ('2ki', '2 Kings'), ('1ch', '1 Chronicles'), ('2ch', '2 Chronicles'), ('ezr', 'Ezra'), ('neh', 'Nehemiah'), ('est', 'Esther'), ('job', 'Job'), ('psa', 'Psalms'), ('pro', 'Proverbs'), ('ecc', 'Ecclesiastes'), ('sng', 'Song of Solomon'), ('isa', 'Isaiah'), ('jer', 'Jeremiah'), ('lam', 'Lamentations'), ('ezk', 'Ezekiel'), ('dan', 'Daniel'), ('hos', 'Hosea'), ('jol', 'Joel'), ('amo', 'Amos'), ('oba', 'Obadiah'), ('jon', 'Jonah'), ('mic', 'Micah'), ('nam', 'Nahum'), ('hab', 'Habakkuk'), ('zep', 'Zephaniah'), ('hag', 'Haggai'), ('zec', 'Zechariah'), ('mal', 'Malachi'), ('mat', 'Matthew'), ('mrk', 'Mark'), ('luk', 'Luke'), ('jhn', 'John'), ('act', 'Acts'), ('rom', 'Romans'), ('1co', '1 Corinthians'), ('2co', '2 Corinthians'), ('gal', 'Galatians'), ('eph', 'Ephesians'), ('php', 'Philippians'), ('col', 'Colossians'), ('1th', '1 Thessalonians'), ('2th', '2 Thessalonians'), ('1ti', '1 Timothy'), ('2ti', '2 Timothy'), ('tit', 'Titus'), ('phm', 'Philemon'), ('heb', 'Hebrews'), ('jas', 'James'), ('1pe', '1 Peter'), ('2pe', '2 Peter'), ('1jn', '1 John'), ('2jn', '2 John'), ('3jn', '3 John'), ('jud', 'Jude'), ('rev', 'Revelation')]
     """
-    resource_codes = [
-        (resource_code, book_names[resource_code])
-        for resource_code in _lookup(jsonpath_str.format(lang_code))
-        if resource_code
-    ]
-    return sorted(
-        resource_codes,
-        key=lambda resource_code_name_pair: book_numbers[resource_code_name_pair[0]],
-    )
+    if lang_code == "id":
+        return [
+            (resource_code, book_names[resource_code])
+            for resource_code in book_names.keys()
+        ]
+    else:
+        resource_codes = [
+            (resource_code, book_names[resource_code])
+            for resource_code in _lookup(jsonpath_str.format(lang_code))
+            if resource_code
+        ]
+        return sorted(
+            resource_codes,
+            key=lambda resource_code_name_pair: book_numbers[
+                resource_code_name_pair[0]
+            ],
+        )
 
 
 # NOTE An alternative/experimental (different approach), yet ultimately non-performant version.
@@ -1883,7 +1957,8 @@ def lang_codes_names_and_contents_codes(
             "subcontents": [
             ...
 
-    Example usage in repl:
+    Example usage (and doctest) in repl:
+
     >>> from document.domain import resource_lookup
     >>> data = resource_lookup.lang_codes_names_and_contents_codes()
     >>> [(triplet[0], triplet[1]) for triplet in data if triplet[2] == "nil"]
@@ -1938,6 +2013,14 @@ def resource_lookup_dto(
     """
     Get the model.ResourceLookupDto instance for the given lang_code,
     resource_type, resource_code combination.
+
+    >>> from document.domain import resource_lookup
+    >>> dto = resource_lookup.resource_lookup_dto("id","ayt","tit")
+    >>> dto
+    ResourceLookupDto(lang_code='id', lang_name='Bahasa Indonesian', resource_type='ayt', resource_type_name='Bahasa Indonesian Bible (ayt)', resource_code='tit', url='https://content.bibletranslationtools.org/WA-Catalog/id_ayt', source=<AssetSourceEnum.GIT: 'git'>, jsonpath=None)
+    >>> dto = resource_lookup.resource_lookup_dto("id","tn","tit")
+    >>> dto
+    ResourceLookupDto(lang_code='id', lang_name='Bahasa Indonesian', resource_type='tn', resource_type_name='Translation Helps (tn)', resource_code='tit', url='https://content.bibletranslationtools.org/WA-Catalog/id_tn', source=<AssetSourceEnum.GIT: 'git'>, jsonpath=None)
     """
     # For English, with the exception of tn resource type, translations.json
     # file only contains URLs to PDF assets rather than anything useful for
@@ -1963,6 +2046,25 @@ def resource_lookup_dto(
             raise exceptions.InvalidDocumentRequestException(
                 message="{} resource type requested is invalid.".format(resource_type)
             )
+    elif lang_code == "id":
+        if (
+            resource_type in usfm_resource_types
+            or resource_type in tn_resource_types
+            or resource_type in tq_resource_types
+            or resource_type in tw_resource_types
+        ):
+            return _id_git_repo_location(
+                lang_code,
+                resource_type,
+                resource_code,
+                url=id_git_repo_url(resource_type),
+                resource_type_name=id_resource_type_name(resource_type),
+            )
+        else:  # This would be an invalid ID resource type
+            raise exceptions.InvalidDocumentRequestException(
+                message="{} resource type requested is invalid.".format(resource_type)
+            )
+
     else:  # Non-English lang_code
         if resource_type in usfm_resource_types:
             return usfm_resource_lookup(lang_code, resource_type, resource_code)

@@ -23,7 +23,9 @@
         ><p>
           This document generator allows you to interleave different types of resources
           from different languages into a single document. You can find a more basic
-          (limited) version of this app <a href="#/v1/">here</a>.
+          (limited) version of this app
+          <span style="text-decoration-line: underline"> <a href="#/v1/">here</a></span
+          >.
         </p>
         <p>Larger documents will take more time to generate.</p></span
       >

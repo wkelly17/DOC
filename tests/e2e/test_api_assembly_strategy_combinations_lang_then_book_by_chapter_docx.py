@@ -1265,3 +1265,44 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_es_419_ulb_col_es_
             },
         )
         check_result(response, suffix="docx")
+
+
+@pytest.mark.docx
+def test_id_ulb_tit_id_tn_tit_id_tq_tit_id_tw_tit_language_book_order_1c_by_chapter_docx() -> None:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
+        response: requests.Response = client.post(
+            "/documents_docx",
+            json={
+                "email_address": settings.TO_EMAIL_ADDRESS,
+                "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
+                "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN,
+                "layout_for_print": False,
+                "chunk_size": model.ChunkSizeEnum.CHAPTER,
+                "generate_pdf": False,
+                "generate_epub": False,
+                "generate_docx": True,
+                "resource_requests": [
+                    {
+                        "lang_code": "id",
+                        "resource_type": "ayt",
+                        "resource_code": "tit",
+                    },
+                    {
+                        "lang_code": "id",
+                        "resource_type": "tn",
+                        "resource_code": "tit",
+                    },
+                    {
+                        "lang_code": "id",
+                        "resource_type": "tq",
+                        "resource_code": "tit",
+                    },
+                    {
+                        "lang_code": "id",
+                        "resource_type": "tw",
+                        "resource_code": "tit",
+                    },
+                ],
+            },
+        )
+        check_result(response, suffix="docx")
