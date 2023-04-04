@@ -157,7 +157,7 @@ jobs:
         with:
           export-env: true
         env:
-          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           DEV_DEPLOY_HOOK: op://DevOps/DEPLOY-doc-dev-walink-org-token/url
 
       - name: Call Deploy Webhook
