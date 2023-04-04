@@ -148,7 +148,7 @@ jobs:
   Deploy-develop:
     name: Develop deploy on successful develop build
     needs: [Push-Images]
-    if: ${{ github.ref_name == 'develop' }}
+    if: ${{ github.ref_name == 'doc-dev.walink.org' }}
     runs-on: ubuntu-20.04
     environment: doc-dev.walink.org
     steps:
