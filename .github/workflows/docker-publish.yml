@@ -150,11 +150,16 @@ jobs:
     needs: [Push-Images]
     if: ${{ github.ref_name == 'develop' }}
     runs-on: ubuntu-20.04
-    environment: develop
+    environment: doc-dev.walink.org
     steps:
-      - name: Call Deploy Webhook
-        run: |
-          curl ${{ env.DEV_DEPLOY_HOOK }}
+      - name: Configure 1Password Service Account
+        uses: 1password/load-secrets-action@v1
+        with:
+          export-env: true
         env:
-          DEV_DEPLOY_HOOK: ${{ secrets.DEV_DEPLOY_HOOK }}
+          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          DEV_DEPLOY_HOOK: op://DevOps/DEPLOY-doc-dev-walink-org-token/url
+
+      - name: Call Deploy Webhook
+        run: curl ${{ env.DEV_DEPLOY_HOOK }}
         
