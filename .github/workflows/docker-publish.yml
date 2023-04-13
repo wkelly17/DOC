@@ -29,12 +29,19 @@ jobs:
       - uses: docker/setup-qemu-action@v2      
       - uses: docker/setup-buildx-action@v2
 
+      - run: |
+          export GH_LATEST_PR_NUM=$(curl -s -L -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/repos/WycliffeAssociates/DOC/pulls\?state\=closed\&per_page\=1 | jq '.[].number')
+          export GH_RUN_VERSION="1.$GH_LATEST_PR_NUM.0+$GITHUB_RUN_NUMBER"
+          echo "VITE_DOC_VERSION=$GH_RUN_VERSION" >> $GITHUB_ENV
+
       - name: Build frontend image
         uses: docker/build-push-action@v3
         with:
           context: ./frontend
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            VITE_DOC_VERSION=${{ env.VITE_DOC_VERSION }}
 
   Test-API-Image:
     name: Test API image

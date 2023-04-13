@@ -45,12 +45,22 @@
     <div>
       <span class="text-neutral-content">
         Unless otherwise noted, all content on this site is licensed under a
+        <!-- svelte-ignore security-anchor-rel-noreferrer -->
         <a
           href="https://creativecommons.org/licenses/by-sa/4.0/"
           target="_blank"
           class="link"
-          >CCBYSA 4.0 ShareAlike license</a
-        >.
+          >
+            CCBYSA 4.0 ShareAlike license
+        </a>.
+      </span>
+    </div>
+  </li>
+  <li class="bg-white p-2">
+    <span class="text-secondary-content text-lg">Version</span>
+    <div>
+      <span class="text-neutral-content">
+        {import.meta.env.VITE_DOC_VERSION}
       </span>
     </div>
   </li>
