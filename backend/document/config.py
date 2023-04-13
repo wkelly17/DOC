@@ -51,6 +51,7 @@ class Settings(BaseSettings):
         "$[?code='{}'].contents[*].subcontents[?code='{}'].links[?format='zip'].url"
     )
 
+    END_OF_CHAPTER_HTML = '<div class="end-of-chapter"></div>'
     LANGUAGE_FMT_STR: str = "<h1 style='text-align: center'>Language: {}</h1>"
     RESOURCE_TYPE_NAME_FMT_STR: str = "<h1>{}</h1>"
     TN_VERSE_NOTES_ENCLOSING_DIV_FMT_STR: str = "<div style='column-count: 2;'>{}</div>"

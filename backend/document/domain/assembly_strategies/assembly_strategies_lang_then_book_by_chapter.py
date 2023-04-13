@@ -45,6 +45,7 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
     tq_heading_and_questions_fmt_str: str = settings.TQ_HEADING_AND_QUESTIONS_FMT_STR,
     book_names: Mapping[str, str] = BOOK_NAMES,
     book_name_fmt_str: str = settings.BOOK_NAME_FMT_STR,
+    end_of_chapter_html: str = settings.END_OF_CHAPTER_HTML,
 ) -> Iterable[HtmlContent]:
     """
     Construct the HTML wherein at least one USFM resource (e.g., ulb,
@@ -80,7 +81,6 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
             tq_verses: Optional[dict[VerseRef, HtmlContent]] = None
 
             yield chapter_verse_content_sans_footnotes(chapter.content)
-
 
             # Add scripture footnotes if available
             if chapter.footnotes:
@@ -156,6 +156,8 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
             if usfm_book_content_unit2:
                 yield "".join(usfm_book_content_unit2.chapters[chapter_num].content)
 
+            yield end_of_chapter_html
+
 
 def assemble_tn_as_iterator_by_chapter_for_lang_then_book_1c(
     usfm_book_content_unit: Optional[USFMBook],
@@ -176,6 +178,7 @@ def assemble_tn_as_iterator_by_chapter_for_lang_then_book_1c(
     # html_column_end: str = settings.HTML_COLUMN_END,
     # html_row_end: str = settings.HTML_ROW_END,
     tq_heading_and_questions_fmt_str: str = settings.TQ_HEADING_AND_QUESTIONS_FMT_STR,
+    end_of_chapter_html: str = settings.END_OF_CHAPTER_HTML,
 ) -> Iterable[HtmlContent]:
     """
     Construct the HTML for a 'by verse' strategy wherein only TN, TQ,
@@ -267,6 +270,7 @@ def assemble_tn_as_iterator_by_chapter_for_lang_then_book_1c(
                     tq_book_content_unit.resource_type_name,
                     "".join(tq_verses.values()),
                 )
+            yield end_of_chapter_html
 
 
 def assemble_tq_tw_for_by_chapter_lang_then_book_1c(
@@ -287,6 +291,7 @@ def assemble_tq_tw_for_by_chapter_lang_then_book_1c(
     # html_column_end: str = settings.HTML_COLUMN_END,
     # html_row_end: str = settings.HTML_ROW_END,
     tq_heading_and_questions_fmt_str: str = settings.TQ_HEADING_AND_QUESTIONS_FMT_STR,
+    end_of_chapter_html: str = settings.END_OF_CHAPTER_HTML,
 ) -> Iterable[HtmlContent]:
     """
     Construct the HTML for a 'by verse' strategy wherein only TQ and
@@ -342,3 +347,4 @@ def assemble_tq_tw_for_by_chapter_lang_then_book_1c(
                     tq_book_content_unit.resource_type_name,
                     "".join(tq_verses.values()),
                 )
+            yield end_of_chapter_html

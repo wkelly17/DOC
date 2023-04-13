@@ -24,6 +24,7 @@ from docx import Document  # type: ignore
 from docxtpl import DocxTemplate  # type: ignore
 from htmldocx import HtmlToDocx  # type: ignore
 from docx.enum.section import WD_SECTION  # type: ignore
+from docx.enum.text import WD_BREAK
 from docx.oxml.ns import qn  # type: ignore
 from docxcompose.composer import Composer  # type: ignore
 
@@ -219,6 +220,11 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
                 )
                 composer.append(subdoc)
 
+        # Add page break at end of chapter content
+        p = doc.add_paragraph("")
+        run = p.add_run()
+        run.add_break(WD_BREAK.PAGE)
+
     return composer
 
 
@@ -352,6 +358,12 @@ def assemble_tn_as_iterator_by_chapter_for_book_then_lang(
                     )
                 )
                 composer.append(subdoc)
+
+        # Add page break at end of chapter content
+        p = doc.add_paragraph("")
+        run = p.add_run()
+        run.add_break(WD_BREAK.PAGE)
+
     return composer
 
 
@@ -432,6 +444,12 @@ def assemble_tq_as_iterator_by_chapter_for_book_then_lang(
                     )
                 )
                 composer.append(subdoc)
+
+        # Add page break at end of chapter content
+        p = doc.add_paragraph("")
+        run = p.add_run()
+        run.add_break(WD_BREAK.PAGE)
+
     return composer
 
 
@@ -460,6 +478,11 @@ def assemble_tw_as_iterator_by_chapter_for_book_then_lang(
         html.append(bc_book_content_unit.book_intro)
         for chapter in bc_book_content_unit.chapters.values():
             html.append(chapter.commentary)
+
+            # Add page break at end of chapter content
+            p = doc.add_paragraph("")
+            run = p.add_run()
+            run.add_break(WD_BREAK.PAGE)
 
     if html:
         subdoc = html_to_docx.parse_html_string(html)

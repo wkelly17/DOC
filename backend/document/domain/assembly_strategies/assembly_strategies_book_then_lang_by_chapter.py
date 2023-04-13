@@ -302,6 +302,7 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
     # html_row_end: str = settings.HTML_ROW_END,
     book_names: Mapping[str, str] = BOOK_NAMES,
     book_name_fmt_str: str = settings.BOOK_NAME_FMT_STR,
+    end_of_chapter_html: str = settings.END_OF_CHAPTER_HTML,
 ) -> Iterable[HtmlContent]:
     """
     Construct the HTML wherein at least one USFM resource exists, one column
@@ -452,6 +453,7 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
                     tq_book_content_unit.resource_type_name,
                     "".join(tq_verses.values()),
                 )
+        yield end_of_chapter_html
 
 
 def assemble_tn_as_iterator_by_chapter_for_book_then_lang(
@@ -469,6 +471,7 @@ def assemble_tn_as_iterator_by_chapter_for_book_then_lang(
     # html_row_end: str = settings.HTML_ROW_END,
     tn_verse_notes_enclosing_div_fmt_str: str = settings.TN_VERSE_NOTES_ENCLOSING_DIV_FMT_STR,
     tq_heading_and_questions_fmt_str: str = settings.TQ_HEADING_AND_QUESTIONS_FMT_STR,
+    end_of_chapter_html: str = settings.END_OF_CHAPTER_HTML,
 ) -> Iterable[HtmlContent]:
     """
     Construct the HTML for a 'by chapter' strategy wherein at least
@@ -574,6 +577,7 @@ def assemble_tn_as_iterator_by_chapter_for_book_then_lang(
                     tq_book_content_unit.resource_type_name,
                     "".join(tq_verses.values()),
                 )
+        yield end_of_chapter_html
 
 
 def assemble_tq_as_iterator_by_chapter_for_book_then_lang(
@@ -590,6 +594,7 @@ def assemble_tq_as_iterator_by_chapter_for_book_then_lang(
     # html_column_end: str = settings.HTML_COLUMN_END,
     # html_row_end: str = settings.HTML_ROW_END,
     tq_heading_and_questions_fmt_str: str = settings.TQ_HEADING_AND_QUESTIONS_FMT_STR,
+    end_of_chapter_html: str = settings.END_OF_CHAPTER_HTML,
 ) -> Iterable[HtmlContent]:
     """
     Construct the HTML for a 'by chapter' strategy wherein at least
@@ -648,6 +653,7 @@ def assemble_tq_as_iterator_by_chapter_for_book_then_lang(
                     tq_book_content_unit.resource_type_name,
                     "".join(tq_verses.values()),
                 )
+        yield end_of_chapter_html
 
 
 def assemble_tw_as_iterator_by_chapter_for_book_then_lang(
@@ -656,6 +662,7 @@ def assemble_tw_as_iterator_by_chapter_for_book_then_lang(
     tq_book_content_units: Sequence[TQBook],
     tw_book_content_units: Sequence[TWBook],
     bc_book_content_units: Sequence[BCBook],
+    end_of_chapter_html: str = settings.END_OF_CHAPTER_HTML,
 ) -> Iterable[HtmlContent]:
     """Construct the HTML for BC and TW."""
 
@@ -670,3 +677,4 @@ def assemble_tw_as_iterator_by_chapter_for_book_then_lang(
         yield bc_book_content_unit.book_intro
         for chapter in bc_book_content_unit.chapters.values():
             yield chapter.commentary
+            yield end_of_chapter_html
