@@ -57,10 +57,18 @@
     </div>
   </li>
   <li class="bg-white p-2">
-    <span class="text-secondary-content text-lg">Version</span>
+    <span class="text-secondary-content text-lg">Version Information</span>
     <div>
       <span class="text-neutral-content">
-        {import.meta.env.VITE_DOC_VERSION}
+        <p>Build date: {import.meta.env.VITE_DOC_BUILD_TIMESTAMP}</p>
+        <!-- svelte-ignore security-anchor-rel-noreferrer -->
+        <p>Git Hash: <a
+          href="https://github.com/WycliffeAssociates/DOC/commits/{import.meta.env.VITE_DOC_VERSION}"
+          target="_blank"
+          class="link">
+          {import.meta.env.VITE_DOC_VERSION}
+          </a>
+        </p>
       </span>
     </div>
   </li>

@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 ARG VITE_DOC_VERSION
-# ENV VITE_DOC_VERSION=${ARG_DOC_VERSION}
+ARG VITE_DOC_BUILD_TIMESTAMP
 
 COPY . .
 RUN npm install
