@@ -28,7 +28,7 @@
     resetStores('resource_types')
     resetStores('settings')
     resetStores('notifications')
-    push('#/v1/')
+    push('#/')
   }
 
   let apiRootUrl: string = getApiRootUrl()
@@ -63,7 +63,7 @@
 <div class="bg-white flex">
   <button
     class="bg-white hover:bg-grey-100 text-primary-content font-bold py-2 px-4 rounded inline-flex items-center"
-    on:click={() => push('#/v1/')}
+    on:click={() => push('#/')}
   >
     <LeftArrow backLabel="Go Back" />
   </button>

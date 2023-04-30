@@ -270,7 +270,7 @@
       resource_requests: rr
     }
     printToConsole(`document request: ${JSON.stringify(documentRequest, null, 2)}`)
-    push('#/v1/result')
+    push('#/result')
     errorStore.set(null)
     documentReadyStore.set(false)
     documentRequestKeyStore.set('')

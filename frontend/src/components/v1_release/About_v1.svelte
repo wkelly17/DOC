@@ -24,7 +24,8 @@
           This basic version of the document generator allows you to generate documents
           containing scripture and translation notes only for gateway languages only.
           There is a full version of this system available
-          <span style="text-decoration-line: underline"> <a href="#/">here</a></span
+          <span style="text-decoration-line: underline">
+            <a href="#/experimental">here</a></span
           >.
         </p>
         <p>Larger documents will take more time to generate.</p></span

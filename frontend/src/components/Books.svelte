@@ -109,7 +109,7 @@
     resetStores('resource_types')
     resetStores('settings')
     resetStores('notifications')
-    push('#/')
+    push('#/experimental')
   }
 
   function selectAllOtResourceCodes(event: Event) {
@@ -236,7 +236,7 @@
   <div class="bg-white flex">
     <button
       class="bg-white hover:bg-grey-100 text-grey-darkest font-bold py-2 px-4 rounded inline-flex items-center"
-      on:click={() => push('#/')}
+      on:click={() => push('#/experimental')}
     >
       <LeftArrow backLabel="Books" />
     </button>

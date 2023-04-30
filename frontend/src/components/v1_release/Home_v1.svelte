@@ -164,7 +164,7 @@
     <li class="bg-white border-b-2 border-grey-500 p-2">
       <button
         class="inline-flex items-center w-full justify-between py-2 px-4 rounded"
-        on:click={() => push('#/v1/languages')}
+        on:click={() => push('#/languages')}
       >
         <div class="flex items-center">
           <svg
@@ -199,7 +199,7 @@
     <li class="bg-white border-b-2 border-grey-500 p-2">
       <button
         class="inline-flex items-center w-full justify-between py-2 px-4 rounded"
-        on:click={() => push('#/v1/books')}
+        on:click={() => push('#/books')}
       >
         <div class="flex items-center">
           <svg

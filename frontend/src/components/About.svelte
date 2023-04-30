@@ -24,7 +24,7 @@
           This document generator allows you to interleave different types of resources
           from different languages into a single document. You can find a more basic
           (limited) version of this app
-          <span style="text-decoration-line: underline"> <a href="#/v1/">here</a></span
+          <span style="text-decoration-line: underline"> <a href="#/">here</a></span
           >.
         </p>
         <p>Larger documents will take more time to generate.</p></span
@@ -50,9 +50,9 @@
           href="https://creativecommons.org/licenses/by-sa/4.0/"
           target="_blank"
           class="link"
-          >
-            CCBYSA 4.0 ShareAlike license
-        </a>.
+        >
+          CCBYSA 4.0 ShareAlike license </a
+        >.
       </span>
     </div>
   </li>
@@ -62,11 +62,14 @@
       <span class="text-neutral-content">
         <p>Build date: {import.meta.env.VITE_DOC_BUILD_TIMESTAMP}</p>
         <!-- svelte-ignore security-anchor-rel-noreferrer -->
-        <p>Git Hash: <a
-          href="https://github.com/WycliffeAssociates/DOC/commits/{import.meta.env.VITE_DOC_VERSION}"
-          target="_blank"
-          class="link">
-          {import.meta.env.VITE_DOC_VERSION}
+        <p>
+          Git Hash:
+          <a
+            href="https://github.com/WycliffeAssociates/DOC/commits/{import.meta.env.VITE_DOC_VERSION}"
+            target="_blank"
+            class="link"
+          >
+            {import.meta.env.VITE_DOC_VERSION}
           </a>
         </p>
       </span>

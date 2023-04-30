@@ -115,7 +115,7 @@
     resetStores('settings')
     resetStores('notifications')
     // NOTE In the full version we do this:
-    push('#/v1/')
+    push('#/')
     // TODO Decide if we want to make a wizard with
     // next and back buttons.
   }
@@ -244,7 +244,7 @@
   <div class="bg-white flex">
     <button
       class="bg-white hover:bg-grey-100 text-grey-darkest font-bold py-2 px-4 rounded inline-flex items-center"
-      on:click={() => push('#/v1/')}
+      on:click={() => push('#/')}
     >
       <LeftArrow backLabel="Books" />
     </button>

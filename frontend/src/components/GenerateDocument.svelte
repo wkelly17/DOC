@@ -109,7 +109,7 @@
       resource_requests: rr
     }
     console.log('document request: ', JSON.stringify(documentRequest, null, 2))
-    push('#/result')
+    push('#/experimental/result')
     errorStore.set(null)
     documentReadyStore.set(false)
     documentRequestKeyStore.set('')

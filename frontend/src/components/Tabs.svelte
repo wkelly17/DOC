@@ -12,7 +12,7 @@
         inactiveClassName:
           'border-transparent text-gray-700 dark:text-white hover:border-gray-400 cursor-base'
       }}
-      href="#/"
+      href="#/experimental"
     >
       Content
     </a>
@@ -24,7 +24,7 @@
         inactiveClassName:
           'border-transparent text-gray-700 dark:text-white hover:border-gray-400 cursor-base'
       }}
-      href="#/settings"
+      href="#/experimental/settings"
     >
       Settings
     </a>
@@ -36,7 +36,7 @@
         inactiveClassName:
           'border-transparent text-gray-700 dark:text-white hover:border-gray-400 cursor-base'
       }}
-      href="#/about"
+      href="#/experimental/about"
     >
       About
     </a>

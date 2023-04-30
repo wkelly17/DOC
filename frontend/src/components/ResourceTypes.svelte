@@ -118,7 +118,7 @@
   function submitResourceTypes() {
     resetStores('settings')
     resetStores('notifications')
-    push('#/')
+    push('#/experimental')
   }
 
   // Keep track of how many resources are currently stored reactively.
@@ -157,7 +157,7 @@
 <div class="bg-white flex">
   <button
     class="bg-white hover:bg-grey-100 text-grey-darkest font-bold py-2 px-4 rounded inline-flex items-center"
-    on:click={() => push('#/')}
+    on:click={() => push('#/experimental')}
   >
     <LeftArrow backLabel="Resource Types" />
   </button>

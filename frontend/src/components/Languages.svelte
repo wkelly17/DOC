@@ -74,7 +74,7 @@
     resetStores('resource_types')
     resetStores('settings')
     resetStores('notifications')
-    push('#/')
+    push('#/experimental')
   }
 
   // Update the langCountStore reactively
@@ -119,7 +119,7 @@
   <div class="bg-white flex">
     <button
       class="bg-white hover:bg-grey-100 py-2 px-4 rounded inline-flex items-center"
-      on:click={() => push('#/')}
+      on:click={() => push('#/experimental')}
     >
       <LeftArrow backLabel="Languages" />
     </button>
