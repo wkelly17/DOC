@@ -15,20 +15,21 @@ import Result_v1 from './components/v1_release/Result_v1.svelte'
 import About_v1 from './components/v1_release/About_v1.svelte'
 
 export default {
-  '/': Home,
-  '/languages': Languages,
-  '/books': Books,
-  '/resource_types': ResourceTypes,
-  '/settings': Settings,
-  '/result': Result,
-  '/about': About,
-
   // v1 release routes
-  '/v1/': Home_v1,
-  '/v1/languages': Languages_v1,
-  '/v1/books': Books_v1,
-  '/v1/result': Result_v1,
-  '/v1/about': About_v1,
+  '/': Home_v1,
+  '/languages': Languages_v1,
+  '/books': Books_v1,
+  '/result': Result_v1,
+  '/about': About_v1,
+
+  // experimenta/full release routes
+  '/experimental/': Home,
+  '/experimental/languages': Languages,
+  '/experimental/books': Books,
+  '/experimental/resource_types': ResourceTypes,
+  '/experimental/settings': Settings,
+  '/experimental/result': Result,
+  '/experimental/about': About,
 
   '*': ViewNotFound
 }
