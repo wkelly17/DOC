@@ -300,7 +300,7 @@ class Settings(BaseSettings):
     ENGLISH_RESOURCE_TYPE_MAP: Mapping[str, str] = {
         "ulb-wa": "Unlocked Literal Bible (ULB)",
         # "udb-wa": "Unlocked Dynamic Bible (UDB)",
-        "tn-wa": "ULB Translation Helps",
+        "tn-wa": "ULB Translation Notes",
         "tq-wa": "ULB Translation Questions",
         "tw-wa": "ULB Translation Words",
         "bc-wa": "Bible Commentary",
@@ -316,7 +316,7 @@ class Settings(BaseSettings):
     ENGLISH_RESOURCE_TYPE_MAP_USFM_AND_TN_ONLY: Mapping[str, str] = {
         "ulb-wa": "Unlocked Literal Bible (ULB)",
         # "udb-wa": "Unlocked Dynamic Bible (UDB)",
-        "tn-wa": "ULB Translation Helps",
+        "tn-wa": "ULB Translation Notes",
     }
     ID_RESOURCE_TYPE_MAP_USFM_AND_TN_ONLY: Mapping[str, str] = {
         "ayt": "Bahasa Indonesian Bible (ayt)",

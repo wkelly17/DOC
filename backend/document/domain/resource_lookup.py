@@ -614,7 +614,7 @@ def resource_types_and_names_for_lang(
     >>> # pprint.pprint(resource_lookup.resource_codes_and_types_for_lang("fr"))
     >>> pprint.pprint(resource_lookup.resource_types_and_names_for_lang("en"))
     [('ulb-wa', 'Unlocked Literal Bible (ULB)'),
-     ('tn-wa', 'ULB Translation Helps'),
+     ('tn-wa', 'ULB Translation Notes'),
      ('tq-wa', 'ULB Translation Questions'),
      ('tw-wa', 'ULB Translation Words'),
      ('bc-wa', 'Bible Commentary')]
@@ -651,7 +651,7 @@ def resource_types_and_names_for_lang(
        ('ulb', 'Cebuano Unlocked Literal Bible (ulb)')]),
      ('en',
       [('ulb-wa', 'Unlocked Literal Bible (ULB)'),
-       ('tn-wa', 'ULB Translation Helps'),
+       ('tn-wa', 'ULB Translation Notes'),
        ('tq-wa', 'ULB Translation Questions'),
        ('tw-wa', 'ULB Translation Words'),
        ('bc-wa', 'Bible Commentary')]),
@@ -836,7 +836,7 @@ def resource_types_and_names_for_lang(
        ('ulb', 'Cebuano Unlocked Literal Bible (ulb)')]),
      ('en',
       [('ulb-wa', 'Unlocked Literal Bible (ULB)'),
-       ('tn-wa', 'ULB Translation Helps'),
+       ('tn-wa', 'ULB Translation Notes'),
        ('tq-wa', 'ULB Translation Questions'),
        ('tw-wa', 'ULB Translation Words'),
        ('bc-wa', 'Bible Commentary')]),
@@ -1183,7 +1183,7 @@ def resource_types_and_names_for_lang_for_v1_release(
     >>> import pprint
     >>> # pprint.pprint(resource_lookup.resource_codes_and_types_for_lang_for_v1_release("fr"))
     >>> pprint.pprint(resource_lookup.resource_types_and_names_for_lang_for_v1_release("en"))
-    [('ulb-wa', 'Unlocked Literal Bible (ULB)'), ('tn-wa', 'ULB Translation Helps')]
+    [('ulb-wa', 'Unlocked Literal Bible (ULB)'), ('tn-wa', 'ULB Translation Notes')]
     >>> pprint.pprint(resource_lookup.resource_types_and_names_for_lang_for_v1_release("es-419"))
     [('tn', 'Translation Notes (tn)'),
      ('ulb', 'Español Latino Americano ULB (ulb)')]
@@ -1204,7 +1204,7 @@ def resource_types_and_names_for_lang_for_v1_release(
        ('ulb', 'Cebuano Unlocked Literal Bible (ulb)')]),
      ('en',
       [('ulb-wa', 'Unlocked Literal Bible (ULB)'),
-       ('tn-wa', 'ULB Translation Helps')]),
+       ('tn-wa', 'ULB Translation Notes')]),
      ('es-419',
       [('tn', 'Translation Notes (tn)'),
        ('ulb', 'Español Latino Americano ULB (ulb)')]),
@@ -1301,7 +1301,7 @@ def resource_types_and_names_for_lang_for_v1_release(
        ('ulb', 'Cebuano Unlocked Literal Bible (ulb)')]),
      ('en',
       [('ulb-wa', 'Unlocked Literal Bible (ULB)'),
-       ('tn-wa', 'ULB Translation Helps')]),
+       ('tn-wa', 'ULB Translation Notes')]),
      ('es-419',
       [('tn', 'Translation Notes (tn)'),
        ('ulb', 'Español Latino Americano ULB (ulb)')]),
@@ -1608,7 +1608,7 @@ def shared_resource_types(
 
     >>> from document.domain import resource_lookup
     >>> list(resource_lookup.shared_resource_types("en", ["2co"]))
-    [('ulb-wa', 'Unlocked Literal Bible (ULB)'), ('tn-wa', 'ULB Translation Helps'), ('tq-wa', 'ULB Translation Questions'), ('tw-wa', 'ULB Translation Words'), ('bc-wa', 'Bible Commentary')]
+    [('ulb-wa', 'Unlocked Literal Bible (ULB)'), ('tn-wa', 'ULB Translation Notes'), ('tq-wa', 'ULB Translation Questions'), ('tw-wa', 'ULB Translation Words'), ('bc-wa', 'Bible Commentary')]
     >>> list(resource_lookup.shared_resource_types("kbt", ["2co"]))
     [('reg', 'Bible (reg)')]
     >>> list(resource_lookup.shared_resource_types("pt-br", ["gen"]))
@@ -1692,7 +1692,7 @@ def shared_resource_types_for_v1(
 
     >>> from document.domain import resource_lookup
     >>> list(resource_lookup.shared_resource_types_for_v1("en", ["2co"]))
-    [('ulb-wa', 'Unlocked Literal Bible (ULB)'), ('tn-wa', 'ULB Translation Helps')]
+    [('ulb-wa', 'Unlocked Literal Bible (ULB)'), ('tn-wa', 'ULB Translation Notes')]
     >>> list(resource_lookup.shared_resource_types_for_v1("pt-br", ["gen"]))
     [('tn', 'Translation Notes (tn)'), ('ulb', 'Brazilian Portuguese Unlocked Literal Bible (ulb)')]
     >>> list(resource_lookup.shared_resource_types_for_v1("fr", ["gen"]))
