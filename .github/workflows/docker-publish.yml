@@ -8,7 +8,7 @@ jobs:
     name: Build API image
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: FranzDiebold/github-env-vars-action@v2
       - uses: docker/setup-qemu-action@v2      
       - uses: docker/setup-buildx-action@v2
@@ -24,7 +24,7 @@ jobs:
     name: Build Frontend image
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: FranzDiebold/github-env-vars-action@v2
       - uses: docker/setup-qemu-action@v2      
       - uses: docker/setup-buildx-action@v2
@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-20.04
     needs: Build-API-Image
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: FranzDiebold/github-env-vars-action@v2
       - uses: docker/setup-qemu-action@v2      
       - uses: docker/setup-buildx-action@v2
@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-20.04
     needs: [Build-API-Image, Build-Frontend-Image]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: FranzDiebold/github-env-vars-action@v2
       - uses: docker/setup-qemu-action@v2      
       - uses: docker/setup-buildx-action@v2
@@ -101,7 +101,7 @@ jobs:
     needs: [Test-API-Image, Test-Frontend-Image]
     if: ${{ contains(fromJson('["push"]'), github.event_name) }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: FranzDiebold/github-env-vars-action@v2
       - uses: docker/setup-qemu-action@v2      
       - uses: docker/setup-buildx-action@v2
