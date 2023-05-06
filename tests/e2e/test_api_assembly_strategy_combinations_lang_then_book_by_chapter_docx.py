@@ -1306,3 +1306,34 @@ def test_id_ulb_tit_id_tn_tit_id_tq_tit_id_tw_tit_language_book_order_1c_by_chap
             },
         )
         check_result(response, suffix="docx")
+
+
+@pytest.mark.docx
+def test_en_ulb_wa_mat_en_bc_wa_mat_language_book_order_1c_by_chapter_docx() -> None:
+    with TestClient(app=app, base_url=settings.api_test_url()) as client:
+        response: requests.Response = client.post(
+            "/documents_docx",
+            json={
+                "email_address": settings.TO_EMAIL_ADDRESS,
+                "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
+                "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN,
+                "layout_for_print": False,
+                "chunk_size": model.ChunkSizeEnum.CHAPTER,
+                "generate_pdf": False,
+                "generate_epub": False,
+                "generate_docx": True,
+                "resource_requests": [
+                    {
+                        "lang_code": "en",
+                        "resource_type": "ulb-wa",
+                        "resource_code": "mat",
+                    },
+                    {
+                        "lang_code": "en",
+                        "resource_type": "bc-wa",
+                        "resource_code": "mat",
+                    },
+                ],
+            },
+        )
+        check_result(response, suffix="docx")

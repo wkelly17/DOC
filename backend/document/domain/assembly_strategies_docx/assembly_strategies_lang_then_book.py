@@ -532,6 +532,16 @@ def assembly_factory_for_lang_then_book_strategy(
             ChunkSizeEnum.CHAPTER,
         ): assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c,
         (
+            True,
+            False,
+            False,
+            False,
+            False,
+            True,
+            AssemblyLayoutEnum.ONE_COLUMN,
+            ChunkSizeEnum.CHAPTER,
+        ): assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c,
+        (
             False,
             False,
             False,
