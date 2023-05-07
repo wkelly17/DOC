@@ -445,7 +445,7 @@ class TWNameContentPair:
 class TWBook(NamedTuple):
     """
     A class to hold a list of TWNameContentPair instances and a list
-    of TWUses instances.
+    of TWUse instances.
     """
 
     lang_code: str
