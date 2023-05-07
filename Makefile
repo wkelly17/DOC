@@ -51,14 +51,14 @@ build-no-pip-update-run-tests: checkvenv down clean-mypyc-artifacts
 .PHONY: build-no-cache
 build-no-cache: checkvenv down clean-mypyc-artifacts local-install-deps-prod
 	export IMAGE_TAG=local && \
-	docker build --progress=plain --no-cache -t wycliffeassociates/doc:$${IMAGE_TAG} . && \
-	docker build --progress=plain --no-cache -t wycliffeassociates/doc-ui:$${IMAGE_TAG} ./frontend
+	docker build --progress=plain --no-cache --pull -t wycliffeassociates/doc:$${IMAGE_TAG} . && \
+	docker build --progress=plain --no-cache --pull -t wycliffeassociates/doc-ui:$${IMAGE_TAG} ./frontend
 
 .PHONY: build-no-cache-no-pip-update
 build-no-cache-no-pip-update: checkvenv down clean-mypyc-artifacts
 	export IMAGE_TAG=local && \
-	docker build --progress=plain --no-cache -t wycliffeassociates/doc:$${IMAGE_TAG} . && \
-	docker build --progress=plain --no-cache -t wycliffeassociates/doc-ui:$${IMAGE_TAG} ./frontend
+	docker build --progress=plain --no-cache --pull -t wycliffeassociates/doc:$${IMAGE_TAG} . && \
+	docker build --progress=plain --no-cache --pull -t wycliffeassociates/doc-ui:$${IMAGE_TAG} ./frontend
 
 .PHONY: up
 up: checkvenv
