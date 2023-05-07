@@ -216,7 +216,9 @@ def uses_section(
 
 def translation_words_section(
     book_content_unit: TWBook,
+    usfm_book_content_units: Optional[Sequence[USFMBook]],
     include_uses_section: bool = True,
+    limit_words: bool = settings.LIMIT_WORDS,
     resource_type_name_fmt_str: str = settings.RESOURCE_TYPE_NAME_FMT_STR,
     opening_h3_fmt_str: str = settings.OPENING_H3_FMT_STR,
     opening_h3_with_id_fmt_str: str = settings.OPENING_H3_WITH_ID_FMT_STR,
@@ -228,21 +230,56 @@ def translation_words_section(
     translation word back to the verses which include the translation
     word if include_uses_section is True.
     """
+
     if book_content_unit.name_content_pairs:
         yield HtmlContent(
             resource_type_name_fmt_str.format(book_content_unit.resource_type_name)
         )
 
-    for name_content_pair in book_content_unit.name_content_pairs:
-        # NOTE Another approach to including translation words would be to
-        # only include words in the translation section which occur in current
-        # lang_code, book verses. The problem with this is that translation note
-        # 'See also' sections often refer to translation words that are not part
-        # of the lang_code/book content and thus those links are dead unless we
-        # include them even if they don't have any 'Uses' section. In other
-        # words, by limiting the translation words we limit the ability of those
-        # using the interleaved document to gain deeper understanding of the
-        # interrelationships of words.
+    selected_name_content_pairs = []
+    # The value of limit_words allows to toggle including only words in
+    # the translation section which occur in current lang_code, book content
+    # requested, or, if False, getting all translation words for the language.
+    #
+    # Bear in mind that translation note 'See also' sections often refer to
+    # translation words that are not part of the lang_code/book content and
+    # thus those links are dead unless we include all words.
+    #
+    # Also understand that by limiting the translation words we limit the
+    # ability of those using the interleaved document to gain deeper
+    # understanding of the interrelationships of words.
+    #
+    # The only reason why we ever limit words is so the document
+    # length is lessened and thus easier/cheaper/more convenient to print.
+    logger.debug("settings.LIMIT_WORDS: %s", limit_words)
+    if limit_words:
+        # Limit name_content_pairs to only those that actually appear in the scripture requested.
+        if usfm_book_content_units:
+            logger.debug(
+                "len(book_content_unit.name_content_pairs): %s",
+                len(book_content_unit.name_content_pairs),
+            )
+            # Unfortunate asymptotics here, but at least very finite list lengths.
+            for name_content_pair in book_content_unit.name_content_pairs:
+                for usfm_book_content_unit in usfm_book_content_units:
+                    for chapter in usfm_book_content_unit.chapters.values():
+                        if re.search(
+                            name_content_pair.localized_word, "".join(chapter.content)
+                        ):
+                            # logger.debug(
+                            #     "Adding TW word: %s", name_content_pair.localized_word
+                            # )
+                            selected_name_content_pairs.append(name_content_pair)
+                            break
+
+    else:
+        selected_name_content_pairs = book_content_unit.name_content_pairs
+
+    logger.debug(
+        "len(selected_name_content_pairs): %s", len(selected_name_content_pairs)
+    )
+
+    for name_content_pair in selected_name_content_pairs:
 
         # Make linking work: have to add ID to tags for anchor
         # links to work.
@@ -325,7 +362,12 @@ def assemble_content(
             # assembly_strategies module if print layout is not chosen and
             # ignored otherwise.
             content = "{}{}".format(
-                content, "".join(translation_words_section(tw_book_content_unit))
+                content,
+                "".join(
+                    translation_words_section(
+                        tw_book_content_unit, usfm_book_content_units
+                    )
+                ),
             )
         else:
             # There is no usfm content in this document request so
@@ -334,7 +376,7 @@ def assemble_content(
                 content,
                 "".join(
                     translation_words_section(
-                        tw_book_content_unit, include_uses_section=False
+                        tw_book_content_unit, None, include_uses_section=False
                     )
                 ),
             )
@@ -386,6 +428,12 @@ def assemble_docx_content(
         if isinstance(book_content_unit, TWBook)
     ]
 
+    usfm_book_content_units = [
+        book_content_unit
+        for book_content_unit in book_content_units
+        if isinstance(book_content_unit, USFMBook)
+    ]
+
     tw_subdocs = []
     if tw_book_content_units:
         # Get last composer so that we can add TW to it
@@ -399,7 +447,9 @@ def assemble_docx_content(
             tw_subdoc = html_to_docx.parse_html_string(
                 "".join(
                     translation_words_section(
-                        tw_book_content_unit, include_uses_section=False
+                        tw_book_content_unit,
+                        usfm_book_content_units,
+                        include_uses_section=False,
                     )
                 )
             )
