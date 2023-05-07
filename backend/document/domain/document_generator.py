@@ -217,8 +217,8 @@ def uses_section(
 def translation_words_section(
     book_content_unit: TWBook,
     usfm_book_content_units: Optional[Sequence[USFMBook]],
+    limit_words: bool,
     include_uses_section: bool = True,
-    limit_words: bool = settings.LIMIT_WORDS,
     resource_type_name_fmt_str: str = settings.RESOURCE_TYPE_NAME_FMT_STR,
     opening_h3_fmt_str: str = settings.OPENING_H3_FMT_STR,
     opening_h3_with_id_fmt_str: str = settings.OPENING_H3_WITH_ID_FMT_STR,
@@ -365,7 +365,9 @@ def assemble_content(
                 content,
                 "".join(
                     translation_words_section(
-                        tw_book_content_unit, usfm_book_content_units
+                        tw_book_content_unit,
+                        usfm_book_content_units,
+                        document_request.limit_words,
                     )
                 ),
             )
@@ -376,7 +378,10 @@ def assemble_content(
                 content,
                 "".join(
                     translation_words_section(
-                        tw_book_content_unit, None, include_uses_section=False
+                        tw_book_content_unit,
+                        None,
+                        document_request.limit_words,
+                        include_uses_section=False,
                     )
                 ),
             )
@@ -449,6 +454,7 @@ def assemble_docx_content(
                     translation_words_section(
                         tw_book_content_unit,
                         usfm_book_content_units,
+                        document_request.limit_words,
                         include_uses_section=False,
                     )
                 )

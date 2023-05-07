@@ -194,6 +194,10 @@ class DocumentRequest(BaseModel):
     # Indicate the chunk size to burst at a time when a document is
     # being interleaved. Default to chapter.
     chunk_size: ChunkSizeEnum = ChunkSizeEnum.CHAPTER
+    # Indicate whether translation words, TW, should be limited to
+    # only those that appear in the USFM requested (true), or, include all
+    # the TW words available for the language requested.
+    limit_words: bool = True
 
     @root_validator
     def ensure_valid_document_request(

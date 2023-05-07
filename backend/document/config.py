@@ -226,8 +226,6 @@ class Settings(BaseSettings):
 
     USE_GIT_CLI: bool = False
 
-    LIMIT_WORDS: bool
-
     LOGGING_CONFIG_FILE_PATH: str = "backend/document/logging_config.yaml"
 
     # Location where resource assets will be downloaded.
