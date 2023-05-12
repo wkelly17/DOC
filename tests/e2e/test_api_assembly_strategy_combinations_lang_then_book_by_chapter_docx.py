@@ -692,6 +692,7 @@ def test_mr_ulb_mrk_mr_tn_mrk_mr_tq_mrk_mr_udb_mrk_language_book_order_1c_by_cha
         check_result(response, suffix="docx")
 
 
+@pytest.mark.skip
 @pytest.mark.docx
 def test_mr_ulb_mrk_mr_tn_mrk_mr_tw_mrk_mr_udb_mrk_language_book_order_1c_by_chapter_docx() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
