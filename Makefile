@@ -34,31 +34,35 @@ build: checkvenv down clean-mypyc-artifacts install-cython local-install-deps-de
 	export IMAGE_TAG=local && \
 	docker build --progress=plain -t wycliffeassociates/doc:$${IMAGE_TAG} . && \
 	docker build --progress=plain -t wycliffeassociates/doc-ui:$${IMAGE_TAG} ./frontend
-
+        docker build --progress=plain -t wycliffeassociates/doc-ui-tests:$${IMAGE_TAG} -f ./frontend/testsDockerfile ./frontend
 
 .PHONY: build-no-pip-update
 build-no-pip-update: checkvenv down clean-mypyc-artifacts
 	export IMAGE_TAG=local && \
 	docker build --progress=plain -t wycliffeassociates/doc:$${IMAGE_TAG} . && \
 	docker build --progress=plain -t wycliffeassociates/doc-ui:$${IMAGE_TAG} ./frontend
+        docker build --progress=plain -t wycliffeassociates/doc-ui-tests:$${IMAGE_TAG} -f ./frontend/testsDockerfile ./frontend
 
 .PHONY: build-no-pip-update-run-tests
 build-no-pip-update-run-tests: checkvenv down clean-mypyc-artifacts
 	export IMAGE_TAG=local && \
 	docker build --build-arg RUN_TESTS=true --progress=plain -t wycliffeassociates/doc:$${IMAGE_TAG} . && \
 	docker build --progress=plain -t wycliffeassociates/doc-ui:$${IMAGE_TAG} ./frontend
+        docker build --progress=plain -t wycliffeassociates/doc-ui-tests:$${IMAGE_TAG} -f ./frontend/testsDockerfile ./frontend
 
 .PHONY: build-no-cache
 build-no-cache: checkvenv down clean-mypyc-artifacts local-install-deps-prod
 	export IMAGE_TAG=local && \
 	docker build --progress=plain --no-cache --pull -t wycliffeassociates/doc:$${IMAGE_TAG} . && \
 	docker build --progress=plain --no-cache --pull -t wycliffeassociates/doc-ui:$${IMAGE_TAG} ./frontend
+        docker build --progress=plain --no-cache --pull -t wycliffeassociates/doc-ui-tests:$${IMAGE_TAG} -f ./frontend/testsDockerfile ./frontend
 
 .PHONY: build-no-cache-no-pip-update
 build-no-cache-no-pip-update: checkvenv down clean-mypyc-artifacts
 	export IMAGE_TAG=local && \
 	docker build --progress=plain --no-cache --pull -t wycliffeassociates/doc:$${IMAGE_TAG} . && \
 	docker build --progress=plain --no-cache --pull -t wycliffeassociates/doc-ui:$${IMAGE_TAG} ./frontend
+        docker build --progress=plain --no-cache --pull -t wycliffeassociates/doc-ui-tests:$${IMAGE_TAG} -f ./frontend/testsDockerfile ./frontend
 
 .PHONY: up
 up: checkvenv
@@ -121,8 +125,8 @@ frontend-tests:
 	# compose running of frontend tests, we can still use the
 	# non-Dockerized approach successfully. Doing so requires that
 	# 'make up' be called first though.
-	cd frontend && FRONTEND_API_URL=http://localhost:8001 FILE_SERVER_URL=http://localhost:8089 envsubst < playwright.config.ts | sponge playwright.config.ts
-	cd frontend && npx playwright install --with-deps && npx playwright test
+	# cd frontend && FRONTEND_API_URL=http://localhost:8001 FILE_SERVER_URL=http://localhost:8089 envsubst < playwright.config.ts | sponge playwright.config.ts
+	# cd frontend && npx playwright install --with-deps && npx playwright test
 	# NOTE The preferred way to run the tests is with docker
 	# compose as in the next cli line, however, this times out
 	# when run locally as the Dockerfile for the frontend tests
@@ -133,7 +137,7 @@ frontend-tests:
 	# with our local network latency. They do seem to complete
 	# fine within the timeouts in the github actions network
 	# environment though.
-	# docker compose -f docker-compose.yml -f docker-compose.frontend-test.yml up --exit-code-from frontend-test-runner
+	docker compose -f docker-compose.yml -f docker-compose.frontend-test.yml up --exit-code-from frontend-test-runner
 
 .PHONY: test-randomized
 test-randomized:
