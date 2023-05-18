@@ -956,6 +956,7 @@ def main(document_request_json: Json[Any]) -> Json[Any]:
                 document_request.resource_requests,
                 document_request.layout_for_print,
                 document_request.chunk_size,
+                document_request.include_tn_book_intros,
             )
             for resource_lookup_dto, resource_dir in zip(
                 found_resource_lookup_dtos, resource_dirs
@@ -1079,6 +1080,7 @@ def alt_main(document_request_json: Json[Any]) -> Json[Any]:
                 document_request.resource_requests,
                 document_request.layout_for_print,
                 document_request.chunk_size,
+                document_request.include_tn_book_intros,
             )
             for resource_lookup_dto, resource_dir in zip(
                 found_resource_lookup_dtos, resource_dirs

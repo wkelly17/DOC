@@ -198,6 +198,8 @@ class DocumentRequest(BaseModel):
     # only those that appear in the USFM requested (true), or, include all
     # the TW words available for the language requested.
     limit_words: bool = True
+    # Indicate whether TN book intros should be included
+    include_tn_book_intros: bool = False
 
     @root_validator
     def ensure_valid_document_request(

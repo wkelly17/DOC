@@ -236,6 +236,7 @@ def book_content(
     resource_requests: Sequence[ResourceRequest],
     layout_for_print: bool,
     chunk_size: str,
+    include_tn_book_intros: bool,
     usfm_resource_types: Sequence[str] = settings.USFM_RESOURCE_TYPES,
     en_usfm_resource_types: Sequence[str] = settings.EN_USFM_RESOURCE_TYPES,
     tn_resource_types: Sequence[str] = settings.TN_RESOURCE_TYPES,
@@ -275,6 +276,7 @@ def book_content(
             resource_requests,
             layout_for_print,
             chunk_size,
+            include_tn_book_intros,
         )
         t1 = time.time()
         logger.debug(
@@ -529,6 +531,7 @@ def tn_book_content(
     resource_requests: Sequence[ResourceRequest],
     layout_for_print: bool,
     chunk_size: str,
+    include_tn_book_intros: bool,
     chapter_dirs_glob_fmt_str: str = "{}/**/*{}/*[0-9]*",
     chapter_dirs_glob_alt_fmt_str: str = "{}/*{}/*[0-9]*",
     intro_paths_glob_fmt_str: str = "{}/*intro.md",
@@ -623,7 +626,7 @@ def tn_book_content(
             )
         )
     adjusted_book_intro_html = HtmlContent("")
-    if book_intro_path:
+    if book_intro_path and include_tn_book_intros:
         book_intro_html = read_file(book_intro_path[0])
         book_intro_html = md.convert(book_intro_html)
         adjusted_book_intro_html = adjust_book_intro_headings(book_intro_html)
