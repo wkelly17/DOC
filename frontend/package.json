@@ -41,6 +41,7 @@
     "autoprefixer": "^10.4.7",
     "daisyui": "^2.20.0",
     "fluent-svelte": "^1.6.0",
+    "logrocket": "^4.0.1",
     "playwright": "^1.27.1",
     "postcss": "^8.4.14",
     "svelte": "^3.48.0",

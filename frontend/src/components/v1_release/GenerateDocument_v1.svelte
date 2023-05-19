@@ -29,6 +29,7 @@
   import { documentReadyStore, errorStore } from '../../stores/v1_release/NotificationStore_v1'
   import { taskIdStore, taskStateStore } from '../../stores/v1_release/TaskStore_v1'
   import { getApiRootUrl, resetStores, printToConsole } from '../../lib/v1_release/utils_v1'
+  import LogRocket from 'logrocket'
 
   // ------------------------------------------------------------
   // BEGIN: Code for v1 release that normally lives in
@@ -228,6 +229,8 @@
       // Deal with non-empty string
     } else if ($emailStore && $emailStore !== '') {
       emailStore.set($emailStore.trim())
+      // Send email to LogRocket using identify
+      LogRocket.identify($emailStore)
     }
 
     // For v1 release, we set the value in docTypeStore here as we

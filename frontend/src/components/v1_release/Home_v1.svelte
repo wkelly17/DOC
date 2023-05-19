@@ -11,6 +11,7 @@
     resourceTypesCountStore
   } from '../../stores/v1_release/ResourceTypesStore_v1'
   import { resetValuesStore } from '../../stores/v1_release/NotificationStore_v1'
+  import {emailStore} from '../../stores/v1_release/SettingsStore_v1'
   import { push } from 'svelte-spa-router'
   import GenerateDocument from './GenerateDocument_v1.svelte'
   import RightArrow from '../RightArrow.svelte'
@@ -137,6 +138,16 @@
     }
   }
 
+  // Deal with empty string case
+  if ($emailStore && $emailStore === '') {
+    emailStore.set(null)
+    // Deal with undefined case
+  } else if ($emailStore === undefined) {
+    emailStore.set(null)
+    // Deal with non-empty string
+  } else if ($emailStore && $emailStore !== '') {
+    emailStore.set($emailStore.trim())
+  }
 
   // For sidebar
   let open = false
@@ -280,6 +291,28 @@
       {/if}
     </li>
     {/if}
+    <li class="bg-white p-2">
+      <div class="flex justify-between">
+        <!-- <label for="email" class="text-primary-content" -->
+        <!--        >{import.meta.env.VITE_EMAIL_LABEL}</label -->
+        <!--                                             > -->
+        <input
+          type="text"
+          name="email"
+          id="email"
+          bind:value="{$emailStore}"
+          placeholder="Type email address here (optional)"
+          class="input input-bordered bg-white w-full max-w-xs"
+          />
+      </div>
+      <div>
+        <span class="text-sm text-neutral-content"
+              >Providing an email is optional and not required. Providing an email address allows us to stay in
+          touch regarding system updates and proactively provide support should
+          we notice you ran into any issues.</span
+                                                             >
+      </div>
+    </li>
   </ul>
   <GenerateDocument />
   <!-- NOTE For unsophisticated users and for users whose language is not -->

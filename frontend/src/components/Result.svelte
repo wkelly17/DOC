@@ -104,7 +104,9 @@
       </svg>
       <div class="m-auto"><h3 class="text-[#82A93F] text-center">Success!</h3></div>
       <p class="text-center text-secondary-content">
-        Your document was generated successfully. You may {#if $generatePdfStore || $generateEpubStore || $generateDocxStore}download it{/if}{#if !$generateDocxStore} or view it online{/if}.
+        Your document was generated successfully. You may {#if
+          $generatePdfStore || $generateEpubStore ||
+        $generateDocxStore}download it {/if}{#if !$generateDocxStore} or view it online{/if}.
       </p>
       {#if $generatePdfStore}
         <div class="m-auto text-center mt-4">

@@ -63,7 +63,7 @@ export function resetStores(storeGroup: StoreGroup) {
     generatePdfStore.set(false)
     generateEpubStore.set(false)
     generateDocxStore.set(false)
-    emailStore.set(null)
+    // emailStore.set(null)
     documentRequestKeyStore.set('')
   }
 

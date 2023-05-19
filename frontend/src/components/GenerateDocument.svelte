@@ -25,6 +25,8 @@
   import { documentReadyStore, errorStore } from '../stores/NotificationStore'
   import { taskIdStore, taskStateStore } from '../stores/TaskStore'
   import { getApiRootUrl, resetStores } from '../lib/utils'
+  import LogRocket from 'logrocket'
+
 
   let apiRootUrl = getApiRootUrl()
 
@@ -83,6 +85,8 @@
       // Deal with non-empty string
     } else if ($emailStore && $emailStore !== '') {
       emailStore.set($emailStore.trim())
+      // Send email to LogRocket using identify
+      LogRocket.identify($emailStore)
     }
 
     if ($docTypeStore === 'pdf') {

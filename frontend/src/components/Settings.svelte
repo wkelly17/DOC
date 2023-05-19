@@ -178,27 +178,5 @@
     </div>
   </li>
   {/if}
-  <li class="bg-white p-2">
-    <div class="flex justify-between">
-      <label for="email" class="text-primary-content"
-        >{import.meta.env.VITE_EMAIL_LABEL}</label
-      >
-      <input
-        type="text"
-        name="email"
-        id="email"
-        bind:value="{$emailStore}"
-        placeholder="Type email address here (optional)"
-        class="input input-bordered bg-white w-full max-w-xs"
-      />
-    </div>
-    <div>
-      <span class="text-sm text-neutral-content"
-        >Providing an email is optional and not required. If you provide an email address
-        the system will send the download links for your generated document to your email
-        address in addition to showing them on this page.</span
-      >
-    </div>
-  </li>
 </ul>
 <GenerateDocument />
