@@ -46,13 +46,19 @@
   $: lang0ResourceTypeNames = $lang0ResourceTypesStore.map(
     resourceTypeAndName => resourceTypeAndName.split(', ')[1]
   )
+  $: printToConsole(`lang0ResourceTypeNames: ${lang0ResourceTypeNames}`)
+
   $: lang1ResourceTypeNames = $lang1ResourceTypesStore.map(
     resourceTypeAndName => resourceTypeAndName.split(', ')[1]
   )
+  $: printToConsole(`lang1ResourceTypeNames: ${lang1ResourceTypeNames}`)
 
   const numResourceTypesToShow = 3
   $: lang0ResourceTypeNamesAbbr = lang0ResourceTypeNames.slice(0, numResourceTypesToShow)
   $: lang1ResourceTypeNamesAbbr = lang1ResourceTypeNames.slice(0, numResourceTypesToShow)
+
+  $: printToConsole(`lang0ResourceTypeNamesAbbr: ${lang0ResourceTypeNamesAbbr}`)
+  $: printToConsole(`lang1ResourceTypeNamesAbbr: ${lang1ResourceTypeNamesAbbr}`)
 
   let languagesDisplayString: string = ''
   $: {
@@ -72,7 +78,7 @@
       otBookNames.length > 0 &&
       otBookNames.length <= numBooksToShow
     ) {
-      otBooksDisplayString = `${otBookNames.join(', ')}`
+      otBooksDisplayString = otBookNames.join(', ')
     }
   }
 
@@ -85,20 +91,22 @@
       ntBookNames.length > 0 &&
       ntBookNames.length <= numBooksToShow
     ) {
-      ntBooksDisplayString = `${ntBookNames.join(', ')}`
+      ntBooksDisplayString = ntBookNames.join(', ')
     }
   }
 
   let booksDisplayString: string = ''
   $: {
     if (otBookNames.length > 0 && ntBookNames.length > 0) {
-      booksDisplayString = [otBooksDisplayString, ntBooksDisplayString].join(', ')
+      booksDisplayString = `${[otBooksDisplayString, ntBooksDisplayString]}`
     } else if (otBookNames.length > 0 && ntBookNames.length === 0) {
       booksDisplayString = otBooksDisplayString
     } else if (otBookNames.length === 0 && ntBookNames.length > 0) {
       booksDisplayString = ntBooksDisplayString
     }
   }
+  let lang0ResourceTypesDisplayString: string = ''
+  let lang1ResourceTypesDisplayString: string = ''
   let resourceTypesDisplayString: string = ''
   $: {
     // Update for the first language
@@ -106,37 +114,30 @@
       lang0ResourceTypeNames &&
       lang0ResourceTypeNames.length > numResourceTypesToShow
     ) {
-      resourceTypesDisplayString = `${lang0ResourceTypeNamesAbbr.join(', ')}...`
+      lang0ResourceTypesDisplayString = `${lang0ResourceTypeNamesAbbr.join(', ')}...`
     } else {
-      resourceTypesDisplayString = lang0ResourceTypeNames.join(', ')
+      lang0ResourceTypesDisplayString = lang0ResourceTypeNames.join(', ')
     }
+
     // Update for the second language
     if (
-      resourceTypesDisplayString &&
       lang1ResourceTypeNames &&
       lang1ResourceTypeNames.length > numResourceTypesToShow
     ) {
-      resourceTypesDisplayString = `${resourceTypesDisplayString}, ${lang1ResourceTypeNamesAbbr.join(
-        ', '
-      )}...`
-    } else if (
-      !resourceTypesDisplayString &&
-      lang1ResourceTypeNames &&
-      lang1ResourceTypeNames.length > numResourceTypesToShow
-    ) {
-      resourceTypesDisplayString = `${lang1ResourceTypeNamesAbbr.join(', ')}...`
-    } else if (
-      resourceTypesDisplayString &&
-      lang1ResourceTypeNames &&
-      !(lang1ResourceTypeNames.length > numResourceTypesToShow)
-    ) {
-      resourceTypesDisplayString = `${resourceTypesDisplayString}, ${lang1ResourceTypeNames.join(
-        ', '
-      )}`
+      lang1ResourceTypesDisplayString = `${lang1ResourceTypeNamesAbbr.join(', ')}...`
     } else {
-      resourceTypesDisplayString = `${lang1ResourceTypeNames.join(', ')}`
+      lang1ResourceTypesDisplayString = lang1ResourceTypeNames.join(', ')
+    }
+
+    // Update for both languages in combination
+    if (lang0ResourceTypesDisplayString && lang1ResourceTypesDisplayString) {
+      resourceTypesDisplayString = `${lang0ResourceTypesDisplayString}, ${lang1ResourceTypesDisplayString}`
+    } else {
+      resourceTypesDisplayString = lang0ResourceTypesDisplayString
     }
   }
+
+  $: printToConsole(`resourceTypesDisplayString: ${resourceTypesDisplayString}`)
 
   // Deal with empty string case
   if ($emailStore && $emailStore === '') {

@@ -15,6 +15,7 @@
   import Tabs from './Tabs.svelte'
   import Sidebar from './Sidebar.svelte'
   import { setShowTopMatter } from '../lib/utils'
+  import { printToConsole } from '../lib/v1_release/utils_v1'
 
   // Handle notification of reset of values originating from other
   // pages.
@@ -68,7 +69,7 @@
       otBookNames.length > 0 &&
       otBookNames.length <= numBooksToShow
     ) {
-      otBooksDisplayString = `${otBookNames.join(', ')}`
+      otBooksDisplayString = otBookNames.join(', ')
     }
   }
 
@@ -81,20 +82,22 @@
       ntBookNames.length > 0 &&
       ntBookNames.length <= numBooksToShow
     ) {
-      ntBooksDisplayString = `${ntBookNames.join(', ')}`
+      ntBooksDisplayString = ntBookNames.join(', ')
     }
   }
 
   let booksDisplayString: string = ''
   $: {
     if (otBookNames.length > 0 && ntBookNames.length > 0) {
-      booksDisplayString = [otBooksDisplayString, ntBooksDisplayString].join(', ')
+      booksDisplayString = `${[otBooksDisplayString, ntBooksDisplayString]}`
     } else if (otBookNames.length > 0 && ntBookNames.length === 0) {
       booksDisplayString = otBooksDisplayString
     } else if (otBookNames.length === 0 && ntBookNames.length > 0) {
       booksDisplayString = ntBooksDisplayString
     }
   }
+  let lang0ResourceTypesDisplayString: string = ''
+  let lang1ResourceTypesDisplayString: string = ''
   let resourceTypesDisplayString: string = ''
   $: {
     // Update for the first language
@@ -102,37 +105,30 @@
       lang0ResourceTypeNames &&
       lang0ResourceTypeNames.length > numResourceTypesToShow
     ) {
-      resourceTypesDisplayString = `${lang0ResourceTypeNamesAbbr.join(', ')}...`
+      lang0ResourceTypesDisplayString = `${lang0ResourceTypeNamesAbbr.join(', ')}...`
     } else {
-      resourceTypesDisplayString = lang0ResourceTypeNames.join(', ')
+      lang0ResourceTypesDisplayString = lang0ResourceTypeNames.join(', ')
     }
+
     // Update for the second language
     if (
-      resourceTypesDisplayString &&
       lang1ResourceTypeNames &&
       lang1ResourceTypeNames.length > numResourceTypesToShow
     ) {
-      resourceTypesDisplayString = `${resourceTypesDisplayString}, ${lang1ResourceTypeNamesAbbr.join(
-        ', '
-      )}...`
-    } else if (
-      !resourceTypesDisplayString &&
-      lang1ResourceTypeNames &&
-      lang1ResourceTypeNames.length > numResourceTypesToShow
-    ) {
-      resourceTypesDisplayString = `${lang1ResourceTypeNamesAbbr.join(', ')}...`
-    } else if (
-      resourceTypesDisplayString &&
-      lang1ResourceTypeNames &&
-      !(lang1ResourceTypeNames.length > numResourceTypesToShow)
-    ) {
-      resourceTypesDisplayString = `${resourceTypesDisplayString}, ${lang1ResourceTypeNames.join(
-        ', '
-      )}`
+      lang1ResourceTypesDisplayString = `${lang1ResourceTypeNamesAbbr.join(', ')}...`
     } else {
-      resourceTypesDisplayString = `${lang1ResourceTypeNames.join(', ')}`
+      lang1ResourceTypesDisplayString = lang1ResourceTypeNames.join(', ')
+    }
+
+    // Update for both languages in combination
+    if (lang0ResourceTypesDisplayString && lang1ResourceTypesDisplayString) {
+      resourceTypesDisplayString = `${lang0ResourceTypesDisplayString}, ${lang1ResourceTypesDisplayString}`
+    } else {
+      resourceTypesDisplayString = lang0ResourceTypesDisplayString
     }
   }
+
+  $: printToConsole(`resourceTypesDisplayString: ${resourceTypesDisplayString}`)
 
   // Deal with empty string case
   if ($emailStore && $emailStore === '') {
