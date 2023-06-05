@@ -61,6 +61,57 @@ logger = settings.logger(__name__)
 H1, H2, H3, H4, H5 = "h1", "h2", "h3", "h4", "h5"
 
 
+def ensure_paragraph_before_verses(
+    usfm_file: str,
+    verse_content: str,
+    usfm_verse_one_file_regex: str = "^01\..*",
+    chapter_marker_not_on_own_line_regex: str = r"^\\c [0-9]+ .*|\n",
+    chapter_marker_not_on_own_line_with_match_groups: str = r"(^\\c [0-9]+) (.*|\n)",
+    chapter_marker_not_on_own_line_repair_regex: str = r"\1\n\\p\n\2\n",
+) -> str:
+    """
+    If verse_content has a USFM chapter marker, \c, that is not on its
+    own line (violation of the USFM spec) then repair this and
+    additionally add a USFM paragraph marker, \p, so that when the USFM is
+    rendered to HTML the verse spans will be enclosed in a block level
+    HTML element which in turn will ensure that Docx rendering is free of
+    a bug wherein the verse spans are interpreted as a continuation of the
+    chapter headline (as evidenced by verse content being rendered with
+    the same font color and boldness as the chapter headline).
+
+    Return the possibly updated verse_content.
+    """
+    if (
+        compile(usfm_verse_one_file_regex).match(Path(usfm_file).name) is not None
+    ):  # Verse 1 of chapter
+        if (
+            compile(chapter_marker_not_on_own_line_regex).match(verse_content)
+            is not None
+        ):  # Chapter marker not on own line
+            # Make chapter marker occupy its own line and add a USFM paragraph
+            # marker right after it. Why? Because I found that languages which were
+            # rendering correctly in Docx had a \p USFM marker after the chapter
+            # marker and languages which did not render properly (see docstring
+            # above for particulars) in Docx did not have one. I changed this
+            # manually on the system downloaded USFM and indeed it did solve the
+            # Docx rendering issue. Presumably the 3rd party lib we use to parse
+            # HTML to Docx doesn't like spans that are not contained in a block
+            # level element and this effectively introduces a block level element,
+            # p, right before verse content starts so that the chapter's verse
+            # content is enclosed in a p HTML element once parsed from USFM to HTML.
+            logger.debug(
+                "Verse content that has chapter marker which is not on its own line: %s",
+                verse_content,
+            )
+            verse_content = sub(
+                chapter_marker_not_on_own_line_with_match_groups,
+                chapter_marker_not_on_own_line_repair_regex,
+                verse_content,
+            )
+            logger.debug("Updated verse content: %s", verse_content)
+    return verse_content
+
+
 def attempt_asset_content_rescue(
     resource_dir: str,
     resource_lookup_dto: ResourceLookupDto,
@@ -79,21 +130,32 @@ def attempt_asset_content_rescue(
         and file.name != "front"
         and file.name != "00"
     ]
-    logger.info("About to create markdown content for non-conformant USFM")
-    markdown_content = []
-    markdown_content.append(
+    logger.info(
+        "About to create USFM content for non-conformant USFM to attempt to make it parseable."
+    )
+    usfm_content = []
+    logger.info("Adding a USFM \id marker which the parser requires.")
+    usfm_content.append(
         "\id {} Unnamed translation\n".format(resource_lookup_dto.resource_code.upper())
     )
-    markdown_content.append("\ide UTF-8\n")
-    markdown_content.append(
+    logger.info("Adding a USFM \ide marker which the parser requires.")
+    usfm_content.append("\ide UTF-8\n")
+    logger.info("Adding a USFM \h marker which the parser requires.")
+    usfm_content.append(
         "\h {}\n".format(bible_book_names[resource_lookup_dto.resource_code])
     )
     for chapter_dir in sorted(subdirs, key=lambda dir_entry: dir_entry.name):
         # Get verses for chapter
-        chapter_markdown_content = []
+        chapter_usfm_content = []
         chapter_num = chapter_dir.name
         # Add the chapter USFM marker
-        chapter_markdown_content.append("\c {}\n".format(int(chapter_num)))
+        # NOTE Some language's malformed USFM does provide chapter numbers, so
+        # in their case we wouldn't want to also add a USFM chapter marker here.
+        # For now the languages that fail to provide chapter markers
+        # and are "rescued" here will no longer be provided a chapter
+        # marker. This does mean that some languages which don't provide chapter
+        # markers will probably render incorrectly, yet to be determined.
+        # chapter_usfm_content.append("\c {}\n".format(int(chapter_num)))
         # Read the verses for this chapter
         chapter_verse_files = sorted(
             [
@@ -102,19 +164,21 @@ def attempt_asset_content_rescue(
                 if file.is_file() and file.name != "title.txt"
             ]
         )
-        for markdown_file in chapter_verse_files:
-            with open(markdown_file, "r") as fin:
-                chapter_markdown_content.append(fin.read())
-                chapter_markdown_content.append("\n")
+        for usfm_file in chapter_verse_files:
+            with open(usfm_file, "r") as fin:
+                verse_content = fin.read()
+                verse_content = ensure_paragraph_before_verses(usfm_file, verse_content)
+                chapter_usfm_content.append(verse_content)
+                chapter_usfm_content.append("\n")
         # Store the chapter content into the collection of
-        # all chapters content
-        markdown_content.extend(chapter_markdown_content)
+        # all chapter's content
+        usfm_content.extend(chapter_usfm_content)
 
     # Write the concatenated markdown content to a
     # non-clobberable filename.
     filename = join(
         resource_dir,
-        "{}_{}_{}_{}.md".format(
+        "{}_{}_{}_{}.usfm".format(
             resource_lookup_dto.lang_code,
             resource_lookup_dto.resource_type,
             resource_lookup_dto.resource_code,
@@ -123,7 +187,7 @@ def attempt_asset_content_rescue(
     )
     logger.debug("About to write filename: %s", filename)
     with open(filename, "w") as fout:
-        fout.write("".join(markdown_content))
+        fout.write("".join(usfm_content))
     return filename
 
 
