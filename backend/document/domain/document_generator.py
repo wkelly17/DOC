@@ -415,8 +415,7 @@ def assemble_docx_content(
         document_request.assembly_strategy_kind
     )
     t0 = time.time()
-    # Now, actually do the assembly given the additional
-    # information of the document_request.assembly_layout_kind.
+    # Now, actually do the assembly
     composers = assembly_strategy(
         book_content_units,
         document_request.assembly_layout_kind,
@@ -471,7 +470,7 @@ def assemble_docx_content(
     for composer in composers[1:]:
         first_composer.append(composer.doc)
 
-    # Add the TW subdocs to the composer
+    # Now add any TW subdocs to the composer
     for tw_subdoc_ in tw_subdocs:
         first_composer.append(tw_subdoc_)
 

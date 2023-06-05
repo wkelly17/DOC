@@ -140,11 +140,11 @@ class Settings(BaseSettings):
         *TN_RESOURCE_TYPES,
         *EN_TN_RESOURCE_TYPES,
     ]
-    # List of language codes for which there is an issue in
-    # translations.json such that a complete document request cannot
-    # be formed for these languages due to some issue with respect to
-    # their resource types or resource codes. E.g., hu doesn't have
-    # any resource types or resource codes in translations.json.
+    # List of language codes for which there is a content issue
+    # such that a complete document request cannot
+    # be formed. E.g., hu doesn't have any resource types or resource
+    # codes in translations.json. E.g., abz's content has unresolved
+    # git merge markers in source that were accidentally committed.
     LANG_CODE_FILTER_LIST: Sequence[str] = [
         "acq",
         "gaj-x-ymnk",

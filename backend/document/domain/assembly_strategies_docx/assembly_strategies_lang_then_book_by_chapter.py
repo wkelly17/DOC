@@ -62,7 +62,6 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
         if tn_book_content_unit.intro_html:
             one_column_html.append(tn_book_content_unit.intro_html)
 
-    # NOTE For v1 UI release this bc_book_content_unit will be None
     if bc_book_content_unit:
         if bc_book_content_unit.book_intro:
             # NOTE You might want a label before the commentary book intro
