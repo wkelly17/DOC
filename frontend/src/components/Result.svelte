@@ -106,7 +106,7 @@
       <p class="text-center text-secondary-content">
         Your document was generated successfully. You may {#if
           $generatePdfStore || $generateEpubStore ||
-        $generateDocxStore}download it {/if}{#if !$generateDocxStore} or view it online{/if}.
+        $generateDocxStore}download it{/if}{#if !$generateDocxStore} or view it online{/if}.
       </p>
       {#if $generatePdfStore}
         <div class="m-auto text-center mt-4">
