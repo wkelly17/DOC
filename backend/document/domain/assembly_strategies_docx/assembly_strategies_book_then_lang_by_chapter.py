@@ -10,6 +10,11 @@ from document.domain.assembly_strategies.assembly_strategy_utils import (
     verses_for_chapter_tn,
     verses_for_chapter_tq,
 )
+from document.domain.assembly_strategies_docx.assembly_strategy_utils import (
+    add_one_column_section,
+    add_two_column_section,
+    add_hr,
+)
 from document.domain.model import (
     BCBook,
     BookContent,
@@ -62,19 +67,17 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
     doc = Document()
     composer = Composer(doc)
 
-    one_column_html = []
     # Add book intros for each tn_book_content_unit
     for tn_book_content_unit in tn_book_content_units:
         book_intro = tn_book_content_unit.intro_html
         book_intro = adjust_book_intro_headings(book_intro)
-        one_column_html.append(book_intro)
+
+        subdoc = create_docx_subdoc(tn_book_content_unit.intro_html)
+        composer.append(subdoc)
 
     # Add book commentary for each bc_book_content_units
     for bc_book_content_unit in bc_book_content_units:
-        one_column_html.append(book_intro_commentary(bc_book_content_unit))
-
-    if one_column_html:
-        subdoc = html_to_docx.parse_html_string("".join(one_column_html))
+        subdoc = create_docx_subdoc("".join(bc_book_content_unit.book_intro))
         composer.append(subdoc)
 
     # Use the usfm_book_content_unit that has the most chapters as a
@@ -85,15 +88,7 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
         key=lambda usfm_book_content_unit: usfm_book_content_unit.chapters.keys(),
     )
     for chapter_num, chapter in usfm_with_most_chapters.chapters.items():
-        one_column_html = []
-        # Add the first USFM resource's chapter heading. We ignore
-        # chapter headings for other usfm_book_content_units for this language because it would
-        # be strange to have more than one chapter heading per chapter
-        # for this assembly sub-strategy.
-        # NOTE Commenting out heading for now
-        # chapter_heading = HtmlContent("")
-        # chapter_heading = chapter.content[0]
-        # one_column_html.append(chapter_heading)
+        add_one_column_section(doc)
 
         chapter_intro_ = HtmlContent("")
         chapter_commentary_ = HtmlContent("")
@@ -104,40 +99,23 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
             # we'll interleave chapter intros.
             # Add the translation notes chapter intro.
             chapter_intro_ = chapter_intro(tn_book_content_unit2, chapter_num)
+            subdoc = create_docx_subdoc(chapter_intro_)
+            composer.append(subdoc)
 
         for bc_book_content_unit in bc_book_content_units:
             # NOTE For v1 we aren't yet decided about where or whether
             # we'll interleave chapter commentary.
             # Add the chapter commentary.
             chapter_commentary_ = chapter_commentary(bc_book_content_unit, chapter_num)
-
-        if one_column_html:
-            # Get ready for one column again (at top of loop)
-            new_section = doc.add_section(WD_SECTION.CONTINUOUS)
-            new_section.start_type
-
-            # Set to one column layout for subdocument to be added next.
-            sectPr = new_section._sectPr
-            cols = sectPr.xpath("./w:cols")[0]
-            cols.set(qn("w:num"), "1")
-
-            subdoc = html_to_docx.parse_html_string("".join(one_column_html))
+            subdoc = create_docx_subdoc(chapter_commentary_)
             composer.append(subdoc)
 
         # Add the interleaved USFM chapters
         for usfm_book_content_unit in usfm_book_content_units:
             if chapter_num in usfm_book_content_unit.chapters:
-                # Get ready for one column again (at top of loop)
-                new_section = doc.add_section(WD_SECTION.CONTINUOUS)
-                new_section.start_type
+                add_one_column_section(doc)
 
-                # Set to one column layout for subdocument to be added next.
-                sectPr = new_section._sectPr
-                cols = sectPr.xpath("./w:cols")[0]
-                cols.set(qn("w:num"), "1")
-
-                # Add scripture chapter
-                subdoc = html_to_docx.parse_html_string(
+                subdoc = create_docx_subdoc(
                     "".join(usfm_book_content_unit.chapters[chapter_num].content)
                 )
                 composer.append(subdoc)
@@ -147,16 +125,9 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
                     chapter_num
                 ].footnotes
                 if chapter_footnotes:
-                    # Start new section for different column layout.
-                    new_section = doc.add_section(WD_SECTION.CONTINUOUS)
-                    new_section.start_type
+                    add_one_column_section(doc)
 
-                    # Set to one column layout for subdocument to be added next.
-                    sectPr = new_section._sectPr
-                    cols = sectPr.xpath("./w:cols")[0]
-                    cols.set(qn("w:num"), "1")
-
-                    subdoc = html_to_docx.parse_html_string(
+                    subdoc = create_docx_subdoc(
                         "{}{}".format(footnotes_heading, chapter_footnotes)
                     )
                     composer.append(subdoc)
@@ -174,45 +145,24 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
         for tn_book_content_unit3 in tn_book_content_units:
             tn_verses = verses_for_chapter_tn(tn_book_content_unit3, chapter_num)
             if tn_verses:
-                # Start new section for different (two) column layout.
-                new_section = doc.add_section(WD_SECTION.CONTINUOUS)
-                new_section.start_type
+                add_two_column_section(doc)
 
-                # Set to two column layout for subdocument to be added next.
-                sectPr = new_section._sectPr
-                cols = sectPr.xpath("./w:cols")[0]
-                cols.set(qn("w:num"), "2")
-                cols.set(
-                    qn("w:space"), "10"
-                )  # Set space between columns to 10 points ->0.01"
-
-                subdoc = html_to_docx.parse_html_string(
+                subdoc = create_docx_subdoc(
                     tn_verse_notes_enclosing_div_fmt_str.format(
-                        "".join(tn_verses.values()),
+                        "".join(tn_verses.values())
                     )
                 )
                 composer.append(subdoc)
 
-        # NOTE TQ are not being used in v1
         # Add the interleaved tq questions
         tq_verses = None
         for tq_book_content_unit in tq_book_content_units:
             tq_verses = verses_for_chapter_tq(tq_book_content_unit, chapter_num)
             # Add TQ verse content, if any
             if tq_verses:
-                # Start new section for two column layout
-                new_section = doc.add_section(WD_SECTION.CONTINUOUS)
-                new_section.start_type
+                add_two_column_section(doc)
 
-                # Set to two column layout for subdocument to be added next.
-                sectPr = new_section._sectPr
-                cols = sectPr.xpath("./w:cols")[0]
-                cols.set(qn("w:num"), "2")
-                cols.set(
-                    qn("w:space"), "10"
-                )  # Set space between columns to 10 points ->0.01"
-
-                subdoc = html_to_docx.parse_html_string(
+                subdoc = create_docx_subdoc(
                     tq_heading_and_questions_fmt_str.format(
                         tq_book_content_unit.resource_type_name,
                         "".join(tq_verses.values()),
@@ -220,15 +170,11 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
                 )
                 composer.append(subdoc)
 
-        # Add page break at end of chapter content
-        p = doc.add_paragraph("")
-        run = p.add_run()
-        run.add_break(WD_BREAK.PAGE)
+        add_page_break(doc)
 
     return composer
 
 
-# NOTE v1 always forces USFM, so this will never be called in v1
 def assemble_tn_as_iterator_by_chapter_for_book_then_lang(
     usfm_book_content_units: Sequence[USFMBook],
     tn_book_content_units: Sequence[TNBook],
@@ -254,27 +200,17 @@ def assemble_tn_as_iterator_by_chapter_for_book_then_lang(
     doc = Document()
     composer = Composer(doc)
 
-    one_column_html = []
+    add_one_column_section(doc)
+
     for tn_book_content_unit in tn_book_content_units:
         # Add the book intro
         book_intro = tn_book_content_unit.intro_html
         book_intro = adjust_book_intro_headings(book_intro)
-        one_column_html.append(book_intro)
+        subdoc = create_docx_subdoc(book_intro)
+        composer.append(subdoc)
 
     for bc_book_content_unit in bc_book_content_units:
-        one_column_html.append(book_intro_commentary(bc_book_content_unit))
-
-    if one_column_html:
-        # Start new section for different column layout.
-        new_section = doc.add_section(WD_SECTION.CONTINUOUS)
-        new_section.start_type
-
-        # Set to one column layout for subdocument to be added next.
-        sectPr = new_section._sectPr
-        cols = sectPr.xpath("./w:cols")[0]
-        cols.set(qn("w:num"), "1")
-
-        subdoc = html_to_docx.parse_html_string("".join(one_column_html))
+        subdoc = create_docx_subdoc(book_intro_commentary(bc_book_content_unit))
         composer.append(subdoc)
 
     # Use the tn_book_content_unit that has the most chapters as a
@@ -285,49 +221,30 @@ def assemble_tn_as_iterator_by_chapter_for_book_then_lang(
         key=lambda tn_book_content_unit: tn_book_content_unit.chapters.keys(),
     )
     for chapter_num in tn_with_most_chapters.chapters.keys():
+        add_one_column_section(doc)
         one_column_html = []
         one_column_html.append("Chapter {}".format(chapter_num))
 
         for tn_book_content_unit in tn_book_content_units:
             # Add the translation notes chapter intro.
             one_column_html.append(chapter_intro(tn_book_content_unit, chapter_num))
+            subdoc = create_docx_subdoc(one_column_html)
+            composer.append(subdoc)
 
         for bc_book_content_unit in bc_book_content_units:
             # Add the chapter commentary.
-            one_column_html.append(
+            subdoc = create_docx_subdoc(
                 chapter_commentary(bc_book_content_unit, chapter_num)
             )
-
-        if one_column_html:
-            # Start new section for different column layout.
-            new_section = doc.add_section(WD_SECTION.CONTINUOUS)
-            new_section.start_type
-
-            # Set to one column layout for subdocument to be added next.
-            sectPr = new_section._sectPr
-            cols = sectPr.xpath("./w:cols")[0]
-            cols.set(qn("w:num"), "1")
-
-            subdoc = html_to_docx.parse_html_string("".join(one_column_html))
             composer.append(subdoc)
 
         # Add the interleaved tn notes
         for tn_book_content_unit in tn_book_content_units:
             tn_verses = verses_for_chapter_tn(tn_book_content_unit, chapter_num)
             if tn_verses:
-                # Start new section for two column layout
-                new_section = doc.add_section(WD_SECTION.CONTINUOUS)
-                new_section.start_type
+                add_two_column_section(doc)
 
-                # Set to two column layout for subdocument to be added next.
-                sectPr = new_section._sectPr
-                cols = sectPr.xpath("./w:cols")[0]
-                cols.set(qn("w:num"), "2")
-                cols.set(
-                    qn("w:space"), "10"
-                )  # Set space between columns to 10 points ->0.01"
-
-                subdoc = html_to_docx.parse_html_string(
+                subdoc = create_docx_subdoc(
                     tn_verse_notes_enclosing_div_fmt_str.format(
                         "".join(tn_verses.values())
                     )
@@ -339,19 +256,9 @@ def assemble_tn_as_iterator_by_chapter_for_book_then_lang(
             tq_verses = verses_for_chapter_tq(tq_book_content_unit, chapter_num)
             # Add TQ verse content, if any
             if tq_verses:
-                # Start new section for two column layout
-                new_section = doc.add_section(WD_SECTION.CONTINUOUS)
-                new_section.start_type
+                add_two_column_section(doc)
 
-                # Set to two column layout for subdocument to be added next.
-                sectPr = new_section._sectPr
-                cols = sectPr.xpath("./w:cols")[0]
-                cols.set(qn("w:num"), "2")
-                cols.set(
-                    qn("w:space"), "10"
-                )  # Set space between columns to 10 points ->0.01"
-
-                subdoc = html_to_docx.parse_html_string(
+                subdoc = create_docx_subdoc(
                     tq_heading_and_questions_fmt_str.format(
                         tq_book_content_unit.resource_type_name,
                         "".join(tq_verses.values()),
@@ -359,15 +266,11 @@ def assemble_tn_as_iterator_by_chapter_for_book_then_lang(
                 )
                 composer.append(subdoc)
 
-        # Add page break at end of chapter content
-        p = doc.add_paragraph("")
-        run = p.add_run()
-        run.add_break(WD_BREAK.PAGE)
+        add_page_break(doc)
 
     return composer
 
 
-# NOTE v1 always forces USFM, so this will never be called in v1
 def assemble_tq_as_iterator_by_chapter_for_book_then_lang(
     usfm_book_content_units: Sequence[USFMBook],
     tn_book_content_units: Sequence[TNBook],
@@ -408,16 +311,9 @@ def assemble_tq_as_iterator_by_chapter_for_book_then_lang(
             )
 
         if one_column_html:
-            # Start new section for different column layout.
-            new_section = doc.add_section(WD_SECTION.CONTINUOUS)
-            new_section.start_type
+            add_one_column_section(doc)
 
-            # Set to one column layout for subdocument to be added next.
-            sectPr = new_section._sectPr
-            cols = sectPr.xpath("./w:cols")[0]
-            cols.set(qn("w:num"), "1")
-
-            subdoc = html_to_docx.parse_html_string("".join(one_column_html))
+            subdoc = create_docx_subdoc("".join(one_column_html))
             composer.append(subdoc)
 
         # Add the interleaved tq questions
@@ -425,19 +321,9 @@ def assemble_tq_as_iterator_by_chapter_for_book_then_lang(
             tq_verses = verses_for_chapter_tq(tq_book_content_unit, chapter_num)
             # Add TQ verse content, if any
             if tq_verses:
-                # Start new section for two column layout
-                new_section = doc.add_section(WD_SECTION.CONTINUOUS)
-                new_section.start_type
+                add_two_column_section(doc)
 
-                # Set to two column layout for subdocument to be added next.
-                sectPr = new_section._sectPr
-                cols = sectPr.xpath("./w:cols")[0]
-                cols.set(qn("w:num"), "2")
-                cols.set(
-                    qn("w:space"), "10"
-                )  # Set space between columns to 10 points ->0.01"
-
-                subdoc = html_to_docx.parse_html_string(
+                subdoc = create_docx_subdoc(
                     tq_heading_and_questions_fmt_str.format(
                         tq_book_content_unit.resource_type_name,
                         "".join(tq_verses.values()),
@@ -445,10 +331,7 @@ def assemble_tq_as_iterator_by_chapter_for_book_then_lang(
                 )
                 composer.append(subdoc)
 
-        # Add page break at end of chapter content
-        p = doc.add_paragraph("")
-        run = p.add_run()
-        run.add_break(WD_BREAK.PAGE)
+        add_page_break(doc)
 
     return composer
 
@@ -470,23 +353,17 @@ def assemble_tw_as_iterator_by_chapter_for_book_then_lang(
     def sort_key(resource: BookContent) -> str:
         return resource.lang_code
 
-    html = []
     bc_book_content_units = sorted(bc_book_content_units, key=sort_key)
 
     # Add the bible commentary
     for bc_book_content_unit in bc_book_content_units:
-        html.append(bc_book_content_unit.book_intro)
-        for chapter in bc_book_content_unit.chapters.values():
-            html.append(chapter.commentary)
-
-            # Add page break at end of chapter content
-            p = doc.add_paragraph("")
-            run = p.add_run()
-            run.add_break(WD_BREAK.PAGE)
-
-    if html:
-        subdoc = html_to_docx.parse_html_string(html)
+        subdoc = create_docx_subdoc(bc_book_content_unit.book_intro)
         composer.append(subdoc)
+        for chapter in bc_book_content_unit.chapters.values():
+            subdoc = create_docx_subdoc(chapter.commentary)
+            composer.append(subdoc)
+
+            add_page_break(doc)
 
     return composer
 

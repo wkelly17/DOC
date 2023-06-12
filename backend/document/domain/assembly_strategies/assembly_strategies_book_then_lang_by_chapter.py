@@ -303,6 +303,7 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
     book_names: Mapping[str, str] = BOOK_NAMES,
     book_name_fmt_str: str = settings.BOOK_NAME_FMT_STR,
     end_of_chapter_html: str = settings.END_OF_CHAPTER_HTML,
+    hr: str = "<hr/>",
 ) -> Iterable[HtmlContent]:
     """
     Construct the HTML wherein at least one USFM resource exists, one column
@@ -326,10 +327,12 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
         # Add the book intro
         book_intro = tn_book_content_unit.intro_html
         book_intro = adjust_book_intro_headings(book_intro)
-        yield HtmlContent(book_intro)
+        yield book_intro
+        yield hr
 
     for bc_book_content_unit in bc_book_content_units:
         yield book_intro_commentary(bc_book_content_unit)
+        yield hr
 
     # Use the usfm_book_content_unit that has the most chapters as a
     # chapter_num pump to realize the most amount of content displayed
@@ -364,6 +367,7 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
                 yield chapter_verse_content_sans_footnotes(
                     usfm_book_content_unit.chapters[chapter_num].content
                 )
+                yield hr
 
                 # try:
                 chapter_footnotes = usfm_book_content_unit.chapters[
@@ -372,6 +376,7 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
                 if chapter_footnotes:
                     yield footnotes_heading
                     yield chapter_footnotes
+                    yield hr
                 # except KeyError:
                 #     ldebug(
                 #         "usfm_book_content_unit: %s, does not have chapter: %s",
@@ -384,10 +389,12 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
         for tn_book_content_unit2 in tn_book_content_units:
             # Add the translation notes chapter intro.
             yield chapter_intro(tn_book_content_unit2, chapter_num)
+            yield hr
 
         for bc_book_content_unit in bc_book_content_units:
             # Add the chapter commentary.
             yield chapter_commentary(bc_book_content_unit, chapter_num)
+            yield hr
 
         # Add the interleaved tn notes
         tn_verses = None
@@ -419,6 +426,7 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
                 yield tn_verse_notes_enclosing_div_fmt_str.format(
                     "".join(tn_verses.values())
                 )
+                yield hr
 
         # Add the interleaved tq questions
         tq_verses = None
@@ -453,6 +461,7 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
                     tq_book_content_unit.resource_type_name,
                     "".join(tq_verses.values()),
                 )
+                yield hr
         yield end_of_chapter_html
 
 
@@ -472,6 +481,7 @@ def assemble_tn_as_iterator_by_chapter_for_book_then_lang(
     tn_verse_notes_enclosing_div_fmt_str: str = settings.TN_VERSE_NOTES_ENCLOSING_DIV_FMT_STR,
     tq_heading_and_questions_fmt_str: str = settings.TQ_HEADING_AND_QUESTIONS_FMT_STR,
     end_of_chapter_html: str = settings.END_OF_CHAPTER_HTML,
+    hr: str = "<hr/>",
 ) -> Iterable[HtmlContent]:
     """
     Construct the HTML for a 'by chapter' strategy wherein at least
@@ -491,10 +501,12 @@ def assemble_tn_as_iterator_by_chapter_for_book_then_lang(
         # Add the book intro
         book_intro = tn_book_content_unit.intro_html
         book_intro = adjust_book_intro_headings(book_intro)
-        yield HtmlContent(book_intro)
+        yield book_intro
+        yield hr
 
     for bc_book_content_unit in bc_book_content_units:
         yield book_intro_commentary(bc_book_content_unit)
+        yield hr
 
     # Use the tn_book_content_unit that has the most chapters as a
     # chapter_num pump to realize the most amount of content displayed
@@ -510,10 +522,12 @@ def assemble_tn_as_iterator_by_chapter_for_book_then_lang(
         for tn_book_content_unit in tn_book_content_units:
             # Add the translation notes chapter intro.
             yield from chapter_intro(tn_book_content_unit, chapter_num)
+            yield hr
 
         for bc_book_content_unit in bc_book_content_units:
             # Add the chapter commentary.
             yield chapter_commentary(bc_book_content_unit, chapter_num)
+            yield hr
 
         # Add the interleaved tn notes
         for tn_book_content_unit in tn_book_content_units:
@@ -544,6 +558,7 @@ def assemble_tn_as_iterator_by_chapter_for_book_then_lang(
                 yield tn_verse_notes_enclosing_div_fmt_str.format(
                     "".join(tn_verses.values())
                 )
+                yield hr
 
         # Add the interleaved tq questions
         for tq_book_content_unit in tq_book_content_units:
@@ -577,6 +592,7 @@ def assemble_tn_as_iterator_by_chapter_for_book_then_lang(
                     tq_book_content_unit.resource_type_name,
                     "".join(tq_verses.values()),
                 )
+                yield hr
         yield end_of_chapter_html
 
 
@@ -595,6 +611,7 @@ def assemble_tq_as_iterator_by_chapter_for_book_then_lang(
     # html_row_end: str = settings.HTML_ROW_END,
     tq_heading_and_questions_fmt_str: str = settings.TQ_HEADING_AND_QUESTIONS_FMT_STR,
     end_of_chapter_html: str = settings.END_OF_CHAPTER_HTML,
+    hr: str = "<hr/>",
 ) -> Iterable[HtmlContent]:
     """
     Construct the HTML for a 'by chapter' strategy wherein at least
@@ -620,6 +637,7 @@ def assemble_tq_as_iterator_by_chapter_for_book_then_lang(
         for bc_book_content_unit in bc_book_content_units:
             # Add the chapter commentary.
             yield chapter_commentary(bc_book_content_unit, chapter_num)
+            yield hr
 
         # Add the interleaved tq questions
         for tq_book_content_unit in tq_book_content_units:
@@ -653,6 +671,7 @@ def assemble_tq_as_iterator_by_chapter_for_book_then_lang(
                     tq_book_content_unit.resource_type_name,
                     "".join(tq_verses.values()),
                 )
+                yield hr
         yield end_of_chapter_html
 
 
@@ -663,6 +682,7 @@ def assemble_tw_as_iterator_by_chapter_for_book_then_lang(
     tw_book_content_units: Sequence[TWBook],
     bc_book_content_units: Sequence[BCBook],
     end_of_chapter_html: str = settings.END_OF_CHAPTER_HTML,
+    hr: str = "<hr/>",
 ) -> Iterable[HtmlContent]:
     """Construct the HTML for BC and TW."""
 
@@ -675,6 +695,8 @@ def assemble_tw_as_iterator_by_chapter_for_book_then_lang(
     # Add the bible commentary
     for bc_book_content_unit in bc_book_content_units:
         yield bc_book_content_unit.book_intro
+        yield hr
         for chapter in bc_book_content_unit.chapters.values():
             yield chapter.commentary
+            yield hr
             yield end_of_chapter_html

@@ -20,7 +20,13 @@ from document.domain.model import (
     USFMBook,
 )
 from document.utils.tw_utils import uniq
-
+from htmldocx import HtmlToDocx  # type: ignore
+from docx import Document  # type: ignore
+from docx.enum.section import WD_SECTION  # type: ignore
+from docx.enum.text import WD_BREAK  # type: ignore
+from docx.oxml.ns import qn  # type: ignore
+from docx.oxml.shared import OxmlElement  # type: ignore
+from docx.text.paragraph import Paragraph  # type: ignore
 
 logger = settings.logger(__name__)
 
@@ -348,3 +354,91 @@ def ensure_primary_usfm_books_for_different_languages_are_adjacent(
                 )
             )
         )
+
+
+def add_hr(paragraph: Paragraph) -> None:
+    """Add a horizontal line at the end of the given paragraph."""
+    p = paragraph._p  # p is the <w:p> XML element
+    pPr = p.get_or_add_pPr()
+    pBdr = OxmlElement("w:pBdr")
+    pPr.insert_element_before(
+        pBdr,
+        "w:shd",
+        "w:tabs",
+        "w:suppressAutoHyphens",
+        "w:kinsoku",
+        "w:wordWrap",
+        "w:overflowPunct",
+        "w:topLinePunct",
+        "w:autoSpaceDE",
+        "w:autoSpaceDN",
+        "w:bidi",
+        "w:adjustRightInd",
+        "w:snapToGrid",
+        "w:spacing",
+        "w:ind",
+        "w:contextualSpacing",
+        "w:mirrorIndents",
+        "w:suppressOverlap",
+        "w:jc",
+        "w:textDirection",
+        "w:textAlignment",
+        "w:textboxTightWrap",
+        "w:outlineLvl",
+        "w:divId",
+        "w:cnfStyle",
+        "w:rPr",
+        "w:sectPr",
+        "w:pPrChange",
+    )
+    bottom = OxmlElement("w:bottom")
+    bottom.set(qn("w:val"), "single")
+    bottom.set(qn("w:sz"), "6")
+    bottom.set(qn("w:space"), "1")
+    bottom.set(qn("w:color"), "auto")
+    pBdr.append(bottom)
+
+
+def create_docx_subdoc(content: str, add_hr_p: bool = True) -> Document:
+    """Create and return a Document instance from the the content parameter."""
+    html_to_docx = HtmlToDocx()
+    subdoc = html_to_docx.parse_html_string("".join(content))
+    if add_hr_p:
+        p = subdoc.paragraphs[-1]
+        add_hr(p)
+    return subdoc
+
+
+def add_one_column_section(doc: Document) -> None:
+    """
+    Add new section having 1 column to contain next content in Docx instance.
+    """
+    # Get ready for one column again (this matters the 2-Nth times in the loop).
+    new_section = doc.add_section(WD_SECTION.CONTINUOUS)
+    new_section.start_type
+
+    # Set to one column layout for subdocument to be added next.
+    sectPr = new_section._sectPr
+    cols = sectPr.xpath("./w:cols")[0]
+    cols.set(qn("w:num"), "1")
+
+
+def add_two_column_section(doc: Document) -> None:
+    """
+    Add new section having 2 column to contain next content in Docx instance.
+    """
+    # Start new section for different (two) column layout.
+    new_section = doc.add_section(WD_SECTION.CONTINUOUS)
+    new_section.start_type
+    sectPr = new_section._sectPr
+    cols = sectPr.xpath("./w:cols")[0]
+    cols.set(qn("w:num"), "2")
+    cols.set(qn("w:space"), "10")  # Set space between columns to 10 points ->0.01"
+
+
+def add_page_break(doc: Document) -> None:
+    """Add page break."""
+    # Add page break at end of chapter content
+    p = doc.add_paragraph("")
+    run = p.add_run()
+    run.add_break(WD_BREAK.PAGE)

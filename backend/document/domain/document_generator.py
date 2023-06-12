@@ -24,6 +24,7 @@ from document.config import settings
 from document.domain import bible_books, parsing, resource_lookup, worker
 from document.domain.assembly_strategies import assembly_strategies
 from document.domain.assembly_strategies_docx import assembly_strategies as asd
+from document.domain.assembly_strategies_docx.assembly_strategy_utils import add_hr
 from document.domain.model import (
     AssemblyLayoutEnum,
     AssemblyStrategyEnum,
@@ -361,7 +362,7 @@ def assemble_content(
             # definitions. The uses section will be incorporated by
             # assembly_strategies module if print layout is not chosen and
             # ignored otherwise.
-            content = "{}{}".format(
+            content = "{}{}<hr/>".format(
                 content,
                 "".join(
                     translation_words_section(
@@ -374,7 +375,7 @@ def assemble_content(
         else:
             # There is no usfm content in this document request so
             # there is no need for the uses section.
-            content = "{}{}".format(
+            content = "{}{}<hr/>".format(
                 content,
                 "".join(
                     translation_words_section(
@@ -458,6 +459,8 @@ def assemble_docx_content(
                     )
                 )
             )
+            p = tw_subdoc.paragraphs[-1]
+            add_hr(p)
             tw_subdocs.append(tw_subdoc)
             # last_composer.append(subdoc)
 

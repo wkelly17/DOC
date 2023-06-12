@@ -46,6 +46,7 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
     book_names: Mapping[str, str] = BOOK_NAMES,
     book_name_fmt_str: str = settings.BOOK_NAME_FMT_STR,
     end_of_chapter_html: str = settings.END_OF_CHAPTER_HTML,
+    hr: str = "<hr/>",
 ) -> Iterable[HtmlContent]:
     """
     Construct the HTML wherein at least one USFM resource (e.g., ulb,
@@ -59,16 +60,16 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
 
     if tn_book_content_unit:
         yield tn_book_content_unit.intro_html
+        yield hr
 
     if bc_book_content_unit:
         yield book_intro_commentary(bc_book_content_unit)
+        yield hr
 
     if usfm_book_content_unit:
         # Book title centered
         # TODO One day book title could be localized.
         yield book_name_fmt_str.format(book_names[usfm_book_content_unit.resource_code])
-
-    if usfm_book_content_unit:
         for (
             chapter_num,
             chapter,
@@ -81,17 +82,21 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
             tq_verses: Optional[dict[VerseRef, HtmlContent]] = None
 
             yield chapter_verse_content_sans_footnotes(chapter.content)
+            yield hr
 
             # Add scripture footnotes if available
             if chapter.footnotes:
                 yield footnotes_heading
                 yield chapter.footnotes
+                yield hr
             if tn_book_content_unit:
                 # Add the translation notes chapter intro.
                 yield chapter_intro(tn_book_content_unit, chapter_num)
+                yield hr
                 tn_verses = verses_for_chapter_tn(tn_book_content_unit, chapter_num)
             if bc_book_content_unit:
                 yield chapter_commentary(bc_book_content_unit, chapter_num)
+                yield hr
             if tq_book_content_unit:
                 tq_verses = verses_for_chapter_tq(tq_book_content_unit, chapter_num)
 
@@ -121,6 +126,7 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
                 yield tn_verse_notes_enclosing_div_fmt_str.format(
                     "".join(tn_verses.values())
                 )
+                yield hr
 
             # Add TQ verse content, if any
             if tq_book_content_unit and tq_verses:
@@ -151,6 +157,7 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
                     tq_book_content_unit.resource_type_name,
                     "".join(tq_verses.values()),
                 )
+                yield hr
 
             # Here we return the whole chapter's worth of verses for the secondary usfm
             if usfm_book_content_unit2:
@@ -179,6 +186,7 @@ def assemble_tn_as_iterator_by_chapter_for_lang_then_book_1c(
     # html_row_end: str = settings.HTML_ROW_END,
     tq_heading_and_questions_fmt_str: str = settings.TQ_HEADING_AND_QUESTIONS_FMT_STR,
     end_of_chapter_html: str = settings.END_OF_CHAPTER_HTML,
+    hr: str = "<hr/>",
 ) -> Iterable[HtmlContent]:
     """
     Construct the HTML for a 'by verse' strategy wherein only TN, TQ,
@@ -187,6 +195,7 @@ def assemble_tn_as_iterator_by_chapter_for_lang_then_book_1c(
 
     if tn_book_content_unit:
         yield tn_book_content_unit.intro_html
+        yield hr
 
         for chapter_num in tn_book_content_unit.chapters:
             # How to get chapter heading for Translation notes when USFM is not
@@ -207,6 +216,7 @@ def assemble_tn_as_iterator_by_chapter_for_lang_then_book_1c(
             if bc_book_content_unit:
                 # Add the chapter commentary.
                 yield chapter_commentary(bc_book_content_unit, chapter_num)
+                yield hr
 
             tn_verses = verses_for_chapter_tn(tn_book_content_unit, chapter_num)
             tq_verses = None
@@ -240,6 +250,7 @@ def assemble_tn_as_iterator_by_chapter_for_lang_then_book_1c(
                 yield tn_verse_notes_enclosing_div_fmt_str.format(
                     "".join(tn_verses.values())
                 )
+                yield hr
 
             # Add TQ verse content, if any
             if tq_book_content_unit and tq_verses:
@@ -270,6 +281,7 @@ def assemble_tn_as_iterator_by_chapter_for_lang_then_book_1c(
                     tq_book_content_unit.resource_type_name,
                     "".join(tq_verses.values()),
                 )
+                yield hr
             yield end_of_chapter_html
 
 
@@ -292,6 +304,7 @@ def assemble_tq_tw_for_by_chapter_lang_then_book_1c(
     # html_row_end: str = settings.HTML_ROW_END,
     tq_heading_and_questions_fmt_str: str = settings.TQ_HEADING_AND_QUESTIONS_FMT_STR,
     end_of_chapter_html: str = settings.END_OF_CHAPTER_HTML,
+    hr: str = "<hr/>",
 ) -> Iterable[HtmlContent]:
     """
     Construct the HTML for a 'by verse' strategy wherein only TQ and
@@ -303,6 +316,7 @@ def assemble_tq_tw_for_by_chapter_lang_then_book_1c(
             if bc_book_content_unit:
                 # Add chapter commmentary.
                 yield chapter_commentary(bc_book_content_unit, chapter_num)
+                yield hr
             # How to get chapter heading for Translation questions when there is
             # not USFM requested? For now we'll use non-localized chapter heading.
             # Add in the USFM chapter heading.
