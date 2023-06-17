@@ -206,6 +206,55 @@ class Settings(BaseSettings):
     BC_ARTICLE_URL_FMT_STR: str = "https://content.bibletranslationtools.org/WycliffeAssociates/en_bc/src/branch/master/{}"
     # fmt: on
 
+    OXML_LANGUAGE_LIST: list[str] = [
+        "ar-SA",
+        "bg-BG",
+        "zh-CN",
+        "zh-TW",
+        "hr-HR",
+        "cs-CZ",
+        "da-DK",
+        "nl-NL",
+        "en-US",
+        "et-EE",
+        "fi-FI",
+        "fr-FR",
+        "de-DE",
+        "el-GR",
+        "he-IL",
+        "hi-IN",
+        "hu-HU",
+        "id-ID",
+        "it-IT",
+        "ja-JP",
+        "kk-KZ",
+        "ko-KR",
+        "lv-LV",
+        "lt-LT",
+        "ms-MY",
+        "nb-NO",
+        "pl-PL",
+        "pt-BR",
+        "pt-PT",
+        "ro-RO",
+        "ru-RU",
+        "sr-latn-RS",
+        "sk-SK",
+        "sl-SI",
+        "es-ES",
+        "sv-SE",
+        "th-TH",
+        "tr-TR",
+        "uk-UA",
+        "vi-VN",
+    ]
+    OXML_LANGUAGE_LIST_LOWERCASE: list[str] = [
+        language.lower() for language in OXML_LANGUAGE_LIST
+    ]
+    OXML_LANGUAGE_LIST_LOWERCASE_SPLIT: list[str] = [
+        language for language in OXML_LANGUAGE_LIST_LOWERCASE if "-" in language
+    ]
+
     def logger(self, name: str) -> logging.Logger:
         """
         Return a Logger for scope named by name, e.g., module, that can be

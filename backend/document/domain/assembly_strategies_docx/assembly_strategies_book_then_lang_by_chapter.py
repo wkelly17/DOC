@@ -72,12 +72,16 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
         book_intro = tn_book_content_unit.intro_html
         book_intro = adjust_book_intro_headings(book_intro)
 
-        subdoc = create_docx_subdoc(tn_book_content_unit.intro_html)
+        subdoc = create_docx_subdoc(
+            tn_book_content_unit.intro_html, tn_book_content_unit.lang_code
+        )
         composer.append(subdoc)
 
     # Add book commentary for each bc_book_content_units
     for bc_book_content_unit in bc_book_content_units:
-        subdoc = create_docx_subdoc("".join(bc_book_content_unit.book_intro))
+        subdoc = create_docx_subdoc(
+            "".join(bc_book_content_unit.book_intro), bc_book_content_unit.lang_code
+        )
         composer.append(subdoc)
 
     # Use the usfm_book_content_unit that has the most chapters as a
@@ -99,7 +103,7 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
             # we'll interleave chapter intros.
             # Add the translation notes chapter intro.
             chapter_intro_ = chapter_intro(tn_book_content_unit2, chapter_num)
-            subdoc = create_docx_subdoc(chapter_intro_)
+            subdoc = create_docx_subdoc(chapter_intro_, tn_book_content_unit2.lang_code)
             composer.append(subdoc)
 
         for bc_book_content_unit in bc_book_content_units:
@@ -107,7 +111,9 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
             # we'll interleave chapter commentary.
             # Add the chapter commentary.
             chapter_commentary_ = chapter_commentary(bc_book_content_unit, chapter_num)
-            subdoc = create_docx_subdoc(chapter_commentary_)
+            subdoc = create_docx_subdoc(
+                chapter_commentary_, bc_book_content_unit.lang_code
+            )
             composer.append(subdoc)
 
         # Add the interleaved USFM chapters
@@ -116,7 +122,8 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
                 add_one_column_section(doc)
 
                 subdoc = create_docx_subdoc(
-                    "".join(usfm_book_content_unit.chapters[chapter_num].content)
+                    "".join(usfm_book_content_unit.chapters[chapter_num].content),
+                    usfm_book_content_unit.lang_code,
                 )
                 composer.append(subdoc)
 
@@ -128,7 +135,8 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
                     add_one_column_section(doc)
 
                     subdoc = create_docx_subdoc(
-                        "{}{}".format(footnotes_heading, chapter_footnotes)
+                        "{}{}".format(footnotes_heading, chapter_footnotes),
+                        usfm_book_content_unit.lang_code,
                     )
                     composer.append(subdoc)
 
@@ -150,7 +158,8 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
                 subdoc = create_docx_subdoc(
                     tn_verse_notes_enclosing_div_fmt_str.format(
                         "".join(tn_verses.values())
-                    )
+                    ),
+                    tn_book_content_unit3.lang_code,
                 )
                 composer.append(subdoc)
 
@@ -166,7 +175,8 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
                     tq_heading_and_questions_fmt_str.format(
                         tq_book_content_unit.resource_type_name,
                         "".join(tq_verses.values()),
-                    )
+                    ),
+                    tq_book_content_unit.lang_code,
                 )
                 composer.append(subdoc)
 
@@ -206,11 +216,13 @@ def assemble_tn_as_iterator_by_chapter_for_book_then_lang(
         # Add the book intro
         book_intro = tn_book_content_unit.intro_html
         book_intro = adjust_book_intro_headings(book_intro)
-        subdoc = create_docx_subdoc(book_intro)
+        subdoc = create_docx_subdoc(book_intro, tn_book_content_unit.lang_code)
         composer.append(subdoc)
 
     for bc_book_content_unit in bc_book_content_units:
-        subdoc = create_docx_subdoc(book_intro_commentary(bc_book_content_unit))
+        subdoc = create_docx_subdoc(
+            book_intro_commentary(bc_book_content_unit), bc_book_content_unit.lang_code
+        )
         composer.append(subdoc)
 
     # Use the tn_book_content_unit that has the most chapters as a
@@ -228,13 +240,14 @@ def assemble_tn_as_iterator_by_chapter_for_book_then_lang(
         for tn_book_content_unit in tn_book_content_units:
             # Add the translation notes chapter intro.
             one_column_html.append(chapter_intro(tn_book_content_unit, chapter_num))
-            subdoc = create_docx_subdoc(one_column_html)
+            subdoc = create_docx_subdoc(one_column_html, tn_book_content_unit.lang_code)
             composer.append(subdoc)
 
         for bc_book_content_unit in bc_book_content_units:
             # Add the chapter commentary.
             subdoc = create_docx_subdoc(
-                chapter_commentary(bc_book_content_unit, chapter_num)
+                chapter_commentary(bc_book_content_unit, chapter_num),
+                bc_book_content_unit.lang_code,
             )
             composer.append(subdoc)
 
@@ -247,7 +260,8 @@ def assemble_tn_as_iterator_by_chapter_for_book_then_lang(
                 subdoc = create_docx_subdoc(
                     tn_verse_notes_enclosing_div_fmt_str.format(
                         "".join(tn_verses.values())
-                    )
+                    ),
+                    tn_book_content_unit.lang_code,
                 )
                 composer.append(subdoc)
 
@@ -262,7 +276,8 @@ def assemble_tn_as_iterator_by_chapter_for_book_then_lang(
                     tq_heading_and_questions_fmt_str.format(
                         tq_book_content_unit.resource_type_name,
                         "".join(tq_verses.values()),
-                    )
+                    ),
+                    tq_book_content_unit.lang_code,
                 )
                 composer.append(subdoc)
 
@@ -313,7 +328,9 @@ def assemble_tq_as_iterator_by_chapter_for_book_then_lang(
         if one_column_html:
             add_one_column_section(doc)
 
-            subdoc = create_docx_subdoc("".join(one_column_html))
+            subdoc = create_docx_subdoc(
+                "".join(one_column_html), tq_with_most_chapters.lang_code
+            )
             composer.append(subdoc)
 
         # Add the interleaved tq questions
@@ -327,7 +344,8 @@ def assemble_tq_as_iterator_by_chapter_for_book_then_lang(
                     tq_heading_and_questions_fmt_str.format(
                         tq_book_content_unit.resource_type_name,
                         "".join(tq_verses.values()),
-                    )
+                    ),
+                    tq_book_content_unit.lang_code,
                 )
                 composer.append(subdoc)
 
@@ -357,10 +375,14 @@ def assemble_tw_as_iterator_by_chapter_for_book_then_lang(
 
     # Add the bible commentary
     for bc_book_content_unit in bc_book_content_units:
-        subdoc = create_docx_subdoc(bc_book_content_unit.book_intro)
+        subdoc = create_docx_subdoc(
+            bc_book_content_unit.book_intro, bc_book_content_unit.lang_code
+        )
         composer.append(subdoc)
         for chapter in bc_book_content_unit.chapters.values():
-            subdoc = create_docx_subdoc(chapter.commentary)
+            subdoc = create_docx_subdoc(
+                chapter.commentary, bc_book_content_unit.lang_code
+            )
             composer.append(subdoc)
 
             add_page_break(doc)

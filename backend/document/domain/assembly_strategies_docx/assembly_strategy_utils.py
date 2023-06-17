@@ -399,12 +399,72 @@ def add_hr(paragraph: Paragraph) -> None:
     pBdr.append(bottom)
 
 
-def create_docx_subdoc(content: str, add_hr_p: bool = True) -> Document:
-    """Create and return a Document instance from the the content parameter."""
+def create_docx_subdoc(
+    content: str,
+    lang_code: str,
+    add_hr_p: bool = True,
+    oxml_language_list_lowercase: list[str] = settings.OXML_LANGUAGE_LIST_LOWERCASE,
+    oxml_language_list_lowercase_split: list[
+        str
+    ] = settings.OXML_LANGUAGE_LIST_LOWERCASE_SPLIT,
+) -> Document:
+    """
+    Create and return a Document instance from the content parameter.
+    """
     html_to_docx = HtmlToDocx()
     subdoc = html_to_docx.parse_html_string("".join(content))
+    p = subdoc.paragraphs[-1]
+    # Set the language for this paragraph for the sake of the Word
+    # spellchecker.
+    p_run = p.add_run()
+    p_rpr = p_run.element.get_or_add_rPr()
+    p_run_lang = OxmlElement("w:lang")
+    oxml_language_list_lowercase_split_values = [
+        language.lower().split("-")[0]
+        for language in oxml_language_list_lowercase_split
+    ]
+    # The code below works well for spell checking, but there is some
+    # action required by the user to configure Word. The user must add
+    # the languages that their document uses under File > Options > Language
+    # then use the 'Add additional editing languages' and then enable
+    # the languages (it will say 'Not enabled'), then restart Word.
+    if lang_code in oxml_language_list_lowercase:
+        # Set language for spell and grammar check for this run.
+        p_run_lang.set(qn("w:val"), lang_code)
+        # TODO Should this only be set if language is an eastAsia language?
+        p_run_lang.set(qn("w:eastAsia"), lang_code)
+        # bidi is short for bidirectionality text
+        p_run_lang.set(qn("w:bidi"), lang_code)
+
+        # # Set font for this run.
+        # p_run.font.name = "Noto Sans Regular"
+        # r = p_run._element
+        # r.rPr.rFonts.set(qn("w:eastAsia"), "Noto Sans Regular")
+    elif lang_code in oxml_language_list_lowercase_split_values:
+        # Set language for spell and grammar check for this run.
+        updated_lang_code = "{}-{}".format(lang_code, lang_code.upper())
+        p_run_lang.set(qn("w:val"), updated_lang_code)
+        # TODO Should this only be set if language is an eastAsia language?
+        p_run_lang.set(qn("w:eastAsia"), updated_lang_code)
+        # bidi is short for bidirectionality text
+        p_run_lang.set(qn("w:bidi"), updated_lang_code)
+
+        # # Set font for this run.
+        # p_run.font.name = "Noto Sans Regular"
+        # r = p_run._element
+        # r.rPr.rFonts.set(qn("w:eastAsia"), "Noto Sans Regular")
+    else:
+        # Set language for spell and grammar check for this run.
+        # Just set to English since language isn't a language that
+        # Word supports (need to research what Word fully supports in
+        # more depth to be sure).
+        p_run_lang.set(qn("w:val"), "en-US")
+        p_run_lang.set(qn("w:eastAsia"), "en-US")
+        p_run_lang.set(qn("w:bidi"), "en-US")
+
+    p_rpr.append(p_run_lang)
+    # Add a horizontal ruler at the end of the paragraph if requested.
     if add_hr_p:
-        p = subdoc.paragraphs[-1]
         add_hr(p)
     return subdoc
 

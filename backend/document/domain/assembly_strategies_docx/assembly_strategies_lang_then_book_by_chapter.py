@@ -65,12 +65,16 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
 
     if tn_book_content_unit:
         if tn_book_content_unit.intro_html:
-            subdoc = create_docx_subdoc(tn_book_content_unit.intro_html)
+            subdoc = create_docx_subdoc(
+                tn_book_content_unit.intro_html, tn_book_content_unit.lang_code
+            )
             composer.append(subdoc)
 
     if bc_book_content_unit:
         if bc_book_content_unit.book_intro:
-            subdoc = create_docx_subdoc("".join(bc_book_content_unit.book_intro))
+            subdoc = create_docx_subdoc(
+                "".join(bc_book_content_unit.book_intro), bc_book_content_unit.lang_code
+            )
             composer.append(subdoc)
 
     if usfm_book_content_unit:
@@ -85,6 +89,7 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
                     book_names[usfm_book_content_unit.resource_code]
                 )
             ),
+            usfm_book_content_unit.lang_code,
             False,
         )
         composer.append(subdoc)
@@ -127,24 +132,34 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
                 chapter_content_sans_footnotes = chapter.content[
                     0 : index_of_footnotes - 1
                 ]
-                subdoc = create_docx_subdoc("".join(chapter_content_sans_footnotes))
+                subdoc = create_docx_subdoc(
+                    "".join(chapter_content_sans_footnotes),
+                    usfm_book_content_unit.lang_code,
+                )
                 composer.append(subdoc)
             else:
-                subdoc = create_docx_subdoc("".join(chapter.content))
+                subdoc = create_docx_subdoc(
+                    "".join(chapter.content), usfm_book_content_unit.lang_code
+                )
                 composer.append(subdoc)
 
             # Add scripture footnotes if available
             if chapter.footnotes:
                 subdoc = create_docx_subdoc(
-                    "{}{}".format(footnotes_heading, chapter.footnotes)
+                    "{}{}".format(footnotes_heading, chapter.footnotes),
+                    usfm_book_content_unit.lang_code,
                 )
                 composer.append(subdoc)
 
             if chapter_intro_:
-                subdoc = create_docx_subdoc(chapter_intro_)
+                subdoc = create_docx_subdoc(
+                    chapter_intro_, usfm_book_content_unit.lang_code
+                )
                 composer.append(subdoc)
             if chapter_commentary_:
-                subdoc = create_docx_subdoc(chapter_commentary_)
+                subdoc = create_docx_subdoc(
+                    chapter_commentary_, usfm_book_content_unit.lang_code
+                )
                 composer.append(subdoc)
 
             # Add TN verse content, if any
@@ -155,6 +170,7 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
                     tn_verse_notes_enclosing_div_fmt_str.format(
                         "".join(tn_verses.values()),
                     ),
+                    usfm_book_content_unit.lang_code,
                     False,
                 )
                 composer.append(subdoc)
@@ -173,6 +189,7 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
                         tq_book_content_unit.resource_type_name,
                         "".join(tq_verses.values()),
                     ),
+                    usfm_book_content_unit.lang_code,
                     False,
                 )
                 composer.append(subdoc)
@@ -192,7 +209,8 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
 
                 # Here we add the whole chapter's worth of verses for the secondary usfm
                 subdoc = create_docx_subdoc(
-                    "".join(usfm_book_content_unit2.chapters[chapter_num].content)
+                    "".join(usfm_book_content_unit2.chapters[chapter_num].content),
+                    usfm_book_content_unit.lang_code,
                 )
                 composer.append(subdoc)
 
@@ -229,12 +247,17 @@ def assemble_tn_as_iterator_by_chapter_for_lang_then_book_1c(
         # spellcheck process from complaining in a multi-language environment.
         if tn_book_content_unit.intro_html:
             # Add the chapter intro
-            subdoc = create_docx_subdoc("".join(tn_book_content_unit.intro_html))
+            subdoc = create_docx_subdoc(
+                "".join(tn_book_content_unit.intro_html), tn_book_content_unit.lang_code
+            )
             composer.append(subdoc)
 
         if bc_book_content_unit:
             if bc_book_content_unit.book_intro:
-                subdoc = create_docx_subdoc("".join(bc_book_content_unit.book_intro))
+                subdoc = create_docx_subdoc(
+                    "".join(bc_book_content_unit.book_intro),
+                    tn_book_content_unit.lang_code,
+                )
                 composer.append(subdoc)
 
         for chapter_num in tn_book_content_unit.chapters:
@@ -257,13 +280,16 @@ def assemble_tn_as_iterator_by_chapter_for_lang_then_book_1c(
             # Add the translation notes chapter intro.
             one_column_html.append(chapter_intro(tn_book_content_unit, chapter_num))
 
-            subdoc = create_docx_subdoc("".join(one_column_html))
+            subdoc = create_docx_subdoc(
+                "".join(one_column_html), tn_book_content_unit.lang_code
+            )
             composer.append(subdoc)
 
             if bc_book_content_unit:
                 # Add the chapter commentary.
                 subdoc = create_docx_subdoc(
-                    chapter_commentary(bc_book_content_unit, chapter_num)
+                    chapter_commentary(bc_book_content_unit, chapter_num),
+                    bc_book_content_unit.lang_code,
                 )
                 composer.append(subdoc)
 
@@ -280,6 +306,7 @@ def assemble_tn_as_iterator_by_chapter_for_lang_then_book_1c(
                     tn_verse_notes_enclosing_div_fmt_str.format(
                         "".join(tn_verses.values()),
                     ),
+                    tn_book_content_unit.lang_code,
                     False,
                 )
                 composer.append(subdoc)
@@ -298,6 +325,7 @@ def assemble_tn_as_iterator_by_chapter_for_lang_then_book_1c(
                         tq_book_content_unit.resource_type_name,
                         "".join(tq_verses.values()),
                     ),
+                    tq_book_content_unit.lang_code,
                     False,
                 )
                 composer.append(subdoc)
@@ -338,7 +366,8 @@ def assemble_tq_tw_for_by_chapter_lang_then_book_1c(
 
             if bc_book_content_unit:
                 subdoc = create_docx_subdoc(
-                    chapter_commentary(bc_book_content_unit, chapter_num)
+                    chapter_commentary(bc_book_content_unit, chapter_num),
+                    bc_book_content_unit.lang_code,
                 )
                 composer.append(subdoc)
 
@@ -349,6 +378,7 @@ def assemble_tq_tw_for_by_chapter_lang_then_book_1c(
                     str(chapter_num).zfill(num_zeros),
                     chapter_num,
                 ),
+                tq_book_content_unit.lang_code,
                 False,
             )
             composer.append(subdoc)
@@ -364,7 +394,8 @@ def assemble_tq_tw_for_by_chapter_lang_then_book_1c(
                     tq_heading_and_questions_fmt_str.format(
                         tq_book_content_unit.resource_type_name,
                         "".join(tq_verses.values()),
-                    )
+                    ),
+                    tq_book_content_unit.lang_code,
                 )
                 composer.append(subdoc)
 
@@ -398,16 +429,18 @@ def assemble_tw_as_iterator_by_chapter_for_lang_then_book(
     doc = Document()
     composer = Composer(doc)
 
-    html = []
     if bc_book_content_unit:
-        html.append(bc_book_content_unit.book_intro)
+        subdoc = create_docx_subdoc(
+            bc_book_content_unit.book_intro, bc_book_content_unit.lang_code
+        )
+        composer.append(subdoc)
         for chapter in bc_book_content_unit.chapters.values():
-            html.append(chapter.commentary)
+            subdoc = create_docx_subdoc(
+                chapter.commentary, bc_book_content_unit.lang_code
+            )
+            composer.append(subdoc)
 
             add_page_break(doc)
 
-    if html:
-        subdoc = create_docx_subdoc("".join(html), False)
-        composer.append(subdoc)
 
     return composer
