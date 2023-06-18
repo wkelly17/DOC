@@ -140,13 +140,13 @@
             Word, then save the Word document.
           </p>
         </div>
-        <div class="text-center text-secondary-content mt-4">
-          <p>
-            You may want to turn off spell checking in Word also as
-            multi-language Word documents can cause spell check to run
-            excessively.
-          </p>
-        </div>
+        <!-- <div class="text-center text-secondary-content mt-4"> -->
+        <!--   <p> -->
+        <!--     You may want to turn off spell checking in Word also as -->
+        <!--     multi-language Word documents can cause spell check to run -->
+        <!--     excessively. -->
+        <!--   </p> -->
+        <!-- </div> -->
       {/if}
       {#if !$generateDocxStore}
       <div class="m-auto text-center mt-4">
