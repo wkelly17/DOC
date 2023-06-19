@@ -3749,13 +3749,6 @@ def test_fr_ulb_rev_fr_tw_rev_fr_udb_rev_ndh_x_chindali_reg_mat_ndh_x_chindali_t
         check_finished_document_with_verses_success(response)
 
 
-# FIXME For some reason when this test runs in a Docker container it
-# fails but it succeeds when run locally outside Docker. The
-# difference is that the locally generated version finds the reg
-# resource but none of the others whereas in the Docker container
-# environment it finds none of the resources and thus fails the
-# assertion that the HTML body's verses content exists.
-@pytest.mark.skip
 def test_ndh_x_chindali_reg_mat_ndh_x_chindali_tn_mat_ndh_x_chindali_tq_mat_ndh_x_chindali_tw_mat_ndh_x_chindali_udb_mat_book_language_order() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
