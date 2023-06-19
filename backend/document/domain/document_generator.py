@@ -32,6 +32,7 @@ from document.domain.model import (
     BookContent,
     ChunkSizeEnum,
     DocumentRequest,
+    DocumentRequestSourceEnum,
     HtmlContent,
     ResourceLookupDto,
     ResourceRequest,
@@ -819,11 +820,14 @@ def select_assembly_layout_kind(
 
     # The assembly_layout_kind does not get set by the UI, so if it is set
     # that means that the request is coming from a client other than the UI
-    # which may set its value. In either case case validation of the
+    # which may set its value. In either case validation of the
     # DocumentRequest instance will have already occurred by this point thus
     # ensuring that the document request's values are valid in which case we
-    # can simply return it the assembly_layout_kind that was set.
-    if document_request.assembly_layout_kind:
+    # can simply return the assembly_layout_kind that was set.
+    if (
+        document_request.document_request_source == DocumentRequestSourceEnum.TEST
+        and document_request.assembly_layout_kind
+    ):
         return document_request.assembly_layout_kind
 
     # assembly_layout_kind was not yet chosen, but validation tells us

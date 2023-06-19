@@ -110,7 +110,8 @@
       generate_pdf: $generatePdfStore,
       generate_epub: $generateEpubStore,
       generate_docx: $generateDocxStore,
-      resource_requests: rr
+      resource_requests: rr,
+      document_request_source: "ui"
     }
     console.log('document request: ', JSON.stringify(documentRequest, null, 2))
     push('#/experimental/result')

@@ -156,6 +156,18 @@ class ResourceRequest(BaseModel):
 
 
 @final
+class DocumentRequestSourceEnum(str, Enum):
+    """
+        This class/enum captures the concept of: where did the document
+        request originate from? At present it originates from either the UI or
+    tests.
+    """
+
+    UI = "ui"
+    TEST = "test"
+
+
+@final
 class DocumentRequest(BaseModel):
     """
     This class reifies a document generation request from a client of
@@ -200,6 +212,12 @@ class DocumentRequest(BaseModel):
     limit_words: bool = True
     # Indicate whether TN book intros should be included
     include_tn_book_intros: bool = False
+    # Indicate where the document request originated from. We default to
+    # TEST so that tests don't have to specify and every other client, e.g.,
+    # UI, should specify in order for
+    # document_generator.select_assembly_layout_kind to produce
+    # expected results.
+    document_request_source: DocumentRequestSourceEnum = DocumentRequestSourceEnum.TEST
 
     @root_validator
     def ensure_valid_document_request(
