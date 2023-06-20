@@ -266,7 +266,8 @@ def translation_words_section(
                 for usfm_book_content_unit in usfm_book_content_units:
                     for chapter in usfm_book_content_unit.chapters.values():
                         if re.search(
-                            name_content_pair.localized_word, "".join(chapter.content)
+                            re.escape(name_content_pair.localized_word),
+                            "".join(chapter.content),
                         ):
                             # logger.debug(
                             #     "Adding TW word: %s", name_content_pair.localized_word

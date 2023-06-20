@@ -1541,7 +1541,6 @@ def test_zh_cuv_jol_zh_tn_jol_zh_tq_jol_zh_tw_jol_language_book_order_1c_c() -> 
         check_finished_document_with_verses_success(response, suffix="pdf")
 
 
-# @pytest.mark.skip
 def test_pt_br_ulb_luk_pt_br_tn_luk_language_book_order_1c() -> None:
     """
     Produce chapter level interleaved document for Brazilian Portuguese scripture and
