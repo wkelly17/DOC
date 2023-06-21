@@ -60,6 +60,14 @@ test('test pt-br, mat, mrk, ulb, tn, tq, tw, 1c', async ({ page }) => {
   ])
 })
 
+test('test link to simple version from full version and vice versa', async ({ page }) => {
+  await page.getByRole('link', { name: 'Full Version' }).click()
+  await expect(page).toHaveURL('http://localhost:8001/#/experimental')
+
+  await page.getByRole('link', { name: 'Simple Version' }).click()
+  await expect(page).toHaveURL('http://localhost:8001/#/')
+})
+
 test('test ePub and Docx options not available when print layout is chosen, but PDF is available', async ({
   page
 }) => {
