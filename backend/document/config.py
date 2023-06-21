@@ -104,7 +104,7 @@ class Settings(BaseSettings):
         "f10",
         "nav",
         "reg",
-        "udb",
+        # "udb", # 2023-06-20 Content team doesn't want this used.
         # "udb-wa", # 2022-05-12 - Content team doesn't want this used.
         "ugnt",
         # "uhb", # parser blows on: AttributeError: 'SingleHTMLRenderer' object has no attribute 'renderCAS'
@@ -123,7 +123,10 @@ class Settings(BaseSettings):
     USFM_RESOURCE_TYPES_MINUS_SECONDARY: Sequence[str] = [
         usfm_resource_type
         for usfm_resource_type in USFM_RESOURCE_TYPES
-        if usfm_resource_type not in ["udb", "f10"]
+        if usfm_resource_type
+        not in [
+            "f10"
+        ]  # Used to include udb too, but content team requested no use of udb
     ]
     EN_USFM_RESOURCE_TYPES: Sequence[str] = ["ulb-wa"]
     TN_RESOURCE_TYPES: Sequence[str] = ["tn"]
@@ -144,6 +147,8 @@ class Settings(BaseSettings):
     # be formed. E.g., hu doesn't have any resource types or resource
     # codes in translations.json. E.g., abz's content has unresolved
     # git merge markers in source that were accidentally committed.
+    # TODO Test to see which of these languages can be added back now
+    # that several content defect handling features have been added.
     LANG_CODE_FILTER_LIST: Sequence[str] = [
         "acq",
         "gaj-x-ymnk",

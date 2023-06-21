@@ -760,6 +760,9 @@ def test_fr_f10_col_fr_tn_col_fr_tq_col_fr_tw_col_book_language_order_1c_c_by_ch
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_tl_ulb_col_tl_tn_col_tl_tq_col_tl_tw_col_tl_udb_col_book_language_order_2c_sl_sr_by_chapter() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -820,6 +823,9 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_tl_ulb_col_tl_tn_c
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_tl_ulb_col_tl_tn_col_tl_tq_col_tl_tw_col_tl_udb_col_book_language_order_2c_sl_sr_c_by_chapter() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -885,6 +891,9 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_tl_ulb_col_tl_tn_c
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_tl_ulb_col_tl_tn_col_tl_tq_col_tl_tw_col_tl_udb_col_book_language_order_1c_by_chapter() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -950,6 +959,9 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_tl_ulb_col_tl_tn_c
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_tl_ulb_col_tl_tn_col_tl_tq_col_tl_tw_col_tl_udb_col_book_language_order_1c_c_by_chapter() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -2160,6 +2172,9 @@ def test_en_ulb_wa_col_sw_ulb_col_sw_ulb_tit_book_language_order_1c_c_by_chapter
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_gu_ulb_mrk_gu_tn_mrk_gu_tq_mrk_gu_tw_mrk_gu_udb_mrk_book_language_order_1c_by_chapter() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -2205,6 +2220,9 @@ def test_gu_ulb_mrk_gu_tn_mrk_gu_tq_mrk_gu_tw_mrk_gu_udb_mrk_book_language_order
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_gu_ulb_mrk_gu_tn_mrk_gu_tq_mrk_gu_tw_mrk_gu_udb_mrk_book_language_order_1c_c_by_chapter() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -2420,6 +2438,9 @@ def test_ceb_ulb_mrk_ceb_tw_mrk_ceb_tq_mrk_ceb_tn_mrk_fr_ulb_mrk_fr_tw_mrk_fr_tq
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_mr_ulb_mrk_mr_tn_mrk_mr_tq_mrk_mr_tw_mrk_mr_udb_mrk_book_language_order_1c_by_chapter() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -2465,6 +2486,9 @@ def test_mr_ulb_mrk_mr_tn_mrk_mr_tq_mrk_mr_tw_mrk_mr_udb_mrk_book_language_order
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_mr_ulb_mrk_mr_tn_mrk_mr_tq_mrk_mr_tw_mrk_mr_udb_mrk_book_language_order_1c_c_by_chapter() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -2510,6 +2534,9 @@ def test_mr_ulb_mrk_mr_tn_mrk_mr_tq_mrk_mr_tw_mrk_mr_udb_mrk_book_language_order
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_mr_ulb_mrk_mr_tn_mrk_mr_tq_mrk_mr_udb_mrk_book_language_order_1c_by_chapter() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -2550,6 +2577,9 @@ def test_mr_ulb_mrk_mr_tn_mrk_mr_tq_mrk_mr_udb_mrk_book_language_order_1c_by_cha
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_mr_ulb_mrk_mr_tn_mrk_mr_tq_mrk_mr_udb_mrk_book_language_order_1c_c_by_chapter() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -2590,6 +2620,9 @@ def test_mr_ulb_mrk_mr_tn_mrk_mr_tq_mrk_mr_udb_mrk_book_language_order_1c_c_by_c
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_mr_ulb_mrk_mr_tn_mrk_mr_tw_mrk_mr_udb_mrk_book_language_order_1c_by_chapter() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -2630,6 +2663,9 @@ def test_mr_ulb_mrk_mr_tn_mrk_mr_tw_mrk_mr_udb_mrk_book_language_order_1c_by_cha
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_mr_ulb_mrk_mr_tn_mrk_mr_tw_mrk_mr_udb_mrk_book_language_order_1c_c_by_chapter() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -2670,6 +2706,9 @@ def test_mr_ulb_mrk_mr_tn_mrk_mr_tw_mrk_mr_udb_mrk_book_language_order_1c_c_by_c
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_mr_ulb_mrk_mr_tn_mrk_mr_udb_mrk_book_language_order_1c_by_chapter() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -2705,6 +2744,9 @@ def test_mr_ulb_mrk_mr_tn_mrk_mr_udb_mrk_book_language_order_1c_by_chapter() -> 
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_mr_ulb_mrk_mr_tn_mrk_mr_udb_mrk_book_language_order_1c_c_by_chapter() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -2740,6 +2782,9 @@ def test_mr_ulb_mrk_mr_tn_mrk_mr_udb_mrk_book_language_order_1c_c_by_chapter() -
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_mr_ulb_mrk_mr_tq_mrk_mr_udb_mrk_book_language_order_1c_by_chapter() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -2775,6 +2820,9 @@ def test_mr_ulb_mrk_mr_tq_mrk_mr_udb_mrk_book_language_order_1c_by_chapter() -> 
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_mr_ulb_mrk_mr_tq_mrk_mr_udb_mrk_book_language_order_1c_c_by_chapter() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -2810,6 +2858,9 @@ def test_mr_ulb_mrk_mr_tq_mrk_mr_udb_mrk_book_language_order_1c_c_by_chapter() -
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_tl_ulb_gen_tl_udb_gen_book_language_order_1c_by_chapter() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -2840,6 +2891,9 @@ def test_tl_ulb_gen_tl_udb_gen_book_language_order_1c_by_chapter() -> None:
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_tl_ulb_gen_tl_udb_gen_book_language_order_1c_c_by_chapter() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -2870,6 +2924,9 @@ def test_tl_ulb_gen_tl_udb_gen_book_language_order_1c_c_by_chapter() -> None:
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_gu_tn_mat_gu_tq_mat_gu_tw_mat_gu_udb_mat_book_language_order_1c_by_chapter() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -2910,6 +2967,9 @@ def test_gu_tn_mat_gu_tq_mat_gu_tw_mat_gu_udb_mat_book_language_order_1c_by_chap
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_gu_tn_mat_gu_tq_mat_gu_tw_mat_gu_udb_mat_book_language_order_1c_c_by_chapter() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -2950,6 +3010,9 @@ def test_gu_tn_mat_gu_tq_mat_gu_tw_mat_gu_udb_mat_book_language_order_1c_c_by_ch
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_gu_tn_mat_gu_tq_mat_gu_udb_mat_book_language_order_1c_by_chapter() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -2985,6 +3048,9 @@ def test_gu_tn_mat_gu_tq_mat_gu_udb_mat_book_language_order_1c_by_chapter() -> N
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_gu_tn_mat_gu_tq_mat_gu_udb_mat_book_language_order_1c_c_by_chapter() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -3020,6 +3086,9 @@ def test_gu_tn_mat_gu_tq_mat_gu_udb_mat_book_language_order_1c_c_by_chapter() ->
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_tl_tn_gen_tl_tw_gen_tl_udb_gen_book_language_order_1c_by_chapter() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -3055,6 +3124,9 @@ def test_tl_tn_gen_tl_tw_gen_tl_udb_gen_book_language_order_1c_by_chapter() -> N
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_tl_tn_gen_tl_tw_gen_tl_udb_gen_book_language_order_1c_c_by_chapter() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -3090,6 +3162,9 @@ def test_tl_tn_gen_tl_tw_gen_tl_udb_gen_book_language_order_1c_c_by_chapter() ->
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_tl_tq_gen_tl_udb_gen_book_language_order_1c_by_chapter() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -3120,6 +3195,9 @@ def test_tl_tq_gen_tl_udb_gen_book_language_order_1c_by_chapter() -> None:
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_tl_tq_gen_tl_udb_gen_book_language_order_1c_c_by_chapter() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -3150,6 +3228,9 @@ def test_tl_tq_gen_tl_udb_gen_book_language_order_1c_c_by_chapter() -> None:
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_tl_tw_gen_tl_udb_gen_book_language_order_1c_by_chapter() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -3180,6 +3261,9 @@ def test_tl_tw_gen_tl_udb_gen_book_language_order_1c_by_chapter() -> None:
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_tl_tw_gen_tl_udb_gen_book_language_order_1c_c_by_chapter() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -3210,6 +3294,9 @@ def test_tl_tw_gen_tl_udb_gen_book_language_order_1c_c_by_chapter() -> None:
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_tl_udb_gen_book_language_order_1c_by_chapter() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -3235,6 +3322,9 @@ def test_tl_udb_gen_book_language_order_1c_by_chapter() -> None:
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_tl_udb_gen_book_language_order_1c_c_by_chapter() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
@@ -3260,6 +3350,9 @@ def test_tl_udb_gen_book_language_order_1c_c_by_chapter() -> None:
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_fr_ulb_rev_fr_tn_rev_fr_tq_rev_fr_tw_rev_fr_udb_rev_book_language_order_1c_by_chapter() -> None:
     """Demonstrate listing unfound resources, in this case fr-udb-rev"""
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
@@ -3306,6 +3399,9 @@ def test_fr_ulb_rev_fr_tn_rev_fr_tq_rev_fr_tw_rev_fr_udb_rev_book_language_order
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_fr_ulb_rev_fr_tn_rev_fr_tq_rev_fr_tw_rev_fr_udb_rev_book_language_order_1c_c_by_chapter() -> None:
     """Demonstrate listing unfound resources, in this case fr-udb-rev"""
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
@@ -3538,6 +3634,9 @@ def test_fr_ulb_rev_fr_tq_rev_fr_tw_rev_fr_f10_rev_book_language_order_1c_c_by_c
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_fr_ulb_rev_fr_tw_rev_fr_udb_rev_book_language_order_1c_by_chapter() -> None:
     """Demonstrate listing unfound resources, in this case fr-udb-rev"""
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
@@ -3574,6 +3673,9 @@ def test_fr_ulb_rev_fr_tw_rev_fr_udb_rev_book_language_order_1c_by_chapter() -> 
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_fr_ulb_rev_fr_tw_rev_fr_udb_rev_book_language_order_1c_c_by_chapter() -> None:
     """Demonstrate listing unfound resources, in this case fr-udb-rev"""
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
@@ -3610,6 +3712,9 @@ def test_fr_ulb_rev_fr_tw_rev_fr_udb_rev_book_language_order_1c_c_by_chapter() -
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_fr_ulb_rev_fr_tw_rev_fr_udb_rev_ndh_x_chindali_reg_mat_ndh_x_chindali_tn_mat_ndh_x_chindali_tq_mat_ndh_x_chindali_tw_mat_ndh_x_chindali_udb_mat_book_language_order_1c_by_chapter() -> None:
     """
     Show that the succeeding resource request's, fr-f10-rev,
@@ -3675,6 +3780,9 @@ def test_fr_ulb_rev_fr_tw_rev_fr_udb_rev_ndh_x_chindali_reg_mat_ndh_x_chindali_t
         check_finished_document_with_verses_success(response)
 
 
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_fr_ulb_rev_fr_tw_rev_fr_udb_rev_ndh_x_chindali_reg_mat_ndh_x_chindali_tn_mat_ndh_x_chindali_tq_mat_ndh_x_chindali_tw_mat_ndh_x_chindali_udb_mat_book_language_order_1c_c_by_chapter() -> None:
     """
     Show that the succeeding resource request's, fr-f10-rev,
@@ -3740,12 +3848,9 @@ def test_fr_ulb_rev_fr_tw_rev_fr_udb_rev_ndh_x_chindali_reg_mat_ndh_x_chindali_t
         check_finished_document_with_verses_success(response)
 
 
-# FIXME For some reason when this test runs in a Docker container it
-# fails but it succeeds when run locally outside Docker. The
-# difference is that the locally generated version finds the reg
-# resource but none of the others whereas in the Docker container
-# environment it finds none of the resources and thus fails the
-# assertion that the HTML body's verses content exists.
+# Content team don't want udb used so now that it is configured out of
+# the usfm resource types, this test fails.
+@pytest.mark.skip
 def test_ndh_x_chindali_reg_mat_ndh_x_chindali_tn_mat_ndh_x_chindali_tq_mat_ndh_x_chindali_tw_mat_ndh_x_chindali_udb_mat_book_language_order_by_chapter() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response: requests.Response = client.post(
