@@ -51,10 +51,18 @@
   $: console.log(`$assemblyStrategyChunkSizeStore: ${$assemblyStrategyChunkSizeStore}`)
   $: {
     if ($layoutForPrintStore) {
+      $generatePdfStore = true
       $generateDocxStore = false
       $generateEpubStore = false
-      $docTypeStore = ''
+      $docTypeStore = 'pdf'
       console.log('Print optimization selected, therefore Docx and ePub output disabled')
+    }
+    else {
+      $generatePdfStore = true
+      $generateDocxStore = false
+      $generateEpubStore = false
+      $docTypeStore = 'pdf'
+      console.log('Print optimization de-selected, set default to pdf')
     }
   }
 

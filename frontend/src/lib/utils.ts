@@ -58,9 +58,9 @@ export function resetStores(storeGroup: StoreGroup) {
   }
 
   if (storeGroup === 'settings') {
-    layoutForPrintStore.set(true)
+    layoutForPrintStore.set(false)
     assemblyStrategyKindStore.set(languageBookOrder)
-    generatePdfStore.set(false)
+    generatePdfStore.set(true)
     generateEpubStore.set(false)
     generateDocxStore.set(false)
     // emailStore.set(null)
