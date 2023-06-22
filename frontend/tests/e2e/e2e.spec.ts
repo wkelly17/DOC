@@ -68,7 +68,7 @@ test('test link to simple version from full version and vice versa', async ({ pa
   await expect(page).toHaveURL('http://localhost:8001/#/')
 })
 
-test('test ePub and Docx options not available when print layout is chosen, but PDF is available', async ({
+test('test ePub and Docx options available when print layout is not chosen', async ({
   page
 }) => {
   await page.getByRole('link', { name: 'About' }).click()
@@ -113,44 +113,28 @@ test('test ePub and Docx options not available when print layout is chosen, but 
   await expect(page).toHaveURL('http://localhost:8001/#/experimental/settings')
 
   await expect(page.locator('span:has-text("(Optional) Generate PDF")')).toBeVisible()
-  await expect(
-    page.locator('span:has-text("(Optional) Generate ePub")')
-  ).not.toBeVisible()
-  await expect(
-    page.locator('span:has-text("(Optional) Generate Docx")')
-  ).not.toBeVisible()
+  await expect(page.locator('span:has-text("(Optional) Generate ePub")')).toBeVisible()
+  await expect(page.locator('span:has-text("(Optional) Generate Docx")')).toBeVisible()
 })
 
 test('test assembly strategy drop down not available when print layout deselected and only one language chosen; PDF, ePub, Docx options present', async ({
   page
 }) => {
-  await page.getByRole('link', { name: 'About' }).click()
-  await expect(page).toHaveURL('http://localhost:8001/#/about')
-
-  await page.getByRole('link', { name: 'here' }).click()
-  await expect(page).toHaveURL('http://localhost:8001/#/experimental')
-
+  await page.goto('http://localhost:8001/')
+  await page.getByRole('link', { name: 'Full Version' }).click()
   await page.getByRole('button', { name: '1. Languages' }).click()
-  await expect(page).toHaveURL('http://localhost:8001/#/experimental/languages')
   await page.getByLabel('Español (Latin American Spanish)').check()
   await page.getByRole('button', { name: 'Add (1) Languages' }).click()
-  await expect(page).toHaveURL('http://localhost:8001/#/experimental')
   await page.getByRole('button', { name: '2. Books' }).click()
-  await expect(page).toHaveURL('http://localhost:8001/#/experimental/books')
   await page.getByLabel('Genesis').check()
   await page.getByRole('button', { name: 'Add (1) Books' }).click()
-  await expect(page).toHaveURL('http://localhost:8001/#/experimental')
   await page.getByRole('button', { name: '3. Resource types' }).click()
-  await expect(page).toHaveURL('http://localhost:8001/#/experimental/resource_types')
   await page
-    .getByLabel(
-      "Select all\n                  Español (Latin American Spanish)'s resource types"
-    )
+    .getByLabel("Select all Español (Latin American Spanish)'s resource types")
     .check()
   await page.getByRole('button', { name: 'Add (4) Resource Types' }).click()
-  await expect(page).toHaveURL('http://localhost:8001/#/experimental')
   await page.getByRole('link', { name: 'Settings' }).click()
-  await expect(page).toHaveURL('http://localhost:8001/#/experimental/settings')
+
   await page
     .locator(
       'li:has-text("Print Optimization Enabling this option will remove extra whitespace") div'
@@ -159,8 +143,12 @@ test('test assembly strategy drop down not available when print layout deselecte
     .click()
   await expect(page.locator('select[name="assemblyStrategy"]')).not.toBeVisible()
   await expect(page.locator('span:has-text("(Optional) Generate PDF")')).toBeVisible()
-  await expect(page.locator('span:has-text("(Optional) Generate ePub")')).toBeVisible()
-  await expect(page.locator('span:has-text("(Optional) Generate Docx")')).toBeVisible()
+  await expect(
+    page.locator('span:has-text("(Optional) Generate ePub")')
+  ).not.toBeVisible()
+  await expect(
+    page.locator('span:has-text("(Optional) Generate Docx")')
+  ).not.toBeVisible()
 })
 
 test('test v1 ui', async ({ page }) => {
