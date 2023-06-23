@@ -254,26 +254,25 @@ def translation_words_section(
     # The only reason why we ever limit words is so the document
     # length is lessened and thus easier/cheaper/more convenient to print.
     logger.debug("settings.LIMIT_WORDS: %s", limit_words)
-    if limit_words:
+    if usfm_book_content_units is not None and usfm_book_content_units and limit_words:
         # Limit name_content_pairs to only those that actually appear in the scripture requested.
-        if usfm_book_content_units:
-            logger.debug(
-                "len(book_content_unit.name_content_pairs): %s",
-                len(book_content_unit.name_content_pairs),
-            )
-            # Unfortunate asymptotics here, but at least very finite list lengths.
-            for name_content_pair in book_content_unit.name_content_pairs:
-                for usfm_book_content_unit in usfm_book_content_units:
-                    for chapter in usfm_book_content_unit.chapters.values():
-                        if re.search(
-                            re.escape(name_content_pair.localized_word),
-                            "".join(chapter.content),
-                        ):
-                            # logger.debug(
-                            #     "Adding TW word: %s", name_content_pair.localized_word
-                            # )
-                            selected_name_content_pairs.append(name_content_pair)
-                            break
+        logger.debug(
+            "len(book_content_unit.name_content_pairs): %s",
+            len(book_content_unit.name_content_pairs),
+        )
+        # Unfortunate asymptotics here, but at least very finite list lengths.
+        for name_content_pair in book_content_unit.name_content_pairs:
+            for usfm_book_content_unit in usfm_book_content_units:
+                for chapter in usfm_book_content_unit.chapters.values():
+                    if re.search(
+                        re.escape(name_content_pair.localized_word),
+                        "".join(chapter.content),
+                    ):
+                        # logger.debug(
+                        #     "Adding TW word: %s", name_content_pair.localized_word
+                        # )
+                        selected_name_content_pairs.append(name_content_pair)
+                        break
 
     else:
         selected_name_content_pairs = book_content_unit.name_content_pairs
@@ -451,20 +450,41 @@ def assemble_docx_content(
         for tw_book_content_unit in unique(
             tw_book_content_units, key=lambda unit: unit.lang_code
         ):
-            tw_subdoc = html_to_docx.parse_html_string(
-                "".join(
-                    translation_words_section(
-                        tw_book_content_unit,
-                        usfm_book_content_units,
-                        document_request.limit_words,
-                        include_uses_section=False,
+            if usfm_book_content_units:
+                # There is usfm content in this document request so we can
+                # include the uses section in notes which links to individual word
+                # definitions. The uses section will be incorporated by
+                # assembly_strategies module if print layout is not chosen and
+                # ignored otherwise.
+                tw_subdoc = html_to_docx.parse_html_string(
+                    "".join(
+                        translation_words_section(
+                            tw_book_content_unit,
+                            usfm_book_content_units,
+                            document_request.limit_words,
+                            include_uses_section=False,
+                        )
                     )
                 )
-            )
-            p = tw_subdoc.paragraphs[-1]
-            add_hr(p)
-            tw_subdocs.append(tw_subdoc)
-            # last_composer.append(subdoc)
+                p = tw_subdoc.paragraphs[-1]
+                add_hr(p)
+                tw_subdocs.append(tw_subdoc)
+            else:
+                # There is no usfm content in this document request so
+                # there is no need for the uses section.
+                tw_subdoc = html_to_docx.parse_html_string(
+                    "".join(
+                        translation_words_section(
+                            tw_book_content_unit,
+                            usfm_book_content_units,
+                            document_request.limit_words,
+                            include_uses_section=False,
+                        )
+                    )
+                )
+                p = tw_subdoc.paragraphs[-1]
+                add_hr(p)
+                tw_subdocs.append(tw_subdoc)
 
         t1 = time.time()
         logger.debug("Time for adding TW content to document: %s", t1 - t0)
