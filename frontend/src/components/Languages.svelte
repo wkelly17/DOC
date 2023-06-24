@@ -142,15 +142,12 @@
     {/if}
   </div>
 
-  <ul class="py-2 px-4 w-96">
+  <ul class="py-2 px-4">
     {#each langCodesAndNames as langCodeAndName, index}
       <li
         style={filteredlangCodeAndNames.includes(langCodeAndName) ? '' : 'display :none'}
-        class="flex items-center justify-between"
+        class="flex items-center"
       >
-        <label for="lang-code-{index}" class="text-secondary-content"
-          >{langCodeAndName.split(', code: ')[0]}</label
-        >
         <input
           id="lang-code-{index}"
           type="checkbox"
@@ -158,6 +155,9 @@
           value={langCodeAndName}
           class="checkbox checkbox-dark-bordered"
         />
+        <label for="lang-code-{index}" class="text-secondary-content pl-1"
+          >{langCodeAndName.split(', code: ')[0]}</label
+        >
       </li>
     {/each}
   </ul>

@@ -175,23 +175,21 @@
               {$lang0NameStore}
             </h3>
             {#if lang0ResourceTypesAndNames && lang0ResourceTypesAndNames.length > 0}
-              <div class="flex items-center justify-between">
-                <label for="select-all-lang0-resource-types" class="text-primary-content"
-                  >Select all {$lang0NameStore}'s resource types</label
-                >
+              <div class="flex items-center">
                 <input
                   id="select-all-lang0-resource-types"
                   type="checkbox"
                   class="checkbox checkbox-dark-bordered"
                   on:change={event => selectAllLang0ResourceTypes(event)}
                 />
+                <label for="select-all-lang0-resource-types"
+                       class="text-primary-content pl-1"
+                  >Select all {$lang0NameStore}'s resource types</label
+                >
               </div>
             <ul class="pb-4">
               {#each lang0ResourceTypesAndNames as resourceTypeAndName, index}
-                <li class="flex items-center justify-between">
-                  <label for="lang0-resourcetype-{index}" class="text-primary-content"
-                    >{resourceTypeAndName.split(', ')[1]}</label
-                  >
+                <li class="flex items-center">
                   <input
                     id="lang0-resourcetype-{index}"
                     type="checkbox"
@@ -199,6 +197,10 @@
                     value={resourceTypeAndName}
                     class="checkbox checkbox-dark-bordered"
                   />
+                  <label for="lang0-resourcetype-{index}"
+                         class="text-primary-content pl-1"
+                    >{resourceTypeAndName.split(', ')[1]}</label
+                  >
                 </li>
               {/each}
             </ul>
@@ -217,24 +219,22 @@
               Resource types available for {$lang1NameStore}
             </h3>
             {#if lang1ResourceTypesAndNames && lang1ResourceTypesAndNames.length > 0}
-              <div class="flex items-center justify-between">
-                <label for="select-all-lang1-resource-types" class="text-primary-content"
-                  >Select all
-                  {$lang1NameStore}'s resource types</label
-                >
+              <div class="flex items-center">
                 <input
                   id="select-all-lang1-resource-types"
                   type="checkbox"
                   class="checkbox checkbox-dark-bordered"
                   on:change={event => selectAllLang1ResourceTypes(event)}
                 />
+                <label for="select-all-lang1-resource-types"
+                       class="text-primary-content pl-1"
+                  >Select all
+                  {$lang1NameStore}'s resource types</label
+                >
               </div>
             <ul>
               {#each lang1ResourceTypesAndNames as resourceTypeAndName, index}
-                <li class="flex items-center justify-between">
-                  <label for="lang1-resourcetype-{index}" class="text-primary-content"
-                    >{resourceTypeAndName.split(', ')[1]}</label
-                  >
+                <li class="flex items-center">
                   <input
                     id="lang1-resourcetype-{index}"
                     type="checkbox"
@@ -242,6 +242,10 @@
                     value={resourceTypeAndName}
                     class="checkbox checkbox-dark-bordered"
                   />
+                  <label for="lang1-resourcetype-{index}"
+                         class="text-primary-content pl-1"
+                    >{resourceTypeAndName.split(', ')[1]}</label
+                  >
                 </li>
               {/each}
             </ul>

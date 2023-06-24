@@ -304,18 +304,19 @@
         {/if}
         <p class="text-neutral-content mt-4">Please select the books you want to add.</p>
         {#if showOldTestament}
-          <div class="w-96">
+          <div class="w-06">
             {#if otResourceCodes.length > 0}
-              <div class="flex items-center justify-between">
-                <label for="select-all-old-testament" class="text-secondary-content"
-                  >Select all Old Testament</label
-                >
+              <div class="flex items-center">
                 <input
                   id="select-all-old-testament"
                   type="checkbox"
                   class="checkbox checkbox-dark-bordered"
                   on:change={event => selectAllOtResourceCodes(event)}
                 />
+                <label for="select-all-old-testament"
+                       class="text-secondary-content pl-1"
+                  >Select all Old Testament</label
+                >
               </div>
             {/if}
             <ul>
@@ -324,11 +325,8 @@
                   style={filteredOtResourceCodes.includes(resourceCodeAndName)
                     ? ''
                     : 'display: none'}
-                  class="flex items-center justify-between"
+                  class="flex items-center"
                 >
-                  <label for="lang-resourcecode-ot-{index}" class="text-secondary-content"
-                    >{resourceCodeAndName.split(', ')[1]}</label
-                  >
                   <input
                     id="lang-resourcecode-ot-{index}"
                     type="checkbox"
@@ -336,6 +334,10 @@
                     value={resourceCodeAndName}
                     class="checkbox checkbox-dark-bordered"
                   />
+                  <label for="lang-resourcecode-ot-{index}"
+                         class="text-secondary-content pl-1"
+                    >{resourceCodeAndName.split(', ')[1]}</label
+                  >
                 </li>
               {/each}
             </ul>
@@ -343,16 +345,17 @@
         {:else}
           <div class="w-96">
             {#if ntResourceCodes.length > 0}
-              <div class="flex items-center justify-between">
-                <label for="select-all-new-testament" class="text-secondary-content"
-                  >Select all New Testament</label
-                >
+              <div class="flex items-center">
                 <input
                   id="select-all-new-testament"
                   type="checkbox"
                   class="checkbox checkbox-dark-bordered"
                   on:change={event => selectAllNtResourceCodes(event)}
                 />
+                <label for="select-all-new-testament"
+                       class="text-secondary-content pl-1"
+                  >Select all New Testament</label
+                >
               </div>
             {/if}
             <ul>
@@ -361,11 +364,8 @@
                   style={filteredNtResourceCodes.includes(resourceCodeAndName)
                     ? ''
                     : 'display: none'}
-                  class="flex items-center justify-between"
+                  class="flex items-center"
                 >
-                  <label for="lang-resourcecode-nt-{index}" class="text-secondary-content"
-                    >{resourceCodeAndName.split(', ')[1]}</label
-                  >
                   <input
                     id="lang-resourcecode-nt-{index}"
                     type="checkbox"
@@ -373,6 +373,10 @@
                     value={resourceCodeAndName}
                     class="checkbox checkbox-dark-bordered"
                   />
+                  <label for="lang-resourcecode-nt-{index}"
+                         class="text-secondary-content pl-1"
+                    >{resourceCodeAndName.split(', ')[1]}</label
+                  >
                 </li>
               {/each}
             </ul>
