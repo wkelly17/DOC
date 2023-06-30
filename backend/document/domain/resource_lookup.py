@@ -2086,30 +2086,35 @@ def provision_asset_files(resource_lookup_dto: ResourceLookupDto) -> str:
     resource's file assets into that directory. Return resource_dir.
     """
     prepare_resource_directory(
-        resource_lookup_dto.lang_code, resource_lookup_dto.resource_type
+        resource_lookup_dto.lang_code,
+        resource_lookup_dto.resource_code,
+        resource_lookup_dto.resource_type,
     )
     return acquire_resource_assets(resource_lookup_dto)
 
 
 def resource_directory(
     lang_code: str,
+    resource_code: str,
     resource_type: str,
     working_dir: str = settings.RESOURCE_ASSETS_DIR,
 ) -> str:
     """Return the resource directory for the resource_lookup_dto."""
     return join(
         working_dir,
-        "{}_{}".format(lang_code, resource_type),
+        "{}_{}_{}".format(lang_code, resource_code, resource_type),
     )
 
 
-def prepare_resource_directory(lang_code: str, resource_type: str) -> None:
+def prepare_resource_directory(
+    lang_code: str, resource_code: str, resource_type: str
+) -> None:
     """
     If it doesn't exist yet, create the directory for the
     resource where it will be downloaded to.
     """
 
-    resource_dir = resource_directory(lang_code, resource_type)
+    resource_dir = resource_directory(lang_code, resource_code, resource_type)
 
     if not exists(resource_dir):
         logger.debug("About to create directory %s", resource_dir)
@@ -2128,7 +2133,9 @@ def acquire_resource_assets(resource_lookup_dto: ResourceLookupDto) -> str:
     """
 
     resource_dir = resource_directory(
-        resource_lookup_dto.lang_code, resource_lookup_dto.resource_type
+        resource_lookup_dto.lang_code,
+        resource_lookup_dto.resource_code,
+        resource_lookup_dto.resource_type,
     )
     if (
         resource_lookup_dto.url is not None
@@ -2150,6 +2157,7 @@ def acquire_resource_assets(resource_lookup_dto: ResourceLookupDto) -> str:
             if is_zip(resource_lookup_dto.source):
                 unzip_asset(
                     resource_lookup_dto.lang_code,
+                    resource_lookup_dto.resource_code,
                     resource_lookup_dto.resource_type,
                     resource_filepath,
                 )
@@ -2161,14 +2169,18 @@ def acquire_resource_assets(resource_lookup_dto: ResourceLookupDto) -> str:
             # as a result. Update resource_dir to point to that
             # subdirectory.
             resource_dir = update_resource_dir(
-                resource_lookup_dto.lang_code, resource_lookup_dto.resource_type
+                resource_lookup_dto.lang_code,
+                resource_lookup_dto.resource_code,
+                resource_lookup_dto.resource_type,
             )
     return resource_dir
 
 
-def unzip_asset(lang_code: str, resource_type: str, resource_filepath: str) -> None:
+def unzip_asset(
+    lang_code: str, resource_code: str, resource_type: str, resource_filepath: str
+) -> None:
     """Unzip the asset in its resource directory."""
-    resource_dir = resource_directory(lang_code, resource_type)
+    resource_dir = resource_directory(lang_code, resource_code, resource_type)
     logger.debug("Unzipping %s into %s", resource_filepath, resource_dir)
     unzip(resource_filepath, resource_dir)
     logger.info("Unzipping finished.")
@@ -2258,7 +2270,7 @@ def download_asset(url: str, resource_filepath: str) -> None:
     logger.info("Downloading finished.")
 
 
-def update_resource_dir(lang_code: str, resource_type: str) -> str:
+def update_resource_dir(lang_code: str, resource_code: str, resource_type: str) -> str:
     """
     Update resource_dir to point to the first subdirectory of
     resource_dir found.
@@ -2267,8 +2279,13 @@ def update_resource_dir(lang_code: str, resource_type: str) -> str:
     a subdirectory of resource_dir is created as a result. Update
     resource_dir to point to that subdirectory.
     """
-    resource_dir = resource_directory(lang_code, resource_type)
-    subdirs = [file.path for file in scandir(resource_dir) if file.is_dir()]
+    resource_dir = resource_directory(lang_code, resource_code, resource_type)
+    subdirs = [
+        file.path
+        for file in scandir(resource_dir)
+        if file.is_dir()
+        and "{}_{}_{}".format(lang_code, resource_code, resource_type) in file.path
+    ]
     if subdirs:
         resource_dir = subdirs[0]
         logger.debug(

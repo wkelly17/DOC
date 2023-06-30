@@ -237,7 +237,7 @@ def usfm_asset_content(
             usfm_content_file
             for usfm_content_file in usfm_content_files
             if resource_lookup_dto.resource_code.lower()
-            in str(usfm_content_file).lower()
+            in str(Path(usfm_content_file).stem).lower()
         ]
     elif txt_content_files:
         # Only use the content files that match the resource_code.
