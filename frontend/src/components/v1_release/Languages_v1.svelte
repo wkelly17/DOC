@@ -28,10 +28,10 @@
   async function getLangCodesNames(
     apiRootUrl: string = getApiRootUrl(),
     langCodesAndNamesUrl: string = <string>import.meta.env.VITE_LANG_CODES_NAMES_URL_V1
-  ): Promise<Array<string>> {
+  ): Promise<Array<[string, string]>> {
     printToConsole(`apiRootUrl: ${getApiRootUrl}`)
     const response = await fetch(`${apiRootUrl}${langCodesAndNamesUrl}`)
-    const langCodesAndNames: Array<string> = await response.json()
+    const langCodesAndNames: Array<[string, string]> = await response.json()
     if (!response.ok) {
       printToConsole(`Error: ${response.statusText}`)
       throw new Error(response.statusText)
@@ -44,7 +44,7 @@
   $: {
     getLangCodesNames()
       .then(langCodesAndNames_ => {
-        langCodesAndNames = langCodesAndNames_
+        langCodesAndNames = langCodesAndNames_.map(tuple => `${tuple[0]}, ${tuple[1]}`)
       })
       .catch(err => printToConsole(err)) // FIXME Trigger toast for error
   }
@@ -98,16 +98,16 @@
   $: {
     if (langCodesAndNames) {
       filteredlangCodeAndNames = langCodesAndNames.filter(item =>
-        item.toLowerCase().split(', code:')[0].includes(langSearchTerm.toLowerCase())
+        item.split(', ')[1].toLowerCase().includes(langSearchTerm.toLowerCase())
       )
     }
   }
 
   // Update stores for use in this and other pages reactively
-  $: lang0CodeStore.set($langCodeAndNamesStore[0]?.split(', code: ')[1])
-  $: lang1CodeStore.set($langCodeAndNamesStore[1]?.split(', code: ')[1])
-  $: lang0NameStore.set($langCodeAndNamesStore[0]?.split(', code: ')[0])
-  $: lang1NameStore.set($langCodeAndNamesStore[1]?.split(', code: ')[0])
+  $: lang0CodeStore.set($langCodeAndNamesStore[0]?.split(', ')[0])
+  $: lang1CodeStore.set($langCodeAndNamesStore[1]?.split(', ')[0])
+  $: lang0NameStore.set($langCodeAndNamesStore[0]?.split(', ')[1])
+  $: lang1NameStore.set($langCodeAndNamesStore[1]?.split(', ')[1])
 
 
   // For sidebar
@@ -162,7 +162,7 @@
           class="checkbox checkbox-dark-bordered"
         />
         <label for="lang-code-{index}" class="text-secondary-content pl-1"
-          >{langCodeAndName.split(', code: ')[0]}</label
+          >{langCodeAndName.split(', ')[1]}</label
         >
       </li>
     {/each}

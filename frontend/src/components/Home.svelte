@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { langCodeAndNamesStore } from '../stores/LanguagesStore'
+  import { glLangCodeAndNamesStore, nonGlLangCodeAndNamesStore, langCountStore } from '../stores/LanguagesStore'
   import { otBookStore, ntBookStore, bookCountStore } from '../stores/BooksStore'
   import {
     lang0ResourceTypesStore,
@@ -26,7 +26,24 @@
     }
   }
 
+  $: console.log(`$glLangCodeAndNamesStore: ${$glLangCodeAndNamesStore}`)
+  $: console.log(`$nonGlLangCodeAndNamesStore: ${$nonGlLangCodeAndNamesStore}`)
+  $: console.log(`glLangNames: ${glLangNames}`)
+  $: console.log(`nonGlLangNames: ${nonGlLangNames}`)
   $: console.log(`$resetValuesStore: ${$resetValuesStore}`)
+
+
+  // Get the language names from the store reactively.
+  $: glLangNames = $glLangCodeAndNamesStore.map(
+    langCodeAndName => langCodeAndName.split(", ")[1]
+  )
+  $: nonGlLangNames = $nonGlLangCodeAndNamesStore.map(
+    langCodeAndName => langCodeAndName.split(", ")[1]
+  )
+
+  const numLangsToShow = 5
+  $: glLangNamesAbbr = glLangNames.slice(0, numLangsToShow)
+  $: nonGlLangNamesAbbr = nonGlLangNames.slice(0, numLangsToShow)
 
   // Get the book names from the store reactively.
   $: otBookNames = $otBookStore.map(
@@ -51,12 +68,42 @@
   $: lang0ResourceTypeNamesAbbr = lang0ResourceTypeNames.slice(0, numResourceTypesToShow)
   $: lang1ResourceTypeNamesAbbr = lang1ResourceTypeNames.slice(0, numResourceTypesToShow)
 
-  let languagesDisplayString: string = ''
+  let glLangsDisplayString: string = ''
   $: {
-    if ($langCodeAndNamesStore.length > 0) {
-      languagesDisplayString = $langCodeAndNamesStore
-        .map(item => item.split(', code: ')[0])
-        .join(', ')
+    if (glLangNames && glLangNames.length > numLangsToShow) {
+      glLangsDisplayString = `${glLangNamesAbbr.join(', ')}...`
+    } else if (
+      glLangNames &&
+      glLangNames.length > 0 &&
+      glLangNames.length <= numLangsToShow
+    ) {
+      glLangsDisplayString = glLangNames.join(', ')
+    }
+  }
+
+  let nonGlLangsDisplayString: string = ''
+  $: {
+    if (nonGlLangNames && nonGlLangNames.length > numLangsToShow) {
+      nonGlLangsDisplayString = `${nonGlLangNamesAbbr.join(', ')}...`
+    } else if (
+      nonGlLangNames &&
+      nonGlLangNames.length > 0 &&
+      nonGlLangNames.length <= numLangsToShow
+    ) {
+      nonGlLangsDisplayString = nonGlLangNames.join(', ')
+    }
+  }
+  $: console.log(`glLangsDisplayString: ${glLangsDisplayString}`)
+  $: console.log(`nonGlLangsDisplayString: ${nonGlLangsDisplayString}`)
+
+  let langsDisplayString: string = ''
+  $: {
+    if (glLangNames.length > 0 && nonGlLangNames.length > 0) {
+      langsDisplayString = `${[glLangsDisplayString, nonGlLangsDisplayString]}`
+    } else if (glLangNames.length > 0 && nonGlLangNames.length === 0) {
+      langsDisplayString = glLangsDisplayString
+    } else if (glLangNames.length === 0 && nonGlLangNames.length > 0) {
+      langsDisplayString = nonGlLangsDisplayString
     }
   }
 
@@ -178,10 +225,10 @@
         </div>
         <RightArrow />
       </button>
-      {#if $langCodeAndNamesStore.length > 0}
+      {#if $langCountStore > 0}
         <div>
           <span class="text-neutral-content text-sm ml-14 capitalize">
-            {languagesDisplayString}
+            {langsDisplayString}
           </span>
         </div>
       {:else}

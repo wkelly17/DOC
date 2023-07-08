@@ -2,13 +2,15 @@
   import { z } from 'zod'
   import ProgressIndicator from './ProgressIndicator.svelte'
   import LeftArrow from './LeftArrow.svelte'
+  import glLangs from '../data/gl_languages'
   import { push } from 'svelte-spa-router'
   import {
     lang0CodeStore,
     lang1CodeStore,
     lang0NameStore,
     lang1NameStore,
-    langCodeAndNamesStore,
+    glLangCodeAndNamesStore,
+    nonGlLangCodeAndNamesStore,
     langCountStore
   } from '../stores/LanguagesStore'
   import { bookCountStore, otBookStore } from '../stores/BooksStore'
@@ -20,13 +22,15 @@
   import Sidebar from './Sidebar.svelte'
   import { setShowTopMatter } from '../lib/utils'
 
+  let showGlLanguages = true
+
   async function getLangCodesNames(
     apiRootUrl: string = getApiRootUrl(),
     langCodesAndNamesUrl: string = <string>import.meta.env.VITE_LANG_CODES_NAMES_URL
-  ): Promise<Array<string>> {
+  ): Promise<Array<[string, string]>> {
     console.log(`apiRootUrl: ${getApiRootUrl}`)
     const response = await fetch(`${apiRootUrl}${langCodesAndNamesUrl}`)
-    const langCodesAndNames: Array<string> = await response.json()
+    const langCodesAndNames: Array<[string, string]> = await response.json()
     if (!response.ok) {
       console.log(`Error: ${response.statusText}`)
       throw new Error(response.statusText)
@@ -35,11 +39,24 @@
   }
 
   // Resolve promise for data
-  let langCodesAndNames: Array<string> = []
+  let glLangCodesAndNames: Array<string> = []
+  let nonGlLangCodesAndNames: Array<string> = []
   $: {
     getLangCodesNames()
       .then(langCodesAndNames_ => {
-        langCodesAndNames = langCodesAndNames_
+        // console.log(`langCodesAndNames_: ${langCodesAndNames_}`)
+        // Filter set of all languages for gl languages
+        glLangCodesAndNames = langCodesAndNames_.filter((element: [string, string]) => {
+          return glLangs.some(item => item === element[0])
+        })
+        .map(tuple => `${tuple[0]}, ${tuple[1]}`)
+        // Filter set of all languages for non-gl languages
+        // console.log(`glLangCodesAndNames: ${glLangCodesAndNames}`)
+        nonGlLangCodesAndNames = langCodesAndNames_.filter((element: [string, string]) => {
+          return !glLangs.some(item => item === element[0])
+        })
+        .map(tuple => `${tuple[0]}, ${tuple[1]}`)
+        // console.log(`nonGlLangCodesAndNames: ${nonGlLangCodesAndNames}`)
       })
       .catch(err => console.log(err)) // FIXME Trigger toast for error
   }
@@ -77,32 +94,150 @@
     push('#/experimental')
   }
 
-  // Update the langCountStore reactively
+  // Derive and set the count of books for use here and in other
+  // pages.
+  let nonEmptyGlLanguages: boolean
+  $: nonEmptyGlLanguages = $glLangCodeAndNamesStore.every(item => item.length > 0)
+
+  let nonEmptyNonGlLanguages: boolean
+  $: nonEmptyNonGlLanguages = $nonGlLangCodeAndNamesStore.every(item => item.length > 0)
+
   $: {
-    if ($langCodeAndNamesStore.length > 0) {
-      langCountStore.set($langCodeAndNamesStore.length)
+    if (nonEmptyGlLanguages && nonEmptyNonGlLanguages) {
+      langCountStore.set($glLangCodeAndNamesStore.length + $nonGlLangCodeAndNamesStore.length)
+    } else if (nonEmptyGlLanguages && !nonEmptyNonGlLanguages) {
+      langCountStore.set($glLangCodeAndNamesStore.length)
+    } else if (!nonEmptyGlLanguages && nonEmptyNonGlLanguages) {
+      langCountStore.set($nonGlLangCodeAndNamesStore.length)
     } else {
       langCountStore.set(0)
     }
   }
 
   // Filter the language list reactively
-  let langSearchTerm: string = ''
-  let filteredlangCodeAndNames: Array<string> = []
+  let glLangSearchTerm: string = ''
+  let filteredGlLangCodeAndNames: Array<string> = []
   $: {
-    if (langCodesAndNames) {
-      filteredlangCodeAndNames = langCodesAndNames.filter(item =>
-        item.toLowerCase().split(', code:')[0].includes(langSearchTerm.toLowerCase())
+    if (glLangCodesAndNames) {
+      filteredGlLangCodeAndNames = glLangCodesAndNames.filter((item:  string) =>
+        item.toLowerCase().split(", ")[1].includes(glLangSearchTerm.toLowerCase())
+      )
+    }
+  }
+  // Filter the language list reactively
+  let nonGlLangSearchTerm: string = ''
+  let filteredNonGlLangCodeAndNames: Array<string> = []
+  $: {
+    if (nonGlLangCodesAndNames) {
+      filteredNonGlLangCodeAndNames = nonGlLangCodesAndNames.filter((item: string) =>
+        item.toLowerCase().split(", ")[1].includes(nonGlLangSearchTerm.toLowerCase())
       )
     }
   }
 
-  // Update stores for use in this and other pages reactively
-  $: lang0CodeStore.set($langCodeAndNamesStore[0]?.split(', code: ')[1])
-  $: lang1CodeStore.set($langCodeAndNamesStore[1]?.split(', code: ')[1])
-  $: lang0NameStore.set($langCodeAndNamesStore[0]?.split(', code: ')[0])
-  $: lang1NameStore.set($langCodeAndNamesStore[1]?.split(', code: ')[0])
 
+  let glLabel: string = 'Gateway Languages'
+  $: {
+    if ($glLangCodeAndNamesStore.length) {
+      glLabel = `Gateway Languages (${$glLangCodeAndNamesStore.length})`
+    } else {
+      glLabel = 'Gateway Languages'
+    }
+  }
+  let nonGlLabel: string = 'Heart Languages'
+  $: {
+    if ($nonGlLangCodeAndNamesStore.length) {
+      nonGlLabel = `Heart Languages (${$nonGlLangCodeAndNamesStore.length})`
+    } else {
+      nonGlLabel = 'Heart Languages'
+    }
+  }
+
+  // Update stores for use in this and other pages reactively
+  let glLang0Code: string = ''
+  let nonGlLang0Code: string = ''
+  $: {
+    let tmp = $glLangCodeAndNamesStore[0]
+    if (tmp) {
+      glLang0Code = tmp.split(", ")[0]
+    }
+    let tmp2 = $nonGlLangCodeAndNamesStore[0]
+    if (tmp2) {
+      nonGlLang0Code = tmp2.split(", ")[0]
+    }
+    if (glLang0Code && nonGlLang0Code) {
+      lang0CodeStore.set(glLang0Code)
+      lang1CodeStore.set(nonGlLang0Code)
+    } else if (!glLang0Code && nonGlLang0Code) {
+      lang0CodeStore.set(nonGlLang0Code)
+    } else if (glLang0Code && !nonGlLang0Code) {
+      lang0CodeStore.set(glLang0Code)
+    }
+  }
+  let glLang1Code: string = ''
+  let nonGlLang1Code: string = ''
+  $: {
+    let tmp3 = $glLangCodeAndNamesStore[1]
+    if (tmp3) {
+      glLang1Code = tmp3.split(", ")[0]
+    }
+    let tmp4 = $nonGlLangCodeAndNamesStore[1]
+    if (tmp4) {
+      console.log(`tmp4: ${tmp4}`)
+      nonGlLang1Code = tmp4.split(", ")[0]
+    }
+    if (glLang1Code && nonGlLang1Code) {
+      lang0CodeStore.set(glLang1Code)
+      lang1CodeStore.set(nonGlLang1Code)
+    } else if (!glLang1Code && nonGlLang1Code) {
+      lang1CodeStore.set(nonGlLang1Code)
+    } else if (glLang1Code && !nonGlLang1Code) {
+      lang1CodeStore.set(glLang1Code)
+    }
+  }
+
+  let glLang0Name: string = ''
+  let nonGlLang0Name: string = ''
+  $: {
+    let tmp5 = $glLangCodeAndNamesStore[0]
+    if (tmp5) {
+      glLang0Name = tmp5.split(", ")[1]
+    }
+    let tmp6 = $nonGlLangCodeAndNamesStore[0]
+    if (tmp6) {
+      nonGlLang0Name = tmp6.split(", ")[1]
+    }
+    if (glLang0Name && nonGlLang0Name) {
+      lang0NameStore.set(glLang0Name)
+      lang1NameStore.set(nonGlLang0Name)
+    } else if (glLang0Name && !nonGlLang0Name) {
+      lang0NameStore.set(glLang0Name)
+    } else if (!glLang0Name && nonGlLang0Name) {
+      lang0NameStore.set(nonGlLang0Name)
+    }
+  }
+  let glLang1Name: string = ''
+  let nonGlLang1Name: string = ''
+  $: {
+    let tmp7 = $glLangCodeAndNamesStore[1]
+    if (tmp7) {
+      glLang1Name = tmp7.split(", ")[1]
+    }
+    let tmp8 = $nonGlLangCodeAndNamesStore[1]
+    if (tmp8) {
+      nonGlLang1Name = tmp8.split(", ")[1]
+    }
+    if (glLang1Name && nonGlLang1Name) {
+      lang0NameStore.set(glLang1Name)
+      lang1NameStore.set(nonGlLang1Name)
+    } else if (glLang1Name && !nonGlLang1Name) {
+      lang1NameStore.set(glLang1Name)
+    } else if (!glLang1Name && nonGlLang1Name) {
+      lang1NameStore.set(nonGlLang1Name)
+    }
+  }
+
+  $: console.log(`$langCountStore: ${$langCountStore}`)
 
   // For sidebar
   let open = false
@@ -125,42 +260,110 @@
     </button>
   </div>
   <div class="mx-auto w-full px-2 pt-2 mt-2">
-    {#if langCodesAndNames.length == 0}
+    {#if !glLangCodesAndNames || glLangCodesAndNames.length === 0||
+      !nonGlLangCodesAndNames || nonGlLangCodesAndNames.length === 0}
       <ProgressIndicator />
     {:else}
-      <label id="label-for-filter-langs" for="filter-langs">
-        <input
-          id="filter-langs"
-          bind:value={langSearchTerm}
-          placeholder="Filter languages"
-          class="input input-bordered bg-white w-full max-w-xs mb-4"
-        />
-      </label>
+      {#if showGlLanguages}
+        <label id="label-for-filter-gl-langs" for="filter-gl-langs">
+          <input
+            id="filter-gl-langs"
+            bind:value={glLangSearchTerm}
+            placeholder="Filter gateway languages"
+            class="input input-bordered bg-white w-full max-w-xs mb-4"
+          />
+        </label>
+        <div class="flex items-center">
+          <div class="inline-flex" role="group">
+            <button
+              class="rounded-l px-6 py-2.5 bg-[#feeed8]
+                      text-primary-content capitalize font-medium
+                      leading-tight border-x-2 border-t-2 border-b-2 border-[#1a130b99] hover:bg-[#feeee1] focus:bg-[#feeee1] focus:outline-none focus:ring-0 active:bg-[#feeed8] transition duration-150 ease-in-out"
+              on:click={() => (showGlLanguages = true)}
+            >
+              {glLabel}
+            </button>
+            <button
+              class="rounded-r px-6 py-2.5 bg-white text-primary-content capitalize font-medium leading-tight border-r-2 border-t-2 border-b-2 border-[#1a130b99] hover:bg-white focus:bg-white focus:outline-none focus:ring-0 active:bg-white transition duration-150 ease-in-out"
+              on:click={() => (showGlLanguages = false)}
+            >
+              {nonGlLabel}
+            </button>
+          </div>
+        </div>
+      {:else}
+        <label id="label-for-filter-non-gl-langs" for="filter-non-gl-langs">
+          <input
+            id="filter-non-gl-langs"
+            bind:value={nonGlLangSearchTerm}
+            placeholder="Filter heart languages"
+            class="input input-bordered bg-white w-full max-w-xs mb-4"
+          />
+        </label>
+        <div class="flex items-center">
+          <div class="inline-flex" role="group">
+            <button
+                class="rounded-r px-6 py-2.5 bg-white text-primary-content capitalize font-medium leading-tight border-x-2 border-t-2 border-b-2 border-[#1a130b99] hover:bg-white focus:bg-white focus:outline-none focus:ring-0 active:bg-white transition duration-150 ease-in-out"
+              on:click={() => (showGlLanguages = true)}
+            >
+              {glLabel}
+            </button>
+            <button
+                class="rounded-l px-6 py-2.5 bg-[#feeed8] text-primary-content capitalize font-medium leading-tight border-r-2 border-t-2 border-b-2 border-[#1a130b99] hover:bg-[#feeee1] focus:bg-[#feeee1] focus:outline-none focus:ring-0 active:bg-[#feeed8] transition duration-150 ease-in-out"
+              on:click={() => (showGlLanguages = false)}
+            >
+              {nonGlLabel}
+            </button>
+          </div>
+        </div>
+      {/if}
       <p class="text-neutral-content pl-2 mb-4">
         Please select up to 2 languages you want to add.
       </p>
+      {#if showGlLanguages}
+        <ul class="py-2 px-4">
+          {#each glLangCodesAndNames as langCodeAndName, index}
+            <li
+              style={filteredGlLangCodeAndNames.includes(langCodeAndName) ? '' : 'display :none'}
+              class="flex items-center"
+            >
+              <input
+                id="lang-code-{index}"
+                type="checkbox"
+                bind:group={$glLangCodeAndNamesStore}
+                value={langCodeAndName}
+                class="checkbox checkbox-dark-bordered"
+              />
+              <label for="lang-code-{index}" class="text-secondary-content pl-1"
+                >{langCodeAndName.split(", ")[1]}</label
+              >
+            </li>
+          {/each}
+        </ul>
+      {:else}
+        <ul class="py-2 px-4">
+          {#each nonGlLangCodesAndNames as langCodeAndName, index}
+            <li
+              style={filteredNonGlLangCodeAndNames.includes(langCodeAndName) ? '' : 'display :none'}
+              class="flex items-center"
+            >
+              <input
+                id="lang-code-{index}"
+                type="checkbox"
+                bind:group={$nonGlLangCodeAndNamesStore}
+                value={langCodeAndName}
+                class="checkbox checkbox-dark-bordered"
+              />
+              <label for="lang-code-{index}" class="text-secondary-content pl-1"
+                >{langCodeAndName.split(", ")[1]}</label
+              >
+            </li>
+          {/each}
+        </ul>
+      {/if}
     {/if}
   </div>
 
-  <ul class="py-2 px-4">
-    {#each langCodesAndNames as langCodeAndName, index}
-      <li
-        style={filteredlangCodeAndNames.includes(langCodeAndName) ? '' : 'display :none'}
-        class="flex items-center"
-      >
-        <input
-          id="lang-code-{index}"
-          type="checkbox"
-          bind:group={$langCodeAndNamesStore}
-          value={langCodeAndName}
-          class="checkbox checkbox-dark-bordered"
-        />
-        <label for="lang-code-{index}" class="text-secondary-content pl-1"
-          >{langCodeAndName.split(', code: ')[0]}</label
-        >
-      </li>
-    {/each}
-  </ul>
   {#if $langCountStore > 0 && $langCountStore <= maxLanguages}
     <div class="text-center px-2 pt-2 pt-2 pb-8">
       <button

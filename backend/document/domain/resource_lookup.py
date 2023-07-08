@@ -437,7 +437,7 @@ def lang_codes_and_names(
     working_dir: str = settings.RESOURCE_ASSETS_DIR,
     translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
     lang_code_filter_list: Sequence[str] = settings.LANG_CODE_FILTER_LIST,
-) -> list[str]:
+) -> Sequence[tuple[str, str]]:
     """
     Convenience method that can be called from UI to get the set
     of all language code, name tuples available through API.
@@ -446,14 +446,14 @@ def lang_codes_and_names(
     >>> from document.domain import resource_lookup
     >>> data = resource_lookup.lang_codes_and_names()
     >>> data[0]
-    'Abuhaina, code: tbg-x-abuhaina'
+    ('abz', 'Abui')
     """
     data = fetch_source_data(working_dir, translations_json_location)
     values = [
-        "{}, code: {}".format(d["name"], d["code"])
+        (d["code"], d["name"])
         for d in [lang for lang in data if lang["code"] not in lang_code_filter_list]
     ]
-    return sorted(values, key=lambda value: value.split(",")[0])
+    return sorted(values, key=lambda value: value[1])
 
 
 def lang_codes_and_names_for_v1(
@@ -461,7 +461,7 @@ def lang_codes_and_names_for_v1(
     translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
     gateway_languages: Sequence[str] = settings.GATEWAY_LANGUAGES,
     lang_code_filter_list: Sequence[str] = settings.LANG_CODE_FILTER_LIST,
-) -> list[str]:
+) -> Sequence[tuple[str, str]]:
     """
     Convenience method that can be called from UI to get the set
     of gateway only (for v1) language code, name tuples available
@@ -470,11 +470,11 @@ def lang_codes_and_names_for_v1(
     >>> from document.domain import resource_lookup
     >>> data = resource_lookup.lang_codes_and_names_for_v1()
     >>> data[0]
-    'Amharic, code: am'
+    ('am', 'Amharic')
     """
     data = fetch_source_data(working_dir, translations_json_location)
     values = [
-        "{}, code: {}".format(d["name"], d["code"])
+        (d["code"], d["name"])
         for d in [
             lang
             for lang in data
@@ -482,7 +482,7 @@ def lang_codes_and_names_for_v1(
             and lang["code"] not in lang_code_filter_list
         ]
     ]
-    return sorted(values, key=lambda value: value.split(",")[0])
+    return sorted(values, key=lambda value: value[1])
 
 
 def resource_types(jsonpath_str: str = settings.RESOURCE_TYPES_JSONPATH) -> Any:

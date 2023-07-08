@@ -96,10 +96,6 @@
     }
   }
 
-  function resetBooks() {
-    resetStores('books')
-  }
-
   function submitBooks() {
     // If resource types store is not empty, then we
     // should reset it when we change books.

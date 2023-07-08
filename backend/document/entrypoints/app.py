@@ -150,7 +150,7 @@ async def lang_codes() -> Iterable[str]:
 
 
 @app.get("/language_codes_and_names")
-async def lang_codes_and_names() -> list[str]:
+async def lang_codes_and_names() -> Sequence[tuple[str, str]]:
     """
     Return list of all available language code, name tuples.
     """
@@ -158,7 +158,7 @@ async def lang_codes_and_names() -> list[str]:
 
 
 @app.get("/language_codes_and_names_v1")
-async def lang_codes_and_names_for_v1() -> list[str]:
+async def lang_codes_and_names_for_v1() -> Sequence[tuple[str, str]]:
     """
     Return list of available gateway language code, name tuples.
     """
@@ -184,7 +184,7 @@ async def resource_types_for_lang(lang_code: str) -> Sequence[Any]:
 
 
 @app.get("/resource_types_and_names_for_lang/{lang_code}")
-async def resource_types_and_names_for_lang(lang_code: str) -> Sequence[Any]:
+async def resource_types_and_names_for_lang(lang_code: str) -> list[tuple[str, str]]:
     """Return list of available resource types and their names for lang_code."""
     return resource_lookup.resource_types_and_names_for_lang(lang_code)
 

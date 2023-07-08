@@ -64,10 +64,12 @@
   $: {
     if ($langCodeAndNamesStore.length > 0) {
       languagesDisplayString = $langCodeAndNamesStore
-        .map(item => item.split(', code: ')[0])
+        .map(item => item.split(', ')[1])
         .join(', ')
     }
   }
+  $: console.log(`$langCodeAndNamesStore: ${$langCodeAndNamesStore}`)
+  $: console.log(`$languagesDisplayString: ${languagesDisplayString}`)
 
   let otBooksDisplayString: string = ''
   $: {

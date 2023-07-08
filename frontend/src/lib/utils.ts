@@ -1,5 +1,6 @@
 import {
-  langCodeAndNamesStore,
+  glLangCodeAndNamesStore,
+  nonGlLangCodeAndNamesStore,
   lang0NameAndCodeStore,
   lang1NameAndCodeStore,
   lang0CodeStore,
@@ -35,7 +36,8 @@ type StoreGroup = 'languages' | 'books' | 'resource_types' | 'settings' | 'notif
 
 export function resetStores(storeGroup: StoreGroup) {
   if (storeGroup === 'languages') {
-    langCodeAndNamesStore.set([])
+    glLangCodeAndNamesStore.set([])
+    nonGlLangCodeAndNamesStore.set([])
     lang0NameAndCodeStore.set('')
     lang1NameAndCodeStore.set('')
     lang0CodeStore.set('')
