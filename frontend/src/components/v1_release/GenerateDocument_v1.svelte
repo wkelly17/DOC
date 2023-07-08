@@ -230,6 +230,7 @@
     } else if ($emailStore && $emailStore !== '') {
       emailStore.set($emailStore.trim())
       // Send email to LogRocket using identify
+      LogRocket.init('ct7zyg/interleaved-resource-generator')
       LogRocket.identify($emailStore)
     }
 
