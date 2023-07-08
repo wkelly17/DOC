@@ -157,14 +157,8 @@
   let glLang0Code: string = ''
   let nonGlLang0Code: string = ''
   $: {
-    let tmp = $glLangCodeAndNamesStore[0]
-    if (tmp) {
-      glLang0Code = tmp.split(", ")[0]
-    }
-    let tmp2 = $nonGlLangCodeAndNamesStore[0]
-    if (tmp2) {
-      nonGlLang0Code = tmp2.split(", ")[0]
-    }
+    glLang0Code = $glLangCodeAndNamesStore[0]?.split(", ")[0]
+    nonGlLang0Code = $nonGlLangCodeAndNamesStore[0]?.split(", ")[0]
     if (glLang0Code && nonGlLang0Code) {
       lang0CodeStore.set(glLang0Code)
       lang1CodeStore.set(nonGlLang0Code)
@@ -177,15 +171,8 @@
   let glLang1Code: string = ''
   let nonGlLang1Code: string = ''
   $: {
-    let tmp3 = $glLangCodeAndNamesStore[1]
-    if (tmp3) {
-      glLang1Code = tmp3.split(", ")[0]
-    }
-    let tmp4 = $nonGlLangCodeAndNamesStore[1]
-    if (tmp4) {
-      console.log(`tmp4: ${tmp4}`)
-      nonGlLang1Code = tmp4.split(", ")[0]
-    }
+    glLang1Code = $glLangCodeAndNamesStore[1]?.split(", ")[0]
+    nonGlLang1Code = $nonGlLangCodeAndNamesStore[1]?.split(", ")[0]
     if (glLang1Code && nonGlLang1Code) {
       lang0CodeStore.set(glLang1Code)
       lang1CodeStore.set(nonGlLang1Code)
@@ -199,14 +186,8 @@
   let glLang0Name: string = ''
   let nonGlLang0Name: string = ''
   $: {
-    let tmp5 = $glLangCodeAndNamesStore[0]
-    if (tmp5) {
-      glLang0Name = tmp5.split(", ")[1]
-    }
-    let tmp6 = $nonGlLangCodeAndNamesStore[0]
-    if (tmp6) {
-      nonGlLang0Name = tmp6.split(", ")[1]
-    }
+    glLang0Name = $glLangCodeAndNamesStore[0]?.split(", ")[1]
+    nonGlLang0Name = $nonGlLangCodeAndNamesStore[0]?.split(", ")[1]
     if (glLang0Name && nonGlLang0Name) {
       lang0NameStore.set(glLang0Name)
       lang1NameStore.set(nonGlLang0Name)
@@ -219,14 +200,8 @@
   let glLang1Name: string = ''
   let nonGlLang1Name: string = ''
   $: {
-    let tmp7 = $glLangCodeAndNamesStore[1]
-    if (tmp7) {
-      glLang1Name = tmp7.split(", ")[1]
-    }
-    let tmp8 = $nonGlLangCodeAndNamesStore[1]
-    if (tmp8) {
-      nonGlLang1Name = tmp8.split(", ")[1]
-    }
+    glLang1Name = $glLangCodeAndNamesStore[1]?.split(", ")[1]
+    nonGlLang1Name = $nonGlLangCodeAndNamesStore[1]?.split(", ")[1]
     if (glLang1Name && nonGlLang1Name) {
       lang0NameStore.set(glLang1Name)
       lang1NameStore.set(nonGlLang1Name)
