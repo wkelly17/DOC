@@ -47,13 +47,13 @@
         // console.log(`langCodesAndNames_: ${langCodesAndNames_}`)
         // Filter set of all languages for gl languages
         glLangCodesAndNames = langCodesAndNames_.filter((element: [string, string]) => {
-          return glLangs.some(item => item === element[0])
+          return glLangs.some((item: string) => item === element[0])
         })
         .map(tuple => `${tuple[0]}, ${tuple[1]}`)
         // Filter set of all languages for non-gl languages
         // console.log(`glLangCodesAndNames: ${glLangCodesAndNames}`)
         nonGlLangCodesAndNames = langCodesAndNames_.filter((element: [string, string]) => {
-          return !glLangs.some(item => item === element[0])
+          return !glLangs.some((item: string) => item === element[0])
         })
         .map(tuple => `${tuple[0]}, ${tuple[1]}`)
         // console.log(`nonGlLangCodesAndNames: ${nonGlLangCodesAndNames}`)
