@@ -4,6 +4,7 @@ let groupingOrderDefault: string = <string>import.meta.env.VITE_LANGUAGE_BOOK_OR
 let chunkSizeDefault: string = <string>import.meta.env.VITE_CHUNK_SIZE_CHAPTER
 
 export let layoutForPrintStore: Writable<boolean> = writable<boolean>(false)
+export let limitTwStore: Writable<boolean> = writable<boolean>(true)
 export let assemblyStrategyKindStore: Writable<string> =
   writable<string>(groupingOrderDefault)
 export let assemblyStrategyChunkSizeStore: Writable<string> =

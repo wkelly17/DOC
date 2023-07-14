@@ -158,8 +158,8 @@ class ResourceRequest(BaseModel):
 @final
 class DocumentRequestSourceEnum(str, Enum):
     """
-        This class/enum captures the concept of: where did the document
-        request originate from? At present it originates from either the UI or
+    This class/enum captures the concept of: where did the document
+    request originate from? At present it originates from either the UI or
     tests.
     """
 
@@ -249,9 +249,11 @@ class DocumentRequest(BaseModel):
 
         from document.config import settings
 
+        # TODO Consider moving settings.* up to defaulted function parameter
         non_en_usfm_resource_types: tuple[Sequence[str]] = (
             settings.USFM_RESOURCE_TYPES,
         )
+        # TODO Consider moving settings.* up to defaulted function parameter
         en_usfm_resource_types: tuple[Sequence[str]] = (
             settings.EN_USFM_RESOURCE_TYPES,
         )

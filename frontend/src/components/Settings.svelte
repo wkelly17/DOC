@@ -9,8 +9,10 @@
     generatePdfStore,
     generateEpubStore,
     generateDocxStore,
-    emailStore
+    emailStore,
+    limitTwStore
   } from '../stores/SettingsStore'
+  import { twResourceRequestedStore } from '../stores/ResourceTypesStore'
   import { lang1CodeStore } from '../stores/LanguagesStore'
   import GenerateDocument from './GenerateDocument.svelte'
   import Mast from './Mast.svelte'
@@ -56,8 +58,7 @@
       $generateEpubStore = false
       $docTypeStore = 'pdf'
       console.log('Print optimization selected, therefore Docx and ePub output disabled')
-    }
-    else {
+    } else {
       $generatePdfStore = true
       $generateDocxStore = false
       $generateEpubStore = false
@@ -78,9 +79,7 @@
 <Tabs />
 {/if}
 
-<h3 class="bg-white text-secondary-content text-lg pb-8 pt-2 pl-2">
-  Interleave Settings
-</h3>
+<h3 class="bg-white text-secondary-content text-lg pb-8 pt-2 pl-2">Document Settings</h3>
 <ul>
   <li class="bg-white p-2">
     <div class="flex justify-between">
@@ -93,6 +92,20 @@
       >
     </div>
   </li>
+  {#if $twResourceRequestedStore}
+  <li class="bg-white p-2">
+    <div class="flex justify-between">
+      <span class="text-primary-content">Limit TW words</span>
+      <Switch bind:checked="{$limitTwStore}" id="limit-tw-store" />
+    </div>
+    <div>
+      <span class="text-sm text-neutral-content"
+        >Enabling this option will filter TW words down to only those that occur in the
+        books chosen</span
+      >
+    </div>
+  </li>
+  {/if}
   <!-- {#if $lang1CodeStore && !$layoutForPrintStore} -->
   {#if false}
   <li class="bg-white p-2">

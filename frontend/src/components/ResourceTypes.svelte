@@ -11,7 +11,8 @@
   import {
     lang0ResourceTypesStore,
     lang1ResourceTypesStore,
-    resourceTypesCountStore
+    resourceTypesCountStore,
+    twResourceRequestedStore
   } from '../stores/ResourceTypesStore'
   import LeftArrow from './LeftArrow.svelte'
   import ProgressIndicator from './ProgressIndicator.svelte'
@@ -43,6 +44,19 @@
     }
 
     return resourceTypesAndNames
+  }
+
+
+  let regexp = new RegExp(".*tw.*")
+  $: {
+    if ($lang0ResourceTypesStore) {
+      twResourceRequestedStore.set($lang0ResourceTypesStore.some(item => regexp.test(item)))
+    }
+  }
+  $: {
+    if ($lang1ResourceTypesStore) {
+      twResourceRequestedStore.set($lang1ResourceTypesStore.some(item => regexp.test(item)))
+    }
   }
 
   // Resolve promise for data

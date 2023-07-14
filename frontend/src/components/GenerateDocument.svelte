@@ -20,7 +20,8 @@
     generateEpubStore,
     generateDocxStore,
     emailStore,
-    documentRequestKeyStore
+    documentRequestKeyStore,
+    limitTwStore
   } from '../stores/SettingsStore'
   import { documentReadyStore, errorStore } from '../stores/NotificationStore'
   import { taskIdStore, taskStateStore } from '../stores/TaskStore'
@@ -112,7 +113,8 @@
       generate_epub: $generateEpubStore,
       generate_docx: $generateDocxStore,
       resource_requests: rr,
-      document_request_source: "ui"
+      document_request_source: "ui",
+      limit_words: $limitTwStore
     }
     console.log('document request: ', JSON.stringify(documentRequest, null, 2))
     push('#/experimental/result')

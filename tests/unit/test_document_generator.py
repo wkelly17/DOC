@@ -86,7 +86,12 @@ def test_document_request_key_too_long_for_semantic_result() -> None:
     assembly_layout_kind = model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT
     # fmt: on
     chunk_size = model.ChunkSizeEnum.VERSE
+    limit_words = True
     key = document_generator.document_request_key(
-        resource_requests, assembly_strategy_kind, assembly_layout_kind, chunk_size
+        resource_requests,
+        assembly_strategy_kind,
+        assembly_layout_kind,
+        chunk_size,
+        limit_words,
     )
     assert re.search(r"[0-9]+_[0-9]+", key)

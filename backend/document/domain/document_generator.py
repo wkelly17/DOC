@@ -59,6 +59,7 @@ def document_request_key(
     assembly_strategy_kind: AssemblyStrategyEnum,
     assembly_layout_kind: AssemblyLayoutEnum,
     chunk_size: ChunkSizeEnum,
+    limit_words: bool,
     max_filename_len: int = 240,
     underscore: str = "_",
     hyphen: str = "-",
@@ -72,7 +73,7 @@ def document_request_key(
     current time. The reason for this is that the document request key is
     used as the file name (with suffix appended) and each OS has a limit
     to how long a file name may be. max_filename_len should make room for
-    the a file suffix, e.g., ".html", to be appended.
+    the file suffix, e.g., ".html", to be appended.
 
     It is really useful to have filenames with semantic meaning and so
     those are preferred when possible, i.e., when the file name is not
@@ -90,11 +91,12 @@ def document_request_key(
             for resource_request in resource_requests
         ]
     )
-    document_request_key = "{}_{}_{}_{}".format(
+    document_request_key = "{}_{}_{}_{}_{}".format(
         resource_request_keys,
         assembly_strategy_kind.value,
         assembly_layout_kind.value,
         chunk_size.value,
+        "ltwt" if limit_words else "ltwf",
     )
     if len(document_request_key) >= max_filename_len:
         # Likely the generated filename was too long for the OS where this is
@@ -220,17 +222,22 @@ def translation_words_section(
     book_content_unit: TWBook,
     usfm_book_content_units: Optional[Sequence[USFMBook]],
     limit_words: bool,
+    resource_requests: Sequence[ResourceRequest],
     include_uses_section: bool = True,
     resource_type_name_fmt_str: str = settings.RESOURCE_TYPE_NAME_FMT_STR,
     opening_h3_fmt_str: str = settings.OPENING_H3_FMT_STR,
     opening_h3_with_id_fmt_str: str = settings.OPENING_H3_WITH_ID_FMT_STR,
+    usfm_resource_types: Sequence[str] = settings.USFM_RESOURCE_TYPES,
+    en_usfm_resource_types: Sequence[str] = settings.EN_USFM_RESOURCE_TYPES,
 ) -> Iterable[HtmlContent]:
     """
     Build and return the translation words definition section, i.e.,
     the list of all translation words for this language, book
     combination. Include a 'Uses:' section that points from the
     translation word back to the verses which include the translation
-    word if include_uses_section is True.
+    word if include_uses_section is True. Limit the translation words
+    to only those that appear in the USFM resouce chosen if limit_words is
+    True.
     """
 
     if book_content_unit.name_content_pairs:
@@ -260,7 +267,7 @@ def translation_words_section(
             "len(book_content_unit.name_content_pairs): %s",
             len(book_content_unit.name_content_pairs),
         )
-        # Unfortunate asymptotics here, but at least very finite list lengths.
+        # Unfortunate asymptotics here, but at least we have finite list lengths.
         for name_content_pair in book_content_unit.name_content_pairs:
             for usfm_book_content_unit in usfm_book_content_units:
                 for chapter in usfm_book_content_unit.chapters.values():
@@ -273,16 +280,91 @@ def translation_words_section(
                         # )
                         selected_name_content_pairs.append(name_content_pair)
                         break
+    elif (
+        usfm_book_content_units is None
+        and not usfm_book_content_units
+        and limit_words
+    ):
+        # 1. Fetch URL for USFM resource for the given lang_code
+        # 2. Fetch asset for USFM resource
+        # 3. Parse USFM asset
+        # 4. Do loop, as above, to filter TW words
 
+        usfm_resource_lookup_dtos = []
+        for resource_request in resource_requests:
+            if resource_request.lang_code == "en":
+                for usfm_type in en_usfm_resource_types:
+                    usfm_resource_lookup_dtos.append(
+                        resource_lookup.resource_lookup_dto(
+                            resource_request.lang_code,
+                            usfm_type,
+                            resource_request.resource_code,
+                        )
+                    )
+            else:
+                for usfm_type in usfm_resource_types:
+                    usfm_resource_lookup_dtos.append(
+                        resource_lookup.resource_lookup_dto(
+                            resource_request.lang_code,
+                            usfm_type,
+                            resource_request.resource_code,
+                        )
+                    )
+
+        # Determine which resource URLs were actually found.
+        found_usfm_resource_lookup_dtos = [
+            resource_lookup_dto
+            for resource_lookup_dto in usfm_resource_lookup_dtos
+            if resource_lookup_dto.url is not None
+        ]
+
+        current_task.update_state(state="Provisioning USFM asset files for TW resource")
+        t0 = time.time()
+        resource_dirs = [
+            resource_lookup.provision_asset_files(dto)
+            for dto in found_usfm_resource_lookup_dtos
+        ]
+        t1 = time.time()
+        logger.debug(
+            "Time to provision USFM asset files (acquire and write to disk) for TW resource: %s",
+            t1 - t0,
+        )
+
+        current_task.update_state(state="Parsing USFM asset files for TW resource")
+        # Initialize found resources from their provisioned assets.
+        # t0 = time.time()
+        usfm_book_content_units = [
+            parsing.usfm_book_content(
+                resource_lookup_dto,
+                resource_dir,
+                resource_requests,
+                False,
+            )
+            for resource_lookup_dto, resource_dir in zip(
+                found_usfm_resource_lookup_dtos, resource_dirs
+            )
+        ]
+
+        current_task.update_state(state="Limiting TW words")
+        # Unfortunate asymptotics here, but at least we have finite list lengths.
+        for name_content_pair in book_content_unit.name_content_pairs:
+            for usfm_book_content_unit in usfm_book_content_units:
+                for chapter in usfm_book_content_unit.chapters.values():
+                    if re.search(
+                        re.escape(name_content_pair.localized_word),
+                        "".join(chapter.content),
+                    ):
+                        # logger.debug(
+                        #     "Adding TW word: %s", name_content_pair.localized_word
+                        # )
+                        selected_name_content_pairs.append(name_content_pair)
+                        break
     else:
         selected_name_content_pairs = book_content_unit.name_content_pairs
 
-    logger.debug(
-        "len(selected_name_content_pairs): %s", len(selected_name_content_pairs)
-    )
+    logger.debug("Number of TW words: %s", len(selected_name_content_pairs))
 
     for name_content_pair in selected_name_content_pairs:
-
         # Make linking work: have to add ID to tags for anchor
         # links to work.
         name_content_pair.content = HtmlContent(
@@ -370,6 +452,7 @@ def assemble_content(
                         tw_book_content_unit,
                         usfm_book_content_units,
                         document_request.limit_words,
+                        document_request.resource_requests,
                     )
                 ),
             )
@@ -383,6 +466,7 @@ def assemble_content(
                         tw_book_content_unit,
                         None,
                         document_request.limit_words,
+                        document_request.resource_requests,
                         include_uses_section=False,
                     )
                 ),
@@ -442,8 +526,6 @@ def assemble_docx_content(
 
     tw_subdocs = []
     if tw_book_content_units:
-        # Get last composer so that we can add TW to it
-        # last_composer = composers[-1]
         html_to_docx = HtmlToDocx()
         t0 = time.time()
         # Add the translation words definition section for each language requested.
@@ -462,6 +544,7 @@ def assemble_docx_content(
                             tw_book_content_unit,
                             usfm_book_content_units,
                             document_request.limit_words,
+                            document_request.resource_requests,
                             include_uses_section=False,
                         )
                     )
@@ -476,8 +559,9 @@ def assemble_docx_content(
                     "".join(
                         translation_words_section(
                             tw_book_content_unit,
-                            usfm_book_content_units,
+                            None,
                             document_request.limit_words,
+                            document_request.resource_requests,
                             include_uses_section=False,
                         )
                     )
@@ -934,6 +1018,7 @@ def main(document_request_json: Json[Any]) -> Json[Any]:
         document_request.assembly_strategy_kind,
         document_request.assembly_layout_kind,
         document_request.chunk_size,
+        document_request.limit_words,
     )
     html_filepath_ = html_filepath(document_request_key_)
     pdf_filepath_ = pdf_filepath(document_request_key_)
@@ -1057,6 +1142,7 @@ def alt_main(document_request_json: Json[Any]) -> Json[Any]:
         document_request.assembly_strategy_kind,
         document_request.assembly_layout_kind,
         document_request.chunk_size,
+        document_request.limit_words,
     )
     html_filepath_ = html_filepath(document_request_key_)
     docx_filepath_ = docx_filepath(document_request_key_)

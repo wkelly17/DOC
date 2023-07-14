@@ -13,7 +13,8 @@ import { otBookStore, ntBookStore, bookCountStore } from '../stores/BooksStore'
 import {
   lang0ResourceTypesStore,
   lang1ResourceTypesStore,
-  resourceTypesCountStore
+  resourceTypesCountStore,
+  twResourceRequestedStore
 } from '../stores/ResourceTypesStore'
 import {
   documentReadyStore,
@@ -67,6 +68,7 @@ export function resetStores(storeGroup: StoreGroup) {
     generateDocxStore.set(false)
     // emailStore.set(null)
     documentRequestKeyStore.set('')
+    twResourceRequestedStore.set(true)
   }
 
   if (storeGroup === 'notifications') {

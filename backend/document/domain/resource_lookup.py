@@ -1621,7 +1621,7 @@ def shared_resource_types(
             # the files to see if the resource code is provided. I had experimental
             # code checked in which addresses this, but which I am not using
             # currently (and may never be). See git history for this module.
-            seleccted_resource_types_for_resource_codes = [
+            selected_resource_types_for_resource_codes = [
                 resource_code
                 for resource_code in resource_type["subcontents"]
                 if resource_code["code"] in resource_codes
@@ -1629,7 +1629,7 @@ def shared_resource_types(
             # Determine if suitable link(s) exist for "contents"-scoped resource
             # types We use this in the conditional below to assert that TN, TQ, and
             # TW resource types have a downloadable or cloneable asset and thus
-            # should be included as avaiable resdurce types along with book specific
+            # should be included as avaiable resource types along with book specific
             # assets like those for USFM, BC.
             links_for_resource_type = [
                 link
@@ -1643,7 +1643,7 @@ def shared_resource_types(
                 # Check If there are resource codes associated with this resource type
                 # which conincide with the resource codes that the user selected.
                 and (
-                    seleccted_resource_types_for_resource_codes
+                    selected_resource_types_for_resource_codes
                     or (
                         supported_language_scoped_resource_type(
                             lang_code, resource_type["code"]
