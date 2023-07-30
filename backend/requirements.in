@@ -23,6 +23,7 @@ pydantic
 email-validator
 psutil
 python-dotenv
+pyyaml
 redis
 requests
 setuptools

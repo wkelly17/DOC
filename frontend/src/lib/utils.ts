@@ -68,7 +68,7 @@ export function resetStores(storeGroup: StoreGroup) {
     generateDocxStore.set(false)
     // emailStore.set(null)
     documentRequestKeyStore.set('')
-    twResourceRequestedStore.set(true)
+    twResourceRequestedStore.set(false)
   }
 
   if (storeGroup === 'notifications') {

@@ -374,6 +374,17 @@ class AssetSourceEnum(str, Enum):
 
 
 @final
+class LangDirEnum(str, Enum):
+    """
+    This class/enum enumerates the possible language display
+    directions: LTR or RTL.
+    """
+
+    LTR = "ltr"
+    RTL = "rtl"
+
+
+@final
 class ResourceLookupDto(NamedTuple):
     """
     'Data transfer object' that we use to send resource lookup related
@@ -414,6 +425,7 @@ class TNBook(NamedTuple):
     resource_type_name: str
     intro_html: HtmlContent
     chapters: dict[ChapterNum, TNChapter]
+    lang_direction: LangDirEnum
 
 
 @final
@@ -438,6 +450,7 @@ class TQBook(NamedTuple):
     resource_code: str
     resource_type_name: str
     chapters: dict[ChapterNum, TQChapter]
+    lang_direction: LangDirEnum
 
 
 @final
@@ -478,6 +491,7 @@ class TWBook(NamedTuple):
     lang_name: str
     resource_code: str
     resource_type_name: str
+    lang_direction: LangDirEnum
     name_content_pairs: list[TWNameContentPair] = []
     uses: dict[str, list[TWUse]] = {}
 
@@ -534,6 +548,7 @@ class USFMBook(NamedTuple):
     resource_code: str
     resource_type_name: str
     chapters: dict[ChapterNum, USFMChapter]
+    lang_direction: LangDirEnum
 
 
 BookContent = Union[USFMBook, TNBook, TQBook, TWBook, BCBook]

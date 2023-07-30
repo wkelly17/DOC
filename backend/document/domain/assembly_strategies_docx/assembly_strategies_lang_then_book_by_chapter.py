@@ -7,6 +7,7 @@ from document.domain.assembly_strategies.assembly_strategy_utils import (
     book_intro_commentary,
     book_number,
     chapter_commentary,
+    chapter_content_sans_footnotes,
     chapter_intro,
     verses_for_chapter_tn,
     verses_for_chapter_tq,
@@ -23,6 +24,7 @@ from document.domain.bible_books import BOOK_NUMBERS, BOOK_NAMES
 from document.domain.model import (
     BCBook,
     HtmlContent,
+    LangDirEnum,
     TNBook,
     TQBook,
     TWBook,
@@ -66,23 +68,26 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
     if tn_book_content_unit:
         if tn_book_content_unit.intro_html:
             subdoc = create_docx_subdoc(
-                tn_book_content_unit.intro_html, tn_book_content_unit.lang_code
+                tn_book_content_unit.intro_html,
+                tn_book_content_unit.lang_code,
+                tn_book_content_unit
+                and tn_book_content_unit.lang_direction == LangDirEnum.RTL,
             )
             composer.append(subdoc)
 
     if bc_book_content_unit:
         if bc_book_content_unit.book_intro:
             subdoc = create_docx_subdoc(
-                "".join(bc_book_content_unit.book_intro), bc_book_content_unit.lang_code
+                "".join(bc_book_content_unit.book_intro),
+                bc_book_content_unit.lang_code,
             )
             composer.append(subdoc)
 
     if usfm_book_content_unit:
-        # TODO If we set language in Word section, then this is a placeholder
-        # for where that would likely happen. Setting the language keeps Word's
-        # spellcheck process from complaining in a multi-language environment.
-        # Book title centered
         # TODO One day book title could be localized.
+        # fmt: off
+        is_rtl = usfm_book_content_unit and usfm_book_content_unit.lang_direction == LangDirEnum.RTL
+        # fmt: on
         subdoc = create_docx_subdoc(
             "".join(
                 book_name_fmt_str.format(
@@ -90,7 +95,7 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
                 )
             ),
             usfm_book_content_unit.lang_code,
-            False,
+            is_rtl,
         )
         composer.append(subdoc)
 
@@ -99,7 +104,6 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
             chapter,
         ) in usfm_book_content_unit.chapters.items():
             add_one_column_section(doc)
-
             tn_verses: Optional[dict[VerseRef, HtmlContent]] = None
             tq_verses: Optional[dict[VerseRef, HtmlContent]] = None
             chapter_intro_ = HtmlContent("")
@@ -122,80 +126,71 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
             #
             # Find the index of where footnotes occur at the end of
             # chapter.content, if the chapter has footnotes.
-            index_of_footnotes = 0
-            for idx, element in enumerate(chapter.content):
-                if re.search("footnotes", element):
-                    index_of_footnotes = idx
+            chapter_content_sans_footnotes_ = chapter_content_sans_footnotes(
+                chapter.content
+            )
+            # # fmt: off
+            # is_rtl = usfm_book_content_unit and usfm_book_content_unit.lang_direction == LangDirEnum.RTL
+            # # fmt: on
+            logger.debug("is_rtl: %s", is_rtl)
 
-            # Now let's interleave USFM chapter.
-            if index_of_footnotes != 0:  # chapter.content includes footnote
-                chapter_content_sans_footnotes = chapter.content[
-                    0 : index_of_footnotes - 1
-                ]
-                subdoc = create_docx_subdoc(
-                    "".join(chapter_content_sans_footnotes),
-                    usfm_book_content_unit.lang_code,
-                )
-                composer.append(subdoc)
-            else:
-                subdoc = create_docx_subdoc(
-                    "".join(chapter.content), usfm_book_content_unit.lang_code
-                )
-                composer.append(subdoc)
+            subdoc = create_docx_subdoc(
+                "".join(chapter_content_sans_footnotes_),
+                usfm_book_content_unit.lang_code,
+                is_rtl,
+            )
+            composer.append(subdoc)
 
             # Add scripture footnotes if available
             if chapter.footnotes:
                 subdoc = create_docx_subdoc(
                     "{}{}".format(footnotes_heading, chapter.footnotes),
                     usfm_book_content_unit.lang_code,
+                    is_rtl,
                 )
                 composer.append(subdoc)
 
             if chapter_intro_:
                 subdoc = create_docx_subdoc(
-                    chapter_intro_, usfm_book_content_unit.lang_code
+                    chapter_intro_, usfm_book_content_unit.lang_code, is_rtl
                 )
                 composer.append(subdoc)
             if chapter_commentary_:
                 subdoc = create_docx_subdoc(
-                    chapter_commentary_, usfm_book_content_unit.lang_code
+                    chapter_commentary_, usfm_book_content_unit.lang_code, is_rtl
                 )
                 composer.append(subdoc)
 
             # Add TN verse content, if any
             if tn_book_content_unit and tn_verses is not None and tn_verses:
                 add_two_column_section(doc)
-
                 subdoc = create_docx_subdoc(
                     tn_verse_notes_enclosing_div_fmt_str.format(
                         "".join(tn_verses.values()),
                     ),
                     usfm_book_content_unit.lang_code,
-                    False,
+                    is_rtl,
                 )
                 composer.append(subdoc)
 
                 add_one_column_section(doc)
-
                 p = doc.add_paragraph()
                 add_hr(p)
 
             # Add TQ verse content, if any.
             if tq_book_content_unit and tq_verses is not None and tq_verses:
                 add_two_column_section(doc)
-
                 subdoc = create_docx_subdoc(
                     tq_heading_and_questions_fmt_str.format(
                         tq_book_content_unit.resource_type_name,
                         "".join(tq_verses.values()),
                     ),
                     usfm_book_content_unit.lang_code,
-                    False,
+                    is_rtl,
                 )
                 composer.append(subdoc)
 
                 add_one_column_section(doc)
-
                 p = doc.add_paragraph()
                 add_hr(p)
 
@@ -206,16 +201,15 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
             # validation.
             if usfm_book_content_unit2:
                 add_one_column_section(doc)
-
                 # Here we add the whole chapter's worth of verses for the secondary usfm
                 subdoc = create_docx_subdoc(
                     "".join(usfm_book_content_unit2.chapters[chapter_num].content),
                     usfm_book_content_unit.lang_code,
+                    usfm_book_content_unit2
+                    and usfm_book_content_unit2.lang_direction == LangDirEnum.RTL,
                 )
                 composer.append(subdoc)
-
             add_page_break(doc)
-
     return composer
 
 
@@ -242,13 +236,13 @@ def assemble_tn_as_iterator_by_chapter_for_lang_then_book_1c(
     composer = Composer(doc)
 
     if tn_book_content_unit:
-        # TODO If we set language in Word section, then this is a placeholder
-        # for where that would likely happen. Setting the language keeps Word's
-        # spellcheck process from complaining in a multi-language environment.
         if tn_book_content_unit.intro_html:
             # Add the chapter intro
             subdoc = create_docx_subdoc(
-                "".join(tn_book_content_unit.intro_html), tn_book_content_unit.lang_code
+                "".join(tn_book_content_unit.intro_html),
+                tn_book_content_unit.lang_code,
+                tn_book_content_unit
+                and tn_book_content_unit.lang_direction == LangDirEnum.RTL,
             )
             composer.append(subdoc)
 
@@ -281,7 +275,10 @@ def assemble_tn_as_iterator_by_chapter_for_lang_then_book_1c(
             one_column_html.append(chapter_intro(tn_book_content_unit, chapter_num))
 
             subdoc = create_docx_subdoc(
-                "".join(one_column_html), tn_book_content_unit.lang_code
+                "".join(one_column_html),
+                tn_book_content_unit.lang_code,
+                tn_book_content_unit
+                and tn_book_content_unit.lang_direction == LangDirEnum.RTL,
             )
             composer.append(subdoc)
 
@@ -301,42 +298,38 @@ def assemble_tn_as_iterator_by_chapter_for_lang_then_book_1c(
             # Add TN verse content, if any
             if tn_book_content_unit and tn_verses is not None and tn_verses:
                 add_two_column_section(doc)
-
                 subdoc = create_docx_subdoc(
                     tn_verse_notes_enclosing_div_fmt_str.format(
                         "".join(tn_verses.values()),
                     ),
                     tn_book_content_unit.lang_code,
-                    False,
+                    tn_book_content_unit
+                    and tn_book_content_unit.lang_direction == LangDirEnum.RTL,
                 )
                 composer.append(subdoc)
 
                 add_one_column_section(doc)
-
                 p = doc.add_paragraph()
                 add_hr(p)
 
             # Add TQ verse content, if any
             if tq_book_content_unit and tq_verses:
                 add_two_column_section(doc)
-
                 subdoc = create_docx_subdoc(
                     tq_heading_and_questions_fmt_str.format(
                         tq_book_content_unit.resource_type_name,
                         "".join(tq_verses.values()),
                     ),
                     tq_book_content_unit.lang_code,
-                    False,
+                    tq_book_content_unit
+                    and tq_book_content_unit.lang_direction == LangDirEnum.RTL,
                 )
                 composer.append(subdoc)
 
                 add_one_column_section(doc)
-
                 p = doc.add_paragraph()
                 add_hr(p)
-
             add_page_break(doc)
-
     return composer
 
 
@@ -379,7 +372,8 @@ def assemble_tq_tw_for_by_chapter_lang_then_book_1c(
                     chapter_num,
                 ),
                 tq_book_content_unit.lang_code,
-                False,
+                tq_book_content_unit
+                and tq_book_content_unit.lang_direction == LangDirEnum.RTL,
             )
             composer.append(subdoc)
 
@@ -389,18 +383,17 @@ def assemble_tq_tw_for_by_chapter_lang_then_book_1c(
             # Add TQ verse content, if any
             if tq_verses:
                 add_two_column_section(doc)
-
                 subdoc = create_docx_subdoc(
                     tq_heading_and_questions_fmt_str.format(
                         tq_book_content_unit.resource_type_name,
                         "".join(tq_verses.values()),
                     ),
                     tq_book_content_unit.lang_code,
+                    tq_book_content_unit
+                    and tq_book_content_unit.lang_direction == LangDirEnum.RTL,
                 )
                 composer.append(subdoc)
-
             add_page_break(doc)
-
     return composer
 
 
@@ -441,6 +434,5 @@ def assemble_tw_as_iterator_by_chapter_for_lang_then_book(
             composer.append(subdoc)
 
             add_page_break(doc)
-
 
     return composer

@@ -421,7 +421,7 @@ def adjust_chapter_heading(
     return [sub(h2, h3, chapter_component) for chapter_component in chapter_content]
 
 
-def chapter_verse_content_sans_footnotes(chapter_content: Sequence[HtmlContent]) -> str:
+def chapter_content_sans_footnotes(chapter_content: Sequence[HtmlContent]) -> str:
     """
     Return chapter content sans footnotes at end of each chapter.
     """

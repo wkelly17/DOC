@@ -8,7 +8,7 @@ from document.domain.assembly_strategies.assembly_strategy_utils import (
     book_intro_commentary,
     chapter_commentary,
     chapter_intro,
-    chapter_verse_content_sans_footnotes,
+    chapter_content_sans_footnotes,
     ensure_primary_usfm_books_for_different_languages_are_adjacent,
     verses_for_chapter_tn,
     verses_for_chapter_tq,
@@ -18,6 +18,7 @@ from document.domain.model import (
     BCBook,
     BookContent,
     HtmlContent,
+    LangDirEnum,
     TNBook,
     TQBook,
     TWBook,
@@ -43,6 +44,9 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr(
     html_row_end: str = settings.HTML_ROW_END,
     book_names: Mapping[str, str] = BOOK_NAMES,
     book_name_fmt_str: str = settings.BOOK_NAME_FMT_STR,
+    rtl_direction_html: str = settings.RTL_DIRECTION_HTML,
+    ltr_direction_html: str = settings.LTR_DIRECTION_HTML,
+    close_direction_html: str = "</div>",
 ) -> Iterable[HtmlContent]:
     """
     Construct the HTML for the two column scripture left scripture
@@ -164,10 +168,18 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr(
 
     # Add book intros for each tn_book_content_unit
     for tn_book_content_unit in tn_book_content_units:
+        if (
+            tn_book_content_unit
+            and tn_book_content_unit.lang_direction == LangDirEnum.RTL
+        ):
+            yield rtl_direction_html
+        else:
+            yield ltr_direction_html
+
         # Add the book intro
         book_intro = tn_book_content_unit.intro_html
-        book_intro = adjust_book_intro_headings(book_intro)
-        yield HtmlContent(book_intro)
+        yield adjust_book_intro_headings(book_intro)
+        yield close_direction_html
 
     for bc_book_content_unit in bc_book_content_units:
         yield book_intro_commentary(bc_book_content_unit)
@@ -195,8 +207,17 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr(
         yield chapter_heading
 
         for tn_book_content_unit2 in tn_book_content_units:
+            if (
+                tn_book_content_unit
+                and tn_book_content_unit.lang_direction == LangDirEnum.RTL
+            ):
+                yield rtl_direction_html
+            else:
+                yield ltr_direction_html
+
             # Add the translation notes chapter intro.
             yield chapter_intro(tn_book_content_unit2, chapter_num)
+            yield close_direction_html
 
         for bc_book_content_unit in bc_book_content_units:
             # Add the chapter commentary.
@@ -230,8 +251,16 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr(
                 else:
                     yield html_column_right_begin
 
+                if (
+                    usfm_book_content_unit
+                    and usfm_book_content_unit.lang_direction == LangDirEnum.RTL
+                ):
+                    yield rtl_direction_html
+                else:
+                    yield ltr_direction_html
+
                 # Add scripture chapter
-                yield chapter_verse_content_sans_footnotes(
+                yield chapter_content_sans_footnotes(
                     usfm_book_content_unit.chapters[chapter_num].content
                 )
                 # Add the footnotes
@@ -249,6 +278,7 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr(
                 #         chapter_num,
                 #     )
                 #     lexception("Caught exception:")
+                yield close_direction_html
 
             yield html_column_end
             if not is_even(idx):  # Non-even indexes signal the end of the current row.
@@ -263,7 +293,16 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr(
                 if is_even(idx):
                     yield html_row_begin
                 yield html_column_begin
+                if (
+                    tn_book_content_unit3
+                    and tn_book_content_unit3.lang_direction == LangDirEnum.RTL
+                ):
+                    yield rtl_direction_html
+                else:
+                    yield ltr_direction_html
+
                 yield "".join(tn_verses.values())
+                yield close_direction_html
                 yield html_column_end
         yield html_row_end
 
@@ -277,7 +316,16 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr(
                 if is_even(idx):
                     yield html_row_begin
                 yield html_column_begin
+                if (
+                    tq_book_content_unit
+                    and tq_book_content_unit.lang_direction == LangDirEnum.RTL
+                ):
+                    yield rtl_direction_html
+                else:
+                    yield ltr_direction_html
+
                 yield "".join(tq_verses.values())  # [verse_num]
+                yield close_direction_html
                 yield html_column_end
         yield html_row_end
 
@@ -298,6 +346,9 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
     book_name_fmt_str: str = settings.BOOK_NAME_FMT_STR,
     end_of_chapter_html: str = settings.END_OF_CHAPTER_HTML,
     hr: str = "<hr/>",
+    rtl_direction_html: str = settings.RTL_DIRECTION_HTML,
+    ltr_direction_html: str = settings.LTR_DIRECTION_HTML,
+    close_direction_html: str = "</div>",
 ) -> Iterable[HtmlContent]:
     """
     Construct the HTML wherein at least one USFM resource exists, one column
@@ -318,11 +369,20 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
 
     # Add book intros for each tn_book_content_unit
     for tn_book_content_unit in tn_book_content_units:
+        if (
+            tn_book_content_unit
+            and tn_book_content_unit.lang_direction == LangDirEnum.RTL
+        ):
+            yield rtl_direction_html
+        else:
+            yield ltr_direction_html
+
         # Add the book intro
         book_intro = tn_book_content_unit.intro_html
         book_intro = adjust_book_intro_headings(book_intro)
         yield book_intro
         yield hr
+        yield close_direction_html
 
     for bc_book_content_unit in bc_book_content_units:
         yield book_intro_commentary(bc_book_content_unit)
@@ -335,6 +395,10 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
         usfm_book_content_units,
         key=lambda usfm_book_content_unit: usfm_book_content_unit.chapters.keys(),
     )
+    # FIXME Logic is wrong: you are printing out the title of the book with
+    # the most chapters which might differ from the content shown across
+    # usfm_book_content_units below. I think showing the book title
+    # should happen in that loop below instead of here.
     if usfm_with_most_chapters:
         # Book title centered
         # TODO One day book title could be localized.
@@ -357,8 +421,16 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
                 # Add scripture chapter
                 # yield "".join(usfm_book_content_unit.chapters[chapter_num].content)
 
+                if (
+                    usfm_book_content_unit
+                    and usfm_book_content_unit.lang_direction == LangDirEnum.RTL
+                ):
+                    yield rtl_direction_html
+                else:
+                    yield ltr_direction_html
+
                 # Add scripture chapter
-                yield chapter_verse_content_sans_footnotes(
+                yield chapter_content_sans_footnotes(
                     usfm_book_content_unit.chapters[chapter_num].content
                 )
                 yield hr
@@ -379,11 +451,23 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
                 #     )
                 #     lexception("Caught exception:")
 
+                yield close_direction_html
+
         # Add chapter intro for each language
         for tn_book_content_unit2 in tn_book_content_units:
+            if (
+                tn_book_content_unit2
+                and tn_book_content_unit2.lang_direction == LangDirEnum.RTL
+            ):
+                yield rtl_direction_html
+            else:
+                yield ltr_direction_html
+
             # Add the translation notes chapter intro.
             yield chapter_intro(tn_book_content_unit2, chapter_num)
             yield hr
+
+            yield close_direction_html
 
         for bc_book_content_unit in bc_book_content_units:
             # Add the chapter commentary.
@@ -395,10 +479,20 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
         for tn_book_content_unit3 in tn_book_content_units:
             tn_verses = verses_for_chapter_tn(tn_book_content_unit3, chapter_num)
             if tn_verses:
+
+                if (
+                    tn_book_content_unit3
+                    and tn_book_content_unit3.lang_direction == LangDirEnum.RTL
+                ):
+                    yield rtl_direction_html
+                else:
+                    yield ltr_direction_html
+
                 yield tn_verse_notes_enclosing_div_fmt_str.format(
                     "".join(tn_verses.values())
                 )
                 yield hr
+                yield close_direction_html
 
         # Add the interleaved tq questions
         tq_verses = None
@@ -406,11 +500,21 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
             tq_verses = verses_for_chapter_tq(tq_book_content_unit, chapter_num)
             # Add TQ verse content, if any
             if tq_verses:
+
+                if (
+                    tq_book_content_unit
+                    and tq_book_content_unit.lang_direction == LangDirEnum.RTL
+                ):
+                    yield rtl_direction_html
+                else:
+                    yield ltr_direction_html
+
                 yield tq_heading_and_questions_fmt_str.format(
                     tq_book_content_unit.resource_type_name,
                     "".join(tq_verses.values()),
                 )
                 yield hr
+                yield close_direction_html
         yield end_of_chapter_html
 
 
@@ -425,6 +529,9 @@ def assemble_tn_as_iterator_by_chapter_for_book_then_lang(
     tq_heading_and_questions_fmt_str: str = settings.TQ_HEADING_AND_QUESTIONS_FMT_STR,
     end_of_chapter_html: str = settings.END_OF_CHAPTER_HTML,
     hr: str = "<hr/>",
+    rtl_direction_html: str = settings.RTL_DIRECTION_HTML,
+    ltr_direction_html: str = settings.LTR_DIRECTION_HTML,
+    close_direction_html: str = "</div>",
 ) -> Iterable[HtmlContent]:
     """
     Construct the HTML for a 'by chapter' strategy wherein at least
@@ -441,11 +548,20 @@ def assemble_tn_as_iterator_by_chapter_for_book_then_lang(
 
     # Add book intros for each tn_book_content_unit
     for tn_book_content_unit in tn_book_content_units:
+        if (
+            tn_book_content_unit
+            and tn_book_content_unit.lang_direction == LangDirEnum.RTL
+        ):
+            yield rtl_direction_html
+        else:
+            yield ltr_direction_html
+
         # Add the book intro
         book_intro = tn_book_content_unit.intro_html
         book_intro = adjust_book_intro_headings(book_intro)
         yield book_intro
         yield hr
+        yield close_direction_html
 
     for bc_book_content_unit in bc_book_content_units:
         yield book_intro_commentary(bc_book_content_unit)
@@ -463,9 +579,19 @@ def assemble_tn_as_iterator_by_chapter_for_book_then_lang(
 
         # Add chapter intro for each language
         for tn_book_content_unit in tn_book_content_units:
+
+            if (
+                tn_book_content_unit
+                and tn_book_content_unit.lang_direction == LangDirEnum.RTL
+            ):
+                yield rtl_direction_html
+            else:
+                yield ltr_direction_html
+
             # Add the translation notes chapter intro.
             yield from chapter_intro(tn_book_content_unit, chapter_num)
             yield hr
+            yield close_direction_html
 
         for bc_book_content_unit in bc_book_content_units:
             # Add the chapter commentary.
@@ -476,21 +602,41 @@ def assemble_tn_as_iterator_by_chapter_for_book_then_lang(
         for tn_book_content_unit in tn_book_content_units:
             tn_verses = verses_for_chapter_tn(tn_book_content_unit, chapter_num)
             if tn_verses:
+
+                if (
+                    tn_book_content_unit
+                    and tn_book_content_unit.lang_direction == LangDirEnum.RTL
+                ):
+                    yield rtl_direction_html
+                else:
+                    yield ltr_direction_html
+
                 yield tn_verse_notes_enclosing_div_fmt_str.format(
                     "".join(tn_verses.values())
                 )
                 yield hr
+                yield close_direction_html
 
         # Add the interleaved tq questions
         for tq_book_content_unit in tq_book_content_units:
             tq_verses = verses_for_chapter_tq(tq_book_content_unit, chapter_num)
             # Add TQ verse content, if any
             if tq_verses:
+
+                if (
+                    tq_book_content_unit
+                    and tq_book_content_unit.lang_direction == LangDirEnum.RTL
+                ):
+                    yield rtl_direction_html
+                else:
+                    yield ltr_direction_html
+
                 yield tq_heading_and_questions_fmt_str.format(
                     tq_book_content_unit.resource_type_name,
                     "".join(tq_verses.values()),
                 )
                 yield hr
+                yield close_direction_html
         yield end_of_chapter_html
 
 
@@ -504,6 +650,9 @@ def assemble_tq_as_iterator_by_chapter_for_book_then_lang(
     tq_heading_and_questions_fmt_str: str = settings.TQ_HEADING_AND_QUESTIONS_FMT_STR,
     end_of_chapter_html: str = settings.END_OF_CHAPTER_HTML,
     hr: str = "<hr/>",
+    rtl_direction_html: str = settings.RTL_DIRECTION_HTML,
+    ltr_direction_html: str = settings.LTR_DIRECTION_HTML,
+    close_direction_html: str = "</div>",
 ) -> Iterable[HtmlContent]:
     """
     Construct the HTML for a 'by chapter' strategy wherein at least
@@ -536,11 +685,20 @@ def assemble_tq_as_iterator_by_chapter_for_book_then_lang(
             tq_verses = verses_for_chapter_tq(tq_book_content_unit, chapter_num)
             # Add TQ verse content, if any
             if tq_verses:
+                if (
+                    tq_book_content_unit
+                    and tq_book_content_unit.lang_direction == LangDirEnum.RTL
+                ):
+                    yield rtl_direction_html
+                else:
+                    yield ltr_direction_html
+
                 yield tq_heading_and_questions_fmt_str.format(
                     tq_book_content_unit.resource_type_name,
                     "".join(tq_verses.values()),
                 )
                 yield hr
+                yield close_direction_html
         yield end_of_chapter_html
 
 

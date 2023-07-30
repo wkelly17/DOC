@@ -10,15 +10,15 @@ from typing import Callable, Iterable, Mapping, Optional
 
 from document.config import settings
 
-from document.domain.assembly_strategies_docx.assembly_strategy_utils import (
+from document.domain.assembly_strategies.assembly_strategy_utils import (
+    bc_book_content_unit,
     book_content_unit_lang_name,
     book_content_unit_resource_code,
     first_usfm_book_content_unit,
+    second_usfm_book_content_unit,
     tn_book_content_unit,
     tq_book_content_unit,
     tw_book_content_unit,
-    second_usfm_book_content_unit,
-    bc_book_content_unit,
 )
 
 from document.domain.assembly_strategies_docx.assembly_strategies_lang_then_book_by_chapter import (

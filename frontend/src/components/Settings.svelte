@@ -105,9 +105,7 @@
       >
     </div>
   </li>
-  {/if}
-  <!-- {#if $lang1CodeStore && !$layoutForPrintStore} -->
-  {#if false}
+  {/if} {#if $lang1CodeStore && !$layoutForPrintStore}
   <li class="bg-white p-2">
     <div class="flex justify-between">
       <span class="text-primary-content">{assemblyStrategyHeader}</span>

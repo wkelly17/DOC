@@ -11,16 +11,17 @@ from re import compile, sub
 from typing import Mapping, Optional, Sequence, cast
 
 import markdown
+import yaml
 from bs4 import BeautifulSoup
 from bs4.element import Tag
 from document.config import settings
-from document.domain.bible_books import BOOK_NAMES, book_number
 from document.domain.assembly_strategies.assembly_strategy_utils import (
     adjust_book_intro_headings,
+    adjust_chapter_heading,
     adjust_chapter_intro_headings,
     adjust_commentary_headings,
-    adjust_chapter_heading,
 )
+from document.domain.bible_books import BOOK_NAMES, book_number
 from document.domain.model import (
     BCBook,
     BCChapter,
@@ -28,6 +29,7 @@ from document.domain.model import (
     ChapterNum,
     ChunkSizeEnum,
     HtmlContent,
+    LangDirEnum,
     MarkdownContent,
     ResourceLookupDto,
     ResourceRequest,
@@ -41,6 +43,7 @@ from document.domain.model import (
     USFMChapter,
     VerseRef,
 )
+import orjson
 from document.markdown_extensions import (
     link_print_transformer_preprocessor,
     link_transformer_preprocessor,
@@ -410,6 +413,77 @@ def is_footnote_ref(id: Optional[str]) -> bool:
     return id is not None and compile("ref-fn-.*").match(id) is not None
 
 
+def lang_direction(
+    resource_dir: str,
+    lang_code: str,
+    resource_code: str,
+    resource_type: str,
+    manifest_glob_fmt_str: str = "{}/**/manifest.{}",
+    manifest_glob_alt_fmt_str: str = "{}/manifest.{}",
+) -> LangDirEnum:
+    """
+    Look up the language direction in the manifest file if one is
+    available for this resource.
+    """
+    manifest_candidates = glob(manifest_glob_fmt_str.format(resource_dir, "yaml"))
+    if manifest_candidates:
+        with open(manifest_candidates[0], "r") as fin:
+            contents = yaml.safe_load(fin)
+            lang_dir = contents["dublin_core"]["language"]["direction"]
+            if lang_dir == LangDirEnum.LTR:
+                return LangDirEnum.LTR
+            elif lang_dir == LangDirEnum.RTL:
+                return LangDirEnum.RTL
+
+    # if yaml not available then try yaml at alternative directory
+    if not manifest_candidates:
+        manifest_candidates = glob(
+            manifest_glob_alt_fmt_str.format(resource_dir, "yaml")
+        )
+        if manifest_candidates:
+            with open(manifest_candidates[0], "r") as fin:
+                contents = yaml.safe_load(fin)
+                lang_dir = contents["dublin_core"]["language"]["direction"]
+                if lang_dir == LangDirEnum.LTR:
+                    return LangDirEnum.LTR
+                elif lang_dir == LangDirEnum.RTL:
+                    return LangDirEnum.RTL
+
+    # if yaml not available, then try json
+    if not manifest_candidates:
+        manifest_candidates = glob(manifest_glob_fmt_str.format(resource_dir, "json"))
+        if manifest_candidates:
+            with open(manifest_candidates[0], "r") as fin:
+                # FIXME
+                contents = orjson.loads(fin.read())
+                lang_dir = contents["target_language"]["direction"]
+                if lang_dir == LangDirEnum.LTR:
+                    return LangDirEnum.LTR
+                elif lang_dir == LangDirEnum.RTL:
+                    return LangDirEnum.RTL
+
+    # if json not available then try json at alternative directory
+    if not manifest_candidates:
+        manifest_candidates = glob(
+            manifest_glob_alt_fmt_str.format(resource_dir, "json")
+        )
+        if manifest_candidates:
+            with open(manifest_candidates[0], "r") as fin:
+                contents = orjson.loads(fin.read())
+                lang_dir = contents["target_language"]["direction"]
+                if lang_dir == LangDirEnum.LTR:
+                    return LangDirEnum.LTR
+                elif lang_dir == LangDirEnum.RTL:
+                    return LangDirEnum.RTL
+
+    logger.debug(
+        "resource_dir: %s, manifest_candidates: %s", resource_dir, manifest_candidates
+    )
+
+    # If there was no manifest, then just return LTR
+    return LangDirEnum.LTR
+
+
 def usfm_book_content(
     resource_lookup_dto: ResourceLookupDto,
     resource_dir: str,
@@ -427,6 +501,13 @@ def usfm_book_content(
     into a model.USFMBook data structure containing chapters, verses,
     footnotes, for use during interleaving with other resource assets.
     """
+    lang_dir = lang_direction(
+        resource_dir,
+        resource_lookup_dto.lang_code,
+        resource_lookup_dto.resource_code,
+        resource_lookup_dto.resource_type,
+    )
+    logger.debug("lang_dir: %s", lang_dir)
     html_content = usfm_asset_content(resource_lookup_dto, resource_dir)
     parser = BeautifulSoup(html_content, bs_parser_type)
 
@@ -520,6 +601,7 @@ def usfm_book_content(
         resource_code=resource_lookup_dto.resource_code,
         resource_type_name=resource_lookup_dto.resource_type_name,
         chapters=chapters,
+        lang_direction=lang_dir,
     )
 
 
@@ -608,6 +690,14 @@ def tn_book_content(
     h5: str = H5,
     verse_label_fmt_str: str = "<h4>{} {}:{}</h4>\n{}",
 ) -> TNBook:
+
+    lang_dir = lang_direction(
+        resource_dir,
+        resource_lookup_dto.lang_code,
+        resource_lookup_dto.resource_code,
+        resource_lookup_dto.resource_type,
+    )
+    logger.debug("lang_dir: %s", lang_dir)
     # Initialize the Python-Markdown extensions that get invoked
     # when md.convert is called.
     md: markdown.Markdown = markdown_instance(
@@ -701,6 +791,7 @@ def tn_book_content(
         resource_type_name=resource_lookup_dto.resource_type_name,
         intro_html=adjusted_book_intro_html,
         chapters=chapter_verses,
+        lang_direction=lang_dir,
     )
 
 
@@ -717,6 +808,13 @@ def tq_book_content(
     h5: str = H5,
     verse_label_fmt_str: str = "<h4>{} {}:{}</h4>\n{}",
 ) -> TQBook:
+    lang_dir = lang_direction(
+        resource_dir,
+        resource_lookup_dto.lang_code,
+        resource_lookup_dto.resource_code,
+        resource_lookup_dto.resource_type,
+    )
+
     # Create the Markdown instance once and have it use our markdown
     # extensions.
     md: markdown.Markdown = markdown_instance(
@@ -776,6 +874,7 @@ def tq_book_content(
         resource_code=resource_lookup_dto.resource_code,
         resource_type_name=resource_lookup_dto.resource_type_name,
         chapters=chapter_verses,
+        lang_direction=lang_dir,
     )
 
 
@@ -789,6 +888,13 @@ def tw_book_content(
     h3: str = H3,
     h4: str = H4,
 ) -> TWBook:
+    lang_dir = lang_direction(
+        resource_dir,
+        resource_lookup_dto.lang_code,
+        resource_lookup_dto.resource_code,
+        resource_lookup_dto.resource_type,
+    )
+
     # Create the Markdown instance once and have it use our markdown
     # extensions.
     md: markdown.Markdown = markdown_instance(
@@ -831,6 +937,7 @@ def tw_book_content(
         resource_type_name=resource_lookup_dto.resource_type_name,
         # Sort the name content pairs by localized translation word
         name_content_pairs=sorted(name_content_pairs, key=sort_key),
+        lang_direction=lang_dir,
     )
 
 

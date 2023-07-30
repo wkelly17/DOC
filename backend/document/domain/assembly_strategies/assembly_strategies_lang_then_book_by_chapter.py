@@ -7,7 +7,7 @@ from document.domain.assembly_strategies.assembly_strategy_utils import (
     book_number,
     chapter_commentary,
     chapter_intro,
-    chapter_verse_content_sans_footnotes,
+    chapter_content_sans_footnotes,
     verses_for_chapter_tn,
     verses_for_chapter_tq,
 )
@@ -15,6 +15,7 @@ from document.domain.bible_books import BOOK_NUMBERS, BOOK_NAMES
 from document.domain.model import (
     BCBook,
     HtmlContent,
+    LangDirEnum,
     TNBook,
     TQBook,
     TWBook,
@@ -40,6 +41,9 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
     book_name_fmt_str: str = settings.BOOK_NAME_FMT_STR,
     end_of_chapter_html: str = settings.END_OF_CHAPTER_HTML,
     hr: str = "<hr/>",
+    rtl_direction_html: str = settings.RTL_DIRECTION_HTML,
+    ltr_direction_html: str = settings.LTR_DIRECTION_HTML,
+    close_direction_html: str = "</div>",
 ) -> Iterable[HtmlContent]:
     """
     Construct the HTML wherein at least one USFM resource (e.g., ulb,
@@ -50,6 +54,14 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
     where applicable) the first USFM resource. The second USFM resource is
     displayed last in this interleaving strategy.
     """
+
+    if (
+        usfm_book_content_unit
+        and usfm_book_content_unit.lang_direction == LangDirEnum.RTL
+    ):
+        yield rtl_direction_html
+    else:
+        yield ltr_direction_html
 
     if tn_book_content_unit:
         yield tn_book_content_unit.intro_html
@@ -74,7 +86,7 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
             tn_verses: Optional[dict[VerseRef, HtmlContent]] = None
             tq_verses: Optional[dict[VerseRef, HtmlContent]] = None
 
-            yield chapter_verse_content_sans_footnotes(chapter.content)
+            yield chapter_content_sans_footnotes(chapter.content)
             yield hr
 
             # Add scripture footnotes if available
@@ -114,6 +126,8 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
 
             yield end_of_chapter_html
 
+        yield close_direction_html
+
 
 def assemble_tn_as_iterator_by_chapter_for_lang_then_book_1c(
     usfm_book_content_unit: Optional[USFMBook],
@@ -130,11 +144,19 @@ def assemble_tn_as_iterator_by_chapter_for_lang_then_book_1c(
     tq_heading_and_questions_fmt_str: str = settings.TQ_HEADING_AND_QUESTIONS_FMT_STR,
     end_of_chapter_html: str = settings.END_OF_CHAPTER_HTML,
     hr: str = "<hr/>",
+    rtl_direction_html: str = settings.RTL_DIRECTION_HTML,
+    ltr_direction_html: str = settings.LTR_DIRECTION_HTML,
+    close_direction_html: str = "</div>",
 ) -> Iterable[HtmlContent]:
     """
     Construct the HTML for a 'by verse' strategy wherein only TN, TQ,
     and TW exists.
     """
+
+    if tn_book_content_unit and tn_book_content_unit.lang_direction == LangDirEnum.RTL:
+        yield rtl_direction_html
+    else:
+        yield ltr_direction_html
 
     if tn_book_content_unit:
         yield tn_book_content_unit.intro_html
@@ -182,6 +204,8 @@ def assemble_tn_as_iterator_by_chapter_for_lang_then_book_1c(
                 yield hr
             yield end_of_chapter_html
 
+        yield close_direction_html
+
 
 def assemble_tq_tw_for_by_chapter_lang_then_book_1c(
     usfm_book_content_unit: Optional[USFMBook],
@@ -197,11 +221,18 @@ def assemble_tq_tw_for_by_chapter_lang_then_book_1c(
     tq_heading_and_questions_fmt_str: str = settings.TQ_HEADING_AND_QUESTIONS_FMT_STR,
     end_of_chapter_html: str = settings.END_OF_CHAPTER_HTML,
     hr: str = "<hr/>",
+    rtl_direction_html: str = settings.RTL_DIRECTION_HTML,
+    ltr_direction_html: str = settings.LTR_DIRECTION_HTML,
+    close_direction_html: str = "</div>",
 ) -> Iterable[HtmlContent]:
     """
     Construct the HTML for a 'by verse' strategy wherein only TQ and
     TW exists.
     """
+    if tq_book_content_unit and tq_book_content_unit.lang_direction == LangDirEnum.RTL:
+        yield rtl_direction_html
+    else:
+        yield ltr_direction_html
 
     if tq_book_content_unit:
         for chapter_num in tq_book_content_unit.chapters:
@@ -231,3 +262,5 @@ def assemble_tq_tw_for_by_chapter_lang_then_book_1c(
                     "".join(tq_verses.values()),
                 )
             yield end_of_chapter_html
+
+        yield close_direction_html
