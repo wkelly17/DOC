@@ -20,13 +20,15 @@ from document.domain.model import (
     USFMBook,
 )
 from document.utils.tw_utils import uniq
-from htmldocx import HtmlToDocx  # type: ignore
 from docx import Document  # type: ignore
 from docx.enum.section import WD_SECTION  # type: ignore
 from docx.enum.text import WD_BREAK  # type: ignore
 from docx.oxml.ns import qn  # type: ignore
 from docx.oxml.shared import OxmlElement  # type: ignore
+from docx.oxml.text.run import CT_R  # type: ignore
 from docx.text.paragraph import Paragraph  # type: ignore
+from docx.text.run import Run  # type: ignore
+from htmldocx import HtmlToDocx  # type: ignore
 
 logger = settings.logger(__name__)
 
@@ -106,9 +108,6 @@ def create_docx_subdoc(
     """
     Create and return a Document instance from the content parameter.
     """
-    from docx.text.run import Run
-    from docx.oxml.text.run import CT_R
-
     html_to_docx = HtmlToDocx()
     subdoc = html_to_docx.parse_html_string("".join(content))
     if is_rtl:
