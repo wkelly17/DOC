@@ -120,7 +120,7 @@
   $: {
     if (glLangCodesAndNames) {
       filteredGlLangCodeAndNames = glLangCodesAndNames.filter((item:  string) =>
-        item.toLowerCase().split(", ")[1].includes(glLangSearchTerm.toLowerCase())
+        item.toLowerCase().split(/, (.*)/s)[1].includes(glLangSearchTerm.toLowerCase())
       )
     }
   }
@@ -130,7 +130,7 @@
   $: {
     if (nonGlLangCodesAndNames) {
       filteredNonGlLangCodeAndNames = nonGlLangCodesAndNames.filter((item: string) =>
-        item.toLowerCase().split(", ")[1].includes(nonGlLangSearchTerm.toLowerCase())
+        item.toLowerCase().split(/, (.*)/s)[1].includes(nonGlLangSearchTerm.toLowerCase())
       )
     }
   }
@@ -157,8 +157,8 @@
   let glLang0Code: string = ''
   let nonGlLang0Code: string = ''
   $: {
-    glLang0Code = $glLangCodeAndNamesStore[0]?.split(", ")[0]
-    nonGlLang0Code = $nonGlLangCodeAndNamesStore[0]?.split(", ")[0]
+    glLang0Code = $glLangCodeAndNamesStore[0]?.split(/, (.*)/s)[0]
+    nonGlLang0Code = $nonGlLangCodeAndNamesStore[0]?.split(/, (.*)/s)[0]
     if (glLang0Code && nonGlLang0Code) {
       lang0CodeStore.set(glLang0Code)
       lang1CodeStore.set(nonGlLang0Code)
@@ -171,8 +171,8 @@
   let glLang1Code: string = ''
   let nonGlLang1Code: string = ''
   $: {
-    glLang1Code = $glLangCodeAndNamesStore[1]?.split(", ")[0]
-    nonGlLang1Code = $nonGlLangCodeAndNamesStore[1]?.split(", ")[0]
+    glLang1Code = $glLangCodeAndNamesStore[1]?.split(/, (.*)/s)[0]
+    nonGlLang1Code = $nonGlLangCodeAndNamesStore[1]?.split(/, (.*)/s)[0]
     if (glLang1Code && nonGlLang1Code) {
       lang0CodeStore.set(glLang1Code)
       lang1CodeStore.set(nonGlLang1Code)
@@ -186,8 +186,8 @@
   let glLang0Name: string = ''
   let nonGlLang0Name: string = ''
   $: {
-    glLang0Name = $glLangCodeAndNamesStore[0]?.split(", ")[1]
-    nonGlLang0Name = $nonGlLangCodeAndNamesStore[0]?.split(", ")[1]
+    glLang0Name = $glLangCodeAndNamesStore[0]?.split(/, (.*)/s)[1]
+    nonGlLang0Name = $nonGlLangCodeAndNamesStore[0]?.split(/, (.*)/s)[1]
     if (glLang0Name && nonGlLang0Name) {
       lang0NameStore.set(glLang0Name)
       lang1NameStore.set(nonGlLang0Name)
@@ -200,8 +200,8 @@
   let glLang1Name: string = ''
   let nonGlLang1Name: string = ''
   $: {
-    glLang1Name = $glLangCodeAndNamesStore[1]?.split(", ")[1]
-    nonGlLang1Name = $nonGlLangCodeAndNamesStore[1]?.split(", ")[1]
+    glLang1Name = $glLangCodeAndNamesStore[1]?.split(/, (.*)/s)[1]
+    nonGlLang1Name = $nonGlLangCodeAndNamesStore[1]?.split(/, (.*)/s)[1]
     if (glLang1Name && nonGlLang1Name) {
       lang0NameStore.set(glLang1Name)
       lang1NameStore.set(nonGlLang1Name)
@@ -310,7 +310,7 @@
                 class="checkbox checkbox-dark-bordered"
               />
               <label for="lang-code-{index}" class="text-secondary-content pl-1"
-                >{langCodeAndName.split(", ")[1]}</label
+                >{langCodeAndName.split(/, (.*)/s)[1]}</label
               >
             </li>
           {/each}
@@ -330,7 +330,7 @@
                 class="checkbox checkbox-dark-bordered"
               />
               <label for="lang-code-{index}" class="text-secondary-content pl-1"
-                >{langCodeAndName.split(", ")[1]}</label
+                >{langCodeAndName.split(/, (.*)/s)[1]}</label
               >
             </li>
           {/each}

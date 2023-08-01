@@ -446,11 +446,11 @@ def lang_codes_and_names(
     >>> from document.domain import resource_lookup
     >>> data = resource_lookup.lang_codes_and_names()
     >>> data[0]
-    ('abz', 'Abui')
+    ('abz', 'Abui (Abui)')
     """
     data = fetch_source_data(working_dir, translations_json_location)
     values = [
-        (d["code"], d["name"])
+        (d["code"], "{} ({})".format(d["name"], d["englishName"]))
         for d in [lang for lang in data if lang["code"] not in lang_code_filter_list]
     ]
     return sorted(values, key=lambda value: value[1])
@@ -470,11 +470,11 @@ def lang_codes_and_names_for_v1(
     >>> from document.domain import resource_lookup
     >>> data = resource_lookup.lang_codes_and_names_for_v1()
     >>> data[0]
-    ('am', 'Amharic')
+    ('am', 'Amharic (Amharic)')
     """
     data = fetch_source_data(working_dir, translations_json_location)
     values = [
-        (d["code"], d["name"])
+        (d["code"], "{} ({})".format(d["name"], d["englishName"]))
         for d in [
             lang
             for lang in data

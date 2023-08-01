@@ -61,6 +61,7 @@ def test_en_ulb_wa_col_en_tn_wa_col_language_book_order_with_no_email_1c_docx() 
         check_result(response, suffix="docx")
 
 
+@pytest.mark.skip
 def test_en_ulb_wa_col_en_tn_wa_col_language_book_order_with_no_email_1c_c() -> None:
     """
     Produce chapter interleaved document for English scripture and

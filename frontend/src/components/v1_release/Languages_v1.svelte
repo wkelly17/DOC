@@ -98,16 +98,16 @@
   $: {
     if (langCodesAndNames) {
       filteredlangCodeAndNames = langCodesAndNames.filter(item =>
-        item.split(', ')[1].toLowerCase().includes(langSearchTerm.toLowerCase())
+        item.split(/, (.*)/s)[1].toLowerCase().includes(langSearchTerm.toLowerCase())
       )
     }
   }
 
   // Update stores for use in this and other pages reactively
-  $: lang0CodeStore.set($langCodeAndNamesStore[0]?.split(', ')[0])
-  $: lang1CodeStore.set($langCodeAndNamesStore[1]?.split(', ')[0])
-  $: lang0NameStore.set($langCodeAndNamesStore[0]?.split(', ')[1])
-  $: lang1NameStore.set($langCodeAndNamesStore[1]?.split(', ')[1])
+  $: lang0CodeStore.set($langCodeAndNamesStore[0]?.split(/, (.*)/s)[0])
+  $: lang1CodeStore.set($langCodeAndNamesStore[1]?.split(/, (.*)/s)[0])
+  $: lang0NameStore.set($langCodeAndNamesStore[0]?.split(/, (.*)/s)[1])
+  $: lang1NameStore.set($langCodeAndNamesStore[1]?.split(/, (.*)/s)[1])
 
 
   // For sidebar
@@ -162,7 +162,7 @@
           class="checkbox checkbox-dark-bordered"
         />
         <label for="lang-code-{index}" class="text-secondary-content pl-1"
-          >{langCodeAndName.split(', ')[1]}</label
+          >{langCodeAndName.split(/, (.*)/s)[1]}</label
         >
       </li>
     {/each}
