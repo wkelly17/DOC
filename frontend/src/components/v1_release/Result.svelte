@@ -7,19 +7,19 @@
   // maintain their own stores since they are stateful and you
   // don't want a user navigating from the dumbed-down version
   // of the app to the full version to share state between them.
-  import { documentReadyStore, errorStore } from '../../stores/v1_release/NotificationStore_v1'
+  import { documentReadyStore, errorStore } from '../../stores/v1_release/NotificationStore'
   import {
     generatePdfStore,
     generateEpubStore,
     generateDocxStore,
     documentRequestKeyStore
-  } from '../../stores/v1_release/SettingsStore_v1'
-  import { taskIdStore, taskStateStore } from '../../stores/v1_release/TaskStore_v1'
+  } from '../../stores/v1_release/SettingsStore'
+  import { taskIdStore, taskStateStore } from '../../stores/v1_release/TaskStore'
   import { getApiRootUrl, getFileServerUrl, resetStores } from '../../lib/utils'
-  import Mast from './Mast_v1.svelte'
-  import Tabs from './Tabs_v1.svelte'
-  import Sidebar from './Sidebar_v1.svelte'
-  import { setShowTopMatter, printToConsole } from '../../lib/v1_release/utils_v1'
+  import Mast from './Mast.svelte'
+  import Tabs from './Tabs.svelte'
+  import Sidebar from './Sidebar.svelte'
+  import { setShowTopMatter, printToConsole } from '../../lib/v1_release/utils'
 
   function cancelDocument() {
     printToConsole('Called cancelDocument')

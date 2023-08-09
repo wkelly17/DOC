@@ -1,7 +1,7 @@
 <script lang="ts">
-  import Logo from './Logo_v1.svelte'
-  import { uiLanguages, selectedUiLanguageStore } from '../../stores/v1_release/UiSettingsStore_v1'
-  import { printToConsole } from '../../lib/v1_release/utils_v1'
+  import Logo from './Logo.svelte'
+  import { uiLanguages, selectedUiLanguageStore } from '../../stores/v1_release/UiSettingsStore'
+  import { printToConsole } from '../../lib/v1_release/utils'
 
   export let open = false
 

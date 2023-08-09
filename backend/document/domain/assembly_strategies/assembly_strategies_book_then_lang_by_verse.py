@@ -161,10 +161,11 @@ def assemble_usfm_as_iterator_for_book_then_lang_2c_sl_sr(
 
     # Add book intros for each tn_book_content_unit
     for tn_book_content_unit in tn_book_content_units:
-        # Add the book intro
-        book_intro = tn_book_content_unit.intro_html
-        book_intro = adjust_book_intro_headings(book_intro)
-        yield HtmlContent(book_intro)
+        if tn_book_content_unit.intro_html:
+            # Add the book intro
+            book_intro = tn_book_content_unit.intro_html
+            book_intro = adjust_book_intro_headings(book_intro)
+            yield HtmlContent(book_intro)
 
     for bc_book_content_unit in bc_book_content_units:
         yield book_intro_commentary(bc_book_content_unit)
@@ -351,10 +352,11 @@ def assemble_usfm_as_iterator_for_book_then_lang_1c(
 
     # Add book intros for each tn_book_content_unit
     for tn_book_content_unit in tn_book_content_units:
-        # Add the book intro
-        book_intro = tn_book_content_unit.intro_html
-        book_intro = adjust_book_intro_headings(book_intro)
-        yield HtmlContent(book_intro)
+        if tn_book_content_unit.intro_html:
+            # Add the book intro
+            book_intro = tn_book_content_unit.intro_html
+            book_intro = adjust_book_intro_headings(book_intro)
+            yield HtmlContent(book_intro)
 
     for bc_book_content_unit in bc_book_content_units:
         yield book_intro_commentary(bc_book_content_unit)
@@ -493,10 +495,11 @@ def assemble_usfm_as_iterator_for_book_then_lang_1c_c(
 
     # Add book intros for each tn_book_content_unit
     for tn_book_content_unit in tn_book_content_units:
-        # Add the book intro
-        book_intro = tn_book_content_unit.intro_html
-        book_intro = adjust_book_intro_headings(book_intro)
-        yield HtmlContent(book_intro)
+        if tn_book_content_unit.intro_html:
+            # Add the book intro
+            book_intro = tn_book_content_unit.intro_html
+            book_intro = adjust_book_intro_headings(book_intro)
+            yield HtmlContent(book_intro)
 
     for bc_book_content_unit in bc_book_content_units:
         yield book_intro_commentary(bc_book_content_unit)
@@ -592,10 +595,11 @@ def assemble_tn_as_iterator_for_book_then_lang(
 
     # Add book intros for each tn_book_content_unit
     for tn_book_content_unit in tn_book_content_units:
-        # Add the book intro
-        book_intro = tn_book_content_unit.intro_html
-        book_intro = adjust_book_intro_headings(book_intro)
-        yield HtmlContent(book_intro)
+        if tn_book_content_unit.intro_html:
+            # Add the book intro
+            book_intro = tn_book_content_unit.intro_html
+            book_intro = adjust_book_intro_headings(book_intro)
+            yield HtmlContent(book_intro)
 
     for bc_book_content_unit in bc_book_content_units:
         yield book_intro_commentary(bc_book_content_unit)
@@ -664,10 +668,11 @@ def assemble_tn_as_iterator_for_book_then_lang_c(
 
     # Add book intros for each tn_book_content_unit
     for tn_book_content_unit in tn_book_content_units:
-        # Add the book intro
-        book_intro = tn_book_content_unit.intro_html
-        book_intro = adjust_book_intro_headings(book_intro)
-        yield HtmlContent(book_intro)
+        if tn_book_content_unit.intro_html:
+            # Add the book intro
+            book_intro = tn_book_content_unit.intro_html
+            book_intro = adjust_book_intro_headings(book_intro)
+            yield HtmlContent(book_intro)
 
     for bc_book_content_unit in bc_book_content_units:
         yield book_intro_commentary(bc_book_content_unit)

@@ -10,7 +10,7 @@ from document.domain.assembly_strategies.assembly_strategy_utils import (
     book_content_unit_resource_code,
 )
 
-from document.domain.assembly_strategies.assembly_strategies_book_then_lang_by_chapter import (
+from document.domain.assembly_strategies_docx.assembly_strategies_book_then_lang_by_chapter import (
     # assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
     assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
     assemble_tn_as_iterator_by_chapter_for_book_then_lang,
@@ -40,7 +40,7 @@ def assemble_content_by_book_then_lang(
     chunk_size: ChunkSizeEnum,
     book_as_grouper_fmt_str: str = settings.BOOK_AS_GROUPER_FMT_STR,
     book_names: Mapping[str, str] = BOOK_NAMES,
-) -> Iterable[Composer]:
+) -> Composer:
     """
     Assemble by book then by language in alphabetic order before
     delegating more atomic ordering/interleaving to an assembly
@@ -90,8 +90,8 @@ def assemble_content_by_book_then_lang(
 
         # We've got the resources, now we can use the layout factory
         # function to choose the right function to use from here on out.
-        assembly_layout_for_book_then_lang_strategy = (
-            assembly_factory_for_book_then_lang_strategy(
+        # fmt: off
+        assembly_layout_for_book_then_lang_strategy = assembly_factory_for_book_then_lang_strategy(
                 usfm_book_content_units,
                 tn_book_content_units,
                 tq_book_content_units,
@@ -100,22 +100,21 @@ def assemble_content_by_book_then_lang(
                 assembly_layout_kind,
                 chunk_size,
             )
-        )
+        # fmt: on
 
         ldebug(
             "assembly_layout_for_book_then_lang_strategy: %s",
             str(assembly_layout_for_book_then_lang_strategy),
         )
 
-        # Now that we have the sub-strategy, let's run it and
-        # generate the Docx output.
-        yield assembly_layout_for_book_then_lang_strategy(
+        composer = assembly_layout_for_book_then_lang_strategy(
             usfm_book_content_units,
             tn_book_content_units,
             tq_book_content_units,
             tw_book_content_units,
             bc_book_content_units,
         )
+        return composer
 
 
 def assembly_factory_for_book_then_lang_strategy(

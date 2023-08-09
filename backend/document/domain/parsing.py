@@ -435,7 +435,7 @@ def lang_direction(
             elif lang_dir == LangDirEnum.RTL:
                 return LangDirEnum.RTL
 
-    # if yaml not available then try yaml at alternative directory
+    # If yaml not available then try yaml at alternative directory
     if not manifest_candidates:
         manifest_candidates = glob(
             manifest_glob_alt_fmt_str.format(resource_dir, "yaml")
@@ -449,12 +449,11 @@ def lang_direction(
                 elif lang_dir == LangDirEnum.RTL:
                     return LangDirEnum.RTL
 
-    # if yaml not available, then try json
+    # If yaml not available, then try json
     if not manifest_candidates:
         manifest_candidates = glob(manifest_glob_fmt_str.format(resource_dir, "json"))
         if manifest_candidates:
             with open(manifest_candidates[0], "r") as fin:
-                # FIXME
                 contents = orjson.loads(fin.read())
                 lang_dir = contents["target_language"]["direction"]
                 if lang_dir == LangDirEnum.LTR:
@@ -462,7 +461,7 @@ def lang_direction(
                 elif lang_dir == LangDirEnum.RTL:
                     return LangDirEnum.RTL
 
-    # if json not available then try json at alternative directory
+    # If json not available then try json at alternative directory
     if not manifest_candidates:
         manifest_candidates = glob(
             manifest_glob_alt_fmt_str.format(resource_dir, "json")

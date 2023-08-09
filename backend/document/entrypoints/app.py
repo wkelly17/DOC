@@ -61,14 +61,14 @@ async def validation_exception_handler(
 
 
 @app.post("/documents")
-async def generate_non_docx_document(
+async def generate_document(
     document_request: model.DocumentRequest,
     success_message: str = settings.SUCCESS_MESSAGE,
 ) -> ORJSONResponse:
     """
     Get the document request and hand it off to the document_generator
     module for processing. Return model.FinishedDocumentDetails instance
-    containing URL of resulting PDF, or, raise an
+    containing URL of resulting output file, or, raise an
     InvalidDocumentRequestException if there is an exception which is
     subsequently caught in the frontend UI.
     """

@@ -109,7 +109,8 @@ def create_docx_subdoc(
     Create and return a Document instance from the content parameter.
     """
     html_to_docx = HtmlToDocx()
-    subdoc = html_to_docx.parse_html_string("".join(content))
+    content_ = "".join(content)
+    subdoc = html_to_docx.parse_html_string(content_)
     if is_rtl:
         # Setting each run to be RTL language direction
         for p in subdoc.paragraphs:

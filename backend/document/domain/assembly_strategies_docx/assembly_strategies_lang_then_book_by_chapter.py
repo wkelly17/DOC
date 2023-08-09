@@ -273,14 +273,15 @@ def assemble_tn_as_iterator_by_chapter_for_lang_then_book_1c(
 
             # Add the translation notes chapter intro.
             one_column_html.append(chapter_intro(tn_book_content_unit, chapter_num))
-
-            subdoc = create_docx_subdoc(
-                "".join(one_column_html),
-                tn_book_content_unit.lang_code,
-                tn_book_content_unit
-                and tn_book_content_unit.lang_direction == LangDirEnum.RTL,
-            )
-            composer.append(subdoc)
+            one_column_html_ = "".join(one_column_html)
+            if one_column_html_:
+                subdoc = create_docx_subdoc(
+                    one_column_html_,
+                    tn_book_content_unit.lang_code,
+                    tn_book_content_unit
+                    and tn_book_content_unit.lang_direction == LangDirEnum.RTL,
+                )
+                composer.append(subdoc)
 
             if bc_book_content_unit:
                 # Add the chapter commentary.

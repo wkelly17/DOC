@@ -15,7 +15,7 @@
   import Tabs from './Tabs.svelte'
   import Sidebar from './Sidebar.svelte'
   import { setShowTopMatter } from '../lib/utils'
-  import { printToConsole } from '../lib/v1_release/utils_v1'
+  import { printToConsole } from '../lib/v1_release/utils'
 
   // Handle notification of reset of values originating from other
   // pages.
@@ -35,10 +35,10 @@
 
   // Get the language names from the store reactively.
   $: glLangNames = $glLangCodeAndNamesStore.map(
-    langCodeAndName => langCodeAndName.split(", ")[1]
+    langCodeAndName => langCodeAndName.split(/, (.*)/s)[1]
   )
   $: nonGlLangNames = $nonGlLangCodeAndNamesStore.map(
-    langCodeAndName => langCodeAndName.split(", ")[1]
+    langCodeAndName => langCodeAndName.split(/, (.*)/s)[1]
   )
 
   const numLangsToShow = 5

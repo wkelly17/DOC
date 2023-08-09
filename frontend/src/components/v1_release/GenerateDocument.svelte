@@ -8,13 +8,13 @@
     lang0CodeStore,
     lang1CodeStore,
     langCountStore
-  } from '../../stores/v1_release/LanguagesStore_v1'
-  import { otBookStore, ntBookStore, bookCountStore } from '../../stores/v1_release/BooksStore_v1'
+  } from '../../stores/v1_release/LanguagesStore'
+  import { otBookStore, ntBookStore, bookCountStore } from '../../stores/v1_release/BooksStore'
   import {
     lang0ResourceTypesStore,
     lang1ResourceTypesStore,
     resourceTypesCountStore
-  } from '../../stores/v1_release/ResourceTypesStore_v1'
+  } from '../../stores/v1_release/ResourceTypesStore'
   import {
     layoutForPrintStore,
     assemblyStrategyKindStore,
@@ -25,10 +25,10 @@
     generateDocxStore,
     emailStore,
     documentRequestKeyStore
-  } from '../../stores/v1_release/SettingsStore_v1'
-  import { documentReadyStore, errorStore } from '../../stores/v1_release/NotificationStore_v1'
-  import { taskIdStore, taskStateStore } from '../../stores/v1_release/TaskStore_v1'
-  import { getApiRootUrl, resetStores, printToConsole } from '../../lib/v1_release/utils_v1'
+  } from '../../stores/v1_release/SettingsStore'
+  import { documentReadyStore, errorStore } from '../../stores/v1_release/NotificationStore'
+  import { taskIdStore, taskStateStore } from '../../stores/v1_release/TaskStore'
+  import { getApiRootUrl, resetStores, printToConsole } from '../../lib/v1_release/utils'
   import LogRocket from 'logrocket'
 
   // ------------------------------------------------------------

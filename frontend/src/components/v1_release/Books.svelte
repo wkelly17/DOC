@@ -6,23 +6,23 @@
   // maintain their own stores since they are stateful and you
   // don't want a user navigating from the dumbed-down version
   // of the app to the full version to share state between them.
-  import { ntBookStore, otBookStore, bookCountStore } from '../../stores/v1_release/BooksStore_v1'
+  import { ntBookStore, otBookStore, bookCountStore } from '../../stores/v1_release/BooksStore'
   import {
     lang0CodeStore,
     lang1CodeStore,
     lang0NameStore,
     lang1NameStore,
     langCountStore
-  } from '../../stores/v1_release/LanguagesStore_v1'
-  import { resourceTypesCountStore } from '../../stores/v1_release/ResourceTypesStore_v1'
+  } from '../../stores/v1_release/LanguagesStore'
+  import { resourceTypesCountStore } from '../../stores/v1_release/ResourceTypesStore'
   import ProgressIndicator from '../ProgressIndicator.svelte'
-  import { resetValuesStore } from '../../stores/v1_release/NotificationStore_v1'
+  import { resetValuesStore } from '../../stores/v1_release/NotificationStore'
   import LeftArrow from '../LeftArrow.svelte'
-  import { getApiRootUrl, resetStores } from '../../lib/v1_release/utils_v1'
-  import Mast from './Mast_v1.svelte'
-  import Tabs from './Tabs_v1.svelte'
-  import Sidebar from './Sidebar_v1.svelte'
-  import { setShowTopMatter, printToConsole } from '../../lib/v1_release/utils_v1'
+  import { getApiRootUrl, resetStores } from '../../lib/v1_release/utils'
+  import Mast from './Mast.svelte'
+  import Tabs from './Tabs.svelte'
+  import Sidebar from './Sidebar.svelte'
+  import { setShowTopMatter, printToConsole } from '../../lib/v1_release/utils'
 
   async function getSharedResourceCodesAndNames(
     lang0Code: string,
@@ -176,7 +176,7 @@
   }
 
   // let showNoBooksInCommonMessage = false
-  let showOldTestament = true
+  let showOldTestament = false
 
   let headerDisplayString: string = ''
   $: {

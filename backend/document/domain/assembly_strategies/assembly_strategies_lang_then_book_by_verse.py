@@ -43,7 +43,7 @@ def assemble_by_usfm_as_iterator_for_lang_then_book_1c(
     strategy.
     """
 
-    if tn_book_content_unit:
+    if tn_book_content_unit and tn_book_content_unit.intro_html:
         yield from tn_book_content_unit.intro_html
 
     if bc_book_content_unit:
@@ -130,7 +130,7 @@ def assemble_by_usfm_as_iterator_for_lang_then_book_1c_c(
     displayed last in this interleaving strategy.
     """
 
-    if tn_book_content_unit:
+    if tn_book_content_unit and tn_book_content_unit.intro_html:
         yield tn_book_content_unit.intro_html
 
     if bc_book_content_unit:
@@ -418,7 +418,8 @@ def assemble_tn_as_iterator_for_lang_then_book_1c(
     """
 
     if tn_book_content_unit:
-        yield tn_book_content_unit.intro_html
+        if tn_book_content_unit.intro_html:
+            yield tn_book_content_unit.intro_html
 
         for chapter_num in tn_book_content_unit.chapters:
             # How to get chapter heading for Translation notes when USFM is not
@@ -483,7 +484,8 @@ def assemble_tn_as_iterator_for_lang_then_book_1c_c(
     and TW exists.
     """
     if tn_book_content_unit:
-        yield tn_book_content_unit.intro_html
+        if tn_book_content_unit.intro_html:
+            yield tn_book_content_unit.intro_html
 
         for chapter_num in tn_book_content_unit.chapters:
             # How to get chapter heading for Translation notes when USFM is not

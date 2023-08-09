@@ -45,6 +45,7 @@ COPY pyproject.toml .
 COPY ./backend/requirements.txt .
 COPY ./backend/requirements-prod.txt .
 COPY template.docx .
+COPY template_compact.docx .
 
 # See https://pythonspeed.com/articles/activate-virtualenv-dockerfile/
 # for why a Python virtual env is used inside Docker.

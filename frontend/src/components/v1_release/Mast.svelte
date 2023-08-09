@@ -1,6 +1,6 @@
 <script lang="ts">
-  import Logo from './Logo_v1.svelte'
-  import Hamburger from './Hamburger_v1.svelte'
+  import Logo from './Logo.svelte'
+  import Hamburger from './Hamburger.svelte'
 
   export let sidebar = false
 </script>

@@ -390,6 +390,7 @@ class Settings(BaseSettings):
     }
 
     DOCX_TEMPLATE_PATH: str = "/app/template.docx"
+    DOCX_COMPACT_TEMPLATE_PATH: str = "/app/template_compact.docx"
 
     # Return boolean indicating if caching of generated documents should be
     # cached.

@@ -8,11 +8,11 @@ import Result from './components/Result.svelte'
 import ViewNotFound from './components/ViewNotFound.svelte'
 
 // v1 release Components
-import Home_v1 from './components/v1_release/Home_v1.svelte'
-import Languages_v1 from './components/v1_release/Languages_v1.svelte'
-import Books_v1 from './components/v1_release/Books_v1.svelte'
-import Result_v1 from './components/v1_release/Result_v1.svelte'
-import About_v1 from './components/v1_release/About_v1.svelte'
+import Home_v1 from './components/v1_release/Home.svelte'
+import Languages_v1 from './components/v1_release/Languages.svelte'
+import Books_v1 from './components/v1_release/Books.svelte'
+import Result_v1 from './components/v1_release/Result.svelte'
+import About_v1 from './components/v1_release/About.svelte'
 
 export default {
   // v1 release routes

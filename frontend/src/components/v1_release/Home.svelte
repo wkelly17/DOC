@@ -3,22 +3,22 @@
   // maintain their own stores since they are stateful and you
   // don't want a user navigating from the dumbed-down version
   // of the app to the full version to share state between them.
-  import { langCodeAndNamesStore } from '../../stores/v1_release/LanguagesStore_v1'
-  import { otBookStore, ntBookStore, bookCountStore } from '../../stores/v1_release/BooksStore_v1'
+  import { langCodeAndNamesStore } from '../../stores/v1_release/LanguagesStore'
+  import { otBookStore, ntBookStore, bookCountStore } from '../../stores/v1_release/BooksStore'
   import {
     lang0ResourceTypesStore,
     lang1ResourceTypesStore,
     resourceTypesCountStore
-  } from '../../stores/v1_release/ResourceTypesStore_v1'
-  import { resetValuesStore } from '../../stores/v1_release/NotificationStore_v1'
-  import {emailStore} from '../../stores/v1_release/SettingsStore_v1'
+  } from '../../stores/v1_release/ResourceTypesStore'
+  import { resetValuesStore } from '../../stores/v1_release/NotificationStore'
+  import {emailStore} from '../../stores/v1_release/SettingsStore'
   import { push } from 'svelte-spa-router'
-  import GenerateDocument from './GenerateDocument_v1.svelte'
+  import GenerateDocument from './GenerateDocument.svelte'
   import RightArrow from '../RightArrow.svelte'
-  import Mast from './Mast_v1.svelte'
-  import Tabs from './Tabs_v1.svelte'
-  import Sidebar from './Sidebar_v1.svelte'
-  import { setShowTopMatter, setShowResourceTypes, printToConsole } from '../../lib/v1_release/utils_v1'
+  import Mast from './Mast.svelte'
+  import Tabs from './Tabs.svelte'
+  import Sidebar from './Sidebar.svelte'
+  import { setShowTopMatter, setShowResourceTypes, printToConsole } from '../../lib/v1_release/utils'
 
   // Handle notification of reset of values originating from other
   // pages.
@@ -64,7 +64,7 @@
   $: {
     if ($langCodeAndNamesStore.length > 0) {
       languagesDisplayString = $langCodeAndNamesStore
-        .map(item => item.split(', ')[1])
+        .map(item => item.split(/, (.*)/s)[1])
         .join(', ')
     }
   }

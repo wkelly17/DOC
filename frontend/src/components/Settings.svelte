@@ -12,7 +12,13 @@
     emailStore,
     limitTwStore
   } from '../stores/SettingsStore'
-  import { twResourceRequestedStore } from '../stores/ResourceTypesStore'
+  import {
+    lang0ResourceTypesStore,
+    lang1ResourceTypesStore,
+    resourceTypesCountStore,
+    twResourceRequestedStore
+  } from '../stores/ResourceTypesStore'
+  import { documentReadyStore } from '../stores/NotificationStore'
   import { lang1CodeStore } from '../stores/LanguagesStore'
   import GenerateDocument from './GenerateDocument.svelte'
   import Mast from './Mast.svelte'
@@ -66,6 +72,29 @@
       console.log('Print optimization de-selected, set default to pdf')
     }
   }
+  $: console.log(`$lang1CodeStore: ${$lang1CodeStore}`)
+
+  // Set whether TW has been requested for any of the languages
+  // requested so that we can use this fact in the UI to trigger the
+  // presence or absence of the toggle to limit TW words.
+  let regexp = new RegExp('.*tw.*')
+  $: {
+    if ($lang0ResourceTypesStore && $lang1ResourceTypesStore) {
+      twResourceRequestedStore.set(
+        $lang0ResourceTypesStore.some(item => regexp.test(item)) ||
+          $lang1ResourceTypesStore.some(item => regexp.test(item))
+      )
+    } else if ($lang0ResourceTypesStore && !$lang1ResourceTypesStore) {
+      twResourceRequestedStore.set(
+        $lang0ResourceTypesStore.some(item => regexp.test(item))
+      )
+    } else if (!$lang0ResourceTypesStore && $lang1ResourceTypesStore) {
+      twResourceRequestedStore.set(
+        $lang1ResourceTypesStore.some(item => regexp.test(item))
+      )
+    }
+  }
+  $: console.log(`$twResourceRequestedStore: ${$twResourceRequestedStore}`)
 
   // For sidebar
   let open = false
@@ -105,7 +134,11 @@
       >
     </div>
   </li>
-  {/if} {#if $lang1CodeStore && !$layoutForPrintStore}
+  <!-- {/if} {#if !$documentReadyStore && $lang1CodeStore && !$layoutForPrintStore} -->
+  <!-- FIXME: this disappears after an initial successful doc generation -->
+  <!-- followed by return to settings page from results page -->
+  <!-- {/if} {#if !$documentReadyStore && $lang1CodeStore} -->
+  {/if} {#if $lang1CodeStore}
   <li class="bg-white p-2">
     <div class="flex justify-between">
       <span class="text-primary-content">{assemblyStrategyHeader}</span>
@@ -168,8 +201,7 @@
       >
     </div>
   </li>
-  {#if $assemblyStrategyKindStore === languageBookOrderStrategy.id &&
-  !$layoutForPrintStore}
+  <!-- {#if !$layoutForPrintStore} -->
   <li class="bg-white p-2">
     <div class="flex justify-between">
       <label>
@@ -196,6 +228,6 @@
       >
     </div>
   </li>
-  {/if}
+  <!-- {/if} -->
 </ul>
 <GenerateDocument />

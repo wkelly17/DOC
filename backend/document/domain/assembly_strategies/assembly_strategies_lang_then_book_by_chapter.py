@@ -63,7 +63,7 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
     else:
         yield ltr_direction_html
 
-    if tn_book_content_unit:
+    if tn_book_content_unit and tn_book_content_unit.intro_html:
         yield tn_book_content_unit.intro_html
         yield hr
 
@@ -158,7 +158,7 @@ def assemble_tn_as_iterator_by_chapter_for_lang_then_book_1c(
     else:
         yield ltr_direction_html
 
-    if tn_book_content_unit:
+    if tn_book_content_unit and tn_book_content_unit.intro_html:
         yield tn_book_content_unit.intro_html
         yield hr
 

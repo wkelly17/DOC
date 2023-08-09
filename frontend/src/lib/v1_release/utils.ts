@@ -11,22 +11,22 @@ import {
   lang0NameStore,
   lang1NameStore,
   langCountStore
-} from '../../stores/v1_release/LanguagesStore_v1'
+} from '../../stores/v1_release/LanguagesStore'
 import {
   otBookStore,
   ntBookStore,
   bookCountStore
-} from '../../stores/v1_release/BooksStore_v1'
+} from '../../stores/v1_release/BooksStore'
 import {
   lang0ResourceTypesStore,
   lang1ResourceTypesStore,
   resourceTypesCountStore
-} from '../../stores/v1_release/ResourceTypesStore_v1'
+} from '../../stores/v1_release/ResourceTypesStore'
 import {
   documentReadyStore,
   errorStore,
   resetValuesStore
-} from '../../stores/v1_release/NotificationStore_v1'
+} from '../../stores/v1_release/NotificationStore'
 import {
   layoutForPrintStore,
   assemblyStrategyKindStore,
@@ -35,7 +35,7 @@ import {
   generateDocxStore,
   emailStore,
   documentRequestKeyStore
-} from '../../stores/v1_release/SettingsStore_v1'
+} from '../../stores/v1_release/SettingsStore'
 
 const languageBookOrder: string = <string>import.meta.env.VITE_LANGUAGE_BOOK_ORDER
 

@@ -164,7 +164,7 @@
   }
 
   // let showNoBooksInCommonMessage = false
-  let showOldTestament = true
+  let showOldTestament = false
 
   let headerDisplayString: string = ''
   $: {

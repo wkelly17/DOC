@@ -281,9 +281,7 @@ def translation_words_section(
                         selected_name_content_pairs.append(name_content_pair)
                         break
     elif (
-        usfm_book_content_units is None
-        and not usfm_book_content_units
-        and limit_words
+        usfm_book_content_units is None and not usfm_book_content_units and limit_words
     ):
         # 1. Fetch URL for USFM resource for the given lang_code
         # 2. Fetch asset for USFM resource
@@ -502,16 +500,14 @@ def assemble_docx_content(
     )
     t0 = time.time()
     # Now, actually do the assembly
-    composers = assembly_strategy(
+    composer = assembly_strategy(
         book_content_units,
         document_request.assembly_layout_kind,
         document_request.chunk_size,
     )
     # Save the generator
-    composers = list(composers)
     t1 = time.time()
     logger.debug("Time for interleaving document: %s", t1 - t0)
-
     tw_book_content_units = [
         book_content_unit
         for book_content_unit in book_content_units
@@ -573,17 +569,11 @@ def assemble_docx_content(
         t1 = time.time()
         logger.debug("Time for adding TW content to document: %s", t1 - t0)
 
-    # Now lets add each composer's document instance to the first
-    # composer.
-    first_composer = composers[0]
-    for composer in composers[1:]:
-        first_composer.append(composer.doc)
-
     # Now add any TW subdocs to the composer
     for tw_subdoc_ in tw_subdocs:
-        first_composer.append(tw_subdoc_)
+        composer.append(tw_subdoc_)
 
-    return first_composer
+    return composer
 
 
 def should_send_email(
@@ -755,10 +745,12 @@ def convert_html_to_docx(
     email_address: Optional[str],
     document_request_key: str,
     resource_requests: Sequence[ResourceRequest],
+    layout_for_print: bool,
     title1: str = "title1",
     title2: str = "title2",
     title3: str = "Formatted for Translators",
     docx_template_path: str = settings.DOCX_TEMPLATE_PATH,
+    docx_compact_template_path: str = settings.DOCX_COMPACT_TEMPLATE_PATH,
 ) -> None:
     """Generate Docx and possibly send to email_address as attachment."""
     t0 = time.time()
@@ -773,7 +765,11 @@ def convert_html_to_docx(
     # tag as a replacement for the class tag. That way HtmlToDocx can pick
     # up those CSS styles that it knows how to interpret.
 
-    doc = DocxTemplate(docx_template_path)
+    # fmt: off
+    template_path = docx_compact_template_path if layout_for_print else docx_template_path
+    # fmt: on
+
+    doc = DocxTemplate(template_path)
     toc_path = generate_docx_toc(docx_filepath)
     toc = doc.new_subdoc(toc_path)
     context = {
@@ -955,12 +951,12 @@ def select_assembly_layout_kind(
     ):
         # return sl_sr
         return one_column
-    # elif (
-    #     document_request.layout_for_print
-    #     and document_request.assembly_strategy_kind == book_language_order
-    # ):
-    ##     return sl_sr_compact
-    #     return one_column_compact
+    elif (
+        document_request.layout_for_print
+        and document_request.assembly_strategy_kind == book_language_order
+    ):
+        # return sl_sr_compact
+        return one_column_compact
 
     return one_column
 
@@ -1226,6 +1222,7 @@ def alt_main(document_request_json: Json[Any]) -> Json[Any]:
             document_request.email_address,
             document_request_key_,
             document_request.resource_requests,
+            document_request.layout_for_print,
             title1,
             title2,
         )

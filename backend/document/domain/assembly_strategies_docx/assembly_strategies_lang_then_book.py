@@ -52,7 +52,7 @@ def assemble_content_by_lang_then_book(
     language_fmt_str: str = settings.LANGUAGE_FMT_STR,
     book_fmt_str: str = settings.BOOK_FMT_STR,
     book_names: Mapping[str, str] = BOOK_NAMES,
-) -> Iterable[Composer]:
+) -> Composer:
     """
     Assemble by language then by book in lexicographical order before
     delegating more atomic ordering/interleaving to an assembly
@@ -72,8 +72,6 @@ def assemble_content_by_lang_then_book(
         book_units_sorted_by_language,
         book_content_unit_lang_name,
     ):
-        # yield language_fmt_str.format(language)
-
         # Sort the books in canonical order for groupby's sake.
         book_content_units_sorted_by_book = sorted(
             group_by_lang,
@@ -83,8 +81,6 @@ def assemble_content_by_lang_then_book(
             book_content_units_sorted_by_book,
             book_content_unit_resource_code,
         ):
-            # yield book_fmt_str.format(book_names[book])
-
             # Save grouper generator values in list since it will get exhausted
             # when first used and exhausted generators cannot be reused.
             book_content_units_ = list(book_content_units_grouped_by_book)
@@ -109,10 +105,7 @@ def assemble_content_by_lang_then_book(
             )
 
             ldebug("assembly_layout_strategy: %s", str(assembly_layout_strategy))
-
-            # Now that we have the sub-strategy, let's run it and
-            # generate the HTML output.
-            yield assembly_layout_strategy(
+            return assembly_layout_strategy(
                 usfm_book_content_unit,
                 tn_book_content_unit_,
                 tq_book_content_unit_,

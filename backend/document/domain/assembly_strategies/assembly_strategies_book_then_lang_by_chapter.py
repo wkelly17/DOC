@@ -168,18 +168,19 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr(
 
     # Add book intros for each tn_book_content_unit
     for tn_book_content_unit in tn_book_content_units:
-        if (
-            tn_book_content_unit
-            and tn_book_content_unit.lang_direction == LangDirEnum.RTL
-        ):
-            yield rtl_direction_html
-        else:
-            yield ltr_direction_html
+        if tn_book_content_unit.intro_html:
+            if (
+                tn_book_content_unit
+                and tn_book_content_unit.lang_direction == LangDirEnum.RTL
+            ):
+                yield rtl_direction_html
+            else:
+                yield ltr_direction_html
 
-        # Add the book intro
-        book_intro = tn_book_content_unit.intro_html
-        yield adjust_book_intro_headings(book_intro)
-        yield close_direction_html
+            # Add the book intro
+            book_intro = tn_book_content_unit.intro_html
+            yield adjust_book_intro_headings(book_intro)
+            yield close_direction_html
 
     for bc_book_content_unit in bc_book_content_units:
         yield book_intro_commentary(bc_book_content_unit)
@@ -369,20 +370,21 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
 
     # Add book intros for each tn_book_content_unit
     for tn_book_content_unit in tn_book_content_units:
-        if (
-            tn_book_content_unit
-            and tn_book_content_unit.lang_direction == LangDirEnum.RTL
-        ):
-            yield rtl_direction_html
-        else:
-            yield ltr_direction_html
+        if tn_book_content_unit.intro_html:
+            if (
+                tn_book_content_unit
+                and tn_book_content_unit.lang_direction == LangDirEnum.RTL
+            ):
+                yield rtl_direction_html
+            else:
+                yield ltr_direction_html
 
-        # Add the book intro
-        book_intro = tn_book_content_unit.intro_html
-        book_intro = adjust_book_intro_headings(book_intro)
-        yield book_intro
-        yield hr
-        yield close_direction_html
+            # Add the book intro
+            book_intro = tn_book_content_unit.intro_html
+            book_intro = adjust_book_intro_headings(book_intro)
+            yield book_intro
+            yield hr
+            yield close_direction_html
 
     for bc_book_content_unit in bc_book_content_units:
         yield book_intro_commentary(bc_book_content_unit)
@@ -548,20 +550,21 @@ def assemble_tn_as_iterator_by_chapter_for_book_then_lang(
 
     # Add book intros for each tn_book_content_unit
     for tn_book_content_unit in tn_book_content_units:
-        if (
-            tn_book_content_unit
-            and tn_book_content_unit.lang_direction == LangDirEnum.RTL
-        ):
-            yield rtl_direction_html
-        else:
-            yield ltr_direction_html
+        if tn_book_content_unit.intro_html:
+            if (
+                tn_book_content_unit
+                and tn_book_content_unit.lang_direction == LangDirEnum.RTL
+            ):
+                yield rtl_direction_html
+            else:
+                yield ltr_direction_html
 
-        # Add the book intro
-        book_intro = tn_book_content_unit.intro_html
-        book_intro = adjust_book_intro_headings(book_intro)
-        yield book_intro
-        yield hr
-        yield close_direction_html
+            # Add the book intro
+            book_intro = tn_book_content_unit.intro_html
+            book_intro = adjust_book_intro_headings(book_intro)
+            yield book_intro
+            yield hr
+            yield close_direction_html
 
     for bc_book_content_unit in bc_book_content_units:
         yield book_intro_commentary(bc_book_content_unit)

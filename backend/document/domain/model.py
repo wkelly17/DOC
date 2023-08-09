@@ -227,12 +227,16 @@ class DocumentRequest(BaseModel):
         """
         See ValueError messages below for the rules we are enforcing.
         """
-        if values.get("layout_for_print") and (
-            values.get("generate_epub") or values.get("generate_docx")
-        ):
-            raise ValueError(
-                "Only PDF (or HTML which is the same as not choosing any output format) is a valid output format option when layout for print is chosen."
-            )
+        # NOTE: If two language, two column layout is not used and if it is ok
+        # to produce a Docx, for now, that really isn't much more compact
+        # (pending the creation of a compact Docx template) then we can comment
+        # out the next block.
+        # if values.get("layout_for_print") and (
+        #     values.get("generate_epub") or values.get("generate_docx")
+        # ):
+        #     raise ValueError(
+        #         "Only PDF (or HTML which is the same as not choosing any output format) is a valid output format option when layout for print is chosen."
+        #     )
         # NOTE Commented out because, actually, we allow users to
         # specify the non-compact assembly layout kinds and we then set them to
         # the compact version if layout for print

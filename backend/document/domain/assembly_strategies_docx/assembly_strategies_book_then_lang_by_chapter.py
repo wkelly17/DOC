@@ -14,11 +14,14 @@ from document.domain.assembly_strategies_docx.assembly_strategy_utils import (
     add_one_column_section,
     add_two_column_section,
     add_hr,
+    add_page_break,
+    create_docx_subdoc,
 )
 from document.domain.model import (
     BCBook,
     BookContent,
     HtmlContent,
+    LangDirEnum,
     TNBook,
     TQBook,
     TWBook,
@@ -29,7 +32,7 @@ from docx import Document  # type: ignore
 from docxtpl import DocxTemplate  # type: ignore
 from htmldocx import HtmlToDocx  # type: ignore
 from docx.enum.section import WD_SECTION  # type: ignore
-from docx.enum.text import WD_BREAK
+from docx.enum.text import WD_BREAK  # type: ignore
 from docx.oxml.ns import qn  # type: ignore
 from docxcompose.composer import Composer  # type: ignore
 
@@ -69,16 +72,17 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
 
     # Add book intros for each tn_book_content_unit
     for tn_book_content_unit in tn_book_content_units:
-        book_intro = tn_book_content_unit.intro_html
-        book_intro = adjust_book_intro_headings(book_intro)
+        if tn_book_content_unit.intro_html:
+            book_intro = tn_book_content_unit.intro_html
+            book_intro = adjust_book_intro_headings(book_intro)
 
-        subdoc = create_docx_subdoc(
-            book_intro,
-            tn_book_content_unit.lang_code,
-            tn_book_content_unit
-            and tn_book_content_unit.lang_direction == LangDirEnum.RTL,
-        )
-        composer.append(subdoc)
+            subdoc = create_docx_subdoc(
+                book_intro,
+                tn_book_content_unit.lang_code,
+                tn_book_content_unit
+                and tn_book_content_unit.lang_direction == LangDirEnum.RTL,
+            )
+            composer.append(subdoc)
 
     # Add book commentary for each bc_book_content_units
     for bc_book_content_unit in bc_book_content_units:
@@ -106,13 +110,14 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
             # we'll interleave chapter intros.
             # Add the translation notes chapter intro.
             chapter_intro_ = chapter_intro(tn_book_content_unit2, chapter_num)
-            subdoc = create_docx_subdoc(
-                chapter_intro_,
-                tn_book_content_unit2.lang_code,
-                tn_book_content_unit2
-                and tn_book_content_unit2.lang_direction == LangDirEnum.RTL,
-            )
-            composer.append(subdoc)
+            if chapter_intro_:
+                subdoc = create_docx_subdoc(
+                    chapter_intro_,
+                    tn_book_content_unit2.lang_code,
+                    tn_book_content_unit2
+                    and tn_book_content_unit2.lang_direction == LangDirEnum.RTL,
+                )
+                composer.append(subdoc)
 
         for bc_book_content_unit in bc_book_content_units:
             # NOTE For v1 we aren't yet decided about where or whether
@@ -229,16 +234,17 @@ def assemble_tn_as_iterator_by_chapter_for_book_then_lang(
     add_one_column_section(doc)
 
     for tn_book_content_unit in tn_book_content_units:
-        # Add the book intro
-        book_intro = tn_book_content_unit.intro_html
-        book_intro = adjust_book_intro_headings(book_intro)
-        subdoc = create_docx_subdoc(
-            book_intro,
-            tn_book_content_unit.lang_code,
-            tn_book_content_unit
-            and tn_book_content_unit.lang_direction == LangDirEnum.RTL,
-        )
-        composer.append(subdoc)
+        if tn_book_content_unit.intro_html:
+            # Add the book intro
+            book_intro = tn_book_content_unit.intro_html
+            book_intro = adjust_book_intro_headings(book_intro)
+            subdoc = create_docx_subdoc(
+                book_intro,
+                tn_book_content_unit.lang_code,
+                tn_book_content_unit
+                and tn_book_content_unit.lang_direction == LangDirEnum.RTL,
+            )
+            composer.append(subdoc)
 
     for bc_book_content_unit in bc_book_content_units:
         subdoc = create_docx_subdoc(
@@ -262,13 +268,15 @@ def assemble_tn_as_iterator_by_chapter_for_book_then_lang(
 
             # Add the translation notes chapter intro.
             one_column_html.append(chapter_intro(tn_book_content_unit, chapter_num))
-            subdoc = create_docx_subdoc(
-                one_column_html,
-                tn_book_content_unit.lang_code,
-                tn_book_content_unit
-                and tn_book_content_unit.lang_direction == LangDirEnum.RTL,
-            )
-            composer.append(subdoc)
+            one_column_html_ = "".join(one_column_html)
+            if one_column_html_:
+                subdoc = create_docx_subdoc(
+                    one_column_html_,
+                    tn_book_content_unit.lang_code,
+                    tn_book_content_unit
+                    and tn_book_content_unit.lang_direction == LangDirEnum.RTL,
+                )
+                composer.append(subdoc)
 
         for bc_book_content_unit in bc_book_content_units:
             # Add the chapter commentary.

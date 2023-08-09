@@ -1,8 +1,8 @@
 <script lang="ts">
-  import Mast from './Mast_v1.svelte'
-  import Tabs from './Tabs_v1.svelte'
-  import Sidebar from './Sidebar_v1.svelte'
-  import { setShowTopMatter } from '../../lib/v1_release/utils_v1'
+  import Mast from './Mast.svelte'
+  import Tabs from './Tabs.svelte'
+  import Sidebar from './Sidebar.svelte'
+  import { setShowTopMatter } from '../../lib/v1_release/utils'
 
   // For sidebar
   let open = false

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { z } from 'zod'
-  import ProgressIndicator from './ProgressIndicator_v1.svelte'
+  import ProgressIndicator from './ProgressIndicator.svelte'
   import LeftArrow from '../LeftArrow.svelte'
   import { push } from 'svelte-spa-router'
 
@@ -15,15 +15,15 @@
     lang1NameStore,
     langCodeAndNamesStore,
     langCountStore
-  } from '../../stores/v1_release/LanguagesStore_v1'
-  import { bookCountStore, otBookStore } from '../../stores/v1_release/BooksStore_v1'
-  import { resourceTypesCountStore } from '../../stores/v1_release/ResourceTypesStore_v1'
-  import { resetValuesStore } from '../../stores/v1_release/NotificationStore_v1'
-  import { getApiRootUrl, resetStores } from '../../lib/v1_release/utils_v1'
-  import Mast from './Mast_v1.svelte'
-  import Tabs from './Tabs_v1.svelte'
-  import Sidebar from './Sidebar_v1.svelte'
-  import { setShowTopMatter, printToConsole } from '../../lib/v1_release/utils_v1'
+  } from '../../stores/v1_release/LanguagesStore'
+  import { bookCountStore, otBookStore } from '../../stores/v1_release/BooksStore'
+  import { resourceTypesCountStore } from '../../stores/v1_release/ResourceTypesStore'
+  import { resetValuesStore } from '../../stores/v1_release/NotificationStore'
+  import { getApiRootUrl, resetStores } from '../../lib/v1_release/utils'
+  import Mast from './Mast.svelte'
+  import Tabs from './Tabs.svelte'
+  import Sidebar from './Sidebar.svelte'
+  import { setShowTopMatter, printToConsole } from '../../lib/v1_release/utils'
 
   async function getLangCodesNames(
     apiRootUrl: string = getApiRootUrl(),
