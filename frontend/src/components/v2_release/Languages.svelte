@@ -1,0 +1,442 @@
+<script lang="ts">
+  import { z } from 'zod'
+  import ProgressIndicator from './ProgressIndicator.svelte'
+  import LeftArrow from './LeftArrow.svelte'
+  import glLangs from '../../data/gl_languages'
+  import { push } from 'svelte-spa-router'
+  import {
+    lang0CodeStore,
+    lang1CodeStore,
+    lang0NameStore,
+    lang1NameStore,
+    glLangCodeAndNamesStore,
+    nonGlLangCodeAndNamesStore,
+    langCountStore
+  } from '../../stores/v2_release/LanguagesStore'
+  import { bookCountStore, otBookStore } from '../../stores/v2_release/BooksStore'
+  import { resourceTypesCountStore } from '../../stores/v2_release/ResourceTypesStore'
+  import { resetValuesStore } from '../../stores/v2_release/NotificationStore'
+  import { getApiRootUrl, resetStores } from '../../lib/utils'
+  import Mast from './Mast.svelte'
+  import Tabs from './Tabs.svelte'
+  import Sidebar from './Sidebar.svelte'
+  import { setShowTopMatter } from '../../lib/utils'
+
+  let showGlLanguages = true
+
+  async function getLangCodesNames(
+    apiRootUrl: string = getApiRootUrl(),
+    langCodesAndNamesUrl: string = <string>import.meta.env.VITE_LANG_CODES_NAMES_URL
+  ): Promise<Array<[string, string]>> {
+    console.log(`apiRootUrl: ${getApiRootUrl}`)
+    const response = await fetch(`${apiRootUrl}${langCodesAndNamesUrl}`)
+    const langCodesAndNames: Array<[string, string]> = await response.json()
+    if (!response.ok) {
+      console.log(`Error: ${response.statusText}`)
+      throw new Error(response.statusText)
+    }
+    return langCodesAndNames
+  }
+
+  // Resolve promise for data
+  let glLangCodesAndNames: Array<string> = []
+  let nonGlLangCodesAndNames: Array<string> = []
+  $: {
+    getLangCodesNames()
+      .then(langCodesAndNames_ => {
+        // console.log(`langCodesAndNames_: ${langCodesAndNames_}`)
+        // Filter set of all languages for gl languages
+        glLangCodesAndNames = langCodesAndNames_.filter((element: [string, string]) => {
+          return glLangs.some((item: string) => item === element[0])
+        })
+        .map(tuple => `${tuple[0]}, ${tuple[1]}`)
+        // Filter set of all languages for non-gl languages
+        // console.log(`glLangCodesAndNames: ${glLangCodesAndNames}`)
+        nonGlLangCodesAndNames = langCodesAndNames_.filter((element: [string, string]) => {
+          return !glLangs.some((item: string) => item === element[0])
+        })
+        .map(tuple => `${tuple[0]}, ${tuple[1]}`)
+        // console.log(`nonGlLangCodesAndNames: ${nonGlLangCodesAndNames}`)
+      })
+      .catch(err => console.log(err)) // FIXME Trigger toast for error
+  }
+
+  let resourceCodesAndTypesMapSchema = z.map(
+    z.string().min(1),
+    z.array(z.tuple([z.string(), z.string(), z.string()]))
+  )
+  type ResourceCodesAndTypesMap = z.infer<typeof resourceCodesAndTypesMapSchema>
+
+  // let resourceCodesAndTypesMap: Map<string, Array<[string, string, string]>>
+  let resourceCodesAndTypesMap: ResourceCodesAndTypesMap
+  $: {
+    if (resourceCodesAndTypesMap) {
+      console.log(`resourceCodesAndTypesMap: ${resourceCodesAndTypesMap}`)
+    }
+  }
+
+  const maxLanguages = 2
+
+  function resetLanguages() {
+    resetStores('languages')
+  }
+
+  function submitLanguages() {
+    // If books store or resource types store are not empty, then we
+    // should reset them when we change the languages.
+    if ($bookCountStore > 0 || $resourceTypesCountStore > 0) {
+      resetValuesStore.set(true)
+    }
+    resetStores('books')
+    resetStores('resource_types')
+    resetStores('settings')
+    resetStores('notifications')
+    push('#/experimental')
+  }
+
+  // Derive and set the count of books for use here and in other
+  // pages.
+  let nonEmptyGlLanguages: boolean
+  $: nonEmptyGlLanguages = $glLangCodeAndNamesStore.every(item => item.length > 0)
+
+  let nonEmptyNonGlLanguages: boolean
+  $: nonEmptyNonGlLanguages = $nonGlLangCodeAndNamesStore.every(item => item.length > 0)
+
+  $: {
+    if (nonEmptyGlLanguages && nonEmptyNonGlLanguages) {
+      langCountStore.set($glLangCodeAndNamesStore.length + $nonGlLangCodeAndNamesStore.length)
+    } else if (nonEmptyGlLanguages && !nonEmptyNonGlLanguages) {
+      langCountStore.set($glLangCodeAndNamesStore.length)
+    } else if (!nonEmptyGlLanguages && nonEmptyNonGlLanguages) {
+      langCountStore.set($nonGlLangCodeAndNamesStore.length)
+    } else {
+      langCountStore.set(0)
+    }
+  }
+
+  // Filter the language list reactively
+  let glLangSearchTerm: string = ''
+  let filteredGlLangCodeAndNames: Array<string> = []
+  $: {
+    if (glLangCodesAndNames) {
+      filteredGlLangCodeAndNames = glLangCodesAndNames.filter((item:  string) =>
+        item.toLowerCase().split(/, (.*)/s)[1].includes(glLangSearchTerm.toLowerCase())
+      )
+    }
+  }
+  // Filter the language list reactively
+  let nonGlLangSearchTerm: string = ''
+  let filteredNonGlLangCodeAndNames: Array<string> = []
+  $: {
+    if (nonGlLangCodesAndNames) {
+      filteredNonGlLangCodeAndNames = nonGlLangCodesAndNames.filter((item: string) =>
+        item.toLowerCase().split(/, (.*)/s)[1].includes(nonGlLangSearchTerm.toLowerCase())
+      )
+    }
+  }
+
+
+  let glLabel: string = 'Gateway Languages'
+  $: {
+    if ($glLangCodeAndNamesStore.length) {
+      glLabel = `Gateway (${$glLangCodeAndNamesStore.length})`
+    } else {
+      glLabel = 'Gateway'
+    }
+  }
+  let nonGlLabel: string = 'Heart Languages'
+  $: {
+    if ($nonGlLangCodeAndNamesStore.length) {
+      nonGlLabel = `Heart (${$nonGlLangCodeAndNamesStore.length})`
+    } else {
+      nonGlLabel = 'Heart'
+    }
+  }
+
+  // Update stores for use in this and other pages reactively
+  let glLang0Code: string = ''
+  let nonGlLang0Code: string = ''
+  $: {
+    glLang0Code = $glLangCodeAndNamesStore[0]?.split(/, (.*)/s)[0]
+    nonGlLang0Code = $nonGlLangCodeAndNamesStore[0]?.split(/, (.*)/s)[0]
+    if (glLang0Code && nonGlLang0Code) {
+      lang0CodeStore.set(glLang0Code)
+      lang1CodeStore.set(nonGlLang0Code)
+    } else if (!glLang0Code && nonGlLang0Code) {
+      lang0CodeStore.set(nonGlLang0Code)
+    } else if (glLang0Code && !nonGlLang0Code) {
+      lang0CodeStore.set(glLang0Code)
+    }
+  }
+  let glLang1Code: string = ''
+  let nonGlLang1Code: string = ''
+  $: {
+    glLang1Code = $glLangCodeAndNamesStore[1]?.split(/, (.*)/s)[0]
+    nonGlLang1Code = $nonGlLangCodeAndNamesStore[1]?.split(/, (.*)/s)[0]
+    if (glLang1Code && nonGlLang1Code) {
+      lang0CodeStore.set(glLang1Code)
+      lang1CodeStore.set(nonGlLang1Code)
+    } else if (!glLang1Code && nonGlLang1Code) {
+      lang1CodeStore.set(nonGlLang1Code)
+    } else if (glLang1Code && !nonGlLang1Code) {
+      lang1CodeStore.set(glLang1Code)
+    }
+  }
+
+  let glLang0Name: string = ''
+  let nonGlLang0Name: string = ''
+  $: {
+    glLang0Name = $glLangCodeAndNamesStore[0]?.split(/, (.*)/s)[1]
+    nonGlLang0Name = $nonGlLangCodeAndNamesStore[0]?.split(/, (.*)/s)[1]
+    if (glLang0Name && nonGlLang0Name) {
+      lang0NameStore.set(glLang0Name)
+      lang1NameStore.set(nonGlLang0Name)
+    } else if (glLang0Name && !nonGlLang0Name) {
+      lang0NameStore.set(glLang0Name)
+    } else if (!glLang0Name && nonGlLang0Name) {
+      lang0NameStore.set(nonGlLang0Name)
+    }
+  }
+  let glLang1Name: string = ''
+  let nonGlLang1Name: string = ''
+  $: {
+    glLang1Name = $glLangCodeAndNamesStore[1]?.split(/, (.*)/s)[1]
+    nonGlLang1Name = $nonGlLangCodeAndNamesStore[1]?.split(/, (.*)/s)[1]
+    if (glLang1Name && nonGlLang1Name) {
+      lang0NameStore.set(glLang1Name)
+      lang1NameStore.set(nonGlLang1Name)
+    } else if (glLang1Name && !nonGlLang1Name) {
+      lang1NameStore.set(glLang1Name)
+    } else if (!glLang1Name && nonGlLang1Name) {
+      lang1NameStore.set(nonGlLang1Name)
+    }
+  }
+
+  $: console.log(`$langCountStore: ${$langCountStore}`)
+
+  // For sidebar
+  let open = false
+  let showTopMatter: boolean = setShowTopMatter()
+</script>
+
+{#if showTopMatter}
+<Sidebar bind:open />
+<Mast bind:sidebar="{open}" />
+<Tabs />
+{/if}
+
+<div class="bg-white flex">
+  <button
+    class="bg-white hover:bg-grey-100 py-2 px-4 rounded inline-flex items-center"
+    on:click={() => push('#/v2')}
+  >
+    <LeftArrow backLabel="Pick up to 2 Languages" />
+    <!-- <h3 style="color: var(--neutral-light-black-80, #33445C); font-size: 36px; font-style: normal; font-weight: 400; line-height: 48px;">Pick up to 2 Languages</h3> -->
+  </button>
+  <!-- <h3 style="color: var(--neutral-light-black-80, #33445C); font-size: 36px; font-style: normal; font-weight: 400; line-height: 48px;">Pick up to 2 Languages</h3> -->
+</div>
+<div class="mx-auto w-full px-2 py-2 mt-2 bg-white">
+  {#if !glLangCodesAndNames || glLangCodesAndNames.length === 0|| !nonGlLangCodesAndNames || nonGlLangCodesAndNames.length === 0}
+    <ProgressIndicator />
+  {:else}
+    {#if showGlLanguages}
+      <div class="flex items-center">
+        <label id="label-for-filter-gl-langs" for="filter-gl-langs">
+          <input
+            id="filter-gl-langs"
+            type="search"
+            bind:value={glLangSearchTerm}
+            placeholder="Search Languages"
+            class="input input-bordered bg-white w-full max-w-xs"
+            />
+        </label>
+        <div class="flex ml-2" role="group">
+          <button
+            class="rounded-l-full w-32 h-10 bg-[#feeed8]
+                    text-primary-content capitalize font-medium
+                    leading-tight border-x-2 border-t-2 border-b-2 border-[#1a130b99] hover:bg-[#feeee1] focus:bg-[#feeee1] focus:outline-none focus:ring-0 active:bg-[#feeed8] transition duration-150 ease-in-out"
+            on:click={() => (showGlLanguages = true)}
+          >
+            {glLabel}
+          </button>
+          <button
+            class="rounded-r-full w-32 h-10 bg-white text-primary-content capitalize font-medium leading-tight border-r-2 border-t-2 border-b-2 border-[#1a130b99] hover:bg-white focus:bg-white focus:outline-none focus:ring-0 active:bg-white transition duration-150 ease-in-out"
+            on:click={() => (showGlLanguages = false)}
+          >
+            {nonGlLabel}
+          </button>
+        </div>
+      </div>
+    {:else}
+      <div class="flex items-center">
+        <label id="label-for-filter-non-gl-langs" for="filter-non-gl-langs">
+          <input
+            id="filter-non-gl-langs"
+            type="search"
+            bind:value={nonGlLangSearchTerm}
+            placeholder="Search Languages"
+            class="input input-bordered bg-white w-full max-w-xs"
+            />
+        </label>
+        <div class="flex ml-2" role="group">
+          <button
+              class="rounded-l-full w-32 h-10 bg-white text-primary-content capitalize font-medium leading-tight border-x-2 border-t-2 border-b-2 border-[#1a130b99] hover:bg-white focus:bg-white focus:outline-none focus:ring-0 active:bg-white transition duration-150 ease-in-out"
+            on:click={() => (showGlLanguages = true)}
+          >
+            {glLabel}
+          </button>
+          <button
+              class="rounded-r-full w-32 h-10 bg-[#feeed8] text-primary-content capitalize font-medium leading-tight border-r-2 border-t-2 border-b-2 border-[#1a130b99] hover:bg-[#feeee1] focus:bg-[#feeee1] focus:outline-none focus:ring-0 active:bg-[#feeed8] transition duration-150 ease-in-out"
+            on:click={() => (showGlLanguages = false)}
+          >
+            {nonGlLabel}
+          </button>
+        </div>
+      </div>
+    {/if}
+  {/if}
+</div>
+
+{#if !(!glLangCodesAndNames || glLangCodesAndNames.length === 0|| !nonGlLangCodesAndNames || nonGlLangCodesAndNames.length === 0)}
+  <div class="flex-1 flex overflow-hidden">
+    <!-- <div class="mx-auto w-full px-2 pt-2 flex-1 overflow-y-scroll" style="margin-top: 140px;"> -->
+    <div class="mx-auto w-full px-2 pt-2 flex-1 overflow-y-scroll">
+        {#if showGlLanguages}
+          <ul class="py-2 px-4">
+            {#each glLangCodesAndNames as langCodeAndName, index}
+              <li
+                style={filteredGlLangCodeAndNames.includes(langCodeAndName) ? '' : 'display :none'}
+                class="flex items-center"
+              >
+                <input
+                  id="lang-code-{index}"
+                  type="checkbox"
+                  bind:group={$glLangCodeAndNamesStore}
+                  value={langCodeAndName}
+                  class="checkbox checkbox-dark-bordered"
+                />
+                <label for="lang-code-{index}" class="text-secondary-content pl-1"
+                  >{langCodeAndName.split(/, (.*)/s)[1]}</label
+                >
+              </li>
+            {/each}
+          </ul>
+        {:else}
+          <ul class="py-2 px-4">
+            {#each nonGlLangCodesAndNames as langCodeAndName, index}
+              <li
+                style={filteredNonGlLangCodeAndNames.includes(langCodeAndName) ? '' : 'display :none'}
+                class="flex items-center"
+              >
+                <input
+                  id="lang-code-{index}"
+                  type="checkbox"
+                  bind:group={$nonGlLangCodeAndNamesStore}
+                  value={langCodeAndName}
+                  class="checkbox checkbox-dark-bordered"
+                />
+                <label for="lang-code-{index}" class="text-secondary-content pl-1"
+                  >{langCodeAndName.split(/, (.*)/s)[1]}</label
+                >
+              </li>
+            {/each}
+          </ul>
+        {/if}
+    </div>
+    <!-- Fixed sidebar -->
+    <!-- <div class="bg-gray-600 w-480 sm:w-64 flex-1 overflow-y-scroll"> -->
+    <div class="w-400 flex-1 overflow-y-scroll">
+      <h1 class="p-4 font-semibold text-xl">Your Selections</h1>
+      <div class="inline-flex items-center">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16.36 14C16.44 13.34 16.5 12.68 16.5 12C16.5 11.32 16.44 10.66 16.36 10H19.74C19.9 10.64 20 11.31 20 12C20 12.69 19.9 13.36 19.74 14H16.36ZM14.59 19.56C15.19 18.45 15.65 17.25 15.97 16H18.92C17.9512 17.6683 16.4141 18.932 14.59 19.56ZM14.34 14H9.66C9.56 13.34 9.5 12.68 9.5 12C9.5 11.32 9.56 10.65 9.66 10H14.34C14.43 10.65 14.5 11.32 14.5 12C14.5 12.68 14.43 13.34 14.34 14ZM12 19.96C11.17 18.76 10.5 17.43 10.09 16H13.91C13.5 17.43 12.83 18.76 12 19.96ZM8 8H5.08C6.03886 6.32721 7.5748 5.06149 9.4 4.44C8.8 5.55 8.35 6.75 8 8ZM5.08 16H8C8.35 17.25 8.8 18.45 9.4 19.56C7.57862 18.9317 6.04485 17.6677 5.08 16ZM4.26 14C4.1 13.36 4 12.69 4 12C4 11.31 4.1 10.64 4.26 10H7.64C7.56 10.66 7.5 11.32 7.5 12C7.5 12.68 7.56 13.34 7.64 14H4.26ZM12 4.03C12.83 5.23 13.5 6.57 13.91 8H10.09C10.5 6.57 11.17 5.23 12 4.03ZM18.92 8H15.97C15.657 6.76146 15.1936 5.5659 14.59 4.44C16.43 5.07 17.96 6.34 18.92 8ZM12 2C6.47 2 2 6.5 2 12C2 14.6522 3.05357 17.1957 4.92893 19.0711C5.85752 19.9997 6.95991 20.7362 8.17317 21.2388C9.38642 21.7413 10.6868 22 12 22C14.6522 22 17.1957 20.9464 19.0711 19.0711C20.9464 17.1957 22 14.6522 22 12C22 10.6868 21.7413 9.38642 21.2388 8.17317C20.7362 6.95991 19.9997 5.85752 19.0711 4.92893C18.1425 4.00035 17.0401 3.26375 15.8268 2.7612C14.6136 2.25866 13.3132 2 12 2Z" fill="#001533"/>
+        </svg>
+        <h2 class="p-4 font-semibold text-xl">Languages</h2>
+      </div>
+      <p class="">Selections will appear here once a language is selected</p>
+      <div class="inline-flex items-center">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 22C5.45 22 4.97933 21.8043 4.588 21.413C4.196 21.021 4 20.55 4 20V4C4 3.45 4.196 2.979 4.588 2.587C4.97933 2.19567 5.45 2 6 2H18C18.55 2 19.021 2.19567 19.413 2.587C19.8043 2.979 20 3.45 20 4V20C20 20.55 19.8043 21.021 19.413 21.413C19.021 21.8043 18.55 22 18 22H6ZM6 20H18V4H16V10.125C16 10.325 15.9167 10.4707 15.75 10.562C15.5833 10.654 15.4167 10.65 15.25 10.55L13.5 9.5L11.75 10.55C11.5833 10.65 11.4167 10.654 11.25 10.562C11.0833 10.4707 11 10.325 11 10.125V4H6V20ZM11 4H16H11ZM6 4H18H6Z" fill="#001533"/>
+        </svg>
+        <h2 class="p-4 font-semibold text-xl">Books</h2>
+      </div>
+      <p class="">Selections will appear here once a book is selected</p>
+      <div class="inline-flex items-center">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 2C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2H6ZM6 4H13V9H18V20H6V4ZM8 12V14H16V12H8ZM8 16V18H13V16H8Z" fill="#001533"/>
+        </svg>
+        <h2 class="p-4 font-semibold text-xl">Resources</h2>
+      </div>
+      <p class="">Selections will appear here once a resource is selected</p>
+    </div>
+  </div>
+{/if}
+
+{#if $langCountStore > 0 && $langCountStore <= maxLanguages}
+  <div class="text-center px-2 pt-2 pt-2 pb-8">
+    <button
+      on:click|preventDefault={submitLanguages}
+      class="btn orange-gradient w-5/6 capitalize"
+      >Add ({$langCountStore}) Languages</button
+    >
+  </div>
+  <!-- <div class="text-center px-2 pt-2 mb-8"> -->
+  <!--   <button -->
+  <!--     class="btn gray-gradiant text-neutral-content w-5/6 rounded capitalize" -->
+  <!--     on:click|preventDefault={() => resetLanguages()}>Reset languages</button -->
+  <!--   > -->
+  <!-- </div> -->
+{/if}
+{#if $langCountStore > maxLanguages}
+  <div class="toast toast-center toast-middle">
+    <div class="alert alert-error">
+      <div>
+        <span
+          >You've selected more than two languages, please choose up to two languages.</span
+        >
+      </div>
+    </div>
+  </div>
+{/if}
+
+<style global lang="postcss">
+  * :global(label[id='label-for-filter-langs']) {
+    position: relative;
+  }
+
+  * :global(label[id='label-for-filter-langs']:before) {
+    content: '';
+    position: absolute;
+    right: 10px;
+    top: 0;
+    bottom: 0;
+    width: 20px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='25' height='25' viewBox='0 0 25 25' fill-rule='evenodd'%3E%3Cpath d='M16.036 18.455l2.404-2.405 5.586 5.587-2.404 2.404zM8.5 2C12.1 2 15 4.9 15 8.5S12.1 15 8.5 15 2 12.1 2 8.5 4.9 2 8.5 2zm0-2C3.8 0 0 3.8 0 8.5S3.8 17 8.5 17 17 13.2 17 8.5 13.2 0 8.5 0zM15 16a1 1 0 1 1 2 0 1 1 0 1 1-2 0'%3E%3C/path%3E%3C/svg%3E")
+      center / contain no-repeat;
+  }
+
+  * :global(input[id='filter-langs']) {
+    padding: 10px 30px;
+  }
+
+  * :global(.orange-gradient) {
+    background: linear-gradient(180deg, #fdd231 0%, #fdad29 100%),
+      linear-gradient(0deg, rgba(20, 14, 8, 0.6), rgba(20, 14, 8, 0.6));
+  }
+
+  * :global(.checkbox-dark-bordered) {
+    /* --chkbg: #1a130b; */
+    border-color: #1a130b;
+    border-radius: 3px;
+    width: 1em;
+    height: 1em;
+  }
+  #filter-gl-langs, #filter-non-gl-langs {
+    text-indent: 17px;
+    padding-left: 5px;
+    background-image: url('data:image/svg+xml,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15.5014 14.0014H14.7114L14.4314 13.7314C15.0564 13.0054 15.5131 12.1502 15.769 11.2271C16.0248 10.3039 16.0735 9.33559 15.9114 8.39144C15.4414 5.61144 13.1214 3.39144 10.3214 3.05144C9.33706 2.92691 8.33723 3.02921 7.39846 3.35053C6.4597 3.67185 5.60688 4.20366 4.90527 4.90527C4.20366 5.60688 3.67185 6.4597 3.35053 7.39846C3.02921 8.33723 2.92691 9.33706 3.05144 10.3214C3.39144 13.1214 5.61144 15.4414 8.39144 15.9114C9.33559 16.0735 10.3039 16.0248 11.2271 15.769C12.1502 15.5131 13.0054 15.0564 13.7314 14.4314L14.0014 14.7114V15.5014L18.2514 19.7514C18.6614 20.1614 19.3314 20.1614 19.7414 19.7514C20.1514 19.3414 20.1514 18.6714 19.7414 18.2614L15.5014 14.0014ZM9.50144 14.0014C7.01144 14.0014 5.00144 11.9914 5.00144 9.50144C5.00144 7.01144 7.01144 5.00144 9.50144 5.00144C11.9914 5.00144 14.0014 7.01144 14.0014 9.50144C14.0014 11.9914 11.9914 14.0014 9.50144 14.0014Z" fill="%2366768B"/></svg>');
+    background-repeat: no-repeat;
+    background-position: left center;
+    outline: 0;
+  }
+</style>

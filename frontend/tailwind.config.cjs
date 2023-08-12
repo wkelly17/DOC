@@ -2,6 +2,12 @@ module.exports = {
   content: ['./src/**/*.html', './src/**/*.svelte'],
   media: false, // or 'media' or 'class'
   theme: {
+    screens: {
+      mobile: '640px',
+      // => @media (min-width: 640px) { ... }
+      desktop: '1280px'
+      // => @media (min-width: 1280px) { ... }
+    },
     extend: {}
   },
   variants: {
