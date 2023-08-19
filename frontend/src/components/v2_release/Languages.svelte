@@ -91,14 +91,14 @@
     resetStores('resource_types')
     resetStores('settings')
     resetStores('notifications')
-    push('#/experimental')
+    push('#/v2/books')
   }
 
-  function uncheckLanguage(langCodeAndName: string) {
-    // console.log(`About to uncheck: ${langCodeAndName}`)
-    // console.log(`$glLangCodeAndNamesStore: ${$glLangCodeAndNamesStore}`)
+  function uncheckGlLanguage(langCodeAndName: string) {
     glLangCodeAndNamesStore.set($glLangCodeAndNamesStore.filter(item => item != langCodeAndName))
-    // console.log(`After filtering $glLangCodeAndNamesStore: ${$glLangCodeAndNamesStore}`)
+  }
+  function uncheckNonGlLanguage(langCodeAndName: string) {
+    nonGlLangCodeAndNamesStore.set($nonGlLangCodeAndNamesStore.filter(item => item != langCodeAndName))
   }
 
   // Derive and set the count of books for use here and in other
@@ -254,7 +254,7 @@
     <div class="inline-flex items-center">
       <div class="avatar placeholder">
         <div class="bg-neutral-focus text-neutral-content rounded-full
-                    w-8 bg-[#B3B9C2]">
+                    w-8 bg-[#b3b9c2]">
           <span class="text-xs text-white">2</span>
         </div>
       </div>
@@ -263,7 +263,7 @@
     <div class="inline-flex items-center">
       <div class="avatar placeholder">
         <div class="bg-neutral-focus text-neutral-content rounded-full
-                    w-8 bg-[#B3B9C2]">
+                    w-8 bg-[#b3b9c2]">
           <span class="text-xs text-white">3</span>
         </div>
       </div>
@@ -272,7 +272,7 @@
     <div class="inline-flex items-center">
       <div class="avatar placeholder">
         <div class="bg-neutral-focus text-neutral-content rounded-full
-                    w-8 bg-[#B3B9C2]">
+                    w-8 bg-[#b3b9c2]">
           <span class="text-xs text-white">4</span>
         </div>
       </div>
@@ -423,11 +423,21 @@
       </svg>
       <h2 class="ml-2 font-semibold text-xl text-[#33445C]">Language</h2>
     </div>
-    {#if $glLangCodeAndNamesStore && $glLangCodeAndNamesStore.length > 0}
+    {#if (($glLangCodeAndNamesStore && $glLangCodeAndNamesStore.length > 0) || ($nonGlLangCodeAndNamesStore && $nonGlLangCodeAndNamesStore.length > 0))}
       {#each $glLangCodeAndNamesStore as langCodeAndName}
         <div class="inline-flex items-center justify-between w-full rounded-lg p-6 bg-white
                     text-[#66768B] mt-2">{langCodeAndName.split(/, (.*)/s)[1]}
-          <button on:click={() => uncheckLanguage(langCodeAndName)}>
+          <button on:click={() => uncheckGlLanguage(langCodeAndName)}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C6.47 2 2 6.47 2 12C2 17.53 6.47 22 12 22C17.53 22 22 17.53 22 12C22 6.47 17.53 2 12 2ZM16.3 16.3C16.2075 16.3927 16.0976 16.4663 15.9766 16.5164C15.8557 16.5666 15.726 16.5924 15.595 16.5924C15.464 16.5924 15.3343 16.5666 15.2134 16.5164C15.0924 16.4663 14.9825 16.3927 14.89 16.3L12 13.41L9.11 16.3C8.92302 16.487 8.66943 16.592 8.405 16.592C8.14057 16.592 7.88698 16.487 7.7 16.3C7.51302 16.113 7.40798 15.8594 7.40798 15.595C7.40798 15.4641 7.43377 15.3344 7.48387 15.2135C7.53398 15.0925 7.60742 14.9826 7.7 14.89L10.59 12L7.7 9.11C7.51302 8.92302 7.40798 8.66943 7.40798 8.405C7.40798 8.14057 7.51302 7.88698 7.7 7.7C7.88698 7.51302 8.14057 7.40798 8.405 7.40798C8.66943 7.40798 8.92302 7.51302 9.11 7.7L12 10.59L14.89 7.7C14.9826 7.60742 15.0925 7.53398 15.2135 7.48387C15.3344 7.43377 15.4641 7.40798 15.595 7.40798C15.7259 7.40798 15.8556 7.43377 15.9765 7.48387C16.0975 7.53398 16.2074 7.60742 16.3 7.7C16.3926 7.79258 16.466 7.90249 16.5161 8.02346C16.5662 8.14442 16.592 8.27407 16.592 8.405C16.592 8.53593 16.5662 8.66558 16.5161 8.78654C16.466 8.90751 16.3926 9.01742 16.3 9.11L13.41 12L16.3 14.89C16.68 15.27 16.68 15.91 16.3 16.3Z" fill="#33445C"/>
+            </svg>
+          </button>
+        </div>
+      {/each}
+      {#each $nonGlLangCodeAndNamesStore as langCodeAndName}
+        <div class="inline-flex items-center justify-between w-full rounded-lg p-6 bg-white
+                    text-[#66768B] mt-2">{langCodeAndName.split(/, (.*)/s)[1]}
+          <button on:click={() => uncheckNonGlLanguage(langCodeAndName)}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 2C6.47 2 2 6.47 2 12C2 17.53 6.47 22 12 22C17.53 22 22 17.53 22 12C22 6.47 17.53 2 12 2ZM16.3 16.3C16.2075 16.3927 16.0976 16.4663 15.9766 16.5164C15.8557 16.5666 15.726 16.5924 15.595 16.5924C15.464 16.5924 15.3343 16.5666 15.2134 16.5164C15.0924 16.4663 14.9825 16.3927 14.89 16.3L12 13.41L9.11 16.3C8.92302 16.487 8.66943 16.592 8.405 16.592C8.14057 16.592 7.88698 16.487 7.7 16.3C7.51302 16.113 7.40798 15.8594 7.40798 15.595C7.40798 15.4641 7.43377 15.3344 7.48387 15.2135C7.53398 15.0925 7.60742 14.9826 7.7 14.89L10.59 12L7.7 9.11C7.51302 8.92302 7.40798 8.66943 7.40798 8.405C7.40798 8.14057 7.51302 7.88698 7.7 7.7C7.88698 7.51302 8.14057 7.40798 8.405 7.40798C8.66943 7.40798 8.92302 7.51302 9.11 7.7L12 10.59L14.89 7.7C14.9826 7.60742 15.0925 7.53398 15.2135 7.48387C15.3344 7.43377 15.4641 7.40798 15.595 7.40798C15.7259 7.40798 15.8556 7.43377 15.9765 7.48387C16.0975 7.53398 16.2074 7.60742 16.3 7.7C16.3926 7.79258 16.466 7.90249 16.5161 8.02346C16.5662 8.14442 16.592 8.27407 16.592 8.405C16.592 8.53593 16.5662 8.66558 16.5161 8.78654C16.466 8.90751 16.3926 9.01742 16.3 9.11L13.41 12L16.3 14.89C16.68 15.27 16.68 15.91 16.3 16.3Z" fill="#33445C"/>
             </svg>
