@@ -1,9 +1,13 @@
 <script lang="ts">
   import { location } from 'svelte-spa-router'
+  import { push } from 'svelte-spa-router'
+  import {langCountStore} from '../../stores/v2_release/LanguagesStore'
+  import {bookCountStore} from '../../stores/v2_release/BooksStore'
+  import {resourceTypesCountStore} from '../../stores/v2_release/ResourceTypesStore'
+
   let langRegExp = new RegExp('.*languages.*')
   let bookRegExp = new RegExp('.*books.*')
-  let resourceRegExp = new RegExp('.*resource_types.*')
-
+  let resourceTypeRegExp = new RegExp('.*resource_types.*')
 </script>
 
 <!-- wizard breadcrumb -->
@@ -43,11 +47,11 @@
       <div class="avatar placeholder">
         {#if bookRegExp.test($location)}
         <div class="bg-neutral-focus text-neutral-content rounded-full w-8 bg-[#015ad9]">
-          <span class="text-xs text-white">1</span>
+          <span class="text-xs text-white">2</span>
         </div>
         {:else}
         <div class="bg-neutral-focus text-neutral-content rounded-full w-8 bg-[#b3b9c2]">
-          <span class="text-xs text-white">1</span>
+          <span class="text-xs text-white">2</span>
         </div>
         {/if}
       </div>
@@ -55,13 +59,13 @@
     </div>
     <div class="inline-flex items-center">
       <div class="avatar placeholder">
-        {#if resourceRegExp.test($location)}
+        {#if resourceTypeRegExp.test($location)}
         <div class="bg-neutral-focus text-neutral-content rounded-full w-8 bg-[#015ad9]">
-          <span class="text-xs text-white">1</span>
+          <span class="text-xs text-white">3</span>
         </div>
         {:else}
         <div class="bg-neutral-focus text-neutral-content rounded-full w-8 bg-[#b3b9c2]">
-          <span class="text-xs text-white">1</span>
+          <span class="text-xs text-white">3</span>
         </div>
         {/if}
       </div>
@@ -75,6 +79,60 @@
       </div>
       <span class="ml-2">Review</span>
     </div>
+  {#if langRegExp.test($location) && $langCountStore > 0}
+    <button class="btn btn-primary"
+            on:click={() => push("/v2/books")}>
+      Next
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        >
+        <path
+          d="M4.96262 12.4876H15.7151L11.0175 17.3083C10.6421 17.6936 10.6421 18.3258 11.0175 18.7111C11.3929 19.0963 11.9994 19.0963 12.3748 18.7111L18.7185 12.2011C18.8077 12.1097 18.8785 12.0012 18.9268 11.8817C18.9751 11.7622 19 11.6341 19 11.5047C19 11.3753 18.9751 11.2472 18.9268 11.1277C18.8785 11.0082 18.8077 10.8997 18.7185 10.8083L12.3844 4.28847C12.2953 4.19701 12.1895 4.12447 12.0731 4.07497C11.9566 4.02548 11.8318 4 11.7058 4C11.5798 4 11.4549 4.02548 11.3385 4.07497C11.2221 4.12447 11.1163 4.19701 11.0271 4.28847C10.938 4.37993 10.8673 4.4885 10.8191 4.608C10.7709 4.72749 10.746 4.85557 10.746 4.98491C10.746 5.11424 10.7709 5.24232 10.8191 5.36181C10.8673 5.48131 10.938 5.58988 11.0271 5.68134L15.7151 10.5119H4.96262C4.43318 10.5119 4 10.9564 4 11.4998C4 12.0431 4.43318 12.4876 4.96262 12.4876Z"
+          fill="#001533"
+          />
+      </svg>
+    </button>
+  {:else if bookRegExp.test($location) && $bookCountStore > 0}
+    <button class="btn btn-primary"
+            on:click={() => push("/#/v2/resource_types")}>
+      Next
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        >
+        <path
+          d="M4.96262 12.4876H15.7151L11.0175 17.3083C10.6421 17.6936 10.6421 18.3258 11.0175 18.7111C11.3929 19.0963 11.9994 19.0963 12.3748 18.7111L18.7185 12.2011C18.8077 12.1097 18.8785 12.0012 18.9268 11.8817C18.9751 11.7622 19 11.6341 19 11.5047C19 11.3753 18.9751 11.2472 18.9268 11.1277C18.8785 11.0082 18.8077 10.8997 18.7185 10.8083L12.3844 4.28847C12.2953 4.19701 12.1895 4.12447 12.0731 4.07497C11.9566 4.02548 11.8318 4 11.7058 4C11.5798 4 11.4549 4.02548 11.3385 4.07497C11.2221 4.12447 11.1163 4.19701 11.0271 4.28847C10.938 4.37993 10.8673 4.4885 10.8191 4.608C10.7709 4.72749 10.746 4.85557 10.746 4.98491C10.746 5.11424 10.7709 5.24232 10.8191 5.36181C10.8673 5.48131 10.938 5.58988 11.0271 5.68134L15.7151 10.5119H4.96262C4.43318 10.5119 4 10.9564 4 11.4998C4 12.0431 4.43318 12.4876 4.96262 12.4876Z"
+          fill="#001533"
+          />
+      </svg>
+    </button>
+  {:else if resourceTypeRegExp.test($location) && $resourceTypesCountStore > 0}
+    <button class="btn btn-primary"
+            on:click={() => push("/#/v/settings")}>
+      Next
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        >
+        <path
+          d="M4.96262 12.4876H15.7151L11.0175 17.3083C10.6421 17.6936 10.6421 18.3258 11.0175 18.7111C11.3929 19.0963 11.9994 19.0963 12.3748 18.7111L18.7185 12.2011C18.8077 12.1097 18.8785 12.0012 18.9268 11.8817C18.9751 11.7622 19 11.6341 19 11.5047C19 11.3753 18.9751 11.2472 18.9268 11.1277C18.8785 11.0082 18.8077 10.8997 18.7185 10.8083L12.3844 4.28847C12.2953 4.19701 12.1895 4.12447 12.0731 4.07497C11.9566 4.02548 11.8318 4 11.7058 4C11.5798 4 11.4549 4.02548 11.3385 4.07497C11.2221 4.12447 11.1163 4.19701 11.0271 4.28847C10.938 4.37993 10.8673 4.4885 10.8191 4.608C10.7709 4.72749 10.746 4.85557 10.746 4.98491C10.746 5.11424 10.7709 5.24232 10.8191 5.36181C10.8673 5.48131 10.938 5.58988 11.0271 5.68134L15.7151 10.5119H4.96262C4.43318 10.5119 4 10.9564 4 11.4998C4 12.0431 4.43318 12.4876 4.96262 12.4876Z"
+          fill="#001533"
+          />
+      </svg>
+    </button>
+  {:else}
+    <!-- {#if langRegExp.test($location) && $langCountStore === 0 || bookRegExp.test($location) && bookCountStore === 0 || -->
+    <!-- resourceTypeRegExp.test($location) && $resourceTypesCountStore === 0} -->
     <button class="btn">
       Next
       <svg
@@ -83,12 +141,13 @@
         viewBox="0 0 24 24"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-      >
+        >
         <path
           d="M4.96262 12.4876H15.7151L11.0175 17.3083C10.6421 17.6936 10.6421 18.3258 11.0175 18.7111C11.3929 19.0963 11.9994 19.0963 12.3748 18.7111L18.7185 12.2011C18.8077 12.1097 18.8785 12.0012 18.9268 11.8817C18.9751 11.7622 19 11.6341 19 11.5047C19 11.3753 18.9751 11.2472 18.9268 11.1277C18.8785 11.0082 18.8077 10.8997 18.7185 10.8083L12.3844 4.28847C12.2953 4.19701 12.1895 4.12447 12.0731 4.07497C11.9566 4.02548 11.8318 4 11.7058 4C11.5798 4 11.4549 4.02548 11.3385 4.07497C11.2221 4.12447 11.1163 4.19701 11.0271 4.28847C10.938 4.37993 10.8673 4.4885 10.8191 4.608C10.7709 4.72749 10.746 4.85557 10.746 4.98491C10.746 5.11424 10.7709 5.24232 10.8191 5.36181C10.8673 5.48131 10.938 5.58988 11.0271 5.68134L15.7151 10.5119H4.96262C4.43318 10.5119 4 10.9564 4 11.4998C4 12.0431 4.43318 12.4876 4.96262 12.4876Z"
           fill="#001533"
-        />
+          />
       </svg>
     </button>
+  {/if}
   </div>
 </div>
