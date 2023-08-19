@@ -1,5 +1,7 @@
 <script lang="ts">
   import { push } from 'svelte-spa-router'
+  import WizardBreadcrumb from './WizardBreadcrumb.svelte'
+  import WizardBasket from './WizardBasket.svelte'
   import { ntBookStore, otBookStore } from '../../stores/v2_release/BooksStore'
   import {
     lang0CodeStore,
@@ -125,15 +127,6 @@
     }
   }
 
-  function resetResourceTypes() {
-    resetStores('resource_types')
-  }
-
-  function submitResourceTypes() {
-    resetStores('settings')
-    resetStores('notifications')
-    push('#/experimental')
-  }
 
   // Keep track of how many resources are currently stored reactively.
   let nonEmptyLang0Resourcetypes: boolean
@@ -167,6 +160,8 @@
 <Mast bind:sidebar="{open}" />
 <Tabs />
 {/if}
+
+<WizardBreadcrumb />
 
 <div class="bg-white flex">
   <button
@@ -270,21 +265,23 @@
     {/if}
   </div>
 
-  {#if $resourceTypesCountStore > 0}
-    <div class="text-center px-2 pt-2 mb-8 mt-2">
-      <button
-        on:click|preventDefault={submitResourceTypes}
-        class="btn w-5/6 orange-gradient text-primary-content capitalize"
-        >Add ({$resourceTypesCountStore}) Resource Types</button
-      >
-    </div>
+  <!-- {#if $resourceTypesCountStore > 0} -->
+  <!--   <div class="text-center px-2 pt-2 mb-8 mt-2"> -->
+  <!--     <button -->
+  <!--       on:click|preventDefault={submitResourceTypes} -->
+  <!--       class="btn w-5/6 orange-gradient text-primary-content capitalize" -->
+  <!--       >Add ({$resourceTypesCountStore}) Resource Types</button -->
+  <!--     > -->
+  <!--   </div> -->
 
-    <!-- <div class="mx-auto w-full px-2 pt-2 mt-2"> -->
-    <!--   <button on:click|preventDefault={resetResourceTypes} class="btn" -->
-    <!--     >Reset resource types</button -->
-    <!--   > -->
-    <!-- </div> -->
-  {/if}
+  <!--   <\!-- <div class="mx-auto w-full px-2 pt-2 mt-2"> -\-> -->
+  <!--   <\!--   <button on:click|preventDefault={resetResourceTypes} class="btn" -\-> -->
+  <!--   <\!--     >Reset resource types</button -\-> -->
+  <!--   <\!--   > -\-> -->
+  <!--   <\!-- </div> -\-> -->
+  <!-- {/if} -->
+
+  <WizardBasket />
 </div>
 
 <style global lang="postcss">

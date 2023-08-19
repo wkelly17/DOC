@@ -4,10 +4,44 @@
   import {langCountStore} from '../../stores/v2_release/LanguagesStore'
   import {bookCountStore} from '../../stores/v2_release/BooksStore'
   import {resourceTypesCountStore} from '../../stores/v2_release/ResourceTypesStore'
+  import { resetStores } from '../../lib/utils'
+  import { resetValuesStore } from '../../stores/v2_release/NotificationStore'
 
   let langRegExp = new RegExp('.*languages.*')
   let bookRegExp = new RegExp('.*books.*')
   let resourceTypeRegExp = new RegExp('.*resource_types.*')
+
+
+  function submitLanguages() {
+    // If books store or resource types store are not empty, then we
+    // should reset them when we change the languages.
+    if ($bookCountStore > 0 || $resourceTypesCountStore > 0) {
+      resetValuesStore.set(true)
+    }
+    resetStores('books')
+    resetStores('resource_types')
+    resetStores('settings')
+    resetStores('notifications')
+    push('#/v2/books')
+  }
+
+  function submitBooks() {
+    // If resource types store is not empty, then we
+    // should reset it when we change books.
+    if ($resourceTypesCountStore > 0) {
+      resetValuesStore.set(true)
+    }
+    resetStores('resource_types')
+    resetStores('settings')
+    resetStores('notifications')
+    push('#/v2/resource_types')
+  }
+
+  function submitResourceTypes() {
+    resetStores('settings')
+    resetStores('notifications')
+    push('#/v2/settings')
+  }
 </script>
 
 <!-- wizard breadcrumb -->
@@ -81,7 +115,7 @@
     </div>
   {#if langRegExp.test($location) && $langCountStore > 0}
     <button class="btn btn-primary"
-            on:click={() => push("/v2/books")}>
+            on:click={() => submitLanguages()}>
       Next
       <svg
         width="24"
@@ -98,7 +132,7 @@
     </button>
   {:else if bookRegExp.test($location) && $bookCountStore > 0}
     <button class="btn btn-primary"
-            on:click={() => push("/#/v2/resource_types")}>
+            on:click={() => submitBooks()}>
       Next
       <svg
         width="24"
@@ -115,7 +149,7 @@
     </button>
   {:else if resourceTypeRegExp.test($location) && $resourceTypesCountStore > 0}
     <button class="btn btn-primary"
-            on:click={() => push("/#/v/settings")}>
+            on:click={() => submitResourceTypes()}>
       Next
       <svg
         width="24"

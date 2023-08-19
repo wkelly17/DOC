@@ -1,5 +1,7 @@
 <script lang="ts">
   import { push } from 'svelte-spa-router'
+  import WizardBreadcrumb from './WizardBreadcrumb.svelte'
+  import WizardBasket from './WizardBasket.svelte'
   import otBooks from '../../data/ot_books'
   import { ntBookStore, otBookStore, bookCountStore } from '../../stores/v2_release/BooksStore'
   import {
@@ -95,17 +97,6 @@
     }
   }
 
-  function submitBooks() {
-    // If resource types store is not empty, then we
-    // should reset it when we change books.
-    if ($resourceTypesCountStore > 0) {
-      resetValuesStore.set(true)
-    }
-    resetStores('resource_types')
-    resetStores('settings')
-    resetStores('notifications')
-    push('#/experimental')
-  }
 
   function selectAllOtResourceCodes(event: Event) {
     if ((<HTMLInputElement>event.target).checked) {
@@ -226,6 +217,8 @@
 <Mast bind:sidebar="{open}" />
 <Tabs />
 {/if}
+
+<WizardBreadcrumb />
 
 <div class="bg-white">
   <div class="bg-white flex">
@@ -381,22 +374,6 @@
     </div>
   {/if}
 
-  {#if $bookCountStore > 0 && (otResourceCodes || ntResourceCodes)}
-    <div class="bg-white text-center px-2 pt-6 pb-8">
-      <button
-        on:click|preventDefault={submitBooks}
-        class="btn w-5/6 orange-gradient text-primary-content capitalize"
-        >Add ({$bookCountStore}) Books</button
-      >
-    </div>
-
-    <!-- <div class="text-center  px-2 pb-8 pt-2"> -->
-    <!--   <button -->
-    <!--     class="btn gray-gradiant text-neutral-content w-5/6 rounded capitalize" -->
-    <!--     on:click|preventDefault={() => resetBooks()}>Reset Books</button -->
-    <!--   > -->
-    <!-- </div> -->
-  {/if}
 
   <!-- {#if showNoBooksInCommonMessage} -->
   <!--   <div class="toast toast-center toast-middle"> -->
@@ -410,6 +387,8 @@
   <!--     </div> -->
   <!--   </div> -->
   <!-- {/if} -->
+
+  <WizardBasket />
 </div>
 
 <style global lang="postcss">
