@@ -35,6 +35,11 @@ const languageBookOrder: string = <string>import.meta.env.VITE_LANGUAGE_BOOK_ORD
 
 type StoreGroup = 'languages' | 'books' | 'resource_types' | 'settings' | 'notifications'
 
+export let langRegExp = new RegExp('.*languages.*')
+export let bookRegExp = new RegExp('.*books.*')
+export let resourceTypeRegExp = new RegExp('.*resource_types.*')
+export let settingsRegExp = new RegExp('.*settings.*')
+
 export function resetStores(storeGroup: StoreGroup) {
   if (storeGroup === 'languages') {
     glLangCodeAndNamesStore.set([])

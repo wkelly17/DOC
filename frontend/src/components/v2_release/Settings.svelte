@@ -1,6 +1,8 @@
 <script lang="ts">
   import type { SelectElement } from '../../types'
   import Switch from './Switch.svelte'
+  import WizardBreadcrumb from './WizardBreadcrumb.svelte'
+  import WizardBasket from './WizardBasket.svelte'
   import {
     layoutForPrintStore,
     assemblyStrategyKindStore,
@@ -79,6 +81,8 @@
 <Mast bind:sidebar="{open}" />
 <Tabs />
 {/if}
+
+<WizardBreadcrumb />
 
 <h3 class="bg-white text-secondary-content text-lg pb-8 pt-2 pl-2">Document Settings</h3>
 <ul>
@@ -200,3 +204,4 @@
   {/if}
 </ul>
 <GenerateDocument />
+<WizardBasket />

@@ -4,12 +4,8 @@
   import {langCountStore} from '../../stores/v2_release/LanguagesStore'
   import {bookCountStore} from '../../stores/v2_release/BooksStore'
   import {resourceTypesCountStore} from '../../stores/v2_release/ResourceTypesStore'
-  import { resetStores } from '../../lib/utils'
+  import { resetStores, langRegExp, bookRegExp, resourceTypeRegExp, settingsRegExp } from '../../lib/utils'
   import { resetValuesStore } from '../../stores/v2_release/NotificationStore'
-
-  let langRegExp = new RegExp('.*languages.*')
-  let bookRegExp = new RegExp('.*books.*')
-  let resourceTypeRegExp = new RegExp('.*resource_types.*')
 
 
   function submitLanguages() {
@@ -42,6 +38,33 @@
     resetStores('notifications')
     push('#/v2/settings')
   }
+
+
+  // Turn off and on breadcrumb number circles
+  let turnLangStepOn: boolean = false
+  let turnBookStepOn: boolean = false
+  let turnResourceTypeStepOn: boolean = false
+  let turnSettingsStepOn: boolean = false
+  $: {
+    if (langRegExp.test($location)) {
+      turnLangStepOn = true
+    } else if (bookRegExp.test($location))  {
+      turnLangStepOn = true
+      turnBookStepOn = true
+      turnResourceTypeStepOn = false
+      turnSettingsStepOn = false
+    } else if (resourceTypeRegExp.test($location)) {
+      turnLangStepOn = true
+      turnBookStepOn = true
+      turnResourceTypeStepOn = true
+      turnSettingsStepOn = false
+    } else if (settingsRegExp.test($location)) {
+      turnLangStepOn = true
+      turnBookStepOn = true
+      turnResourceTypeStepOn = true
+      turnSettingsStepOn = true
+    }
+  }
 </script>
 
 <!-- wizard breadcrumb -->
@@ -65,8 +88,9 @@
     </button>
     <div class="inline-flex items-center">
       <div class="avatar placeholder">
-        {#if langRegExp.test($location)}
-        <div class="bg-neutral-focus text-neutral-content rounded-full w-8 bg-[#015ad9]">
+        {#if turnLangStepOn}
+        <div class="bg-neutral-focus text-neutral-content rounded-full
+                    w-8" style="background: linear-gradient(180deg, #1876FD 0%, #015AD9 100%);">
           <span class="text-xs text-white">1</span>
         </div>
         {:else}
@@ -79,8 +103,9 @@
     </div>
     <div class="inline-flex items-center">
       <div class="avatar placeholder">
-        {#if bookRegExp.test($location)}
-        <div class="bg-neutral-focus text-neutral-content rounded-full w-8 bg-[#015ad9]">
+        {#if turnBookStepOn}
+        <div class="bg-neutral-focus text-neutral-content rounded-full
+                    w-8" style="background: linear-gradient(180deg, #1876FD 0%, #015AD9 100%);">
           <span class="text-xs text-white">2</span>
         </div>
         {:else}
@@ -93,8 +118,9 @@
     </div>
     <div class="inline-flex items-center">
       <div class="avatar placeholder">
-        {#if resourceTypeRegExp.test($location)}
-        <div class="bg-neutral-focus text-neutral-content rounded-full w-8 bg-[#015ad9]">
+        {#if turnResourceTypeStepOn}
+        <div class="bg-neutral-focus text-neutral-content rounded-full
+                    w-8" style="background: linear-gradient(180deg, #1876FD 0%, #015AD9 100%);">
           <span class="text-xs text-white">3</span>
         </div>
         {:else}
@@ -107,11 +133,18 @@
     </div>
     <div class="inline-flex items-center">
       <div class="avatar placeholder">
+        {#if turnSettingsStepOn}
+        <div class="bg-neutral-focus text-neutral-content rounded-full
+                    w-8" style="background: linear-gradient(180deg, #1876FD 0%, #015AD9 100%);">
+          <span class="text-xs text-white">4</span>
+        </div>
+        {:else}
         <div class="bg-neutral-focus text-neutral-content rounded-full w-8 bg-[#b3b9c2]">
           <span class="text-xs text-white">4</span>
         </div>
+        {/if}
       </div>
-      <span class="ml-2">Review</span>
+      <span class="ml-2">Settings</span>
     </div>
   {#if langRegExp.test($location) && $langCountStore > 0}
     <button class="btn btn-primary"
