@@ -1,15 +1,15 @@
 <script lang="ts">
   import type { SelectElement } from '../../types'
 
-  let book_language_order_strategy: SelectElement = {
+  let bookLanguageOrderStrategy: SelectElement = {
     id: 'blo',
     label: <string>import.meta.env.VITE_BOOK_LANGUAGE_ORDER_LABEL
   }
-  let language_book_order_strategy: SelectElement = {
+  let languageBookOrderStrategy: SelectElement = {
     id: 'lbo',
     label: <string>import.meta.env.VITE_LANGUAGE_BOOK_ORDER_LABEL
   }
-  let assemblyStrategies = [book_language_order_strategy, language_book_order_strategy]
+  let assemblyStrategies = [bookLanguageOrderStrategy, languageBookOrderStrategy]
 
   export let assemblyStrategy: SelectElement | null
 </script>
