@@ -48,16 +48,19 @@
     return resourceTypesAndNames
   }
 
-
-  let regexp = new RegExp(".*tw.*")
+  let regexp = new RegExp('.*tw.*')
   $: {
     if ($lang0ResourceTypesStore) {
-      twResourceRequestedStore.set($lang0ResourceTypesStore.some(item => regexp.test(item)))
+      twResourceRequestedStore.set(
+        $lang0ResourceTypesStore.some(item => regexp.test(item))
+      )
     }
   }
   $: {
     if ($lang1ResourceTypesStore) {
-      twResourceRequestedStore.set($lang1ResourceTypesStore.some(item => regexp.test(item)))
+      twResourceRequestedStore.set(
+        $lang1ResourceTypesStore.some(item => regexp.test(item))
+      )
     }
   }
 
@@ -127,7 +130,6 @@
     }
   }
 
-
   // Keep track of how many resources are currently stored reactively.
   let nonEmptyLang0Resourcetypes: boolean
   $: nonEmptyLang0Resourcetypes = $lang0ResourceTypesStore.every(item => item.length > 0)
@@ -149,7 +151,6 @@
     }
   }
 
-
   // For sidebar
   let open = false
   let showTopMatter: boolean = setShowTopMatter()
@@ -163,106 +164,89 @@
 
 <WizardBreadcrumb />
 
-<div class="bg-white flex">
-  <button
-    class="bg-white hover:bg-grey-100 text-grey-darkest font-bold py-2 px-4 rounded inline-flex items-center"
-    on:click={() => push('#/experimental')}
-  >
-    <LeftArrow backLabel="Resource Types" />
-  </button>
-</div>
-<div class="bg-white pl-4">
-  <div class="grid grid-cols-2 gap-4 bg-white">
-    {#if $langCountStore > 0}
+<!-- container for "center" div -->
+<div class="flex-grow flex flex-row overflow-hidden">
+  <!-- center -->
+  <div class="flex-1 flex flex-col bg-white">
+    <div class="grid grid-cols-2 gap-4 bg-white">
+      {#if $langCountStore > 0}
       <div>
         {#if lang0ResourceTypesAndNames && lang0ResourceTypesAndNames.length == 0}
-          <ProgressIndicator />
+        <ProgressIndicator />
         {:else}
-          <div>
-            <h3 class="text-primary-content mb-4">
-              Resource types available for
-              {$lang0NameStore}
-            </h3>
-            {#if lang0ResourceTypesAndNames && lang0ResourceTypesAndNames.length > 0}
-              <div class="flex items-center">
-                <input
-                  id="select-all-lang0-resource-types"
-                  type="checkbox"
-                  class="checkbox checkbox-dark-bordered"
-                  on:change={event => selectAllLang0ResourceTypes(event)}
-                />
-                <label for="select-all-lang0-resource-types"
-                       class="text-primary-content pl-1"
-                  >Select all {$lang0NameStore}'s resource types</label
-                >
-              </div>
-            <ul class="pb-4">
-              {#each lang0ResourceTypesAndNames as resourceTypeAndName, index}
-                <li class="flex items-center">
-                  <input
-                    id="lang0-resourcetype-{index}"
-                    type="checkbox"
-                    bind:group={$lang0ResourceTypesStore}
-                    value={resourceTypeAndName}
-                    class="checkbox checkbox-dark-bordered"
-                  />
-                  <label for="lang0-resourcetype-{index}"
-                         class="text-primary-content pl-1"
-                    >{resourceTypeAndName.split(', ')[1]}</label
-                  >
-                </li>
-              {/each}
-            </ul>
-            {/if}
+        <div>
+          <h3 class="text-primary-content mb-4">
+            Resource types available for {$lang0NameStore}
+          </h3>
+          {#if lang0ResourceTypesAndNames && lang0ResourceTypesAndNames.length > 0}
+          <div class="flex items-center">
+            <input id="select-all-lang0-resource-types" type="checkbox" class="checkbox
+            checkbox-dark-bordered" on:change={event =>
+            selectAllLang0ResourceTypes(event)} />
+            <label for="select-all-lang0-resource-types" class="text-primary-content pl-1"
+              >Select all {$lang0NameStore}'s resource types</label
+            >
           </div>
-        {/if}
-      </div>
-    {/if}
-    {#if $langCountStore > 1}
-      <div>
-        {#if !lang1ResourceTypesAndNames}
-          <ProgressIndicator />
-        {:else}
-          <div>
-            <h3 class="text-primary-content mb-4">
-              Resource types available for {$lang1NameStore}
-            </h3>
-            {#if lang1ResourceTypesAndNames && lang1ResourceTypesAndNames.length > 0}
-              <div class="flex items-center">
-                <input
-                  id="select-all-lang1-resource-types"
-                  type="checkbox"
-                  class="checkbox checkbox-dark-bordered"
-                  on:change={event => selectAllLang1ResourceTypes(event)}
-                />
-                <label for="select-all-lang1-resource-types"
-                       class="text-primary-content pl-1"
-                  >Select all
-                  {$lang1NameStore}'s resource types</label
-                >
-              </div>
-            <ul>
-              {#each lang1ResourceTypesAndNames as resourceTypeAndName, index}
-                <li class="flex items-center">
-                  <input
-                    id="lang1-resourcetype-{index}"
-                    type="checkbox"
-                    bind:group={$lang1ResourceTypesStore}
-                    value={resourceTypeAndName}
-                    class="checkbox checkbox-dark-bordered"
-                  />
-                  <label for="lang1-resourcetype-{index}"
-                         class="text-primary-content pl-1"
-                    >{resourceTypeAndName.split(', ')[1]}</label
-                  >
-                </li>
-              {/each}
-            </ul>
+          <ul class="pb-4">
+            {#each lang0ResourceTypesAndNames as resourceTypeAndName, index}
+            <li class="flex items-center">
+              <input
+                id="lang0-resourcetype-{index}"
+                type="checkbox"
+                bind:group="{$lang0ResourceTypesStore}"
+                value="{resourceTypeAndName}"
+                class="checkbox checkbox-dark-bordered"
+              />
+              <label for="lang0-resourcetype-{index}" class="text-primary-content pl-1"
+                >{resourceTypeAndName.split(', ')[1]}</label
+              >
+            </li>
+            {/each}
+          </ul>
           {/if}
         </div>
         {/if}
       </div>
-    {/if}
+      {/if} {#if $langCountStore > 1}
+      <div>
+        {#if !lang1ResourceTypesAndNames}
+        <ProgressIndicator />
+        {:else}
+        <div>
+          <h3 class="text-primary-content mb-4">
+            Resource types available for {$lang1NameStore}
+          </h3>
+          {#if lang1ResourceTypesAndNames && lang1ResourceTypesAndNames.length > 0}
+          <div class="flex items-center">
+            <input id="select-all-lang1-resource-types" type="checkbox" class="checkbox
+            checkbox-dark-bordered" on:change={event =>
+            selectAllLang1ResourceTypes(event)} />
+            <label for="select-all-lang1-resource-types" class="text-primary-content pl-1"
+              >Select all {$lang1NameStore}'s resource types</label
+            >
+          </div>
+          <ul>
+            {#each lang1ResourceTypesAndNames as resourceTypeAndName, index}
+            <li class="flex items-center">
+              <input
+                id="lang1-resourcetype-{index}"
+                type="checkbox"
+                bind:group="{$lang1ResourceTypesStore}"
+                value="{resourceTypeAndName}"
+                class="checkbox checkbox-dark-bordered"
+              />
+              <label for="lang1-resourcetype-{index}" class="text-primary-content pl-1"
+                >{resourceTypeAndName.split(', ')[1]}</label
+              >
+            </li>
+            {/each}
+          </ul>
+          {/if}
+        </div>
+        {/if}
+      </div>
+      {/if}
+    </div>
   </div>
 
   <!-- {#if $resourceTypesCountStore > 0} -->
