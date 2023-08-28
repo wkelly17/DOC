@@ -19,10 +19,7 @@ import About_v1 from './components/v1_release/About.svelte'
 import Books_v2 from './components/v2_release/Books.svelte'
 import ResourceTypes_v2 from './components/v2_release/ResourceTypes.svelte'
 import Languages_v2 from './components/v2_release/Languages.svelte'
-import Home_v2 from './components/v2_release/Home.svelte'
-import About_v2 from './components/v2_release/About.svelte'
 import Settings_v2 from './components/v2_release/Settings.svelte'
-import Result_v2 from './components/v2_release/Result.svelte'
 import ViewNotFound_v2 from './components/v2_release/ViewNotFound.svelte'
 
 export default {
@@ -43,13 +40,9 @@ export default {
   '/experimental/about': About,
 
   // full release new ui routes
-  '/v2/': Home_v2,
   '/v2/languages': Languages_v2,
   '/v2/books': Books_v2,
   '/v2/resource_types': ResourceTypes_v2,
   '/v2/settings': Settings_v2,
-  '/v2/result': Result_v2,
-  '/v2/about': About_v2,
-
   '*': ViewNotFound
 }

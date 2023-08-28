@@ -12,21 +12,18 @@
     generateEpubStore,
     generateDocxStore,
     emailStore,
-    limitTwStore
+    limitTwStore,
+    documentRequestKeyStore
   } from '../../stores/v2_release/SettingsStore'
   import { documentReadyStore } from '../../stores/v2_release/NotificationStore'
   import {
     lang0ResourceTypesStore,
     lang1ResourceTypesStore,
-    resourceTypesCountStore,
     twResourceRequestedStore
   } from '../../stores/v2_release/ResourceTypesStore'
   import { lang1CodeStore } from '../../stores/v2_release/LanguagesStore'
   import GenerateDocument from './GenerateDocument.svelte'
-  import Mast from './Mast.svelte'
-  import Tabs from './Tabs.svelte'
-  import Sidebar from './Sidebar.svelte'
-  import { setShowTopMatter } from '../../lib/utils'
+  import LogRocket from 'logrocket'
 
   let bookLanguageOrderStrategy: SelectElement = {
     id: 'blo',
@@ -65,13 +62,11 @@
       $generateDocxStore = false
       $generateEpubStore = false
       $docTypeStore = 'pdf'
-      console.log('Print optimization selected, therefore Docx and ePub output disabled')
     } else {
       $generatePdfStore = true
       $generateDocxStore = false
       $generateEpubStore = false
       $docTypeStore = 'pdf'
-      console.log('Print optimization de-selected, set default to pdf')
     }
   }
 
@@ -95,7 +90,6 @@
       )
     }
   }
-  $: console.log(`$twResourceRequestedStore: ${$twResourceRequestedStore}`)
 
   $: showEmail = false
   $: showEmailCaptured = false
@@ -103,25 +97,21 @@
   // Deal with empty string case
   if ($emailStore && $emailStore === '') {
     emailStore.set(null)
+    LogRocket.identify($documentRequestKeyStore)
     // Deal with undefined case
   } else if ($emailStore === undefined) {
     emailStore.set(null)
+    LogRocket.identify($documentRequestKeyStore)
     // Deal with non-empty string
   } else if ($emailStore && $emailStore !== '') {
     emailStore.set($emailStore.trim())
+    // Send email to LogRocket using identify
+    // LogRocket.init('ct7zyg/interleaved-resource-generator')
+    LogRocket.identify($emailStore)
   }
 
-  // For sidebar
-  let open = false
-
-  let showTopMatter: boolean = setShowTopMatter()
 </script>
 
-{#if showTopMatter}
-<Sidebar bind:open />
-<Mast bind:sidebar="{open}" />
-<Tabs />
-{/if}
 
 <WizardBreadcrumb />
 
@@ -140,8 +130,6 @@
             <span class="text-[#33445C]">{import.meta.env.VITE_PDF_LABEL_V2}</span>
           </label>
         </div>
-        <!-- {#if $assemblyStrategyKindStore === languageBookOrderStrategy.id && -->
-        <!-- !$layoutForPrintStore} -->
         <div class="mb-2">
           <label>
             <input name="docType" value={"epub"} bind:group={$docTypeStore} type="radio">
@@ -270,13 +258,9 @@
         {/if}
       </div>
 
-      <!-- {/if} -->
       <GenerateDocument />
     </main>
   </div>
 
   <WizardBasket />
 </div>
-
-<!-- footer -->
-<!-- <div class="bg-blue-700 p-4">Footer</div> -->

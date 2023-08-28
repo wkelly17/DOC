@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { push } from 'svelte-spa-router'
   import WizardBreadcrumb from './WizardBreadcrumb.svelte'
   import WizardBasket from './WizardBasket.svelte'
   import { ntBookStore, otBookStore } from '../../stores/v2_release/BooksStore'
@@ -16,13 +15,8 @@
     resourceTypesCountStore,
     twResourceRequestedStore
   } from '../../stores/v2_release/ResourceTypesStore'
-  import LeftArrow from './LeftArrow.svelte'
   import ProgressIndicator from './ProgressIndicator.svelte'
-  import { getApiRootUrl, resetStores } from '../../lib/utils'
-  import Mast from './Mast.svelte'
-  import Tabs from './Tabs.svelte'
-  import Sidebar from './Sidebar.svelte'
-  import { setShowTopMatter } from '../../lib/utils'
+  import { getApiRootUrl } from '../../lib/utils'
 
   async function getResourceTypesAndNames(
     langCode: string,
@@ -75,10 +69,7 @@
       item.split(', ')[0],
       item.split(', ')[1]
     ])
-    getResourceTypesAndNames($lang0CodeStore, [
-      ...otResourceCodes_,
-      ...ntResourceCodes_
-    ])
+    getResourceTypesAndNames($lang0CodeStore, [...otResourceCodes_, ...ntResourceCodes_])
       .then(resourceTypesAndNames => {
         lang0ResourceTypesAndNames = resourceTypesAndNames.map(
           tuple => `${tuple[0]}, ${tuple[1]}`
@@ -89,9 +80,11 @@
         // selections in the wizard basket, so we want to eliminate
         // any lang0ResourceTypesStore elements that are not in lang0ResourceTypesAndNames.
         if ($lang0ResourceTypesStore.length > 0) {
-          lang0ResourceTypesStore.set($lang0ResourceTypesStore.filter(item => {
-            return lang0ResourceTypesAndNames.some(element => element === item)
-          }))
+          lang0ResourceTypesStore.set(
+            $lang0ResourceTypesStore.filter(item => {
+              return lang0ResourceTypesAndNames.some(element => element === item)
+            })
+          )
         }
       })
       .catch(err => console.error(err))
@@ -108,10 +101,7 @@
       item.split(', ')[0],
       item.split(', ')[1]
     ])
-    getResourceTypesAndNames($lang1CodeStore, [
-      ...otResourceCodes_,
-      ...ntResourceCodes_
-    ])
+    getResourceTypesAndNames($lang1CodeStore, [...otResourceCodes_, ...ntResourceCodes_])
       .then(resourceTypesAndNames => {
         lang1ResourceTypesAndNames = resourceTypesAndNames.map(
           tuple => `${tuple[0]}, ${tuple[1]}`
@@ -122,9 +112,11 @@
         // selections in the wizard basket, so we want to eliminate
         // any lang1ResourceTypesStore elements that are not in lang1ResourceTypesAndNames.
         if ($lang1ResourceTypesStore.length > 0) {
-          lang1ResourceTypesStore.set($lang1ResourceTypesStore.filter(item => {
-            return lang1ResourceTypesAndNames.some(element => element === item)
-          }))
+          lang1ResourceTypesStore.set(
+            $lang1ResourceTypesStore.filter(item => {
+              return lang1ResourceTypesAndNames.some(element => element === item)
+            })
+          )
         }
       })
       .catch(err => console.error(err))
@@ -166,17 +158,7 @@
       resourceTypesCountStore.set(0)
     }
   }
-
-  // For sidebar
-  let open = false
-  let showTopMatter: boolean = setShowTopMatter()
 </script>
-
-{#if showTopMatter}
-<Sidebar bind:open />
-<Mast bind:sidebar="{open}" />
-<Tabs />
-{/if}
 
 <WizardBreadcrumb />
 
@@ -259,22 +241,6 @@
       {/if} {/if}
     </div>
   </div>
-
-  <!-- {#if $resourceTypesCountStore > 0} -->
-  <!--   <div class="text-center px-2 pt-2 mb-8 mt-2"> -->
-  <!--     <button -->
-  <!--       on:click|preventDefault={submitResourceTypes} -->
-  <!--       class="btn w-5/6 orange-gradient text-primary-content capitalize" -->
-  <!--       >Add ({$resourceTypesCountStore}) Resource Types</button -->
-  <!--     > -->
-  <!--   </div> -->
-
-  <!--   <\!-- <div class="mx-auto w-full px-2 pt-2 mt-2"> -\-> -->
-  <!--   <\!--   <button on:click|preventDefault={resetResourceTypes} class="btn" -\-> -->
-  <!--   <\!--     >Reset resource types</button -\-> -->
-  <!--   <\!--   > -\-> -->
-  <!--   <\!-- </div> -\-> -->
-  <!-- {/if} -->
 
   <WizardBasket />
 </div>

@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { push } from 'svelte-spa-router'
   import WizardBreadcrumb from './WizardBreadcrumb.svelte'
   import WizardBasket from './WizardBasket.svelte'
   import otBooks from '../../data/ot_books'
@@ -7,17 +6,10 @@
   import {
     lang0CodeStore,
     lang1CodeStore,
-    lang0NameStore,
-    lang1NameStore,
     langCountStore
   } from '../../stores/v2_release/LanguagesStore'
-  import { resourceTypesCountStore } from '../../stores/v2_release/ResourceTypesStore'
   import ProgressIndicator from './ProgressIndicator.svelte'
-  import { resetValuesStore } from '../../stores/v2_release/NotificationStore'
-  import { getApiRootUrl, resetStores, setShowTopMatter } from '../../lib/utils'
-  import Mast from './Mast.svelte'
-  import Tabs from './Tabs.svelte'
-  import Sidebar from './Sidebar.svelte'
+  import { getApiRootUrl } from '../../lib/utils'
 
   async function getSharedResourceCodesAndNames(
     lang0Code: string,
@@ -174,67 +166,8 @@
   // let showNoBooksInCommonMessage = false
   let showOldTestament = false
 
-  // let headerDisplayString: string = ''
-  // $: {
-  //   if ($langCountStore > 1) {
-  //     headerDisplayString = `Available books in common for languages: ${$lang0NameStore}, ${$lang1NameStore}`
-  //   } else {
-  //     headerDisplayString = `Available books for language: ${$lang0NameStore}`
-  //   }
-  // }
-
-  // // DEBUG
-  // $: console.log(`$otBookStore: ${$otBookStore}`)
-  // $: console.log(`$ntBookStore: ${$ntBookStore}`)
-  // $: console.log(`otResourceCodes: ${otResourceCodes}`)
-  // $: console.log(`ntResourceCodes: ${ntResourceCodes}`)
-  // $: {
-  //   if (otResourceCodes) {
-  //     console.log(
-  //       `checked OT items: ${otResourceCodes.map(resourceCodeAndName =>
-  //         $otBookStore.some(item => item.split(', ')[0] === resourceCodeAndName[0])
-  //       )}`
-  //     )
-  //   }
-  // }
-  // $: {
-  //   if (ntResourceCodes) {
-  //     console.log(
-  //       `checked NT items: ${ntResourceCodes.map(resourceCodeAndName =>
-  //         $ntBookStore.some(item => item.split(', ')[0] === resourceCodeAndName[0])
-  //       )}`
-  //     )
-  //   }
-  // }
-  // let otLabel: string = 'Old Testament'
-  // $: {
-  //   if ($otBookStore.length) {
-  //     otLabel = `Old Testament (${$otBookStore.length})`
-  //   } else {
-  //     otLabel = 'Old Testament'
-  //   }
-  // }
-  // let ntLabel: string = 'New Testament'
-  // $: {
-  //   if ($ntBookStore.length) {
-  //     ntLabel = `New Testament (${$ntBookStore.length})`
-  //   } else {
-  //     ntLabel = 'New Testament'
-  //   }
-  // }
-
-
-  // For sidebar
-  let open = false
-  let showTopMatter: boolean = setShowTopMatter()
 </script>
 
-
-{#if showTopMatter}
-<Sidebar bind:open />
-<Mast bind:sidebar="{open}" />
-<Tabs />
-{/if}
 
 <WizardBreadcrumb />
 
@@ -270,14 +203,12 @@
                              border-b-2 border-[#015ad9] hover:bg-[#015ad9] focus:bg-[#015ad9] focus:outline-none focus:ring-0 active:bg-[#015ad9] transition duration-150 ease-in-out"
                       on:click={() => (showOldTestament = true)}>
                 Old Testament
-                <!-- {otLabel} -->
               </button>
               <button
                 class="rounded-r-md w-36 h-10 bg-white text-[#33445c] capitalize font-medium leading-tight border-x-2 border-t-2 border-b-2 border-[#015ad9] hover:bg-white focus:bg-white focus:outline-none focus:ring-0 active:bg-white transition duration-150 ease-in-out"
                 on:click={() => (showOldTestament = false)}
                 >
                 New Testament
-                <!-- {ntLabel} -->
               </button>
             </div>
           {:else}
@@ -297,7 +228,6 @@
                 on:click={() => (showOldTestament = true)}
                 >
                 Old Testament
-                <!-- {otLabel} -->
               </button>
               <button
                 class="rounded-r-md w-36 h-10 bg-[#015ad9]
@@ -305,7 +235,6 @@
                 on:click={() => (showOldTestament = false)}
                 >
                 New Testament
-                <!-- {ntLabel} -->
               </button>
             </div>
           {/if}
@@ -403,10 +332,6 @@
 
 </div>
 
-<!-- <\!-- footer -\-> -->
-<!-- <div class="bg-blue-700 p-4"> -->
-<!--   Footer -->
-<!-- </div> -->
 
 <style global lang="postcss">
   #filter-ot-books, #filter-nt-books {
@@ -417,7 +342,6 @@
     background-position: left center;
     outline: 0;
   }
-
 
   * :global(.checkbox-dark-bordered) {
     /* --chkbg: #1a130b; */

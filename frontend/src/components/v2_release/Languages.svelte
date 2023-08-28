@@ -4,7 +4,6 @@
   import WizardBasket from './WizardBasket.svelte'
   import ProgressIndicator from './ProgressIndicator.svelte'
   import glLangs from '../../data/gl_languages'
-  import { push } from 'svelte-spa-router'
   import {
     lang0CodeStore,
     lang1CodeStore,
@@ -14,14 +13,7 @@
     nonGlLangCodeAndNamesStore,
     langCountStore
   } from '../../stores/v2_release/LanguagesStore'
-  import { bookCountStore } from '../../stores/v2_release/BooksStore'
-  import { resourceTypesCountStore } from '../../stores/v2_release/ResourceTypesStore'
-  import { resetValuesStore } from '../../stores/v2_release/NotificationStore'
-  import { getApiRootUrl, resetStores } from '../../lib/utils'
-  import Mast from './Mast.svelte'
-  import Tabs from './Tabs.svelte'
-  import Sidebar from './Sidebar.svelte'
-  import { setShowTopMatter } from '../../lib/utils'
+  import { getApiRootUrl } from '../../lib/utils'
 
   let showGlLanguages = true
 
@@ -194,17 +186,7 @@
 
   $: console.log(`$langCountStore: ${$langCountStore}`)
 
-  // For sidebar
-  let open = false
-  let showTopMatter: boolean = setShowTopMatter()
 </script>
-
-{#if showTopMatter}
-  <Sidebar bind:open />
-  <Mast bind:sidebar="{open}" />
-  <Tabs />
-{/if}
-
 
 <WizardBreadcrumb />
 
@@ -333,10 +315,6 @@
 
 </div>
 
-<!-- <\!-- footer -\-> -->
-<!-- <div class="bg-blue-700 p-4"> -->
-<!--   Footer -->
-<!-- </div> -->
 
 
 <style global lang="postcss">
