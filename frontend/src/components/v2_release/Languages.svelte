@@ -116,22 +116,22 @@
   }
 
 
-  let glLabel: string = 'Gateway Languages'
-  $: {
-    if ($glLangCodeAndNamesStore.length) {
-      glLabel = `Gateway (${$glLangCodeAndNamesStore.length})`
-    } else {
-      glLabel = 'Gateway'
-    }
-  }
-  let nonGlLabel: string = 'Heart Languages'
-  $: {
-    if ($nonGlLangCodeAndNamesStore.length) {
-      nonGlLabel = `Heart (${$nonGlLangCodeAndNamesStore.length})`
-    } else {
-      nonGlLabel = 'Heart'
-    }
-  }
+  // let glLabel: string = 'Gateway Languages'
+  // $: {
+  //   if ($glLangCodeAndNamesStore.length) {
+  //     glLabel = `Gateway (${$glLangCodeAndNamesStore.length})`
+  //   } else {
+  //     glLabel = 'Gateway'
+  //   }
+  // }
+  // let nonGlLabel: string = 'Heart Languages'
+  // $: {
+  //   if ($nonGlLangCodeAndNamesStore.length) {
+  //     nonGlLabel = `Heart (${$nonGlLangCodeAndNamesStore.length})`
+  //   } else {
+  //     nonGlLabel = 'Heart'
+  //   }
+  // }
 
   // Update stores for use in this and other pages reactively
   let glLang0Code: string = ''
@@ -213,19 +213,20 @@
 
   <!-- center -->
   <div class="flex-1 flex flex-col bg-white">
-    <h3 class="text-[#33445C] text-4xl font-normal leading-[48px]">Pick up to 2 Languages</h3>
+    <h3 class="ml-4 text-[#33445C] text-4xl font-normal leading-[48px]">Pick up to 2 languages</h3>
 
     <!-- search and buttons -->
     <div class="flex items-center px-2 py-2 mt-2 bg-white">
       {#if !glLangCodesAndNames || glLangCodesAndNames.length === 0|| !nonGlLangCodesAndNames || nonGlLangCodesAndNames.length === 0}
-        <ProgressIndicator />
+        <div class="ml-4">
+          <ProgressIndicator />
+        </div>
       {:else}
         <div class="flex items-center">
           {#if showGlLanguages}
             <label id="label-for-filter-gl-langs" for="filter-gl-langs">
               <input
                 id="filter-gl-langs"
-                type="search"
                 bind:value={glLangSearchTerm}
                 placeholder="Search Languages"
                 class="input input-bordered bg-white w-full max-w-xs"
@@ -233,26 +234,24 @@
             </label>
             <div class="flex ml-2" role="group">
               <button
-                class="rounded-l-md w-32 h-10 bg-[#015ad9]
-                       text-white capitalize font-medium
-                       leading-tight border-x-1 border-t-1 border-b-1
-                       border-[#1a130b99] hover:bg-[#015ad9] focus:bg-[#015ad9] focus:outline-none focus:ring-0 active:bg-[#015ad9] transition duration-150 ease-in-out"
+                class="rounded-l-md w-36 h-10 bg-[#015ad9] text-white font-medium leading-tight border-x-2 border-t-2 border-b-2 border-[#015ad9] hover:bg-[#015ad9] focus:bg-[#015ad9] focus:outline-none focus:ring-0 active:bg-[#015ad9] transition duration-150 ease-in-out"
                 on:click={() => (showGlLanguages = true)}
                 >
-                {glLabel}
+                Gateway
+                <!-- {glLabel} -->
               </button>
               <button
-                class="rounded-r-md w-32 h-10 bg-white text-primary-content capitalize font-medium leading-tight border-r-2 border-t-2 border-b-2 border-[#1a130b99] hover:bg-white focus:bg-white focus:outline-none focus:ring-0 active:bg-white transition duration-150 ease-in-out"
+                class="rounded-r-md w-36 h-10 bg-white text-[#33445C] font-medium leading-tight border-r-2 border-t-2 border-b-2 border-[#015ad9] hover:bg-white focus:bg-white focus:outline-none focus:ring-0 active:bg-white transition duration-150 ease-in-out"
                 on:click={() => (showGlLanguages = false)}
                 >
-                {nonGlLabel}
+                Heart
+                <!-- {nonGlLabel} -->
               </button>
             </div>
           {:else}
             <label id="label-for-filter-non-gl-langs" for="filter-non-gl-langs">
               <input
                 id="filter-non-gl-langs"
-                type="search"
                 bind:value={nonGlLangSearchTerm}
                 placeholder="Search Languages"
                 class="input input-bordered bg-white w-full max-w-xs"
@@ -260,17 +259,19 @@
             </label>
             <div class="flex ml-2" role="group">
               <button
-                class="rounded-l-md w-32 h-10 bg-white text-primary-content capitalize font-medium leading-tight border-x-2 border-t-2 border-b-2 border-[#1a130b99] hover:bg-white focus:bg-white focus:outline-none focus:ring-0 active:bg-white transition duration-150 ease-in-out"
+                class="rounded-l-md w-36 h-10 bg-white text-[#33445c] font-medium leading-tight border-x-2 border-t-2 border-b-2 border-[#015ad9] hover:bg-white focus:bg-white focus:outline-none focus:ring-0 active:bg-white transition duration-150 ease-in-out"
                 on:click={() => (showGlLanguages = true)}
                 >
-                {glLabel}
+                Gateway
+                <!-- {glLabel} -->
               </button>
               <button
-                class="rounded-r-md w-32 h-10 bg-[#015ad9]
-                       text-white  text-primary-content capitalize font-medium leading-tight border-r-2 border-t-2 border-b-2 border-[#015ad9] hover:bg-[#015ad9] focus:bg-[#015ad9] focus:outline-none focus:ring-0 active:bg-[#feeed8] transition duration-150 ease-in-out"
+                class="rounded-r-md w-36 h-10 bg-[#015ad9]
+                       text-white font-medium leading-tight border-r-2 border-t-2 border-b-2 border-[#015ad9] hover:bg-[#015ad9] focus:bg-[#015ad9] focus:outline-none focus:ring-0 active:bg-[#feeed8] transition duration-150 ease-in-out"
                 on:click={() => (showGlLanguages = false)}
                 >
-                {nonGlLabel}
+                Heart
+                <!-- {nonGlLabel} -->
               </button>
             </div>
           {/if}
@@ -332,10 +333,10 @@
 
 </div>
 
-<!-- footer -->
-<div class="bg-blue-700 p-4">
-  Footer
-</div>
+<!-- <\!-- footer -\-> -->
+<!-- <div class="bg-blue-700 p-4"> -->
+<!--   Footer -->
+<!-- </div> -->
 
 
 <style global lang="postcss">

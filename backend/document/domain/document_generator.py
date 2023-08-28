@@ -1092,7 +1092,7 @@ def main(document_request_json: Json[Any]) -> Json[Any]:
     if document_request.generate_pdf and file_utils.asset_file_needs_update(
         pdf_filepath_
     ):
-        current_task.update_state(state="Converting to PDF format")
+        current_task.update_state(state="Converting to PDF")
         convert_html_to_pdf(
             html_filepath_,
             pdf_filepath_,
@@ -1105,7 +1105,7 @@ def main(document_request_json: Json[Any]) -> Json[Any]:
     if document_request.generate_epub and file_utils.asset_file_needs_update(
         epub_filepath_
     ):
-        current_task.update_state(state="Converting to ePub format")
+        current_task.update_state(state="Converting to ePub")
         convert_html_to_epub(
             html_filepath_,
             epub_filepath_,
@@ -1214,7 +1214,7 @@ def alt_main(document_request_json: Json[Any]) -> Json[Any]:
         title1 = titles[0]  # Example: 'Engish: Matthew, Mark'
         title2 = titles[1] if len(titles) >= 2 else ""  # Example: 'Chinese: Genesis'
 
-        current_task.update_state(state="Converting to Docx format")
+        current_task.update_state(state="Converting to Docx")
         convert_html_to_docx(
             html_filepath_,
             docx_filepath_,

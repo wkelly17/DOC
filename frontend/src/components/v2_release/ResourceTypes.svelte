@@ -66,52 +66,68 @@
 
   // Resolve promise for data
   let lang0ResourceTypesAndNames: Array<string>
-  $: {
-    if ($lang0CodeStore) {
-      let otResourceCodes_: Array<[string, string]> = $otBookStore.map(item => [
-        item.split(', ')[0],
-        item.split(', ')[1]
-      ])
-      let ntResourceCodes_: Array<[string, string]> = $ntBookStore.map(item => [
-        item.split(', ')[0],
-        item.split(', ')[1]
-      ])
-      getResourceTypesAndNames($lang0CodeStore, [
-        ...otResourceCodes_,
-        ...ntResourceCodes_
-      ])
-        .then(resourceTypesAndNames => {
-          lang0ResourceTypesAndNames = resourceTypesAndNames.map(
-            tuple => `${tuple[0]}, ${tuple[1]}`
-          )
-        })
-        .catch(err => console.error(err))
-    }
+  if ($lang0CodeStore) {
+    let otResourceCodes_: Array<[string, string]> = $otBookStore.map(item => [
+      item.split(', ')[0],
+      item.split(', ')[1]
+    ])
+    let ntResourceCodes_: Array<[string, string]> = $ntBookStore.map(item => [
+      item.split(', ')[0],
+      item.split(', ')[1]
+    ])
+    getResourceTypesAndNames($lang0CodeStore, [
+      ...otResourceCodes_,
+      ...ntResourceCodes_
+    ])
+      .then(resourceTypesAndNames => {
+        lang0ResourceTypesAndNames = resourceTypesAndNames.map(
+          tuple => `${tuple[0]}, ${tuple[1]}`
+        )
+
+        // If lang0ResourceTypesStore has contents, then assume we are coming
+        // back here from the user clicking to edit their resource type
+        // selections in the wizard basket, so we want to eliminate
+        // any lang0ResourceTypesStore elements that are not in lang0ResourceTypesAndNames.
+        if ($lang0ResourceTypesStore.length > 0) {
+          lang0ResourceTypesStore.set($lang0ResourceTypesStore.filter(item => {
+            return lang0ResourceTypesAndNames.some(element => element === item)
+          }))
+        }
+      })
+      .catch(err => console.error(err))
   }
 
   // Resolve promise for data for language
   let lang1ResourceTypesAndNames: Array<string>
-  $: {
-    if ($lang1CodeStore) {
-      let otResourceCodes_: Array<[string, string]> = $otBookStore.map(item => [
-        item.split(', ')[0],
-        item.split(', ')[1]
-      ])
-      let ntResourceCodes_: Array<[string, string]> = $ntBookStore.map(item => [
-        item.split(', ')[0],
-        item.split(', ')[1]
-      ])
-      getResourceTypesAndNames($lang1CodeStore, [
-        ...otResourceCodes_,
-        ...ntResourceCodes_
-      ])
-        .then(resourceTypesAndNames => {
-          lang1ResourceTypesAndNames = resourceTypesAndNames.map(
-            tuple => `${tuple[0]}, ${tuple[1]}`
-          )
-        })
-        .catch(err => console.error(err))
-    }
+  if ($lang1CodeStore) {
+    let otResourceCodes_: Array<[string, string]> = $otBookStore.map(item => [
+      item.split(', ')[0],
+      item.split(', ')[1]
+    ])
+    let ntResourceCodes_: Array<[string, string]> = $ntBookStore.map(item => [
+      item.split(', ')[0],
+      item.split(', ')[1]
+    ])
+    getResourceTypesAndNames($lang1CodeStore, [
+      ...otResourceCodes_,
+      ...ntResourceCodes_
+    ])
+      .then(resourceTypesAndNames => {
+        lang1ResourceTypesAndNames = resourceTypesAndNames.map(
+          tuple => `${tuple[0]}, ${tuple[1]}`
+        )
+
+        // If lang1ResourceTypesStore has contents, then assume we are coming
+        // back here from the user clicking to edit their resource type
+        // selections in the wizard basket, so we want to eliminate
+        // any lang1ResourceTypesStore elements that are not in lang1ResourceTypesAndNames.
+        if ($lang1ResourceTypesStore.length > 0) {
+          lang1ResourceTypesStore.set($lang1ResourceTypesStore.filter(item => {
+            return lang1ResourceTypesAndNames.some(element => element === item)
+          }))
+        }
+      })
+      .catch(err => console.error(err))
   }
 
   function selectAllLang0ResourceTypes(event: Event) {
@@ -168,23 +184,24 @@
 <div class="flex-grow flex flex-row overflow-hidden">
   <!-- center -->
   <div class="flex-1 flex flex-col bg-white">
-    <div class="grid grid-cols-2 gap-4 bg-white">
+    <h3 class="ml-4 text-[#33445C] text-4xl font-normal leading-[48px]">
+      Pick your resources
+    </h3>
+    <div class="grid grid-cols-2 gap-2 bg-white ml-4 mt-4">
       {#if $langCountStore > 0}
       <div>
         {#if lang0ResourceTypesAndNames && lang0ResourceTypesAndNames.length == 0}
         <ProgressIndicator />
         {:else}
         <div>
-          <h3 class="text-primary-content mb-4">
-            Resource types available for {$lang0NameStore}
-          </h3>
+          <h3 class="text-2xl font-bold text-[#33445C] mb-4">{$lang0NameStore}</h3>
           {#if lang0ResourceTypesAndNames && lang0ResourceTypesAndNames.length > 0}
           <div class="flex items-center">
             <input id="select-all-lang0-resource-types" type="checkbox" class="checkbox
             checkbox-dark-bordered" on:change={event =>
             selectAllLang0ResourceTypes(event)} />
             <label for="select-all-lang0-resource-types" class="text-primary-content pl-1"
-              >Select all {$lang0NameStore}'s resource types</label
+              >Select all</label
             >
           </div>
           <ul class="pb-4">
@@ -207,45 +224,39 @@
         </div>
         {/if}
       </div>
-      {/if} {#if $langCountStore > 1}
+      {/if} {#if $langCountStore > 1} {#if !lang1ResourceTypesAndNames}
+      <ProgressIndicator />
+      {:else}
       <div>
-        {#if !lang1ResourceTypesAndNames}
-        <ProgressIndicator />
-        {:else}
-        <div>
-          <h3 class="text-primary-content mb-4">
-            Resource types available for {$lang1NameStore}
-          </h3>
-          {#if lang1ResourceTypesAndNames && lang1ResourceTypesAndNames.length > 0}
-          <div class="flex items-center">
-            <input id="select-all-lang1-resource-types" type="checkbox" class="checkbox
-            checkbox-dark-bordered" on:change={event =>
-            selectAllLang1ResourceTypes(event)} />
-            <label for="select-all-lang1-resource-types" class="text-primary-content pl-1"
-              >Select all {$lang1NameStore}'s resource types</label
-            >
-          </div>
-          <ul>
-            {#each lang1ResourceTypesAndNames as resourceTypeAndName, index}
-            <li class="flex items-center">
-              <input
-                id="lang1-resourcetype-{index}"
-                type="checkbox"
-                bind:group="{$lang1ResourceTypesStore}"
-                value="{resourceTypeAndName}"
-                class="checkbox checkbox-dark-bordered"
-              />
-              <label for="lang1-resourcetype-{index}" class="text-primary-content pl-1"
-                >{resourceTypeAndName.split(', ')[1]}</label
-              >
-            </li>
-            {/each}
-          </ul>
-          {/if}
+        <h3 class="text-2xl font-bold text-[#33445C] mb-4">{$lang1NameStore}</h3>
+        {#if lang1ResourceTypesAndNames && lang1ResourceTypesAndNames.length > 0}
+        <div class="flex items-center">
+          <input id="select-all-lang1-resource-types" type="checkbox" class="checkbox
+          checkbox-dark-bordered" on:change={event => selectAllLang1ResourceTypes(event)}
+          />
+          <label for="select-all-lang1-resource-types" class="text-primary-content pl-1"
+            >Select all</label
+          >
         </div>
+        <ul>
+          {#each lang1ResourceTypesAndNames as resourceTypeAndName, index}
+          <li class="flex items-center">
+            <input
+              id="lang1-resourcetype-{index}"
+              type="checkbox"
+              bind:group="{$lang1ResourceTypesStore}"
+              value="{resourceTypeAndName}"
+              class="checkbox checkbox-dark-bordered"
+            />
+            <label for="lang1-resourcetype-{index}" class="text-primary-content pl-1"
+              >{resourceTypeAndName.split(', ')[1]}</label
+            >
+          </li>
+          {/each}
+        </ul>
         {/if}
       </div>
-      {/if}
+      {/if} {/if}
     </div>
   </div>
 

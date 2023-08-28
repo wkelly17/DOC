@@ -52,48 +52,67 @@
   let otResourceCodes: Array<string>
   // The list of all new testament books from translations.json api
   let ntResourceCodes: Array<string>
-  $: {
-    if ($langCountStore > 1) {
-      getSharedResourceCodesAndNames($lang0CodeStore, $lang1CodeStore)
-        .then(resourceCodesAndNames => {
-          // Filter set of all resource codes into old testament
-          // resource codes.
-          otResourceCodes = resourceCodesAndNames
-            .filter((element: [string, string]) => {
-              return otBooks.some(item => item === element[0])
-            })
-            .map(tuple => `${tuple[0]}, ${tuple[1]}`)
+  if ($langCountStore > 1) {
+    getSharedResourceCodesAndNames($lang0CodeStore, $lang1CodeStore)
+      .then(resourceCodesAndNames => {
+        // Filter set of all resource codes into old testament
+        // resource codes.
+        otResourceCodes = resourceCodesAndNames
+          .filter((element: [string, string]) => {
+            return otBooks.some(item => item === element[0])
+          })
+          .map(tuple => `${tuple[0]}, ${tuple[1]}`)
 
-          // Filter set of all resource codes into new testament
-          // resource codes.
-          ntResourceCodes = resourceCodesAndNames
-            .filter((element: [string, string]) => {
-              return !otBooks.some(item => item === element[0])
-            })
-            .map(tuple => `${tuple[0]}, ${tuple[1]}`)
-        })
-        .catch(err => console.error(err))
-    } else {
-      getResourceCodesAndNames($lang0CodeStore)
-        .then(resourceCodesAndNames => {
-          // Filter set of all resource codes into old testament
-          // resource codes.
-          otResourceCodes = resourceCodesAndNames
-            .filter((element: [string, string]) => {
-              return otBooks.some(item => item === element[0])
-            })
-            .map(tuple => `${tuple[0]}, ${tuple[1]}`)
+        // If otBookStore has contents, then assume we are coming
+        // back here from the user clicking to edit their book
+        // selections in the wizard basket, so we want to eliminate
+        // any otBookStore elements that are not in otResourceCodes.
+        if ($otBookStore.length > 0) {
+          otBookStore.set($otBookStore.filter(item => {
+            return otResourceCodes.some(element => element === item)
+          }))
+        }
 
-          // Filter set of all resource codes into new testament
-          // resource codes.
-          ntResourceCodes = resourceCodesAndNames
-            .filter((element: [string, string]) => {
-              return !otBooks.some(item => item === element[0])
-            })
-            .map(tuple => `${tuple[0]}, ${tuple[1]}`)
-        })
-        .catch(err => console.error(err))
-    }
+        // Filter set of all resource codes into new testament
+        // resource codes.
+        ntResourceCodes = resourceCodesAndNames
+          .filter((element: [string, string]) => {
+            return !otBooks.some(item => item === element[0])
+          })
+          .map(tuple => `${tuple[0]}, ${tuple[1]}`)
+
+
+        // If ntBookStore has contents, then assume we are coming
+        // back here from the user clicking to edit their book
+        // selections in the wizard basket, so we want to eliminate
+        // any ntBookStore elements that are not in ntResourceCodes.
+        if ($ntBookStore.length > 0) {
+          ntBookStore.set($ntBookStore.filter(item => {
+            return ntResourceCodes.some(element => element === item)
+          }))
+        }
+      })
+      .catch(err => console.error(err))
+  } else {
+    getResourceCodesAndNames($lang0CodeStore)
+      .then(resourceCodesAndNames => {
+        // Filter set of all resource codes into old testament
+        // resource codes.
+        otResourceCodes = resourceCodesAndNames
+          .filter((element: [string, string]) => {
+            return otBooks.some(item => item === element[0])
+          })
+          .map(tuple => `${tuple[0]}, ${tuple[1]}`)
+
+        // Filter set of all resource codes into new testament
+        // resource codes.
+        ntResourceCodes = resourceCodesAndNames
+          .filter((element: [string, string]) => {
+            return !otBooks.some(item => item === element[0])
+          })
+          .map(tuple => `${tuple[0]}, ${tuple[1]}`)
+      })
+      .catch(err => console.error(err))
   }
 
 
@@ -153,56 +172,56 @@
   }
 
   // let showNoBooksInCommonMessage = false
-  let showOldTestament = true
+  let showOldTestament = false
 
-  let headerDisplayString: string = ''
-  $: {
-    if ($langCountStore > 1) {
-      headerDisplayString = `Available books in common for languages: ${$lang0NameStore}, ${$lang1NameStore}`
-    } else {
-      headerDisplayString = `Available books for language: ${$lang0NameStore}`
-    }
-  }
+  // let headerDisplayString: string = ''
+  // $: {
+  //   if ($langCountStore > 1) {
+  //     headerDisplayString = `Available books in common for languages: ${$lang0NameStore}, ${$lang1NameStore}`
+  //   } else {
+  //     headerDisplayString = `Available books for language: ${$lang0NameStore}`
+  //   }
+  // }
 
-  // DEBUG
-  $: console.log(`$otBookStore: ${$otBookStore}`)
-  $: console.log(`$ntBookStore: ${$ntBookStore}`)
-  $: console.log(`otResourceCodes: ${otResourceCodes}`)
-  $: console.log(`ntResourceCodes: ${ntResourceCodes}`)
-  $: {
-    if (otResourceCodes) {
-      console.log(
-        `checked OT items: ${otResourceCodes.map(resourceCodeAndName =>
-          $otBookStore.some(item => item.split(', ')[0] === resourceCodeAndName[0])
-        )}`
-      )
-    }
-  }
-  $: {
-    if (ntResourceCodes) {
-      console.log(
-        `checked NT items: ${ntResourceCodes.map(resourceCodeAndName =>
-          $ntBookStore.some(item => item.split(', ')[0] === resourceCodeAndName[0])
-        )}`
-      )
-    }
-  }
-  let otLabel: string = 'Old Testament'
-  $: {
-    if ($otBookStore.length) {
-      otLabel = `Old Testament (${$otBookStore.length})`
-    } else {
-      otLabel = 'Old Testament'
-    }
-  }
-  let ntLabel: string = 'New Testament'
-  $: {
-    if ($ntBookStore.length) {
-      ntLabel = `New Testament (${$ntBookStore.length})`
-    } else {
-      ntLabel = 'New Testament'
-    }
-  }
+  // // DEBUG
+  // $: console.log(`$otBookStore: ${$otBookStore}`)
+  // $: console.log(`$ntBookStore: ${$ntBookStore}`)
+  // $: console.log(`otResourceCodes: ${otResourceCodes}`)
+  // $: console.log(`ntResourceCodes: ${ntResourceCodes}`)
+  // $: {
+  //   if (otResourceCodes) {
+  //     console.log(
+  //       `checked OT items: ${otResourceCodes.map(resourceCodeAndName =>
+  //         $otBookStore.some(item => item.split(', ')[0] === resourceCodeAndName[0])
+  //       )}`
+  //     )
+  //   }
+  // }
+  // $: {
+  //   if (ntResourceCodes) {
+  //     console.log(
+  //       `checked NT items: ${ntResourceCodes.map(resourceCodeAndName =>
+  //         $ntBookStore.some(item => item.split(', ')[0] === resourceCodeAndName[0])
+  //       )}`
+  //     )
+  //   }
+  // }
+  // let otLabel: string = 'Old Testament'
+  // $: {
+  //   if ($otBookStore.length) {
+  //     otLabel = `Old Testament (${$otBookStore.length})`
+  //   } else {
+  //     otLabel = 'Old Testament'
+  //   }
+  // }
+  // let ntLabel: string = 'New Testament'
+  // $: {
+  //   if ($ntBookStore.length) {
+  //     ntLabel = `New Testament (${$ntBookStore.length})`
+  //   } else {
+  //     ntLabel = 'New Testament'
+  //   }
+  // }
 
 
   // For sidebar
@@ -224,57 +243,69 @@
 <div class="flex-grow flex flex-row overflow-hidden">
   <!-- center -->
   <div class="flex-1 flex flex-col bg-white">
-    <h3 class="text-[#33445C] text-4xl font-normal
-               leading-[48px]">Choose Books</h3>
+    <h3 class="ml-4 text-[#33445C] text-4xl font-normal
+               leading-[48px]">Choose books</h3>
 
     <!-- search and buttons -->
     <div class="flex items-center px-2 py-2 mt-2 bg-white">
-      <!-- {@debug otResourceCodes, ntResourceCodes} -->
       {#if !otResourceCodes || !ntResourceCodes}
-        <ProgressIndicator />
+        <div class="ml-4">
+          <ProgressIndicator />
+        </div>
       {:else}
         <div class="flex items-center">
           {#if showOldTestament}
-            <label id="label-for-filter-ot-books" for="filter-ot-books">
-              <input
-                id="filter-ot-books"
-                bind:value={otSearchTerm}
-                placeholder="Filter OT books"
-                class="input input-bordered bg-white w-full max-w-xs mb-4"
-                />
+            <label>
+            <input
+              id="filter-ot-books"
+              bind:value={otSearchTerm}
+              placeholder="Filter OT books"
+              class="input input-bordered bg-white w-full max-w-xs"
+              />
             </label>
-            <div class="flex-ml-2" role="group">
-              <button class="rounded-l px-6 py-2.5 bg-[#feeed8] text-primary-content capitalize font-medium leading-tight border-x-2 border-t-2 border-b-2 border-[#1a130b99] hover:bg-[#feeee1] focus:bg-[#feeee1] focus:outline-none focus:ring-0 active:bg-[#feeed8] transition duration-150 ease-in-out" on:click={() => (showOldTestament = true)}>
-                {otLabel}
+            <div class="flex ml-2" role="group">
+              <button class="rounded-l-md w-36 h-10 bg-[#015ad9]
+                             text-white capitalize font-medium
+                             leading-tight border-x-2 border-t-2
+                             border-b-2 border-[#015ad9] hover:bg-[#015ad9] focus:bg-[#015ad9] focus:outline-none focus:ring-0 active:bg-[#015ad9] transition duration-150 ease-in-out"
+                      on:click={() => (showOldTestament = true)}>
+                Old Testament
+                <!-- {otLabel} -->
               </button>
               <button
-                class="rounded-r px-6 py-2.5 bg-white text-primary-content capitalize font-medium leading-tight border-r-2 border-t-2 border-b-2 border-[#1a130b99] hover:bg-white focus:bg-white focus:outline-none focus:ring-0 active:bg-white transition duration-150 ease-in-out"
+                class="rounded-r-md w-36 h-10 bg-white text-[#33445c] capitalize font-medium leading-tight border-x-2 border-t-2 border-b-2 border-[#015ad9] hover:bg-white focus:bg-white focus:outline-none focus:ring-0 active:bg-white transition duration-150 ease-in-out"
                 on:click={() => (showOldTestament = false)}
                 >
-                {ntLabel}
+                New Testament
+                <!-- {ntLabel} -->
               </button>
             </div>
           {:else}
-            <label id="label-for-filter-nt-books" for="filter-nt-books">
+            <label>
               <input
                 id="filter-nt-books"
                 bind:value={ntSearchTerm}
                 placeholder="Filter NT books"
-                class="input input-bordered bg-white w-full max-w-xs mb-4"
+                class="input input-bordered bg-white w-full max-w-xs"
                 />
             </label>
             <div class="flex ml-2" role="group">
               <button
-                class="rounded-r px-6 py-2.5 bg-white text-primary-content capitalize font-medium leading-tight border-x-2 border-t-2 border-b-2 border-[#1a130b99] hover:bg-white focus:bg-white focus:outline-none focus:ring-0 active:bg-white transition duration-150 ease-in-out"
+                class="rounded-l-md w-36 h-10 bg-white text-[#33445c]
+                       capitalize font-medium leading-tight border-x-2
+                       border-x-2 border-t-2 border-b-2 border-[#015ad9] hover:bg-white focus:bg-white focus:outline-none focus:ring-0 active:bg-white transition duration-150 ease-in-out"
                 on:click={() => (showOldTestament = true)}
                 >
-                {otLabel}
+                Old Testament
+                <!-- {otLabel} -->
               </button>
               <button
-                class="rounded-l px-6 py-2.5 bg-[#feeed8] text-primary-content capitalize font-medium leading-tight border-r-2 border-t-2 border-b-2 border-[#1a130b99] hover:bg-[#feeee1] focus:bg-[#feeee1] focus:outline-none focus:ring-0 active:bg-[#feeed8] transition duration-150 ease-in-out"
+                class="rounded-r-md w-36 h-10 bg-[#015ad9]
+                       text-white capitalize font-medium leading-tight border-r-2 border-t-2 border-b-2 border-[#015ad9] hover:bg-[#015ad9] focus:bg-[#015ad9] focus:outline-none focus:ring-0 active:bg-[#feeed8] transition duration-150 ease-in-out"
                 on:click={() => (showOldTestament = false)}
                 >
-                {ntLabel}
+                New Testament
+                <!-- {ntLabel} -->
               </button>
             </div>
           {/if}
@@ -296,8 +327,7 @@
               />
               <label for="select-all-old-testament"
                     class="text-secondary-content pl-1"
-                    >Select all Old Testament</label
-                                                >
+                    >Select all</label>
             </div>
           {/if}
           {#if otResourceCodes?.length > 0}
@@ -330,8 +360,7 @@
               />
               <label for="select-all-new-testament"
                     class="text-secondary-content pl-1"
-                    >Select all New Testament</label
-                                                >
+                    >Select all</label>
             </div>
           {/if}
           {#if ntResourceCodes?.length > 0}
@@ -374,49 +403,21 @@
 
 </div>
 
-<!-- footer -->
-<div class="bg-blue-700 p-4">
-  Footer
-</div>
+<!-- <\!-- footer -\-> -->
+<!-- <div class="bg-blue-700 p-4"> -->
+<!--   Footer -->
+<!-- </div> -->
 
 <style global lang="postcss">
-  * :global(label[id='label-for-filter-ot-books']) {
-    position: relative;
+  #filter-ot-books, #filter-nt-books {
+    text-indent: 17px;
+    padding-left: 5px;
+    background-image: url('data:image/svg+xml,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15.5014 14.0014H14.7114L14.4314 13.7314C15.0564 13.0054 15.5131 12.1502 15.769 11.2271C16.0248 10.3039 16.0735 9.33559 15.9114 8.39144C15.4414 5.61144 13.1214 3.39144 10.3214 3.05144C9.33706 2.92691 8.33723 3.02921 7.39846 3.35053C6.4597 3.67185 5.60688 4.20366 4.90527 4.90527C4.20366 5.60688 3.67185 6.4597 3.35053 7.39846C3.02921 8.33723 2.92691 9.33706 3.05144 10.3214C3.39144 13.1214 5.61144 15.4414 8.39144 15.9114C9.33559 16.0735 10.3039 16.0248 11.2271 15.769C12.1502 15.5131 13.0054 15.0564 13.7314 14.4314L14.0014 14.7114V15.5014L18.2514 19.7514C18.6614 20.1614 19.3314 20.1614 19.7414 19.7514C20.1514 19.3414 20.1514 18.6714 19.7414 18.2614L15.5014 14.0014ZM9.50144 14.0014C7.01144 14.0014 5.00144 11.9914 5.00144 9.50144C5.00144 7.01144 7.01144 5.00144 9.50144 5.00144C11.9914 5.00144 14.0014 7.01144 14.0014 9.50144C14.0014 11.9914 11.9914 14.0014 9.50144 14.0014Z" fill="%2366768B"/></svg>');
+    background-repeat: no-repeat;
+    background-position: left center;
+    outline: 0;
   }
 
-  * :global(label[id='label-for-filter-ot-books']:before) {
-    content: '';
-    position: absolute;
-    right: 10px;
-    top: 0;
-    bottom: 0;
-    width: 20px;
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='25' height='25' viewBox='0 0 25 25' fill-rule='evenodd'%3E%3Cpath d='M16.036 18.455l2.404-2.405 5.586 5.587-2.404 2.404zM8.5 2C12.1 2 15 4.9 15 8.5S12.1 15 8.5 15 2 12.1 2 8.5 4.9 2 8.5 2zm0-2C3.8 0 0 3.8 0 8.5S3.8 17 8.5 17 17 13.2 17 8.5 13.2 0 8.5 0zM15 16a1 1 0 1 1 2 0 1 1 0 1 1-2 0'%3E%3C/path%3E%3C/svg%3E")
-      center / contain no-repeat;
-  }
-
-  * :global(input[id='filter-ot-books']) {
-    padding: 10px 30px;
-  }
-
-  * :global(label[id='label-for-filter-nt-books']) {
-    position: relative;
-  }
-
-  * :global(label[id='label-for-filter-nt-books']:before) {
-    content: '';
-    position: absolute;
-    right: 10px;
-    top: 0;
-    bottom: 0;
-    width: 20px;
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='25' height='25' viewBox='0 0 25 25' fill-rule='evenodd'%3E%3Cpath d='M16.036 18.455l2.404-2.405 5.586 5.587-2.404 2.404zM8.5 2C12.1 2 15 4.9 15 8.5S12.1 15 8.5 15 2 12.1 2 8.5 4.9 2 8.5 2zm0-2C3.8 0 0 3.8 0 8.5S3.8 17 8.5 17 17 13.2 17 8.5 13.2 0 8.5 0zM15 16a1 1 0 1 1 2 0 1 1 0 1 1-2 0'%3E%3C/path%3E%3C/svg%3E")
-      center / contain no-repeat;
-  }
-
-  * :global(input[id='filter-nt-books']) {
-    padding: 10px 30px;
-  }
 
   * :global(.checkbox-dark-bordered) {
     /* --chkbg: #1a130b; */

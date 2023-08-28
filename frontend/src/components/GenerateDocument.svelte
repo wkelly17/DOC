@@ -80,14 +80,18 @@
     // Deal with empty string case
     if ($emailStore && $emailStore === '') {
       emailStore.set(null)
+      LogRocket.identify($documentRequestKeyStore)
       // Deal with undefined case
     } else if ($emailStore === undefined) {
       emailStore.set(null)
+      LogRocket.identify($documentRequestKeyStore)
       // Deal with non-empty string
     } else if ($emailStore && $emailStore !== '') {
       emailStore.set($emailStore.trim())
       // Send email to LogRocket using identify
-      LogRocket.init('ct7zyg/interleaved-resource-generator')
+      // Note: next line moved to App.svelte to init LogRocket as
+      // early as possible so that no user actions are unrecorded.
+      // LogRocket.init('ct7zyg/interleaved-resource-generator')
       LogRocket.identify($emailStore)
     }
 

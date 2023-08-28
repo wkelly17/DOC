@@ -1,7 +1,10 @@
 <script lang="ts">
   import Router from 'svelte-spa-router'
   import routes from './routes.js'
+  import LogRocket from 'logrocket'
   import 'fluent-svelte/theme.css' // Required for ProgressRing component
+
+  LogRocket.init('ct7zyg/interleaved-resource-generator')
   let open = false
 </script>
 

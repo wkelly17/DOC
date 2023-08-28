@@ -30,7 +30,10 @@
   }
 
   input[type='checkbox']:checked ~ .track {
-    @apply transform transition-colors bg-primary;
+    /* @apply transform transition-colors bg-primary; */
+    @apply transform transition-colors;
+    background: linear-gradient(180deg, #1876FD 0%, #015AD9 100%),
+    linear-gradient(0deg, #33445C, #33445C);
   }
 
   input[type='checkbox']:disabled ~ .track {
