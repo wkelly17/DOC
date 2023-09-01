@@ -5,6 +5,8 @@ RUN apt-get update && apt-get install -y \
     curl \
     git \
     unzip \
+    # For additional fonts needed, specifically Chinese
+    texlive-fonts-recommended \
     # For mypyc
     gcc \
     # For ebook-convert
