@@ -448,13 +448,19 @@ def lang_codes_and_names(
     >>> from document.domain import resource_lookup
     >>> data = resource_lookup.lang_codes_and_names()
     >>> data[0]
-    ('abz', 'Abui (Abui)')
+    ('abz', 'Abui')
     """
     data = fetch_source_data(working_dir, translations_json_location)
-    values = [
-        (d["code"], "{} ({})".format(d["name"], d["englishName"]))
-        for d in [lang for lang in data if lang["code"] not in lang_code_filter_list]
-    ]
+    values = []
+
+    for d in [lang for lang in data if lang["code"] not in lang_code_filter_list]:
+        # translations.json should not include the englishName as part
+        # of the localized name, but unfortunately it often does so let's handle
+        # that here rather than wait for upstream to sort that out.
+        if d["englishName"] not in d["name"]:
+            values.append((d["code"], "{} ({})".format(d["name"], d["englishName"])))
+        else:
+            values.append((d["code"], "{}".format(d["name"])))
     return sorted(values, key=lambda value: value[1])
 
 
@@ -472,18 +478,23 @@ def lang_codes_and_names_for_v1(
     >>> from document.domain import resource_lookup
     >>> data = resource_lookup.lang_codes_and_names_for_v1()
     >>> data[0]
-    ('am', 'Amharic (Amharic)')
+    ('am', 'Amharic')
     """
     data = fetch_source_data(working_dir, translations_json_location)
-    values = [
-        (d["code"], "{} ({})".format(d["name"], d["englishName"]))
-        for d in [
-            lang
-            for lang in data
-            if lang["code"] in gateway_languages
-            and lang["code"] not in lang_code_filter_list
-        ]
-    ]
+    values = []
+    for d in [
+        lang
+        for lang in data
+        if lang["code"] in gateway_languages
+        and lang["code"] not in lang_code_filter_list
+    ]:
+        # translations.json should not include the englishName as part
+        # of the localized name, but unfortunately it often does so let's handle
+        # that here rather than wait for upstream to sort that out.
+        if d["englishName"] not in d["name"]:
+            values.append((d["code"], "{} ({})".format(d["name"], d["englishName"])))
+        else:
+            values.append((d["code"], "{}".format(d["name"])))
     return sorted(values, key=lambda value: value[1])
 
 
@@ -493,7 +504,7 @@ def resource_types(jsonpath_str: str = settings.RESOURCE_TYPES_JSONPATH) -> Any:
     get the set of all resource types.
     >>> from document.domain import resource_lookup
     >>> sorted(resource_lookup.resource_types())
-    ['Reg', 'avd', 'bc', 'blv', 'cuv', 'dot', 'f10', 'nav', 'nva', 'reg', 'rg', 'rlv', 'ta', 'ta-wa', 'tn', 'tn-wa', 'tq', 'tq-wa', 'tw', 'tw-wa', 'udb', 'udb-wa', 'ugnt', 'uhb', 'ulb', 'ulb-wa']
+    ['Reg', 'avd', 'bc', 'blv', 'cuv', 'dot', 'f10', 'nav', 'nva', 'reg', 'rg', 'rlv', 'ta', 'ta-wa', 'tn', 'tn-wa', 'tq', 'tq-wa', 'tw', 'tw-wa', 'ugnt', 'uhb', 'ulb', 'ulb-wa']
     """
     return _lookup(jsonpath_str)
 
