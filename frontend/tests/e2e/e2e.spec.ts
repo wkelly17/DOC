@@ -15,7 +15,7 @@ test('test pt-br, mat, mrk, ulb, tn, tq, tw, 1c', async ({ page }) => {
   await page.getByRole('button', { name: '1. Languages' }).click()
   await expect(page).toHaveURL('http://localhost:8001/#/experimental/languages')
 
-  await page.getByLabel('Brazilian Português').check()
+  await page.getByLabel('Brazilian Português (Brazilian Portuguese)').check()
 
   await page.getByRole('button', { name: 'Add (1) Languages' }).click()
   await expect(page).toHaveURL('http://localhost:8001/#/experimental')
@@ -74,7 +74,7 @@ test('test ePub and Docx options available when print layout is chosen', async (
   await page.getByRole('link', { name: 'Full Version' }).click()
   await page.getByRole('button', { name: '1. Languages' }).click()
   await page.getByLabel('Brazilian Português (Brazilian Portuguese)').check()
-  await page.getByLabel('English (English)').check()
+  await page.getByLabel('English').check()
   await page.getByRole('button', { name: 'Add (2) Languages' }).click()
   await page.getByRole('button', { name: '2. Books' }).click()
   await page.getByLabel('Titus').check()
@@ -83,9 +83,7 @@ test('test ePub and Docx options available when print layout is chosen', async (
   await page
     .getByLabel("Select all Brazilian Português (Brazilian Portuguese)'s resource types")
     .check()
-  await page
-    .getByLabel("Select all\n                  English (English)'s resource types")
-    .check()
+  await page.getByLabel("Select all\n                  English's resource types").check()
   await page.getByLabel('Bible Commentary').uncheck()
   await page.getByRole('button', { name: 'Add (8) Resource Types' }).click()
   await page.getByRole('link', { name: 'Settings' }).click()
@@ -107,18 +105,14 @@ test('test assembly strategy drop down not available when only one language chos
   await page.goto('http://localhost:8001/')
   await page.getByRole('link', { name: 'Full Version' }).click()
   await page.getByRole('button', { name: '1. Languages' }).click()
-  await page
-    .getByText('Español (Latin American Spanish) (Latin American Spanish)')
-    .click()
+  await page.getByText('Español (Latin American Spanish)').click()
   await page.getByRole('button', { name: 'Add (1) Languages' }).click()
   await page.getByRole('button', { name: '2. Books' }).click()
   await page.getByLabel('Matthew').check()
   await page.getByRole('button', { name: 'Add (1) Books' }).click()
   await page.getByRole('button', { name: '3. Resource types' }).click()
   await page
-    .getByLabel(
-      "Select all Español (Latin American Spanish) (Latin American Spanish)'s resource types"
-    )
+    .getByLabel("Select all Español (Latin American Spanish)'s resource types")
     .check()
   await page.getByRole('button', { name: 'Add (4) Resource Types' }).click()
   await page.getByRole('link', { name: 'Settings' }).click()
@@ -184,14 +178,14 @@ test('test navigate between ui versions via links in about pages', async ({ page
 test('test v2 ui', async ({ page }) => {
   await page.goto('http://localhost:8001/#/v2/languages')
   await page.getByLabel('Brazilian Português (Brazilian Portuguese)').check()
-  await page.getByLabel('Swahili (Swahili)').check()
+  await page.getByLabel('Swahili').check()
   await page.locator('div:nth-child(4) > button').click()
-  await page.getByLabel('Ilocano (Ilocano)').check()
+  await page.getByLabel('Ilocano').check()
   await page.getByRole('button', { name: 'Next' }).click()
   await page.getByRole('link', { name: 'Languages' }).click()
   await page.locator('div:nth-child(4) > button').click()
   await page.getByRole('button', { name: 'Heart' }).click()
-  await page.getByText('Airo (Airo)').click()
+  await page.getByText('Airo').click()
   await page.getByRole('button', { name: 'Next' }).click()
   await page.getByText('Philippians').click()
   await page.getByRole('button', { name: 'Edit' }).click()
