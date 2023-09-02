@@ -18,12 +18,6 @@
   function uncheckNonGlLanguage(langCodeAndName: string) {
     nonGlLangCodeAndNamesStore.set($nonGlLangCodeAndNamesStore.filter(item => item != langCodeAndName))
   }
-  // function uncheckOtBook(bookCodeAndName: string) {
-  //   otBookStore.set($otBookStore.filter(item => item != bookCodeAndName))
-  // }
-  // function uncheckNtBook(bookCodeAndName: string) {
-  //   ntBookStore.set($ntBookStore.filter(item => item != bookCodeAndName))
-  // }
   function uncheckBook(bookCodeAndName: string) {
     otBookStore.set($otBookStore.filter(item => item != bookCodeAndName))
     ntBookStore.set($ntBookStore.filter(item => item != bookCodeAndName))
@@ -34,10 +28,6 @@
   function uncheckLang1ResourceType(resourceTypeCodeAndName: string) {
     lang1ResourceTypesStore.set($lang1ResourceTypesStore.filter(item => item != resourceTypeCodeAndName))
   }
-  // function uncheckResourceType(resourceTypeCodeAndName: string) {
-  //  lang0ResourceTypesStore.set($lang0ResourceTypesStore.filter(item => item != resourceTypeCodeAndName))
-  //  lang1ResourceTypesStore.set($lang1ResourceTypesStore.filter(item => item != resourceTypeCodeAndName))
-  // }
 
   // Slice the collection of books into the first 'size' amount and
   // the remainder so that the UI can display size + 1 to end of
@@ -46,16 +36,6 @@
   $: allBooks = [...$otBookStore, ...$ntBookStore]
   $: shownBooks = allBooks.slice(0, size)
   $: hiddenBooks = allBooks.slice(size, -1)
-
-  // $: allResourceTypes = [...$lang0ResourceTypesStore, ...$lang1ResourceTypesStore]
-  // $: shownResourceTypes = allResourceTypes.slice(0, size)
-  // $: hiddenResourceTypes = allResourceTypes.slice(size, -1)
-  // $: console.log(`allBooks: ${allBooks}`)
-  // $: console.log(`shownBooks: ${shownBooks}`)
-  // $: console.log(`hiddenBooks: ${hiddenBooks}`)
-  // $: console.log(`allResourceTypes: ${allResourceTypes}`)
-  // $: console.log(`shownResourceTypes: ${shownResourceTypes}`)
-  // $: console.log(`hiddenResourceTypes: ${hiddenResourceTypes}`)
 
 </script>
 
@@ -178,19 +158,6 @@
           </div>
         </div>
       {/if}
-      <!-- {#each $ntBookStore as bookCodeAndName} -->
-      <!--   {#if bookRegExp.test($location)} -->
-      <!--     <div class="flex items-center justify-between w-full rounded-lg p-4 bg-white text-[#66768B] mt-2">{bookCodeAndName.split(/, (.*)/s)[1]} -->
-      <!--       <button on:click={() => uncheckNtBook(bookCodeAndName)}> -->
-      <!--         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> -->
-      <!--           <path d="M12 2C6.47 2 2 6.47 2 12C2 17.53 6.47 22 12 22C17.53 22 22 17.53 22 12C22 6.47 17.53 2 12 2ZM16.3 16.3C16.2075 16.3927 16.0976 16.4663 15.9766 16.5164C15.8557 16.5666 15.726 16.5924 15.595 16.5924C15.464 16.5924 15.3343 16.5666 15.2134 16.5164C15.0924 16.4663 14.9825 16.3927 14.89 16.3L12 13.41L9.11 16.3C8.92302 16.487 8.66943 16.592 8.405 16.592C8.14057 16.592 7.88698 16.487 7.7 16.3C7.51302 16.113 7.40798 15.8594 7.40798 15.595C7.40798 15.4641 7.43377 15.3344 7.48387 15.2135C7.53398 15.0925 7.60742 14.9826 7.7 14.89L10.59 12L7.7 9.11C7.51302 8.92302 7.40798 8.66943 7.40798 8.405C7.40798 8.14057 7.51302 7.88698 7.7 7.7C7.88698 7.51302 8.14057 7.40798 8.405 7.40798C8.66943 7.40798 8.92302 7.51302 9.11 7.7L12 10.59L14.89 7.7C14.9826 7.60742 15.0925 7.53398 15.2135 7.48387C15.3344 7.43377 15.4641 7.40798 15.595 7.40798C15.7259 7.40798 15.8556 7.43377 15.9765 7.48387C16.0975 7.53398 16.2074 7.60742 16.3 7.7C16.3926 7.79258 16.466 7.90249 16.5161 8.02346C16.5662 8.14442 16.592 8.27407 16.592 8.405C16.592 8.53593 16.5662 8.66558 16.5161 8.78654C16.466 8.90751 16.3926 9.01742 16.3 9.11L13.41 12L16.3 14.89C16.68 15.27 16.68 15.91 16.3 16.3Z" fill="#33445C"/> -->
-      <!--         </svg> -->
-      <!--       </button> -->
-      <!--     </div> -->
-      <!--   {:else} -->
-      <!--     <div class="flex items-center justify-between w-full rounded-lg p-4 bg-white text-[#66768B] mt-2">{bookCodeAndName.split(/, (.*)/s)[1]}</div> -->
-      <!--   {/if} -->
-      <!-- {/each} -->
     {:else}
       <div class="rounded-lg p-6 bg-[#e5e8eb] text-[#66768B]">Selections will appear here once a book is selected</div>
     {/if}
@@ -219,11 +186,9 @@
     {/if}
     {#if $resourceTypesCountStore > 0}
       {#each $lang0ResourceTypesStore as resourceTypeCodeAndName}
-      <!-- {#each shownResourceTypes as resourceTypeCodeAndName} -->
         {#if resourceTypeRegExp.test($location)}
           <div class="inline-flex items-center justify-between w-full rounded-lg p-4 bg-white text-[#66768B] mt-2">{resourceTypeCodeAndName.split(/, (.*)/s)[1]}
             <button on:click={() => uncheckLang0ResourceType(resourceTypeCodeAndName)}>
-            <!-- <button on:click={() => uncheckResourceType(resourceTypeCodeAndName)}> -->
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 2C6.47 2 2 6.47 2 12C2 17.53 6.47 22 12 22C17.53 22 22 17.53 22 12C22 6.47 17.53 2 12 2ZM16.3 16.3C16.2075 16.3927 16.0976 16.4663 15.9766 16.5164C15.8557 16.5666 15.726 16.5924 15.595 16.5924C15.464 16.5924 15.3343 16.5666 15.2134 16.5164C15.0924 16.4663 14.9825 16.3927 14.89 16.3L12 13.41L9.11 16.3C8.92302 16.487 8.66943 16.592 8.405 16.592C8.14057 16.592 7.88698 16.487 7.7 16.3C7.51302 16.113 7.40798 15.8594 7.40798 15.595C7.40798 15.4641 7.43377 15.3344 7.48387 15.2135C7.53398 15.0925 7.60742 14.9826 7.7 14.89L10.59 12L7.7 9.11C7.51302 8.92302 7.40798 8.66943 7.40798 8.405C7.40798 8.14057 7.51302 7.88698 7.7 7.7C7.88698 7.51302 8.14057 7.40798 8.405 7.40798C8.66943 7.40798 8.92302 7.51302 9.11 7.7L12 10.59L14.89 7.7C14.9826 7.60742 15.0925 7.53398 15.2135 7.48387C15.3344 7.43377 15.4641 7.40798 15.595 7.40798C15.7259 7.40798 15.8556 7.43377 15.9765 7.48387C16.0975 7.53398 16.2074 7.60742 16.3 7.7C16.3926 7.79258 16.466 7.90249 16.5161 8.02346C16.5662 8.14442 16.592 8.27407 16.592 8.405C16.592 8.53593 16.5662 8.66558 16.5161 8.78654C16.466 8.90751 16.3926 9.01742 16.3 9.11L13.41 12L16.3 14.89C16.68 15.27 16.68 15.91 16.3 16.3Z" fill="#33445C"/>
               </svg>
@@ -233,29 +198,6 @@
           <div class="inline-flex items-center justify-between w-full rounded-lg p-4 bg-white text-[#66768B] mt-2">{resourceTypeCodeAndName.split(/, (.*)/s)[1]}</div>
         {/if}
       {/each}
-      <!-- {#if hiddenResourceTypes.length > 0} -->
-      <!--   <div class="collapse collapse-arrow w-full rounded-lg bg-white text-[#66768B] mt-2"> -->
-      <!--     <input type="checkbox" /> -->
-      <!--     <div class="collapse-title"> -->
-      <!--       ({hiddenResourceTypes.length}) items hidden -->
-      <!--     </div> -->
-      <!--     <div class="collapse-content"> -->
-      <!--       {#each hiddenResourceTypes as resourceTypeCodeAndName} -->
-      <!--         {#if resourceTypeRegExp.test($location)} -->
-      <!--           <div class="flex items-center justify-between w-full rounded-lg  bg-white text-[#66768B] p-2 mt-2">{resourceTypeCodeAndName.split(/, (.*)/s)[1]} -->
-      <!--             <button on:click={() => uncheckResourceType(resourceTypeCodeAndName)}> -->
-      <!--               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> -->
-      <!--                 <path d="M12 2C6.47 2 2 6.47 2 12C2 17.53 6.47 22 12 22C17.53 22 22 17.53 22 12C22 6.47 17.53 2 12 2ZM16.3 16.3C16.2075 16.3927 16.0976 16.4663 15.9766 16.5164C15.8557 16.5666 15.726 16.5924 15.595 16.5924C15.464 16.5924 15.3343 16.5666 15.2134 16.5164C15.0924 16.4663 14.9825 16.3927 14.89 16.3L12 13.41L9.11 16.3C8.92302 16.487 8.66943 16.592 8.405 16.592C8.14057 16.592 7.88698 16.487 7.7 16.3C7.51302 16.113 7.40798 15.8594 7.40798 15.595C7.40798 15.4641 7.43377 15.3344 7.48387 15.2135C7.53398 15.0925 7.60742 14.9826 7.7 14.89L10.59 12L7.7 9.11C7.51302 8.92302 7.40798 8.66943 7.40798 8.405C7.40798 8.14057 7.51302 7.88698 7.7 7.7C7.88698 7.51302 8.14057 7.40798 8.405 7.40798C8.66943 7.40798 8.92302 7.51302 9.11 7.7L12 10.59L14.89 7.7C14.9826 7.60742 15.0925 7.53398 15.2135 7.48387C15.3344 7.43377 15.4641 7.40798 15.595 7.40798C15.7259 7.40798 15.8556 7.43377 15.9765 7.48387C16.0975 7.53398 16.2074 7.60742 16.3 7.7C16.3926 7.79258 16.466 7.90249 16.5161 8.02346C16.5662 8.14442 16.592 8.27407 16.592 8.405C16.592 8.53593 16.5662 8.66558 16.5161 8.78654C16.466 8.90751 16.3926 9.01742 16.3 9.11L13.41 12L16.3 14.89C16.68 15.27 16.68 15.91 16.3 16.3Z" fill="#33445C"/> -->
-      <!--               </svg> -->
-      <!--             </button> -->
-      <!--           </div> -->
-      <!--         {:else} -->
-      <!--           <div class="flex items-center justify-between w-full rounded-lg p-2 bg-white text-[#66768B] mt-2">{resourceTypeCodeAndName.split(/, (.*)/s)[1]}</div> -->
-      <!--         {/if} -->
-      <!--       {/each} -->
-      <!--     </div> -->
-      <!--   </div> -->
-      <!-- {/if} -->
       {#each $lang1ResourceTypesStore as resourceTypeCodeAndName}
         {#if resourceTypeRegExp.test($location)}
           <div class="flex items-center justify-between w-full rounded-lg p-4 bg-white text-[#66768B] mt-2">{resourceTypeCodeAndName.split(/, (.*)/s)[1]}

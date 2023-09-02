@@ -344,7 +344,6 @@
   }
 
   * :global(.checkbox-dark-bordered) {
-    /* --chkbg: #1a130b; */
     border-color: #1a130b;
     border-radius: 3px;
     width: 1em;

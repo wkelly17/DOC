@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { z } from 'zod'
   import WizardBreadcrumb from './WizardBreadcrumb.svelte'
   import WizardBasket from './WizardBasket.svelte'
   import ProgressIndicator from './ProgressIndicator.svelte'
@@ -51,18 +50,7 @@
       .catch(err => console.log(err)) // FIXME Trigger toast for error
   }
 
-  let resourceCodesAndTypesMapSchema = z.map(
-    z.string().min(1),
-    z.array(z.tuple([z.string(), z.string(), z.string()]))
-  )
-  type ResourceCodesAndTypesMap = z.infer<typeof resourceCodesAndTypesMapSchema>
 
-  let resourceCodesAndTypesMap: ResourceCodesAndTypesMap
-  $: {
-    if (resourceCodesAndTypesMap) {
-      console.log(`resourceCodesAndTypesMap: ${resourceCodesAndTypesMap}`)
-    }
-  }
 
   const maxLanguages = 2
 
@@ -108,22 +96,6 @@
   }
 
 
-  // let glLabel: string = 'Gateway Languages'
-  // $: {
-  //   if ($glLangCodeAndNamesStore.length) {
-  //     glLabel = `Gateway (${$glLangCodeAndNamesStore.length})`
-  //   } else {
-  //     glLabel = 'Gateway'
-  //   }
-  // }
-  // let nonGlLabel: string = 'Heart Languages'
-  // $: {
-  //   if ($nonGlLangCodeAndNamesStore.length) {
-  //     nonGlLabel = `Heart (${$nonGlLangCodeAndNamesStore.length})`
-  //   } else {
-  //     nonGlLabel = 'Heart'
-  //   }
-  // }
 
   // Update stores for use in this and other pages reactively
   let glLang0Code: string = ''
@@ -220,14 +192,12 @@
                 on:click={() => (showGlLanguages = true)}
                 >
                 Gateway
-                <!-- {glLabel} -->
               </button>
               <button
                 class="rounded-r-md w-36 h-10 bg-white text-[#33445C] font-medium leading-tight border-r-2 border-t-2 border-b-2 border-[#015ad9] hover:bg-white focus:bg-white focus:outline-none focus:ring-0 active:bg-white transition duration-150 ease-in-out"
                 on:click={() => (showGlLanguages = false)}
                 >
                 Heart
-                <!-- {nonGlLabel} -->
               </button>
             </div>
           {:else}
@@ -245,7 +215,6 @@
                 on:click={() => (showGlLanguages = true)}
                 >
                 Gateway
-                <!-- {glLabel} -->
               </button>
               <button
                 class="rounded-r-md w-36 h-10 bg-[#015ad9]
@@ -253,7 +222,6 @@
                 on:click={() => (showGlLanguages = false)}
                 >
                 Heart
-                <!-- {nonGlLabel} -->
               </button>
             </div>
           {/if}
@@ -318,13 +286,7 @@
 
 
 <style global lang="postcss">
-  * :global(.orange-gradient) {
-    background: linear-gradient(180deg, #fdd231 0%, #fdad29 100%),
-      linear-gradient(0deg, rgba(20, 14, 8, 0.6), rgba(20, 14, 8, 0.6));
-  }
-
   * :global(.checkbox-dark-bordered) {
-    /* --chkbg: #1a130b; */
     border-color: #1a130b;
     border-radius: 3px;
     width: 1em;

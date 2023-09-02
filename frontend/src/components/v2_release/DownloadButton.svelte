@@ -9,19 +9,6 @@
 </script>
 
 <button class={buttonClass} on:click={() => downloadFromUrl(url)}>
-  <!-- <svg -->
-  <!--   class="mr-3" -->
-  <!--   width="15" -->
-  <!--   height="17" -->
-  <!--   viewBox="0 0 15 17" -->
-  <!--   fill="none" -->
-  <!--   xmlns="http://www.w3.org/2000/svg" -->
-  <!-- > -->
-  <!--   <path -->
-  <!--     d="M0.5 17H14.5V15H0.5V17ZM14.5 6H10.5V0H4.5V6H0.5L7.5 13L14.5 6Z" -->
-  <!--     fill="#ffffff" -->
-  <!--   /> -->
-  <!-- </svg> -->
   {buttonText}</button
 >
 

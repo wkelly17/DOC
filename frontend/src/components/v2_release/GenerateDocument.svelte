@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { ProgressRing } from 'fluent-svelte'
-  import { push } from 'svelte-spa-router'
   import DownloadButton from './DownloadButton.svelte'
   import { documentReadyStore, errorStore } from '../../stores/v2_release/NotificationStore'
   import {
@@ -17,7 +15,6 @@
   import {
     layoutForPrintStore,
     assemblyStrategyKindStore,
-    assemblyStrategyChunkSizeStore,
     docTypeStore,
     generatePdfStore,
     generateEpubStore,
@@ -27,21 +24,12 @@
     limitTwStore
   } from '../../stores/v2_release/SettingsStore'
   import { taskIdStore, taskStateStore } from '../../stores/v2_release/TaskStore'
-  import { getApiRootUrl, getFileServerUrl, resetStores } from '../../lib/utils'
+  import { getApiRootUrl, getFileServerUrl } from '../../lib/utils'
   import LogRocket from 'logrocket'
   import ProgressIndicator from './ProgressIndicator.svelte'
 
-
   let apiRootUrl = getApiRootUrl()
   let fileServerUrl: string = getFileServerUrl()
-
-  function reset() {
-    resetStores('languages')
-    resetStores('books')
-    resetStores('resource_types')
-    resetStores('settings')
-    resetStores('notifications')
-  }
 
   async function poll(taskId: string): Promise<string | [string, string]> {
     console.log(`taskId in poll: ${taskId}`)
@@ -126,7 +114,6 @@
       limit_words: $limitTwStore
     }
     console.log('document request: ', JSON.stringify(documentRequest, null, 2))
-    // push('#/v2/result')
     errorStore.set(null)
     documentReadyStore.set(false)
     documentRequestKeyStore.set('')
@@ -200,12 +187,6 @@
           <span class="py-2 px-4 text-white">Generate File</span>
         </button>
       </div>
-      <!-- <div class="pb-4"> -->
-      <!--   <button -->
-      <!--     class="btn gray-gradiant hover:focus:gray-gradiant w-5/6 text-neutral-content rounded capitalize" -->
-      <!--     on:click={() => reset()}>Reset</button -->
-      <!--   > -->
-      <!-- </div> -->
     {:else}
       <div class="pb-4">
         <button class="btn btn-disabled gray-gradiant w-1/3 rounded-md">
@@ -217,56 +198,38 @@
     {/if}
   {:else}
     {#if !$documentReadyStore && !$errorStore}
-      <!-- <h3 class="text-secondary-content">Your document is being generated.</h3> -->
       <div class="flex">
-        <!-- <progress class="progress progress-success w-56"></progress> -->
         {#if $taskStateStore === "Locating assets"}
-          <!-- <progress class="progress progress-success w-56" value="5" max="100"></progress> -->
-
           <div class="h-1 w-1/3  bg-[#F2F3F5]">
             <div class="h-1 blue-gradient-bar" style="width: 5%"></div>
           </div>
         {:else if $taskStateStore === "Provisioning asset files"}
-          <!-- <progress class="progress progress-success w-56" value="10" max="100"></progress> -->
-
           <div class="h-1 w-1/3  bg-[#F2F3F5]">
             <div class="h-1 blue-gradient-bar" style="width: 10%"></div>
           </div>
         {:else if $taskStateStore === "Parsing asset files"}
-          <!-- <progress class="progress progress-success w-56" value="20" max="100"></progress> -->
-
           <div class="h-1 w-1/3  bg-[#F2F3F5]">
             <div class="h-1 blue-gradient-bar" style="width: 20%"></div>
           </div>
         {:else if $taskStateStore === "Assembling content"}
-          <!-- <progress class="progress progress-success w-56" value="50" max="100"></progress> -->
-
           <div class="h-1 w-1/3  bg-[#F2F3F5]">
             <div class="h-1 blue-gradient-bar" style="width: 50%"></div>
           </div>
         {:else if $taskStateStore === "Provisioning USFM asset files for TW resource"}
-          <!-- <progress class="progress progress-success w-56" value="55" max="100"></progress> -->
-
           <div class="h-1 w-1/3  bg-[#F2F3F5]">
             <div class="h-1 blue-gradient-bar" style="width: 55%"></div>
           </div>
         {:else if $taskStateStore === "Parsing USFM asset files for TW resource"}
-          <!-- <progress class="progress progress-success w-56" value="60" max="100"></progress> -->
-
           <div class="h-1 w-1/3  bg-[#F2F3F5]">
             <div class="h-1 blue-gradient-bar" style="width: 60%"></div>
           </div>
         {:else if $taskStateStore === "Limiting TW words"}
-          <!-- <progress class="progress progress-success w-56" value="65" max="100"></progress> -->
-
           <div class="h-1 w-1/3  bg-[#F2F3F5]">
             <div class="h-1 blue-gradient-bar" style="width: 65%"></div>
           </div>
         {:else if $taskStateStore === "Converting to PDF" ||
           $taskStateStore === "Converting to ePub" || $taskStateStore
           === "Converting to Docx"}
-          <!-- <progress class="progress progress-success w-56" value="80" max="100"></progress> -->
-
           <div class="h-1 w-1/3  bg-[#F2F3F5]">
             <div class="h-1 blue-gradient-bar" style="width: 70%"></div>
           </div>
@@ -274,51 +237,20 @@
           <div class="h-1 w-1/3  bg-[#F2F3F5]">
             <div class="h-1 blue-gradient-bar" style="width: 0%"></div>
           </div>
-        <!-- <ProgressRing /> -->
         {/if}
       </div>
-      <!-- {#if $taskIdStore} -->
-      <!--   <p class="text-secondary-content"> -->
-      <!--     Task id: {$taskIdStore} -->
-      <!--   </p> -->
-      <!-- {/if} -->
       {#if $taskStateStore}
         <p id="state" class="text-[#B3B9C2]">
-          <!-- Task state: {$taskStateStore} -->
           <ProgressIndicator labelString={$taskStateStore} />
         </p>
       {/if}
     {/if}
     {#if $documentReadyStore && !$errorStore}
-      <!-- <progress class="progress w-56" value="0" max="100"></progress> -->
       <div class="bg-white">
-        <!-- <svg -->
-        <!--   class="m-auto" -->
-        <!--   width="20" -->
-        <!--   height="16" -->
-        <!--   viewBox="0 0 20 16" -->
-        <!--   fill="none" -->
-        <!--   xmlns="http://www.w3.org/2000/svg" -->
-        <!-- > -->
-        <!--   <path -->
-        <!--     d="M2 8L8 14L18 2" -->
-        <!--     stroke="#82A93F" -->
-        <!--     stroke-width="2.66667" -->
-        <!--     stroke-linecap="round" -->
-        <!--     stroke-linejoin="round" -->
-        <!--   /> -->
-        <!-- </svg> -->
-        <!-- <progress class="progress progress-success w-56" value="100" max="100"></progress> -->
-
           <div class="h-1 w-1/3 bg-[#F2F3F5]">
             <div class="h-1 blue-gradient-bar" style="width: 100%"></div>
           </div>
         <div class="m-auto"><h3 class="text-[#82A93F]">Complete!</h3></div>
-        <!-- <p class="text-secondary-content"> -->
-        <!--   Your document was generated successfully. You may {#if -->
-        <!--     $generatePdfStore || $generateEpubStore || -->
-        <!--   $generateDocxStore}download it{/if}{#if !$generateDocxStore}&nbsp; or view it online{/if}. -->
-        <!-- </p> -->
         {#if $generatePdfStore}
           <div class="m-auto mt-4">
             <DownloadButton buttonText="Download PDF" url={pdfDownloadUrl} />
@@ -351,13 +283,6 @@
               Word, then save the Word document.
             </p>
           </div>
-          <!-- <div class="text-center text-secondary-content mt-4"> -->
-          <!--   <p> -->
-          <!--     You may want to turn off spell checking in Word also as -->
-          <!--     multi-language Word documents can cause spell check to run -->
-          <!--     excessively. -->
-          <!--   </p> -->
-          <!-- </div> -->
         {/if}
         {#if !$generateDocxStore}
           <div class="m-auto mt-4">
@@ -385,20 +310,7 @@
         {/if}
       </div>
     {:else}
-      <button class="btn bg-[#F2F3F5] w-1/3 rounded-md text-[#B3B9C2]" disabled>
-          <!-- <svg -->
-          <!--   class="mr-3" -->
-          <!--   width="15" -->
-          <!--   height="17" -->
-          <!--   viewBox="0 0 15 17" -->
-          <!--   fill="none" -->
-          <!--   xmlns="http://www.w3.org/2000/svg" -->
-          <!--   > -->
-          <!--   <path -->
-          <!--     d="M0.5 17H14.5V15H0.5V17ZM14.5 6H10.5V0H4.5V6H0.5L7.5 13L14.5 6Z" -->
-          <!--     fill="#ffffff" -->
-          <!--     /> -->
-          <!-- </svg> -->
+      <button class="text-center bg-[#F2F3F5] border border-[#E5E8EB] hover:bg-[#efefef] py-2 px-4 w-1/3 rounded-md text-[#B3B9C2] mt-2" disabled>
           Download
       </button>
       <p class="text-[#B3B9C2] mt-4 italic">
@@ -437,19 +349,11 @@
   * :global(.gray-gradiant) {
     background: linear-gradient(0deg, rgba(20, 14, 8, 0.05), rgba(20, 14, 8, 0.05)),
       linear-gradient(0deg, rgba(20, 14, 8, 0), rgba(20, 14, 8, 0));
-    /* background: linear-gradient(0deg, rgba(20, 14, 8, 0.2), rgba(20, 14, 8, 0.2)), */
-    /*   linear-gradient(0deg, rgba(20, 14, 8, 0.05), rgba(20, 14, 8, 0.05)); */
   }
   * :global(.gray-gradient:hover) {
     background: linear-gradient(0deg, rgba(20, 14, 8, 0.3), rgba(20, 14, 8, 0.3)),
       linear-gradient(0deg, rgba(20, 14, 8, 0.05), rgba(20, 14, 8, 0.05));
   }
-
-  * :global(.orange-gradient) {
-    background: linear-gradient(180deg, #fdd231 0%, #fdad29 100%),
-      linear-gradient(0deg, rgba(20, 14, 8, 0.6), rgba(20, 14, 8, 0.6));
-  }
-
   * :global(.blue-gradient) {
     background: linear-gradient(180deg, #1876FD 0%, #015AD9 100%),
     linear-gradient(0deg, #33445C, #33445C);

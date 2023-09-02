@@ -420,19 +420,6 @@ def t_resource_lookup(
     return resource_lookup_dto
 
 
-def lang_codes(
-    working_dir: str = settings.RESOURCE_ASSETS_DIR,
-    translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
-    lang_code_filter_list: Sequence[str] = settings.LANG_CODE_FILTER_LIST,
-) -> Iterable[Any]:
-    """
-    Convenience method that can be called from UI to get the set
-    of all language codes available through API. Presumably this
-    could be called to populate a drop-down menu.
-    """
-    data = fetch_source_data(working_dir, translations_json_location)
-    for lang in [lang for lang in data if lang["code"] not in lang_code_filter_list]:
-        yield lang["code"]
 
 
 def lang_codes_and_names(
@@ -531,30 +518,6 @@ def resource_types_for_v1(
     ]
 
 
-# FIXME Remove when no longer needed.
-def resource_types_for_langs(
-    usfm_resource_types: Sequence[str] = settings.USFM_RESOURCE_TYPES,
-) -> Iterable[tuple[str, Sequence[Any]]]:
-    """
-    Utility function for investigating which languages have more than
-    one USFM resource type as this relates to a bug I need to handle.
-
-    Commenting out for now so that I can run other doctests as this takes a while.
-    >>> # from document.domain import resource_lookup
-    >>> # data = resource_lookup.resource_types_for_langs()
-    >>> # list(data)
-    [('grc', ['ulb', 'ugnt']), ('plt-x-antaifasy', ['ulb', 'reg']), ('lai-x-bandya', ['ulb', 'reg']), ('xdy-x-batangkawa', ['udb', 'reg']), ('byn', ['ulb', 'reg']), ('beu', ['ulb', 'reg']), ('bou', ['ulb', 'reg']), ('set-x-csentani', ['udb', 'reg']), ('iba-x-ketungau', ['ulb', 'reg']), ('xdy-x-senduruhan', ['ulb', 'udb', 'reg']), ('dic', ['ulb', 'reg']), ('cfa-x-dijim', ['ulb', 'reg']), ('ish', ['ulb', 'reg']), ('ee', ['ulb', 'reg']), ('fr', ['ulb', 'tw', 'tq', 'tn', 'f10']), ('kna-x-gasi', ['ulb', 'reg']), ('gux-x-gourmantche', ['ulb', 'reg']), ('gu', ['ulb', 'udb', 'tw', 'tq', 'tn']), ('han', ['ulb', 'reg']), ('hav', ['ulb', 'reg']), ('hi', ['ulb', 'udb', 'tw', 'tq', 'tn']), ('kpo', ['ulb', 'reg']), ('ilo', ['ulb', 'udb', 'tw', 'tq', 'tn']), ('jni', ['ulb', 'reg']), ('ldl', ['ulb', 'reg']), ('kbp', ['ulb', 'reg']), ('kxh', ['ulb', 'reg']), ('gqa-x-kabinda', ['ulb', 'reg']), ('shr-x-kigweshe', ['ulb', 'reg']), ('hav-x-kihavuidjui', ['ulb', 'reg']), ('kkq-x-kikubere', ['ulb', 'reg']), ('shr-x-kilinjalinja', ['ulb', 'reg']), ('tbt-x-kirhinyihinyi', ['ulb', 'reg']), ('kmq', ['ulb', 'reg']), ('las', ['ulb', 'reg']), ('es-419', ['ulb', 'udb', 'tw', 'tq', 'tn']), ('wew-x-loli', ['ulb', 'reg']), ('lpx', ['ulb', 'reg']), ('sie-x-makoma', ['ulb', 'reg']), ('bzc', ['ulb', 'reg']), ('zmb-x-mamba', ['ulb', 'reg']), ('mr', ['ulb', 'udb', 'tw', 'tq', 'tn']), ('mgw', ['ulb', 'udb', 'reg']), ('hna', ['ulb', 'reg']), ('mwn-MW-namwanga', ['ulb', 'reg']), ('ne', ['ulb', 'udb', 'tw', 'tq', 'tn']), ('nij', ['udb', 'reg']), ('nbh', ['ulb', 'reg']), ('ngq', ['ulb', 'reg']), ('or', ['ulb', 'udb', 'tw', 'tq', 'tn']), ('pnb', ['ulb', 'reg']), ('saw', ['udb', 'reg']), ('sze', ['ulb', 'udb', 'reg']), ('plt-x-sihanaka', ['ulb', 'reg']), ('ors-x-oranglau', ['udb', 'reg']), ('suw', ['ulb', 'udb', 'reg']), ('tl', ['ulb', 'udb', 'tw', 'tq', 'tn']), ('kcg-x-takad', ['ulb', 'reg']), ('tal', ['ulb', 'reg']), ('kcg', ['ulb', 'reg']), ('utu', ['ulb', 'reg']), ('vi', ['ulb', 'udb', 'tw', 'tq', 'tn']), ('mlp-x-wasabamal', ['ulb', 'reg']), ('ybl', ['ulb', 'reg'])]
-    """
-    langs = lang_codes()
-    for lang in langs:
-        resource_types = resource_types_for_lang(lang)
-        usfm_resource_types_for_lang = [
-            resource_type
-            for resource_type in resource_types
-            if resource_type in usfm_resource_types
-        ]
-        if len(usfm_resource_types_for_lang) > 1:
-            yield (lang, resource_types)
 
 
 def resource_types_for_lang(

@@ -225,8 +225,6 @@
       </svg>
     </button>
   {:else}
-    <!-- {#if langRegExp.test($location) && $langCountStore === 0 || bookRegExp.test($location) && bookCountStore === 0 || -->
-    <!-- resourceTypeRegExp.test($location) && $resourceTypesCountStore === 0} -->
     <button class= "inline-flex items-center bg-white border border-[#E5E8EB] text-[#33445c] hover:bg-[#efefef] py-2 px-4 rounded-md">
       <span>Next</span>
       <svg
