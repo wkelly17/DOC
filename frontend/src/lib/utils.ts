@@ -122,3 +122,10 @@ export function setShowTopMatter(): boolean {
   }
   return showTopMatter
 }
+
+export function getName(codeAndName: string): string {
+  return codeAndName?.split(/, (.*)/s)[1]
+}
+export function getCode(codeAndName: string): string {
+  return codeAndName?.split(/, (.*)/s)[0]
+}

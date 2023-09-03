@@ -87,12 +87,6 @@ test('test ePub and Docx options available when print layout is chosen', async (
   await page.getByLabel('Bible Commentary').uncheck()
   await page.getByRole('button', { name: 'Add (8) Resource Types' }).click()
   await page.getByRole('link', { name: 'Settings' }).click()
-  await page
-    .locator(
-      'li:has-text("Print Optimization Enabling this option will remove extra whitespace") div'
-    )
-    .nth(3)
-    .click()
 
   await expect(page.locator('span:has-text("(Optional) Generate PDF")')).toBeVisible()
   await expect(page.locator('span:has-text("(Optional) Generate ePub")')).toBeVisible()
@@ -185,7 +179,7 @@ test('test v2 ui', async ({ page }) => {
   await page.getByRole('link', { name: 'Languages' }).click()
   await page.locator('div:nth-child(4) > button').click()
   await page.getByRole('button', { name: 'Heart' }).click()
-  await page.getByText('Airo').click()
+  await page.getByText('Airo', { exact: true }).click()
   await page.getByRole('button', { name: 'Next' }).click()
   await page.getByText('Philippians').click()
   await page.getByRole('button', { name: 'Edit' }).click()

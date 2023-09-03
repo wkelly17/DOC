@@ -12,7 +12,7 @@
     nonGlLangCodeAndNamesStore,
     langCountStore
   } from '../../stores/v2_release/LanguagesStore'
-  import { getApiRootUrl } from '../../lib/utils'
+  import { getApiRootUrl, getCode, getName } from '../../lib/utils'
 
   let showGlLanguages = true
 
@@ -80,7 +80,7 @@
   $: {
     if (glLangCodesAndNames) {
       filteredGlLangCodeAndNames = glLangCodesAndNames.filter((item:  string) =>
-        item.toLowerCase().split(/, (.*)/s)[1].includes(glLangSearchTerm.toLowerCase())
+        getName(item.toLowerCase()).includes(glLangSearchTerm.toLowerCase())
       )
     }
   }
@@ -90,7 +90,7 @@
   $: {
     if (nonGlLangCodesAndNames) {
       filteredNonGlLangCodeAndNames = nonGlLangCodesAndNames.filter((item: string) =>
-        item.toLowerCase().split(/, (.*)/s)[1].includes(nonGlLangSearchTerm.toLowerCase())
+        getName(item.toLowerCase()).includes(nonGlLangSearchTerm.toLowerCase())
       )
     }
   }
@@ -234,33 +234,40 @@
       <main class="flex-1 overflow-y-auto p-4">
         {#if showGlLanguages}
           {#each glLangCodesAndNames as langCodeAndName, index}
-            <div style={filteredGlLangCodeAndNames.includes(langCodeAndName) ? '' : 'display: none'}
-                 class="flex items-center"
-                 >
-              <input
-                id="lang-code-{index}"
-                type="checkbox"
-                bind:group={$glLangCodeAndNamesStore}
-                value={langCodeAndName}
-                class="checkbox checkbox-dark-bordered"
-                />
-              <label for="lang-code-{index}" class="text-secondary-content pl-1"
-                     >{langCodeAndName.split(/, (.*)/s)[1]}</label>
+            <div class="flex items-center justify-between"
+                 style={filteredGlLangCodeAndNames.includes(langCodeAndName)
+                 ? '' : 'display: none'}>
+              <div class="flex items-center"
+                  >
+                <input
+                  id="lang-code-{index}"
+                  type="checkbox"
+                  bind:group={$glLangCodeAndNamesStore}
+                  value={langCodeAndName}
+                  class="checkbox checkbox-dark-bordered"
+                  />
+                <label for="lang-code-{index}" class="text-[#33445C] pl-1">{getName(langCodeAndName)}</label>
+              </div>
+              <span class="text-[#33445C]">{getCode(langCodeAndName)}</span>
             </div>
           {/each}
         {:else}
           {#each nonGlLangCodesAndNames as langCodeAndName, index}
-            <div style={filteredNonGlLangCodeAndNames.includes(langCodeAndName) ? '' : 'display: none'}
-                 class="flex items-center">
-              <input
-                id="lang-code-{index}"
-                type="checkbox"
-                bind:group={$nonGlLangCodeAndNamesStore}
-                value={langCodeAndName}
-                class="checkbox checkbox-dark-bordered"
-                />
-              <label for="lang-code-{index}" class="text-secondary-content pl-1"
-                     >{langCodeAndName.split(/, (.*)/s)[1]}</label>
+            <div class="flex items-center justify-between"
+                 style={filteredNonGlLangCodeAndNames.includes(langCodeAndName)
+                 ? '' : 'display: none'}>
+              <div class="flex items-center">
+                <input
+                  id="lang-code-{index}"
+                  type="checkbox"
+                  bind:group={$nonGlLangCodeAndNamesStore}
+                  value={langCodeAndName}
+                  class="checkbox checkbox-dark-bordered"
+                  />
+                <label for="lang-code-{index}" class="text-[#33445C] pl-1"
+                       >{getName(langCodeAndName)}</label>
+              </div>
+              <span class="text-[#33445C]">{getCode(langCodeAndName)}</span>
             </div>
           {/each}
         {/if}
