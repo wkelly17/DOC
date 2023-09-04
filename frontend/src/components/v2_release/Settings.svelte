@@ -99,8 +99,10 @@
        }
   }
   $: console.log(`limitTwStore: ${$limitTwStore}`)
+
   $: showEmail = false
   $: showEmailCaptured = false
+  $: documentReadyStore.set(false)
 
   // Deal with empty string case
   if ($emailStore && $emailStore === '') {
@@ -238,30 +240,27 @@
             >
           </div>
         {/if}
-        {#if showEmail}
+        {#if showEmail && !showEmailCaptured}
           <div>
-            {#if !showEmailCaptured}
-              <div>
-                <label for="email" class="text-[#33445C] pl-1">Email address</label>
-              </div>
-              <input
-                type="text"
-                name="email"
-                id="email"
-                bind:value="{$emailStore}"
-                placeholder="Type email address here (optional)"
-                class="input input-bordered bg-white w-full max-w-xs"
-                />
-              <div>
-                <button class="rounded-md bg-[#E6EEFB] text-[#015AD9] px-8
-                               py-4 mt-4"
-                        on:click={() => (showEmailCaptured = true)}>Submit</button>
-              </div>
-            {:else}
-              <div class="text-[#33445C]">
-                A copy of your file will be sent to {$emailStore} when it is ready.
-              </div>
-            {/if}
+            <label for="email" class="text-[#33445C] pl-1">Email address</label>
+          </div>
+          <input
+            type="text"
+            name="email"
+            id="email"
+            bind:value="{$emailStore}"
+            placeholder="Type email address here (optional)"
+            class="input input-bordered bg-white w-full max-w-xs"
+            />
+          <div>
+            <button class="rounded-md bg-[#E6EEFB] text-[#015AD9] px-8
+                           py-4 mt-4"
+                    on:click={() => (showEmailCaptured = true)}>Submit</button>
+          </div>
+        {/if}
+        {#if showEmailCaptured}
+          <div class="text-[#33445C]">
+            A copy of your file will be sent to {$emailStore} when it is ready.
           </div>
         {/if}
       </div>
