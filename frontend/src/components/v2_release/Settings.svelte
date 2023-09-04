@@ -91,6 +91,14 @@
     }
   }
 
+  $: {
+       if ($twResourceRequestedStore) {
+         limitTwStore.set(true)
+       } else {
+         limitTwStore.set(false)
+       }
+  }
+  $: console.log(`limitTwStore: ${$limitTwStore}`)
   $: showEmail = false
   $: showEmailCaptured = false
 
