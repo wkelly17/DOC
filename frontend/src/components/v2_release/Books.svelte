@@ -96,6 +96,16 @@
           })
           .map(tuple => `${tuple[0]}, ${tuple[1]}`)
 
+        // If otBookStore has contents, then assume we are coming
+        // back here from the user clicking to edit their book
+        // selections in the wizard basket, so we want to eliminate
+        // any otBookStore elements that are not in otResourceCodes.
+        if ($otBookStore.length > 0) {
+          otBookStore.set($otBookStore.filter(item => {
+            return otResourceCodes.some(element => element === item)
+          }))
+        }
+
         // Filter set of all resource codes into new testament
         // resource codes.
         ntResourceCodes = resourceCodesAndNames
@@ -103,6 +113,16 @@
             return !otBooks.some(item => item === element[0])
           })
           .map(tuple => `${tuple[0]}, ${tuple[1]}`)
+
+        // If ntBookStore has contents, then assume we are coming
+        // back here from the user clicking to edit their book
+        // selections in the wizard basket, so we want to eliminate
+        // any ntBookStore elements that are not in ntResourceCodes.
+        if ($ntBookStore.length > 0) {
+          ntBookStore.set($ntBookStore.filter(item => {
+            return ntResourceCodes.some(element => element === item)
+          }))
+        }
       })
       .catch(err => console.error(err))
   }
