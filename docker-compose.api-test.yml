@@ -1,6 +1,5 @@
 version: "3"
 services:
-
   frontend:
     # use nginx as a mock frontend since the frontend isn't built or used at this stage
     image: nginx:alpine
@@ -16,10 +15,20 @@ services:
         condition: service_healthy
 
     entrypoint: pytest
-    command: ["-v","-m","not\ randomized","-n","auto","/app/tests/unit","/app/tests/e2e"]
+    command:
+      [
+        "-v",
+        "-m",
+        "not\ randomized",
+        "-n",
+        "auto",
+        "/app/tests/unit",
+        "/app/tests/e2e",
+      ]
     environment:
       BACKEND_API_URL: http://localhost:5005
       FILE_SERVER_URL: http://localhost:8089
+      LOGROCKET_ID: ${LOGROCKET_ID:-ct7zyg/interleaved-resource-generator}
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
       CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/0}
     volumes:
@@ -27,4 +36,3 @@ services:
 
 volumes:
   shared:
-  

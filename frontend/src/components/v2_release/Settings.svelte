@@ -17,11 +17,10 @@
   } from '../../stores/v2_release/SettingsStore'
   import { documentReadyStore } from '../../stores/v2_release/NotificationStore'
   import {
-    lang0ResourceTypesStore,
-    lang1ResourceTypesStore,
+    resourceTypesStore,
     twResourceRequestedStore
   } from '../../stores/v2_release/ResourceTypesStore'
-  import { lang1CodeStore } from '../../stores/v2_release/LanguagesStore'
+  import { langCodesStore } from '../../stores/v2_release/LanguagesStore'
   import GenerateDocument from './GenerateDocument.svelte'
   import LogRocket from 'logrocket'
 
@@ -75,22 +74,11 @@
   // presence or absence of the toggle to limit TW words.
   let regexp = new RegExp('.*tw.*')
   $: {
-    if ($lang0ResourceTypesStore && $lang1ResourceTypesStore) {
-      twResourceRequestedStore.set(
-        $lang0ResourceTypesStore.some(item => regexp.test(item)) ||
-          $lang1ResourceTypesStore.some(item => regexp.test(item))
-      )
-    } else if ($lang0ResourceTypesStore && !$lang1ResourceTypesStore) {
-      twResourceRequestedStore.set(
-        $lang0ResourceTypesStore.some(item => regexp.test(item))
-      )
-    } else if (!$lang0ResourceTypesStore && $lang1ResourceTypesStore) {
-      twResourceRequestedStore.set(
-        $lang1ResourceTypesStore.some(item => regexp.test(item))
-      )
+    if ($resourceTypesStore) {
+      console.log('about to check for tw')
+      twResourceRequestedStore.set($resourceTypesStore.some(item => regexp.test(item)))
     }
   }
-
   $: {
        if ($twResourceRequestedStore) {
          limitTwStore.set(true)
@@ -98,6 +86,7 @@
          limitTwStore.set(false)
        }
   }
+
   $: console.log(`limitTwStore: ${$limitTwStore}`)
 
   $: showEmail = false
@@ -115,8 +104,8 @@
     // Deal with non-empty string
   } else if ($emailStore && $emailStore !== '') {
     emailStore.set($emailStore.trim())
-    // Send email to LogRocket using identify
-    // LogRocket.init('ct7zyg/interleaved-resource-generator')
+    // LogRocket init call happens in App.svelte.
+    // Send email to LogRocket using identify.
     LogRocket.identify($emailStore)
   }
 
@@ -156,7 +145,7 @@
 
       <h3 class="text-2xl my-2 text-[#33445C]">Layout</h3>
       <div class="ml-4">
-        {#if $lang1CodeStore}
+        {#if $langCodesStore[1]}
         <div class="flex mb-2">
           <select bind:value="{$assemblyStrategyKindStore}" name="assemblyStrategy">
             {#each assemblyStrategies as assemblyStrategy}

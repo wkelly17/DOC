@@ -18,7 +18,7 @@
     resetStores('resource_types')
     resetStores('settings')
     resetStores('notifications')
-    push('#/v2/books')
+    push('#/books')
   }
 
   function submitBooks() {
@@ -30,13 +30,13 @@
     resetStores('resource_types')
     resetStores('settings')
     resetStores('notifications')
-    push('#/v2/resource_types')
+    push('#/resource_types')
   }
 
   function submitResourceTypes() {
     resetStores('settings')
     resetStores('notifications')
-    push('#/v2/settings')
+    push('#/settings')
   }
 
 
@@ -71,7 +71,7 @@
 <div class="p-4 border border-[#E5E8EB]">
   <div class="flex items-center justify-between text-[#B3B9C2] leading-8 text-xl font-semibold">
     {#if bookRegExp.test($location)}
-      <button class="inline-flex items-center bg-white border border-[#E5E8EB] text-[#33445c] hover:bg-[#efefef] py-2 px-4 rounded-md" on:click={() => push('/v2/languages')}>
+      <button class="inline-flex items-center bg-white border border-[#E5E8EB] text-[#33445c] hover:bg-[#efefef] py-2 px-4 rounded-md" on:click={() => push('/languages')}>
         <svg
           width="24"
           height="24"
@@ -87,7 +87,7 @@
         <span>Back</span>
       </button>
     {:else if resourceTypeRegExp.test($location)}
-      <button class="inline-flex items-center bg-white border border-[#E5E8EB] text-[#33445c] hover:bg-[#efefef] py-2 px-4 rounded-md" on:click={() => push('/v2/books')}>
+      <button class="inline-flex items-center bg-white border border-[#E5E8EB] text-[#33445c] hover:bg-[#efefef] py-2 px-4 rounded-md" on:click={() => push('/books')}>
         <svg
           width="24"
           height="24"
@@ -102,7 +102,7 @@
         ><span>Back</span>
       </button>
     {:else if settingsRegExp.test($location)}
-      <button class="inline-flex items-center bg-white border border-[#E5E8EB] text-[#33445c] hover:bg-[#efefef] py-2 px-4 rounded-md" on:click={() => push('/v2/resource_types')}>
+      <button class="inline-flex items-center bg-white border border-[#E5E8EB] text-[#33445c] hover:bg-[#efefef] py-2 px-4 rounded-md" on:click={() => push('/resource_types')}>
         <svg
           width="24"
           height="24"
@@ -145,7 +145,7 @@
         </div>
         {/if}
       </div>
-      <span class="ml-2"><a href="#/v2/languages">Languages</a></span>
+      <span class="ml-2"><a href="#/languages">Languages</a></span>
     </div>
     <div class="inline-flex items-center">
       <div class="avatar placeholder">
@@ -161,7 +161,7 @@
         {/if}
       </div>
       {#if turnBookStepOn}
-        <span class="ml-2"><a href="#/v2/books">Books</a></span>
+        <span class="ml-2"><a href="#/books">Books</a></span>
       {:else}
         <span class="ml-2">Books</span>
       {/if}
@@ -180,7 +180,7 @@
         {/if}
       </div>
       {#if turnResourceTypeStepOn}
-        <span class="ml-2"><a href="#/v2/resource_types">Resources</a></span>
+        <span class="ml-2"><a href="#/resource_types">Resources</a></span>
       {:else}
         <span class="ml-2">Resources</span>
       {/if}

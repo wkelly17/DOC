@@ -2,161 +2,175 @@
   import WizardBreadcrumb from './WizardBreadcrumb.svelte'
   import WizardBasket from './WizardBasket.svelte'
   import ProgressIndicator from './ProgressIndicator.svelte'
-  import glLangs from '../../data/gl_languages'
   import {
-    lang0CodeStore,
-    lang1CodeStore,
-    lang0NameStore,
-    lang1NameStore,
-    glLangCodeAndNamesStore,
-    nonGlLangCodeAndNamesStore,
+    langCodesStore,
+    langNamesStore,
+    gatewayCodeAndNamesStore,
+    heartCodeAndNamesStore,
     langCountStore
   } from '../../stores/v2_release/LanguagesStore'
+  import { ntBookStore, otBookStore, bookCountStore } from '../../stores/v2_release/BooksStore'
   import { getApiRootUrl, getCode, getName } from '../../lib/utils'
+  import { resourceTypesStore, resourceTypesCountStore } from '../../stores/v2_release/ResourceTypesStore';
 
-  let showGlLanguages = true
+  let showGatewayLanguages = true
 
   async function getLangCodesNames(
     apiRootUrl: string = getApiRootUrl(),
-    langCodesAndNamesUrl: string = <string>import.meta.env.VITE_LANG_CODES_NAMES_URL
-  ): Promise<Array<[string, string]>> {
+    langCodesAndNamesUrl: string = <string>import.meta.env.VITE_LANG_CODES_NAMES_URL_V2
+  ): Promise<Array<[string, string, boolean]>> {
     console.log(`apiRootUrl: ${getApiRootUrl}`)
     const response = await fetch(`${apiRootUrl}${langCodesAndNamesUrl}`)
-    const langCodesAndNames: Array<[string, string]> = await response.json()
+    const langCodeNameAndTypes: Array<[string, string, boolean]> = await response.json()
     if (!response.ok) {
       console.log(`Error: ${response.statusText}`)
       throw new Error(response.statusText)
     }
-    return langCodesAndNames
+    return langCodeNameAndTypes
   }
 
   // Resolve promise for data
-  let glLangCodesAndNames: Array<string> = []
-  let nonGlLangCodesAndNames: Array<string> = []
-  $: {
-    getLangCodesNames()
-      .then(langCodesAndNames_ => {
-        // Filter set of all languages for gl languages
-        glLangCodesAndNames = langCodesAndNames_.filter((element: [string, string]) => {
-          return glLangs.some((item: string) => item === element[0])
-        })
-        .map(tuple => `${tuple[0]}, ${tuple[1]}`)
-        // Filter set of all languages for non-gl languages
-        nonGlLangCodesAndNames = langCodesAndNames_.filter((element: [string, string]) => {
-          return !glLangs.some((item: string) => item === element[0])
-        })
-        .map(tuple => `${tuple[0]}, ${tuple[1]}`)
-      })
-      .catch(err => console.log(err)) // FIXME Trigger toast for error
-  }
+  let langCodeNameAndTypes: Array<[string, string, boolean]> = []
+  let gatewayCodesAndNames: Array<string> = []
+  let heartCodesAndNames: Array<string> = []
+  getLangCodesNames()
+  .then(langCodeNameAndTypes_ => {
+    // Save result for later use
+    langCodeNameAndTypes = langCodeNameAndTypes_
 
+    // Filter set of all languages for gateway languages
+    gatewayCodesAndNames = langCodeNameAndTypes_.filter((element: [string, string, boolean]) => {
+      return element[2]
+    })
+      .map(tuple => `${tuple[0]}, ${tuple[1]}`)
+
+    // Filter set of all languages for heart languages
+    heartCodesAndNames = langCodeNameAndTypes_.filter((element: [string, string, boolean]) => {
+      return !element[2]
+    })
+      .map(tuple => `${tuple[0]}, ${tuple[1]}`)
+  })
+  .catch(err => console.log(err)) // FIXME Trigger toast for error
 
 
   const maxLanguages = 2
 
-  // Derive and set the count of books for use here and in other
-  // pages.
-  let nonEmptyGlLanguages: boolean
-  $: nonEmptyGlLanguages = $glLangCodeAndNamesStore.every(item => item.length > 0)
+  let nonEmptyGatewayLanguages: boolean
+  $: nonEmptyGatewayLanguages = $gatewayCodeAndNamesStore.every(item => item.length > 0)
 
-  let nonEmptyNonGlLanguages: boolean
-  $: nonEmptyNonGlLanguages = $nonGlLangCodeAndNamesStore.every(item => item.length > 0)
+  let nonEmptyHeartLanguages: boolean
+  $: nonEmptyHeartLanguages = $heartCodeAndNamesStore.every(item => item.length > 0)
+
 
   $: {
-    if (nonEmptyGlLanguages && nonEmptyNonGlLanguages) {
-      langCountStore.set($glLangCodeAndNamesStore.length + $nonGlLangCodeAndNamesStore.length)
-    } else if (nonEmptyGlLanguages && !nonEmptyNonGlLanguages) {
-      langCountStore.set($glLangCodeAndNamesStore.length)
-    } else if (!nonEmptyGlLanguages && nonEmptyNonGlLanguages) {
-      langCountStore.set($nonGlLangCodeAndNamesStore.length)
+    if (nonEmptyGatewayLanguages && nonEmptyHeartLanguages) {
+      // Set the langCountStore
+      langCountStore.set($gatewayCodeAndNamesStore.length + $heartCodeAndNamesStore.length)
+
+      // Set the langCodesStore
+      let codes = []
+      for (let stringTuple of $gatewayCodeAndNamesStore) {
+        codes.push(getCode(stringTuple))
+      }
+      for (let stringTuple of $heartCodeAndNamesStore) {
+        codes.push(getCode(stringTuple))
+      }
+      langCodesStore.set(codes)
+
+      // Set the langNamesStore
+      let names = []
+      for (let stringTuple of $gatewayCodeAndNamesStore) {
+        names.push(getName(stringTuple))
+      }
+      for (let stringTuple of $heartCodeAndNamesStore) {
+        names.push(getName(stringTuple))
+      }
+      langNamesStore.set(names)
+
+      // Set the resourceTypesStore
+      resourceTypesStore.set($resourceTypesStore.filter(item => $langCodesStore[0] === item.split(", ")[0] || $langCodesStore[1] === item.split(", ")[0]))
+
+      // Set the resourceTypesCountStore
+      resourceTypesCountStore.set($resourceTypesStore.length)
+    } else if (nonEmptyGatewayLanguages && !nonEmptyHeartLanguages) {
+      // Set the langCountStore
+      langCountStore.set($gatewayCodeAndNamesStore.length)
+
+      // Set the langCodesStore
+      let codes = []
+      for (let stringTuple of $gatewayCodeAndNamesStore) {
+        codes.push(getCode(stringTuple))
+      }
+      langCodesStore.set(codes)
+
+      // Set the langNamesStore
+      let names = []
+      for (let stringTuple of $gatewayCodeAndNamesStore) {
+        names.push(getName(stringTuple))
+      }
+      langNamesStore.set(names)
+
+      // Set the resourceTypesStore
+      resourceTypesStore.set($resourceTypesStore.filter(item => $langCodesStore[0] === item.split(", ")[0] || $langCodesStore[1] === item.split(", ")[0]))
+
+      // Set the resourceTypesCountStore
+      resourceTypesCountStore.set($resourceTypesStore.length)
+    } else if (!nonEmptyGatewayLanguages && nonEmptyHeartLanguages) {
+      // Set the langCountStore
+      langCountStore.set($heartCodeAndNamesStore.length)
+
+      // Set the langCodesStore
+      let codes = []
+      for (let stringTuple of $heartCodeAndNamesStore) {
+        codes.push(getCode(stringTuple))
+      }
+      langCodesStore.set(codes)
+
+      // Set the langNamesStore
+      let names = []
+      for (let stringTuple of $heartCodeAndNamesStore) {
+        names.push(getName(stringTuple))
+      }
+      langNamesStore.set(names)
+
+      // Set the resourceTypesStore
+      resourceTypesStore.set($resourceTypesStore.filter(item => $langCodesStore[0] === item.split(", ")[0] || $langCodesStore[1] === item.split(", ")[0]))
+
+      // Set the resourceTypesCountStore
+      resourceTypesCountStore.set($resourceTypesStore.length)
     } else {
       langCountStore.set(0)
+      langCodesStore.set([])
+      langNamesStore.set([])
+      resourceTypesStore.set([])
+      resourceTypesCountStore.set(0)
+      otBookStore.set([])
+      ntBookStore.set([])
+      bookCountStore.set(0)
     }
   }
 
-  // Filter the language list reactively
-  let glLangSearchTerm: string = ''
-  let filteredGlLangCodeAndNames: Array<string> = []
+  // Search field handling for gateway languages
+  let gatewaySearchTerm: string = ''
+  let filteredGatewayCodeAndNames: Array<string> = []
   $: {
-    if (glLangCodesAndNames) {
-      filteredGlLangCodeAndNames = glLangCodesAndNames.filter((item:  string) =>
-        getName(item.toLowerCase()).includes(glLangSearchTerm.toLowerCase())
+    if (gatewayCodesAndNames) {
+      filteredGatewayCodeAndNames = gatewayCodesAndNames.filter((item:  string) =>
+        getName(item.toLowerCase()).includes(gatewaySearchTerm.toLowerCase())
       )
     }
   }
-  // Filter the language list reactively
-  let nonGlLangSearchTerm: string = ''
-  let filteredNonGlLangCodeAndNames: Array<string> = []
+
+  // Search field handling for heart languages
+  let heartSearchTerm: string = ''
+  let filteredHeartCodeAndNames: Array<string> = []
   $: {
-    if (nonGlLangCodesAndNames) {
-      filteredNonGlLangCodeAndNames = nonGlLangCodesAndNames.filter((item: string) =>
-        getName(item.toLowerCase()).includes(nonGlLangSearchTerm.toLowerCase())
+    if (heartCodesAndNames) {
+      filteredHeartCodeAndNames = heartCodesAndNames.filter((item: string) =>
+        getName(item.toLowerCase()).includes(heartSearchTerm.toLowerCase())
       )
     }
   }
-
-
-
-  // Update stores for use in this and other pages reactively
-  let glLang0Code: string = ''
-  let nonGlLang0Code: string = ''
-  $: {
-    glLang0Code = $glLangCodeAndNamesStore[0]?.split(/, (.*)/s)[0]
-    nonGlLang0Code = $nonGlLangCodeAndNamesStore[0]?.split(/, (.*)/s)[0]
-    if (glLang0Code && nonGlLang0Code) {
-      lang0CodeStore.set(glLang0Code)
-      lang1CodeStore.set(nonGlLang0Code)
-    } else if (!glLang0Code && nonGlLang0Code) {
-      lang0CodeStore.set(nonGlLang0Code)
-    } else if (glLang0Code && !nonGlLang0Code) {
-      lang0CodeStore.set(glLang0Code)
-    }
-  }
-  let glLang1Code: string = ''
-  let nonGlLang1Code: string = ''
-  $: {
-    glLang1Code = $glLangCodeAndNamesStore[1]?.split(/, (.*)/s)[0]
-    nonGlLang1Code = $nonGlLangCodeAndNamesStore[1]?.split(/, (.*)/s)[0]
-    if (glLang1Code && nonGlLang1Code) {
-      lang0CodeStore.set(glLang1Code)
-      lang1CodeStore.set(nonGlLang1Code)
-    } else if (!glLang1Code && nonGlLang1Code) {
-      lang1CodeStore.set(nonGlLang1Code)
-    } else if (glLang1Code && !nonGlLang1Code) {
-      lang1CodeStore.set(glLang1Code)
-    }
-  }
-
-  let glLang0Name: string = ''
-  let nonGlLang0Name: string = ''
-  $: {
-    glLang0Name = $glLangCodeAndNamesStore[0]?.split(/, (.*)/s)[1]
-    nonGlLang0Name = $nonGlLangCodeAndNamesStore[0]?.split(/, (.*)/s)[1]
-    if (glLang0Name && nonGlLang0Name) {
-      lang0NameStore.set(glLang0Name)
-      lang1NameStore.set(nonGlLang0Name)
-    } else if (glLang0Name && !nonGlLang0Name) {
-      lang0NameStore.set(glLang0Name)
-    } else if (!glLang0Name && nonGlLang0Name) {
-      lang0NameStore.set(nonGlLang0Name)
-    }
-  }
-  let glLang1Name: string = ''
-  let nonGlLang1Name: string = ''
-  $: {
-    glLang1Name = $glLangCodeAndNamesStore[1]?.split(/, (.*)/s)[1]
-    nonGlLang1Name = $nonGlLangCodeAndNamesStore[1]?.split(/, (.*)/s)[1]
-    if (glLang1Name && nonGlLang1Name) {
-      lang0NameStore.set(glLang1Name)
-      lang1NameStore.set(nonGlLang1Name)
-    } else if (glLang1Name && !nonGlLang1Name) {
-      lang1NameStore.set(glLang1Name)
-    } else if (!glLang1Name && nonGlLang1Name) {
-      lang1NameStore.set(nonGlLang1Name)
-    }
-  }
-
-  $: console.log(`$langCountStore: ${$langCountStore}`)
 
 </script>
 
@@ -171,17 +185,17 @@
 
     <!-- search and buttons -->
     <div class="flex items-center px-2 py-2 mt-2 bg-white">
-      {#if !glLangCodesAndNames || glLangCodesAndNames.length === 0|| !nonGlLangCodesAndNames || nonGlLangCodesAndNames.length === 0}
+      {#if !langCodeNameAndTypes || langCodeNameAndTypes.length === 0}
         <div class="ml-4">
           <ProgressIndicator />
         </div>
       {:else}
         <div class="flex items-center">
-          {#if showGlLanguages}
+          {#if showGatewayLanguages}
             <label id="label-for-filter-gl-langs" for="filter-gl-langs">
               <input
                 id="filter-gl-langs"
-                bind:value={glLangSearchTerm}
+                bind:value={gatewaySearchTerm}
                 placeholder="Search Languages"
                 class="input input-bordered bg-white w-full max-w-xs"
                 />
@@ -189,13 +203,13 @@
             <div class="flex ml-2" role="group">
               <button
                 class="rounded-l-md w-36 h-10 bg-[#015ad9] text-white font-medium leading-tight border-x-2 border-t-2 border-b-2 border-[#015ad9] hover:bg-[#015ad9] focus:bg-[#015ad9] focus:outline-none focus:ring-0 active:bg-[#015ad9] transition duration-150 ease-in-out"
-                on:click={() => (showGlLanguages = true)}
+                on:click={() => (showGatewayLanguages = true)}
                 >
                 Gateway
               </button>
               <button
                 class="rounded-r-md w-36 h-10 bg-white text-[#33445C] font-medium leading-tight border-r-2 border-t-2 border-b-2 border-[#015ad9] hover:bg-white focus:bg-white focus:outline-none focus:ring-0 active:bg-white transition duration-150 ease-in-out"
-                on:click={() => (showGlLanguages = false)}
+                on:click={() => (showGatewayLanguages = false)}
                 >
                 Heart
               </button>
@@ -204,7 +218,7 @@
             <label id="label-for-filter-non-gl-langs" for="filter-non-gl-langs">
               <input
                 id="filter-non-gl-langs"
-                bind:value={nonGlLangSearchTerm}
+                bind:value={heartSearchTerm}
                 placeholder="Search Languages"
                 class="input input-bordered bg-white w-full max-w-xs"
                 />
@@ -212,14 +226,14 @@
             <div class="flex ml-2" role="group">
               <button
                 class="rounded-l-md w-36 h-10 bg-white text-[#33445c] font-medium leading-tight border-x-2 border-t-2 border-b-2 border-[#015ad9] hover:bg-white focus:bg-white focus:outline-none focus:ring-0 active:bg-white transition duration-150 ease-in-out"
-                on:click={() => (showGlLanguages = true)}
+                on:click={() => (showGatewayLanguages = true)}
                 >
                 Gateway
               </button>
               <button
                 class="rounded-r-md w-36 h-10 bg-[#015ad9]
                        text-white font-medium leading-tight border-r-2 border-t-2 border-b-2 border-[#015ad9] hover:bg-[#015ad9] focus:bg-[#015ad9] focus:outline-none focus:ring-0 active:bg-[#feeed8] transition duration-150 ease-in-out"
-                on:click={() => (showGlLanguages = false)}
+                on:click={() => (showGatewayLanguages = false)}
                 >
                 Heart
               </button>
@@ -229,20 +243,21 @@
       {/if}
     </div>
 
-    {#if !(!glLangCodesAndNames || glLangCodesAndNames.length === 0|| !nonGlLangCodesAndNames || nonGlLangCodesAndNames.length === 0)}
+    {#if !(!gatewayCodesAndNames || gatewayCodesAndNames.length === 0
+      || !heartCodesAndNames || heartCodesAndNames.length === 0)}
       <!-- main content -->
       <main class="flex-1 overflow-y-auto p-4">
-        {#if showGlLanguages}
-          {#each glLangCodesAndNames as langCodeAndName, index}
+        {#if showGatewayLanguages}
+          {#each gatewayCodesAndNames  as langCodeAndName, index}
             <div class="flex items-center justify-between"
-                 style={filteredGlLangCodeAndNames.includes(langCodeAndName)
+                 style={filteredGatewayCodeAndNames.includes(langCodeAndName)
                  ? '' : 'display: none'}>
               <div class="flex items-center"
                   >
                 <input
                   id="lang-code-{index}"
                   type="checkbox"
-                  bind:group={$glLangCodeAndNamesStore}
+                  bind:group={$gatewayCodeAndNamesStore}
                   value={langCodeAndName}
                   class="checkbox checkbox-dark-bordered"
                   />
@@ -252,15 +267,15 @@
             </div>
           {/each}
         {:else}
-          {#each nonGlLangCodesAndNames as langCodeAndName, index}
+          {#each heartCodesAndNames as langCodeAndName, index}
             <div class="flex items-center justify-between"
-                 style={filteredNonGlLangCodeAndNames.includes(langCodeAndName)
+                 style={filteredHeartCodeAndNames.includes(langCodeAndName)
                  ? '' : 'display: none'}>
               <div class="flex items-center">
                 <input
                   id="lang-code-{index}"
                   type="checkbox"
-                  bind:group={$nonGlLangCodeAndNamesStore}
+                  bind:group={$heartCodeAndNamesStore}
                   value={langCodeAndName}
                   class="checkbox checkbox-dark-bordered"
                   />

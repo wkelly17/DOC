@@ -110,13 +110,20 @@ export function getFileServerUrl(): string {
   }
 }
 
+export function getLogRocketId(): string {
+  // @ts-ignore
+  console.log(`LOGROCKET_ID: ${window.env.LOGROCKET_ID}`)
+  // @ts-ignore
+  return <string>window.env.LOGROCKET_ID
+}
+
 /**
  * Indicate whether to show Mast, Tabs, and Sidebar
  **/
 export function setShowTopMatter(): boolean {
   let showTopMatter = false
   // .env vars come over as strings always by default (PROD .env var
-  //  above is an exception because Vite handles setting it.
+  //  above is an exception because Vite handles setting it).
   if (<string>import.meta.env.VITE_SHOW_TOP_MATTER === 'true') {
     showTopMatter = true
   }
@@ -128,4 +135,14 @@ export function getName(codeAndName: string): string {
 }
 export function getCode(codeAndName: string): string {
   return codeAndName?.split(/, (.*)/s)[0]
+}
+
+export function getResourceTypeName(codeAndName: string): string {
+  return codeAndName?.split(', ')[2]
+}
+export function getResourceTypeCode(codeAndName: string): string {
+  return codeAndName?.split(', ')[1]
+}
+export function getResourceTypeLangCode(codeAndName: string): string {
+  return codeAndName?.split(', ')[0]
 }

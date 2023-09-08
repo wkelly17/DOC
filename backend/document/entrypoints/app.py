@@ -134,19 +134,12 @@ async def task_status(task_id: str) -> ORJSONResponse:
     )
 
 
-@app.get("/language_codes_names_and_resource_types")
-async def lang_codes_names_and_resource_types() -> Iterable[model.CodeNameTypeTriplet]:
+@app.get("/language_codes_and_names_v2")
+async def lang_codes_and_names_v2() -> Sequence[tuple[str, str]]:
     """
-    Return list of tuples of lang_code, lang_name, resource_types for
-    all available language codes.
+    Return list of all available language code, name tuples.
     """
-    return resource_lookup.lang_codes_names_and_resource_types()
-
-
-@app.get("/language_codes")
-async def lang_codes() -> Iterable[str]:
-    """Return list of all available language codes."""
-    return resource_lookup.lang_codes()
+    return resource_lookup.lang_codes_and_names_v2()
 
 
 @app.get("/language_codes_and_names")
@@ -163,24 +156,6 @@ async def lang_codes_and_names_for_v1() -> Sequence[tuple[str, str]]:
     Return list of available gateway language code, name tuples.
     """
     return resource_lookup.lang_codes_and_names_for_v1()
-
-
-@app.get("/resource_types")
-async def resource_types() -> Any:
-    """Return list of all available resource types."""
-    return resource_lookup.resource_types()
-
-
-@app.get("/resource_types_v1")
-async def resource_types_for_v1() -> Any:
-    """Return list of resource types approved for v1 release."""
-    return resource_lookup.resource_types_for_v1()
-
-
-@app.get("/resource_types_for_lang/{lang_code}")
-async def resource_types_for_lang(lang_code: str) -> Sequence[Any]:
-    """Return list of available resource types for lang_code."""
-    return resource_lookup.resource_types_for_lang(lang_code)
 
 
 @app.get("/resource_types_and_names_for_lang/{lang_code}")
@@ -217,6 +192,18 @@ async def shared_resource_types(
     return resource_lookup.shared_resource_types(lang_code, resource_codes)
 
 
+@app.get("/resource_types_v2/{lang_code}/")
+async def shared_resource_types_v2(
+    lang_code: str,
+    resource_codes: Sequence[str] = Query(default=None),
+) -> Iterable[tuple[str, str, str]]:
+    """
+    Return the list of available resource types tuples for lang_code
+    with resource_codes.
+    """
+    return resource_lookup.shared_resource_types(lang_code, resource_codes)
+
+
 @app.get("/resource_types_v1/{lang_code}/")
 async def shared_resource_types_for_v1(
     lang_code: str,
@@ -233,12 +220,6 @@ async def shared_resource_types_for_v1(
 async def resource_codes_for_lang(lang_code: str) -> Sequence[tuple[str, str]]:
     """Return list of all available resource codes."""
     return resource_lookup.resource_codes_for_lang(lang_code)
-
-
-@app.get("/resource_codes")
-async def resource_codes() -> Any:
-    """Return list of all available resource codes."""
-    return resource_lookup.resource_codes()
 
 
 @app.get("/health/status")

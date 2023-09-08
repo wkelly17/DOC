@@ -231,10 +231,9 @@
       // Deal with non-empty string
     } else if ($emailStore && $emailStore !== '') {
       emailStore.set($emailStore.trim())
-      // Send email to LogRocket using identify
-      // Note: next line moved to App.svelte to init LogRocket as
+      // LogRocket init call moved to App.svelte to init LogRocket as
       // early as possible so that no user actions are unrecorded.
-      // LogRocket.init('ct7zyg/interleaved-resource-generator')
+      // Send email to LogRocket using identify.
       LogRocket.identify($emailStore)
     }
 

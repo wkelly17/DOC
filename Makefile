@@ -67,12 +67,12 @@ build-no-cache-no-pip-update: checkvenv down clean-mypyc-artifacts
 .PHONY: up
 up: checkvenv
 	export IMAGE_TAG=local && \
-	BACKEND_API_URL=http://localhost:5005 FILE_SERVER_URL=http://localhost:8089 docker compose up
+	LOGROCKET_ID=ct7zyg/interleaved-resource-generator BACKEND_API_URL=http://localhost:5005 FILE_SERVER_URL=http://localhost:8089 docker compose up
 
 .PHONY: up-as-daemon
 up-as-daemon: checkvenv
 	export IMAGE_TAG=local && \
-	BACKEND_API_URL=http://localhost:5005 FILE_SERVER_URL=http://localhost:8089 docker compose up -d
+	LOGROCKET_ID=ct7zyg/interleaved-resource-generator BACKEND_API_URL=http://localhost:5005 FILE_SERVER_URL=http://localhost:8089 docker compose up -d
 
 
 # This is the entrypoint for a non-technical user who just
@@ -83,7 +83,7 @@ build-and-run: build up
 
 .PHONY: down
 down:
-	BACKEND_API_URL=http://localhost:5005 FILE_SERVER_URL=http://localhost:8089 docker compose down --remove-orphans
+	LOGROCKET_ID=ct7zyg/interleaved-resource-generator BACKEND_API_URL=http://localhost:5005 FILE_SERVER_URL=http://localhost:8089 docker compose down --remove-orphans
 
 .PHONY: stop-and-remove
 stop-and-remove:
@@ -141,7 +141,7 @@ frontend-tests:
 
 .PHONY: test-randomized
 test-randomized:
-	BACKEND_API_URL=http://localhost:5005 docker compose run --rm --no-deps --entrypoint=pytest api -v -m randomized -n auto /app/tests/unit /app/tests/e2e
+	LOGROCKET_ID=ct7zyg/interleaved-resource-generator BACKEND_API_URL=http://localhost:5005 docker compose run --rm --no-deps --entrypoint=pytest api -v -m randomized -n auto /app/tests/unit /app/tests/e2e
 
 # NOTE This is only needed if mypyc is not used and you wish to run
 # just mypy instead as part of Docker build process.
@@ -216,7 +216,7 @@ all-plus-linting: mypy down build up test
 # Run a local Uvicorn server outside Docker
 .PHONY: local-server
 local-server: checkvenv
-	BACKEND_API_URL=http://localhost:5005 FILE_SERVER_URL=http://localhost:8089 uvicorn document.entrypoints.app:app --reload --host "0.0.0.0" --port "5005" --app-dir "./backend/"
+	LOGROCKET_ID=ct7zyg/interleaved-resource-generator BACKEND_API_URL=http://localhost:5005 FILE_SERVER_URL=http://localhost:8089 uvicorn document.entrypoints.app:app --reload --host "0.0.0.0" --port "5005" --app-dir "./backend/"
 
 # Run a local Gunicorn server outside Docker
 .PHONY: local-gunicorn-server

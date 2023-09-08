@@ -4,8 +4,7 @@
   import otBooks from '../../data/ot_books'
   import { ntBookStore, otBookStore, bookCountStore } from '../../stores/v2_release/BooksStore'
   import {
-    lang0CodeStore,
-    lang1CodeStore,
+    langCodesStore,
     langCountStore
   } from '../../stores/v2_release/LanguagesStore'
   import ProgressIndicator from './ProgressIndicator.svelte'
@@ -40,12 +39,10 @@
   }
 
   // Resolve promise for data reactively
-  // The list of all old testament books from translations.json api
   let otResourceCodes: Array<string>
-  // The list of all new testament books from translations.json api
   let ntResourceCodes: Array<string>
   if ($langCountStore > 1) {
-    getSharedResourceCodesAndNames($lang0CodeStore, $lang1CodeStore)
+    getSharedResourceCodesAndNames($langCodesStore[0], $langCodesStore[1])
       .then(resourceCodesAndNames => {
         // Filter set of all resource codes into old testament
         // resource codes.
@@ -86,7 +83,7 @@
       })
       .catch(err => console.error(err))
   } else {
-    getResourceCodesAndNames($lang0CodeStore)
+    getResourceCodesAndNames($langCodesStore[0])
       .then(resourceCodesAndNames => {
         // Filter set of all resource codes into old testament
         // resource codes.

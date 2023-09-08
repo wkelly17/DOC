@@ -1,41 +1,75 @@
 <script lang="ts">
   import { push, location } from 'svelte-spa-router'
   import {
-    glLangCodeAndNamesStore,
-    nonGlLangCodeAndNamesStore,
+    langCodesStore,
+    langCountStore,
+    gatewayCodeAndNamesStore,
+    heartCodeAndNamesStore,
   } from '../../stores/v2_release/LanguagesStore'
   import { bookCountStore, ntBookStore, otBookStore } from '../../stores/v2_release/BooksStore'
   import {
-    lang0ResourceTypesStore,
-    lang1ResourceTypesStore,
+    resourceTypesStore,
     resourceTypesCountStore
   } from '../../stores/v2_release/ResourceTypesStore'
-  import { langRegExp, bookRegExp, resourceTypeRegExp, getCode, getName } from '../../lib/utils'
+  import { langRegExp, bookRegExp, resourceTypeRegExp, getCode, getName, getResourceTypeCode, getResourceTypeName } from '../../lib/utils'
 
-  function uncheckGlLanguage(langCodeAndName: string) {
-    glLangCodeAndNamesStore.set($glLangCodeAndNamesStore.filter(item => item != langCodeAndName))
+  function uncheckGatewayLanguage(langCodeAndName: string) {
+    gatewayCodeAndNamesStore.set($gatewayCodeAndNamesStore.filter(item => item != langCodeAndName))
+    langCodesStore.set($langCodesStore.filter(item => item != getCode(langCodeAndName)))
+    langCountStore.set($langCodesStore.length)
+    if ($resourceTypesStore.length > 0) {
+      resourceTypesStore.set($resourceTypesStore.filter(item => {
+        return getCode(item) != getCode(langCodeAndName)
+      }))
+    }
   }
-  function uncheckNonGlLanguage(langCodeAndName: string) {
-    nonGlLangCodeAndNamesStore.set($nonGlLangCodeAndNamesStore.filter(item => item != langCodeAndName))
+  function uncheckHeartLanguage(langCodeAndName: string) {
+    heartCodeAndNamesStore.set($heartCodeAndNamesStore.filter(item => item != langCodeAndName))
+    langCodesStore.set($langCodesStore.filter(item => item != getCode(langCodeAndName)))
+    langCountStore.set($langCodesStore.length)
+    if ($resourceTypesStore.length > 0) {
+      resourceTypesStore.set($resourceTypesStore.filter(item => {
+        return getCode(item) != getCode(langCodeAndName)
+      }))
+    }
   }
   function uncheckBook(bookCodeAndName: string) {
     otBookStore.set($otBookStore.filter(item => item != bookCodeAndName))
     ntBookStore.set($ntBookStore.filter(item => item != bookCodeAndName))
   }
-  function uncheckLang0ResourceType(resourceTypeCodeAndName: string) {
-    lang0ResourceTypesStore.set($lang0ResourceTypesStore.filter(item => item != resourceTypeCodeAndName))
+  function uncheckResourceType(resourceTypeCodeAndName: string) {
+    resourceTypesStore.set($resourceTypesStore.filter(item => item != resourceTypeCodeAndName))
   }
-  function uncheckLang1ResourceType(resourceTypeCodeAndName: string) {
-    lang1ResourceTypesStore.set($lang1ResourceTypesStore.filter(item => item != resourceTypeCodeAndName))
+
+  $: {
+    if ($langCountStore === 0) {
+      otBookStore.set([])
+      ntBookStore.set([])
+      bookCountStore.set(0)
+    }
+  }
+  $: {
+    if ($bookCountStore === 0) {
+      resourceTypesStore.set([])
+      resourceTypesCountStore.set(0)
+    }
   }
 
   // Slice the collection of books into the first 'size' amount and
   // the remainder so that the UI can display size + 1 to end of
-  // collection amount of books in a collapsed accordion control.
+  // collection amount of books in a collapse control.
   let size = 5
   $: allBooks = [...$otBookStore, ...$ntBookStore]
   $: shownBooks = allBooks.slice(0, size)
   $: hiddenBooks = allBooks.slice(size, -1)
+
+  $: console.log(`(WizardBasket) $langCodesStore: ${$langCodesStore}`)
+  $: console.log(`(WizardBasket) $langCountStore: ${$langCountStore}`)
+  $: console.log(`(WizardBasket) $resourceTypesStore: ${$resourceTypesStore}`)
+  $: console.log(`(WizardBasket) $resourceTypesCountStore: ${$resourceTypesCountStore}`)
+  $: console.log(`(WizardBasket) $bookCountStore: ${$bookCountStore}`)
+  $: console.log(`(WizardBasket) $otBookStore: ${$otBookStore}`)
+  $: console.log(`(WizardBasket) $ntBookStore: ${$ntBookStore}`)
 
 </script>
 
@@ -57,7 +91,7 @@
           </svg>
           <h2 class="ml-2 font-semibold text-xl text-[#33445C]">Language</h2>
         </div>
-        <button class="flex bg-white text-[#33445c] hover:bg-[#efefef] py-2 px-4 rounded" on:click={() => push("/v2/languages")}>
+        <button class="flex bg-white text-[#33445c] hover:bg-[#efefef] py-2 px-4 rounded" on:click={() => push("/languages")}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M3 17.4624V20.5024C3 20.7824 3.22 21.0024 3.5 21.0024H6.54C6.67 21.0024 6.8 20.9524 6.89 20.8524L17.81 9.94244L14.06 6.19244L3.15 17.1024C3.05 17.2024 3 17.3224 3 17.4624ZM20.71 7.04244C20.8027 6.94993 20.8762 6.84004 20.9264 6.71907C20.9766 6.59809 21.0024 6.46841 21.0024 6.33744C21.0024 6.20648 20.9766 6.07679 20.9264 5.95582C20.8762 5.83485 20.8027 5.72496 20.71 5.63244L18.37 3.29244C18.2775 3.19974 18.1676 3.12619 18.0466 3.07601C17.9257 3.02583 17.796 3 17.665 3C17.534 3 17.4043 3.02583 17.2834 3.07601C17.1624 3.12619 17.0525 3.19974 16.96 3.29244L15.13 5.12244L18.88 8.87244L20.71 7.04244Z" fill="#33445C"/>
           </svg>
@@ -67,11 +101,11 @@
         </button>
       </div>
     {/if}
-    {#if (($glLangCodeAndNamesStore && $glLangCodeAndNamesStore.length > 0) || ($nonGlLangCodeAndNamesStore && $nonGlLangCodeAndNamesStore.length > 0))}
-      {#each $glLangCodeAndNamesStore as langCodeAndName}
+    {#if (($gatewayCodeAndNamesStore && $gatewayCodeAndNamesStore.length > 0) || ($heartCodeAndNamesStore && $heartCodeAndNamesStore.length > 0))}
+      {#each $gatewayCodeAndNamesStore as langCodeAndName}
           {#if langRegExp.test($location)}
             <div class="flex items-center justify-between w-full rounded-lg p-4 bg-white text-[#66768B] mt-2">{getName(langCodeAndName)}
-              <button on:click={() => uncheckGlLanguage(langCodeAndName)}>
+              <button on:click={() => uncheckGatewayLanguage(langCodeAndName)}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M12 2C6.47 2 2 6.47 2 12C2 17.53 6.47 22 12 22C17.53 22 22 17.53 22 12C22 6.47 17.53 2 12 2ZM16.3 16.3C16.2075 16.3927 16.0976 16.4663 15.9766 16.5164C15.8557 16.5666 15.726 16.5924 15.595 16.5924C15.464 16.5924 15.3343 16.5666 15.2134 16.5164C15.0924 16.4663 14.9825 16.3927 14.89 16.3L12 13.41L9.11 16.3C8.92302 16.487 8.66943 16.592 8.405 16.592C8.14057 16.592 7.88698 16.487 7.7 16.3C7.51302 16.113 7.40798 15.8594 7.40798 15.595C7.40798 15.4641 7.43377 15.3344 7.48387 15.2135C7.53398 15.0925 7.60742 14.9826 7.7 14.89L10.59 12L7.7 9.11C7.51302 8.92302 7.40798 8.66943 7.40798 8.405C7.40798 8.14057 7.51302 7.88698 7.7 7.7C7.88698 7.51302 8.14057 7.40798 8.405 7.40798C8.66943 7.40798 8.92302 7.51302 9.11 7.7L12 10.59L14.89 7.7C14.9826 7.60742 15.0925 7.53398 15.2135 7.48387C15.3344 7.43377 15.4641 7.40798 15.595 7.40798C15.7259 7.40798 15.8556 7.43377 15.9765 7.48387C16.0975 7.53398 16.2074 7.60742 16.3 7.7C16.3926 7.79258 16.466 7.90249 16.5161 8.02346C16.5662 8.14442 16.592 8.27407 16.592 8.405C16.592 8.53593 16.5662 8.66558 16.5161 8.78654C16.466 8.90751 16.3926 9.01742 16.3 9.11L13.41 12L16.3 14.89C16.68 15.27 16.68 15.91 16.3 16.3Z" fill="#33445C"/>
                 </svg>
@@ -81,10 +115,10 @@
             <div class="flex items-center justify-between w-full rounded-lg p-4 bg-white text-[#66768B] mt-2">{getName(langCodeAndName)}</div>
          {/if}
       {/each}
-      {#each $nonGlLangCodeAndNamesStore as langCodeAndName}
+      {#each $heartCodeAndNamesStore as langCodeAndName}
         {#if langRegExp.test($location)}
           <div class="flex items-center justify-between w-full rounded-lg p-4 bg-white text-[#66768B] mt-2">{getName(langCodeAndName)}
-            <button on:click={() => uncheckNonGlLanguage(langCodeAndName)}>
+            <button on:click={() => uncheckHeartLanguage(langCodeAndName)}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 2C6.47 2 2 6.47 2 12C2 17.53 6.47 22 12 22C17.53 22 22 17.53 22 12C22 6.47 17.53 2 12 2ZM16.3 16.3C16.2075 16.3927 16.0976 16.4663 15.9766 16.5164C15.8557 16.5666 15.726 16.5924 15.595 16.5924C15.464 16.5924 15.3343 16.5666 15.2134 16.5164C15.0924 16.4663 14.9825 16.3927 14.89 16.3L12 13.41L9.11 16.3C8.92302 16.487 8.66943 16.592 8.405 16.592C8.14057 16.592 7.88698 16.487 7.7 16.3C7.51302 16.113 7.40798 15.8594 7.40798 15.595C7.40798 15.4641 7.43377 15.3344 7.48387 15.2135C7.53398 15.0925 7.60742 14.9826 7.7 14.89L10.59 12L7.7 9.11C7.51302 8.92302 7.40798 8.66943 7.40798 8.405C7.40798 8.14057 7.51302 7.88698 7.7 7.7C7.88698 7.51302 8.14057 7.40798 8.405 7.40798C8.66943 7.40798 8.92302 7.51302 9.11 7.7L12 10.59L14.89 7.7C14.9826 7.60742 15.0925 7.53398 15.2135 7.48387C15.3344 7.43377 15.4641 7.40798 15.595 7.40798C15.7259 7.40798 15.8556 7.43377 15.9765 7.48387C16.0975 7.53398 16.2074 7.60742 16.3 7.7C16.3926 7.79258 16.466 7.90249 16.5161 8.02346C16.5662 8.14442 16.592 8.27407 16.592 8.405C16.592 8.53593 16.5662 8.66558 16.5161 8.78654C16.466 8.90751 16.3926 9.01742 16.3 9.11L13.41 12L16.3 14.89C16.68 15.27 16.68 15.91 16.3 16.3Z" fill="#33445C"/>
               </svg>
@@ -105,7 +139,7 @@
           </svg>
           <h2 class="ml-2 font-semibold text-xl text-[#33445C]">Book</h2>
         </div>
-        <button class="flex bg-white text-[#33445c] hover:bg-[#efefef] py-2 px-4 rounded" on:click={() => push("/v2/books")}>
+        <button class="flex bg-white text-[#33445c] hover:bg-[#efefef] py-2 px-4 rounded" on:click={() => push("/books")}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M3 17.4624V20.5024C3 20.7824 3.22 21.0024 3.5 21.0024H6.54C6.67 21.0024 6.8 20.9524 6.89 20.8524L17.81 9.94244L14.06 6.19244L3.15 17.1024C3.05 17.2024 3 17.3224 3 17.4624ZM20.71 7.04244C20.8027 6.94993 20.8762 6.84004 20.9264 6.71907C20.9766 6.59809 21.0024 6.46841 21.0024 6.33744C21.0024 6.20648 20.9766 6.07679 20.9264 5.95582C20.8762 5.83485 20.8027 5.72496 20.71 5.63244L18.37 3.29244C18.2775 3.19974 18.1676 3.12619 18.0466 3.07601C17.9257 3.02583 17.796 3 17.665 3C17.534 3 17.4043 3.02583 17.2834 3.07601C17.1624 3.12619 17.0525 3.19974 16.96 3.29244L15.13 5.12244L18.88 8.87244L20.71 7.04244Z" fill="#33445C"/>
           </svg>
@@ -169,7 +203,7 @@
           </svg>
           <h2 class="ml-2 font-semibold text-xl text-[#33445C]">Resource</h2>
         </div>
-        <button class="flex bg-white text-[#33445c] hover:bg-[#efefef] py-2 px-4 rounded" on:click={() => push("/v2/resource_types")}>
+        <button class="flex bg-white text-[#33445c] hover:bg-[#efefef] py-2 px-4 rounded" on:click={() => push("/resource_types")}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M3 17.4624V20.5024C3 20.7824 3.22 21.0024 3.5 21.0024H6.54C6.67 21.0024 6.8 20.9524 6.89 20.8524L17.81 9.94244L14.06 6.19244L3.15 17.1024C3.05 17.2024 3 17.3224 3 17.4624ZM20.71 7.04244C20.8027 6.94993 20.8762 6.84004 20.9264 6.71907C20.9766 6.59809 21.0024 6.46841 21.0024 6.33744C21.0024 6.20648 20.9766 6.07679 20.9264 5.95582C20.8762 5.83485 20.8027 5.72496 20.71 5.63244L18.37 3.29244C18.2775 3.19974 18.1676 3.12619 18.0466 3.07601C17.9257 3.02583 17.796 3 17.665 3C17.534 3 17.4043 3.02583 17.2834 3.07601C17.1624 3.12619 17.0525 3.19974 16.96 3.29244L15.13 5.12244L18.88 8.87244L20.71 7.04244Z" fill="#33445C"/>
           </svg>
@@ -185,12 +219,12 @@
       </div>
     {/if}
     {#if $resourceTypesCountStore > 0}
-      {#each $lang0ResourceTypesStore as resourceTypeCodeAndName}
+      {#each $resourceTypesStore as resourceTypeCodeAndName}
         {#if resourceTypeRegExp.test($location)}
           <div class="inline-flex items-center justify-between w-full
                       rounded-lg p-4 bg-white text-[#66768B]
-                      mt-2">{getName(resourceTypeCodeAndName)}
-            <button on:click={() => uncheckLang0ResourceType(resourceTypeCodeAndName)}>
+                      mt-2">{getResourceTypeName(resourceTypeCodeAndName)}
+            <button on:click={() => uncheckResourceType(resourceTypeCodeAndName)}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 2C6.47 2 2 6.47 2 12C2 17.53 6.47 22 12 22C17.53 22 22 17.53 22 12C22 6.47 17.53 2 12 2ZM16.3 16.3C16.2075 16.3927 16.0976 16.4663 15.9766 16.5164C15.8557 16.5666 15.726 16.5924 15.595 16.5924C15.464 16.5924 15.3343 16.5666 15.2134 16.5164C15.0924 16.4663 14.9825 16.3927 14.89 16.3L12 13.41L9.11 16.3C8.92302 16.487 8.66943 16.592 8.405 16.592C8.14057 16.592 7.88698 16.487 7.7 16.3C7.51302 16.113 7.40798 15.8594 7.40798 15.595C7.40798 15.4641 7.43377 15.3344 7.48387 15.2135C7.53398 15.0925 7.60742 14.9826 7.7 14.89L10.59 12L7.7 9.11C7.51302 8.92302 7.40798 8.66943 7.40798 8.405C7.40798 8.14057 7.51302 7.88698 7.7 7.7C7.88698 7.51302 8.14057 7.40798 8.405 7.40798C8.66943 7.40798 8.92302 7.51302 9.11 7.7L12 10.59L14.89 7.7C14.9826 7.60742 15.0925 7.53398 15.2135 7.48387C15.3344 7.43377 15.4641 7.40798 15.595 7.40798C15.7259 7.40798 15.8556 7.43377 15.9765 7.48387C16.0975 7.53398 16.2074 7.60742 16.3 7.7C16.3926 7.79258 16.466 7.90249 16.5161 8.02346C16.5662 8.14442 16.592 8.27407 16.592 8.405C16.592 8.53593 16.5662 8.66558 16.5161 8.78654C16.466 8.90751 16.3926 9.01742 16.3 9.11L13.41 12L16.3 14.89C16.68 15.27 16.68 15.91 16.3 16.3Z" fill="#33445C"/>
               </svg>
@@ -199,24 +233,7 @@
         {:else}
           <div class="inline-flex items-center justify-between w-full
                       rounded-lg p-4 bg-white text-[#66768B] mt-2">
-            {getName(resourceTypeCodeAndName)}</div>
-        {/if}
-      {/each}
-      {#each $lang1ResourceTypesStore as resourceTypeCodeAndName}
-        {#if resourceTypeRegExp.test($location)}
-          <div class="flex items-center justify-between w-full
-                      rounded-lg p-4 bg-white text-[#66768B]
-                      mt-2">{getName(resourceTypeCodeAndName)}
-            <button on:click={() => uncheckLang1ResourceType(resourceTypeCodeAndName)}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2C6.47 2 2 6.47 2 12C2 17.53 6.47 22 12 22C17.53 22 22 17.53 22 12C22 6.47 17.53 2 12 2ZM16.3 16.3C16.2075 16.3927 16.0976 16.4663 15.9766 16.5164C15.8557 16.5666 15.726 16.5924 15.595 16.5924C15.464 16.5924 15.3343 16.5666 15.2134 16.5164C15.0924 16.4663 14.9825 16.3927 14.89 16.3L12 13.41L9.11 16.3C8.92302 16.487 8.66943 16.592 8.405 16.592C8.14057 16.592 7.88698 16.487 7.7 16.3C7.51302 16.113 7.40798 15.8594 7.40798 15.595C7.40798 15.4641 7.43377 15.3344 7.48387 15.2135C7.53398 15.0925 7.60742 14.9826 7.7 14.89L10.59 12L7.7 9.11C7.51302 8.92302 7.40798 8.66943 7.40798 8.405C7.40798 8.14057 7.51302 7.88698 7.7 7.7C7.88698 7.51302 8.14057 7.40798 8.405 7.40798C8.66943 7.40798 8.92302 7.51302 9.11 7.7L12 10.59L14.89 7.7C14.9826 7.60742 15.0925 7.53398 15.2135 7.48387C15.3344 7.43377 15.4641 7.40798 15.595 7.40798C15.7259 7.40798 15.8556 7.43377 15.9765 7.48387C16.0975 7.53398 16.2074 7.60742 16.3 7.7C16.3926 7.79258 16.466 7.90249 16.5161 8.02346C16.5662 8.14442 16.592 8.27407 16.592 8.405C16.592 8.53593 16.5662 8.66558 16.5161 8.78654C16.466 8.90751 16.3926 9.01742 16.3 9.11L13.41 12L16.3 14.89C16.68 15.27 16.68 15.91 16.3 16.3Z" fill="#33445C"/>
-              </svg>
-            </button>
-          </div>
-        {:else}
-          <div class="flex items-center justify-between w-full
-                      rounded-lg p-4 bg-white text-[#66768B]
-                      mt-2">{getName(resourceTypeCodeAndName)}</div>
+            {getResourceTypeName(resourceTypeCodeAndName)}</div>
         {/if}
       {/each}
     {:else}

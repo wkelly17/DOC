@@ -2,14 +2,12 @@
   import DownloadButton from './DownloadButton.svelte'
   import { documentReadyStore, errorStore } from '../../stores/v2_release/NotificationStore'
   import {
-    lang0CodeStore,
-    lang1CodeStore,
+    langCodesStore,
     langCountStore
   } from '../../stores/v2_release/LanguagesStore'
   import { otBookStore, ntBookStore, bookCountStore } from '../../stores/v2_release/BooksStore'
   import {
-    lang0ResourceTypesStore,
-    lang1ResourceTypesStore,
+    resourceTypesStore,
     resourceTypesCountStore
   } from '../../stores/v2_release/ResourceTypesStore'
   import {
@@ -24,7 +22,7 @@
     limitTwStore
   } from '../../stores/v2_release/SettingsStore'
   import { taskIdStore, taskStateStore } from '../../stores/v2_release/TaskStore'
-  import { getApiRootUrl, getFileServerUrl } from '../../lib/utils'
+  import { getApiRootUrl, getFileServerUrl, getResourceTypeLangCode } from '../../lib/utils'
   import LogRocket from 'logrocket'
   import ProgressIndicator from './ProgressIndicator.svelte'
 
@@ -53,22 +51,28 @@
     let resourceCodes = [...$otBookStore, ...$ntBookStore]
     // Create resource_requests for lang0
     for (let resourceCode of resourceCodes) {
-      for (let resourceType of $lang0ResourceTypesStore) {
-        rr.push({
-          lang_code: $lang0CodeStore,
-          resource_type: resourceType.split(', ')[0],
-          resource_code: resourceCode.split(', ')[0]
-        })
+      for (let resourceType of $resourceTypesStore) {
+        if (getResourceTypeLangCode(resourceType) === $langCodesStore[0]) {
+          rr.push({
+            lang_code: $langCodesStore[0],
+            resource_type: resourceType.split(', ')[1],
+            resource_code: resourceCode.split(', ')[0]
+          })
+        }
       }
     }
     // Create resource_requests for lang1
-    for (let resourceCode of resourceCodes) {
-      for (let resourceType of $lang1ResourceTypesStore) {
-        rr.push({
-          lang_code: $lang1CodeStore,
-          resource_type: resourceType.split(', ')[0],
-          resource_code: resourceCode.split(', ')[0]
-        })
+    if ($langCountStore > 1) {
+      for (let resourceCode of resourceCodes) {
+        for (let resourceType of $resourceTypesStore) {
+          if (getResourceTypeLangCode(resourceType) === $langCodesStore[1]) {
+            rr.push({
+              lang_code: $langCodesStore[1],
+              resource_type: resourceType.split(', ')[1],
+              resource_code: resourceCode.split(', ')[0]
+            })
+          }
+        }
       }
     }
 
@@ -83,8 +87,10 @@
       // Deal with non-empty string
     } else if ($emailStore && $emailStore !== '') {
       emailStore.set($emailStore.trim())
-      // Send email to LogRocket using identify
-      // LogRocket.init('ct7zyg/interleaved-resource-generator')
+      // The LogRocket init call has been moved to App.svelte to be earlier in
+      // the loading process so that hopefully more of the session
+      // is recorded.
+      // Send email to LogRocket using identify session.
       LogRocket.identify($emailStore)
     }
 

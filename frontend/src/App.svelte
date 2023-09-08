@@ -3,8 +3,9 @@
   import routes from './routes.js'
   import LogRocket from 'logrocket'
   import 'fluent-svelte/theme.css' // Required for ProgressRing component
+  import { getLogRocketId } from './lib/utils'
 
-  LogRocket.init('ct7zyg/interleaved-resource-generator')
+  LogRocket.init(getLogRocketId())
   let open = false
 </script>
 
