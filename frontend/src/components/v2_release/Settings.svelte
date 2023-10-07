@@ -3,6 +3,7 @@
   import Switch from './Switch.svelte'
   import WizardBreadcrumb from './WizardBreadcrumb.svelte'
   import WizardBasket from './WizardBasket.svelte'
+  import WizardBasketModal from './WizardBasketModal.svelte'
   import {
     layoutForPrintStore,
     assemblyStrategyKindStore,
@@ -18,9 +19,11 @@
   import { documentReadyStore } from '../../stores/v2_release/NotificationStore'
   import {
     resourceTypesStore,
+    resourceTypesCountStore,
     twResourceRequestedStore
   } from '../../stores/v2_release/ResourceTypesStore'
-  import { langCodesStore } from '../../stores/v2_release/LanguagesStore'
+  import { langCodesStore, langCountStore } from '../../stores/v2_release/LanguagesStore'
+  import { bookCountStore } from '../../stores/v2_release/BooksStore'
   import GenerateDocument from './GenerateDocument.svelte'
   import LogRocket from 'logrocket'
 
@@ -109,6 +112,9 @@
     LogRocket.identify($emailStore)
   }
 
+  let showWizardBasketModal = false
+  $: console.log(`showWizardBasketModal: ${showWizardBasketModal}`)
+
 </script>
 
 
@@ -117,8 +123,31 @@
 <!-- container for "center" div -->
 <div class="flex-grow flex flex-row overflow-hidden">
   <!-- center -->
-  <div class="flex-1 flex flex-col bg-white">
+  <div class="flex-1 flex flex-col sm:w-2/3 bg-white">
     <h3 class="bg-white text-[#33445C] text-4xl mb-8 mt-2 ml-4">Generate document</h3>
+
+     <!-- mobile basket modal launcher -->
+    <div class="sm:hidden text-right mr-4">
+      <button on:click={() => (showWizardBasketModal = true)}>
+        <div class="relative">
+          <svg width="56" height="48" viewBox="0 0 56 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M35 15H21C19.9 15 19 15.9 19 17V31C19 32.1 19.9 33 21 33H35C36.1 33 37 32.1 37 31V17C37 15.9 36.1 15 35 15ZM26.71 28.29C26.6175 28.3827 26.5076 28.4563 26.3866 28.5064C26.2657 28.5566 26.136 28.5824 26.005 28.5824C25.874 28.5824 25.7443 28.5566 25.6234 28.5064C25.5024 28.4563 25.3925 28.3827 25.3 28.29L21.71 24.7C21.6174 24.6074 21.544 24.4975 21.4939 24.3765C21.4438 24.2556 21.418 24.1259 21.418 23.995C21.418 23.8641 21.4438 23.7344 21.4939 23.6135C21.544 23.4925 21.6174 23.3826 21.71 23.29C21.8026 23.1974 21.9125 23.124 22.0335 23.0739C22.1544 23.0238 22.2841 22.998 22.415 22.998C22.5459 22.998 22.6756 23.0238 22.7965 23.0739C22.9175 23.124 23.0274 23.1974 23.12 23.29L26 26.17L32.88 19.29C33.067 19.103 33.3206 18.998 33.585 18.998C33.8494 18.998 34.103 19.103 34.29 19.29C34.477 19.477 34.582 19.7306 34.582 19.995C34.582 20.2594 34.477 20.513 34.29 20.7L26.71 28.29Z" fill="#33445C"/>
+            <rect x="0.5" y="0.5" width="55" height="47" rx="11.5" stroke="#E5E8EB"/>
+          </svg>
+          {#if $langCountStore > 0 || $bookCountStore > 0 ||
+            $resourceTypesCountStore > 0}
+            <!-- badge -->
+            <div class="text-center absolute -top-0.5 -right-0.5
+                        bg-neutral-focus text-neutral-content
+                        rounded-full w-7 h-7" style="background: linear-gradient(180deg, #1876FD 0%, #015AD9 100%);">
+              <span class="text-[8px]
+                          text-white">{$langCountStore +
+                $bookCountStore + $resourceTypesCountStore}</span>
+            </div>
+          {/if}
+        </div>
+      </button>
+    </div>
     <!-- main content -->
     <main class="flex-1 overflow-y-auto p-4">
       <h3 class="text-2xl mt-2 mb-2 text-[#33445C]">File type</h3>
@@ -258,5 +287,20 @@
     </main>
   </div>
 
-  <WizardBasket />
+  <!-- {#if isMobile} -->
+  {#if showWizardBasketModal}
+    <WizardBasketModal
+      title="Your selections"
+      open={showWizardBasketModal}
+      on:close={() => (showWizardBasketModal = false)}>
+      <svelte:fragment slot="body">
+        <WizardBasket />
+      </svelte:fragment>
+    </WizardBasketModal>
+  {/if}
+  <!-- {:else} -->
+  <div class="hidden sm:w-1/3 sm:flex">
+    <WizardBasket />
+  </div>
+  <!-- {/if} -->
 </div>

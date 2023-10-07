@@ -187,16 +187,16 @@
     {#if ($langCountStore > 0 || $langCountStore <= 2) && $assemblyStrategyKindStore && $bookCountStore > 0 && $resourceTypesCountStore > 0}
       <div class="pb-4">
         <button
-          class="btn blue-gradient w-1/3 rounded-md"
+          class="text-center p-4 blue-gradient w-1/2 rounded-md"
           on:click={() => generateDocument()}
         >
-          <span class="py-2 px-4 text-white">Generate File</span>
+          <span class="text-white">Generate File</span>
         </button>
       </div>
     {:else}
       <div class="pb-4">
-        <button class="btn btn-disabled gray-gradiant w-1/3 rounded-md">
-          <span class="py-2 px-4 text-[#B3B9C2]" style="color: #140E0866"
+        <button class="text-center p-4 btn-disabled gray-gradiant w-1/2 rounded-md">
+          <span class="text-[#B3B9C2]" style="color: #140E0866"
             >Generate File</span
           >
         </button>
@@ -206,41 +206,41 @@
     {#if !$documentReadyStore && !$errorStore}
       <div class="flex">
         {#if $taskStateStore === "Locating assets"}
-          <div class="h-1 w-1/3  bg-[#F2F3F5]">
+          <div class="h-1 w-1/2 bg-[#F2F3F5]">
             <div class="h-1 blue-gradient-bar" style="width: 5%"></div>
           </div>
         {:else if $taskStateStore === "Provisioning asset files"}
-          <div class="h-1 w-1/3  bg-[#F2F3F5]">
+          <div class="h-1 w-1/2 bg-[#F2F3F5]">
             <div class="h-1 blue-gradient-bar" style="width: 10%"></div>
           </div>
         {:else if $taskStateStore === "Parsing asset files"}
-          <div class="h-1 w-1/3  bg-[#F2F3F5]">
+          <div class="h-1 w-1/2 bg-[#F2F3F5]">
             <div class="h-1 blue-gradient-bar" style="width: 20%"></div>
           </div>
         {:else if $taskStateStore === "Assembling content"}
-          <div class="h-1 w-1/3  bg-[#F2F3F5]">
+          <div class="h-1 w-1/2 bg-[#F2F3F5]">
             <div class="h-1 blue-gradient-bar" style="width: 50%"></div>
           </div>
         {:else if $taskStateStore === "Provisioning USFM asset files for TW resource"}
-          <div class="h-1 w-1/3  bg-[#F2F3F5]">
+          <div class="h-1 w-1/2 bg-[#F2F3F5]">
             <div class="h-1 blue-gradient-bar" style="width: 55%"></div>
           </div>
         {:else if $taskStateStore === "Parsing USFM asset files for TW resource"}
-          <div class="h-1 w-1/3  bg-[#F2F3F5]">
+          <div class="h-1 w-1/2 bg-[#F2F3F5]">
             <div class="h-1 blue-gradient-bar" style="width: 60%"></div>
           </div>
         {:else if $taskStateStore === "Limiting TW words"}
-          <div class="h-1 w-1/3  bg-[#F2F3F5]">
+          <div class="h-1 w-1/2 bg-[#F2F3F5]">
             <div class="h-1 blue-gradient-bar" style="width: 65%"></div>
           </div>
         {:else if $taskStateStore === "Converting to PDF" ||
           $taskStateStore === "Converting to ePub" || $taskStateStore
           === "Converting to Docx"}
-          <div class="h-1 w-1/3  bg-[#F2F3F5]">
+          <div class="h-1 w-1/2 bg-[#F2F3F5]">
             <div class="h-1 blue-gradient-bar" style="width: 70%"></div>
           </div>
         {:else}
-          <div class="h-1 w-1/3  bg-[#F2F3F5]">
+          <div class="h-1 w-1/2 bg-[#F2F3F5]">
             <div class="h-1 blue-gradient-bar" style="width: 0%"></div>
           </div>
         {/if}
@@ -253,7 +253,7 @@
     {/if}
     {#if $documentReadyStore && !$errorStore}
       <div class="bg-white">
-          <div class="h-1 w-1/3 bg-[#F2F3F5]">
+          <div class="h-1 w-1/2 bg-[#F2F3F5]">
             <div class="h-1 blue-gradient-bar" style="width: 100%"></div>
           </div>
         <div class="m-auto"><h3 class="text-[#82A93F]">Complete!</h3></div>
@@ -291,13 +291,13 @@
           </div>
         {/if}
         {#if !$generateDocxStore}
-          <div class="m-auto mt-4">
+          <div class="mt-4 pb-4">
             <button
-              class="btn gray-gradient hover:gray-gradient-hover w-1/3 rounded-md"
+              class="border-2 border-[#e5e8eb] p-4 text-center gray-gradient hover:gray-gradient-hover w-1/2 rounded-md"
               on:click={() => viewFromUrl(htmlDownloadUrl)}
             >
               <svg
-                class="rm-3"
+                class="m-auto"
                 width="23"
                 height="16"
                 viewBox="0 0 23 16"
@@ -310,13 +310,15 @@
                   fill-opacity="0.8"
                 />
               </svg>
-              View HTML Online</button
-            >
+              <span class="p-4">View HTML Online</span>
+            </button>
           </div>
         {/if}
       </div>
     {:else}
-      <button class="text-center bg-[#F2F3F5] border border-[#E5E8EB] hover:bg-[#efefef] py-2 px-4 w-1/3 rounded-md text-[#B3B9C2] mt-2" disabled>
+      <button class="text-center bg-[#F2F3F5] border border-[#E5E8EB]
+                     hover:bg-[#efefef] p-4 w-1/2 rounded-md
+                     text-[#B3B9C2] mt-2 mb-4" disabled>
           Download
       </button>
       <p class="text-[#B3B9C2] mt-4 italic">

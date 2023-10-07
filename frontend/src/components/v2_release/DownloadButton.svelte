@@ -5,7 +5,7 @@
   }
   export let url: string
   export let buttonText: string = 'Download PDF'
-  export let buttonClass: string = 'btn blue-gradient w-1/3 rounded-md text-white'
+  export let buttonClass: string = 'text-center p-4 blue-gradient w-1/2 rounded-md text-white'
 </script>
 
 <button class={buttonClass} on:click={() => downloadFromUrl(url)}>
