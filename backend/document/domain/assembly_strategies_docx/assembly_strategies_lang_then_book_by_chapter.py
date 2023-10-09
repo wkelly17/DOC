@@ -84,7 +84,6 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
             composer.append(subdoc)
 
     if usfm_book_content_unit:
-        # TODO One day book title could be localized.
         # fmt: off
         is_rtl = usfm_book_content_unit and usfm_book_content_unit.lang_direction == LangDirEnum.RTL
         # fmt: on
@@ -129,10 +128,6 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
             chapter_content_sans_footnotes_ = chapter_content_sans_footnotes(
                 chapter.content
             )
-            # # fmt: off
-            # is_rtl = usfm_book_content_unit and usfm_book_content_unit.lang_direction == LangDirEnum.RTL
-            # # fmt: on
-            logger.debug("is_rtl: %s", is_rtl)
 
             subdoc = create_docx_subdoc(
                 "".join(chapter_content_sans_footnotes_),

@@ -89,7 +89,7 @@
          limitTwStore.set(false)
        }
   }
-
+  $: console.log(`limitTwStore: ${$limitTwStore}`)
 
   // The 3rd party HTML to PDF conversion library we use, weasyprint,
   // doesn't seem to be able to handle line length for the Khmer language
@@ -107,8 +107,6 @@
       }
     }
   }
-
-  $: console.log(`limitTwStore: ${$limitTwStore}`)
 
   $: showEmail = false
   $: showEmailCaptured = false

@@ -68,6 +68,7 @@ def assemble_content_by_lang_then_book(
 
     book_id_map = dict((id, pos) for pos, id in enumerate(BOOK_NAMES.keys()))
 
+    composers: list[Composer] = []
     for language, group_by_lang in groupby(
         book_units_sorted_by_language,
         book_content_unit_lang_name,
@@ -105,14 +106,20 @@ def assemble_content_by_lang_then_book(
             )
 
             ldebug("assembly_layout_strategy: %s", str(assembly_layout_strategy))
-            return assembly_layout_strategy(
-                usfm_book_content_unit,
-                tn_book_content_unit_,
-                tq_book_content_unit_,
-                tw_book_content_unit_,
-                usfm_book_content_unit2,
-                bc_book_content_unit_,
+            composers.append(
+                assembly_layout_strategy(
+                    usfm_book_content_unit,
+                    tn_book_content_unit_,
+                    tq_book_content_unit_,
+                    tw_book_content_unit_,
+                    usfm_book_content_unit2,
+                    bc_book_content_unit_,
+                )
             )
+    first_composer = composers[0]
+    for composer in composers[1:]:
+        first_composer.append(composer.doc)
+    return first_composer
 
 
 def assembly_factory_for_lang_then_book_strategy(
