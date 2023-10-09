@@ -90,6 +90,24 @@
        }
   }
 
+
+  // The 3rd party HTML to PDF conversion library we use, weasyprint,
+  // doesn't seem to be able to handle line length for the Khmer language
+  // which results in words overlapping each other when two column
+  // layout of Khmer content is displayed. Only TN and TQ resource types
+  // use two column layout and thus if those are selected by the user
+  // then the UI will exclude PDF as an output format choice.
+  let kmRegexp = new RegExp("km, tn, .*|km, tq, .*")
+  let showPdfAsOption: boolean = true
+  $: console.log(`showPdfAsOption: ${showPdfAsOption}`)
+  $: {
+    if ($resourceTypesStore) {
+      if ($resourceTypesStore.some(item => kmRegexp.test(item))) {
+        showPdfAsOption = false
+      }
+    }
+  }
+
   $: console.log(`limitTwStore: ${$limitTwStore}`)
 
   $: showEmail = false
@@ -152,12 +170,14 @@
     <main class="flex-1 overflow-y-auto p-4">
       <h3 class="text-2xl mt-2 mb-2 text-[#33445C]">File type</h3>
       <div class="ml-4">
+        {#if showPdfAsOption}
         <div class="mb-2">
           <label>
             <input name="docType" value={"pdf"} bind:group={$docTypeStore} type="radio">
             <span class="text-[#33445C]">{import.meta.env.VITE_PDF_LABEL_V2}</span>
           </label>
         </div>
+        {/if}
         <div class="mb-2">
           <label>
             <input name="docType" value={"epub"} bind:group={$docTypeStore} type="radio">
