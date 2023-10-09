@@ -135,7 +135,7 @@ async def task_status(task_id: str) -> ORJSONResponse:
 
 
 @app.get("/language_codes_and_names_v2")
-async def lang_codes_and_names_v2() -> Sequence[tuple[str, str]]:
+async def lang_codes_and_names_v2() -> Sequence[tuple[str, str, bool]]:
     """
     Return list of all available language code, name tuples.
     """
@@ -164,12 +164,6 @@ async def resource_types_and_names_for_lang(lang_code: str) -> list[tuple[str, s
     return resource_lookup.resource_types_and_names_for_lang(lang_code)
 
 
-@app.get("/resource_types_and_names_for_lang_v1/{lang_code}")
-async def resource_types_and_names_for_lang_for_v1_release(
-    lang_code: str,
-) -> Sequence[Any]:
-    """Return list of available resource types and their names for lang_code."""
-    return resource_lookup.resource_types_and_names_for_lang_for_v1_release(lang_code)
 
 
 @app.get("/shared_resource_codes/{lang0_code}/{lang1_code}")
@@ -196,7 +190,7 @@ async def shared_resource_types(
 async def shared_resource_types_v2(
     lang_code: str,
     resource_codes: Sequence[str] = Query(default=None),
-) -> Iterable[tuple[str, str, str]]:
+) -> Iterable[tuple[str, str]]:
     """
     Return the list of available resource types tuples for lang_code
     with resource_codes.
