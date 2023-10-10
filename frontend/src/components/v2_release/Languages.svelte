@@ -16,6 +16,15 @@
   import { resourceTypesStore, resourceTypesCountStore } from '../../stores/v2_release/ResourceTypesStore';
 
   let showGatewayLanguages = true
+  // If user has previously chosen (during this session, i.e., prior
+  // to browser reload) any heart languages and no heart languages then default to
+  // showing the heart languages, otherwise the default stands of
+  // showing the gateway languages.
+  $: {
+    if ($heartCodeAndNamesStore.length > 0 && $gatewayCodeAndNamesStore.length === 0) {
+      showGatewayLanguages = false
+    }
+  }
   let showFilterMenu = false
   $: console.log(`showFilterMenu: ${showFilterMenu}`)
   let showWizardBasketModal = false

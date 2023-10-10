@@ -59,19 +59,6 @@
 
   $: console.log(`$assemblyStrategyKindStore: ${$assemblyStrategyKindStore}`)
   $: console.log(`$assemblyStrategyChunkSizeStore: ${$assemblyStrategyChunkSizeStore}`)
-  $: {
-    if ($layoutForPrintStore) {
-      $generatePdfStore = true
-      $generateDocxStore = false
-      $generateEpubStore = false
-      $docTypeStore = 'pdf'
-    } else {
-      $generatePdfStore = true
-      $generateDocxStore = false
-      $generateEpubStore = false
-      $docTypeStore = 'pdf'
-    }
-  }
 
   // Set whether TW has been requested for any of the languages
   // requested so that we can use this fact in the UI to trigger the

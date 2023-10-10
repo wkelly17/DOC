@@ -183,7 +183,16 @@
   }
 
   // let showNoBooksInCommonMessage = false
+
   let showOldTestament = false
+  // If user has previously chosen (during this session, i.e., prior
+  // to browser reload) any OT books and no NT books then default to
+  // showing the OT, otherwise the default stands of showing the NT
+  $: {
+    if ($otBookStore.length > 0 && $ntBookStore.length === 0) {
+      showOldTestament = true
+    }
+  }
   let showFilterMenu = false
   $: console.log(`showFilterMenu: ${showFilterMenu}`)
   let showWizardBasketModal = false
