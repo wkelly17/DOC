@@ -54,6 +54,17 @@ from toolz import itertoolz, unique  # type: ignore
 logger = settings.logger(__name__)
 
 
+def contains_tw(resource_request: ResourceRequest, tw_regex: str = "tw.*") -> bool:
+    """Return True if the resource_request describes a TW resource."""
+    value = bool(re.compile(tw_regex).match(resource_request.resource_type))
+    logger.debug(
+        "resource_request: %s tests %s for TW resource type",
+        resource_request,
+        value,
+    )
+    return value
+
+
 def document_request_key(
     resource_requests: Sequence[ResourceRequest],
     assembly_strategy_kind: AssemblyStrategyEnum,
@@ -91,13 +102,22 @@ def document_request_key(
             for resource_request in resource_requests
         ]
     )
-    document_request_key = "{}_{}_{}_{}_{}".format(
-        resource_request_keys,
-        assembly_strategy_kind.value,
-        assembly_layout_kind.value,
-        chunk_size.value,
-        "ltwt" if limit_words else "ltwf",
-    )
+
+    if any(contains_tw(resource_request) for resource_request in resource_requests):
+        document_request_key = "{}_{}_{}_{}_{}".format(
+            resource_request_keys,
+            assembly_strategy_kind.value,
+            assembly_layout_kind.value,
+            chunk_size.value,
+            "ltwt" if limit_words else "ltwf",
+        )
+    else:
+        document_request_key = "{}_{}_{}_{}".format(
+            resource_request_keys,
+            assembly_strategy_kind.value,
+            assembly_layout_kind.value,
+            chunk_size.value,
+        )
     if len(document_request_key) >= max_filename_len:
         # Likely the generated filename was too long for the OS where this is
         # running. In that case, use the current time as a document_request_key
