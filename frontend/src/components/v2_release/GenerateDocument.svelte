@@ -19,7 +19,8 @@
     generateDocxStore,
     emailStore,
     documentRequestKeyStore,
-    limitTwStore
+    limitTwStore,
+    settingsUpdated
   } from '../../stores/v2_release/SettingsStore'
   import { taskIdStore, taskStateStore } from '../../stores/v2_release/TaskStore'
   import { getApiRootUrl, getFileServerUrl, getResourceTypeLangCode } from '../../lib/utils'
@@ -43,10 +44,12 @@
     return state
   }
 
+
   $: generatingDocument = false
 
   async function generateDocument() {
     generatingDocument = true
+    $settingsUpdated = false
     let rr = []
     let resourceCodes = [...$otBookStore, ...$ntBookStore]
     // Create resource_requests for lang0
@@ -183,7 +186,7 @@
 </script>
 
 <div class="h-28 bg-white pt-12 pb-4">
-  {#if !generatingDocument}
+  {#if !generatingDocument || $settingsUpdated}
     {#if ($langCountStore > 0 || $langCountStore <= 2) && $assemblyStrategyKindStore && $bookCountStore > 0 && $resourceTypesCountStore > 0}
       <div class="pb-4">
         <button

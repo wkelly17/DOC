@@ -1,12 +1,14 @@
 <script lang="ts">
+  import { settingsUpdated } from '../../stores/v2_release/SettingsStore'
   export let id = ''
   export let checked = false
   export let disabled = false
 </script>
 
-<label for={id}>
+<label for="{id}">
   <div class="switch">
-    <input {id} name={id} type="checkbox" class="sr-only" {disabled} bind:checked />
+    <input {id} name={id} type="checkbox" class="sr-only" {disabled} bind:checked
+    on:change={() => ($settingsUpdated = true)}/>
     <div class="track" />
     <div class="thumb" />
   </div>
@@ -32,8 +34,8 @@
   input[type='checkbox']:checked ~ .track {
     /* @apply transform transition-colors bg-primary; */
     @apply transform transition-colors;
-    background: linear-gradient(180deg, #1876FD 0%, #015AD9 100%),
-    linear-gradient(0deg, #33445C, #33445C);
+    background: linear-gradient(180deg, #1876fd 0%, #015ad9 100%),
+      linear-gradient(0deg, #33445c, #33445c);
   }
 
   input[type='checkbox']:disabled ~ .track {

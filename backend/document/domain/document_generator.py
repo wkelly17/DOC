@@ -1017,7 +1017,7 @@ def copy_file_to_docker_output_dir(
 )
 def main(document_request_json: Json[Any]) -> Json[Any]:
     """
-    This is the main entry point for this module.
+    This is the main entry point for this module for non-docx generation.
     """
     document_request = DocumentRequest.parse_raw(document_request_json)
     logger.debug(

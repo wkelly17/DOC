@@ -1,4 +1,6 @@
 <script lang="ts">
+
+  import { settingsUpdated } from '../../stores/v2_release/SettingsStore'
   import type { SelectElement } from '../../types'
 
   let bookLanguageOrderStrategy: SelectElement = {
@@ -16,7 +18,8 @@
 
 <div>
   <h3>{import.meta.env.VITE_ASSEMBLY_STRATEGY_HEADER}</h3>
-  <select bind:value={assemblyStrategy} name="assemblyStrategy">
+  <select bind:value={assemblyStrategy} name="assemblyStrategy"
+          on:change={() => ($settingsUpdated = true)}>
     {#each assemblyStrategies as assemblyStrategy}
       <option value={assemblyStrategy.id}>{assemblyStrategy.label}</option>
     {/each}

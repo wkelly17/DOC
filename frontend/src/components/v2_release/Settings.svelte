@@ -14,7 +14,8 @@
     generateDocxStore,
     emailStore,
     limitTwStore,
-    documentRequestKeyStore
+    documentRequestKeyStore,
+    settingsUpdated
   } from '../../stores/v2_release/SettingsStore'
   import { documentReadyStore } from '../../stores/v2_release/NotificationStore'
   import {
@@ -131,6 +132,7 @@
   let showWizardBasketModal = false
   $: console.log(`showWizardBasketModal: ${showWizardBasketModal}`)
 
+
 </script>
 
 
@@ -171,20 +173,24 @@
         {#if showPdfAsOption}
         <div class="mb-2">
           <label>
-            <input name="docType" value={"pdf"} bind:group={$docTypeStore} type="radio">
+            <input name="docType" value={"pdf"}
+                   bind:group={$docTypeStore} type="radio"
+                   on:change={() => ($settingsUpdated = true)}>
             <span class="text-[#33445C]">{import.meta.env.VITE_PDF_LABEL_V2}</span>
           </label>
         </div>
         {/if}
         <div class="mb-2">
           <label>
-            <input name="docType" value={"epub"} bind:group={$docTypeStore} type="radio">
+            <input name="docType" value={"epub"}
+                   bind:group={$docTypeStore} type="radio" on:change={() => ($settingsUpdated = true)}>
             <span class="text-[#33445C]">{import.meta.env.VITE_EPUB_LABEL_V2}</span>
           </label>
         </div>
         <div class="mb-2">
           <label>
-            <input name="docType" value={"docx"} bind:group={$docTypeStore} type="radio">
+            <input name="docType" value={"docx"}
+                   bind:group={$docTypeStore} type="radio" on:change={() => ($settingsUpdated = true)}>
             <span class="text-[#33445C]">{import.meta.env.VITE_DOCX_LABEL_V2}</span>
           </label>
         </div>
@@ -194,7 +200,8 @@
       <div class="ml-4">
         {#if $langCodesStore[1]}
         <div class="flex mb-2">
-          <select bind:value="{$assemblyStrategyKindStore}" name="assemblyStrategy">
+          <select bind:value="{$assemblyStrategyKindStore}"
+                  name="assemblyStrategy" on:change={() => ($settingsUpdated = true)}>
             {#each assemblyStrategies as assemblyStrategy}
             <option value="{assemblyStrategy.id}">
               <span class="text-[#33445C]">{assemblyStrategy.label}</span>
