@@ -98,6 +98,37 @@
   let showWizardBasketModal = false
   $: console.log(`showWizardBasketModal: ${showWizardBasketModal}`)
 
+
+  function selectAllLang0ResourceTypes(event: Event) {
+    if ((<HTMLInputElement>event.target).checked) {
+      // Make sure all the lang0 resource types are added to
+      // resourceTypesStore.
+      lang0ResourceTypesAndNames.map(item => $resourceTypesStore.push(item))
+      // Get rid of duplicates
+      $resourceTypesStore = [...new Set($resourceTypesStore)]
+      // Set the resourceTypesCountStore
+      resourceTypesCountStore.set($resourceTypesStore.length)
+    } else {
+      // Remove any lang0 resource types from the resourceTypesStore
+      resourceTypesStore.set($resourceTypesStore.filter(item =>
+    $langCodesStore[0] !== item.split(", ")[0]))
+    }
+  }
+  function selectAllLang1ResourceTypes(event: Event) {
+    if ((<HTMLInputElement>event.target).checked) {
+      // Make sure all the lang0 resource types are added to
+      // resourceTypesStore.
+      lang1ResourceTypesAndNames.map(item => $resourceTypesStore.push(item))
+      // Get rid of duplicates
+      $resourceTypesStore = [...new Set($resourceTypesStore)]
+      // Set the resourceTypesCountStore
+      resourceTypesCountStore.set($resourceTypesStore.length)
+    } else {
+      // Remove any lang1 resource types from the resourceTypesStore
+      resourceTypesStore.set($resourceTypesStore.filter(item =>
+    $langCodesStore[1] !== item.split(", ")[0]))
+    }
+  }
 </script>
 
 <WizardBreadcrumb />
@@ -106,7 +137,7 @@
 <div class="flex-grow flex flex-row overflow-x-hidden overflow-y-auto">
   <!-- center -->
   <div class="flex-1 flex sm:w-2/3 flex-col ml-4 mb-6 bg-white">
-    <h3 class="text-[#33445C] text-4xl font-normal leading-[48px]">
+    <h3 class="text-[#33445C] text-4xl font-normal leading-[48px] mb-4">
       Select resources
     </h3>
      <!-- mobile basket modal launcher -->
@@ -135,7 +166,7 @@
       lang0ResourceTypesAndNames.length == 0) || ($langCountStore > 1 && !lang1ResourceTypesAndNames)}
       <ProgressIndicator />
     {/if}
-    <div class="flex flex-row flex-shrink-0 flex-grow-0">
+    <div class="flex flex-row flex-shrink-0 flex-grow-0 mb-2">
       {#if $langCountStore > 0}
         <div class="w-1/2">
           <h3 class="text-2xl text-[#33445C]">{$langNamesStore[0]}</h3>
@@ -150,6 +181,17 @@
     <div class="flex flex-row flex-shrink-0 flex-grow-0">
       {#if lang0ResourceTypesAndNames && lang0ResourceTypesAndNames.length > 0}
         <div class="w-1/2">
+          <div class="flex items-center">
+            <input
+              id="select-all-lang0-resource-types"
+              type="checkbox"
+              class="checkbox checkbox-dark-bordered"
+              on:change={event => selectAllLang0ResourceTypes(event)}
+            />
+            <label for="select-all-lang0-resource-types"
+                   class="text-secondary-content pl-1"
+                   >Select all</label>
+          </div>
           <ul>
             {#each lang0ResourceTypesAndNames as lang0ResourceTypeAndName, index}
               <li class="flex items-center">
@@ -169,6 +211,17 @@
       {/if}
       {#if lang1ResourceTypesAndNames && lang1ResourceTypesAndNames.length > 0}
         <div class="w-1/2">
+          <div class="flex items-center">
+            <input
+              id="select-all-lang1-resource-types"
+              type="checkbox"
+              class="checkbox checkbox-dark-bordered"
+              on:change={event => selectAllLang1ResourceTypes(event)}
+            />
+            <label for="select-all-lang0-resource-types"
+                   class="text-secondary-content pl-1"
+                   >Select all</label>
+          </div>
           <ul>
             {#each lang1ResourceTypesAndNames as lang1ResourceTypeAndName, index}
               <li class="flex items-center">
