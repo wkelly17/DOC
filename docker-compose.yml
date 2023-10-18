@@ -13,11 +13,6 @@ services:
     env_file:
       - .env
     environment:
-      FROM_EMAIL_ADDRESS: ${FROM_EMAIL_ADDRESS}
-      SMTP_PASSWORD: ${SMTP_PASSWORD}
-      TO_EMAIL_ADDRESS: ${TO_EMAIL_ADDRESS}
-      SMTP_HOST: ${SMTP_HOST}
-      SEND_EMAIL: ${SEND_EMAIL}
       TRANSLATIONS_JSON_LOCATION: ${TRANSLATIONS_JSON_LOCATION}
       BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
@@ -43,6 +38,11 @@ services:
     environment:
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
       CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/0}
+      FROM_EMAIL_ADDRESS: ${FROM_EMAIL_ADDRESS}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      TO_EMAIL_ADDRESS: ${TO_EMAIL_ADDRESS}
+      SMTP_HOST: ${SMTP_HOST}
+      SEND_EMAIL: ${SEND_EMAIL}
     volumes:
       - shared:/app/document_output
     depends_on:
