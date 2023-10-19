@@ -3,6 +3,7 @@ Entrypoint for backend. Here incoming document requests are processed
 and eventually a final document produced.
 """
 
+import os
 import re
 import shutil
 import smtplib
@@ -600,7 +601,7 @@ def should_send_email(
     # NOTE: email_address comes in as pydantic.EmailStr and leaves
     # the pydantic class validator as a str.
     email_address: Optional[str],
-    send_email: bool = settings.SEND_EMAIL,
+    send_email: bool = os.getenv("SEND_EMAIL"),
 ) -> bool:
     """
     Return True if configuration is set to send email and the user
@@ -616,11 +617,11 @@ def send_email_with_attachment(
     attachments: list[Attachment],
     document_request_key: str,
     content_disposition: str = "attachment",
-    from_email_address: str = settings.FROM_EMAIL_ADDRESS,
-    smtp_password: str = settings.SMTP_PASSWORD,
+    from_email_address: str = os.getenv("FROM_EMAIL_ADDRESS"),
+    smtp_password: str = os.getenv("SMTP_PASSWORD"),
     email_send_subject: str = settings.EMAIL_SEND_SUBJECT,
-    smtp_host: str = settings.SMTP_HOST,
-    smtp_port: int = settings.SMTP_PORT,
+    smtp_host: str = os.getenv("SMTP_HOST"),
+    smtp_port: int = os.getenv("SMTP_PORT"),
     comma_space: str = ", ",
 ) -> None:
     """

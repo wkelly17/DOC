@@ -40,8 +40,8 @@ services:
       CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/0}
       FROM_EMAIL_ADDRESS: ${FROM_EMAIL_ADDRESS}
       SMTP_PASSWORD: ${SMTP_PASSWORD}
-      TO_EMAIL_ADDRESS: ${TO_EMAIL_ADDRESS}
       SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
       SEND_EMAIL: ${SEND_EMAIL}
     volumes:
       - shared:/app/document_output

@@ -416,29 +416,7 @@ class Settings(BaseSettings):
         "Pictures",
     ]
 
-    #  Return the from email to use for sending email with generated PDF
-    #  attachment to document request recipient. Look for the value to
-    #  use in FROM_EMAIL environment variable, use default if it doesn't
-    #  exist.
-    FROM_EMAIL_ADDRESS: EmailStr
-
-    # The to-email address to use for sending email with generated
-    # PDF attachment to document request recipient during testing - in
-    # production the to-email address is supplied by the user.
-    TO_EMAIL_ADDRESS: EmailStr
     EMAIL_SEND_SUBJECT: str
-
-    # Return boolean representing if the system should execute the
-    # action of sending an email when appropriate to do so.
-    SEND_EMAIL: bool
-
-    @validator("SEND_EMAIL")
-    def send_email(cls, v: bool) -> bool:
-        return bool(v)
-
-    SMTP_PASSWORD: str
-    SMTP_HOST: str
-    SMTP_PORT: int
 
     # Example fake user agent value required by domain host to allow serving
     # files. Other values could possibly work. This value definitely
