@@ -417,6 +417,7 @@ class Settings(BaseSettings):
     ]
 
     EMAIL_SEND_SUBJECT: str
+    TO_EMAIL_ADDRESS: str
 
     # Example fake user agent value required by domain host to allow serving
     # files. Other values could possibly work. This value definitely
