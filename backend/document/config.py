@@ -427,6 +427,14 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str
     SEND_EMAIL: bool
 
+    @validator("SEND_EMAIL")
+    def send_email(cls, v: bool) -> bool:
+        return bool(v)
+
+    @validator("SMTP_PORT")
+    def smtp_port(cls, v: int) -> int:
+        return int(v)
+
     # Example fake user agent value required by domain host to allow serving
     # files. Other values could possibly work. This value definitely
     # works.
