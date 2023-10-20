@@ -22,7 +22,7 @@ def test_lookup_successes() -> None:
         ),
     ]
     document_request = model.DocumentRequest(
-        email_address=os.getenv("FROM_EMAIL_ADDRESS"),
+        email_address=settings.FROM_EMAIL_ADDRESS,
         assembly_strategy_kind=assembly_strategy_kind,
         assembly_layout_kind=assembly_layout_kind,
         layout_for_print=True,
@@ -51,7 +51,7 @@ def test_lookup_failures() -> None:
         model.ResourceRequest(lang_code="zh", resource_type="ulb", resource_code="jol")
     ]
     document_request = model.DocumentRequest(
-        email_address=os.getenv("FROM_EMAIL_ADDRESS"),
+        email_address=settings.FROM_EMAIL_ADDRESS,
         assembly_strategy_kind=assembly_strategy_kind,
         assembly_layout_kind=assembly_layout_kind,
         layout_for_print=False,

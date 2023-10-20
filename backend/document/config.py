@@ -15,7 +15,8 @@ class Settings(BaseSettings):
     """
     BaseSettings subclasses like this one allow values of constants to
     be overridden by environment variables like those defined in env
-    files, e.g., ../../.env
+    files, e.g., ../../.env or by system level environment variables
+    (which have higher priority).
     """
 
     REPO_URL_DICT_KEY: str = "../download-scripture?repo_url"
@@ -416,8 +417,15 @@ class Settings(BaseSettings):
         "Pictures",
     ]
 
+    # Provided by .env file:
     EMAIL_SEND_SUBJECT: str
     TO_EMAIL_ADDRESS: str
+    # Provided by system env vars:
+    FROM_EMAIL_ADDRESS: str
+    SMTP_HOST: str
+    SMTP_PORT: int
+    SMTP_PASSWORD: str
+    SEND_EMAIL: bool
 
     # Example fake user agent value required by domain host to allow serving
     # files. Other values could possibly work. This value definitely
