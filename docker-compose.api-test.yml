@@ -13,6 +13,8 @@ services:
         condition: service_healthy
       fileserver:
         condition: service_healthy
+      celery-dashboard:
+        condition: service_started
 
     entrypoint: pytest
     command:
