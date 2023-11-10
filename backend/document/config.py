@@ -314,7 +314,6 @@ class Settings(BaseSettings):
         "footer-right": "generated on [isodate] at [time]",
         "footer-line": None,  # Produce a line above the footer
     }
-    PANDOC_OPTIONS: str = "--quiet"
 
     # Return the message to show to user on successful generation of
     # PDF.

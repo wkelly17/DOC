@@ -731,7 +731,6 @@ def convert_html_to_epub(
     epub_filepath: str,
     email_address: Optional[str],
     document_request_key: str,
-    pandoc_options: str = settings.PANDOC_OPTIONS,
 ) -> None:
     """Generate ePub from HTML, possibly send to email_address as attachment."""
     assert exists(html_filepath)
