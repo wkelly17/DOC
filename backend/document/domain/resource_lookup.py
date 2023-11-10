@@ -385,38 +385,6 @@ def t_resource_lookup(
             asset_source_enum_kind=asset_source_enum_kind,
         )
 
-    if resource_lookup_dto.url is None:
-        resource_lookup_dto = _location(
-            lang_code,
-            resource_type,
-            resource_code,
-            jsonpath_str=resource_url_level1_jsonpath_fmt_str.format(
-                lang_code,
-                resource_type,
-            ),
-            lang_name_jsonpath_str=lang_name_jsonpath_fmt_str.format(lang_code),
-            resource_type_name_jsonpath_str=resource_type_name_jsonpath_fmt_str.format(
-                lang_code, resource_type
-            ),
-            asset_source_enum_kind=asset_source_enum_kind,
-        )
-
-    if resource_lookup_dto.url is None:
-        resource_lookup_dto = _location(
-            lang_code,
-            resource_type,
-            resource_code,
-            jsonpath_str=resource_url_level2_jsonpath_fmt_str.format(
-                lang_code,
-                resource_type,
-            ),
-            lang_name_jsonpath_str=lang_name_jsonpath_fmt_str.format(lang_code),
-            resource_type_name_jsonpath_str=resource_type_name_jsonpath_fmt_str.format(
-                lang_code, resource_type
-            ),
-            asset_source_enum_kind=asset_source_enum_kind,
-        )
-
     return resource_lookup_dto
 
 
