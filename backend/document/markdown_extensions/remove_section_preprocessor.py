@@ -14,8 +14,8 @@ class RemoveSectionPreprocessor(Preprocessor):
     """Remove arbitrary Markdown sections."""
 
     def __init__(self, md: markdown.Markdown, sections_to_remove: list[str]) -> None:
-        self._md: markdown.Markdown = md
-        self._sections_to_remove: list[str] = sections_to_remove
+        self._md = md
+        self._sections_to_remove = sections_to_remove
         logger.debug("sections_to_remove: %s", sections_to_remove)
         super().__init__()
 

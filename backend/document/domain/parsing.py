@@ -699,7 +699,7 @@ def tn_book_content(
     logger.debug("lang_dir: %s", lang_dir)
     # Initialize the Python-Markdown extensions that get invoked
     # when md.convert is called.
-    md: markdown.Markdown = markdown_instance(
+    md = markdown_instance(
         resource_lookup_dto.lang_code,
         resource_lookup_dto.resource_type,
         resource_requests,
@@ -816,7 +816,7 @@ def tq_book_content(
 
     # Create the Markdown instance once and have it use our markdown
     # extensions.
-    md: markdown.Markdown = markdown_instance(
+    md = markdown_instance(
         resource_lookup_dto.lang_code,
         resource_lookup_dto.resource_type,
         resource_requests,
@@ -896,7 +896,7 @@ def tw_book_content(
 
     # Create the Markdown instance once and have it use our markdown
     # extensions.
-    md: markdown.Markdown = markdown_instance(
+    md = markdown_instance(
         resource_lookup_dto.lang_code,
         resource_lookup_dto.resource_type,
         resource_requests,
@@ -952,7 +952,7 @@ def bc_book_content(
 ) -> BCBook:
     # Create the Markdown instance once and have it use our markdown
     # extensions.
-    md: markdown.Markdown = markdown_instance(
+    md = markdown_instance(
         resource_lookup_dto.lang_code,
         resource_lookup_dto.resource_type,
         resource_requests,

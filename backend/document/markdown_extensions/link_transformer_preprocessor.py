@@ -45,10 +45,10 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
         translation_words_dict: dict[str, str],
     ) -> None:
         """Initialize."""
-        self._md: markdown.Markdown = md
-        self._lang_code: str = lang_code
-        self._resource_requests: list[ResourceRequest] = resource_requests
-        self._translation_words_dict: dict[str, str] = translation_words_dict
+        self._md = md
+        self._lang_code = lang_code
+        self._resource_requests = resource_requests
+        self._translation_words_dict = translation_words_dict
         super().__init__()
 
     def run(self, lines: list[str]) -> list[str]:
