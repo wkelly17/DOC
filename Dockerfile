@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y \
     unzip \
     # For additional fonts needed, specifically Chinese
     texlive-fonts-recommended \
-    # For mypyc
+    # For usfm_tools and mypyc
     gcc \
     # For ebook-convert
     xz-utils \
@@ -56,22 +56,24 @@ RUN python -m venv ${VIRTUAL_ENV}
 ENV PATH=${VIRTUAL_ENV}/bin:${PATH}
 
 RUN pip install -v --upgrade pip
-RUN pip install -v cython
 RUN pip install -v -r requirements.txt
 RUN pip install -v -r requirements-prod.txt
-RUN cd /tmp && git clone -b develop --depth 1 https://github.com/linearcombination/USFM-Tools
-RUN cd /tmp/USFM-Tools && python setup.py build install
-RUN cp -r /tmp/USFM-Tools/usfm_tools ${VIRTUAL_ENV}/lib/python3.11/site-packages/
-RUN pip install weasyprint
 
 COPY ./backend ./backend
 COPY ./tests ./tests
 
+# Make sure Python can find the code to run
+ENV PYTHONPATH=/app/backend:/app/tests
+
+# Inside the Python virtual env: install any missing mypy
+# type packages and check types in strict mode.
+RUN mypy --strict --install-types --non-interactive backend/document/**/*.py
+RUN mypy --strict --install-types --non-interactive tests/**/*.py
+
+# No longer using mypyc as the resulting executable code is now
+# actually slower than non-transpiled python.
 # Inside the Python virtual env: check types, install any missing mypy stub
 # types packages, and transpile most modules into C using mypyc which
 # in turn build them with the resident C compiler, usually clang or
 # gcc.
-RUN cd backend && mypyc --strict --install-types --non-interactive --verbose document/domain/assembly_strategies/assembly_strategies.py document/domain/parsing.py document/domain/resource_lookup.py # document/domain/document_generator.py
-
-# Make sure Python can find the code to run
-ENV PYTHONPATH=/app/backend:/app/tests
+# RUN cd backend && mypyc --strict --install-types --non-interactive document/domain/assembly_strategies/assembly_strategies.py document/domain/parsing.py document/domain/resource_lookup.py # document/domain/document_generator.py

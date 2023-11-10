@@ -1,7 +1,18 @@
+[project]
+name = "DOC"
+version = "2023.11.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    ]
+
 [build-system]
 requires = [
-    "setuptools>=42",
-    "wheel"
+    "setuptools>=61",
+    "wheel",
+    "cython",
+    "mypy",
 ]
 build-backend = "setuptools.build_meta"
 [tool.pytest.ini_options]
@@ -35,3 +46,6 @@ norecursedirs = [
   "*.egg-info",
   ".git",
 ]
+[tool.isort]
+profile = "black"
+multi_line_output = 3
