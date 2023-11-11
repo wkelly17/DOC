@@ -264,3 +264,17 @@ def assemble_tq_tw_for_by_chapter_lang_then_book_1c(
             yield end_of_chapter_html
 
         yield close_direction_html
+
+
+# NOTE It is possible to request only TW, however TW is handled at a
+# higher level so we essentially have a no-op here.
+def assemble_tw_as_iterator_by_chapter_for_lang_then_book(
+    usfm_book_content_unit: Optional[USFMBook],
+    tn_book_content_unit: Optional[TNBook],
+    tq_book_content_unit: Optional[TQBook],
+    tw_book_content_unit: Optional[TWBook],
+    usfm_book_content_unit2: Optional[USFMBook],
+    bc_book_content_unit: Optional[BCBook],
+) -> Iterable[HtmlContent]:
+    """Construct the HTML for a 'by chapter' strategy wherein only TW exists."""
+    yield HtmlContent("")

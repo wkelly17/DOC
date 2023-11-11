@@ -82,10 +82,8 @@ def test_document_request_key_too_long_for_semantic_result() -> None:
         for component in components
     ]
     assembly_strategy_kind = model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER
-    # fmt: off
-    assembly_layout_kind = model.AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT
-    # fmt: on
-    chunk_size = model.ChunkSizeEnum.VERSE
+    assembly_layout_kind = model.AssemblyLayoutEnum.ONE_COLUMN
+    chunk_size = model.ChunkSizeEnum.CHAPTER
     limit_words = True
     key = document_generator.document_request_key(
         resource_requests,
