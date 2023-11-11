@@ -15,6 +15,8 @@ requires = [
     "mypy",
 ]
 build-backend = "setuptools.build_meta"
+[tool.setuptools.packages.find]
+where = ["backend", "tests"]
 [tool.pytest.ini_options]
 minversion = "6.0"
 testpaths = ["tests"]
