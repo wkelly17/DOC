@@ -33,7 +33,7 @@ def test_en_ulb_wa_col_en_tn_wa_col_language_book_order_with_no_email_1c_docx() 
     translation notes for the book of Colossians.
     """
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents_docx",
             json={
                 # "email_address": settings.TO_EMAIL_ADDRESS,
@@ -68,7 +68,7 @@ def test_en_ulb_wa_col_en_tn_wa_col_language_book_order_with_no_email_1c_c() -> 
     translation notes for the book of Colossians.
     """
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 # "email_address": settings.TO_EMAIL_ADDRESS,
@@ -101,7 +101,7 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_language_book_order_1c() -> Non
     translation notes, and translation questions for the book of Col.
     """
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
@@ -139,7 +139,7 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_language_book_order_1c_c() -> N
     translation notes, and translation questions for the book of Col.
     """
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
@@ -177,7 +177,7 @@ def test_en_ulb_wa_tn_wa_jud_language_book_order_1c() -> None:
     translation notes for the book of Jude.
     """
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
@@ -210,7 +210,7 @@ def test_en_ulb_wa_tn_wa_jud_language_book_order_1c_c() -> None:
     translation notes for the book of Jude.
     """
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
@@ -244,7 +244,7 @@ def test_ar_ulb_jud_language_book_order_1c() -> None:
     this time.
     """
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
@@ -274,7 +274,7 @@ def test_ar_ulb_jud_language_book_order_1c_c() -> None:
     this time.
     """
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
@@ -303,7 +303,7 @@ def test_pt_br_ulb_tn_language_book_order_1c() -> None:
     translation notes for the book of Genesis.
     """
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
@@ -336,7 +336,7 @@ def test_pt_br_ulb_tn_language_book_order_1c_c() -> None:
     translation notes for the book of Genesis.
     """
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
@@ -369,7 +369,7 @@ def test_pt_br_ulb_tn_en_ulb_wa_tn_wa_luk_language_book_order_1c() -> None:
     and English scripture and translation notes for the book of Luke.
     """
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
@@ -412,7 +412,7 @@ def test_pt_br_ulb_tn_en_ulb_wa_tn_wa_luk_language_book_order_1c_c() -> None:
     and English scripture and translation notes for the book of Luke.
     """
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
@@ -451,7 +451,7 @@ def test_pt_br_ulb_tn_en_ulb_wa_tn_wa_luk_language_book_order_1c_c() -> None:
 
 def test_pt_br_ulb_tn_luk_en_ulb_wa_tn_wa_luk_sw_ulb_tn_col_language_book_order_1c() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
@@ -500,7 +500,7 @@ def test_pt_br_ulb_tn_luk_en_ulb_wa_tn_wa_luk_sw_ulb_tn_col_language_book_order_
 
 def test_pt_br_ulb_tn_luk_en_ulb_wa_tn_wa_luk_sw_ulb_tn_col_language_book_order_1c_c() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
@@ -549,7 +549,7 @@ def test_pt_br_ulb_tn_luk_en_ulb_wa_tn_wa_luk_sw_ulb_tn_col_language_book_order_
 
 def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_col_sw_tq_col_sw_tw_col_sw_ulb_tit_sw_tn_tit_sw_tq_tit_sw_tw_tit_language_book_order_1c() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
@@ -624,7 +624,7 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_c
 
 def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_col_sw_tq_col_sw_tw_col_sw_ulb_tit_sw_tn_tit_sw_tq_tit_sw_tw_tit_language_book_order_1c_c() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
@@ -699,7 +699,7 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_c
 
 def test_en_ulb_wa_col_en_tn_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_col_sw_tw_col_sw_ulb_tit_sw_tn_tit_sw_tw_tit_language_book_order_1c() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
@@ -764,7 +764,7 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_col_sw_tw_col_
 
 def test_en_ulb_wa_col_en_tn_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_col_sw_tw_col_sw_ulb_tit_sw_tn_tit_sw_tw_tit_language_book_order_1c_c() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
@@ -844,7 +844,7 @@ def test_en_ulb_wa_col_en_tn_wa_col_en_tw_wa_col_sw_ulb_col_sw_tn_col_sw_tw_col_
 
 def test_en_ulb_wa_col_en_tw_wa_col_sw_ulb_col_sw_tw_col_sw_ulb_tit_sw_tw_tit_language_book_order_1c() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
@@ -903,7 +903,7 @@ def test_en_ulb_wa_col_en_tw_wa_col_sw_ulb_col_sw_tw_col_sw_ulb_tit_sw_tw_tit_la
 
 def test_en_ulb_wa_col_en_tw_wa_col_sw_ulb_col_sw_tw_col_sw_ulb_tit_sw_tw_tit_language_book_order_1c_c() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
@@ -963,7 +963,7 @@ def test_en_ulb_wa_col_en_tw_wa_col_sw_ulb_col_sw_tw_col_sw_ulb_tit_sw_tw_tit_la
 
 def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_sw_ulb_tit_sw_tq_tit_sw_tw_tit_language_book_order_1c() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
@@ -1038,7 +1038,7 @@ def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_
 
 def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_sw_ulb_tit_sw_tq_tit_sw_tw_tit_language_book_order_1c_c() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
@@ -1122,7 +1122,7 @@ def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_
     the same books but from different languages.
     """
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
@@ -1190,7 +1190,7 @@ def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_
     the same books but from different languages.
     """
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
@@ -1254,9 +1254,7 @@ def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_
 
 def test_resource_types_and_names_for_lang() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.get(
-            "/resource_types_and_names_for_lang/es-419"
-        )
+        response = client.get("/resource_types_and_names_for_lang/es-419")
         logger.debug("JSON: %s", response.json())
         assert response.ok
 
@@ -1276,7 +1274,7 @@ def test_zh_ulb_doesnt_exist_jol_zh_tn_jol_language_book_order_1c() -> None:
     scripture verses.
     """
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
@@ -1313,7 +1311,7 @@ def test_zh_ulb_doesnt_exist_jol_zh_tn_jol_language_book_order_1c_c() -> None:
     scripture verses.
     """
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
@@ -1347,7 +1345,7 @@ def test_zh_cuv_jol_zh_tn_jol_language_book_order_1c() -> None:
     in the test above it, i.e., ulb -> cuv.
     """
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
@@ -1381,7 +1379,7 @@ def test_zh_cuv_jol_zh_tn_jol_language_book_order_1c_c() -> None:
     in the test above it, i.e., ulb -> cuv.
     """
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
@@ -1415,7 +1413,7 @@ def test_zh_cuv_jol_zh_tn_jol_zh_tq_jol_zh_tw_jol_language_book_order_1c() -> No
     in the test above it, i.e., ulb -> cuv.
     """
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
@@ -1460,7 +1458,7 @@ def test_zh_cuv_jol_zh_tn_jol_zh_tq_jol_zh_tw_jol_language_book_order_1c_docx() 
     in the test above it, i.e., ulb -> cuv.
     """
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents_docx",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
@@ -1505,7 +1503,7 @@ def test_zh_cuv_jol_zh_tn_jol_zh_tq_jol_zh_tw_jol_language_book_order_1c_c() -> 
     in the test above it, i.e., ulb -> cuv.
     """
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
@@ -1548,7 +1546,7 @@ def test_pt_br_ulb_luk_pt_br_tn_luk_language_book_order_1c() -> None:
     translation notes for the book of Genesis.
     """
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
@@ -1582,7 +1580,7 @@ def test_pt_br_ulb_luk_pt_br_tn_luk_language_book_order_1c_c() -> None:
     translation notes for the book of Genesis.
     """
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
@@ -1628,7 +1626,7 @@ def test_fa_ulb_tn_lbo_1c_chapter() -> None:
     successful document generation.
     """
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents_docx",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,

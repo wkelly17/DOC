@@ -22,7 +22,7 @@ def test_stream_pdf() -> None:
     """
     # First generate the PDF
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post(
+        response = client.post(
             "/documents",
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,

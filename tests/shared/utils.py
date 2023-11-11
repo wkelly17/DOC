@@ -32,7 +32,7 @@ def check_result(
     finished_document_request_key: str
     while True:
         with TestClient(app=app, base_url=settings.api_test_url()) as client:
-            response2: requests.Response = client.get(
+            response2 = client.get(
                 status_url_fmt_str.format(task_id),
             )
             json_data = response2.json()
