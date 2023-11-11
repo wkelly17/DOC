@@ -410,12 +410,12 @@ class Settings(BaseSettings):
     EMAIL_SEND_SUBJECT: str
     TO_EMAIL_ADDRESS: EmailStr
 
-    # Provided by system env vars:
-    FROM_EMAIL_ADDRESS: EmailStr
-    SMTP_HOST: str
-    SMTP_PORT: int
-    SMTP_PASSWORD: str
-    SEND_EMAIL: bool
+    # Provided by system env vars (fake values provided so github action can run):
+    FROM_EMAIL_ADDRESS: EmailStr = "foo@example.com"
+    SMTP_HOST: str = "https://example.com"
+    SMTP_PORT: int = 111
+    SMTP_PASSWORD: str = "fakepass"
+    SEND_EMAIL: bool = False
 
     # Used by gunicorn
     PORT: int
