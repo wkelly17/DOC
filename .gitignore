@@ -3,6 +3,13 @@
 /**/.mypy_cache/
 /**/**/**/*-darwin.so
 /**/**/**/.hypothesis/
+/.venv/
 /frontend/test-results/
 /frontend/playwright-report/
 /frontend/playwright/.cache/
+/.vscode/
+/backend/build/
+/backend/document.egg-info
+/docker_document_output/
+/experiments/
+/GPUCache/
