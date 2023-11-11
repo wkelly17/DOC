@@ -67,7 +67,7 @@ build-no-cache-no-pip-update: checkvenv down clean-mypyc-artifacts
 .PHONY: up
 up: checkvenv
 	export IMAGE_TAG=local && \
-	LOGROCKET_ID=ct7zyg/interleaved-resource-generator BACKEND_API_URL=http://localhost:5005 FILE_SERVER_URL=http://localhost:8089 docker compose up
+	LOGROCKET_ID=ct7zyg/interleaved-resource-generator BACKEND_API_URL=http://localhost:5005 FILE_SERVER_URL=http://localhost:8089 docker compose up --remove-orphans
 
 .PHONY: up-as-daemon
 up-as-daemon: checkvenv
