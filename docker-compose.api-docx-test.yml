@@ -13,9 +13,6 @@ services:
         condition: service_healthy
       fileserver:
         condition: service_healthy
-      # FIXME This fails for some reason even though healthcheck is defined correctly in docker-compose.yml
-      # celery-dashboard:
-      #   condition: service_healthy
 
     entrypoint: pytest
     command: ["-v", "-m", "docx", "-n", "auto"]

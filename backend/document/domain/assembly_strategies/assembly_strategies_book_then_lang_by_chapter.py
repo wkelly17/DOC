@@ -397,10 +397,6 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
         usfm_book_content_units,
         key=lambda usfm_book_content_unit: usfm_book_content_unit.chapters.keys(),
     )
-    # FIXME Logic is wrong: you are printing out the title of the book with
-    # the most chapters which might differ from the content shown across
-    # usfm_book_content_units below. I think showing the book title
-    # should happen in that loop below instead of here.
     if usfm_with_most_chapters:
         # Book title centered
         # TODO One day book title could be localized.

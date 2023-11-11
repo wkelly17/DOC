@@ -44,7 +44,7 @@ def download_file(
     url: str, outfile: str, user_agent: str = settings.USER_AGENT
 ) -> None:
     """Downloads a file from url and saves it to outfile."""
-    # NOTE Host requires at least the User-Agent header.
+    # Host requires at least the User-Agent header.
     headers: dict[str, str] = {"User-Agent": user_agent}
     req = urllib.request.Request(url, None, headers)
     with closing(urlopen(req)) as request:
@@ -391,35 +391,6 @@ def t_resource_lookup(
 
 def lang_codes_and_names(
     working_dir: str = settings.RESOURCE_ASSETS_DIR,
-    translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
-    lang_code_filter_list: Sequence[str] = settings.LANG_CODE_FILTER_LIST,
-) -> Sequence[tuple[str, str]]:
-    """
-    Convenience method that can be called from UI to get the set
-    of all language code, name tuples available through API.
-    Presumably this could be called to populate a drop-down menu.
-
-    >>> from document.domain import resource_lookup
-    >>> data = resource_lookup.lang_codes_and_names()
-    >>> data[0]
-    ('abz', 'Abui')
-    """
-    data = fetch_source_data(working_dir, translations_json_location)
-    values = []
-
-    for d in [lang for lang in data if lang["code"] not in lang_code_filter_list]:
-        # translations.json should not include the englishName as part
-        # of the localized name, but unfortunately it often does so let's handle
-        # that here rather than wait for upstream to sort that out.
-        if d["englishName"] not in d["name"]:
-            values.append((d["code"], "{} ({})".format(d["name"], d["englishName"])))
-        else:
-            values.append((d["code"], "{}".format(d["name"])))
-    return sorted(values, key=lambda value: value[1])
-
-
-def lang_codes_and_names_v2(
-    working_dir: str = settings.RESOURCE_ASSETS_DIR,
     translations_json_location: HttpUrl = settings.TRANSLATIONS_JSON_LOCATION,
     lang_code_filter_list: Sequence[str] = settings.LANG_CODE_FILTER_LIST,
     gateway_languages: Sequence[str] = settings.GATEWAY_LANGUAGES,
@@ -430,7 +401,7 @@ def lang_codes_and_names_v2(
     Presumably this could be called to populate a drop-down menu.
 
     >>> from document.domain import resource_lookup
-    >>> data = resource_lookup.lang_codes_and_names_v2()
+    >>> data = resource_lookup.lang_codes_and_names()
     >>> data[0]
     ('abz', 'Abui', False)
     """
@@ -453,40 +424,6 @@ def lang_codes_and_names_v2(
             values.append(
                 (d["code"], "{}".format(d["name"]), d["code"] in gateway_languages)
             )
-    return sorted(values, key=lambda value: value[1])
-
-
-def lang_codes_and_names_for_v1(
-    working_dir: str = settings.RESOURCE_ASSETS_DIR,
-    translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
-    gateway_languages: Sequence[str] = settings.GATEWAY_LANGUAGES,
-    lang_code_filter_list: Sequence[str] = settings.LANG_CODE_FILTER_LIST,
-) -> Sequence[tuple[str, str]]:
-    """
-    Convenience method that can be called from UI to get the set
-    of gateway only (for v1) language code, name tuples available
-    through API.
-
-    >>> from document.domain import resource_lookup
-    >>> data = resource_lookup.lang_codes_and_names_for_v1()
-    >>> data[0]
-    ('am', 'Amharic')
-    """
-    data = fetch_source_data(working_dir, translations_json_location)
-    values = []
-    for d in [
-        lang
-        for lang in data
-        if lang["code"] in gateway_languages
-        and lang["code"] not in lang_code_filter_list
-    ]:
-        # translations.json should not include the englishName as part
-        # of the localized name, but unfortunately it often does so let's handle
-        # that here rather than wait for upstream to sort that out.
-        if d["englishName"] not in d["name"]:
-            values.append((d["code"], "{} ({})".format(d["name"], d["englishName"])))
-        else:
-            values.append((d["code"], "{}".format(d["name"])))
     return sorted(values, key=lambda value: value[1])
 
 
@@ -915,7 +852,7 @@ def resource_types_and_names_for_lang(
      ('as', ['tn', 'ulb']),
      ('bn', ['tn', 'ulb']),
      ('ceb', ['tn', 'ulb']),
-     ('en', ['ulb-wa', 'tn-wa', 'tn']),
+     ('en', ['ulb-wa', 'tn']),
      ('es-419', ['tn', 'ulb']),
      ('fa', ['tn', 'ulb']),
      ('fr', ['tn', 'ulb', 'f10']),
@@ -953,7 +890,7 @@ def resource_types_and_names_for_lang(
     (all) TN types that translations.json lists as available for the
     GL languages:
 
-    >>> data = resource_lookup.fetch_source_data(settings.RESOURCE_ASSETS_DIR, settings.TRANSLATIONS_JSON_LOCATION)
+    >>> data = resource_lookup.fetch_source_data(settings.RESOURCE_ASSETS_DIR, str(settings.TRANSLATIONS_JSON_LOCATION))
     >>> values = []
     >>> for item in [lang for lang in data if lang["code"] in settings.GATEWAY_LANGUAGES]:
     ...    values.append(
@@ -977,7 +914,7 @@ def resource_types_and_names_for_lang(
      ('as', ['tn', 'ulb']),
      ('bn', ['tn', 'ulb']),
      ('ceb', ['tn', 'ulb']),
-     ('en', ['ulb-wa', 'tn-wa', 'tn']),
+     ('en', ['ulb-wa', 'tn']),
      ('es-419', ['tn', 'ulb']),
      ('fa', ['tn', 'ulb']),
      ('fr', ['tn', 'ulb']),
@@ -1179,33 +1116,6 @@ def shared_resource_types(
     return sorted(values, key=lambda value: value[0])
 
 
-def shared_resource_types_for_v1(
-    lang_code: str,
-    resource_codes: Sequence[str],
-    v1_approved_resource_types: Sequence[str] = settings.V1_APPROVED_RESOURCE_TYPES,
-) -> list[tuple[str, str]]:
-    """
-    Given a language code and a list of resource_codes, return the
-    collection of resource types available.
-
-    >>> from document.domain import resource_lookup
-    >>> list(resource_lookup.shared_resource_types_for_v1("en", ["2co"]))
-    [('ulb-wa', 'Unlocked Literal Bible (ULB)'), ('tn-wa', 'ULB Translation Notes')]
-    >>> list(resource_lookup.shared_resource_types_for_v1("pt-br", ["gen"]))
-    [('tn', 'Translation Notes (tn)'), ('ulb', 'Brazilian Portuguese Unlocked Literal Bible (ulb)')]
-    >>> list(resource_lookup.shared_resource_types_for_v1("fr", ["gen"]))
-    [('tn', 'Translation Notes (tn)')]
-    >>> list(resource_lookup.shared_resource_types_for_v1("es-419", ["gen"]))
-    [('tn', 'Translation Notes (tn)'), ('ulb', 'Español Latino Americano ULB (ulb)')]
-    """
-    resource_types_and_names = [
-        resource_type_and_name
-        for resource_type_and_name in shared_resource_types(lang_code, resource_codes)
-        if resource_type_and_name[0] in v1_approved_resource_types
-    ]
-    return resource_types_and_names
-
-
 def shared_resource_codes(
     lang0_code: str, lang1_code: str
 ) -> Sequence[tuple[str, str]]:
@@ -1274,6 +1184,7 @@ def resource_codes_for_lang(
                 resource_code_name_pair[0]
             ],
         )
+
 
 def resource_lookup_dto(
     lang_code: str,

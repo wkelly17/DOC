@@ -6,7 +6,6 @@
   import { getLogRocketId } from './lib/utils'
 
   LogRocket.init(getLogRocketId())
-  let open = false
 </script>
 
 <div data-theme="wa" class="bg-white">

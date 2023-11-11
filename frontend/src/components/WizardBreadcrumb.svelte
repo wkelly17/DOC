@@ -1,17 +1,17 @@
 <script lang="ts">
   import { location } from 'svelte-spa-router'
   import { push } from 'svelte-spa-router'
-  import { langCountStore } from '../../stores/v2_release/LanguagesStore'
-  import { bookCountStore } from '../../stores/v2_release/BooksStore'
-  import { resourceTypesCountStore } from '../../stores/v2_release/ResourceTypesStore'
+  import { langCountStore } from '../stores/LanguagesStore'
+  import { bookCountStore } from '../stores/BooksStore'
+  import { resourceTypesCountStore } from '../stores/ResourceTypesStore'
   import {
     resetStores,
     langRegExp,
     bookRegExp,
     resourceTypeRegExp,
     settingsRegExp
-  } from '../../lib/utils'
-  import { resetValuesStore } from '../../stores/v2_release/NotificationStore'
+  } from '../lib/utils'
+  import { resetValuesStore } from '../stores/NotificationStore'
   import BackButton from './BackButton.svelte'
   import NextButton from './NextButton.svelte'
 
@@ -19,7 +19,7 @@
     // If books store or resource types store are not empty, then we
     // should reset them when we change the languages.
     if ($bookCountStore > 0 || $resourceTypesCountStore > 0) {
-      resetValuesStore.set(true)
+      $resetValuesStore = true
     }
     resetStores('books')
     resetStores('resource_types')
@@ -32,7 +32,7 @@
     // If resource types store is not empty, then we
     // should reset it when we change books.
     if ($resourceTypesCountStore > 0) {
-      resetValuesStore.set(true)
+      $resetValuesStore = true
     }
     resetStores('resource_types')
     resetStores('settings')
@@ -51,7 +51,8 @@
   let turnBookStepOn: boolean = false
   let turnResourceTypeStepOn: boolean = false
   let turnSettingsStepOn: boolean = false
-  // Title and label for breadcrumb for mobile (anything under sm size according to tailwindcss)
+  // Title and label for breadcrumb for mobile (mobile = anything
+  // under sm size according to our use of tailwindcss)
   let smTitle: string = 'Languages'
   let smStepLabel: string = '1 of 4'
   $: {

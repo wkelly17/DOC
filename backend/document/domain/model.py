@@ -8,8 +8,6 @@ validation and JSON serialization.
 from enum import Enum
 from typing import Any, Callable, NamedTuple, Optional, Sequence, Union, final
 
-import orjson
-
 from document.utils.number_utils import is_even
 from toolz import itertoolz  # type: ignore
 from docx import Document  # type: ignore

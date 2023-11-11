@@ -182,16 +182,6 @@ async def shared_resource_types_v2(
     return resource_lookup.shared_resource_types(lang_code, resource_codes)
 
 
-@app.get("/resource_types_v1/{lang_code}/")
-async def shared_resource_types_for_v1(
-    lang_code: str,
-    resource_codes: Sequence[str] = Query(default=None),
-) -> Iterable[tuple[str, str]]:
-    """
-    Return the list of v1 release approved resource types tuples for lang_code
-    with resource_codes.
-    """
-    return resource_lookup.shared_resource_types_for_v1(lang_code, resource_codes)
 
 
 @app.get("/resource_codes_for_lang/{lang_code}")

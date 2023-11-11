@@ -5,53 +5,53 @@
     langCountStore,
     gatewayCodeAndNamesStore,
     heartCodeAndNamesStore,
-  } from '../../stores/v2_release/LanguagesStore'
-  import { bookCountStore, ntBookStore, otBookStore } from '../../stores/v2_release/BooksStore'
+  } from '../stores/LanguagesStore'
+  import { bookCountStore, ntBookStore, otBookStore } from '../stores/BooksStore'
   import {
     resourceTypesStore,
     resourceTypesCountStore
-  } from '../../stores/v2_release/ResourceTypesStore'
-  import { langRegExp, bookRegExp, resourceTypeRegExp, getCode, getName, getResourceTypeCode, getResourceTypeName } from '../../lib/utils'
+  } from '../stores/ResourceTypesStore'
+  import { langRegExp, bookRegExp, resourceTypeRegExp, getCode, getName, getResourceTypeName, getResourceTypeLangCode } from '../lib/utils'
 
   function uncheckGatewayLanguage(langCodeAndName: string) {
-    gatewayCodeAndNamesStore.set($gatewayCodeAndNamesStore.filter(item => item != langCodeAndName))
-    langCodesStore.set($langCodesStore.filter(item => item != getCode(langCodeAndName)))
-    langCountStore.set($langCodesStore.length)
+    $gatewayCodeAndNamesStore = $gatewayCodeAndNamesStore.filter(item => item != langCodeAndName)
+    $langCodesStore = $langCodesStore.filter(item => item != getCode(langCodeAndName))
+    $langCountStore = $langCodesStore.length
     if ($resourceTypesStore.length > 0) {
-      resourceTypesStore.set($resourceTypesStore.filter(item => {
+      $resourceTypesStore = $resourceTypesStore.filter(item => {
         return getCode(item) != getCode(langCodeAndName)
-      }))
+      })
     }
   }
   function uncheckHeartLanguage(langCodeAndName: string) {
-    heartCodeAndNamesStore.set($heartCodeAndNamesStore.filter(item => item != langCodeAndName))
-    langCodesStore.set($langCodesStore.filter(item => item != getCode(langCodeAndName)))
-    langCountStore.set($langCodesStore.length)
+    $heartCodeAndNamesStore = $heartCodeAndNamesStore.filter(item => item != langCodeAndName)
+    $langCodesStore = $langCodesStore.filter(item => item != getCode(langCodeAndName))
+    $langCountStore = $langCodesStore.length
     if ($resourceTypesStore.length > 0) {
-      resourceTypesStore.set($resourceTypesStore.filter(item => {
-        return getCode(item) != getCode(langCodeAndName)
-      }))
+      $resourceTypesStore = $resourceTypesStore.filter(item => {
+        return getResourceTypeLangCode(item) != getCode(langCodeAndName)
+      })
     }
   }
   function uncheckBook(bookCodeAndName: string) {
-    otBookStore.set($otBookStore.filter(item => item != bookCodeAndName))
-    ntBookStore.set($ntBookStore.filter(item => item != bookCodeAndName))
+    $otBookStore = $otBookStore.filter(item => item != bookCodeAndName)
+    $ntBookStore = $ntBookStore.filter(item => item != bookCodeAndName)
   }
   function uncheckResourceType(resourceTypeCodeAndName: string) {
-    resourceTypesStore.set($resourceTypesStore.filter(item => item != resourceTypeCodeAndName))
+    $resourceTypesStore = $resourceTypesStore.filter(item => item != resourceTypeCodeAndName)
   }
 
   $: {
     if ($langCountStore === 0) {
-      otBookStore.set([])
-      ntBookStore.set([])
-      bookCountStore.set(0)
+      $otBookStore = []
+      $ntBookStore = []
+      $bookCountStore = 0
     }
   }
   $: {
     if ($bookCountStore === 0) {
-      resourceTypesStore.set([])
-      resourceTypesCountStore.set(0)
+      $resourceTypesStore = []
+      $resourceTypesCountStore = 0
     }
   }
 

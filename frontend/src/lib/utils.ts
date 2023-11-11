@@ -1,33 +1,27 @@
 import {
-  glLangCodeAndNamesStore,
-  nonGlLangCodeAndNamesStore,
+  gatewayCodeAndNamesStore,
+  heartCodeAndNamesStore,
   lang0NameAndCodeStore,
   lang1NameAndCodeStore,
-  lang0CodeStore,
-  lang1CodeStore,
-  lang0NameStore,
-  lang1NameStore,
+  langCodesStore,
+  langNamesStore,
   langCountStore
 } from '../stores/LanguagesStore'
 import { otBookStore, ntBookStore, bookCountStore } from '../stores/BooksStore'
 import {
+  // TODO should we include resourceTypesStore and reset it also?
   lang0ResourceTypesStore,
   lang1ResourceTypesStore,
   resourceTypesCountStore,
   twResourceRequestedStore
 } from '../stores/ResourceTypesStore'
-import {
-  documentReadyStore,
-  errorStore,
-  resetValuesStore
-} from '../stores/NotificationStore'
+import { documentReadyStore, errorStore } from '../stores/NotificationStore'
 import {
   layoutForPrintStore,
   assemblyStrategyKindStore,
   generatePdfStore,
   generateEpubStore,
   generateDocxStore,
-  emailStore,
   documentRequestKeyStore
 } from '../stores/SettingsStore'
 
@@ -42,14 +36,12 @@ export let settingsRegExp = new RegExp('.*settings.*')
 
 export function resetStores(storeGroup: StoreGroup) {
   if (storeGroup === 'languages') {
-    glLangCodeAndNamesStore.set([])
-    nonGlLangCodeAndNamesStore.set([])
+    gatewayCodeAndNamesStore.set([])
+    heartCodeAndNamesStore.set([])
     lang0NameAndCodeStore.set('')
     lang1NameAndCodeStore.set('')
-    lang0CodeStore.set('')
-    lang1CodeStore.set('')
-    lang0NameStore.set('')
-    lang1NameStore.set('')
+    langCodesStore.set([])
+    langNamesStore.set([])
     langCountStore.set(0)
   }
 
@@ -71,7 +63,6 @@ export function resetStores(storeGroup: StoreGroup) {
     generatePdfStore.set(true)
     generateEpubStore.set(false)
     generateDocxStore.set(false)
-    // emailStore.set(null)
     documentRequestKeyStore.set('')
     twResourceRequestedStore.set(false)
   }
@@ -120,15 +111,6 @@ export function getLogRocketId(): string {
 /**
  * Indicate whether to show Mast, Tabs, and Sidebar
  **/
-export function setShowTopMatter(): boolean {
-  let showTopMatter = false
-  // .env vars come over as strings always by default (PROD .env var
-  //  above is an exception because Vite handles setting it).
-  if (<string>import.meta.env.VITE_SHOW_TOP_MATTER === 'true') {
-    showTopMatter = true
-  }
-  return showTopMatter
-}
 
 export function getName(codeAndName: string): string {
   return codeAndName?.split(/, (.*)/s)[1]

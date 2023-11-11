@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test'
+import { test } from '@playwright/test'
 
 // test.beforeEach(async ({ page, baseURL }) => {
 //   console.log(`Using FRONTEND_API_URL: ${baseURL}`)
