@@ -18,6 +18,7 @@ from urllib.request import urlopen
 
 import git
 import jsonpath_rw_ext as jp  # type: ignore
+from pydantic import HttpUrl
 from document.config import settings
 from document.domain import bible_books, exceptions
 from document.domain.model import (
@@ -70,10 +71,10 @@ def fetch_source_data(working_dir: str, json_file_url: str) -> Any:
 def _lookup(
     json_path: str,
     working_dir: str = settings.RESOURCE_ASSETS_DIR,
-    translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
+    translations_json_location: HttpUrl = settings.TRANSLATIONS_JSON_LOCATION,
 ) -> Any:
     """Return jsonpath value or empty list if JSON node doesn't exist."""
-    json_data = fetch_source_data(working_dir, translations_json_location)
+    json_data = fetch_source_data(working_dir, str(translations_json_location))
     value = jp.match(
         json_path,
         json_data,
@@ -419,7 +420,7 @@ def lang_codes_and_names(
 
 def lang_codes_and_names_v2(
     working_dir: str = settings.RESOURCE_ASSETS_DIR,
-    translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
+    translations_json_location: HttpUrl = settings.TRANSLATIONS_JSON_LOCATION,
     lang_code_filter_list: Sequence[str] = settings.LANG_CODE_FILTER_LIST,
     gateway_languages: Sequence[str] = settings.GATEWAY_LANGUAGES,
 ) -> Sequence[tuple[str, str, bool]]:
@@ -433,7 +434,7 @@ def lang_codes_and_names_v2(
     >>> data[0]
     ('abz', 'Abui', False)
     """
-    data = fetch_source_data(working_dir, translations_json_location)
+    data = fetch_source_data(working_dir, str(translations_json_location))
     values = []
 
     for d in [lang for lang in data if lang["code"] not in lang_code_filter_list]:
@@ -494,7 +495,7 @@ def resource_types_and_names_for_lang(
     working_dir: str = settings.RESOURCE_ASSETS_DIR,
     english_resource_type_map: Mapping[str, str] = settings.ENGLISH_RESOURCE_TYPE_MAP,
     id_resource_type_map: Mapping[str, str] = settings.ID_RESOURCE_TYPE_MAP,
-    translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
+    translations_json_location: HttpUrl = settings.TRANSLATIONS_JSON_LOCATION,
     usfm_resource_types: Sequence[str] = settings.USFM_RESOURCE_TYPES,
     tn_resource_types: Sequence[str] = settings.TN_RESOURCE_TYPES,
     tq_resource_types: Sequence[str] = settings.TQ_RESOURCE_TYPES,
@@ -890,7 +891,7 @@ def resource_types_and_names_for_lang(
     types that translations.json lists as available for the GL
     languages:
 
-    >>> data = resource_lookup.fetch_source_data(settings.RESOURCE_ASSETS_DIR, settings.TRANSLATIONS_JSON_LOCATION)
+    >>> data = resource_lookup.fetch_source_data(settings.RESOURCE_ASSETS_DIR, str(settings.TRANSLATIONS_JSON_LOCATION))
     >>> values = []
     >>> for item in [lang for lang in data if lang["code"] in settings.GATEWAY_LANGUAGES]:
     ...    values.append(
@@ -1020,7 +1021,7 @@ def resource_types_and_names_for_lang(
     if lang_code == "id":
         return [(key, value) for key, value in id_resource_type_map.items()]
 
-    data = fetch_source_data(working_dir, translations_json_location)
+    data = fetch_source_data(working_dir, str(translations_json_location))
     for item in [lang for lang in data if lang["code"] == lang_code]:
         values = [
             (
@@ -1096,7 +1097,7 @@ def shared_resource_types(
     working_dir: str = settings.RESOURCE_ASSETS_DIR,
     english_resource_type_map: Mapping[str, str] = settings.ENGLISH_RESOURCE_TYPE_MAP,
     id_resource_type_map: Mapping[str, str] = settings.ID_RESOURCE_TYPE_MAP,
-    translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
+    translations_json_location: HttpUrl = settings.TRANSLATIONS_JSON_LOCATION,
     lang_code_filter_list: Sequence[str] = settings.LANG_CODE_FILTER_LIST,
 ) -> list[tuple[str, str]]:
     """
@@ -1125,7 +1126,7 @@ def shared_resource_types(
         return [(key, value) for key, value in id_resource_type_map.items()]
 
     values = []
-    data = fetch_source_data(working_dir, translations_json_location)
+    data = fetch_source_data(working_dir, str(translations_json_location))
     # Get the resource types for lang0
     # rcfrt = resource_types_for_resource_codes(data, lang_code, resource_codes)
     for item in [lang for lang in data if lang["code"] == lang_code]:
@@ -1238,7 +1239,7 @@ def resource_codes_for_lang(
     book_names: Mapping[str, str] = bible_books.BOOK_NAMES,
     book_numbers: Mapping[str, str] = bible_books.BOOK_NUMBERS,
     working_dir: str = settings.RESOURCE_ASSETS_DIR,
-    translations_json_location: str = settings.TRANSLATIONS_JSON_LOCATION,
+    translations_json_location: HttpUrl = settings.TRANSLATIONS_JSON_LOCATION,
     usfm_resource_types: Sequence[str] = settings.USFM_RESOURCE_TYPES,
 ) -> Sequence[tuple[str, str]]:
     """
@@ -1540,11 +1541,7 @@ def clone_git_repo(
 def download_asset(url: str, resource_filepath: str) -> None:
     """Download the asset."""
     logger.debug("Downloading %s into %s", url, resource_filepath)
-    # TODO Might want to retry after some acceptable interval if there is a
-    # failure here due to network issues. It has happened very occasionally
-    # during testing that there has been a hiccup with the network at this
-    # point but succeeded on retry of the same test.
-    download_file(str(url), resource_filepath)
+    download_file(url, resource_filepath)
     logger.info("Downloading finished.")
 
 

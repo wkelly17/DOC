@@ -39,5 +39,5 @@ def test_english_variable_resource_type_combos_for_all_books(
     """
     data = english_document_request.dict()
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post("/documents", json=data)
-        assert response.ok
+        response = client.post("/documents", json=data)
+        assert response.status_code == 200

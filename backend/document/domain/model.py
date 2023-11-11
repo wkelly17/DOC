@@ -14,7 +14,8 @@ from document.utils.number_utils import is_even
 from toolz import itertoolz  # type: ignore
 from docx import Document  # type: ignore
 from more_itertools import all_equal
-from pydantic import BaseModel, EmailStr, root_validator
+from pydantic import BaseModel, EmailStr
+from pydantic.functional_validators import model_validator
 
 # These type aliases give us more self-documenting code, but of course
 # aren't strictly necessary.
@@ -22,11 +23,6 @@ HtmlContent = str
 MarkdownContent = str
 VerseRef = str
 ChapterNum = int
-
-
-def orjson_dumps(v: Any, *, default: Optional[Callable[[Any], Any]]) -> str:
-    # orjson.dumps returns bytes, to match standard json.dumps we need to decode
-    return orjson.dumps(v, default=default).decode()
 
 
 @final
@@ -45,7 +41,7 @@ class AssemblyStrategyEnum(str, Enum):
 
     NOTE
     We could later add others. As an arbitrary example,
-    Perhaps we'd want a high level strategy that ordered by book then
+    perhaps we'd want a high level strategy that ordered by book then
     language (as opposed to the other way around) before delegating
     the lower level assembly to a sub-strategy as signaled by
     AssemblySubstrategyEnum. The sky is the limit.
@@ -53,10 +49,6 @@ class AssemblyStrategyEnum(str, Enum):
 
     LANGUAGE_BOOK_ORDER = "lbo"
     BOOK_LANGUAGE_ORDER = "blo"
-
-    class Config:
-        json_loads = orjson.loads
-        json_dumps = orjson_dumps
 
 
 @final
@@ -71,7 +63,7 @@ class AssemblyLayoutEnum(str, Enum):
     Layouts:
 
     * ONE_COLUMN
-      One column verse and associated content interleave
+      All content in one column
 
     * ONE_COLUMN_COMPACT
       This layout minimizes whitespace in a one column layout so as to
@@ -99,39 +91,26 @@ class AssemblyLayoutEnum(str, Enum):
     TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT = "2c_sl_sr_c"
     # fmt: on
 
-    class Config:
-        json_loads = orjson.loads
-        json_dumps = orjson_dumps
-
 
 @final
 class ChunkSizeEnum(str, Enum):
     """
     The length of content to burst out at a time when interleaving.
-    E.g., if VERSE is chosen as the chunk size then the interleaving will
-    do so in verse chunks (one verse of scripture, then one verse of helps,
+    E.g., if CHAPTER is chosen as the chunk size then the interleaving will
+    do so in chapter chunks (one chapter of scripture, then one chapter of helps,
     etc.). This exists because translators want to be able to choose
     the chunk size of scripture that should be grouped together for the
     purpose of translational cohesion.
 
-    * VERSE
-      - This enum value signals to make each chunk of interleaved
-        content be one verse's worth in length.
     * CHAPTER
       - This enum value signals to make each chunk of interleaved
         content be one chapter's worth in length.
 
     NOTE
-    We could later add others. As an arbitrary example,
-    Perhaps we'd want to chunk by a certain number of verses.
+    We could later add others.
     """
 
-    VERSE = "verse"
     CHAPTER = "chapter"
-
-    class Config:
-        json_loads = orjson.loads
-        json_dumps = orjson_dumps
 
 
 # https://blog.meadsteve.dev/programming/2020/02/10/types-at-the-edges-in-python/
@@ -150,10 +129,6 @@ class ResourceRequest(BaseModel):
     resource_type: str
     resource_code: str
 
-    class Config:
-        json_loads = orjson.loads
-        json_dumps = orjson_dumps
-
 
 @final
 class DocumentRequestSourceEnum(str, Enum):
@@ -165,6 +140,7 @@ class DocumentRequestSourceEnum(str, Enum):
 
     UI = "ui"
     TEST = "test"
+    BIEL_UI = "biel_ui"
 
 
 @final
@@ -176,7 +152,7 @@ class DocumentRequest(BaseModel):
     validation, serialization, and special dunder functions for free.
     """
 
-    email_address: Optional[EmailStr]
+    email_address: Optional[EmailStr] = None
     assembly_strategy_kind: AssemblyStrategyEnum
     # NOTE For testing we want to exercise various layouts, thus we
     # make this attribute Optional so that we can specify it in unit
@@ -203,14 +179,16 @@ class DocumentRequest(BaseModel):
     generate_epub: bool = False
     # Indicate whether Docx should be generated.
     generate_docx: bool = False
-    # Indicate the chunk size to burst at a time when a document is
-    # being interleaved. Default to chapter.
+    # Indicate the chunk size to interleave. Default to chapter. Verse
+    # chunk size was deemed non-useful, but remains for now as a historical
+    # option.
     chunk_size: ChunkSizeEnum = ChunkSizeEnum.CHAPTER
     # Indicate whether translation words, TW, should be limited to
-    # only those that appear in the USFM requested (true), or, include all
-    # the TW words available for the language requested.
+    # only those that appear in the USFM requested (True), or, include all
+    # the TW words available for the language requested (False).
     limit_words: bool = True
-    # Indicate whether TN book intros should be included
+    # Indicate whether TN book intros should be included. Currently,
+    # the content team does not want them included.
     include_tn_book_intros: bool = False
     # Indicate where the document request originated from. We default to
     # TEST so that tests don't have to specify and every other client, e.g.,
@@ -219,52 +197,16 @@ class DocumentRequest(BaseModel):
     # expected results.
     document_request_source: DocumentRequestSourceEnum = DocumentRequestSourceEnum.TEST
 
-    @root_validator
-    def ensure_valid_document_request(
-        cls,
-        values: Any,
-    ) -> Any:
+    @model_validator(mode="after")
+    def ensure_valid_document_request(self) -> Any:
         """
         See ValueError messages below for the rules we are enforcing.
         """
-        # NOTE: If two language, two column layout is not used and if it is ok
-        # to produce a Docx, for now, that really isn't much more compact
-        # (pending the creation of a compact Docx template) then we can comment
-        # out the next block.
-        # if values.get("layout_for_print") and (
-        #     values.get("generate_epub") or values.get("generate_docx")
-        # ):
-        #     raise ValueError(
-        #         "Only PDF (or HTML which is the same as not choosing any output format) is a valid output format option when layout for print is chosen."
-        #     )
-        # NOTE Commented out because, actually, we allow users to
-        # specify the non-compact assembly layout kinds and we then set them to
-        # the compact version if layout for print
-        # is chosen (and all other requirements are met) to provide a
-        # better UX.
-        # elif values.get("layout_for_print") and not (
-        #     values.get("assembly_layout_kind") == AssemblyLayoutEnum.ONE_COLUMN_COMPACT
-        #     or values.get("assembly_layout_kind")
-        #     == AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT
-        # ):
-        #     raise ValueError(
-        #         "Only one column compact assembly layout kind or two column scripture left, scripture right compact assembly layout kind is suitable when layout for print is chosen."
-        #     )
-
         from document.config import settings
 
-        # TODO Consider moving settings.* up to defaulted function parameter
-        non_en_usfm_resource_types: tuple[Sequence[str]] = (
-            settings.USFM_RESOURCE_TYPES,
-        )
-        # TODO Consider moving settings.* up to defaulted function parameter
-        en_usfm_resource_types: tuple[Sequence[str]] = (
-            settings.EN_USFM_RESOURCE_TYPES,
-        )
-
         usfm_resource_types = [
-            *non_en_usfm_resource_types,
-            *en_usfm_resource_types,
+            *settings.USFM_RESOURCE_TYPES,
+            *settings.EN_USFM_RESOURCE_TYPES,
         ]
 
         # Partition USFM resource requests by language.
@@ -272,7 +214,7 @@ class DocumentRequest(BaseModel):
             lambda r: r.lang_code,
             filter(
                 lambda r: r.resource_type in usfm_resource_types,
-                values.get("resource_requests"),
+                self.resource_requests,
             ),
         )
         # Get a list of the sorted set of books for each language for later
@@ -287,25 +229,27 @@ class DocumentRequest(BaseModel):
             # set(
             [
                 resource_request.lang_code
-                for resource_request in values.get("resource_requests")
+                for resource_request in self.resource_requests
                 if resource_request.resource_type in usfm_resource_types
             ]
             # )
         )
 
         if (
-            values.get("assembly_layout_kind")
+            self.assembly_layout_kind
             == AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT
-            and values.get("assembly_strategy_kind")
+            and self.assembly_strategy_kind
+            != AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER
             != AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER
         ):
             raise ValueError(
                 "Two column scripture left, scripture right layout is only compatible with book language order assembly strategy."
             )
         elif (
-            values.get("assembly_layout_kind")
+            self.assembly_layout_kind
             == AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT
-            and values.get("assembly_strategy_kind")
+            and self.assembly_strategy_kind
+            == AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER
             == AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER
             # Because book content for different languages will be side by side for
             # the scripture left scripture right layout, we make sure there are a non-zero
@@ -318,9 +262,10 @@ class DocumentRequest(BaseModel):
                 "Two column scripture left, scripture right layout requires a non-zero even number of languages. For an uneven number of languages you'll want to use the one column layout kind."
             )
         elif (
-            values.get("assembly_layout_kind")
+            self.assembly_layout_kind
             == AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT
-            and values.get("assembly_strategy_kind")
+            and self.assembly_strategy_kind
+            == AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER
             == AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER
             # Because book content for different languages will be side by side for
             # the scripture left scripture right layout, we make sure there are a non-zero
@@ -340,11 +285,7 @@ class DocumentRequest(BaseModel):
                 "Two column scripture left, scripture right layout requires the same books for each language chosen since they are displayed side by side. If you want a different set of books for each language you'll instead need to use the one column layout."
             )
 
-        return values
-
-    class Config:
-        json_loads = orjson.loads
-        json_dumps = orjson_dumps
+        return self
 
 
 @final
@@ -355,12 +296,8 @@ class FinishedDocumentDetails(BaseModel):
     document filepath on disk.
     """
 
-    finished_document_request_key: Optional[str]
+    finished_document_request_key: Optional[str] = None
     message: str
-
-    class Config:
-        json_loads = orjson.loads
-        json_dumps = orjson_dumps
 
 
 @final
@@ -472,6 +409,7 @@ class TWUse(NamedTuple):
     localized_word: str
 
 
+# `content' gets mutated after instantiation therefore we can't subclass NamedTuple
 @final
 class TWNameContentPair:
     """
@@ -481,7 +419,7 @@ class TWNameContentPair:
 
     def __init__(self, localized_word: str, content: HtmlContent):
         self.localized_word = localized_word
-        self.content = content  # content gets mutated after instantiation therefore we can't use a NamedTuple (which is immutable).
+        self.content = content
 
 
 @final
@@ -565,10 +503,6 @@ class CodeNameTypeTriplet(BaseModel):
     lang_code: str
     lang_name: str
     resource_types: list[str]
-
-    class Config:
-        json_loads = orjson.loads
-        json_dumps = orjson_dumps
 
 
 @final

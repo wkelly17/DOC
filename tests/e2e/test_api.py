@@ -1256,7 +1256,7 @@ def test_resource_types_and_names_for_lang() -> None:
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
         response = client.get("/resource_types_and_names_for_lang/es-419")
         logger.debug("JSON: %s", response.json())
-        assert response.ok
+        assert response.status_code == 200
 
 
 ###################################################################

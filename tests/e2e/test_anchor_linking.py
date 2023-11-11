@@ -29,7 +29,7 @@ def check_anchor_links_have_source_and_destination() -> None:
     automated way of checking for dead links rather than clicking in
     PDF files.
     """
-    generated_html_files = glob.glob("{}/*.html".format(settings.output_dir()))
+    generated_html_files = glob.glob("{}/*.html".format(settings.DOCUMENT_OUTPUT_DIR))
     for html_file in generated_html_files:
         logger.debug("Checking anchor links in html_file: {}".format(html_file))
         with open(html_file, "r") as fin:

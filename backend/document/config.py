@@ -5,9 +5,10 @@ from logging import config as lc
 from typing import Optional, final
 
 import yaml
-from pydantic import AnyHttpUrl, BaseSettings, EmailStr, HttpUrl, validator
+from pydantic import field_validator, AnyHttpUrl, EmailStr, HttpUrl
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from document.domain import model
+HtmlContent = str
 
 
 @final
@@ -62,12 +63,12 @@ class Settings(BaseSettings):
     TQ_HEADING_AND_QUESTIONS_FMT_STR: str = (
         "<h3>{}</h3>\n<div style='column-count: 2;'>{}</div>"
     )
-    HTML_ROW_BEGIN: str = model.HtmlContent("<div class='row'>")
-    HTML_ROW_END: str = model.HtmlContent("</div>")
-    HTML_COLUMN_BEGIN: str = model.HtmlContent("<div class='column'>")
-    HTML_COLUMN_END: str = model.HtmlContent("</div>")
-    HTML_COLUMN_LEFT_BEGIN: str = model.HtmlContent("<div class='column-left'>")
-    HTML_COLUMN_RIGHT_BEGIN: str = model.HtmlContent("<div class='column-right'>")
+    HTML_ROW_BEGIN: HtmlContent = HtmlContent("<div class='row'>")
+    HTML_ROW_END: HtmlContent = HtmlContent("</div>")
+    HTML_COLUMN_BEGIN: HtmlContent = HtmlContent("<div class='column'>")
+    HTML_COLUMN_END: HtmlContent = HtmlContent("</div>")
+    HTML_COLUMN_LEFT_BEGIN: HtmlContent = HtmlContent("<div class='column-left'>")
+    HTML_COLUMN_RIGHT_BEGIN: HtmlContent = HtmlContent("<div class='column-right'>")
     BOOK_NAME_FMT_STR: str = "<h2 style='text-align: center;'>{}</h2>"
     BOOK_FMT_STR: str = "<h2 style='text-align: center;'>Book: {}</h2>"
     BOOK_AS_GROUPER_FMT_STR: str = "<h1>Book: {}</h1>"
@@ -76,20 +77,20 @@ class Settings(BaseSettings):
     CHAPTER_HEADER_FMT_STR: str = '<h2 class="c-num" id="{}-{}-ch-{}">Chapter {}</h2>'
     TRANSLATION_QUESTION_FMT_STR: str = "<h3>Translation question {}:{}</h3>"
     TRANSLATION_ACADEMY_FMT_STR: str = "<h3>Translation academy {}:{}</h3>"
-    UNORDERED_LIST_BEGIN_STR: model.HtmlContent = model.HtmlContent("<ul>")
-    UNORDERED_LIST_END_STR: model.HtmlContent = model.HtmlContent("</ul>")
-    TRANSLATION_WORD_LIST_ITEM_FMT_STR: model.HtmlContent = model.HtmlContent(
+    UNORDERED_LIST_BEGIN_STR: HtmlContent = HtmlContent("<ul>")
+    UNORDERED_LIST_END_STR: HtmlContent = HtmlContent("</ul>")
+    TRANSLATION_WORD_LIST_ITEM_FMT_STR: HtmlContent = HtmlContent(
         '<li><a href="#{}-{}">{}</a></li>'
     )
     TRANSLATION_WORDS_FMT_STR: str = "<h3>Translation words {}:{}</h3>"
     TRANSLATION_WORDS_SECTION_STR: str = "<h2>Translation words</h2>"
-    TRANSLATION_WORD_VERSE_SECTION_HEADER_STR: model.HtmlContent = model.HtmlContent(
+    TRANSLATION_WORD_VERSE_SECTION_HEADER_STR: HtmlContent = HtmlContent(
         "<h4>Uses:</h4>"
     )
     TRANSLATION_WORD_VERSE_REF_ITEM_FMT_STR: str = (
         '<li><a href="#{}-{}-ch-{}-v-{}">{} {}:{}</a></li>'
     )
-    FOOTNOTES_HEADING: model.HtmlContent = model.HtmlContent("<h4>Footnotes</h4>")
+    FOOTNOTES_HEADING: HtmlContent = HtmlContent("<h4>Footnotes</h4>")
     OPENING_H3_FMT_STR: str = "<h3>{}"
     OPENING_H3_WITH_ID_FMT_STR: str = '<h3 id="{}-{}">{}'
     TRANSLATION_WORD_ANCHOR_LINK_FMT_STR: str = "[{}](#{}-{})"
@@ -319,18 +320,7 @@ class Settings(BaseSettings):
     # PDF.
     SUCCESS_MESSAGE: str = "Success! Please retrieve your generated document using a GET REST request to /pdf/{document_request_key} or /epub/{document_request_key} or /docx/{document_request_key} (depending on whether you requested PDF, ePub, or Docx result) where document_request_key is the finished_document_request_key in this payload."
 
-    # BACKEND_CORS_ORIGINS is a JSON-formatted list of origins
-    # e.g: '["http://localhost", "http://localhost:4200",
-    # "http://localhost:8000"]'
-    BACKEND_CORS_ORIGINS: list[AnyHttpUrl] = []
-
-    @validator("BACKEND_CORS_ORIGINS", pre=True)
-    def assemble_cors_origins(cls, v: str | list[str]) -> list[str] | str:
-        if isinstance(v, str) and not v.startswith("["):
-            return [i.strip() for i in v.split(",")]
-        elif isinstance(v, (list, str)):
-            return v
-        raise ValueError("Malformed JSON for BACKEND_CORS_ORIGINS value.")
+    BACKEND_CORS_ORIGINS: list[str]
 
     # Return the file names, excluding suffix, of files that do not
     # contain content but which may be in the same directory or
@@ -361,7 +351,7 @@ class Settings(BaseSettings):
         "bc-wa": "Bible Commentary",
     }
 
-    ID_LANGUAGE_NAME = "Bahasa Indonesian"
+    ID_LANGUAGE_NAME: str = "Bahasa Indonesian"
     ID_RESOURCE_TYPE_MAP: Mapping[str, str] = {
         "ayt": "Bahasa Indonesian Bible (ayt)",
         "tn": "Translation Helps (tn)",
@@ -418,21 +408,29 @@ class Settings(BaseSettings):
 
     # Provided by .env file:
     EMAIL_SEND_SUBJECT: str
-    TO_EMAIL_ADDRESS: str
+    TO_EMAIL_ADDRESS: EmailStr
+
     # Provided by system env vars:
-    FROM_EMAIL_ADDRESS: str
+    FROM_EMAIL_ADDRESS: EmailStr
     SMTP_HOST: str
     SMTP_PORT: int
     SMTP_PASSWORD: str
     SEND_EMAIL: bool
 
-    @validator("SEND_EMAIL")
-    def send_email(cls, v: bool) -> bool:
-        return bool(v)
+    # Used by gunicorn
+    PORT: int
+    # local image tag for local dev with prod image
+    IMAGE_TAG: str
 
-    @validator("SMTP_PORT")
-    def smtp_port(cls, v: int) -> int:
-        return int(v)
+    # @field_validator("SEND_EMAIL", mode="before")
+    # @classmethod
+    # def send_email(cls, v: object) -> bool:
+    #     return bool(v)
+
+    # @field_validator("SMTP_PORT", mode="before")
+    # @classmethod
+    # def smtp_port(cls, v: object) -> int:
+    #     return int(v)
 
     # Example fake user agent value required by domain host to allow serving
     # files. Other values could possibly work. This value definitely
@@ -440,13 +438,12 @@ class Settings(BaseSettings):
     USER_AGENT: str = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11"
 
     # Used in assembly_strategy_utils modeule when zero-filling various strings
-    NUM_ZEROS = 3
+    NUM_ZEROS: int = 3
 
-    # Pydantic uses this inner class convention to configure the
-    # Settings class.
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
+    model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
 
 
-settings: Settings = Settings()
+# mypy with pydantic v2 doesn't understand that defaults will be picked up from .env file as they had been in v1
+settings = Settings()  # type: ignore
+# settings: Settings = Settings.parse_obj({})
+# settings = Settings(_env_file=".env", _env_file_encoding="utf-8")

@@ -36,8 +36,8 @@ def test_random_non_english_document_request(
     """
     data = random_non_english_document_request.dict()
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post("/documents", json=data)
-        assert response.ok
+        response = client.post("/documents", json=data)
+        assert response.status_code == 200
 
 
 @pytest.mark.randomized
@@ -50,8 +50,8 @@ def test_random_english_and_non_english_combo_document_request(
     """
     data = random_english_and_non_english_document_request.dict()
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post("/documents", json=data)
-        assert response.ok
+        response = client.post("/documents", json=data)
+        assert response.status_code == 200
 
 
 @pytest.mark.randomized
@@ -64,5 +64,5 @@ def test_random_two_non_english_languages_combo_document_request(
     """
     data = random_two_non_english_languages_document_request.dict()
     with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response: requests.Response = client.post("/documents", json=data)
-        assert response.ok
+        response = client.post("/documents", json=data)
+        assert response.status_code == 200

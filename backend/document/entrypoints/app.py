@@ -13,7 +13,7 @@ from document.domain import document_generator, exceptions, model, resource_look
 from fastapi import FastAPI, HTTPException, Query, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, ORJSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import AnyHttpUrl
 
 app = FastAPI()
@@ -22,7 +22,7 @@ app = FastAPI()
 logger = settings.logger(__name__)
 
 # CORS configuration to allow frontend to talk to backend
-origins: list[AnyHttpUrl] = settings.BACKEND_CORS_ORIGINS
+origins = settings.BACKEND_CORS_ORIGINS
 
 logger.debug("CORS origins: %s", origins)
 
@@ -38,9 +38,9 @@ app.add_middleware(
 @app.exception_handler(exceptions.InvalidDocumentRequestException)
 def invalid_document_request_exception_handler(
     request: Request, exc: exceptions.InvalidDocumentRequestException
-) -> ORJSONResponse:
+) -> JSONResponse:
     logger.error(f"{request}: {exc}")
-    return ORJSONResponse(
+    return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
         content={
             "message": f"{exc.message}",
@@ -51,11 +51,11 @@ def invalid_document_request_exception_handler(
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(
     request: Request, exc: RequestValidationError
-) -> ORJSONResponse:
+) -> JSONResponse:
     exc_str = f"{exc}".replace("\n", " ").replace("   ", " ")
     logger.error(f"{request}: {exc_str}")
     content = {"status_code": 10422, "message": exc_str, "data": None}
-    return ORJSONResponse(
+    return JSONResponse(
         content=content, status_code=status.HTTP_422_UNPROCESSABLE_ENTITY
     )
 
@@ -64,7 +64,7 @@ async def validation_exception_handler(
 async def generate_document(
     document_request: model.DocumentRequest,
     success_message: str = settings.SUCCESS_MESSAGE,
-) -> ORJSONResponse:
+) -> JSONResponse:
     """
     Get the document request and hand it off to the document_generator
     module for processing. Return model.FinishedDocumentDetails instance
@@ -88,14 +88,14 @@ async def generate_document(
         )
     else:
         logger.debug("task_id: %s", task.id)
-        return ORJSONResponse({"task_id": task.id})
+        return JSONResponse({"task_id": task.id})
 
 
 @app.post("/documents_docx")
 async def generate_docx_document(
     document_request: model.DocumentRequest,
     success_message: str = settings.SUCCESS_MESSAGE,
-) -> ORJSONResponse:
+) -> JSONResponse:
     """
     Get the document request and hand it off to the document_generator
     module for processing. Return model.FinishedDocumentDetails instance
@@ -119,51 +119,35 @@ async def generate_docx_document(
         )
     else:
         logger.debug("task_id: %s", task.id)
-        return ORJSONResponse({"task_id": task.id})
+        return JSONResponse({"task_id": task.id})
 
 
 @app.get("/task_status/{task_id}")
-async def task_status(task_id: str) -> ORJSONResponse:
+async def task_status(task_id: str) -> JSONResponse:
     res: AsyncResult[dict[str, str]] = AsyncResult(task_id)
     if res.state == celery.states.SUCCESS:
-        return ORJSONResponse({"state": celery.states.SUCCESS, "result": res.result})
-    return ORJSONResponse(
+        return JSONResponse({"state": celery.states.SUCCESS, "result": res.result})
+    return JSONResponse(
         {
             "state": res.state,
         }
     )
 
 
-@app.get("/language_codes_and_names_v2")
-async def lang_codes_and_names_v2() -> Sequence[tuple[str, str, bool]]:
-    """
-    Return list of all available language code, name tuples.
-    """
-    return resource_lookup.lang_codes_and_names_v2()
-
-
 @app.get("/language_codes_and_names")
-async def lang_codes_and_names() -> Sequence[tuple[str, str]]:
+async def lang_codes_and_names() -> Sequence[tuple[str, str, bool]]:
     """
     Return list of all available language code, name tuples.
     """
     return resource_lookup.lang_codes_and_names()
 
 
-@app.get("/language_codes_and_names_v1")
-async def lang_codes_and_names_for_v1() -> Sequence[tuple[str, str]]:
-    """
-    Return list of available gateway language code, name tuples.
-    """
-    return resource_lookup.lang_codes_and_names_for_v1()
 
 
 @app.get("/resource_types_and_names_for_lang/{lang_code}")
 async def resource_types_and_names_for_lang(lang_code: str) -> list[tuple[str, str]]:
     """Return list of available resource types and their names for lang_code."""
     return resource_lookup.resource_types_and_names_for_lang(lang_code)
-
-
 
 
 @app.get("/shared_resource_codes/{lang0_code}/{lang1_code}")

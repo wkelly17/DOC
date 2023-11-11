@@ -5,7 +5,7 @@ import os
 import pathlib
 import random
 from collections.abc import Sequence
-from typing import Any, Optional, cast
+from typing import Any, Optional
 
 import pydantic
 import pytest
@@ -120,19 +120,18 @@ def random_resource_code2() -> str:
 
 @pytest.fixture()
 def email_address() -> str:
-    return cast(str, settings.TO_EMAIL_ADDRESS)
+    return str(settings.TO_EMAIL_ADDRESS)
 
 
 @pytest.fixture()
 def assembly_strategy_kind() -> str:
-    return cast(
-        str,
+    return str(
         random.choice(
             [
                 model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
                 model.AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER,
             ]
-        ),
+        )
     )
 
 

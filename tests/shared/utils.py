@@ -4,6 +4,7 @@ import time
 from typing import Literal, Union
 
 import bs4
+import httpx
 import requests
 from document.config import settings
 from document.entrypoints.app import app
@@ -17,7 +18,7 @@ AcceptedSuffixes = Union[
 
 
 def check_result(
-    response: requests.Response,
+    response: httpx._models.Response,
     /,
     suffix: AcceptedSuffixes,
     poll_duration: int = 4,
@@ -47,7 +48,7 @@ def check_result(
                     "finished_document_path: {}".format(finished_document_path)
                 )
                 assert os.path.exists(finished_document_path)
-                assert response2.ok
+                assert response2.status_code == 200
                 break
             elif json_data["state"] == failure_state:
                 logger.info(
@@ -61,7 +62,7 @@ def check_result(
 
 
 def check_finished_document_with_verses_success(
-    response: requests.Response,
+    response: httpx._models.Response,
     suffix: AcceptedSuffixes = "html",
     poll_duration: int = 4,
 ) -> None:
@@ -90,7 +91,7 @@ def check_finished_document_with_verses_success(
 
 
 def check_finished_document_without_verses_success(
-    response: requests.Response,
+    response: httpx._models.Response,
     suffix: AcceptedSuffixes = "html",
     poll_duration: int = 4,
 ) -> None:
@@ -112,7 +113,7 @@ def check_finished_document_without_verses_success(
 
 
 def check_finished_document_with_body_success(
-    response: requests.Response,
+    response: httpx._models.Response,
     suffix: AcceptedSuffixes = "html",
     poll_duration: int = 4,
 ) -> None:
