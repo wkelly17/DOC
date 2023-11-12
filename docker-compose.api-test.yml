@@ -33,11 +33,11 @@ services:
       LOGROCKET_ID: ${LOGROCKET_ID:-ct7zyg/interleaved-resource-generator}
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
       CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/0}
-      FROM_EMAIL_ADDRESS: ${FROM_EMAIL_ADDRESS}
-      SMTP_PASSWORD: ${SMTP_PASSWORD}
-      SMTP_HOST: ${SMTP_HOST}
-      SMTP_PORT: ${SMTP_PORT}
-      SEND_EMAIL: ${SEND_EMAIL}
+      FROM_EMAIL_ADDRESS: ${FROM_EMAIL_ADDRESS:-foo@example.com}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-fakepass}
+      SMTP_HOST: ${SMTP_HOST:-smtp.example.com}
+      SMTP_PORT: ${SMTP_PORT:-111}
+      SEND_EMAIL: ${SEND_EMAIL:-False}
     volumes:
       - shared:/app/document_output
 
