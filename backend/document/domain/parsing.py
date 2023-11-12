@@ -43,7 +43,6 @@ from document.domain.model import (
     USFMChapter,
     VerseRef,
 )
-import orjson
 from document.markdown_extensions import (
     link_print_transformer_preprocessor,
     link_transformer_preprocessor,
