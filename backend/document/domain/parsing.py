@@ -11,6 +11,7 @@ from re import compile, sub
 from typing import Mapping, Optional, Sequence, cast
 
 import markdown
+import orjson
 import yaml
 from bs4 import BeautifulSoup
 from bs4.element import Tag
