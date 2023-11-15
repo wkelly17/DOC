@@ -694,11 +694,10 @@ def send_email_with_attachment(
 def convert_html_to_pdf(
     html_filepath: str,
     pdf_filepath: str,
-    email_address: Optional[str],
     document_request_key: str,
 ) -> None:
     """
-    Generate PDF from HTML, copy it to output directory, possibly send to email_address as attachment.
+    Generate PDF from HTML and copy it to output directory.
     """
     assert exists(html_filepath)
     logger.info("Generating PDF %s...", pdf_filepath)
@@ -710,16 +709,6 @@ def convert_html_to_pdf(
     t1 = time.time()
     logger.debug("Time for converting HTML to PDF: %s", t1 - t0)
     copy_file_to_docker_output_dir(pdf_filepath)
-    if should_send_email(email_address):
-        attachments = [
-            Attachment(filepath=pdf_filepath, mime_type=("application", "pdf"))
-        ]
-        current_task.update_state(state="Sending email")
-        send_email_with_attachment(
-            email_address,
-            attachments,
-            document_request_key,
-        )
 
 
 # HTML to ePub converters:
@@ -729,10 +718,9 @@ def convert_html_to_pdf(
 def convert_html_to_epub(
     html_filepath: str,
     epub_filepath: str,
-    email_address: Optional[str],
     document_request_key: str,
 ) -> None:
-    """Generate ePub from HTML, possibly send to email_address as attachment."""
+    """Generate ePub from HTML and copy it to output directory."""
     assert exists(html_filepath)
     ebook_convert_command = (
         "/calibre-bin/calibre/ebook-convert {} {} --no-default-epub-cover".format(
@@ -745,24 +733,12 @@ def convert_html_to_epub(
     t1 = time.time()
     logger.debug("Time for converting HTML to ePub: %s", t1 - t0)
     copy_file_to_docker_output_dir(epub_filepath)
-    if should_send_email(email_address):
-        attachments = [
-            Attachment(filepath=epub_filepath, mime_type=("application", "epub+zip"))
-        ]
-
-        current_task.update_state(state="Sending email")
-        send_email_with_attachment(
-            email_address,
-            attachments,
-            document_request_key,
-        )
 
 
 def convert_html_to_docx(
     html_filepath: str,
     docx_filepath: str,
     composer: Composer,
-    email_address: Optional[str],
     document_request_key: str,
     resource_requests: Sequence[ResourceRequest],
     layout_for_print: bool,
@@ -772,18 +748,12 @@ def convert_html_to_docx(
     docx_template_path: str = settings.DOCX_TEMPLATE_PATH,
     docx_compact_template_path: str = settings.DOCX_COMPACT_TEMPLATE_PATH,
 ) -> None:
-    """Generate Docx and possibly send to email_address as attachment."""
+    """Generate Docx and copy it to output directory."""
     t0 = time.time()
     # Get data for front page of Docx template.
     title1 = title1
     title2 = title2
     title3 = title3
-
-    # TODO HtmlToDocx relies on CSS style tags in HTML rather than CSS
-    # classes. Because the USFM-Tools parser spits out HTML that references
-    # CSS classes, we could substitute the CSS class definition into a style
-    # tag as a replacement for the class tag. That way HtmlToDocx can pick
-    # up those CSS styles that it knows how to interpret.
 
     # fmt: off
     template_path = docx_compact_template_path if layout_for_print else docx_template_path
@@ -812,22 +782,6 @@ def convert_html_to_docx(
 
     logger.debug("Time for converting HTML to Docx: %s", t1 - t0)
     copy_file_to_docker_output_dir(docx_filepath)
-    if should_send_email(email_address):
-        attachments = [
-            Attachment(
-                filepath=docx_filepath,
-                mime_type=(
-                    "application",
-                    "vnd.openxmlformats-officedocument.wordprocessingml.document",
-                ),
-            )
-        ]
-        current_task.update_state(state="Sending email")
-        send_email_with_attachment(
-            email_address,
-            attachments,
-            document_request_key,
-        )
 
 
 def generate_docx_toc(docx_filepath: str) -> str:
@@ -1116,9 +1070,18 @@ def main(document_request_json: Json[Any]) -> Json[Any]:
         convert_html_to_pdf(
             html_filepath_,
             pdf_filepath_,
-            document_request.email_address,
             document_request_key_,
         )
+        if should_send_email(document_request.email_address):
+            attachments = [
+                Attachment(filepath=pdf_filepath_, mime_type=("application", "pdf"))
+            ]
+            current_task.update_state(state="Sending email")
+            send_email_with_attachment(
+                document_request.email_address,
+                attachments,
+                document_request_key_,
+            )
     else:
         logger.debug("Cache hit for %s", pdf_filepath_)
 
@@ -1129,9 +1092,21 @@ def main(document_request_json: Json[Any]) -> Json[Any]:
         convert_html_to_epub(
             html_filepath_,
             epub_filepath_,
-            document_request.email_address,
             document_request_key_,
         )
+        if should_send_email(document_request.email_address):
+            attachments = [
+                Attachment(
+                    filepath=epub_filepath_, mime_type=("application", "epub+zip")
+                )
+            ]
+
+            current_task.update_state(state="Sending email")
+            send_email_with_attachment(
+                document_request.email_address,
+                attachments,
+                document_request_key_,
+            )
     else:
         logger.debug("Cache hit for %s", epub_filepath_)
 
@@ -1239,13 +1214,28 @@ def alt_main(document_request_json: Json[Any]) -> Json[Any]:
             html_filepath_,
             docx_filepath_,
             composer,
-            document_request.email_address,
             document_request_key_,
             document_request.resource_requests,
             document_request.layout_for_print,
             title1,
             title2,
         )
+        if should_send_email(document_request.email_address):
+            attachments = [
+                Attachment(
+                    filepath=docx_filepath_,
+                    mime_type=(
+                        "application",
+                        "vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    ),
+                )
+            ]
+            current_task.update_state(state="Sending email")
+            send_email_with_attachment(
+                document_request.email_address,
+                attachments,
+                document_request_key_,
+            )
     else:
         logger.debug("Cache hit for %s", docx_filepath_)
 
