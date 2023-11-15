@@ -797,13 +797,12 @@ def generate_docx_toc(docx_filepath: str) -> str:
 
     paragraph = document.add_paragraph()
     run = paragraph.add_run()
-    fldChar = OxmlElement("w:fldChar")  # creates a new element
-    fldChar.set(qn("w:fldCharType"), "begin")  # sets attribute on element
+    fldChar = OxmlElement("w:fldChar")
+    fldChar.set(qn("w:fldCharType"), "begin")
     instrText = OxmlElement("w:instrText")
-    instrText.set(qn("xml:space"), "preserve")  # sets attribute on element
+    instrText.set(qn("xml:space"), "preserve")
     instrText.text = (
-        # r'TOC \o "1-3" \h \z \u'  # change 1-3 depending on heading levels you need
-        r'TOC \o "1-2" \h \z \u'  # change 1-3 depending on heading levels you need
+        r'TOC \o "1-2" \h \z \u'  # change 1-2 depending on heading levels you need
     )
 
     fldChar2 = OxmlElement("w:fldChar")
@@ -908,7 +907,7 @@ def select_assembly_layout_kind(
     # assembly_layout_kind was not yet chosen, but validation tells us
     # that other values of the document request instance are valid, so now
     # we can intelligently choose the right assembly_layout_kind for the
-    # user based on the other values of the document request instance.
+    # user based on the other values in the document request instance.
     if (
         document_request.layout_for_print
         and document_request.assembly_strategy_kind == language_book_order

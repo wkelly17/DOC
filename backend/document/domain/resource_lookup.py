@@ -948,10 +948,6 @@ def resource_types_and_names_for_lang(
      ('zh', ['cuv', 'tn'])]
     >>> [tuple for tuple in sorted_values if len(tuple[1]) == 1]
     [('arb', ['nav']), ('id', ['tn']), ('pmy', ['tn']), ('tpi', ['ulb']), ('ur', ['ulb'])]
-
-
-    Of the GL languages that have only USFM or TN, but not both, do we want to filter them out or just produce the document using just USFM or just TN (whatever is available for that language) since you have specified that the user is not to be allowed to choose resource types in v1 release?
-
     """
     if lang_code == "en":
         return [(key, value) for key, value in english_resource_type_map.items()]
@@ -1064,11 +1060,9 @@ def shared_resource_types(
 
     values = []
     data = fetch_source_data(working_dir, str(translations_json_location))
-    # Get the resource types for lang0
-    # rcfrt = resource_types_for_resource_codes(data, lang_code, resource_codes)
     for item in [lang for lang in data if lang["code"] == lang_code]:
         for resource_type in item["contents"]:
-            # NOTE An issue that may need to be addressed though is that some resources
+            # NOTE An issue that may need to be addressed is that some resources
             # may not provide the full list of resource codes actually available in
             # the translations.json file. In such cases it would be necessary to
             # actually acquire the asset and then look for the manifest file or glob
@@ -1212,10 +1206,9 @@ def resource_lookup_dto(
     >>> dto
     ResourceLookupDto(lang_code='id', lang_name='Bahasa Indonesian', resource_type='tn', resource_type_name='Translation Helps (tn)', resource_code='tit', url='https://content.bibletranslationtools.org/WA-Catalog/id_tn', source=<AssetSourceEnum.GIT: 'git'>, jsonpath=None)
     """
-    # For English, with the exception of tn resource type, translations.json
-    # file only contains URLs to PDF assets rather than anything useful for
-    # our purposes with a few inconsistent exceptions. Therefore, we have
-    # this guard to handle English resource requests separately outside of
+    # For English and Bahasia Indonesian translations.json file doesn't
+    # contain all the information we need. Therefore, we have this guard to
+    # handle English resource requests separately outside of
     # translations.json.
     if lang_code == "en":
         if (
@@ -1232,7 +1225,7 @@ def resource_lookup_dto(
                 url=english_git_repo_url(resource_type),
                 resource_type_name=english_resource_type_name(resource_type),
             )
-        else:  # This would be an invalid English resource type
+        else:
             raise exceptions.InvalidDocumentRequestException(
                 message="{} resource type requested is invalid.".format(resource_type)
             )
@@ -1250,7 +1243,7 @@ def resource_lookup_dto(
                 url=id_git_repo_url(resource_type),
                 resource_type_name=id_resource_type_name(resource_type),
             )
-        else:  # This would be an invalid ID resource type
+        else:
             raise exceptions.InvalidDocumentRequestException(
                 message="{} resource type requested is invalid.".format(resource_type)
             )
