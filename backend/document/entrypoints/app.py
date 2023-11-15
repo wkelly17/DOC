@@ -74,7 +74,9 @@ async def generate_document(
     """
     # Top level exception handler
     try:
-        task = document_generator.main.apply_async(args=(document_request.json(),))
+        task = document_generator.generate_document.apply_async(
+            args=(document_request.json(),)
+        )
     except HTTPException as exc:
         raise exc
     except Exception as exc:  # catch any exceptions we weren't expecting, handlers handle the ones we do expect.
@@ -105,7 +107,9 @@ async def generate_docx_document(
     """
     # Top level exception handler
     try:
-        task = document_generator.alt_main.apply_async(args=(document_request.json(),))
+        task = document_generator.generate_docx_document.apply_async(
+            args=(document_request.json(),)
+        )
     except HTTPException as exc:
         raise exc
     except Exception as exc:  # catch any exceptions we weren't expecting, handlers handle the ones we do expect.
@@ -140,8 +144,6 @@ async def lang_codes_and_names() -> Sequence[tuple[str, str, bool]]:
     Return list of all available language code, name tuples.
     """
     return resource_lookup.lang_codes_and_names()
-
-
 
 
 @app.get("/resource_types_and_names_for_lang/{lang_code}")
@@ -180,8 +182,6 @@ async def shared_resource_types_v2(
     with resource_codes.
     """
     return resource_lookup.shared_resource_types(lang_code, resource_codes)
-
-
 
 
 @app.get("/resource_codes_for_lang/{lang_code}")

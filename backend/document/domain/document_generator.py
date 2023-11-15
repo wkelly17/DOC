@@ -969,7 +969,7 @@ def copy_file_to_docker_output_dir(
     retry_backoff=True,
     retry_kwargs={"max_retries": 3},
 )
-def main(document_request_json: Json[Any]) -> Json[Any]:
+def generate_document(document_request_json: Json[Any]) -> Json[Any]:
     """
     This is the main entry point for this module for non-docx generation.
     """
@@ -1114,7 +1114,7 @@ def main(document_request_json: Json[Any]) -> Json[Any]:
 
 
 @worker.app.task()
-def alt_main(document_request_json: Json[Any]) -> Json[Any]:
+def generate_docx_document(document_request_json: Json[Any]) -> Json[Any]:
     """
     This is the alternative entry point for Docx document creation only.
     """
