@@ -13,3 +13,7 @@
 /docker_document_output/
 /experiments/
 /GPUCache/
+/working/
+tests_output.log
+/logs/
+/build/
