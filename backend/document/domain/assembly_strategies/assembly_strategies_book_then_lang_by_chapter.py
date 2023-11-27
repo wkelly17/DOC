@@ -3,7 +3,6 @@ from typing import Iterable, Mapping, Sequence
 
 from document.config import settings
 from document.domain.assembly_strategies.assembly_strategy_utils import (
-    # partition_verses_content_in_half,
     adjust_book_intro_headings,
     book_intro_commentary,
     chapter_commentary,

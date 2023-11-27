@@ -140,12 +140,6 @@ class Settings(BaseSettings):
     TW_RESOURCE_TYPES: Sequence[str] = ["tw"]
     EN_TW_RESOURCE_TYPES: Sequence[str] = ["tw-wa"]
     BC_RESOURCE_TYPES: Sequence[str] = ["bc-wa"]
-    V1_APPROVED_RESOURCE_TYPES: Sequence[str] = [
-        *EN_USFM_RESOURCE_TYPES,
-        *USFM_RESOURCE_TYPES_MINUS_SECONDARY,
-        *TN_RESOURCE_TYPES,
-        *EN_TN_RESOURCE_TYPES,
-    ]
     # List of language codes for which there is a content issue
     # such that a complete document request cannot
     # be formed. E.g., hu doesn't have any resource types or resource

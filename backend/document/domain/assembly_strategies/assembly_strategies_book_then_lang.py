@@ -3,10 +3,6 @@ Assembly strategies that sort by book then language, otherwise known in the UI a
 """
 
 
-#########################################################################
-# Assembly sub-strategy aka layout implementations for book then
-# language strategy
-
 from itertools import groupby
 from typing import Callable, Iterable, Mapping, Sequence
 

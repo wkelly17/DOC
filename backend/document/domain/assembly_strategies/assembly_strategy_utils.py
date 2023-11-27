@@ -352,65 +352,6 @@ def ensure_primary_usfm_books_for_different_languages_are_adjacent(
         )
 
 
-# NOTE This method works, but often still leaves unbalanced columns. To
-# be more effective, the algorithm would have to work at the intra-verse
-# content level to determine the midpoint to split columnar data. The
-# difficulty with this though is that the data is HTML not simple
-# content. This would mean getting into parsing HTML which in turn means
-# more complexity. Instead we can use an alternative HTML to PDF engine,
-# in our case Weasyprint, that understands CSS columns whereas
-# WKHTMLTOPDF does not. Weasyprint recently got header and footer
-# capability which was the only reason we were not using it before. Also
-# WKHTMLTOPDF has just fallen out of maintenance at the start of 2023 so
-# it is an easy decision. I am retaining this code for now and its
-# commented out invocations in case we need later (for some yet unknown
-# reason). It will likely disappear in a future PR.
-def partition_verses_content_in_half(
-    tn_verses: Sequence[HtmlContent],
-) -> tuple[Sequence[HtmlContent], Sequence[HtmlContent]]:
-    """
-    Return two lists of verses such that they are balanced with
-    respect to the number of words in each.
-
-    >>> from document.domain.model import VerseRef, HtmlContent
-    >>> from document.domain.assembly_strategies import assembly_strategy_utils
-    >>> tn_verses: Sequence[HtmlContent] = ["foo bar batz boink bonk", "blip dip sip drip", "floink dink pink sink wink", "doink moink lemon orange", "oink flip trip crypt", "joink loink", "loink blap dap", "moink slink dink", "wink"]
-    >>> assert len(tn_verses) == 9
-    >>> words_per_verse = [len(content.split()) for content in tn_verses]
-    >>> words_per_verse
-    [5, 4, 5, 4, 4, 2, 3, 3, 1]
-    >>> total_words = sum(words_per_verse)
-    >>> total_words
-    31
-    >>> half_the_words = int(total_words / 2)
-    >>> half_the_words
-    15
-    >>> left_half_tn_verses, right_half_tn_verses = assembly_strategy_utils.partition_verses_content_in_half(tn_verses)
-    >>> assert len(left_half_tn_verses) == 3
-    >>> assert len(right_half_tn_verses) == 6
-    """
-    logger.debug("tn_verses[0]: %s", tn_verses[0])
-    words_per_verse = [len(content.split()) for content in tn_verses]
-    total_words = sum(words_per_verse)
-    half_the_words = int(total_words / 2)
-    running_word_total = 0
-    idx_of_verse_to_stop_at = 0
-    for idx, verse in enumerate(tn_verses):
-        running_word_total += len(verse.split())
-        # logger.debug("running_word_total: %s", running_word_total)
-        if running_word_total <= half_the_words:
-            idx_of_verse_to_stop_at = idx
-            continue
-        else:
-            break
-    # logger.debug("idx_of_verse_to_stop_at: %s", idx_of_verse_to_stop_at)
-    left_half_tn_verses = list(tn_verses)[0 : idx_of_verse_to_stop_at + 1]
-    right_half_tn_verses = list(tn_verses)[idx_of_verse_to_stop_at + 1 :]
-    # logger.debug("left_half_tn_verses: %s", left_half_tn_verses)
-    # logger.debug("right_half_tn_verses: %s", right_half_tn_verses)
-    return left_half_tn_verses, right_half_tn_verses
-
-
 def adjust_chapter_heading(
     chapter_content: list[str],
     h2: str = H2,

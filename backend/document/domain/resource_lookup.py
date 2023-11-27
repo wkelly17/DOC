@@ -171,18 +171,6 @@ def _location(
     url_parsing_fn: Callable[[str], Optional[str]] = const,
 ) -> ResourceLookupDto:
     """Return a model.ResourceLookupDto."""
-    # Many languages have a git repo found by
-    # format='Download' that is parallel to the
-    # individual, per book, USFM files.
-    #
-    # There is at least one language, code='ar', that has only single USFM
-    # files. In that particular language, and others like it, all the
-    # individual USFM files per book can also be found in a zip file,
-    # $[?code='ar'].contents[?code='nav'].links[format='zip'].
-    #
-    # Another, yet different, example is the case of
-    # $[?code="avd"] which has format="usfm" without
-    # having a zip containing USFM files at the same level.
     url: Optional[str] = None
     urls = _lookup(jsonpath_str)
     if urls:

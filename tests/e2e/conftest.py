@@ -356,11 +356,6 @@ def english_document_request(
     english_resource_requests: Sequence[model.ResourceRequest],
 ) -> model.DocumentRequest:
     """Build one English language document request."""
-    # Force values in this case since random combinations can yield an
-    # invalid document request.
-    if layout_for_print:
-        generate_epub = False
-        generate_docx = False
     return model.DocumentRequest(
         email_address=email_address,
         assembly_strategy_kind=assembly_strategy_kind,
@@ -397,11 +392,6 @@ def random_non_english_document_request(
     short of that, to help guide us to implementing the graceful
     raising of exceptions and their handlers for such failures.
     """
-    # Force values in this case since random combinations can yield an
-    # invalid document request.
-    if layout_for_print:
-        generate_epub = False
-        generate_docx = False
     return model.DocumentRequest(
         email_address=email_address,
         assembly_strategy_kind=assembly_strategy_kind,
@@ -484,11 +474,6 @@ def random_english_and_non_english_document_request(
     short of that, to help guide us to implementing the graceful
     raising of exceptions and their handlers for such failures.
     """
-    # Force values in this case since random combinations can yield an
-    # invalid document request.
-    if layout_for_print:
-        generate_epub = False
-        generate_docx = False
     return model.DocumentRequest(
         email_address=email_address,
         assembly_strategy_kind=assembly_strategy_kind,
@@ -520,11 +505,6 @@ def random_two_non_english_languages_document_request(
     Build two non-English language document requests. Each
     language has its own randomly chosen set of resource requests.
     """
-    # Force values in this case since random combinations can yield an
-    # invalid document request.
-    if layout_for_print:
-        generate_epub = False
-        generate_docx = False
     return model.DocumentRequest(
         email_address=email_address,
         assembly_strategy_kind=assembly_strategy_kind,
