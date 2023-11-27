@@ -153,7 +153,7 @@ class Settings(BaseSettings):
         "fa",
         "hr",
         "hu",
-        # "id",  # Currently doesn't provide USFM, but might soon
+        # "id",  # Was on this list because of licensing issues
         "kbt",
         "kip",
         "lus",
