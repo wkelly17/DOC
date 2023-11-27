@@ -81,11 +81,11 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
         source = self.transform_tn_markdown_links(source)
         # NOTE Haven't decided yet if we should use this next method or instead
         # have human translators use more explicit scripture reference that
-        # includes the resource_code, e.g., col, rather than leave it out. If
-        # they did provide the resource_code then this case would be picked up
+        # includes the book_code, e.g., col, rather than leave it out. If
+        # they did provide the book_code then this case would be picked up
         # by self.transform_tn_markdown_links.
-        source = self.transform_tn_missing_resource_code_markdown_links(source)
-        source = self.transform_tn_missing_resource_code_markdown_links_no_paren(source)
+        source = self.transform_tn_missing_book_code_markdown_links(source)
+        source = self.transform_tn_missing_book_code_markdown_links_no_paren(source)
         source = self.transform_tn_obs_markdown_links(source)
         return source.split("\n")
 
@@ -380,20 +380,20 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
         for match in finditer(TN_MARKDOWN_SCRIPTURE_LINK_RE, source):
             scripture_ref = match.group("scripture_ref")
             lang_code = match.group("lang_code")
-            resource_code = match.group("resource_code")
+            book_code = match.group("book_code")
             chapter_num = match.group("chapter_num")
             verse_ref = match.group("verse_ref")
 
             # NOTE(id:check_for_resource_request) To bother getting the TN resource
             # asset file referenced in the matched link we must know that said TN
-            # resource identified by the lang_code/resource_type/resource_code combo
+            # resource identified by the lang_code/resource_type/book_code combo
             # in the link has been requested by the user in the DocumentRequest.
             tn_resource_requests = [
                 resource_request
                 for resource_request in self._resource_requests
                 if resource_request.lang_code == lang_code
                 and tn in resource_request.resource_type
-                and resource_request.resource_code == resource_code
+                and resource_request.book_code == book_code
             ]
             if tn_resource_requests:
                 tn_resource_request = tn_resource_requests[0]
@@ -410,7 +410,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                         working_dir,
                         first_resource_path_segment,
                         second_resource_path_segment,
-                        resource_code,
+                        book_code,
                         chapter_num,
                         verse_ref,
                     )
@@ -420,7 +420,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                     new_link = settings.TRANSLATION_NOTE_ANCHOR_LINK_FMT_STR.format(
                         scripture_ref,
                         tn_resource_request.lang_code,
-                        BOOK_NUMBERS[tn_resource_request.resource_code].zfill(3),
+                        BOOK_NUMBERS[tn_resource_request.book_code].zfill(3),
                         chapter_num.zfill(3),
                         verse_ref.zfill(3),
                     )
@@ -454,7 +454,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
         lang_code = self._lang_code
         for match in finditer(TN_MARKDOWN_RELATIVE_SCRIPTURE_LINK_RE, source):
             scripture_ref = match.group("scripture_ref")
-            resource_code = match.group("resource_code")
+            book_code = match.group("book_code")
             chapter_num = match.group("chapter_num")
             verse_ref = match.group("verse_ref")
 
@@ -464,7 +464,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 for resource_request in self._resource_requests
                 if resource_request.lang_code == lang_code
                 and tn in resource_request.resource_type
-                and resource_request.resource_code == resource_code
+                and resource_request.book_code == book_code
             ]
             if matching_resource_requests:
                 matching_resource_request = matching_resource_requests[0]
@@ -481,7 +481,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                         working_dir,
                         first_resource_path_segment,
                         second_resource_path_segment,
-                        resource_code,
+                        book_code,
                         chapter_num,
                         verse_ref,
                     )
@@ -491,7 +491,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                     new_link = settings.TRANSLATION_NOTE_ANCHOR_LINK_FMT_STR.format(
                         scripture_ref,
                         self._lang_code,
-                        BOOK_NUMBERS[resource_code].zfill(3),
+                        BOOK_NUMBERS[book_code].zfill(3),
                         chapter_num.zfill(3),
                         verse_ref.zfill(3),
                     )
@@ -515,7 +515,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
 
         return source
 
-    def transform_tn_missing_resource_code_markdown_links(
+    def transform_tn_missing_book_code_markdown_links(
         self,
         source: str,
         tn: str = "tn",
@@ -543,10 +543,10 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 if resource_request.lang_code == lang_code
                 and tn in resource_request.resource_type
             ]
-            resource_code = ""
+            book_code = ""
             if matching_resource_requests:
                 matching_resource_request = matching_resource_requests[0]
-                resource_code = matching_resource_request.resource_code
+                book_code = matching_resource_request.book_code
                 # Build a file path to the TN note being requested.
                 first_resource_path_segment = "{}_{}".format(
                     matching_resource_request.lang_code,
@@ -560,7 +560,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                         working_dir,
                         first_resource_path_segment,
                         second_resource_path_segment,
-                        resource_code,
+                        book_code,
                         chapter_num,
                         verse_ref,
                     )
@@ -570,7 +570,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                     new_link = settings.TRANSLATION_NOTE_ANCHOR_LINK_FMT_STR.format(
                         scripture_ref,
                         lang_code,
-                        BOOK_NUMBERS[resource_code].zfill(3),
+                        BOOK_NUMBERS[book_code].zfill(3),
                         chapter_num.zfill(3),
                         verse_ref.zfill(3),
                     )
@@ -594,7 +594,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
 
         return source
 
-    def transform_tn_missing_resource_code_markdown_links_no_paren(
+    def transform_tn_missing_book_code_markdown_links_no_paren(
         self,
         source: str,
         # tn: str = "tn",
@@ -620,10 +620,10 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
             #     if resource_request.lang_code == lang_code
             #     and tn in resource_request.resource_type
             # ]
-            # resource_code = ""
+            # book_code = ""
             # if matching_resource_requests:
             #     matching_resource_request = matching_resource_requests[0]
-            #     resource_code = matching_resource_request.resource_code
+            #     book_code = matching_resource_request.book_code
             #     # Build a file path to the TN note being requested.
             #     first_resource_path_segment = "{}_{}".format(
             #         matching_resource_request.lang_code,
@@ -637,7 +637,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
             #             working_dir,
             #             first_resource_path_segment,
             #             second_resource_path_segment,
-            #             resource_code,
+            #             book_code,
             #             chapter_num,
             #             verse_ref,
             #         )
@@ -647,7 +647,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
             #         new_link = settings.TRANSLATION_NOTE_ANCHOR_LINK_FMT_STR.format(
             #             scripture_ref,
             #             lang_code,
-            #             BOOK_NUMBERS[resource_code].zfill(3),
+            #             BOOK_NUMBERS[book_code].zfill(3),
             #             chapter_num.zfill(3),
             #             verse_ref.zfill(3),
             #         )

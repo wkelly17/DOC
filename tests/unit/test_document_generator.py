@@ -77,7 +77,7 @@ def test_document_request_key_too_long_for_semantic_result() -> None:
         model.ResourceRequest(
             lang_code=component[0],
             resource_type=component[1],
-            resource_code=component[2],
+            book_code=component[2],
         )
         for component in components
     ]

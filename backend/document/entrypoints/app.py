@@ -152,24 +152,24 @@ async def resource_types_and_names_for_lang(lang_code: str) -> list[tuple[str, s
     return resource_lookup.resource_types_and_names_for_lang(lang_code)
 
 
-@app.get("/shared_resource_codes/{lang0_code}/{lang1_code}")
-async def shared_resource_codes(lang0_code: str, lang1_code: str) -> Sequence[Any]:
+@app.get("/shared_book_codes/{lang0_code}/{lang1_code}")
+async def shared_book_codes(lang0_code: str, lang1_code: str) -> Sequence[Any]:
     """
     Return list of available resource codes common to both lang0_code and lang1_code.
     """
-    return resource_lookup.shared_resource_codes(lang0_code, lang1_code)
+    return resource_lookup.shared_book_codes(lang0_code, lang1_code)
 
 
 @app.get("/resource_types/{lang_code}/")
 async def shared_resource_types(
     lang_code: str,
-    resource_codes: Sequence[str] = Query(default=None),
+    book_codes: Sequence[str] = Query(default=None),
 ) -> Iterable[tuple[str, str]]:
     """
     Return the list of available resource types tuples for lang_code
-    with resource_codes.
+    with book_codes.
     """
-    return resource_lookup.shared_resource_types(lang_code, resource_codes)
+    return resource_lookup.shared_resource_types(lang_code, book_codes)
 
 
 @app.get("/resource_types_v2/{lang_code}/")
@@ -184,10 +184,10 @@ async def shared_resource_types_v2(
     return resource_lookup.shared_resource_types(lang_code, resource_codes)
 
 
-@app.get("/resource_codes_for_lang/{lang_code}")
-async def resource_codes_for_lang(lang_code: str) -> Sequence[tuple[str, str]]:
+@app.get("/book_codes_for_lang/{lang_code}")
+async def book_codes_for_lang(lang_code: str) -> Sequence[tuple[str, str]]:
     """Return list of all available resource codes."""
-    return resource_lookup.resource_codes_for_lang(lang_code)
+    return resource_lookup.book_codes_for_lang(lang_code)
 
 
 @app.get("/health/status")

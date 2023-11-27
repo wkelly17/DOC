@@ -13,7 +13,7 @@ from document.config import settings
 from document.domain.assembly_strategies.assembly_strategy_utils import (
     bc_book_content_unit,
     book_content_unit_lang_name,
-    book_content_unit_resource_code,
+    book_content_unit_book_code,
     first_usfm_book_content_unit,
     second_usfm_book_content_unit,
     tn_book_content_unit,
@@ -76,11 +76,11 @@ def assemble_content_by_lang_then_book(
         # Sort the books in canonical order for groupby's sake.
         book_content_units_sorted_by_book = sorted(
             group_by_lang,
-            key=lambda book_content_unit: book_id_map[book_content_unit.resource_code],
+            key=lambda book_content_unit: book_id_map[book_content_unit.book_code],
         )
         for book, book_content_units_grouped_by_book in groupby(
             book_content_units_sorted_by_book,
-            book_content_unit_resource_code,
+            book_content_unit_book_code,
         ):
             # Save grouper generator values in list since it will get exhausted
             # when first used and exhausted generators cannot be reused.

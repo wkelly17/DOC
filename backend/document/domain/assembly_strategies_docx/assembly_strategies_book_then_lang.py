@@ -7,7 +7,7 @@ from typing import Callable, Iterable, Mapping, Sequence
 
 from document.config import settings
 from document.domain.assembly_strategies.assembly_strategy_utils import (
-    book_content_unit_resource_code,
+    book_content_unit_book_code,
 )
 
 from document.domain.assembly_strategies_docx.assembly_strategies_book_then_lang_by_chapter import (
@@ -53,11 +53,11 @@ def assemble_content_by_book_then_lang(
     book_id_map = dict((id, pos) for pos, id in enumerate(BOOK_NAMES.keys()))
     book_content_units_sorted_by_book = sorted(
         book_content_units,
-        key=lambda book_content_unit: book_id_map[book_content_unit.resource_code],
+        key=lambda book_content_unit: book_id_map[book_content_unit.book_code],
     )
     for book, group_by_book in groupby(
         book_content_units_sorted_by_book,
-        book_content_unit_resource_code,
+        book_content_unit_book_code,
     ):
         # Save grouper generator values in list since it will get exhausted
         # when used and exhausted generators cannot be reused.

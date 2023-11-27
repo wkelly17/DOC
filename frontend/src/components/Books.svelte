@@ -12,43 +12,43 @@
   import Modal from './Modal.svelte'
   import WizardBasketModal from './WizardBasketModal.svelte'
 
-  async function getSharedResourceCodesAndNames(
+  async function getSharedBookCodesAndNames(
     lang0Code: string,
     lang1Code: string,
     apiRootUrl = getApiRootUrl(),
-    sharedResourceCodesUrl = <string>import.meta.env.VITE_SHARED_RESOURCE_CODES_URL
+    sharedBookCodesUrl = <string>import.meta.env.VITE_SHARED_BOOK_CODES_URL
   ): Promise<Array<[string, string]>> {
     const response = await fetch(
-      `${apiRootUrl}${sharedResourceCodesUrl}${lang0Code}/${lang1Code}`
+      `${apiRootUrl}${sharedBookCodesUrl}${lang0Code}/${lang1Code}`
     )
-    const sharedResourceCodes: Array<[string, string]> = await response.json()
+    const sharedBookCodes: Array<[string, string]> = await response.json()
     if (!response.ok) throw new Error(response.statusText)
-    return sharedResourceCodes
+    return sharedBookCodes
   }
 
-  async function getResourceCodesAndNames(
+  async function getBookCodesAndNames(
     langCode: string,
     apiRootUrl = getApiRootUrl(),
-    resourceCodesUrl = <string>import.meta.env.VITE_RESOURCE_CODES_URL
+    bookCodesUrl = <string>import.meta.env.VITE_BOOK_CODES_URL
   ): Promise<Array<[string, string]>> {
-    const response = await fetch(`${apiRootUrl}${resourceCodesUrl}${langCode}`)
-    const resourceCodesAndNames: Array<[string, string]> = await response.json()
+    const response = await fetch(`${apiRootUrl}${bookCodesUrl}${langCode}`)
+    const bookCodesAndNames: Array<[string, string]> = await response.json()
     if (!response.ok) {
       console.error(response.statusText)
       throw new Error(response.statusText)
     }
-    return resourceCodesAndNames
+    return bookCodesAndNames
   }
 
   // Resolve promise for data reactively
-  let otResourceCodes: Array<string>
-  let ntResourceCodes: Array<string>
+  let otBookCodes: Array<string>
+  let ntBookCodes: Array<string>
   if ($langCountStore > 1) {
-    getSharedResourceCodesAndNames($langCodesStore[0], $langCodesStore[1])
-      .then(resourceCodesAndNames => {
+    getSharedBookCodesAndNames($langCodesStore[0], $langCodesStore[1])
+      .then(bookCodesAndNames => {
         // Filter set of all resource codes into old testament
         // resource codes.
-        otResourceCodes = resourceCodesAndNames
+        otBookCodes = bookCodesAndNames
           .filter((element: [string, string]) => {
             return otBooks.some(item => item === element[0])
           })
@@ -57,39 +57,38 @@
         // If otBookStore has contents, then assume we are coming
         // back here from the user clicking to edit their book
         // selections in the wizard basket, so we want to eliminate
-        // any otBookStore elements that are not in otResourceCodes.
+        // any otBookStore elements that are not in otBookCodes.
         if ($otBookStore.length > 0) {
           $otBookStore = $otBookStore.filter(item => {
-            return otResourceCodes.some(element => element === item)
+            return otBookCodes.some(element => element === item)
           })
         }
 
         // Filter set of all resource codes into new testament
         // resource codes.
-        ntResourceCodes = resourceCodesAndNames
+        ntBookCodes = bookCodesAndNames
           .filter((element: [string, string]) => {
             return !otBooks.some(item => item === element[0])
           })
           .map(tuple => `${tuple[0]}, ${tuple[1]}`)
 
-
         // If ntBookStore has contents, then assume we are coming
         // back here from the user clicking to edit their book
         // selections in the wizard basket, so we want to eliminate
-        // any ntBookStore elements that are not in ntResourceCodes.
+        // any ntBookStore elements that are not in ntBookCodes.
         if ($ntBookStore.length > 0) {
           $ntBookStore = $ntBookStore.filter(item => {
-            return ntResourceCodes.some(element => element === item)
+            return ntBookCodes.some(element => element === item)
           })
         }
       })
       .catch(err => console.error(err))
   } else {
-    getResourceCodesAndNames($langCodesStore[0])
-      .then(resourceCodesAndNames => {
+    getBookCodesAndNames($langCodesStore[0])
+      .then(bookCodesAndNames => {
         // Filter set of all resource codes into old testament
         // resource codes.
-        otResourceCodes = resourceCodesAndNames
+        otBookCodes = bookCodesAndNames
           .filter((element: [string, string]) => {
             return otBooks.some(item => item === element[0])
           })
@@ -98,16 +97,16 @@
         // If otBookStore has contents, then assume we are coming
         // back here from the user clicking to edit their book
         // selections in the wizard basket, so we want to eliminate
-        // any otBookStore elements that are not in otResourceCodes.
+        // any otBookStore elements that are not in otBookCodes.
         if ($otBookStore.length > 0) {
           $otBookStore = $otBookStore.filter(item => {
-            return otResourceCodes.some(element => element === item)
+            return otBookCodes.some(element => element === item)
           })
         }
 
         // Filter set of all resource codes into new testament
         // resource codes.
-        ntResourceCodes = resourceCodesAndNames
+        ntBookCodes = bookCodesAndNames
           .filter((element: [string, string]) => {
             return !otBooks.some(item => item === element[0])
           })
@@ -116,28 +115,27 @@
         // If ntBookStore has contents, then assume we are coming
         // back here from the user clicking to edit their book
         // selections in the wizard basket, so we want to eliminate
-        // any ntBookStore elements that are not in ntResourceCodes.
+        // any ntBookStore elements that are not in ntBookCodes.
         if ($ntBookStore.length > 0) {
           $ntBookStore = $ntBookStore.filter(item => {
-            return ntResourceCodes.some(element => element === item)
+            return ntBookCodes.some(element => element === item)
           })
         }
       })
       .catch(err => console.error(err))
   }
 
-
-  function selectAllOtResourceCodes(event: Event) {
+  function selectAllOtBookCodes(event: Event) {
     if ((<HTMLInputElement>event.target).checked) {
-      $otBookStore = otResourceCodes
+      $otBookStore = otBookCodes
     } else {
       $otBookStore = []
     }
   }
 
-  function selectAllNtResourceCodes(event: Event) {
+  function selectAllNtBookCodes(event: Event) {
     if ((<HTMLInputElement>event.target).checked) {
-      $ntBookStore = ntResourceCodes
+      $ntBookStore = ntBookCodes
     } else {
       $ntBookStore = []
     }
@@ -164,19 +162,19 @@
   }
 
   let otSearchTerm = ''
-  let filteredOtResourceCodes: Array<string> = []
+  let filteredOtBookCodes: Array<string> = []
   $: {
-    if (otResourceCodes) {
-      filteredOtResourceCodes = otResourceCodes.filter(item =>
+    if (otBookCodes) {
+      filteredOtBookCodes = otBookCodes.filter(item =>
         getName(item).toLowerCase().includes(otSearchTerm.toLowerCase())
       )
     }
   }
   let ntSearchTerm = ''
-  let filteredNtResourceCodes: Array<string> = []
+  let filteredNtBookCodes: Array<string> = []
   $: {
-    if (ntResourceCodes) {
-      filteredNtResourceCodes = ntResourceCodes.filter(item =>
+    if (ntBookCodes) {
+      filteredNtBookCodes = ntBookCodes.filter(item =>
         getName(item).toLowerCase().includes(ntSearchTerm.toLowerCase())
       )
     }
@@ -213,7 +211,7 @@
 
     <!-- search and buttons -->
     <div class="flex items-center px-2 py-2 mt-2 bg-white">
-      {#if !otResourceCodes || !ntResourceCodes}
+      {#if !otBookCodes || !ntBookCodes}
         <div class="ml-4">
           <ProgressIndicator />
         </div>
@@ -408,66 +406,74 @@
       <!-- main content -->
       <main class="flex-1 overflow-y-auto p-4">
         {#if showOldTestament}
-          {#if otResourceCodes?.length > 0}
+          {#if otBookCodes?.length > 0}
             <div class="flex items-center">
               <input
                 id="select-all-old-testament"
                 type="checkbox"
                 class="checkbox checkbox-dark-bordered"
-                on:change={event => selectAllOtResourceCodes(event)}
+                on:change={event => selectAllOtBookCodes(event)}
               />
               <label for="select-all-old-testament"
                     class="text-secondary-content pl-1"
                     >Select all</label>
             </div>
           {/if}
-          {#if otResourceCodes?.length > 0}
-            {#each otResourceCodes as resourceCodeAndName, index}
-              <div style={filteredOtResourceCodes.includes(resourceCodeAndName) ? '' : 'display: none'}
-                   class="flex items-center"
-                   >
+          {#if otBookCodes?.length > 0}
+            {#each otBookCodes as bookCodeAndName, index}
+              <div
+                style={filteredOtBookCodes.includes(bookCodeAndName)
+                  ? ''
+                  : 'display: none'}
+                class="flex items-center"
+              >
                 <input
                   id="lang-resourcecode-ot-{index}"
                   type="checkbox"
                   bind:group={$otBookStore}
-                  value={resourceCodeAndName}
+                  value={bookCodeAndName}
                   class="checkbox checkbox-dark-bordered"
-                  />
-                <label for="lang-resourcecode-ot-{index}"
-                       class="text-secondary-content pl-1"
-                       >{getName(resourceCodeAndName)}</label>
+                />
+                <label
+                  for="lang-resourcecode-ot-{index}"
+                  class="text-secondary-content pl-1">{getName(bookCodeAndName)}</label
+                >
               </div>
             {/each}
           {/if}
         {:else}
-          {#if ntResourceCodes?.length > 0}
+          {#if ntBookCodes?.length > 0}
             <div class="flex items-center">
               <input
                 id="select-all-new-testament"
                 type="checkbox"
                 class="checkbox checkbox-dark-bordered"
-                on:change={event => selectAllNtResourceCodes(event)}
+                on:change={event => selectAllNtBookCodes(event)}
               />
               <label for="select-all-new-testament"
                     class="text-secondary-content pl-1"
                     >Select all</label>
             </div>
           {/if}
-          {#if ntResourceCodes?.length > 0}
-            {#each ntResourceCodes as resourceCodeAndName, index}
-              <div style={filteredNtResourceCodes.includes(resourceCodeAndName) ? '' : 'display: none'}
-                   class="flex items-center"
-                   >
+          {#if ntBookCodes?.length > 0}
+            {#each ntBookCodes as bookCodeAndName, index}
+              <div
+                style={filteredNtBookCodes.includes(bookCodeAndName)
+                  ? ''
+                  : 'display: none'}
+                class="flex items-center"
+              >
                 <input
-                  id="lang-resourcecode-nt-{index}"
+                  id="lang-bookcode-nt-{index}"
                   type="checkbox"
                   bind:group={$ntBookStore}
-                  value={resourceCodeAndName}
+                  value={bookCodeAndName}
                   class="checkbox checkbox-dark-bordered"
                   />
-                <label for="lang-resourcecode-nt-{index}"
-                       class="text-secondary-content pl-1"
-                       >{getName(resourceCodeAndName)}</label>
+                />
+                <label for="lang-bookcode-nt-{index}" class="text-secondary-content pl-1"
+                  >{getName(bookCodeAndName)}</label
+                >
               </div>
             {/each}
           {/if}

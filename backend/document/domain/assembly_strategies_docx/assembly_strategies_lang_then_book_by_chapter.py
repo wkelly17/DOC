@@ -90,7 +90,7 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
         subdoc = create_docx_subdoc(
             "".join(
                 book_name_fmt_str.format(
-                    book_names[usfm_book_content_unit.resource_code]
+                    book_names[usfm_book_content_unit.book_code]
                 )
             ),
             usfm_book_content_unit.lang_code,
@@ -260,7 +260,7 @@ def assemble_tn_as_iterator_by_chapter_for_lang_then_book_1c(
             one_column_html.append(
                 chapter_header_fmt_str.format(
                     tn_book_content_unit.lang_code,
-                    book_number(tn_book_content_unit.resource_code),
+                    book_number(tn_book_content_unit.book_code),
                     str(chapter_num).zfill(num_zeros),
                     chapter_num,
                 )
@@ -363,7 +363,7 @@ def assemble_tq_tw_for_by_chapter_lang_then_book_1c(
             subdoc = create_docx_subdoc(
                 chapter_header_fmt_str.format(
                     tq_book_content_unit.lang_code,
-                    book_number(tq_book_content_unit.resource_code),
+                    book_number(tq_book_content_unit.book_code),
                     str(chapter_num).zfill(num_zeros),
                     chapter_num,
                 ),

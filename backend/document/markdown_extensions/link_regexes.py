@@ -109,7 +109,7 @@ TA_MARKDOWN_HTTPS_LINK_RE = re.compile(
 # ../../../working/temp/en_tw-wa/en_tw/bible/kt/kingofthejews.md.
 # NOTE See id:regex_transformation_order above
 TN_MARKDOWN_SCRIPTURE_LINK_RE = re.compile(
-    r"\[(?P<scripture_ref>.+?)\]\(rc:\/\/(?P<lang_code>.+?)\/tn\/help\/(?P<resource_code>(?!obs).+?)\/(?P<chapter_num>\d+?)\/(?P<verse_ref>.+?)\)"
+    r"\[(?P<scripture_ref>.+?)\]\(rc:\/\/(?P<lang_code>.+?)\/tn\/help\/(?P<book_code>(?!obs).+?)\/(?P<chapter_num>\d+?)\/(?P<verse_ref>.+?)\)"
 )
 
 MARKDOWN_LINK_RE = re.compile(r"(?<!\\)\[(?P<link_text>.+?)\]\((?P<url>.+?)\)")
@@ -123,7 +123,7 @@ WIKI_LINK_RE = re.compile(r"\[\[(?P<url>[^\]]+)\]\]")
 #
 # NOTE See id:regex_transformation_order above
 TN_MARKDOWN_RELATIVE_SCRIPTURE_LINK_RE = re.compile(
-    r"\(\[(?P<scripture_ref>.+?)\]\((\.\.\/)+(?P<resource_code>\w+?)\/(?P<chapter_num>\d+?)\/(?P<verse_ref>.+?).md\)\)"
+    r"\(\[(?P<scripture_ref>.+?)\]\((\.\.\/)+(?P<book_code>\w+?)\/(?P<chapter_num>\d+?)\/(?P<verse_ref>.+?).md\)\)"
 )
 
 # ([Matthew 1:11](../01/11.md))
@@ -143,7 +143,7 @@ TN_MARKDOWN_RELATIVE_TO_CURRENT_CHAPTER_SCRIPTURE_LINK_RE_NO_PARENS = re.compile
 
 # [James 2:13](../../jas/02/13.md)
 TN_MARKDOWN_RELATIVE_SCRIPTURE_LINK_RE_NO_PARENS = re.compile(
-    r"\[(?P<scripture_ref>.+?)\]\((\.\.\/)+(?P<resource_code>\w+?)\/(?P<chapter_num>\d+?)\/(?P<verse_ref>.+?).md\)"
+    r"\[(?P<scripture_ref>.+?)\]\((\.\.\/)+(?P<book_code>\w+?)\/(?P<chapter_num>\d+?)\/(?P<verse_ref>.+?).md\)"
 )
 
 # TN_MARKDOWN_RELATIVE_TO_CURRENT_CHAPTER_SCRIPTURE_LINK_RE = r"\(\[(?P<scripture_ref>.+?)\]\((?:\.\.\/)+(?P<chapter_num>\d+?)\/(?P<verse_ref>.+?).md\)\)"

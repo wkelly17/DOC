@@ -58,7 +58,7 @@ def tw_resource_dir(lang_code: str) -> Optional[str]:
     Return the location of the TW resource asset directory given the
     lang_code of the language under consideration. The location is
     based on an established convention for the directory structure to
-    be consistent across lang_code, resource_type, and resource_code
+    be consistent across lang_code, resource_type, and book_code
     combinations.
     """
     # This is a bit hacky to "know" how to derive the actual directory path

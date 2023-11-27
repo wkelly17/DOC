@@ -32,17 +32,17 @@ def book_content_unit_lang_name(book_content_unit: BookContent) -> str:
     return book_content_unit.lang_name
 
 
-def book_content_unit_resource_code(book_content_unit: BookContent) -> str:
+def book_content_unit_book_code(book_content_unit: BookContent) -> str:
     """Sort key that replaces a slow lambda"""
-    return book_content_unit.resource_code
+    return book_content_unit.book_code
 
 
 def book_number(
-    resource_code: str,
+    book_code: str,
     book_numbers: Mapping[str, str] = BOOK_NUMBERS,
     num_zeros: int = settings.NUM_ZEROS,
 ) -> str:
-    return book_numbers[resource_code].zfill(num_zeros)
+    return book_numbers[book_code].zfill(num_zeros)
 
 
 def first_usfm_book_content_unit(
@@ -264,8 +264,8 @@ def translation_word_links(
         if search(r"\b{}\b".format(escape(name_content_pair.localized_word)), verse):
             use = TWUse(
                 lang_code=book_content_unit.lang_code,
-                book_id=book_content_unit.resource_code,
-                book_name=book_names[book_content_unit.resource_code],
+                book_id=book_content_unit.book_code,
+                book_name=book_names[book_content_unit.book_code],
                 chapter_num=chapter_num,
                 verse_num=verse_num,
                 localized_word=name_content_pair.localized_word,

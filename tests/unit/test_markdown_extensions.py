@@ -101,7 +101,7 @@ def test_translation_word_link_alt_preprocessor(datafiles: list[str]) -> None:
     expected = """<h2>Translation Suggestions:</h2>\n<ul>\n<li>It is important to translate the terms "apostle" and "disciple" in different ways.</li>\n</ul>\n<p>, )</p>"""
     resource_requests = [
         model.ResourceRequest(
-            lang_code="en", resource_type="ulb-wa", resource_code="gen"
+            lang_code="en", resource_type="ulb-wa", book_code="gen"
         )
     ]
     translation_words_dict = tw_utils.translation_words_dict(tw_resource_dir)
@@ -137,7 +137,7 @@ def test_translation_word_link_alt_gu_preprocessor(datafiles: list[str]) -> None
     )
     resource_requests = [
         model.ResourceRequest(
-            lang_code="en", resource_type="ulb-wa", resource_code="gen"
+            lang_code="en", resource_type="ulb-wa", book_code="gen"
         )
     ]
     translation_words_dict = tw_utils.translation_words_dict(tw_resource_dir)
@@ -178,7 +178,7 @@ def test_translation_note_link_gu_preprocessor(datafiles: list[str]) -> None:
 
     resource_requests = [
         model.ResourceRequest(
-            lang_code="en", resource_type="ulb-wa", resource_code="gen"
+            lang_code="en", resource_type="ulb-wa", book_code="gen"
         )
     ]
     translation_words_dict = tw_utils.translation_words_dict(tw_resource_dir)

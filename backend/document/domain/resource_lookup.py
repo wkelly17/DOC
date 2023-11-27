@@ -16,7 +16,6 @@ from typing import Any, Callable, Iterable, Mapping, Optional, Sequence
 from urllib import parse as urllib_parse
 from urllib.request import urlopen
 
-import git
 import jsonpath_rw_ext as jp  # type: ignore
 from pydantic import HttpUrl
 from document.config import settings
@@ -115,7 +114,7 @@ def _parse_repo_url(
 def _english_git_repo_location(
     lang_code: str,
     resource_type: str,
-    resource_code: str,
+    book_code: str,
     url: str,
     resource_type_name: str,
     asset_source_enum_kind: AssetSourceEnum = AssetSourceEnum.GIT,
@@ -124,7 +123,7 @@ def _english_git_repo_location(
     return ResourceLookupDto(
         lang_code=lang_code,
         resource_type=resource_type,
-        resource_code=resource_code,
+        book_code=book_code,
         url=url,
         source=asset_source_enum_kind,
         jsonpath=None,
@@ -136,7 +135,7 @@ def _english_git_repo_location(
 def _id_git_repo_location(
     lang_code: str,
     resource_type: str,
-    resource_code: str,
+    book_code: str,
     url: str,
     resource_type_name: str,
     asset_source_enum_kind: AssetSourceEnum = AssetSourceEnum.GIT,
@@ -146,7 +145,7 @@ def _id_git_repo_location(
     return ResourceLookupDto(
         lang_code=lang_code,
         resource_type=resource_type,
-        resource_code=resource_code,
+        book_code=book_code,
         url=url,
         source=asset_source_enum_kind,
         jsonpath=None,
@@ -163,7 +162,7 @@ def const(url: str) -> Optional[str]:
 def _location(
     lang_code: str,
     resource_type: str,
-    resource_code: str,
+    book_code: str,
     jsonpath_str: str,
     lang_name_jsonpath_str: str,
     resource_type_name_jsonpath_str: str,
@@ -190,7 +189,7 @@ def _location(
         lang_name=lang_name,
         resource_type=resource_type,
         resource_type_name=resource_type_name,
-        resource_code=resource_code,
+        book_code=book_code,
         url=url,
         source=asset_source_enum_kind,
         jsonpath=jsonpath_str,
@@ -244,7 +243,7 @@ def id_git_repo_url(
 def usfm_resource_lookup(
     lang_code: str,
     resource_type: str,
-    resource_code: str,
+    book_code: str,
     individual_usfm_url_jsonpath_fmt_str: str = settings.INDIVIDUAL_USFM_URL_JSONPATH,
     resource_lang_name_jsonpath_fmt_str: str = settings.RESOURCE_LANG_NAME_JSONPATH,
     resource_type_name_jsonpath_fmt_str: str = settings.RESOURCE_TYPE_NAME_JSONPATH,
@@ -256,7 +255,7 @@ def usfm_resource_lookup(
 ) -> ResourceLookupDto:
     """
     Given a resource, comprised of language code, e.g., 'fr', a
-    resource type, e.g., 'ulb', and a resource code, e.g., 'gen',
+    resource type, e.g., 'ulb', and a book code, e.g., 'gen',
     return model.ResourceLookupDto for resource.
     """
     resource_lookup_dto: ResourceLookupDto
@@ -267,7 +266,7 @@ def usfm_resource_lookup(
     resource_lookup_dto = _location(
         lang_code,
         resource_type,
-        resource_code,
+        book_code,
         jsonpath_str=resource_url_level1_jsonpath_fmt_str.format(
             lang_code,
             resource_type,
@@ -285,11 +284,11 @@ def usfm_resource_lookup(
         resource_lookup_dto = _location(
             lang_code,
             resource_type,
-            resource_code,
+            book_code,
             jsonpath_str=resource_download_format_jsonpath_fmt_str.format(
                 lang_code,
                 resource_type,
-                resource_code,
+                book_code,
             ),
             lang_name_jsonpath_str=resource_lang_name_jsonpath_fmt_str.format(
                 lang_code
@@ -308,11 +307,11 @@ def usfm_resource_lookup(
         resource_lookup_dto = _location(
             lang_code,
             resource_type,
-            resource_code,
+            book_code,
             jsonpath_str=individual_usfm_url_jsonpath_fmt_str.format(
                 lang_code,
                 resource_type,
-                resource_code,
+                book_code,
             ),
             lang_name_jsonpath_str=resource_lang_name_jsonpath_fmt_str.format(
                 lang_code
@@ -326,10 +325,10 @@ def usfm_resource_lookup(
     return resource_lookup_dto
 
 
-def t_resource_lookup(
+def non_usfm_resource_lookup(
     lang_code: str,
     resource_type: str,
-    resource_code: str,
+    book_code: str,
     lang_name_jsonpath_fmt_str: str = settings.RESOURCE_LANG_NAME_JSONPATH,
     resource_type_name_jsonpath_fmt_str: str = settings.RESOURCE_TYPE_NAME_JSONPATH,
     resource_url_level1_jsonpath_fmt_str: str = settings.RESOURCE_URL_LEVEL1_JSONPATH,
@@ -338,7 +337,7 @@ def t_resource_lookup(
 ) -> ResourceLookupDto:
     """
     Given a non-English language resource, comprised of language code,
-    e.g., 'wum', a resource type, e.g., 'tn', and a resource code,
+    e.g., 'wum', a resource type, e.g., 'tn', and a book code,
     e.g., 'gen', return a model.ResourceLookupDto instance for
     resource.
     """
@@ -347,7 +346,7 @@ def t_resource_lookup(
     resource_lookup_dto = _location(
         lang_code,
         resource_type,
-        resource_code,
+        book_code,
         jsonpath_str=resource_url_level1_jsonpath_fmt_str.format(
             lang_code,
             resource_type,
@@ -362,7 +361,7 @@ def t_resource_lookup(
         resource_lookup_dto = _location(
             lang_code,
             resource_type,
-            resource_code,
+            book_code,
             jsonpath_str=resource_url_level2_jsonpath_fmt_str.format(
                 lang_code,
                 resource_type,
@@ -438,7 +437,7 @@ def resource_types_and_names_for_lang(
     >>> import sys
     >>> logger.addHandler(logging.StreamHandler(sys.stdout))
     >>> import pprint
-    >>> # pprint.pprint(resource_lookup.resource_codes_and_types_for_lang("fr"))
+    >>> # pprint.pprint(resource_lookup.book_codes_and_types_for_lang("fr"))
     >>> pprint.pprint(resource_lookup.resource_types_and_names_for_lang("en"))
     [('ulb-wa', 'Unlocked Literal Bible (ULB)'),
      ('tn-wa', 'ULB Translation Notes'),
@@ -1014,7 +1013,7 @@ def supported_resource_type(
 
 def shared_resource_types(
     lang_code: str,
-    resource_codes: Sequence[str],
+    book_codes: Sequence[str],
     working_dir: str = settings.RESOURCE_ASSETS_DIR,
     english_resource_type_map: Mapping[str, str] = settings.ENGLISH_RESOURCE_TYPE_MAP,
     id_resource_type_map: Mapping[str, str] = settings.ID_RESOURCE_TYPE_MAP,
@@ -1022,7 +1021,7 @@ def shared_resource_types(
     lang_code_filter_list: Sequence[str] = settings.LANG_CODE_FILTER_LIST,
 ) -> list[tuple[str, str]]:
     """
-    Given a language code and a list of resource_codes, return the
+    Given a language code and a list of book_codes, return the
     collection of resource types available.
 
     >>> from document.domain import resource_lookup
@@ -1051,16 +1050,16 @@ def shared_resource_types(
     for item in [lang for lang in data if lang["code"] == lang_code]:
         for resource_type in item["contents"]:
             # NOTE An issue that may need to be addressed is that some resources
-            # may not provide the full list of resource codes actually available in
+            # may not provide the full list of book codes actually available in
             # the translations.json file. In such cases it would be necessary to
             # actually acquire the asset and then look for the manifest file or glob
-            # the files to see if the resource code is provided. I had experimental
+            # the files to see if the book code is provided. I had experimental
             # code checked in which addresses this, but which I am not using
             # currently (and may never be). See git history for this module.
-            selected_resource_types_for_resource_codes = [
-                resource_code
-                for resource_code in resource_type["subcontents"]
-                if resource_code["code"] in resource_codes
+            selected_resource_types_for_book_codes = [
+                book_code
+                for book_code in resource_type["subcontents"]
+                if book_code["code"] in book_codes
             ]
             # Determine if suitable link(s) exist for "contents"-scoped resource
             # types We use this in the conditional below to assert that TN, TQ, and
@@ -1076,10 +1075,10 @@ def shared_resource_types(
             ]
             if (
                 supported_resource_type(lang_code, resource_type["code"])
-                # Check If there are resource codes associated with this resource type
-                # which conincide with the resource codes that the user selected.
+                # Check if there are book codes associated with this resource type
+                # which conincide with the book codes that the user selected.
                 and (
-                    selected_resource_types_for_resource_codes
+                    selected_resource_types_for_book_codes
                     or (
                         supported_language_scoped_resource_type(
                             lang_code, resource_type["code"]
@@ -1098,9 +1097,7 @@ def shared_resource_types(
     return sorted(values, key=lambda value: value[0])
 
 
-def shared_resource_codes(
-    lang0_code: str, lang1_code: str
-) -> Sequence[tuple[str, str]]:
+def shared_book_codes(lang0_code: str, lang1_code: str) -> Sequence[tuple[str, str]]:
     """
     Given two language codes, return the intersection of resource
     codes between the two languages.
@@ -1108,24 +1105,22 @@ def shared_resource_codes(
     >>> from document.domain import resource_lookup
     >>> # Hack to ignore logging output: https://stackoverflow.com/a/33400983/3034580
     >>> # FIXME kbt shouldn't be obtainable due to an invalid URL in translations.json
-    >>> ();data = resource_lookup.shared_resource_codes("pt-br", "kbt");() # doctest: +ELLIPSIS
+    >>> ();data = resource_lookup.shared_book_codes("pt-br", "kbt");() # doctest: +ELLIPSIS
     (...)
     >>> list(data)
     [('2co', '2 Corinthians')]
     """
-    # Get resource codes for reach language.
-    lang0_resource_codes = resource_codes_for_lang(lang0_code)
-    lang1_resource_codes = resource_codes_for_lang(lang1_code)
+    # Get book codes for reach language.
+    lang0_book_codes = book_codes_for_lang(lang0_code)
+    lang1_book_codes = book_codes_for_lang(lang1_code)
 
-    # Find intersection of resource codes:
+    # Find intersection of book codes:
     return [
-        (x, y)
-        for x, y in lang0_resource_codes
-        if x in [s for s, t in lang1_resource_codes]
+        (x, y) for x, y in lang0_book_codes if x in [s for s, t in lang1_book_codes]
     ]
 
 
-def resource_codes_for_lang(
+def book_codes_for_lang(
     lang_code: str,
     jsonpath_str: str = settings.RESOURCE_CODES_FOR_LANG_JSONPATH,
     book_names: Mapping[str, str] = bible_books.BOOK_NAMES,
@@ -1136,42 +1131,37 @@ def resource_codes_for_lang(
 ) -> Sequence[tuple[str, str]]:
     """
     Convenience method that can be called, e.g., from the UI, to
-    get the set of all resource codes for a particular lang_code.
+    get the set of all book codes for a particular lang_code.
 
     >>> from document.domain import resource_lookup
     >>> # Hack to ignore logging output causing doctest failure: https://stackoverflow.com/a/33400983/3034580
-    >>> ();data = resource_lookup.resource_codes_for_lang("fr");() # doctest:+ELLIPSIS
+    >>> ();data = resource_lookup.book_codes_for_lang("fr");() # doctest:+ELLIPSIS
     (...)
     >>> list(data)
     [('gen', 'Genesis'), ('exo', 'Exodus'), ('lev', 'Leviticus'), ('num', 'Numbers'), ('deu', 'Deuteronomy'), ('jos', 'Joshua'), ('jdg', 'Judges'), ('rut', 'Ruth'), ('1sa', '1 Samuel'), ('2sa', '2 Samuel'), ('1ki', '1 Kings'), ('2ki', '2 Kings'), ('1ch', '1 Chronicles'), ('2ch', '2 Chronicles'), ('ezr', 'Ezra'), ('neh', 'Nehemiah'), ('est', 'Esther'), ('job', 'Job'), ('psa', 'Psalms'), ('pro', 'Proverbs'), ('ecc', 'Ecclesiastes'), ('sng', 'Song of Solomon'), ('isa', 'Isaiah'), ('jer', 'Jeremiah'), ('lam', 'Lamentations'), ('ezk', 'Ezekiel'), ('dan', 'Daniel'), ('hos', 'Hosea'), ('jol', 'Joel'), ('amo', 'Amos'), ('oba', 'Obadiah'), ('jon', 'Jonah'), ('mic', 'Micah'), ('nam', 'Nahum'), ('hab', 'Habakkuk'), ('zep', 'Zephaniah'), ('hag', 'Haggai'), ('zec', 'Zechariah'), ('mal', 'Malachi'), ('mat', 'Matthew'), ('mrk', 'Mark'), ('luk', 'Luke'), ('jhn', 'John'), ('act', 'Acts'), ('rom', 'Romans'), ('1co', '1 Corinthians'), ('2co', '2 Corinthians'), ('gal', 'Galatians'), ('eph', 'Ephesians'), ('php', 'Philippians'), ('col', 'Colossians'), ('1th', '1 Thessalonians'), ('2th', '2 Thessalonians'), ('1ti', '1 Timothy'), ('2ti', '2 Timothy'), ('tit', 'Titus'), ('phm', 'Philemon'), ('heb', 'Hebrews'), ('jas', 'James'), ('1pe', '1 Peter'), ('2pe', '2 Peter'), ('1jn', '1 John'), ('2jn', '2 John'), ('3jn', '3 John'), ('jud', 'Jude'), ('rev', 'Revelation')]
-    >>> ();data = resource_lookup.resource_codes_for_lang("id");() # doctest:+ELLIPSIS
+    >>> ();data = resource_lookup.book_codes_for_lang("id");() # doctest:+ELLIPSIS
     (...)
     >>> list(data)
     [('gen', 'Genesis'), ('exo', 'Exodus'), ('lev', 'Leviticus'), ('num', 'Numbers'), ('deu', 'Deuteronomy'), ('jos', 'Joshua'), ('jdg', 'Judges'), ('rut', 'Ruth'), ('1sa', '1 Samuel'), ('2sa', '2 Samuel'), ('1ki', '1 Kings'), ('2ki', '2 Kings'), ('1ch', '1 Chronicles'), ('2ch', '2 Chronicles'), ('ezr', 'Ezra'), ('neh', 'Nehemiah'), ('est', 'Esther'), ('job', 'Job'), ('psa', 'Psalms'), ('pro', 'Proverbs'), ('ecc', 'Ecclesiastes'), ('sng', 'Song of Solomon'), ('isa', 'Isaiah'), ('jer', 'Jeremiah'), ('lam', 'Lamentations'), ('ezk', 'Ezekiel'), ('dan', 'Daniel'), ('hos', 'Hosea'), ('jol', 'Joel'), ('amo', 'Amos'), ('oba', 'Obadiah'), ('jon', 'Jonah'), ('mic', 'Micah'), ('nam', 'Nahum'), ('hab', 'Habakkuk'), ('zep', 'Zephaniah'), ('hag', 'Haggai'), ('zec', 'Zechariah'), ('mal', 'Malachi'), ('mat', 'Matthew'), ('mrk', 'Mark'), ('luk', 'Luke'), ('jhn', 'John'), ('act', 'Acts'), ('rom', 'Romans'), ('1co', '1 Corinthians'), ('2co', '2 Corinthians'), ('gal', 'Galatians'), ('eph', 'Ephesians'), ('php', 'Philippians'), ('col', 'Colossians'), ('1th', '1 Thessalonians'), ('2th', '2 Thessalonians'), ('1ti', '1 Timothy'), ('2ti', '2 Timothy'), ('tit', 'Titus'), ('phm', 'Philemon'), ('heb', 'Hebrews'), ('jas', 'James'), ('1pe', '1 Peter'), ('2pe', '2 Peter'), ('1jn', '1 John'), ('2jn', '2 John'), ('3jn', '3 John'), ('jud', 'Jude'), ('rev', 'Revelation')]
     """
     if lang_code == "id":
-        return [
-            (resource_code, book_names[resource_code])
-            for resource_code in book_names.keys()
-        ]
+        return [(book_code, book_names[book_code]) for book_code in book_names.keys()]
     else:
-        resource_codes = [
-            (resource_code, book_names[resource_code])
-            for resource_code in _lookup(jsonpath_str.format(lang_code))
-            if resource_code
+        book_codes = [
+            (book_code, book_names[book_code])
+            for book_code in _lookup(jsonpath_str.format(lang_code))
+            if book_code
         ]
         return sorted(
-            resource_codes,
-            key=lambda resource_code_name_pair: book_numbers[
-                resource_code_name_pair[0]
-            ],
+            book_codes,
+            key=lambda book_code_name_pair: book_numbers[book_code_name_pair[0]],
         )
 
 
 def resource_lookup_dto(
     lang_code: str,
     resource_type: str,
-    resource_code: str,
+    book_code: str,
     usfm_resource_types: Sequence[str] = settings.USFM_RESOURCE_TYPES,
     en_usfm_resource_types: Sequence[str] = settings.EN_USFM_RESOURCE_TYPES,
     tn_resource_types: Sequence[str] = settings.TN_RESOURCE_TYPES,
@@ -1184,15 +1174,15 @@ def resource_lookup_dto(
 ) -> ResourceLookupDto:
     """
     Get the model.ResourceLookupDto instance for the given lang_code,
-    resource_type, resource_code combination.
+    resource_type, book_code combination.
 
     >>> from document.domain import resource_lookup
     >>> dto = resource_lookup.resource_lookup_dto("id","ayt","tit")
     >>> dto
-    ResourceLookupDto(lang_code='id', lang_name='Bahasa Indonesian', resource_type='ayt', resource_type_name='Bahasa Indonesian Bible (ayt)', resource_code='tit', url='https://content.bibletranslationtools.org/WA-Catalog/id_ayt', source=<AssetSourceEnum.GIT: 'git'>, jsonpath=None)
+    ResourceLookupDto(lang_code='id', lang_name='Bahasa Indonesian', resource_type='ayt', resource_type_name='Bahasa Indonesian Bible (ayt)', book_code='tit', url='https://content.bibletranslationtools.org/WA-Catalog/id_ayt', source=<AssetSourceEnum.GIT: 'git'>, jsonpath=None)
     >>> dto = resource_lookup.resource_lookup_dto("id","tn","tit")
     >>> dto
-    ResourceLookupDto(lang_code='id', lang_name='Bahasa Indonesian', resource_type='tn', resource_type_name='Translation Helps (tn)', resource_code='tit', url='https://content.bibletranslationtools.org/WA-Catalog/id_tn', source=<AssetSourceEnum.GIT: 'git'>, jsonpath=None)
+    ResourceLookupDto(lang_code='id', lang_name='Bahasa Indonesian', resource_type='tn', resource_type_name='Translation Helps (tn)', book_code='tit', url='https://content.bibletranslationtools.org/WA-Catalog/id_tn', source=<AssetSourceEnum.GIT: 'git'>, jsonpath=None)
     """
     # For English and Bahasia Indonesian translations.json file doesn't
     # contain all the information we need. Therefore, we have this guard to
@@ -1209,7 +1199,7 @@ def resource_lookup_dto(
             return _english_git_repo_location(
                 lang_code,
                 resource_type,
-                resource_code,
+                book_code,
                 url=english_git_repo_url(resource_type),
                 resource_type_name=english_resource_type_name(resource_type),
             )
@@ -1227,7 +1217,7 @@ def resource_lookup_dto(
             return _id_git_repo_location(
                 lang_code,
                 resource_type,
-                resource_code,
+                book_code,
                 url=id_git_repo_url(resource_type),
                 resource_type_name=id_resource_type_name(resource_type),
             )
@@ -1238,13 +1228,13 @@ def resource_lookup_dto(
 
     else:  # Non-English lang_code
         if resource_type in usfm_resource_types:
-            return usfm_resource_lookup(lang_code, resource_type, resource_code)
+            return usfm_resource_lookup(lang_code, resource_type, book_code)
         elif (
             resource_type in tn_resource_types
             or resource_type in tq_resource_types
             or resource_type in tw_resource_types
         ):
-            return t_resource_lookup(lang_code, resource_type, resource_code)
+            return non_usfm_resource_lookup(lang_code, resource_type, book_code)
         else:
             raise exceptions.InvalidDocumentRequestException(
                 message="{} resource type requested is invalid.".format(resource_type)
@@ -1258,7 +1248,7 @@ def provision_asset_files(resource_lookup_dto: ResourceLookupDto) -> str:
     """
     prepare_resource_directory(
         resource_lookup_dto.lang_code,
-        resource_lookup_dto.resource_code,
+        resource_lookup_dto.book_code,
         resource_lookup_dto.resource_type,
     )
     return acquire_resource_assets(resource_lookup_dto)
@@ -1266,26 +1256,26 @@ def provision_asset_files(resource_lookup_dto: ResourceLookupDto) -> str:
 
 def resource_directory(
     lang_code: str,
-    resource_code: str,
+    book_code: str,
     resource_type: str,
     working_dir: str = settings.RESOURCE_ASSETS_DIR,
 ) -> str:
     """Return the resource directory for the resource_lookup_dto."""
     return join(
         working_dir,
-        "{}_{}_{}".format(lang_code, resource_code, resource_type),
+        "{}_{}_{}".format(lang_code, book_code, resource_type),
     )
 
 
 def prepare_resource_directory(
-    lang_code: str, resource_code: str, resource_type: str
+    lang_code: str, book_code: str, resource_type: str
 ) -> None:
     """
     If it doesn't exist yet, create the directory for the
     resource where it will be downloaded to.
     """
 
-    resource_dir = resource_directory(lang_code, resource_code, resource_type)
+    resource_dir = resource_directory(lang_code, book_code, resource_type)
 
     if not exists(resource_dir):
         logger.debug("About to create directory %s", resource_dir)
@@ -1305,7 +1295,7 @@ def acquire_resource_assets(resource_lookup_dto: ResourceLookupDto) -> str:
 
     resource_dir = resource_directory(
         resource_lookup_dto.lang_code,
-        resource_lookup_dto.resource_code,
+        resource_lookup_dto.book_code,
         resource_lookup_dto.resource_type,
     )
     if (
@@ -1328,7 +1318,7 @@ def acquire_resource_assets(resource_lookup_dto: ResourceLookupDto) -> str:
             if is_zip(resource_lookup_dto.source):
                 unzip_asset(
                     resource_lookup_dto.lang_code,
-                    resource_lookup_dto.resource_code,
+                    resource_lookup_dto.book_code,
                     resource_lookup_dto.resource_type,
                     resource_filepath,
                 )
@@ -1341,17 +1331,17 @@ def acquire_resource_assets(resource_lookup_dto: ResourceLookupDto) -> str:
             # subdirectory.
             resource_dir = update_resource_dir(
                 resource_lookup_dto.lang_code,
-                resource_lookup_dto.resource_code,
+                resource_lookup_dto.book_code,
                 resource_lookup_dto.resource_type,
             )
     return resource_dir
 
 
 def unzip_asset(
-    lang_code: str, resource_code: str, resource_type: str, resource_filepath: str
+    lang_code: str, book_code: str, resource_type: str, resource_filepath: str
 ) -> None:
     """Unzip the asset in its resource directory."""
-    resource_dir = resource_directory(lang_code, resource_code, resource_type)
+    resource_dir = resource_directory(lang_code, book_code, resource_type)
     logger.debug("Unzipping %s into %s", resource_filepath, resource_dir)
     unzip(resource_filepath, resource_dir)
     logger.info("Unzipping finished.")
@@ -1381,53 +1371,25 @@ def clone_git_repo(
                 resource_filepath,
             )
             logger.exception("Caught exception: ")
-    if use_git_cli:
-        if branch:  # CLient specified a particular branch
-            command = "git clone --depth=1 --branch '{}' '{}' '{}'".format(
-                branch, url, resource_filepath
-            )
-        else:
-            command = "git clone --depth=1 '{}' '{}'".format(url, resource_filepath)
-        logger.debug("Attempting to clone into %s ...", resource_filepath)
-        try:
-            subprocess.call(command, shell=True)
-        except subprocess.SubprocessError:
-            logger.debug("git command: %s", command)
-            logger.debug("git clone failed!")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="git clone failed",
-            )
-        else:
-            logger.debug("git command: %s", command)
-            logger.debug("git clone succeeded.")
+    if branch:  # CLient specified a particular branch
+        command = "git clone --depth=1 --branch '{}' '{}' '{}'".format(
+            branch, url, resource_filepath
+        )
     else:
-        logger.debug("Attempting to clone into %s ...", resource_filepath)
-        try:
-            if branch:  # CLient specified a particular branch
-                git.repo.Repo.clone_from(
-                    url=url,
-                    to_path=resource_filepath,
-                    multi_options=["--depth=1", "--branch '{}'".format(branch)],
-                )
-            else:
-                git.repo.Repo.clone_from(
-                    url=url,
-                    to_path=resource_filepath,
-                    multi_options=["--depth=1"],
-                )
-
-            # with git_clone_options(...) ?
-            #   pygit2.clone_repository(url, resource_filepath)
-        except Exception:
-            # except pygit2.errors.GitError:
-            logger.debug("git clone failed!")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="git clone failed",
-            )
-        else:
-            logger.debug("git clone succeeded.")
+        command = "git clone --depth=1 '{}' '{}'".format(url, resource_filepath)
+    logger.debug("Attempting to clone into %s ...", resource_filepath)
+    try:
+        subprocess.call(command, shell=True)
+    except subprocess.SubprocessError:
+        logger.debug("git command: %s", command)
+        logger.debug("git clone failed!")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="git clone failed",
+        )
+    else:
+        logger.debug("git command: %s", command)
+        logger.debug("git clone succeeded.")
 
 
 def download_asset(url: str, resource_filepath: str) -> None:
@@ -1437,7 +1399,7 @@ def download_asset(url: str, resource_filepath: str) -> None:
     logger.info("Downloading finished.")
 
 
-def update_resource_dir(lang_code: str, resource_code: str, resource_type: str) -> str:
+def update_resource_dir(lang_code: str, book_code: str, resource_type: str) -> str:
     """
     Update resource_dir to point to the first subdirectory of
     resource_dir found.
@@ -1446,12 +1408,12 @@ def update_resource_dir(lang_code: str, resource_code: str, resource_type: str) 
     a subdirectory of resource_dir is created as a result. Update
     resource_dir to point to that subdirectory.
     """
-    resource_dir = resource_directory(lang_code, resource_code, resource_type)
+    resource_dir = resource_directory(lang_code, book_code, resource_type)
     subdirs = [
         file.path
         for file in scandir(resource_dir)
         if file.is_dir()
-        and "{}_{}_{}".format(lang_code, resource_code, resource_type) in file.path
+        and "{}_{}_{}".format(lang_code, book_code, resource_type) in file.path
     ]
     if subdirs:
         resource_dir = subdirs[0]

@@ -117,7 +117,7 @@ class ChunkSizeEnum(str, Enum):
 class ResourceRequest(BaseModel):
     """
     This class is used to encode a request for a resource, e.g.,
-    language 'French', fr, resource type 'ulb', resource code, i.e.,
+    language 'French', fr, resource type 'ulb', book code, i.e.,
     book, 'gen'. A document request composes N of these resource
     request instances. Because this class inherits from pydantic's
     BaseModel we get validation and JSON serialization for free.
@@ -125,7 +125,7 @@ class ResourceRequest(BaseModel):
 
     lang_code: str
     resource_type: str
-    resource_code: str
+    book_code: str
 
 
 @final
@@ -218,7 +218,7 @@ class DocumentRequest(BaseModel):
         # Get a list of the sorted set of books for each language for later
         # comparison.
         sorted_book_set_for_each_language = [
-            sorted({item.resource_code for item in value})
+            sorted({item.book_code for item in value})
             for key, value in language_groups.items()
         ]
 
@@ -334,7 +334,7 @@ class ResourceLookupDto(NamedTuple):
     lang_name: str
     resource_type: str
     resource_type_name: str
-    resource_code: str
+    book_code: str
     url: Optional[str]
     source: AssetSourceEnum
     jsonpath: Optional[str]
@@ -360,7 +360,7 @@ class TNBook(NamedTuple):
 
     lang_code: str
     lang_name: str
-    resource_code: str
+    book_code: str
     resource_type_name: str
     intro_html: HtmlContent
     chapters: dict[ChapterNum, TNChapter]
@@ -386,7 +386,7 @@ class TQBook(NamedTuple):
 
     lang_code: str
     lang_name: str
-    resource_code: str
+    book_code: str
     resource_type_name: str
     chapters: dict[ChapterNum, TQChapter]
     lang_direction: LangDirEnum
@@ -429,7 +429,7 @@ class TWBook(NamedTuple):
 
     lang_code: str
     lang_name: str
-    resource_code: str
+    book_code: str
     resource_type_name: str
     lang_direction: LangDirEnum
     name_content_pairs: list[TWNameContentPair] = []
@@ -456,7 +456,7 @@ class BCBook(NamedTuple):
     book_intro: str
     lang_code: str
     lang_name: str
-    resource_code: str
+    book_code: str
     resource_type_name: str
     chapters: dict[ChapterNum, BCChapter]
 
@@ -485,7 +485,7 @@ class USFMBook(NamedTuple):
 
     lang_code: str
     lang_name: str
-    resource_code: str
+    book_code: str
     resource_type_name: str
     chapters: dict[ChapterNum, USFMChapter]
     lang_direction: LangDirEnum

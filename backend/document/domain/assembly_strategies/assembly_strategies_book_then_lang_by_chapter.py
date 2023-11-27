@@ -193,9 +193,7 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr(
     if usfm_with_most_chapters:
         # Book title centered
         # TODO One day book title could be localized.
-        yield book_name_fmt_str.format(
-            book_names[usfm_with_most_chapters.resource_code]
-        )
+        yield book_name_fmt_str.format(book_names[usfm_with_most_chapters.book_code])
 
     for chapter_num, chapter in usfm_with_most_chapters.chapters.items():
         # Add the first USFM resource's chapter heading. We ignore
@@ -399,9 +397,7 @@ def assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c(
     if usfm_with_most_chapters:
         # Book title centered
         # TODO One day book title could be localized.
-        yield book_name_fmt_str.format(
-            book_names[usfm_with_most_chapters.resource_code]
-        )
+        yield book_name_fmt_str.format(book_names[usfm_with_most_chapters.book_code])
 
     for chapter_num, chapter in usfm_with_most_chapters.chapters.items():
         # Add the first USFM resource's chapter heading. We ignore

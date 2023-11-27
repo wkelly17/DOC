@@ -18,7 +18,7 @@
 
   async function getResourceTypesAndNames(
     langCode: string,
-    resourceCodeAndNames: Array<[string, string]>,
+    bookCodeAndNames: Array<[string, string]>,
     apiRootUrl = getApiRootUrl(),
     sharedResourceTypesUrl = <string>import.meta.env.VITE_SHARED_RESOURCE_TYPES_URL
   ): Promise<Array<[string, string, string]>> {
@@ -26,8 +26,8 @@
     // resource_lookup.shared_resource_types.
     const url_ = `${apiRootUrl}${sharedResourceTypesUrl}${langCode}/`
     const url = new URL(url_)
-    resourceCodeAndNames.map(resourceCodeAndName =>
-      url.searchParams.append('resource_codes', resourceCodeAndName[0])
+    bookCodeAndNames.map(bookCodeAndName =>
+      url.searchParams.append('book_codes', bookCodeAndName[0])
     )
     // console.log(`url: ${url}`)
     const response = await fetch(url)

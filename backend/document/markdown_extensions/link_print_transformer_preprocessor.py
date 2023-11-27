@@ -87,12 +87,12 @@ class LinkPrintTransformerPreprocessor(markdown.preprocessors.Preprocessor):
         source = self.transform_tn_markdown_links_no_parens(source)
         # NOTE Haven't decided yet if we should use this next method or instead
         # have human translators use more explicit scripture reference that
-        # includes the resource_code, e.g., col, rather than leave it out. If
-        # they did provide the resource_code then these cases would be picked up
+        # includes the book_code, e.g., col, rather than leave it out. If
+        # they did provide the book_code then these cases would be picked up
         # by self.transform_tn_markdown_links.
-        source = self.transform_tn_missing_resource_code_markdown_links(source)
-        source = self.transform_tn_missing_resource_code_markdown_links_no_paren(source)
-        source = self.transform_tn_missing_resource_code_and_chapter_num_markdown_links_no_paren(
+        source = self.transform_tn_missing_book_code_markdown_links(source)
+        source = self.transform_tn_missing_book_code_markdown_links_no_paren(source)
+        source = self.transform_tn_missing_book_code_and_chapter_num_markdown_links_no_paren(
             source
         )
         source = self.transform_tn_obs_markdown_links(source)
@@ -402,7 +402,7 @@ class LinkPrintTransformerPreprocessor(markdown.preprocessors.Preprocessor):
 
         return source
 
-    def transform_tn_missing_resource_code_markdown_links_no_paren(
+    def transform_tn_missing_book_code_markdown_links_no_paren(
         self, source: str
     ) -> str:
         """
@@ -416,7 +416,7 @@ class LinkPrintTransformerPreprocessor(markdown.preprocessors.Preprocessor):
 
         return source
 
-    def transform_tn_missing_resource_code_and_chapter_num_markdown_links_no_paren(
+    def transform_tn_missing_book_code_and_chapter_num_markdown_links_no_paren(
         self, source: str
     ) -> str:
         """
@@ -430,7 +430,7 @@ class LinkPrintTransformerPreprocessor(markdown.preprocessors.Preprocessor):
 
         return source
 
-    def transform_tn_missing_resource_code_markdown_links(self, source: str) -> str:
+    def transform_tn_missing_book_code_markdown_links(self, source: str) -> str:
         """
         Transform the translation note rc link into a non-link of the
         scripture reference only.

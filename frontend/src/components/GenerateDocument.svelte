@@ -52,28 +52,28 @@
     $settingsUpdated = false
 
     let resourceRequests = []
-    let resourceCodes = [...$otBookStore, ...$ntBookStore]
+    let bookCodes = [...$otBookStore, ...$ntBookStore]
     // Create resource_requests for lang0
-    for (let resourceCode of resourceCodes) {
+    for (let bookCode of bookCodes) {
       for (let resourceType of $resourceTypesStore) {
         if (getResourceTypeLangCode(resourceType) === $langCodesStore[0]) {
           resourceRequests.push({
             lang_code: $langCodesStore[0],
             resource_type: getResourceTypeCode(resourceType),
-            resource_code: getCode(resourceCode)
+            book_code: getCode(bookCode)
           })
         }
       }
     }
     if ($langCountStore > 1) {
       // Create resource_requests for lang1
-      for (let resourceCode of resourceCodes) {
+      for (let bookCode of bookCodes) {
         for (let resourceType of $resourceTypesStore) {
           if (getResourceTypeLangCode(resourceType) === $langCodesStore[1]) {
             resourceRequests.push({
               lang_code: $langCodesStore[1],
               resource_type: getResourceTypeCode(resourceType),
-              resource_code: getCode(resourceCode)
+              book_code: getCode(bookCode)
             })
           }
         }

@@ -36,7 +36,7 @@ def test_send_email_with_es_419_ulb_jud_pdf() -> None:
                     {
                         "lang_code": "es-419",
                         "resource_type": "ulb",
-                        "resource_code": "jud",
+                        "book_code": "jud",
                     },
                 ],
             },

@@ -74,7 +74,7 @@ def assemble_by_usfm_as_iterator_by_chapter_for_lang_then_book_1c(
     if usfm_book_content_unit:
         # Book title centered
         # TODO One day book title could be localized.
-        yield book_name_fmt_str.format(book_names[usfm_book_content_unit.resource_code])
+        yield book_name_fmt_str.format(book_names[usfm_book_content_unit.book_code])
         for (
             chapter_num,
             chapter,
@@ -169,7 +169,7 @@ def assemble_tn_as_iterator_by_chapter_for_lang_then_book_1c(
             yield HtmlContent(
                 chapter_header_fmt_str.format(
                     tn_book_content_unit.lang_code,
-                    book_number(tn_book_content_unit.resource_code),
+                    book_number(tn_book_content_unit.book_code),
                     str(chapter_num).zfill(num_zeros),
                     chapter_num,
                 )
@@ -246,7 +246,7 @@ def assemble_tq_tw_for_by_chapter_lang_then_book_1c(
             yield HtmlContent(
                 chapter_header_fmt_str.format(
                     tq_book_content_unit.lang_code,
-                    book_number(tq_book_content_unit.resource_code),
+                    book_number(tq_book_content_unit.book_code),
                     str(chapter_num).zfill(num_zeros),
                     chapter_num,
                 )

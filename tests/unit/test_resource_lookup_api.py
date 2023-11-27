@@ -11,14 +11,14 @@ def test_lookup_successes() -> None:
     assembly_layout_kind: model.AssemblyLayoutEnum = model.AssemblyLayoutEnum.ONE_COLUMN
     resource_requests: list[model.ResourceRequest] = [
         model.ResourceRequest(
-            lang_code="en", resource_type="ulb-wa", resource_code="gen"
+            lang_code="en", resource_type="ulb-wa", book_code="gen"
         ),
         model.ResourceRequest(
-            lang_code="en", resource_type="tn-wa", resource_code="gen"
+            lang_code="en", resource_type="tn-wa", book_code="gen"
         ),
-        model.ResourceRequest(lang_code="mr", resource_type="ulb", resource_code="gen"),
+        model.ResourceRequest(lang_code="mr", resource_type="ulb", book_code="gen"),
         model.ResourceRequest(
-            lang_code="erk-x-erakor", resource_type="reg", resource_code="eph"
+            lang_code="erk-x-erakor", resource_type="reg", book_code="eph"
         ),
     ]
     document_request = model.DocumentRequest(
@@ -35,7 +35,7 @@ def test_lookup_successes() -> None:
         resource_lookup_dto = resource_lookup.resource_lookup_dto(
             resource_request.lang_code,
             resource_request.resource_type,
-            resource_request.resource_code,
+            resource_request.book_code,
         )
         assert resource_lookup_dto.url
 
@@ -48,7 +48,7 @@ def test_lookup_failures() -> None:
     )
     assembly_layout_kind: model.AssemblyLayoutEnum = model.AssemblyLayoutEnum.ONE_COLUMN
     resource_requests: list[model.ResourceRequest] = [
-        model.ResourceRequest(lang_code="zh", resource_type="ulb", resource_code="jol")
+        model.ResourceRequest(lang_code="zh", resource_type="ulb", book_code="jol")
     ]
     document_request = model.DocumentRequest(
         email_address=settings.FROM_EMAIL_ADDRESS,
@@ -65,6 +65,6 @@ def test_lookup_failures() -> None:
         resource_lookup_dto = resource_lookup.resource_lookup_dto(
             resource_request.lang_code,
             resource_request.resource_type,
-            resource_request.resource_code,
+            resource_request.book_code,
         )
         assert not resource_lookup_dto.url

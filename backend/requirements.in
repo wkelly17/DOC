@@ -10,7 +10,6 @@ fastapi[all]
 flower
 htmldocx
 html2docx
-GitPython
 gunicorn
 jinja2
 jsonpath-rw

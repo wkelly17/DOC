@@ -1346,9 +1346,9 @@ BOOK_CHAPTER_VERSES: Mapping[str, Mapping[str, str]] = {
 }
 
 
-def book_number(resource_code: str) -> str:
+def book_number(book_code: str) -> str:
     """
-    Return the book number associated with the resource_code, e.g., gen ->
+    Return the book number associated with the book_code, e.g., gen ->
     01.
     """
-    return BOOK_NUMBERS[resource_code]
+    return BOOK_NUMBERS[book_code]

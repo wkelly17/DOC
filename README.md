@@ -9,10 +9,10 @@ then translates the assets into an HTML document. Finally the API
 generates a PDF, ePub, or Docx from the HTML document if requested.
 
 Each Resource is composed of lang_code, resource_type, and
-resource_code.
+book_code.
 
 There are hundreds of lang_codes, several different resource_types, and
-at least 66 resource_codes.
+at least 66 book_codes.
 
 There are a few different assembly strategies available some of which 
 also have different layout sub-strategies.

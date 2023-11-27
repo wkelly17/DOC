@@ -97,7 +97,7 @@ def document_request_key(
                 [
                     resource_request.lang_code,
                     resource_request.resource_type,
-                    resource_request.resource_code,
+                    resource_request.book_code,
                 ]
             )
             for resource_request in resource_requests
@@ -317,7 +317,7 @@ def translation_words_section(
                         resource_lookup.resource_lookup_dto(
                             resource_request.lang_code,
                             usfm_type,
-                            resource_request.resource_code,
+                            resource_request.book_code,
                         )
                     )
             else:
@@ -326,7 +326,7 @@ def translation_words_section(
                         resource_lookup.resource_lookup_dto(
                             resource_request.lang_code,
                             usfm_type,
-                            resource_request.resource_code,
+                            resource_request.book_code,
                         )
                     )
 
@@ -1004,7 +1004,7 @@ def generate_document(document_request_json: Json[Any]) -> Json[Any]:
             resource_lookup.resource_lookup_dto(
                 resource_request.lang_code,
                 resource_request.resource_type,
-                resource_request.resource_code,
+                resource_request.book_code,
             )
             for resource_request in document_request.resource_requests
         ]
@@ -1036,8 +1036,6 @@ def generate_document(document_request_json: Json[Any]) -> Json[Any]:
                 resource_dir,
                 document_request.resource_requests,
                 document_request.layout_for_print,
-                document_request.chunk_size,
-                document_request.include_tn_book_intros,
             )
             for resource_lookup_dto, resource_dir in zip(
                 found_resource_lookup_dtos, resource_dirs
@@ -1150,7 +1148,7 @@ def generate_docx_document(document_request_json: Json[Any]) -> Json[Any]:
             resource_lookup.resource_lookup_dto(
                 resource_request.lang_code,
                 resource_request.resource_type,
-                resource_request.resource_code,
+                resource_request.book_code,
             )
             for resource_request in document_request.resource_requests
         ]
@@ -1182,8 +1180,6 @@ def generate_docx_document(document_request_json: Json[Any]) -> Json[Any]:
                 resource_dir,
                 document_request.resource_requests,
                 document_request.layout_for_print,
-                document_request.chunk_size,
-                document_request.include_tn_book_intros,
             )
             for resource_lookup_dto, resource_dir in zip(
                 found_resource_lookup_dtos, resource_dirs
@@ -1248,20 +1244,20 @@ def _languages_and_books_requested(
 ) -> Sequence[tuple[str, Sequence[str]]]:
     """
     Return a list of tuples with the following form:
-    [(lang_name, [resource_code1, resource_code2, ...]), ...]
+    [(lang_name, [book_code1, book_code2, ...]), ...]
 
     E.g.,
     [("English", ["mat", "mrk"]), ("français (French)", ["mat", "mrk"])]
 
     >>> from document.domain import document_generator, model
-    >>> resource_lookup_dtos=[model.ResourceLookupDto(lang_code="en", lang_name="English", resource_type="ulb-wa", resource_type_name="Scripture", resource_code="mat", source="usfm"), model.ResourceLookupDto(lang_code="fr", lang_name="français (French)", resource_type="ulb", resource_type_name="Translation Notes", resource_code="mat", source="usfm")]
+    >>> resource_lookup_dtos=[model.ResourceLookupDto(lang_code="en", lang_name="English", resource_type="ulb-wa", resource_type_name="Scripture", book_code="mat", source="usfm"), model.ResourceLookupDto(lang_code="fr", lang_name="français (French)", resource_type="ulb", resource_type_name="Translation Notes", book_code="mat", source="usfm")]
     >>> resource_lookup_dtos
     >>> document_generator._languages_and_books_requested(resource_lookup_dtos)
     [('English', ['Matthew']), ('français (French)', ['Matthew'])]
     """
 
     unique_resource_lookup_dtos = unique(
-        resource_lookup_dtos, key=lambda dto: (dto.lang_name, dto.resource_code)
+        resource_lookup_dtos, key=lambda dto: (dto.lang_name, dto.book_code)
     )
 
     # for tw_book_content_unit in unique(
@@ -1293,7 +1289,7 @@ def _languages_and_books_requested(
             lang_name,
             sorted(
                 {
-                    bible_books.BOOK_NAMES[resource_lookup_dto.resource_code]
+                    bible_books.BOOK_NAMES[resource_lookup_dto.book_code]
                     for resource_lookup_dto in resource_lookup_dtos
                 }
             ),

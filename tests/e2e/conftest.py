@@ -97,20 +97,20 @@ def random_failing_non_english_lang_code() -> str:
 
 
 @pytest.fixture(params=bible_books.BOOK_NAMES.keys())
-def resource_code(request: Any) -> Any:
+def book_code(request: Any) -> Any:
     """All book names sequentially, but one at a time."""
     return request.param
 
 
 @pytest.fixture()
-def random_resource_code() -> str:
+def random_book_code() -> str:
     """One random book name chosen at random."""
     book_ids: list[str] = list(bible_books.BOOK_NAMES.keys())
     return random.choice(book_ids)
 
 
 @pytest.fixture()
-def random_resource_code2() -> str:
+def random_book_code2() -> str:
     """One random book name chosen at random. This fixture exists so
     that we can have a separate book chosen in a two language document
     request."""
@@ -234,18 +234,18 @@ def random_non_english_resource_type_combo(
 def english_resource_requests(
     english_lang_code: str,
     random_english_resource_type_combo: Sequence[str],
-    resource_code: str,
+    book_code: str,
 ) -> Sequence[model.ResourceRequest]:
     """
     Build a list of resource request instances for the set of English
-    resource types passed in as a parameter and a resource_code. This
-    will cycle through all resource_codes.
+    resource types passed in as a parameter and a book_code. This
+    will cycle through all book_codes.
     """
     resource_requests = [
         model.ResourceRequest(
             lang_code=english_lang_code,
             resource_type=resource_type,
-            resource_code=resource_code,
+            book_code=book_code,
         )
         for resource_type in random_english_resource_type_combo
     ]
@@ -256,7 +256,7 @@ def english_resource_requests(
 def random_english_resource_requests(
     english_lang_code: str,
     random_english_resource_type_combo: Sequence[str],
-    random_resource_code: str,
+    random_book_code: str,
 ) -> Sequence[model.ResourceRequest]:
     """
     Build a list of resource request instances for the set of English
@@ -267,7 +267,7 @@ def random_english_resource_requests(
         model.ResourceRequest(
             lang_code=english_lang_code,
             resource_type=resource_type,
-            resource_code=random_resource_code,
+            book_code=random_book_code,
         )
         for resource_type in random_english_resource_type_combo
     ]
@@ -278,7 +278,7 @@ def random_english_resource_requests(
 def random_non_english_resource_requests(
     random_non_english_lang_code: str,
     random_non_english_resource_type_combo: Sequence[str],
-    random_resource_code2: str,
+    random_book_code2: str,
 ) -> Sequence[model.ResourceRequest]:
     """
     Build a list of resource request instances for a randomly chosen
@@ -289,7 +289,7 @@ def random_non_english_resource_requests(
         model.ResourceRequest(
             lang_code=random_non_english_lang_code,
             resource_type=resource_type,
-            resource_code=random_resource_code2,
+            book_code=random_book_code2,
         )
         for resource_type in random_non_english_resource_type_combo
     ]
@@ -300,7 +300,7 @@ def random_non_english_resource_requests(
 def random_failing_non_english_resource_requests(
     random_failing_non_english_lang_code: str,
     random_non_english_resource_type_combo: Sequence[str],
-    random_resource_code2: str,
+    random_book_code2: str,
 ) -> Sequence[model.ResourceRequest]:
     """
     Build a list of resource request instances for:
@@ -313,7 +313,7 @@ def random_failing_non_english_resource_requests(
         model.ResourceRequest(
             lang_code=random_failing_non_english_lang_code,
             resource_type=resource_type,
-            resource_code=random_resource_code2,
+            book_code=random_book_code2,
         )
         for resource_type in random_non_english_resource_type_combo
     ]
@@ -324,7 +324,7 @@ def random_failing_non_english_resource_requests(
 def random_non_english_resource_requests2(
     random_non_english_lang_code2: str,
     random_non_english_resource_type_combo: Sequence[str],
-    random_resource_code: str,
+    random_book_code: str,
 ) -> Sequence[model.ResourceRequest]:
     """
     Build a list of resource request instances for:
@@ -337,7 +337,7 @@ def random_non_english_resource_requests2(
         model.ResourceRequest(
             lang_code=random_non_english_lang_code2,
             resource_type=resource_type,
-            resource_code=random_resource_code,
+            book_code=random_book_code,
         )
         for resource_type in random_non_english_resource_type_combo
     ]
@@ -386,7 +386,7 @@ def random_non_english_document_request(
     since non-English language support is not complete with respect to
     resource types or books. Thus we can use this test to find tests
     that we expect to fail and possibly use such tests to identify
-    language-resource_type-resource_code combos that should be
+    language-resource_type-book_code combos that should be
     precluded from the front end so as not to waste user's time
     requesting a document that cannot be successfully fulfilled. Or,
     short of that, to help guide us to implementing the graceful
@@ -428,7 +428,7 @@ def random_failing_non_english_document_request(
 
     NOTE We can use this test to find individual tests
     that we expect to fail and possibly use such tests to identify
-    lang_code,resource_type,resource_code combos that should be
+    lang_code,resource_type,book_code combos that should be
     precluded from the front end so as not to waste user's time
     requesting a document that cannot be successfully fulfilled. Or,
     short of that, to help guide us to implementing the graceful
@@ -468,7 +468,7 @@ def random_english_and_non_english_document_request(
     since non-English language support is not complete with respect to
     resource types or books. Thus we can use this test to find tests
     that we expect to fail and possibly use such tests to identify
-    language-resource_type-resource_code combos that should be
+    language-resource_type-book_code combos that should be
     precluded from the front end so as not to waste user's time
     requesting a document that cannot be successfully fulfilled. Or,
     short of that, to help guide us to implementing the graceful
