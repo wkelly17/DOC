@@ -17,3 +17,4 @@
 tests_output.log
 /logs/
 /build/
+/DOC.egg-info/
