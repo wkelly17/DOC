@@ -146,12 +146,6 @@ async def lang_codes_and_names() -> Sequence[tuple[str, str, bool]]:
     return resource_lookup.lang_codes_and_names()
 
 
-@app.get("/resource_types_and_names_for_lang/{lang_code}")
-async def resource_types_and_names_for_lang(lang_code: str) -> list[tuple[str, str]]:
-    """Return list of available resource types and their names for lang_code."""
-    return resource_lookup.resource_types_and_names_for_lang(lang_code)
-
-
 @app.get("/shared_book_codes/{lang0_code}/{lang1_code}")
 async def shared_book_codes(lang0_code: str, lang1_code: str) -> Sequence[Any]:
     """
@@ -170,8 +164,6 @@ async def shared_resource_types(
     with book_codes.
     """
     return resource_lookup.shared_resource_types(lang_code, book_codes)
-
-
 
 
 @app.get("/book_codes_for_lang/{lang_code}")

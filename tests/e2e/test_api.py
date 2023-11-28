@@ -2,21 +2,19 @@
 
 import os
 import pathlib
-import pytest
 
 import bs4
 import pytest
 import requests
 from document.config import settings
+from document.domain import model, resource_lookup
 from document.entrypoints.app import app
 from fastapi.testclient import TestClient
 
-from document.domain import model
-from document.domain import resource_lookup
 from tests.shared.utils import (
-    check_result,
     check_finished_document_with_verses_success,
     check_finished_document_without_verses_success,
+    check_result,
 )
 
 logger = settings.logger(__name__)
@@ -1250,13 +1248,6 @@ def test_en_ulb_wa_col_en_tq_wa_col_en_tw_wa_col_sw_ulb_col_sw_tq_col_sw_tw_col_
             },
         )
         check_finished_document_with_verses_success(response, suffix="pdf")
-
-
-def test_resource_types_and_names_for_lang() -> None:
-    with TestClient(app=app, base_url=settings.api_test_url()) as client:
-        response = client.get("/resource_types_and_names_for_lang/es-419")
-        logger.debug("JSON: %s", response.json())
-        assert response.status_code == 200
 
 
 ###################################################################
