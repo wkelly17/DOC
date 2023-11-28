@@ -8,12 +8,14 @@ validation and JSON serialization.
 from enum import Enum
 from typing import Any, Callable, NamedTuple, Optional, Sequence, Union, final
 
+from document.config import settings
+from document.domain.bible_books import BOOK_NAMES
 from document.utils.number_utils import is_even
-from toolz import itertoolz  # type: ignore
 from docx import Document  # type: ignore
 from more_itertools import all_equal
 from pydantic import BaseModel, EmailStr
 from pydantic.functional_validators import model_validator
+from toolz import itertoolz  # type: ignore
 
 # These type aliases give us more self-documenting code, but of course
 # aren't strictly necessary.
@@ -200,14 +202,36 @@ class DocumentRequest(BaseModel):
         """
         See ValueError messages below for the rules we are enforcing.
         """
-        from document.config import settings
 
         usfm_resource_types = [
             *settings.USFM_RESOURCE_TYPES,
             *settings.EN_USFM_RESOURCE_TYPES,
         ]
 
-        # Partition USFM resource requests by language.
+        non_usfm_resource_types = [
+            *settings.TN_RESOURCE_TYPES,
+            *settings.EN_TN_RESOURCE_TYPES,
+            *settings.TQ_RESOURCE_TYPES,
+            *settings.EN_TQ_RESOURCE_TYPES,
+            *settings.TW_RESOURCE_TYPES,
+            *settings.EN_TW_RESOURCE_TYPES,
+            *settings.BC_RESOURCE_TYPES,
+        ]
+        all_resource_types = [*usfm_resource_types, *non_usfm_resource_types]
+        for resource_request in self.resource_requests:
+            # Make sure resource_type for every ResourceRequest instance
+            # is a valid value
+            if not resource_request.resource_type in all_resource_types:
+                raise ValueError(
+                    f"{resource_request.resource_type} is not a valid resource type"
+                )
+            # Make sure book_code is a valid value
+            if not resource_request.book_code in BOOK_NAMES.keys():
+                raise ValueError(
+                    f"{resource_request.book_code} is not a valid book code"
+                )
+
+        # Partition USFM resource requests by language
         language_groups = itertoolz.groupby(
             lambda r: r.lang_code,
             filter(

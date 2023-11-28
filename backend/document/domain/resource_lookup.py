@@ -959,32 +959,7 @@ def resource_types_and_names_for_lang(
     return sorted(values, key=lambda value: value[0])
 
 
-def supported_language_scoped_resource_type(
-    lang_code: str,
-    resource_type: str,
-    tn_resource_types: Sequence[str] = settings.TN_RESOURCE_TYPES,
-    en_tn_resource_types: Sequence[str] = settings.EN_TN_RESOURCE_TYPES,
-    tq_resource_types: Sequence[str] = settings.TQ_RESOURCE_TYPES,
-    tw_resource_types: Sequence[str] = settings.TW_RESOURCE_TYPES,
-) -> bool:
-    """
-    Check if resource_type is a TN, TQ, TW type.
-    """
-    if (
-        (
-            resource_type in en_tn_resource_types
-            if lang_code == "en"
-            else resource_type in tn_resource_types
-        )
-        or resource_type in tq_resource_types
-        or resource_type in tw_resource_types
-    ):
-        return True
-    return False
-
-
 def supported_resource_type(
-    lang_code: str,
     resource_type: str,
     usfm_resource_types: Sequence[str] = settings.USFM_RESOURCE_TYPES,
     tn_resource_types: Sequence[str] = settings.TN_RESOURCE_TYPES,
@@ -998,11 +973,8 @@ def supported_resource_type(
     """
     if (
         resource_type in usfm_resource_types
-        or (
-            resource_type in en_tn_resource_types
-            if lang_code == "en"
-            else resource_type in tn_resource_types
-        )
+        or resource_type in en_tn_resource_types
+        or resource_type in tn_resource_types
         or resource_type in tq_resource_types
         or resource_type in tw_resource_types
         or resource_type in bc_resource_types
@@ -1049,14 +1021,7 @@ def shared_resource_types(
     data = fetch_source_data(working_dir, str(translations_json_location))
     for item in [lang for lang in data if lang["code"] == lang_code]:
         for resource_type in item["contents"]:
-            # NOTE An issue that may need to be addressed is that some resources
-            # may not provide the full list of book codes actually available in
-            # the translations.json file. In such cases it would be necessary to
-            # actually acquire the asset and then look for the manifest file or glob
-            # the files to see if the book code is provided. I had experimental
-            # code checked in which addresses this, but which I am not using
-            # currently (and may never be). See git history for this module.
-            selected_resource_types_for_book_codes = [
+            book_codes_for_resource_type = [
                 book_code
                 for book_code in resource_type["subcontents"]
                 if book_code["code"] in book_codes
@@ -1074,18 +1039,9 @@ def shared_resource_types(
                 and link["url"]
             ]
             if (
-                supported_resource_type(lang_code, resource_type["code"])
-                # Check if there are book codes associated with this resource type
-                # which conincide with the book codes that the user selected.
-                and (
-                    selected_resource_types_for_book_codes
-                    or (
-                        supported_language_scoped_resource_type(
-                            lang_code, resource_type["code"]
-                        )
-                        and links_for_resource_type
-                    )
-                )
+                supported_resource_type(resource_type["code"])
+                and book_codes_for_resource_type
+                and links_for_resource_type
             ):
                 values.append(
                     (
