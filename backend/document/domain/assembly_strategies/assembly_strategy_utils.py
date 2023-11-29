@@ -366,7 +366,7 @@ def chapter_content_sans_footnotes(chapter_content: Sequence[HtmlContent]) -> st
     """
     Return chapter content sans footnotes at end of each chapter.
     """
-    # NOTE Footnotes are rendered to HTML by USFM-TOOLS at the end of each
+    # Footnotes are rendered to HTML by USFM-TOOLS at the end of each
     # chapter's verse content. So, we have to make sure we remove footnotes
     # from the end of chapter content when displaying chapter verse content
     # because we display footnotes explicitly later below.
