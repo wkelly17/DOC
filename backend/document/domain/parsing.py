@@ -14,7 +14,7 @@ import markdown
 import orjson
 import yaml
 from bs4 import BeautifulSoup
-from bs4.element import Tag
+from bs4.element import Tag, NavigableString
 from document.config import settings
 from document.domain.assembly_strategies.assembly_strategy_utils import (
     adjust_book_intro_headings,
@@ -92,11 +92,10 @@ def ensure_paragraph_before_verses(
             is not None
         ):  # Chapter marker not on own line
             # Make chapter marker occupy its own line and add a USFM paragraph
-            # marker right after it. Why? Because I found that languages which were
-            # rendering correctly in Docx had a \p USFM marker after the chapter
-            # marker and languages which did not render properly (see docstring
-            # above for particulars) in Docx did not have one.
-            # Presumably the 3rd party lib we use to parse
+            # marker right after it. Why? Because languages which render correctly
+            # in Docx have a \p USFM marker after the chapter marker and languages
+            # which did not render properly (see docstring above for particulars) in
+            # Docx did not have one. Presumably the 3rd party lib we use to parse
             # HTML to Docx doesn't like spans that are not contained in a block
             # level element.
             logger.debug(
@@ -145,7 +144,6 @@ def attempt_asset_content_rescue(
         and file.name != "00"
     ]
     for chapter_dir in sorted(subdirs, key=lambda dir_entry: dir_entry.name):
-        # Get verses for chapter
         chapter_usfm_content = []
         chapter_num = chapter_dir.name
         chapter_verse_files = sorted(
@@ -304,6 +302,80 @@ def usfm_asset_html(
     return html_content
 
 
+def usfm_chapter_verses(
+    chapter_verse_span_tags: list[Tag],
+    chapter_content_parser: BeautifulSoup,
+    resource_lookup_dto: ResourceLookupDto,
+    chapter_num: int,
+    pattern: str,
+    format_str: str,
+) -> dict[str, str]:
+    # Dictionary to hold verse number, verse value pairs.
+    chapter_verses = {}
+    for verse_span_tag in chapter_verse_span_tags:
+        verse_ref_, upper_bound_value = verse_ref(verse_span_tag)
+        verse_content_str_ = verse_content_str(
+            verse_span_tag,
+            chapter_content_parser,
+            book_number(resource_lookup_dto.book_code),
+            chapter_num,
+            upper_bound_value,
+        )
+        # We now alter the span ID in verse_content_str_ by prepending it
+        # with the lang_code for the language we are currently parsing to ensure
+        # unique verse references within language scope in a multi-language
+        # document.
+        updated_verse_content_str = sub(
+            pattern,
+            format_str.format(resource_lookup_dto.lang_code),
+            verse_content_str_,
+        )
+        chapter_verses[verse_ref_] = updated_verse_content_str
+    return chapter_verses
+
+
+def delink_usfm_verse_footnotes(parser: BeautifulSoup) -> None:
+    """
+    Turn HTML links into spans
+    """
+    # Find all verse level footnote references for this chapter
+    verse_footnote_refs = parser.find_all(id=is_footnote_ref)
+    # Turn the found links into spans since we don't need
+    # links in a printed document.
+    for verse_footnote_ref in verse_footnote_refs:
+        verse_number = verse_footnote_ref.i.a.string
+        # Remove the link
+        span = parser.new_tag("span")
+        span.string = verse_number
+        verse_footnote_ref.i.a.replace_with(span)
+
+
+def usfm_chapter_footnotes(
+    chapter_footnote_tag: Optional[Tag | NavigableString],
+    layout_for_print: bool,
+    bs_parser_type: str,
+) -> HtmlContent:
+    """
+    Delink footnotes if printing.
+    """
+    if layout_for_print:
+        if chapter_footnote_tag:
+            chapter_footnote_str = str(chapter_footnote_tag)
+            chapter_footnotes_parser = BeautifulSoup(
+                chapter_footnote_str, bs_parser_type
+            )
+            a_tags = chapter_footnotes_parser.find_all("a")
+            # Now we modify the footnote links to be inactive, i.e., suitable for printing.
+            for a_tag in a_tags:
+                a_tag.name = "span"
+            chapter_footnote_tag = chapter_footnotes_parser
+    return (
+        HtmlContent(str(chapter_footnote_tag))
+        if chapter_footnote_tag
+        else HtmlContent("")
+    )
+
+
 def usfm_book_content(
     resource_lookup_dto: ResourceLookupDto,
     resource_dir: str,
@@ -328,16 +400,7 @@ def usfm_book_content(
     parser = BeautifulSoup(html_content, bs_parser_type)
 
     if layout_for_print:
-        # Find all verse level footnote references for this chapter
-        verse_footnote_refs = parser.find_all(id=is_footnote_ref)
-        # Turn the found links into spans since we don't need
-        # links in a printed document.
-        for verse_footnote_ref in verse_footnote_refs:
-            verse_number = verse_footnote_ref.i.a.string
-            # Remove the link
-            span = parser.new_tag("span")
-            span.string = verse_number
-            verse_footnote_ref.i.a.replace_with(span)
+        delink_usfm_verse_footnotes(parser)
 
     chapter_break_tags = parser.find_all(h2, attrs={css_attribute_type: "c-num"})
     chapters: dict[ChapterNum, USFMChapter] = {}
@@ -364,52 +427,25 @@ def usfm_book_content(
         chapter_footnote_tag = chapter_content_parser.find(
             "div", attrs={css_attribute_type: "footnotes"}
         )
-        if layout_for_print:
-            if chapter_footnote_tag:
-                chapter_footnote_str = str(chapter_footnote_tag)
-                chapter_footnotes_parser = BeautifulSoup(
-                    chapter_footnote_str, bs_parser_type
-                )
-                a_tags = chapter_footnotes_parser.find_all("a")
-                # Now we modify the footnote links to be inactive, i.e., not links so
-                # that they are suitable for printing.
-                for a_tag in a_tags:
-                    a_tag.name = "span"
-                # Now we just set the name to one we expect (for the next expression)
-                # which is executed for either case.
-                chapter_footnote_tag = chapter_footnotes_parser
-        chapter_footnotes = (
-            HtmlContent(str(chapter_footnote_tag))
-            if chapter_footnote_tag
-            else HtmlContent("")
+        chapter_footnotes_ = usfm_chapter_footnotes(
+            chapter_footnote_tag,
+            layout_for_print,
+            bs_parser_type,
         )
 
         # Dictionary to hold verse number, verse value pairs.
-        chapter_verses: dict[str, str] = {}
-        for verse_span_tag_str in chapter_verse_span_tags:
-            verse_span_tag = cast(Tag, verse_span_tag_str)
-            verse_ref_, upper_bound_value = verse_ref(verse_span_tag)
-            verse_content_str_ = verse_content_str(
-                verse_span_tag,
-                chapter_content_parser,
-                book_number(resource_lookup_dto.book_code),
-                chapter_num,
-                upper_bound_value,
-            )
-            # NOTE We now alter the span ID in verse_content_str by prepending it
-            # with the lang_code for the language we are currently parsing to ensure
-            # unique verse references within language scope in a multi-language
-            # document.
-            updated_verse_content_str = sub(
-                pattern,
-                format_str.format(resource_lookup_dto.lang_code),
-                verse_content_str_,
-            )
-            chapter_verses[verse_ref_] = updated_verse_content_str
+        chapter_verses_ = usfm_chapter_verses(
+            chapter_verse_span_tags,
+            chapter_content_parser,
+            resource_lookup_dto,
+            chapter_num,
+            pattern,
+            format_str,
+        )
         chapters[chapter_num] = USFMChapter(
             content=adjust_chapter_heading(chapter_content),
-            verses=chapter_verses,
-            footnotes=chapter_footnotes,
+            verses=chapter_verses_,
+            footnotes=chapter_footnotes_,
         )
     return USFMBook(
         lang_code=resource_lookup_dto.lang_code,
