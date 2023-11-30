@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y \
     libopengl0 \
     libegl1 \
     libopengl0 \
+    libxcb-cursor0 \
     libxcb-xinerama0 \
     libxkbcommon0 \
     libglx0 \
