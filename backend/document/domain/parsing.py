@@ -203,22 +203,23 @@ def filter_content_files(content_files: list[str], book_code: str) -> list[str]:
 
 
 def convert_usfm_to_html(
-    content_file: str, output_dir: str, resource_filename: str
+    content_file: Optional[str], output_dir: str, resource_filename: str
 ) -> None:
     """
-    Invoke the usfm_tools parser to parse the USFM file into HTML and
-    store on disk.
+    Invoke the usfm_tools parser to parse the USFM file, if it exists,
+    into HTML and store on disk.
 
     N.B. USFM-Tools books.py can raise MalformedUsfmError when the
     following code is called. The document_generator module will catch
     that error but continue with other resource requests in the same
     document request.
     """
-    transform.buildSingleHtmlFromFile(
-        Path(content_file),
-        output_dir,
-        resource_filename,
-    )
+    if content_file:
+        transform.buildSingleHtmlFromFile(
+            Path(content_file),
+            output_dir,
+            resource_filename,
+        )
 
 
 def usfm_asset_content_file(
@@ -227,7 +228,7 @@ def usfm_asset_content_file(
     usfm_glob_fmt_str: str = "{}**/*.usfm",
     usfm_ending_in_txt_glob_fmt_str: str = "{}**/*.txt",
     usfm_ending_in_txt_in_subdirectory_glob_fmt_str: str = "{}**/**/*.txt",
-) -> str:
+) -> Optional[str]:
     """
     Find the USFM asset and return its path as string. Returns an
     empty string if path not found.
@@ -262,11 +263,11 @@ def usfm_asset_content_file(
 
         logger.debug("content_files: %s", content_files)
         return content_files[0]
-    return ""
+    return None
 
 
 def usfm_asset_html(
-    content_file: str,
+    content_file: Optional[str],
     resource_lookup_dto: ResourceLookupDto,
     output_dir: str = settings.DOCUMENT_OUTPUT_DIR,
 ) -> str:
