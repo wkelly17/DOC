@@ -98,16 +98,11 @@ def ensure_paragraph_before_verses(
             # Docx did not have one. Presumably the 3rd party lib we use to parse
             # HTML to Docx doesn't like spans that are not contained in a block
             # level element.
-            logger.debug(
-                "Verse content that has chapter marker which is not on its own line: %s",
-                verse_content,
-            )
             verse_content = sub(
                 chapter_marker_not_on_own_line_with_match_groups,
                 chapter_marker_not_on_own_line_repair_regex,
                 verse_content,
             )
-            logger.debug("Updated verse content: %s", verse_content)
     return verse_content
 
 
