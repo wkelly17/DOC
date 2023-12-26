@@ -277,7 +277,7 @@ class Settings(BaseSettings):
 
     USE_GIT_CLI: bool = False
 
-    LOGGING_CONFIG_FILE_PATH: str = "backend/document/logging_config.yaml"
+    LOGGING_CONFIG_FILE_PATH: str = "backend/logging_config.yaml"
 
     # Location where resource assets will be downloaded.
     RESOURCE_ASSETS_DIR: str = "working/temp"
