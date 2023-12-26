@@ -29,7 +29,6 @@
     bookCodeAndNames.map(bookCodeAndName =>
       url.searchParams.append('book_codes', bookCodeAndName[0])
     )
-    // console.log(`url: ${url}`)
     const response = await fetch(url)
     const resourceTypesAndNames: Array<[string, string]> = await response.json()
     if (!response.ok) {
@@ -90,10 +89,7 @@
     }
   }
 
-  // let showFilterMenu = false
-  // $: console.log(`showFilterMenu: ${showFilterMenu}`)
   let showWizardBasketModal = false
-  // $: console.log(`showWizardBasketModal: ${showWizardBasketModal}`)
 
   function selectAllLang0ResourceTypes(event: Event) {
     if ((<HTMLInputElement>event.target).checked) {
@@ -282,7 +278,6 @@
   }
 
   * :global(.checkbox-dark-bordered) {
-    /* --chkbg: #1a130b; */
     border-color: #1a130b;
     border-radius: 3px;
     width: 1em;

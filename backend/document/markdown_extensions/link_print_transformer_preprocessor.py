@@ -140,9 +140,7 @@ class LinkPrintTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 # Build the anchor link.
                 url = url.replace(
                     match.group(0),  # The whole match
-                    settings.TRANSLATION_WORD_FMT_STR.format(
-                        localized_translation_word_
-                    ),
+                    localized_translation_word_,
                 )
             else:
                 url = url.replace(match.group(0), filename_sans_suffix)
@@ -183,9 +181,7 @@ class LinkPrintTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 # Build the anchor links
                 source = source.replace(
                     match_text,
-                    settings.TRANSLATION_WORD_FMT_STR.format(
-                        localized_translation_word_,
-                    ),
+                    localized_translation_word_,
                 )
             else:
                 ldebug(
@@ -234,9 +230,7 @@ class LinkPrintTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 # Build the anchor links
                 source = source.replace(
                     match.group(0),  # The whole match
-                    settings.TRANSLATION_WORD_FMT_STR.format(
-                        localized_translation_word_,
-                    ),
+                    localized_translation_word_,
                 )
             else:
                 ldebug(

@@ -27,15 +27,12 @@
   }
   // For use by Mobile UI
   let showFilterMenu = false
-  // $: console.log(`showFilterMenu: ${showFilterMenu}`)
   let showWizardBasketModal = false
-  // $: console.log(`showWizardBasketModal: ${showWizardBasketModal}`)
 
   async function getLangCodesNames(
     apiRootUrl: string = getApiRootUrl(),
     langCodesAndNamesUrl: string = <string>import.meta.env.VITE_LANG_CODES_NAMES_URL
   ): Promise<Array<[string, string, boolean]>> {
-    // console.log(`apiRootUrl: ${getApiRootUrl}`)
     const response = await fetch(`${apiRootUrl}${langCodesAndNamesUrl}`)
     const langCodeNameAndTypes: Array<[string, string, boolean]> = await response.json()
     if (!response.ok) {

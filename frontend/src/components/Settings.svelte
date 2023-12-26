@@ -33,10 +33,6 @@
     id: 'lbo',
     label: <string>import.meta.env.VITE_LANGUAGE_BOOK_ORDER_LABEL
   }
-  // let verse: SelectElement = {
-  //   id: 'verse',
-  //   label: <string>import.meta.env.VITE_CHUNK_SIZE_VERSE
-  // }
   let chapter: SelectElement = {
     id: 'chapter',
     label: <string>import.meta.env.VITE_CHUNK_SIZE_CHAPTER
@@ -48,13 +44,6 @@
   let assemblyStrategies = [bookLanguageOrderStrategy, languageBookOrderStrategy]
 
   const assemblyStrategyHeader = <string>import.meta.env.VITE_ASSEMBLY_STRATEGY_HEADER
-
-  // const assemblyStrategyChunkingHeader = <string>(
-  //   import.meta.env.VITE_ASSEMBLY_STRATEGY_CHUNKING_HEADER
-  // )
-
-  // $: console.log(`$assemblyStrategyKindStore: ${$assemblyStrategyKindStore}`)
-  // $: console.log(`$assemblyStrategyChunkSizeStore: ${$assemblyStrategyChunkSizeStore}`)
 
   // Set whether TW has been requested for any of the languages
   // requested so that we can use this fact in the UI to trigger the
@@ -72,7 +61,6 @@
       $limitTwStore = false
     }
   }
-  // $: console.log(`limitTwStore: ${$limitTwStore}`)
 
   // The 3rd party HTML to PDF conversion library we use, weasyprint,
   // doesn't seem to be able to handle line length for the Khmer language
@@ -110,7 +98,6 @@
   }
 
   let showWizardBasketModal = false
-  // $: console.log(`showWizardBasketModal: ${showWizardBasketModal}`)
 </script>
 
 <WizardBreadcrumb />

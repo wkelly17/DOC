@@ -29,11 +29,8 @@ class Settings(BaseSettings):
     # The jsonpath format string for the resource's git repo for a given language, resource type, and book.
     RESOURCE_DOWNLOAD_FORMAT_JSONPATH: str = "$[?code='{}'].contents[?code='{}'].subcontents[?code='{}'].links[?format='Download'].url"
     # All resource types.
-    RESOURCE_TYPES_JSONPATH: str = "$[*].contents[*].code"
     # The jsonpath format string for resource types for a given language.
-    RESOURCE_TYPES_FOR_LANG_JSONPATH: str = "$[?code='{}'].contents[*].code"
     # jsonpath for all resource codes.
-    RESOURCE_CODES_JSONPATH: str = "$[*].contents[*].subcontents[*].code"
     # jsonpath format string for all resource codes for a given language.
     RESOURCE_CODES_FOR_LANG_JSONPATH: str = (
         "$[?code='{}'].contents[*].subcontents[*].code"
@@ -59,7 +56,6 @@ class Settings(BaseSettings):
     LANGUAGE_FMT_STR: str = "<h1 style='text-align: center'>Language: {}</h1>"
     RESOURCE_TYPE_NAME_FMT_STR: str = "<h1>{}</h1>"
     TN_VERSE_NOTES_ENCLOSING_DIV_FMT_STR: str = "<div style='column-count: 2;'>{}</div>"
-    TQ_HEADING_FMT_STR: str = "<h3>{}</h3>"
     TQ_HEADING_AND_QUESTIONS_FMT_STR: str = (
         "<h3>{}</h3>\n<div style='column-count: 2;'>{}</div>"
     )
@@ -72,18 +68,12 @@ class Settings(BaseSettings):
     BOOK_NAME_FMT_STR: str = "<h2 style='text-align: center;'>{}</h2>"
     BOOK_FMT_STR: str = "<h2 style='text-align: center;'>Book: {}</h2>"
     BOOK_AS_GROUPER_FMT_STR: str = "<h1>Book: {}</h1>"
-    VERSE_FMT_STR: str = "<h3>Verse {}:{}</h3>"
-    TRANSLATION_NOTE_FMT_STR: str = "<h3>Translation note {}:{}</h3>"
     CHAPTER_HEADER_FMT_STR: str = '<h2 class="c-num" id="{}-{}-ch-{}">Chapter {}</h2>'
-    TRANSLATION_QUESTION_FMT_STR: str = "<h3>Translation question {}:{}</h3>"
-    TRANSLATION_ACADEMY_FMT_STR: str = "<h3>Translation academy {}:{}</h3>"
     UNORDERED_LIST_BEGIN_STR: HtmlContent = HtmlContent("<ul>")
     UNORDERED_LIST_END_STR: HtmlContent = HtmlContent("</ul>")
     TRANSLATION_WORD_LIST_ITEM_FMT_STR: HtmlContent = HtmlContent(
         '<li><a href="#{}-{}">{}</a></li>'
     )
-    TRANSLATION_WORDS_FMT_STR: str = "<h3>Translation words {}:{}</h3>"
-    TRANSLATION_WORDS_SECTION_STR: str = "<h2>Translation words</h2>"
     TRANSLATION_WORD_VERSE_SECTION_HEADER_STR: HtmlContent = HtmlContent(
         "<h4>Uses:</h4>"
     )
@@ -94,7 +84,6 @@ class Settings(BaseSettings):
     OPENING_H3_FMT_STR: str = "<h3>{}"
     OPENING_H3_WITH_ID_FMT_STR: str = '<h3 id="{}-{}">{}'
     TRANSLATION_WORD_ANCHOR_LINK_FMT_STR: str = "[{}](#{}-{})"
-    TRANSLATION_WORD_FMT_STR: str = "{}"
     TRANSLATION_WORD_PREFIX_ANCHOR_LINK_FMT_STR: str = "({}: [{}](#{}-{}))"
     TRANSLATION_WORD_PREFIX_FMT_STR: str = "({}: {})"
     # TRANSLATION_NOTE_ANCHOR_LINK_FMT_STR: str = "[{}](#{}-{}-tn-ch-{}-v-{})"
@@ -124,14 +113,6 @@ class Settings(BaseSettings):
     # that when we automatically choose the reesource types (from the USFM
     # and TN resource types that translations.json lists as available) for
     # the GL languages and books chosen.
-    USFM_RESOURCE_TYPES_MINUS_SECONDARY: Sequence[str] = [
-        usfm_resource_type
-        for usfm_resource_type in USFM_RESOURCE_TYPES
-        if usfm_resource_type
-        not in [
-            "f10"
-        ]  # Used to include udb too, but content team requested no use of udb
-    ]
     EN_USFM_RESOURCE_TYPES: Sequence[str] = ["ulb-wa"]
     TN_RESOURCE_TYPES: Sequence[str] = ["tn"]
     EN_TN_RESOURCE_TYPES: Sequence[str] = ["tn-wa"]
@@ -142,7 +123,7 @@ class Settings(BaseSettings):
     BC_RESOURCE_TYPES: Sequence[str] = ["bc-wa"]
     # List of language codes for which there is a content issue
     # such that a complete document request cannot
-    # be formed. E.g., hu doesn't have any resource types or resource
+    # be formed. E.g., hu doesn't have any resource types or book
     # codes in translations.json. E.g., abz's content has unresolved
     # git merge markers in source that were accidentally committed.
     # TODO Test to see which of these languages can be added back now
@@ -153,7 +134,7 @@ class Settings(BaseSettings):
         "fa",
         "hr",
         "hu",
-        # "id",  # Was on this list because of licensing issues
+        # "id",  # Was on this list because of licensing issues: it cannot be shown on BIEL
         "kbt",
         "kip",
         "lus",
@@ -289,26 +270,6 @@ class Settings(BaseSettings):
     DOCUMENT_SERVE_DIR: str = "document_output"
 
     # For options see https://wkhtmltopdf.org/usage/wkhtmltopdf.txt
-    WKHTMLTOPDF_OPTIONS: dict[str, Optional[str]] = {
-        "page-size": "Letter",
-        # 'margin-top': '0.75in',
-        # 'margin-right': '0.75in',
-        # 'margin-bottom': '0.75in',
-        # 'margin-left': '0.75in',
-        "encoding": "UTF-8",
-        "load-error-handling": "ignore",
-        "outline": None,  # Produce an outline
-        "outline-depth": "3",  # Only go depth of 3 on the outline
-        "enable-internal-links": None,  # enable internal links
-        "header-font-size": "10",
-        "header-left": "[section]",
-        "header-right": "[subsection]",
-        "header-line": None,  # Produce a line under the header
-        "footer-font-size": "10",
-        "footer-center": "[page]",
-        "footer-right": "generated on [isodate] at [time]",
-        "footer-line": None,  # Produce a line above the footer
-    }
 
     # Return the message to show to user on successful generation of
     # PDF.
@@ -319,7 +280,6 @@ class Settings(BaseSettings):
     # Return the file names, excluding suffix, of files that do not
     # contain content but which may be in the same directory or
     # subdirectories of a resource's acquired files.
-    MARKDOWN_DOC_FILE_NAMES: list[str] = ["readme", "license"]
 
     ENGLISH_GIT_REPO_MAP: Mapping[str, str] = {
         "ulb-wa": "https://content.bibletranslationtools.org/WycliffeAssociates/en_ulb",
@@ -351,15 +311,6 @@ class Settings(BaseSettings):
         "tn": "Translation Helps (tn)",
         "tq": "Translation Questions (tq)",
         "tw": "Translation Words (tw)",
-    }
-    ENGLISH_RESOURCE_TYPE_MAP_USFM_AND_TN_ONLY: Mapping[str, str] = {
-        "ulb-wa": "Unlocked Literal Bible (ULB)",
-        # "udb-wa": "Unlocked Dynamic Bible (UDB)",
-        "tn-wa": "ULB Translation Notes",
-    }
-    ID_RESOURCE_TYPE_MAP_USFM_AND_TN_ONLY: Mapping[str, str] = {
-        "ayt": "Bahasa Indonesian Bible (ayt)",
-        "tn": "Translation Helps",
     }
 
     TEMPLATE_PATHS_MAP: Mapping[str, str] = {
@@ -415,16 +366,6 @@ class Settings(BaseSettings):
     PORT: int
     # local image tag for local dev with prod image
     IMAGE_TAG: str
-
-    # @field_validator("SEND_EMAIL", mode="before")
-    # @classmethod
-    # def send_email(cls, v: object) -> bool:
-    #     return bool(v)
-
-    # @field_validator("SMTP_PORT", mode="before")
-    # @classmethod
-    # def smtp_port(cls, v: object) -> int:
-    #     return int(v)
 
     # Example fake user agent value required by domain host to allow serving
     # files. Other values could possibly work. This value definitely

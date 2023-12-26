@@ -1,6 +1,5 @@
 cython # For pydantic: https://pydantic-docs.helpmanual.io/install/
 Markdown
-PyYAML
 aiofiles
 beautifulsoup4
 celery
@@ -17,7 +16,6 @@ jsonpath-rw-ext
 lxml
 more-itertools
 orjson
-pdfkit
 pydantic
 email-validator
 psutil

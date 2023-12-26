@@ -22,7 +22,6 @@ from document.config import settings
 from document.domain import bible_books, exceptions
 from document.domain.model import (
     AssetSourceEnum,
-    CodeNameTypeTriplet,
     ResourceLookupDto,
 )
 from document.utils.file_utils import (

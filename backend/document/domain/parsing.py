@@ -453,14 +453,6 @@ def usfm_book_content(
     )
 
 
-def is_footnote_ref(id: Optional[str]) -> bool:
-    """
-    Predicate function used to find links that have an href value that
-    we expect footnote references to have.
-    """
-    return id is not None and compile("ref-fn-.*").match(id) is not None
-
-
 def load_manifest(file_path: str) -> str:
     with open(file_path, "r") as file:
         return file.read()
@@ -494,9 +486,6 @@ def lang_direction(
                     manifest_glob_alt_fmt_str.format(resource_dir, "json")
                 )
 
-    logger.debug(
-        "resource_dir: %s, manifest_candidates: %s", resource_dir, manifest_candidates
-    )
 
     if manifest_candidates:
         candidate = manifest_candidates[0]

@@ -39,7 +39,6 @@
   }
 
   input[type='checkbox']:checked ~ .track {
-    /* @apply transform transition-colors bg-primary; */
     @apply transform transition-colors;
     background: linear-gradient(180deg, #1876fd 0%, #015ad9 100%),
       linear-gradient(0deg, #33445c, #33445c);

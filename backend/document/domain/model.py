@@ -311,18 +311,6 @@ class DocumentRequest(BaseModel):
 
 
 @final
-class FinishedDocumentDetails(BaseModel):
-    """
-    Pydantic model that we use as a return value to send back via
-    FastAPI to the client. For now it just contains the finished
-    document filepath on disk.
-    """
-
-    finished_document_request_key: Optional[str] = None
-    message: str
-
-
-@final
 class AssetSourceEnum(str, Enum):
     """
     This class/enum captures the concept of: where did the resource's
@@ -516,15 +504,6 @@ class USFMBook(NamedTuple):
 
 
 BookContent = Union[USFMBook, TNBook, TQBook, TWBook, BCBook]
-
-
-@final
-class CodeNameTypeTriplet(BaseModel):
-    """A utility class to provide validation in resource_lookup module."""
-
-    lang_code: str
-    lang_name: str
-    resource_types: list[str]
 
 
 @final

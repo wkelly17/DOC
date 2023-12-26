@@ -1622,7 +1622,6 @@ def test_fa_ulb_tn_lbo_1c_chapter() -> None:
             json={
                 "email_address": settings.TO_EMAIL_ADDRESS,
                 "assembly_strategy_kind": model.AssemblyStrategyEnum.LANGUAGE_BOOK_ORDER,
-                # "assembly_layout_kind": model.AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
                 "assembly_layout_kind": None,
                 "layout_for_print": False,
                 "generate_pdf": False,

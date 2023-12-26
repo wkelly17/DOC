@@ -19,7 +19,6 @@ from pathlib import Path
 from typing import Any, Iterable, Mapping, Optional, Sequence
 
 import jinja2
-import pdfkit  # type: ignore
 from celery import current_task
 from document.config import settings
 from document.domain import bible_books, parsing, resource_lookup, worker
@@ -791,8 +790,6 @@ def generate_docx_toc(docx_filepath: str) -> str:
     """
 
     toc_path = "{}_toc.docx".format(Path(docx_filepath).with_suffix(""))
-
-    # from docx.shared import Inches
     document = Document()
 
     paragraph = document.add_paragraph()
@@ -1239,8 +1236,6 @@ def generate_docx_document(document_request_json: Json[Any]) -> Json[Any]:
 
 def _languages_and_books_requested(
     resource_lookup_dtos: Sequence[ResourceLookupDto],
-    # non_en_usfm_resource_types: Sequence[str] = settings.USFM_RESOURCE_TYPES,
-    # en_usfm_resource_types: Sequence[str] = settings.EN_USFM_RESOURCE_TYPES,
 ) -> Sequence[tuple[str, Sequence[str]]]:
     """
     Return a list of tuples with the following form:
@@ -1259,25 +1254,10 @@ def _languages_and_books_requested(
     unique_resource_lookup_dtos = unique(
         resource_lookup_dtos, key=lambda dto: (dto.lang_name, dto.book_code)
     )
-
-    # for tw_book_content_unit in unique(
-    #     tw_book_content_units, key=lambda unit: unit.lang_code
-    # ):
-
-    # Get frontmatter titles for Word doc
-    # usfm_resource_types = [
-    #     *non_en_usfm_resource_types,
-    #     *en_usfm_resource_types,
-    # ]
-
     # Partition USFM resource requests by language.
     language_groups = itertoolz.groupby(
         lambda r: r.lang_name,
         unique_resource_lookup_dtos,
-        # filter(
-        #     lambda r: r.resource_type in usfm_resource_types,
-        #     resource_lookup_dtos,
-        # ),
     )
 
     # Example language_groups: [{English, [resource_lookup_dto{ulb}]}, [{Chinese, [resource_request{cuv}]}]]
