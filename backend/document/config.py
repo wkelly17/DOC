@@ -387,5 +387,6 @@ class Settings(BaseSettings):
 
 # mypy with pydantic v2 doesn't understand that defaults will be picked up from .env file as they had been in v1
 settings = Settings()  # type: ignore
+# Could also use:
 # settings: Settings = Settings.parse_obj({})
 # settings = Settings(_env_file=".env", _env_file_encoding="utf-8")
