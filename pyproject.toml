@@ -6,7 +6,52 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     ]
+# We use pip-tools to generate requirements.txt files for pinned
+# dependences, but this stanza is for other projects relying on DOC as
+# a package to take advantage of it as a library.
+dependencies = [
+  "Markdown",
+  "aiofiles",
+  "beautifulsoup4",
+  "celery",
+  "celery-types",
+  "docxtpl",
+  "fastapi[all]",
+  "flower",
+  "htmldocx",
+  "html2docx",
+  "gunicorn",
+  "jinja2",
+  "jsonpath-rw",
+  "jsonpath-rw-ext",
+  "lxml",
+  "more-itertools",
+  "orjson",
+  "pydantic",
+  "email-validator",
+  "psutil",
+  "python-dotenv",
+  "pyyaml",
+  "redis",
+  "requests",
+  "setuptools",
+  "termcolor",
+  "toolz",
+  "trio",
+  "usfm_tools @ https://github.com/linearcombination/USFM-Tools/archive/refs/tags/0.0.9.zip",
+  "uvicorn",
+  "weasyprint",
 
+  "types-PyYAML",
+  "types-Markdown",
+  "types-beautifulsoup4",
+  "types-ujson",
+  "types-orjson",
+  "types-requests",
+  "types-termcolor",
+  "types-toml",
+  "types-setuptools",
+]
 [build-system]
 requires = [
     "setuptools>=61",
