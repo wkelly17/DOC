@@ -46,6 +46,8 @@
     push('#/settings')
   }
 
+  const MAX_LANGUAGES: number = 2
+
   // Turn off and on breadcrumb number circles
   let turnLangStepOn: boolean = false
   let turnBookStepOn: boolean = false
@@ -124,8 +126,8 @@
       </button>
       {/if}
       <!-- next button logic -->
-      {#if langRegExp.test($location) && $langCountStore > 0}
-      <NextButton func="{submitLanguages}" />
+      {#if langRegExp.test($location) && $langCountStore > 0 && $langCountStore <= MAX_LANGUAGES}
+        <NextButton func={submitLanguages} />
       {:else if bookRegExp.test($location) && $bookCountStore > 0}
       <NextButton func="{submitBooks}" />
       {:else if resourceTypeRegExp.test($location) && $resourceTypesCountStore > 0}
@@ -259,8 +261,8 @@
       <span class="ml-2">Review</span>
     </div>
     <!-- next button logic -->
-    {#if langRegExp.test($location) && $langCountStore > 0}
-    <NextButton func="{submitLanguages}" />
+    {#if langRegExp.test($location) && $langCountStore > 0 && $langCountStore <= MAX_LANGUAGES}
+      <NextButton func={submitLanguages} />
     {:else if bookRegExp.test($location) && $bookCountStore > 0}
     <NextButton func="{submitBooks}" />
     {:else if resourceTypeRegExp.test($location) && $resourceTypesCountStore > 0}
