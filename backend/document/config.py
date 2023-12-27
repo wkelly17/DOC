@@ -66,8 +66,8 @@ class Settings(BaseSettings):
     HTML_COLUMN_LEFT_BEGIN: HtmlContent = HtmlContent("<div class='column-left'>")
     HTML_COLUMN_RIGHT_BEGIN: HtmlContent = HtmlContent("<div class='column-right'>")
     BOOK_NAME_FMT_STR: str = "<h2 style='text-align: center;'>{}</h2>"
-    BOOK_FMT_STR: str = "<h2 style='text-align: center;'>Book: {}</h2>"
-    BOOK_AS_GROUPER_FMT_STR: str = "<h1>Book: {}</h1>"
+    BOOK_FMT_STR: str = "<h2 style='text-align: center;'>{}</h2>"
+    BOOK_AS_GROUPER_FMT_STR: str = "<h1 style='text-align: center;'>{}</h1>"
     CHAPTER_HEADER_FMT_STR: str = '<h2 class="c-num" id="{}-{}-ch-{}">Chapter {}</h2>'
     UNORDERED_LIST_BEGIN_STR: HtmlContent = HtmlContent("<ul>")
     UNORDERED_LIST_END_STR: HtmlContent = HtmlContent("</ul>")

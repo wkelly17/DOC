@@ -127,7 +127,6 @@ def assemble_content_by_lang_then_book(
         book_units_sorted_by_language,
         book_content_unit_lang_name,
     ):
-        yield language_fmt_str.format(language)
 
         # Sort the books in canonical order for groupby's sake.
         book_content_units_sorted_by_book = sorted(
@@ -138,7 +137,6 @@ def assemble_content_by_lang_then_book(
             book_content_units_sorted_by_book,
             book_content_unit_book_code,
         ):
-            yield book_fmt_str.format(book_names[book])
 
             # Save grouper generator values
             book_content_units_ = list(book_content_units_grouped_by_book)
