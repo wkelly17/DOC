@@ -51,6 +51,7 @@ from docxtpl import DocxTemplate  # type: ignore
 from htmldocx import HtmlToDocx  # type: ignore
 from pydantic import Json
 from toolz import itertoolz, unique  # type: ignore
+from weasyprint import HTML  # type: ignore
 
 logger = settings.logger(__name__)
 
@@ -648,9 +649,10 @@ def convert_html_to_pdf(
     assert exists(html_filepath)
     logger.info("Generating PDF %s...", pdf_filepath)
     t0 = time.time()
-    weasyprint_command = "weasyprint {} {}".format(html_filepath, pdf_filepath)
-    logger.debug("Generate PDF command: %s", weasyprint_command)
-    subprocess.call(weasyprint_command, shell=True)
+    HTML(html_filepath).write_pdf(pdf_filepath)
+    # weasyprint_command = "weasyprint {} {}".format(html_filepath, pdf_filepath)
+    # logger.debug("Generate PDF command: %s", weasyprint_command)
+    # subprocess.call(weasyprint_command, shell=True)
     t1 = time.time()
     logger.debug("Time for converting HTML to PDF: %s", t1 - t0)
     copy_file_to_docker_output_dir(pdf_filepath)
