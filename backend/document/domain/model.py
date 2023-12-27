@@ -6,7 +6,7 @@ validation and JSON serialization.
 """
 
 from enum import Enum
-from typing import Any, Callable, NamedTuple, Optional, Sequence, Union, final
+from typing import Any, NamedTuple, Optional, Sequence, Union, final
 
 from document.config import settings
 from document.domain.bible_books import BOOK_NAMES
@@ -28,23 +28,14 @@ ChapterNum = int
 @final
 class AssemblyStrategyEnum(str, Enum):
     """
-    There is currently one high level assembly strategy kind to choose from:
-
     * LANGUAGE_BOOK_ORDER
       - This enum value signals to use the high level strategy that orders
         by language and then by book before delegating to an assembly
         sub-strategy.
     * BOOK_LANGUAGE_ORDER
       - This enum value signals to use the high level strategy that orders
-        by book and then by language  before delegating to an assembly
+        by book and then by language before delegating to an assembly
         sub-strategy.
-
-    NOTE
-    We could later add others. As an arbitrary example,
-    perhaps we'd want a high level strategy that ordered by book then
-    language (as opposed to the other way around) before delegating
-    the lower level assembly to a sub-strategy as signaled by
-    AssemblySubstrategyEnum. The sky is the limit.
     """
 
     LANGUAGE_BOOK_ORDER = "lbo"
@@ -82,11 +73,11 @@ class AssemblyLayoutEnum(str, Enum):
 
     ONE_COLUMN = "1c"
     ONE_COLUMN_COMPACT = "1c_c"
-    # fmt: off
     # NOTE The next two layouts only make sense
     # with an AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER assembly
     # strategy and when more than one language is chosen for the same
     # book.
+    # fmt: off
     TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT = "2c_sl_sr"
     TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT = "2c_sl_sr_c"
     # fmt: on
@@ -105,9 +96,6 @@ class ChunkSizeEnum(str, Enum):
     * CHAPTER
       - This enum value signals to make each chunk of interleaved
         content be one chapter's worth in length.
-
-    NOTE
-    We could later add others.
     """
 
     CHAPTER = "chapter"
@@ -118,11 +106,8 @@ class ChunkSizeEnum(str, Enum):
 @final
 class ResourceRequest(BaseModel):
     """
-    This class is used to encode a request for a resource, e.g.,
-    language 'French', fr, resource type 'ulb', book code, i.e.,
-    book, 'gen'. A document request composes N of these resource
-    request instances. Because this class inherits from pydantic's
-    BaseModel we get validation and JSON serialization for free.
+    This class is used to encode a request for a resource. A
+    document request composes N of these resource request instances.
     """
 
     lang_code: str
@@ -134,8 +119,7 @@ class ResourceRequest(BaseModel):
 class DocumentRequestSourceEnum(str, Enum):
     """
     This class/enum captures the concept of: where did the document
-    request originate from? At present it originates from either the UI or
-    tests.
+    request originate from?
     """
 
     UI = "ui"
@@ -147,9 +131,7 @@ class DocumentRequestSourceEnum(str, Enum):
 class DocumentRequest(BaseModel):
     """
     This class reifies a document generation request from a client of
-    the API. A document request is composed of N resource requests.
-    Because this class inherits from pydantic's BaseModel we get
-    validation, serialization, and special dunder functions for free.
+    the API.
     """
 
     email_address: Optional[EmailStr] = None
@@ -203,18 +185,12 @@ class DocumentRequest(BaseModel):
         See ValueError messages below for the rules we are enforcing.
         """
 
-        usfm_resource_types = [
-            *settings.USFM_RESOURCE_TYPES,
-            *settings.EN_USFM_RESOURCE_TYPES,
-        ]
+        usfm_resource_types = settings.ALL_USFM_RESOURCE_TYPES
 
         non_usfm_resource_types = [
-            *settings.TN_RESOURCE_TYPES,
-            *settings.EN_TN_RESOURCE_TYPES,
-            *settings.TQ_RESOURCE_TYPES,
-            *settings.EN_TQ_RESOURCE_TYPES,
-            *settings.TW_RESOURCE_TYPES,
-            *settings.EN_TW_RESOURCE_TYPES,
+            *settings.ALL_TN_RESOURCE_TYPES,
+            *settings.ALL_TQ_RESOURCE_TYPES,
+            *settings.ALL_TW_RESOURCE_TYPES,
             *settings.BC_RESOURCE_TYPES,
         ]
         all_resource_types = [*usfm_resource_types, *non_usfm_resource_types]
@@ -258,37 +234,30 @@ class DocumentRequest(BaseModel):
         )
 
         if (
-            self.assembly_layout_kind
+            self.assembly_strategy_kind != AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER
+            and self.assembly_layout_kind
             == AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT
-            and self.assembly_strategy_kind
-            != AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER
-            != AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER
         ):
             raise ValueError(
                 "Two column scripture left, scripture right layout is only compatible with book language order assembly strategy."
             )
         elif (
-            self.assembly_layout_kind
+            self.assembly_strategy_kind == AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER
+            and self.assembly_layout_kind
             == AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT
-            and self.assembly_strategy_kind
-            == AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER
-            == AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER
             # Because book content for different languages will be side by side for
             # the scripture left scripture right layout, we make sure there are a non-zero
             # even number of languages so that we can display them left and right in
             # pairs.
-            # and not (number_of_usfm_languages > 1 and is_even(number_of_usfm_languages))
             and not is_even(number_of_usfm_languages)
         ):
             raise ValueError(
                 "Two column scripture left, scripture right layout requires a non-zero even number of languages. For an uneven number of languages you'll want to use the one column layout kind."
             )
         elif (
-            self.assembly_layout_kind
+            self.assembly_strategy_kind == AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER
+            and self.assembly_layout_kind
             == AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT
-            and self.assembly_strategy_kind
-            == AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER
-            == AssemblyStrategyEnum.BOOK_LANGUAGE_ORDER
             # Because book content for different languages will be side by side for
             # the scripture left scripture right layout, we make sure there are a non-zero
             # even number of languages so that we can display them left and right in
@@ -298,7 +267,7 @@ class DocumentRequest(BaseModel):
             # Each language must have the same set of books in order to
             # use the scripture left scripture right layout strategy. As an example,
             # you wouldn't want to allow the sl-sr layout if the document request
-            # asked for swahili ulb for lamentations and spanish ulb for nahum -
+            # asked for Swahili ulb for Lamentations and Spanish ulb for Nahum -
             # the set of books in each language are not the same and so do not make
             # sense to be displayed side by side.
             and not all_equal(sorted_book_set_for_each_language)
@@ -374,7 +343,7 @@ class TNBook(NamedTuple):
     lang_name: str
     book_code: str
     resource_type_name: str
-    intro_html: HtmlContent
+    book_intro: HtmlContent
     chapters: dict[ChapterNum, TNChapter]
     lang_direction: LangDirEnum
 
@@ -424,7 +393,7 @@ class TWUse(NamedTuple):
 class TWNameContentPair:
     """
     A class to hold the localized translation word and its associated
-    HTML content (which was converted from its Markdown).
+    HTML content.
     """
 
     def __init__(self, localized_word: str, content: HtmlContent):
@@ -434,11 +403,6 @@ class TWNameContentPair:
 
 @final
 class TWBook(NamedTuple):
-    """
-    A class to hold a list of TWNameContentPair instances and a list
-    of TWUse instances.
-    """
-
     lang_code: str
     lang_name: str
     book_code: str
@@ -450,11 +414,6 @@ class TWBook(NamedTuple):
 
 @final
 class BCChapter(NamedTuple):
-    """
-    A class to hold a mapping of verse references to bible
-    commentary HTML content.
-    """
-
     commentary: HtmlContent
 
 
@@ -478,9 +437,9 @@ class USFMChapter(NamedTuple):
     """
     A class to hold the USFM converted to HTML content for a chapter
     in total (including things like 'chunk breaks' and other verse
-    formatting HTML elements), content, and by verse per chapter (missing
-    the 'chunk breaks' and other inter-verse HTML formatting elements),
-    verses. The purpose of 'content' is so that you can display a whole
+    formatting HTML elements), content, and chapter verses, i.e., missing
+    the 'chunk breaks' and other inter-verse HTML formatting elements.
+    The purpose of 'content' is so that you can display a whole
     chapter at a time when desired. The purpose of 'verses' is so that you
     can display verses in a particular chapter one at a time or a range of
     them at a time.

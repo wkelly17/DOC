@@ -37,10 +37,11 @@ from document.domain.model import (
     ResourceLookupDto,
     ResourceRequest,
     TWBook,
+    TWNameContentPair,
     TWUse,
     USFMBook,
 )
-from document.utils import file_utils
+from document.utils.file_utils import asset_file_needs_update, write_file
 from docx import Document  # type: ignore
 from docx.enum.section import WD_SECTION  # type: ignore
 from docx.oxml import OxmlElement  # type: ignore
@@ -192,13 +193,11 @@ def document_html_header(
     """
     if generate_docx:
         return template("header_no_css_enclosing")
-
     if assembly_layout_kind and assembly_layout_kind in [
         AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
         AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
     ]:
         return instantiated_html_header_template("header_compact_enclosing")
-
     return instantiated_html_header_template("header_enclosing")
 
 
@@ -243,12 +242,7 @@ def translation_words_section(
     usfm_book_content_units: Optional[Sequence[USFMBook]],
     limit_words: bool,
     resource_requests: Sequence[ResourceRequest],
-    include_uses_section: bool = True,
     resource_type_name_fmt_str: str = settings.RESOURCE_TYPE_NAME_FMT_STR,
-    opening_h3_fmt_str: str = settings.OPENING_H3_FMT_STR,
-    opening_h3_with_id_fmt_str: str = settings.OPENING_H3_WITH_ID_FMT_STR,
-    usfm_resource_types: Sequence[str] = settings.USFM_RESOURCE_TYPES,
-    en_usfm_resource_types: Sequence[str] = settings.EN_USFM_RESOURCE_TYPES,
 ) -> Iterable[HtmlContent]:
     """
     Build and return the translation words definition section, i.e.,
@@ -260,155 +254,169 @@ def translation_words_section(
     True.
     """
 
+    # There is usfm content in this document request so we can
+    # include the uses section in notes which links to individual word
+    # definitions. The uses section will be incorporated by
+    # assembly_strategies module if print layout is not chosen and
+    # ignored otherwise.
+    include_uses_section = True if usfm_book_content_units else False
+    yield_html_content(resource_type_name_fmt_str, book_content_unit)
+    selected_name_content_pairs = get_selected_name_content_pairs(
+        book_content_unit, usfm_book_content_units, limit_words, resource_requests
+    )
+    for name_content_pair in selected_name_content_pairs:
+        yield from yield_name_content_pair_content(
+            name_content_pair, book_content_unit, include_uses_section
+        )
+
+
+def yield_html_content(
+    resource_type_name_fmt_str: str, book_content_unit: TWBook
+) -> Iterable[HtmlContent]:
     if book_content_unit.name_content_pairs:
         yield HtmlContent(
             resource_type_name_fmt_str.format(book_content_unit.resource_type_name)
         )
 
+
+def get_selected_name_content_pairs(
+    book_content_unit: TWBook,
+    usfm_book_content_units: Optional[Sequence[USFMBook]],
+    limit_words: bool,
+    resource_requests: Sequence[ResourceRequest],
+    usfm_resource_types: Sequence[str] = settings.USFM_RESOURCE_TYPES,
+    en_usfm_resource_types: Sequence[str] = settings.EN_USFM_RESOURCE_TYPES,
+) -> list[TWNameContentPair]:
     selected_name_content_pairs = []
-    # The value of limit_words allows to toggle including only words in
-    # the translation section which occur in current lang_code, book content
-    # requested, or, if False, getting all translation words for the language.
-    #
-    # Bear in mind that translation note 'See also' sections often refer to
-    # translation words that are not part of the lang_code/book content and
-    # thus those links are dead unless we include all words.
-    #
-    # Also understand that by limiting the translation words we limit the
-    # ability of those using the interleaved document to gain deeper
-    # understanding of the interrelationships of words.
-    #
-    # The only reason why we ever limit words is so the document
-    # length is lessened and thus easier/cheaper/more convenient to print.
-    logger.debug("settings.LIMIT_WORDS: %s", limit_words)
-    if usfm_book_content_units is not None and usfm_book_content_units and limit_words:
-        # Limit name_content_pairs to only those that actually appear in the scripture requested.
-        logger.debug(
-            "len(book_content_unit.name_content_pairs): %s",
-            len(book_content_unit.name_content_pairs),
+    if usfm_book_content_units and limit_words:
+        selected_name_content_pairs = filter_name_content_pairs(
+            book_content_unit, usfm_book_content_units
         )
-        # Unfortunate asymptotics here, but at least we have finite list lengths.
-        for name_content_pair in book_content_unit.name_content_pairs:
-            for usfm_book_content_unit in usfm_book_content_units:
-                for chapter in usfm_book_content_unit.chapters.values():
-                    if re.search(
-                        re.escape(name_content_pair.localized_word),
-                        "".join(chapter.content),
-                    ):
-                        # logger.debug(
-                        #     "Adding TW word: %s", name_content_pair.localized_word
-                        # )
-                        selected_name_content_pairs.append(name_content_pair)
-                        break
-    elif (
-        usfm_book_content_units is None and not usfm_book_content_units and limit_words
-    ):
-        # 1. Fetch URL for USFM resource for the given lang_code
-        # 2. Fetch asset for USFM resource
-        # 3. Parse USFM asset
-        # 4. Do loop, as above, to filter TW words
-
-        usfm_resource_lookup_dtos = []
-        for resource_request in resource_requests:
-            if resource_request.lang_code == "en":
-                for usfm_type in en_usfm_resource_types:
-                    usfm_resource_lookup_dtos.append(
-                        resource_lookup.resource_lookup_dto(
-                            resource_request.lang_code,
-                            usfm_type,
-                            resource_request.book_code,
-                        )
-                    )
-            else:
-                for usfm_type in usfm_resource_types:
-                    usfm_resource_lookup_dtos.append(
-                        resource_lookup.resource_lookup_dto(
-                            resource_request.lang_code,
-                            usfm_type,
-                            resource_request.book_code,
-                        )
-                    )
-
-        # Determine which resource URLs were actually found.
-        found_usfm_resource_lookup_dtos = [
-            resource_lookup_dto
-            for resource_lookup_dto in usfm_resource_lookup_dtos
-            if resource_lookup_dto.url is not None
-        ]
-
-        current_task.update_state(state="Provisioning USFM asset files for TW resource")
-        t0 = time.time()
-        resource_dirs = [
-            resource_lookup.provision_asset_files(dto)
-            for dto in found_usfm_resource_lookup_dtos
-        ]
-        t1 = time.time()
-        logger.debug(
-            "Time to provision USFM asset files (acquire and write to disk) for TW resource: %s",
-            t1 - t0,
+    elif not usfm_book_content_units and limit_words:
+        usfm_book_content_units = fetch_usfm_book_content_units(
+            resource_requests, usfm_resource_types, en_usfm_resource_types
         )
-
-        current_task.update_state(state="Parsing USFM asset files for TW resource")
-        # Initialize found resources from their provisioned assets.
-        # t0 = time.time()
-        usfm_book_content_units = [
-            parsing.usfm_book_content(
-                resource_lookup_dto,
-                resource_dir,
-                resource_requests,
-                False,
-            )
-            for resource_lookup_dto, resource_dir in zip(
-                found_usfm_resource_lookup_dtos, resource_dirs
-            )
-        ]
-
-        current_task.update_state(state="Limiting TW words")
-        # Unfortunate asymptotics here, but at least we have finite list lengths.
-        for name_content_pair in book_content_unit.name_content_pairs:
-            for usfm_book_content_unit in usfm_book_content_units:
-                for chapter in usfm_book_content_unit.chapters.values():
-                    if re.search(
-                        re.escape(name_content_pair.localized_word),
-                        "".join(chapter.content),
-                    ):
-                        # logger.debug(
-                        #     "Adding TW word: %s", name_content_pair.localized_word
-                        # )
-                        selected_name_content_pairs.append(name_content_pair)
-                        break
+        selected_name_content_pairs = filter_name_content_pairs(
+            book_content_unit, usfm_book_content_units
+        )
     else:
         selected_name_content_pairs = book_content_unit.name_content_pairs
+    return selected_name_content_pairs
 
-    logger.debug("Number of TW words: %s", len(selected_name_content_pairs))
 
-    for name_content_pair in selected_name_content_pairs:
-        # Make linking work: have to add ID to tags for anchor
-        # links to work.
-        name_content_pair.content = HtmlContent(
-            name_content_pair.content.replace(
-                opening_h3_fmt_str.format(name_content_pair.localized_word),
-                opening_h3_with_id_fmt_str.format(
-                    book_content_unit.lang_code,
-                    name_content_pair.localized_word,
-                    name_content_pair.localized_word,
-                ),
-            )
+def filter_name_content_pairs(
+    book_content_unit: TWBook, usfm_book_content_units: Optional[Sequence[USFMBook]]
+) -> list[TWNameContentPair]:
+    selected_name_content_pairs = []
+    if usfm_book_content_units:
+        for name_content_pair in book_content_unit.name_content_pairs:
+            for usfm_book_content_unit in usfm_book_content_units:
+                for chapter in usfm_book_content_unit.chapters.values():
+                    if re.search(
+                        re.escape(name_content_pair.localized_word),
+                        "".join(chapter.content),
+                    ):
+                        selected_name_content_pairs.append(name_content_pair)
+                        break
+    return selected_name_content_pairs
+
+
+def fetch_usfm_book_content_units(
+    resource_requests: Sequence[ResourceRequest],
+    usfm_resource_types: Sequence[str] = settings.USFM_RESOURCE_TYPES,
+    en_usfm_resource_types: Sequence[str] = settings.EN_USFM_RESOURCE_TYPES,
+) -> list[USFMBook]:
+    usfm_resource_lookup_dtos = []
+    for resource_request in resource_requests:
+        if resource_request.lang_code == "en":
+            for usfm_type in en_usfm_resource_types:
+                usfm_resource_lookup_dtos.append(
+                    resource_lookup.resource_lookup_dto(
+                        resource_request.lang_code,
+                        usfm_type,
+                        resource_request.book_code,
+                    )
+                )
+        else:
+            for usfm_type in usfm_resource_types:
+                usfm_resource_lookup_dtos.append(
+                    resource_lookup.resource_lookup_dto(
+                        resource_request.lang_code,
+                        usfm_type,
+                        resource_request.book_code,
+                    )
+                )
+    # Determine which resource URLs were actually found.
+    found_usfm_resource_lookup_dtos = [
+        resource_lookup_dto
+        for resource_lookup_dto in usfm_resource_lookup_dtos
+        if resource_lookup_dto.url is not None
+    ]
+    current_task.update_state(state="Provisioning USFM asset files for TW resource")
+    t0 = time.time()
+    resource_dirs = [
+        resource_lookup.provision_asset_files(dto)
+        for dto in found_usfm_resource_lookup_dtos
+    ]
+    t1 = time.time()
+    logger.debug(
+        "Time to provision USFM asset files (acquire and write to disk) for TW resource: %s",
+        t1 - t0,
+    )
+    current_task.update_state(state="Parsing USFM asset files for TW resource")
+    # Initialize found resources from their provisioned assets.
+    usfm_book_content_units = [
+        parsing.usfm_book_content(
+            resource_lookup_dto,
+            resource_dir,
+            resource_requests,
+            False,
         )
-        uses_section_ = HtmlContent("")
+        for resource_lookup_dto, resource_dir in zip(
+            found_usfm_resource_lookup_dtos, resource_dirs
+        )
+    ]
+    return usfm_book_content_units
 
-        # See comment above.
-        if (
-            include_uses_section
-            and name_content_pair.localized_word in book_content_unit.uses
-        ):
-            uses_section_ = uses_section(
-                book_content_unit.uses[name_content_pair.localized_word]
-            )
-            name_content_pair.content = HtmlContent(
-                name_content_pair.content + uses_section_
-            )
-        yield name_content_pair.content
+
+def yield_name_content_pair_content(
+    name_content_pair: TWNameContentPair,
+    book_content_unit: TWBook,
+    include_uses_section: bool,
+) -> Iterable[HtmlContent]:
+    name_content_pair.content = modify_content_for_anchors(
+        name_content_pair, book_content_unit
+    )
+    uses_section_ = HtmlContent("")
+    if (
+        include_uses_section
+        and name_content_pair.localized_word in book_content_unit.uses
+    ):
+        uses_section_ = uses_section(
+            book_content_unit.uses[name_content_pair.localized_word]
+        )
+        name_content_pair.content = HtmlContent(
+            f"{name_content_pair.content}{uses_section_}"
+        )
+    yield name_content_pair.content
+
+
+def modify_content_for_anchors(
+    name_content_pair: TWNameContentPair,
+    book_content_unit: TWBook,
+    opening_h3_fmt_str: str = settings.OPENING_H3_FMT_STR,
+    opening_h3_with_id_fmt_str: str = settings.OPENING_H3_WITH_ID_FMT_STR,
+) -> HtmlContent:
+    return HtmlContent(
+        name_content_pair.content.replace(
+            opening_h3_fmt_str.format(name_content_pair.localized_word),
+            opening_h3_with_id_fmt_str.format(
+                book_content_unit.lang_code,
+                name_content_pair.localized_word,
+                name_content_pair.localized_word,
+            ),
+        )
+    )
 
 
 def assemble_content(
@@ -437,7 +445,6 @@ def assemble_content(
     )
     t1 = time.time()
     logger.debug("Time for interleaving document: %s", t1 - t0)
-
     t0 = time.time()
     tw_book_content_units = [
         book_content_unit
@@ -457,42 +464,19 @@ def assemble_content(
     for tw_book_content_unit in unique(
         tw_book_content_units, key=lambda unit: unit.lang_code
     ):
-        if usfm_book_content_units:
-            # There is usfm content in this document request so we can
-            # include the uses section in notes which links to individual word
-            # definitions. The uses section will be incorporated by
-            # assembly_strategies module if print layout is not chosen and
-            # ignored otherwise.
-            content = "{}{}<hr/>".format(
-                content,
-                "".join(
-                    translation_words_section(
-                        tw_book_content_unit,
-                        usfm_book_content_units,
-                        document_request.limit_words,
-                        document_request.resource_requests,
-                    )
-                ),
-            )
-        else:
-            # There is no usfm content in this document request so
-            # there is no need for the uses section.
-            content = "{}{}<hr/>".format(
-                content,
-                "".join(
-                    translation_words_section(
-                        tw_book_content_unit,
-                        None,
-                        document_request.limit_words,
-                        document_request.resource_requests,
-                        include_uses_section=False,
-                    )
-                ),
-            )
-
+        content = "{}{}<hr/>".format(
+            content,
+            "".join(
+                translation_words_section(
+                    tw_book_content_unit,
+                    usfm_book_content_units,
+                    document_request.limit_words,
+                    document_request.resource_requests,
+                )
+            ),
+        )
     t1 = time.time()
     logger.debug("Time for add TW content to document: %s", t1 - t0)
-
     # Get the appropriate HTML template header content given the
     # document_request.assembly_layout_kind the user has chosen.
     header = document_html_header(
@@ -533,13 +517,11 @@ def assemble_docx_content(
         for book_content_unit in book_content_units
         if isinstance(book_content_unit, TWBook)
     ]
-
     usfm_book_content_units = [
         book_content_unit
         for book_content_unit in book_content_units
         if isinstance(book_content_unit, USFMBook)
     ]
-
     tw_subdocs = []
     if tw_book_content_units:
         html_to_docx = HtmlToDocx()
@@ -548,56 +530,29 @@ def assemble_docx_content(
         for tw_book_content_unit in unique(
             tw_book_content_units, key=lambda unit: unit.lang_code
         ):
-            if usfm_book_content_units:
-                # There is usfm content in this document request so we can
-                # include the uses section in notes which links to individual word
-                # definitions. The uses section will be incorporated by
-                # assembly_strategies module if print layout is not chosen and
-                # ignored otherwise.
-                tw_subdoc = html_to_docx.parse_html_string(
-                    "".join(
-                        translation_words_section(
-                            tw_book_content_unit,
-                            usfm_book_content_units,
-                            document_request.limit_words,
-                            document_request.resource_requests,
-                            include_uses_section=False,
-                        )
+            tw_subdoc = html_to_docx.parse_html_string(
+                "".join(
+                    translation_words_section(
+                        tw_book_content_unit,
+                        usfm_book_content_units,
+                        document_request.limit_words,
+                        document_request.resource_requests,
                     )
                 )
-                p = tw_subdoc.paragraphs[-1]
-                add_hr(p)
-                tw_subdocs.append(tw_subdoc)
-            else:
-                # There is no usfm content in this document request so
-                # there is no need for the uses section.
-                tw_subdoc = html_to_docx.parse_html_string(
-                    "".join(
-                        translation_words_section(
-                            tw_book_content_unit,
-                            None,
-                            document_request.limit_words,
-                            document_request.resource_requests,
-                            include_uses_section=False,
-                        )
-                    )
-                )
-                p = tw_subdoc.paragraphs[-1]
-                add_hr(p)
-                tw_subdocs.append(tw_subdoc)
-
+            )
+            p = tw_subdoc.paragraphs[-1]
+            add_hr(p)
+            tw_subdocs.append(tw_subdoc)
         t1 = time.time()
         logger.debug("Time for adding TW content to document: %s", t1 - t0)
-
     # Now add any TW subdocs to the composer
     for tw_subdoc_ in tw_subdocs:
         composer.append(tw_subdoc_)
-
     return composer
 
 
 def should_send_email(
-    # NOTE: email_address comes in as pydantic.EmailStr and leaves
+    # email_address comes in as pydantic.EmailStr and leaves
     # the pydantic class validator as a str.
     email_address: Optional[str],
     send_email: bool = settings.SEND_EMAIL,
@@ -610,7 +565,7 @@ def should_send_email(
 
 
 def send_email_with_attachment(
-    # NOTE: email_address comes in as pydantic.EmailStr and leaves
+    # email_address comes in as pydantic.EmailStr and leaves
     # the pydantic class validator as a str.
     email_address: Optional[str],
     attachments: list[Attachment],
@@ -629,20 +584,16 @@ def send_email_with_attachment(
     recipient's email with the document attached.
     """
     lexception = logger.exception
-
     if email_address:
         sender = from_email_address
         email_password = smtp_password
         recipients = [email_address]
-
         logger.debug("Email sender %s, recipients: %s", sender, recipients)
-
         # Create the enclosing (outer) message
         outer = MIMEMultipart()
         outer["Subject"] = email_send_subject
         outer["To"] = comma_space.join(recipients)
         outer["From"] = sender
-
         # Add the attachments to the message
         for attachment in attachments:
             try:
@@ -658,15 +609,11 @@ def send_email_with_attachment(
                 outer.attach(msg)
             except Exception:
                 lexception("Unable to open one of the attachments. Caught exception: ")
-
         # Get the email body
         message_body = instantiated_email_template(document_request_key)
         logger.debug("instantiated email template: %s", message_body)
-
         outer.attach(MIMEText(message_body, "plain"))
-
         composed = outer.as_string()
-
         # Send the email
         try:
             with smtplib.SMTP(smtp_host, smtp_port) as smtp:
@@ -684,7 +631,7 @@ def send_email_with_attachment(
 # HTML to PDF converters:
 # princexml ($$$$) or same through docraptor ($$),
 # wkhtmltopdf via pdfkit (can't handle column-count directive),
-# weasyprint (does a nice job, but is slow),
+# weasyprint (does a nice job, we use this),
 # pagedjs-cli (does a really nice job, but is really slow - uses puppeteer underneath),
 # electron-pdf (similar speed to wkhtmltopdf) which uses chrome underneath the hood,
 # gotenburg which uses chrome under the hood and provides a nice api in Docker (untested),
@@ -700,7 +647,6 @@ def convert_html_to_pdf(
     """
     assert exists(html_filepath)
     logger.info("Generating PDF %s...", pdf_filepath)
-
     t0 = time.time()
     weasyprint_command = "weasyprint {} {}".format(html_filepath, pdf_filepath)
     logger.debug("Generate PDF command: %s", weasyprint_command)
@@ -753,11 +699,9 @@ def convert_html_to_docx(
     title1 = title1
     title2 = title2
     title3 = title3
-
     # fmt: off
     template_path = docx_compact_template_path if layout_for_print else docx_template_path
     # fmt: on
-
     doc = DocxTemplate(template_path)
     toc_path = generate_docx_toc(docx_filepath)
     toc = doc.new_subdoc(toc_path)
@@ -768,17 +712,14 @@ def convert_html_to_docx(
         "TOC": toc,
     }
     doc.render(context)
-
     # Start new section for different column layout
     new_section = doc.add_section(WD_SECTION.CONTINUOUS)
     new_section.start_type
-
     master = Composer(doc)
     # Add the main (non-front-matter) content.
     master.append(composer.doc)
     master.save(docx_filepath)
     t1 = time.time()
-
     logger.debug("Time for converting HTML to Docx: %s", t1 - t0)
     copy_file_to_docker_output_dir(docx_filepath)
 
@@ -788,10 +729,8 @@ def generate_docx_toc(docx_filepath: str) -> str:
     Create subdocument that contains only the code to generate (on
     first open of document) the table of contents.
     """
-
     toc_path = "{}_toc.docx".format(Path(docx_filepath).with_suffix(""))
     document = Document()
-
     paragraph = document.add_paragraph()
     run = paragraph.add_run()
     fldChar = OxmlElement("w:fldChar")
@@ -801,7 +740,6 @@ def generate_docx_toc(docx_filepath: str) -> str:
     instrText.text = (
         r'TOC \o "1-2" \h \z \u'  # change 1-2 depending on heading levels you need
     )
-
     fldChar2 = OxmlElement("w:fldChar")
     fldChar2.set(qn("w:fldCharType"), "separate")
     fldChar3 = OxmlElement("w:t")
@@ -809,17 +747,14 @@ def generate_docx_toc(docx_filepath: str) -> str:
         "Right-click to update field (doing so will insert table of contents)."
     )
     fldChar2.append(fldChar3)
-
     fldChar4 = OxmlElement("w:fldChar")
     fldChar4.set(qn("w:fldCharType"), "end")
-
     r_element = run._r
     r_element.append(fldChar)
     r_element.append(instrText)
     r_element.append(fldChar2)
     r_element.append(fldChar4)
     p_element = paragraph._p
-
     document.save(toc_path)
     return toc_path
 
@@ -900,7 +835,6 @@ def select_assembly_layout_kind(
         and document_request.assembly_layout_kind
     ):
         return document_request.assembly_layout_kind
-
     # assembly_layout_kind was not yet chosen, but validation tells us
     # that other values of the document request instance are valid, so now
     # we can intelligently choose the right assembly_layout_kind for the
@@ -927,7 +861,6 @@ def select_assembly_layout_kind(
     ):
         # return sl_sr_compact
         return one_column_compact
-
     return one_column
 
 
@@ -941,7 +874,7 @@ def write_html_content_to_file(
     content_updated = clean_html(content)
     logger.debug("About to write HTML to %s", output_filename)
     # Write the HTML file to disk.
-    file_utils.write_file(
+    write_file(
         output_filename,
         content_updated,
     )
@@ -989,8 +922,7 @@ def generate_document(document_request_json: Json[Any]) -> Json[Any]:
     html_filepath_ = html_filepath(document_request_key_)
     pdf_filepath_ = pdf_filepath(document_request_key_)
     epub_filepath_ = epub_filepath(document_request_key_)
-
-    if file_utils.asset_file_needs_update(html_filepath_):
+    if asset_file_needs_update(html_filepath_):
         # Update the state of the worker process. This is used by the
         # UI to report status.
         current_task.update_state(state="Locating assets")
@@ -1005,14 +937,12 @@ def generate_document(document_request_json: Json[Any]) -> Json[Any]:
             )
             for resource_request in document_request.resource_requests
         ]
-
         # Determine which resource URLs were actually found.
         found_resource_lookup_dtos = [
             resource_lookup_dto
             for resource_lookup_dto in resource_lookup_dtos
             if resource_lookup_dto.url is not None
         ]
-
         current_task.update_state(state="Provisioning asset files")
         t0 = time.time()
         resource_dirs = [
@@ -1023,25 +953,26 @@ def generate_document(document_request_json: Json[Any]) -> Json[Any]:
         logger.debug(
             "Time to provision asset files (acquire and write to disk): %s", t1 - t0
         )
-
         current_task.update_state(state="Parsing asset files")
         # Initialize found resources from their provisioned assets.
         t0 = time.time()
         book_content_units = [
-            parsing.book_content(
-                resource_lookup_dto,
-                resource_dir,
-                document_request.resource_requests,
-                document_request.layout_for_print,
-            )
-            for resource_lookup_dto, resource_dir in zip(
-                found_resource_lookup_dtos, resource_dirs
-            )
+            x
+            for x in [
+                parsing.book_content(
+                    resource_lookup_dto,
+                    resource_dir,
+                    document_request.resource_requests,
+                    document_request.layout_for_print,
+                )
+                for resource_lookup_dto, resource_dir in zip(
+                    found_resource_lookup_dtos, resource_dirs
+                )
+            ]
+            if x
         ]
-
         t1 = time.time()
         logger.debug("Time to parse all resource content: %s", t1 - t0)
-
         current_task.update_state(state="Assembling content")
         content = assemble_content(
             document_request_key_, document_request, book_content_units
@@ -1052,14 +983,11 @@ def generate_document(document_request_json: Json[Any]) -> Json[Any]:
         )
     else:
         logger.debug("Cache hit for %s", html_filepath_)
-
     # Immediately return pre-built PDF if the document has previously been
     # generated and is fresh enough. In that case, front run all requests to
     # the cloud including the more low level resource asset caching
     # mechanism for comparatively immediate return of PDF.
-    if document_request.generate_pdf and file_utils.asset_file_needs_update(
-        pdf_filepath_
-    ):
+    if document_request.generate_pdf and asset_file_needs_update(pdf_filepath_):
         current_task.update_state(state="Converting to PDF")
         convert_html_to_pdf(
             html_filepath_,
@@ -1078,10 +1006,7 @@ def generate_document(document_request_json: Json[Any]) -> Json[Any]:
             )
     else:
         logger.debug("Cache hit for %s", pdf_filepath_)
-
-    if document_request.generate_epub and file_utils.asset_file_needs_update(
-        epub_filepath_
-    ):
+    if document_request.generate_epub and asset_file_needs_update(epub_filepath_):
         current_task.update_state(state="Converting to ePub")
         convert_html_to_epub(
             html_filepath_,
@@ -1094,7 +1019,6 @@ def generate_document(document_request_json: Json[Any]) -> Json[Any]:
                     filepath=epub_filepath_, mime_type=("application", "epub+zip")
                 )
             ]
-
             current_task.update_state(state="Sending email")
             send_email_with_attachment(
                 document_request.email_address,
@@ -1103,7 +1027,6 @@ def generate_document(document_request_json: Json[Any]) -> Json[Any]:
             )
     else:
         logger.debug("Cache hit for %s", epub_filepath_)
-
     return document_request_key_
 
 
@@ -1131,10 +1054,7 @@ def generate_docx_document(document_request_json: Json[Any]) -> Json[Any]:
     )
     html_filepath_ = html_filepath(document_request_key_)
     docx_filepath_ = docx_filepath(document_request_key_)
-
-    if document_request.generate_docx and file_utils.asset_file_needs_update(
-        docx_filepath_
-    ):
+    if document_request.generate_docx and asset_file_needs_update(docx_filepath_):
         # Update the state of the worker process. This is used by the
         # UI to report status.
         current_task.update_state(state="Locating assets")
@@ -1149,14 +1069,12 @@ def generate_docx_document(document_request_json: Json[Any]) -> Json[Any]:
             )
             for resource_request in document_request.resource_requests
         ]
-
         # Determine which resource URLs were actually found.
         found_resource_lookup_dtos = [
             resource_lookup_dto
             for resource_lookup_dto in resource_lookup_dtos
             if resource_lookup_dto.url is not None
         ]
-
         current_task.update_state(state="Provisioning asset files")
         t0 = time.time()
         resource_dirs = [
@@ -1167,25 +1085,26 @@ def generate_docx_document(document_request_json: Json[Any]) -> Json[Any]:
         logger.debug(
             "Time to provision asset files (acquire and write to disk): %s", t1 - t0
         )
-
         current_task.update_state(state="Parsing asset files")
         # Initialize found resources from their provisioned assets.
         t0 = time.time()
         book_content_units = [
-            parsing.book_content(
-                resource_lookup_dto,
-                resource_dir,
-                document_request.resource_requests,
-                document_request.layout_for_print,
-            )
-            for resource_lookup_dto, resource_dir in zip(
-                found_resource_lookup_dtos, resource_dirs
-            )
+            x
+            for x in [
+                parsing.book_content(
+                    resource_lookup_dto,
+                    resource_dir,
+                    document_request.resource_requests,
+                    document_request.layout_for_print,
+                )
+                for resource_lookup_dto, resource_dir in zip(
+                    found_resource_lookup_dtos, resource_dirs
+                )
+            ]
+            if x
         ]
-
         t1 = time.time()
         logger.debug("Time to parse all resource content: %s", t1 - t0)
-
         current_task.update_state(state="Assembling content")
         composer = assemble_docx_content(
             document_request_key_, document_request, book_content_units
@@ -1196,11 +1115,9 @@ def generate_docx_document(document_request_json: Json[Any]) -> Json[Any]:
             "{}: {}".format(pair[0], ", ".join(pair[1]))
             for pair in _languages_and_books_requested(found_resource_lookup_dtos)
         ]
-
         # Isolate each title
         title1 = titles[0]  # Example: 'Engish: Matthew, Mark'
         title2 = titles[1] if len(titles) >= 2 else ""  # Example: 'Chinese: Genesis'
-
         current_task.update_state(state="Converting to Docx")
         convert_html_to_docx(
             html_filepath_,
@@ -1230,7 +1147,6 @@ def generate_docx_document(document_request_json: Json[Any]) -> Json[Any]:
             )
     else:
         logger.debug("Cache hit for %s", docx_filepath_)
-
     return document_request_key_
 
 
@@ -1259,11 +1175,10 @@ def _languages_and_books_requested(
         lambda r: r.lang_name,
         unique_resource_lookup_dtos,
     )
-
-    # Example language_groups: [{English, [resource_lookup_dto{ulb}]}, [{Chinese, [resource_request{cuv}]}]]
-
+    # Example language_groups: [{English, [resource_lookup_dto{ulb}]},
+    # [{Chinese, [resource_request{cuv}]}]]
     # Get a list of the sorted set of books for each language for later
-    # use.
+    # use
     list_of_language_to_books_tuples = [
         (
             lang_name,
@@ -1280,11 +1195,8 @@ def _languages_and_books_requested(
 
 
 if __name__ == "__main__":
-
     # To run the doctests in the this module, in the root of the project do:
-    # python backend/document/domain/resource_lookup.py
-    # or
-    # python backend/document/domain/resource_lookup.py -v
+    # FROM_EMAIL_ADDRESS=... python backend/document/domain/resource_lookup.py
     # See https://docs.python.org/3/library/doctest.html
     # for more details.
     import doctest

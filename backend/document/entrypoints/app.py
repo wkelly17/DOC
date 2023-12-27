@@ -67,10 +67,7 @@ async def generate_document(
 ) -> JSONResponse:
     """
     Get the document request and hand it off to the document_generator
-    module for processing. Return model.FinishedDocumentDetails instance
-    containing URL of resulting output file, or, raise an
-    InvalidDocumentRequestException if there is an exception which is
-    subsequently caught in the frontend UI.
+    module for processing.
     """
     # Top level exception handler
     try:
@@ -100,10 +97,7 @@ async def generate_docx_document(
 ) -> JSONResponse:
     """
     Get the document request and hand it off to the document_generator
-    module for processing. Return model.FinishedDocumentDetails instance
-    containing URL of resulting Docx, or, raise an
-    InvalidDocumentRequestException if there is an exception which is
-    subsequently caught in the frontend UI.
+    module for processing.
     """
     # Top level exception handler
     try:

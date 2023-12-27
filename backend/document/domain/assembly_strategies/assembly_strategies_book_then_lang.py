@@ -11,11 +11,11 @@ from document.domain.assembly_strategies.assembly_strategy_utils import (
     book_content_unit_book_code,
 )
 from document.domain.assembly_strategies.assembly_strategies_book_then_lang_by_chapter import (
-    assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
-    assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
-    assemble_tn_as_iterator_by_chapter_for_book_then_lang,
-    assemble_tq_as_iterator_by_chapter_for_book_then_lang,
-    assemble_tw_as_iterator_by_chapter_for_book_then_lang,
+    assemble_usfm_by_chapter_2c_sl_sr,
+    assemble_usfm_by_chapter,
+    assemble_tn_by_chapter,
+    assemble_tq_by_chapter,
+    assemble_tw_by_chapter,
 )
 from document.domain.bible_books import BOOK_NAMES
 from document.domain.model import (
@@ -182,7 +182,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             True,
             True,
@@ -191,7 +191,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             True,
             True,
@@ -200,7 +200,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             True,
             True,
@@ -209,7 +209,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             True,
             True,
@@ -218,7 +218,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             True,
             True,
@@ -227,7 +227,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             True,
             True,
@@ -236,7 +236,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             True,
             True,
@@ -245,7 +245,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             True,
             True,
@@ -254,7 +254,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             True,
             True,
@@ -263,7 +263,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             True,
             True,
@@ -272,7 +272,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             True,
             True,
@@ -281,7 +281,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             True,
             True,
@@ -290,7 +290,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             True,
             True,
@@ -299,7 +299,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             True,
             True,
@@ -308,7 +308,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             True,
             True,
@@ -317,7 +317,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             True,
             False,
@@ -326,7 +326,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             True,
             False,
@@ -335,7 +335,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             True,
             False,
@@ -344,7 +344,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             True,
             False,
@@ -353,7 +353,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             True,
             False,
@@ -362,7 +362,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             True,
             False,
@@ -371,7 +371,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             True,
             False,
@@ -380,7 +380,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             True,
             False,
@@ -389,7 +389,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             True,
             False,
@@ -398,7 +398,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             True,
             False,
@@ -407,7 +407,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             True,
             False,
@@ -416,7 +416,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             True,
             False,
@@ -425,7 +425,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             True,
             False,
@@ -434,7 +434,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             True,
             False,
@@ -443,7 +443,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             True,
             False,
@@ -452,7 +452,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             True,
             False,
@@ -461,7 +461,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_1c,
+        ): assemble_usfm_by_chapter,
         (
             False,
             True,
@@ -470,7 +470,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tn_as_iterator_by_chapter_for_book_then_lang,
+        ): assemble_tn_by_chapter,
         (
             False,
             True,
@@ -479,7 +479,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tn_as_iterator_by_chapter_for_book_then_lang,
+        ): assemble_tn_by_chapter,
         (
             False,
             True,
@@ -488,7 +488,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tn_as_iterator_by_chapter_for_book_then_lang,
+        ): assemble_tn_by_chapter,
         (
             False,
             True,
@@ -497,7 +497,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tn_as_iterator_by_chapter_for_book_then_lang,
+        ): assemble_tn_by_chapter,
         (
             False,
             True,
@@ -506,7 +506,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tn_as_iterator_by_chapter_for_book_then_lang,
+        ): assemble_tn_by_chapter,
         (
             False,
             True,
@@ -515,7 +515,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tn_as_iterator_by_chapter_for_book_then_lang,
+        ): assemble_tn_by_chapter,
         (
             False,
             True,
@@ -524,7 +524,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tn_as_iterator_by_chapter_for_book_then_lang,
+        ): assemble_tn_by_chapter,
         (
             False,
             True,
@@ -533,7 +533,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tn_as_iterator_by_chapter_for_book_then_lang,
+        ): assemble_tn_by_chapter,
         (
             False,
             True,
@@ -542,7 +542,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tn_as_iterator_by_chapter_for_book_then_lang,
+        ): assemble_tn_by_chapter,
         (
             False,
             True,
@@ -551,7 +551,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tn_as_iterator_by_chapter_for_book_then_lang,
+        ): assemble_tn_by_chapter,
         (
             False,
             True,
@@ -560,7 +560,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tn_as_iterator_by_chapter_for_book_then_lang,
+        ): assemble_tn_by_chapter,
         (
             False,
             True,
@@ -569,7 +569,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tn_as_iterator_by_chapter_for_book_then_lang,
+        ): assemble_tn_by_chapter,
         (
             False,
             True,
@@ -578,7 +578,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tn_as_iterator_by_chapter_for_book_then_lang,
+        ): assemble_tn_by_chapter,
         (
             False,
             True,
@@ -587,7 +587,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tn_as_iterator_by_chapter_for_book_then_lang,
+        ): assemble_tn_by_chapter,
         (
             False,
             True,
@@ -596,7 +596,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tn_as_iterator_by_chapter_for_book_then_lang,
+        ): assemble_tn_by_chapter,
         (
             False,
             True,
@@ -605,7 +605,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tn_as_iterator_by_chapter_for_book_then_lang,
+        ): assemble_tn_by_chapter,
         (
             False,
             False,
@@ -614,7 +614,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tq_as_iterator_by_chapter_for_book_then_lang,
+        ): assemble_tq_by_chapter,
         (
             False,
             False,
@@ -623,7 +623,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tq_as_iterator_by_chapter_for_book_then_lang,
+        ): assemble_tq_by_chapter,
         (
             False,
             False,
@@ -632,7 +632,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tq_as_iterator_by_chapter_for_book_then_lang,
+        ): assemble_tq_by_chapter,
         (
             False,
             False,
@@ -641,7 +641,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tq_as_iterator_by_chapter_for_book_then_lang,
+        ): assemble_tq_by_chapter,
         (
             False,
             False,
@@ -650,7 +650,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tq_as_iterator_by_chapter_for_book_then_lang,
+        ): assemble_tq_by_chapter,
         (
             False,
             False,
@@ -659,7 +659,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tq_as_iterator_by_chapter_for_book_then_lang,
+        ): assemble_tq_by_chapter,
         (
             False,
             False,
@@ -668,7 +668,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tq_as_iterator_by_chapter_for_book_then_lang,
+        ): assemble_tq_by_chapter,
         (
             False,
             False,
@@ -677,7 +677,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tq_as_iterator_by_chapter_for_book_then_lang,
+        ): assemble_tq_by_chapter,
         (
             False,
             False,
@@ -686,7 +686,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tw_as_iterator_by_chapter_for_book_then_lang,
+        ): assemble_tw_by_chapter,
         (
             False,
             False,
@@ -695,7 +695,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tw_as_iterator_by_chapter_for_book_then_lang,
+        ): assemble_tw_by_chapter,
         (
             False,
             False,
@@ -704,7 +704,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tw_as_iterator_by_chapter_for_book_then_lang,
+        ): assemble_tw_by_chapter,
         (
             False,
             False,
@@ -713,7 +713,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tw_as_iterator_by_chapter_for_book_then_lang,
+        ): assemble_tw_by_chapter,
         (
             False,
             False,
@@ -722,7 +722,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tw_as_iterator_by_chapter_for_book_then_lang,
+        ): assemble_tw_by_chapter,
         (
             False,
             False,
@@ -731,7 +731,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tw_as_iterator_by_chapter_for_book_then_lang,
+        ): assemble_tw_by_chapter,
         (
             True,
             True,
@@ -740,7 +740,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
         (
             True,
             True,
@@ -749,7 +749,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
         (
             True,
             True,
@@ -758,7 +758,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
         (
             True,
             True,
@@ -767,7 +767,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
         (
             True,
             True,
@@ -776,7 +776,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
         (
             True,
             True,
@@ -785,7 +785,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
         (
             True,
             True,
@@ -794,7 +794,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
         (
             True,
             True,
@@ -803,7 +803,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
         (
             True,
             True,
@@ -812,7 +812,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
         (
             True,
             True,
@@ -821,7 +821,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
         (
             True,
             True,
@@ -830,7 +830,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
         (
             True,
             True,
@@ -839,7 +839,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
         (
             True,
             True,
@@ -848,7 +848,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
         (
             True,
             True,
@@ -857,7 +857,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
         (
             True,
             True,
@@ -866,7 +866,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
         (
             True,
             True,
@@ -875,7 +875,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
         (
             True,
             False,
@@ -884,7 +884,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
         (
             True,
             False,
@@ -893,7 +893,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
         (
             True,
             False,
@@ -902,7 +902,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
         (
             True,
             False,
@@ -911,7 +911,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
         (
             True,
             False,
@@ -920,7 +920,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
         (
             True,
             False,
@@ -929,7 +929,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
         (
             True,
             False,
@@ -938,7 +938,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
         (
             True,
             False,
@@ -947,7 +947,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
         (
             True,
             False,
@@ -956,7 +956,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
         (
             True,
             False,
@@ -965,7 +965,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
         (
             True,
             False,
@@ -974,7 +974,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
         (
             True,
             False,
@@ -983,7 +983,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
         (
             True,
             False,
@@ -992,7 +992,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
         (
             True,
             False,
@@ -1001,7 +1001,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
         (
             True,
             False,
@@ -1010,7 +1010,7 @@ def assembly_factory_for_book_then_lang_strategy(
             False,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
         (
             True,
             False,
@@ -1019,7 +1019,7 @@ def assembly_factory_for_book_then_lang_strategy(
             True,
             AssemblyLayoutEnum.TWO_COLUMN_SCRIPTURE_LEFT_SCRIPTURE_RIGHT_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_usfm_as_iterator_by_chapter_for_book_then_lang_2c_sl_sr,
+        ): assemble_usfm_by_chapter_2c_sl_sr,
     }
     return strategies[
         # Turn existence (exists or not) into a boolean for each

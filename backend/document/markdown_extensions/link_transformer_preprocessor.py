@@ -90,7 +90,11 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
         return source.split("\n")
 
     def transform_tw_rc_link(
-        self, wikilink: WikiLink, source: str, tw: str = "tw"
+        self,
+        wikilink: WikiLink,
+        source: str,
+        tw: str = "tw",
+        fmt_str: str = settings.TRANSLATION_WORD_ANCHOR_LINK_FMT_STR,
     ) -> str:
         """
         Transform the translation word rc wikilink into a Markdown
@@ -130,7 +134,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 # Build the anchor link.
                 url = url.replace(
                     match.group(0),  # The whole match
-                    settings.TRANSLATION_WORD_ANCHOR_LINK_FMT_STR.format(
+                    fmt_str.format(
                         localized_translation_word_,
                         self._lang_code,
                         localized_translation_word_,
@@ -144,7 +148,12 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 source = source.replace(match2.group(0), url)
         return source
 
-    def transform_tw_markdown_links(self, source: str, tw: str = "tw") -> str:
+    def transform_tw_markdown_links(
+        self,
+        source: str,
+        tw: str = "tw",
+        fmt_str: str = settings.TRANSLATION_WORD_ANCHOR_LINK_FMT_STR,
+    ) -> str:
         """
         Transform the translation word relative file link into a
         source anchor link pointing to a destination anchor link for
@@ -174,7 +183,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 # Build the anchor links
                 source = source.replace(
                     match_text,
-                    settings.TRANSLATION_WORD_ANCHOR_LINK_FMT_STR.format(
+                    fmt_str.format(
                         localized_translation_word_,
                         self._lang_code,
                         localized_translation_word_,
@@ -197,7 +206,12 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
 
         return source
 
-    def transform_tw_wiki_rc_links(self, source: str, tw: str = "tw") -> str:
+    def transform_tw_wiki_rc_links(
+        self,
+        source: str,
+        tw: str = "tw",
+        fmt_str: str = settings.TRANSLATION_WORD_ANCHOR_LINK_FMT_STR,
+    ) -> str:
         """
         Transform the translation word rc link into source anchor link
         pointing to a destination anchor link for the translation word
@@ -227,7 +241,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 # Build the anchor links
                 source = source.replace(
                     match.group(0),  # The whole match
-                    settings.TRANSLATION_WORD_ANCHOR_LINK_FMT_STR.format(
+                    fmt_str.format(
                         localized_translation_word_,
                         self._lang_code,
                         localized_translation_word_,
@@ -249,7 +263,12 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
 
         return source
 
-    def transform_tw_wiki_prefixed_rc_links(self, source: str, tw: str = "tw") -> str:
+    def transform_tw_wiki_prefixed_rc_links(
+        self,
+        source: str,
+        tw: str = "tw",
+        fmt_str: str = settings.TRANSLATION_WORD_PREFIX_ANCHOR_LINK_FMT_STR,
+    ) -> str:
         """
         Transform the translation word rc TW wikilink into source anchor link
         pointing to a destination anchor link for the translation word
@@ -279,7 +298,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 # Build the anchor links
                 source = source.replace(
                     match.group(0),  # The whole match
-                    settings.TRANSLATION_WORD_PREFIX_ANCHOR_LINK_FMT_STR.format(
+                    fmt_str.format(
                         match.group("prefix_text"),
                         localized_translation_word_,
                         self._lang_code,
@@ -368,6 +387,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
         source: str,
         working_dir: str = settings.RESOURCE_ASSETS_DIR,
         tn: str = "tn",
+        fmt_str: str = settings.TRANSLATION_NOTE_ANCHOR_LINK_FMT_STR,
     ) -> str:
         """
         Transform the translation note rc link into a link pointing to
@@ -417,7 +437,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 )
                 if exists(path):  # file path to TN note exists
                     # Create anchor link to translation note
-                    new_link = settings.TRANSLATION_NOTE_ANCHOR_LINK_FMT_STR.format(
+                    new_link = fmt_str.format(
                         scripture_ref,
                         tn_resource_request.lang_code,
                         BOOK_NUMBERS[tn_resource_request.book_code].zfill(3),
@@ -443,6 +463,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
         source: str,
         tn: str = "tn",
         working_dir: str = settings.RESOURCE_ASSETS_DIR,
+        fmt_str: str = settings.TRANSLATION_NOTE_ANCHOR_LINK_FMT_STR,
     ) -> str:
         """
         Transform the translation note rc link into a link pointing to
@@ -488,7 +509,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 )
                 if exists(path):  # file path to TN note exists
                     # Create anchor link to translation note
-                    new_link = settings.TRANSLATION_NOTE_ANCHOR_LINK_FMT_STR.format(
+                    new_link = fmt_str.format(
                         scripture_ref,
                         self._lang_code,
                         BOOK_NUMBERS[book_code].zfill(3),
@@ -520,6 +541,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
         source: str,
         tn: str = "tn",
         working_dir: str = settings.RESOURCE_ASSETS_DIR,
+        fmt_str: str = settings.TRANSLATION_NOTE_ANCHOR_LINK_FMT_STR,
     ) -> str:
         """
         Transform the translation note rc link into a link pointing to
@@ -567,7 +589,7 @@ class LinkTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 )
                 if exists(path):  # file path to TN note exists
                     # Create anchor link to translation note
-                    new_link = settings.TRANSLATION_NOTE_ANCHOR_LINK_FMT_STR.format(
+                    new_link = fmt_str.format(
                         scripture_ref,
                         lang_code,
                         BOOK_NUMBERS[book_code].zfill(3),

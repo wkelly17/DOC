@@ -15,7 +15,7 @@ logger = settings.logger(__name__)
 
 def test_send_email_with_es_419_ulb_jud_pdf() -> None:
     """
-    Produce verse level interleaved document for language, ar, Arabic
+    Produce chapter level interleaved document for language, ar, Arabic
     scripture. There are no other resources than USFM available at
     this time.
     """

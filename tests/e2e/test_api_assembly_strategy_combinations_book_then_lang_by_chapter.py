@@ -1,3 +1,7 @@
+"""
+Tests for assembly strategy book-then-language
+"""
+
 import os
 import pathlib
 import re
@@ -6,18 +10,15 @@ import bs4
 import pytest
 import requests
 from document.config import settings
+from document.domain import model
 from document.entrypoints.app import app
-from tests.shared.utils import (
-    check_finished_document_with_verses_success,
-    check_finished_document_with_body_success,
-    check_finished_document_without_verses_success,
-)
 from fastapi.testclient import TestClient
 
-from document.domain import model
-
-##################################################
-## Tests for assembly strategy book -hen-language
+from tests.shared.utils import (
+    check_finished_document_with_body_success,
+    check_finished_document_with_verses_success,
+    check_finished_document_without_verses_success,
+)
 
 
 def test_en_ulb_wa_col_en_tn_wa_col_en_tq_wa_col_en_tw_wa_col_fr_f10_col_fr_tn_col_fr_tq_col_fr_tw_col_book_language_order_2c_sl_sr_by_chapter() -> None:

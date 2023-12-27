@@ -10,12 +10,8 @@ def test_lookup_successes() -> None:
     )
     assembly_layout_kind: model.AssemblyLayoutEnum = model.AssemblyLayoutEnum.ONE_COLUMN
     resource_requests: list[model.ResourceRequest] = [
-        model.ResourceRequest(
-            lang_code="en", resource_type="ulb-wa", book_code="gen"
-        ),
-        model.ResourceRequest(
-            lang_code="en", resource_type="tn-wa", book_code="gen"
-        ),
+        model.ResourceRequest(lang_code="en", resource_type="ulb-wa", book_code="gen"),
+        model.ResourceRequest(lang_code="en", resource_type="tn-wa", book_code="gen"),
         model.ResourceRequest(lang_code="mr", resource_type="ulb", book_code="gen"),
         model.ResourceRequest(
             lang_code="erk-x-erakor", resource_type="reg", book_code="eph"

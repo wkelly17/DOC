@@ -2,6 +2,7 @@
 Utility functions used by assembly_strategies.
 """
 
+from functools import singledispatch
 from itertools import chain, groupby, zip_longest
 from re import escape, search, sub
 from typing import Iterable, Mapping, Optional, Sequence
@@ -12,16 +13,17 @@ from document.domain.model import (
     BCBook,
     BookContent,
     HtmlContent,
+    LangDirEnum,
     TNBook,
     TQBook,
     TWBook,
     TWNameContentPair,
     TWUse,
     USFMBook,
+    USFMChapter,
     VerseRef,
 )
 from document.utils.tw_utils import uniq
-
 
 logger = settings.logger(__name__)
 
@@ -37,12 +39,76 @@ def book_content_unit_book_code(book_content_unit: BookContent) -> str:
     return book_content_unit.book_code
 
 
+def chapter_footnotes(
+    chapter: USFMChapter,
+    footnotes_heading: HtmlContent = settings.FOOTNOTES_HEADING,
+    hr: HtmlContent = HtmlContent("<hr/>"),
+) -> Iterable[HtmlContent]:
+    if chapter.footnotes:
+        yield footnotes_heading
+        yield chapter.footnotes
+        yield hr
+    else:
+        yield HtmlContent("")
+
+
 def book_number(
     book_code: str,
     book_numbers: Mapping[str, str] = BOOK_NUMBERS,
     num_zeros: int = settings.NUM_ZEROS,
-) -> str:
+) -> HtmlContent:
     return book_numbers[book_code].zfill(num_zeros)
+
+
+@singledispatch
+def chapter_heading(
+    book_content_unit: TQBook | TNBook,
+    chapter_num: int,
+    num_zeros: int = settings.NUM_ZEROS,
+    fmt_str: str = settings.CHAPTER_HEADER_FMT_STR,
+) -> HtmlContent:
+    return HtmlContent(
+        fmt_str.format(
+            book_content_unit.lang_code,
+            book_number(book_content_unit.book_code),
+            str(chapter_num).zfill(num_zeros),
+            chapter_num,
+        )
+    )
+
+
+@chapter_heading.register
+def _(
+    book_content_unit: TNBook,
+    chapter_num: int,
+    num_zeros: int = settings.NUM_ZEROS,
+    chapter_header_fmt_str: str = settings.CHAPTER_HEADER_FMT_STR,
+) -> HtmlContent:
+    return HtmlContent(
+        chapter_header_fmt_str.format(
+            book_content_unit.lang_code,
+            book_number(book_content_unit.book_code),
+            str(chapter_num).zfill(num_zeros),
+            chapter_num,
+        )
+    )
+
+
+@chapter_heading.register
+def _(
+    book_content_unit: TQBook,
+    chapter_num: int,
+    num_zeros: int = settings.NUM_ZEROS,
+    chapter_header_fmt_str: str = settings.CHAPTER_HEADER_FMT_STR,
+) -> HtmlContent:
+    return HtmlContent(
+        chapter_header_fmt_str.format(
+            book_content_unit.lang_code,
+            book_number(book_content_unit.book_code),
+            str(chapter_num).zfill(num_zeros),
+            chapter_num,
+        )
+    )
 
 
 def first_usfm_book_content_unit(
@@ -192,107 +258,148 @@ def adjust_commentary_headings(
     return HtmlContent(sub(h6, h5, chapter_commentary))
 
 
-def chapter_intro(tn_book_content_unit: TNBook, chapter_num: int) -> HtmlContent:
+def chapter_intro(
+    book_content_unit: Optional[TNBook],
+    chapter_num: int,
+    hr: HtmlContent = HtmlContent("<hr/>"),
+) -> Iterable[HtmlContent]:
     """Get the chapter intro."""
-    if tn_book_content_unit and chapter_num in tn_book_content_unit.chapters:
-        chapter_intro = tn_book_content_unit.chapters[chapter_num].intro_html
+    if book_content_unit and chapter_num in book_content_unit.chapters:
+        yield book_content_unit.chapters[chapter_num].intro_html
+        yield hr
     else:
-        chapter_intro = HtmlContent("")
-    return chapter_intro
+        yield HtmlContent("")
 
 
-def book_intro_commentary(bc_book_content_unit: BCBook) -> HtmlContent:
-    if bc_book_content_unit:
-        book_intro_commentary = bc_book_content_unit.book_intro
+def book_title(
+    book_code: str,
+    fmt_str: str = settings.BOOK_NAME_FMT_STR,
+    book_names: Mapping[str, str] = BOOK_NAMES,
+) -> str:
+    return fmt_str.format(book_names[book_code])
+
+
+@singledispatch
+def book_intro(
+    book_content_unit: Optional[BCBook | TNBook],
+    hr: HtmlContent = HtmlContent("<hr/>"),
+) -> Iterable[HtmlContent]:
+    if book_content_unit and book_content_unit.book_intro:
+        yield book_content_unit.book_intro
+        yield hr
     else:
-        book_intro_commentary = HtmlContent("")
-    return book_intro_commentary
+        yield HtmlContent("")
 
 
-def chapter_commentary(bc_book_content_unit: BCBook, chapter_num: int) -> HtmlContent:
+@book_intro.register
+def _(
+    book_content_unit: Optional[BCBook],
+    hr: HtmlContent = HtmlContent("<hr/>"),
+) -> Iterable[HtmlContent]:
+    if book_content_unit and book_content_unit.book_intro:
+        yield book_content_unit.book_intro
+        yield hr
+    else:
+        yield HtmlContent("")
+
+
+@book_intro.register
+def _(
+    book_content_unit: Optional[TNBook],
+    hr: HtmlContent = HtmlContent("<hr/>"),
+) -> Iterable[HtmlContent]:
+    if book_content_unit and book_content_unit.book_intro:
+        yield book_content_unit.book_intro
+        yield hr
+    else:
+        yield HtmlContent("")
+
+
+def chapter_commentary(
+    book_content_unit: Optional[BCBook],
+    chapter_num: int,
+    hr: HtmlContent = HtmlContent("<hr/>"),
+) -> Iterable[HtmlContent]:
     """Get the chapter commentary."""
-    if bc_book_content_unit and chapter_num in bc_book_content_unit.chapters:
-        chapter_commentary = bc_book_content_unit.chapters[chapter_num].commentary
+    if book_content_unit and chapter_num in book_content_unit.chapters:
+        yield book_content_unit.chapters[chapter_num].commentary
+        yield hr
     else:
-        chapter_commentary = HtmlContent("")
-    return chapter_commentary
+        yield HtmlContent("")
 
 
-def verses_for_chapter_tn(
-    book_content_unit: TNBook, chapter_num: int
-) -> Optional[dict[str, HtmlContent]]:
+@singledispatch
+def language_direction_html(
+    book_content_unit: Optional[USFMBook | TNBook | TQBook],
+    rtl_direction_html: str = settings.RTL_DIRECTION_HTML,
+    ltr_direction_html: str = settings.LTR_DIRECTION_HTML,
+) -> Iterable[str]:
+    if book_content_unit and book_content_unit.lang_direction == LangDirEnum.RTL:
+        yield rtl_direction_html
+    else:
+        yield ltr_direction_html
+
+
+@language_direction_html.register
+def _(
+    book_content_unit: Optional[TNBook],
+    rtl_direction_html: str = settings.RTL_DIRECTION_HTML,
+    ltr_direction_html: str = settings.LTR_DIRECTION_HTML,
+) -> Iterable[str]:
+    if book_content_unit and book_content_unit.lang_direction == LangDirEnum.RTL:
+        yield rtl_direction_html
+    else:
+        yield ltr_direction_html
+
+
+@language_direction_html.register
+def _(
+    book_content_unit: Optional[TQBook],
+    rtl_direction_html: str = settings.RTL_DIRECTION_HTML,
+    ltr_direction_html: str = settings.LTR_DIRECTION_HTML,
+) -> Iterable[str]:
+    if book_content_unit and book_content_unit.lang_direction == LangDirEnum.RTL:
+        yield rtl_direction_html
+    else:
+        yield ltr_direction_html
+
+
+def tn_chapter_verses(
+    book_content_unit: Optional[TNBook],
+    chapter_num: int,
+    fmt_str: str = settings.TN_VERSE_NOTES_ENCLOSING_DIV_FMT_STR,
+    hr: HtmlContent = HtmlContent("<hr/>"),
+) -> Iterable[HtmlContent]:
     """
     Return the HTML for verses that are in the chapter with
     chapter_num.
     """
     verses_html = None
-    if chapter_num in book_content_unit.chapters:
-        verses_html = book_content_unit.chapters[chapter_num].verses
-    return verses_html
+    if book_content_unit and chapter_num in book_content_unit.chapters:
+        tn_verses = book_content_unit.chapters[chapter_num].verses
+        yield fmt_str.format("".join(tn_verses.values()))
+        yield hr
+    else:
+        yield HtmlContent("")
 
 
-def verses_for_chapter_tq(
-    book_content_unit: TQBook,
+def tq_chapter_verses(
+    book_content_unit: Optional[TQBook],
     chapter_num: int,
-) -> Optional[dict[str, HtmlContent]]:
+    fmt_str: str = settings.TQ_HEADING_AND_QUESTIONS_FMT_STR,
+    hr: HtmlContent = HtmlContent("<hr/>"),
+) -> Iterable[HtmlContent]:
     """Return the HTML for verses in chapter_num."""
     verses_html = None
-    if chapter_num in book_content_unit.chapters:
-        verses_html = book_content_unit.chapters[chapter_num].verses
-    return verses_html
-
-
-def translation_word_links(
-    book_content_unit: TWBook,
-    chapter_num: int,
-    verse_num: str,
-    verse: HtmlContent,
-    unordered_list_begin_str: str = settings.UNORDERED_LIST_BEGIN_STR,
-    translation_word_list_item_fmt_str: str = settings.TRANSLATION_WORD_LIST_ITEM_FMT_STR,
-    unordered_list_end_str: str = settings.UNORDERED_LIST_END_STR,
-    book_names: Mapping[str, str] = BOOK_NAMES,
-) -> Iterable[HtmlContent]:
-    """
-    Add the translation word links section which provides links from words
-    used in the current verse to their definition.
-    """
-    uses: list[TWUse] = []
-    name_content_pair: TWNameContentPair
-    for name_content_pair in book_content_unit.name_content_pairs:
-        # This checks that the word occurs as an exact sub-string in
-        # the verse.
-        if search(r"\b{}\b".format(escape(name_content_pair.localized_word)), verse):
-            use = TWUse(
-                lang_code=book_content_unit.lang_code,
-                book_id=book_content_unit.book_code,
-                book_name=book_names[book_content_unit.book_code],
-                chapter_num=chapter_num,
-                verse_num=verse_num,
-                localized_word=name_content_pair.localized_word,
-            )
-            uses.append(use)
-            # Store reference for use in 'Uses:' section that
-            # comes later.
-            if name_content_pair.localized_word in book_content_unit.uses:
-                book_content_unit.uses[name_content_pair.localized_word].append(use)
-            else:
-                book_content_unit.uses[name_content_pair.localized_word] = [use]
-
-    if uses:
-        # Start list formatting
-        yield unordered_list_begin_str
-        # Append word links.
-        uses_list_items = [
-            translation_word_list_item_fmt_str.format(
-                book_content_unit.lang_code,
-                use.localized_word,
-                use.localized_word,
-            )
-            for use in list(uniq(uses))  # Get the unique uses
-        ]
-        yield HtmlContent("\n".join(uses_list_items))
-        # End list formatting
-        yield unordered_list_end_str
+    if book_content_unit and chapter_num in book_content_unit.chapters:
+        tq_verses = book_content_unit.chapters[chapter_num].verses
+        yield fmt_str.format(
+            book_content_unit.resource_type_name,
+            "".join(tq_verses.values()),
+        )
+        yield hr
+    else:
+        yield HtmlContent("")
 
 
 def languages_in_books(
@@ -312,7 +419,6 @@ def languages_in_books(
             )
         )
     )
-    logger.debug("languages: %s", languages)
     return languages
 
 

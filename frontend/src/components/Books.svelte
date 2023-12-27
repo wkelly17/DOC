@@ -18,9 +18,9 @@
     const response = await fetch(
       `${apiRootUrl}${sharedBookCodesUrl}${lang0Code}/${lang1Code}`
     )
-    const sharedBookCodes: Array<[string, string]> = await response.json()
+    const sharedBookCodesAndNames: Array<[string, string]> = await response.json()
     if (!response.ok) throw new Error(response.statusText)
-    return sharedBookCodes
+    return sharedBookCodesAndNames
   }
 
   async function getBookCodesAndNames(
@@ -44,7 +44,7 @@
     getSharedBookCodesAndNames($langCodesStore[0], $langCodesStore[1])
       .then(bookCodesAndNames => {
         // Filter set of all resource codes into old testament
-        // resource codes.
+        // book codes.
         otBookCodes = bookCodesAndNames
           .filter((element: [string, string]) => {
             return otBooks.some(item => item === element[0])
@@ -61,8 +61,8 @@
           })
         }
 
-        // Filter set of all resource codes into new testament
-        // resource codes.
+        // Filter set of all book codes into new testament
+        // book codes.
         ntBookCodes = bookCodesAndNames
           .filter((element: [string, string]) => {
             return !otBooks.some(item => item === element[0])
@@ -83,8 +83,8 @@
   } else {
     getBookCodesAndNames($langCodesStore[0])
       .then(bookCodesAndNames => {
-        // Filter set of all resource codes into old testament
-        // resource codes.
+        // Filter set of all book codes into old testament
+        // book codes.
         otBookCodes = bookCodesAndNames
           .filter((element: [string, string]) => {
             return otBooks.some(item => item === element[0])
@@ -101,8 +101,8 @@
           })
         }
 
-        // Filter set of all resource codes into new testament
-        // resource codes.
+        // Filter set of all book codes into new testament
+        // book codes.
         ntBookCodes = bookCodesAndNames
           .filter((element: [string, string]) => {
             return !otBooks.some(item => item === element[0])
@@ -518,15 +518,14 @@
                 class="flex items-center"
               >
                 <input
-                  id="lang-resourcecode-ot-{index}"
+                  id="lang-bookcode-ot-{index}"
                   type="checkbox"
                   bind:group={$otBookStore}
                   value={bookCodeAndName}
                   class="checkbox checkbox-dark-bordered"
                 />
-                <label
-                  for="lang-resourcecode-ot-{index}"
-                  class="text-secondary-content pl-1">{getName(bookCodeAndName)}</label
+                <label for="lang-bookcode-ot-{index}" class="text-secondary-content pl-1"
+                  >{getName(bookCodeAndName)}</label
                 >
               </div>
             {/each}

@@ -1,17 +1,45 @@
 """This module provides various file utilities."""
 
+from contextlib import closing
 import codecs
 import json
 import os
 import pathlib
+import urllib
 import zipfile
+import shutil
 from datetime import datetime, timedelta
 from typing import Any, Optional, Union
+from urllib.request import urlopen
 
 import yaml
 from document.config import settings
 
 logger = settings.logger(__name__)
+
+
+def delete_tree(dir: str) -> None:
+    logger.debug("About to delete: %s", dir)
+    try:
+        shutil.rmtree(dir)
+    except OSError:
+        logger.debug(
+            "Directory %s was not removed due to an error.",
+            dir,
+        )
+        logger.exception("Caught exception: ")
+
+
+def download_file(
+    url: str, outfile: str, user_agent: str = settings.USER_AGENT
+) -> None:
+    """Downloads a file from url and saves it to outfile."""
+    # Host requires at least the User-Agent header.
+    headers: dict[str, str] = {"User-Agent": user_agent}
+    req = urllib.request.Request(url, None, headers)
+    with closing(urlopen(req)) as request:
+        with open(outfile, "wb") as fp:
+            shutil.copyfileobj(request, fp)
 
 
 def unzip(source_file: str, destination_dir: str) -> None:

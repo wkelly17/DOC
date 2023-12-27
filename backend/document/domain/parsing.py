@@ -106,7 +106,7 @@ def ensure_paragraph_before_verses(
     return verse_content
 
 
-def attempt_asset_content_rescue(
+def attempt_to_make_usfm_parseable(
     resource_dir: str,
     resource_lookup_dto: ResourceLookupDto,
     bible_book_names: Mapping[str, str] = BOOK_NAMES,
@@ -173,7 +173,7 @@ def attempt_asset_content_rescue(
     return filename
 
 
-def find_usfm_content_files(
+def find_usfm_files(
     resource_dir: str,
     usfm_glob_fmt_str: str = "{}**/*.usfm",
     usfm_ending_in_txt_glob_fmt_str: str = "{}**/*.txt",
@@ -184,22 +184,38 @@ def find_usfm_content_files(
     # those files that match the book code being requested. Some resources
     # do not provide a manifest. The downside to this is that we don't
     # consult the "finished" section of the manifest file.
-    usfm_content_files = glob(join(resource_dir, usfm_glob_fmt_str))
-    if not usfm_content_files:
-        usfm_content_files = glob(join(resource_dir, usfm_ending_in_txt_glob_fmt_str))
-        if not usfm_content_files:
-            usfm_content_files = glob(
-                join(resource_dir, usfm_ending_in_txt_in_subdirectory_glob_fmt_str)
+    usfm_files = glob(usfm_glob_fmt_str.format(resource_dir))
+    if not usfm_files:
+        # USFM files sometimes have txt suffix instead of usfm
+        usfm_files = glob(usfm_ending_in_txt_glob_fmt_str.format(resource_dir))
+        # Sometimes the txt USFM files live at another location
+        if not usfm_files:
+            usfm_files = glob(
+                usfm_ending_in_txt_in_subdirectory_glob_fmt_str.format(resource_dir)
             )
-    return usfm_content_files
+    return usfm_files
 
 
-def filter_content_files(content_files: list[str], book_code: str) -> list[str]:
-    return [
-        content_file
-        for content_file in content_files
-        if book_code.lower() in str(Path(content_file).stem).lower()
-    ]
+def filter_usfm_files(
+    content_files: list[str],
+    book_code: str,
+    usfm_suffix: str = ".usfm",
+    txt_suffix: str = ".txt",
+) -> list[str]:
+    suffix_of_content_files = str(Path(content_files[0]).suffix)
+    if suffix_of_content_files == usfm_suffix:
+        return [
+            content_file
+            for content_file in content_files
+            if book_code.lower() in str(Path(content_file).stem).lower()
+        ]
+    elif suffix_of_content_files == txt_suffix:
+        return [
+            content_file
+            for content_file in content_files
+            if book_code.lower() in str(content_file).lower()
+        ]
+    return []
 
 
 def convert_usfm_to_html(
@@ -222,7 +238,7 @@ def convert_usfm_to_html(
         )
 
 
-def usfm_asset_content_file(
+def usfm_asset_file(
     resource_lookup_dto: ResourceLookupDto,
     resource_dir: str,
     usfm_glob_fmt_str: str = "{}**/*.usfm",
@@ -233,36 +249,23 @@ def usfm_asset_content_file(
     Find the USFM asset and return its path as string. Returns an
     empty string if path not found.
     """
-    usfm_content_files = glob(usfm_glob_fmt_str.format(resource_dir))
-    if not usfm_content_files:
-        # USFM files sometimes have txt suffix instead of usfm
-        usfm_content_files = glob(usfm_ending_in_txt_glob_fmt_str.format(resource_dir))
-        # Sometimes the txt USFM files live at another location
-        if not usfm_content_files:
-            usfm_content_files = glob(
-                usfm_ending_in_txt_in_subdirectory_glob_fmt_str.format(resource_dir)
-            )
-
-    content_files: list[str] = []
-    if usfm_content_files:
-        content_files = filter_content_files(
-            usfm_content_files, resource_lookup_dto.book_code
+    usfm_files = find_usfm_files(resource_dir)
+    filtered_usfm_files: list[str] = []
+    if usfm_files:
+        filtered_usfm_files = filter_usfm_files(
+            usfm_files, resource_lookup_dto.book_code
         )
-
-    if content_files:
+    if filtered_usfm_files:
         # Some languages, like ndh-x-chindali, provide their USFM files in
         # a git repo rather than as standalone USFM files. A USFM git repo can
         # have each USFM chapter in a separate directory and each verse in a
         # separate file in that directory. However, the parser expects one USFM
         # file per book, therefore we need to concatenate the book's USFM files
         # into one USFM file.
-        if len(content_files) > 1:
-            content_files = [
-                attempt_asset_content_rescue(resource_dir, resource_lookup_dto)
-            ]
-
-        logger.debug("content_files: %s", content_files)
-        return content_files[0]
+        if len(filtered_usfm_files) > 1:
+            return attempt_to_make_usfm_parseable(resource_dir, resource_lookup_dto)
+        else:
+            return filtered_usfm_files[0]
     return None
 
 
@@ -270,7 +273,7 @@ def usfm_asset_html(
     content_file: Optional[str],
     resource_lookup_dto: ResourceLookupDto,
     output_dir: str = settings.DOCUMENT_OUTPUT_DIR,
-) -> str:
+) -> Optional[str]:
     """
     Parse USFM asset content into HTML and return HTML as string.
     """
@@ -290,12 +293,12 @@ def usfm_asset_html(
         resource_lookup_dto.book_code,
         t1 - t0,
     )
-
     html_file = join(output_dir, f"{resource_filename_}.html")
-    assert exists(html_file)
-    html_content = read_file(html_file)
 
-    return html_content
+    if exists(html_file):
+        html_content = read_file(html_file)
+        return html_content
+    return None
 
 
 def usfm_chapter_verses(
@@ -330,46 +333,14 @@ def usfm_chapter_verses(
     return chapter_verses
 
 
-def delink_usfm_verse_footnotes(parser: BeautifulSoup) -> None:
+def remove_links(parser: BeautifulSoup) -> None:
     """
     Turn HTML links into spans
     """
-    # Find all verse level footnote references for this chapter
-    verse_footnote_refs = parser.find_all(id=is_footnote_ref)
-    # Turn the found links into spans since we don't need
-    # links in a printed document.
-    for verse_footnote_ref in verse_footnote_refs:
-        verse_number = verse_footnote_ref.i.a.string
-        # Remove the link
-        span = parser.new_tag("span")
-        span.string = verse_number
-        verse_footnote_ref.i.a.replace_with(span)
-
-
-def usfm_chapter_footnotes(
-    chapter_footnote_tag: Optional[Tag | NavigableString],
-    layout_for_print: bool,
-    bs_parser_type: str,
-) -> HtmlContent:
-    """
-    Delink footnotes if printing.
-    """
-    if layout_for_print:
-        if chapter_footnote_tag:
-            chapter_footnote_str = str(chapter_footnote_tag)
-            chapter_footnotes_parser = BeautifulSoup(
-                chapter_footnote_str, bs_parser_type
-            )
-            a_tags = chapter_footnotes_parser.find_all("a")
-            # Now we modify the footnote links to be inactive, i.e., suitable for printing.
-            for a_tag in a_tags:
-                a_tag.name = "span"
-            chapter_footnote_tag = chapter_footnotes_parser
-    return (
-        HtmlContent(str(chapter_footnote_tag))
-        if chapter_footnote_tag
-        else HtmlContent("")
-    )
+    a_tags = parser.find_all("a")
+    # Now we modify the footnote links to be inactive, i.e., suitable for printing.
+    for a_tag in a_tags:
+        a_tag.name = "span"
 
 
 def usfm_book_content(
@@ -384,71 +355,78 @@ def usfm_book_content(
     format_str: str = settings.VERSE_ANCHOR_ID_SUBSTITUTION_FMT_STR,
 ) -> USFMBook:
     """
-    First produce HTML content from USFM content through call to
-    asset_content and then break the HTML content returned from that
-    into a model.USFMBook data structure containing chapters, verses,
-    footnotes, for use during interleaving with other resource assets.
+    First produce HTML content from USFM content and then break the
+    HTML content returned into a model.USFMBook data structure containing
+    chapters, verses, footnotes, for use during interleaving with other
+    resource assets.
     """
     lang_dir = lang_direction(resource_dir)
-    logger.debug("lang_dir: %s", lang_dir)
-    content_file = usfm_asset_content_file(resource_lookup_dto, resource_dir)
+    logger.debug("Language direction: %s", lang_dir)
+    content_file = usfm_asset_file(resource_lookup_dto, resource_dir)
+    logger.debug("content_file: %s", content_file)
     html_content = usfm_asset_html(content_file, resource_lookup_dto)
-    parser = BeautifulSoup(html_content, bs_parser_type)
+    if html_content:
+        parser = BeautifulSoup(html_content, bs_parser_type)
+        chapter_break_tags = parser.find_all(h2, attrs={css_attribute_type: "c-num"})
+        chapters: dict[ChapterNum, USFMChapter] = {}
+        for chapter_break in chapter_break_tags:
+            chapter_num = int(chapter_break.get_text().split()[1])
+            chapter_content = tag_elements_between(
+                parser.find(
+                    h2,
+                    text=compile(".* {}".format(chapter_num)),
+                ),
+                parser.find(
+                    h2,
+                    text=compile(".* {}".format(chapter_num + 1)),
+                ),
+            )
+            chapter_content = [str(tag) for tag in list(chapter_content)]
+            chapter_content_parser = BeautifulSoup(
+                "".join(chapter_content),
+                bs_parser_type,
+            )
+            chapter_verse_span_tags = chapter_content_parser.find_all(
+                "span", attrs={css_attribute_type: "v-num"}
+            )
 
-    if layout_for_print:
-        delink_usfm_verse_footnotes(parser)
+            if layout_for_print:
+                remove_links(chapter_content_parser)
 
-    chapter_break_tags = parser.find_all(h2, attrs={css_attribute_type: "c-num"})
-    chapters: dict[ChapterNum, USFMChapter] = {}
-    for chapter_break in chapter_break_tags:
-        chapter_num = int(chapter_break.get_text().split()[1])
-        chapter_content = tag_elements_between(
-            parser.find(
-                h2,
-                text=compile(".* {}".format(chapter_num)),
-            ),
-            parser.find(
-                h2,
-                text=compile(".* {}".format(chapter_num + 1)),
-            ),
-        )
-        chapter_content = [str(tag) for tag in list(chapter_content)]
-        chapter_content_parser = BeautifulSoup(
-            "".join(chapter_content),
-            bs_parser_type,
-        )
-        chapter_verse_span_tags = chapter_content_parser.find_all(
-            "span", attrs={css_attribute_type: "v-num"}
-        )
-        chapter_footnote_tag = chapter_content_parser.find(
-            "div", attrs={css_attribute_type: "footnotes"}
-        )
-        chapter_footnotes_ = usfm_chapter_footnotes(
-            chapter_footnote_tag,
-            layout_for_print,
-            bs_parser_type,
-        )
+            chapter_footnote_tag = chapter_content_parser.find(
+                "div", attrs={css_attribute_type: "footnotes"}
+            )
 
-        # Dictionary to hold verse number, verse value pairs.
-        chapter_verses_ = usfm_chapter_verses(
-            chapter_verse_span_tags,
-            chapter_content_parser,
-            resource_lookup_dto,
-            chapter_num,
-            pattern,
-            format_str,
-        )
-        chapters[chapter_num] = USFMChapter(
-            content=adjust_chapter_heading(chapter_content),
-            verses=chapter_verses_,
-            footnotes=chapter_footnotes_,
-        )
+            # Dictionary to hold verse number, verse value pairs.
+            chapter_verses_ = usfm_chapter_verses(
+                chapter_verse_span_tags,
+                chapter_content_parser,
+                resource_lookup_dto,
+                chapter_num,
+                pattern,
+                format_str,
+            )
+            chapters[chapter_num] = USFMChapter(
+                content=adjust_chapter_heading(chapter_content),
+                verses=chapter_verses_,
+                footnotes=HtmlContent(str(chapter_footnote_tag))
+                if chapter_footnote_tag
+                else HtmlContent(""),
+            )
+            return USFMBook(
+                lang_code=resource_lookup_dto.lang_code,
+                lang_name=resource_lookup_dto.lang_name,
+                book_code=resource_lookup_dto.book_code,
+                resource_type_name=resource_lookup_dto.resource_type_name,
+                chapters=chapters,
+                lang_direction=lang_dir,
+            )
     return USFMBook(
         lang_code=resource_lookup_dto.lang_code,
         lang_name=resource_lookup_dto.lang_name,
         book_code=resource_lookup_dto.book_code,
         resource_type_name=resource_lookup_dto.resource_type_name,
-        chapters=chapters,
+        chapters={},
         lang_direction=lang_dir,
     )
 
@@ -669,7 +647,7 @@ def tn_book_content(
         layout_for_print,
     )
     chapter_verses = tn_chapter_verses(resource_dir, resource_lookup_dto.book_code, md)
-    adjusted_book_intro_html = adjust_book_intro(
+    adjusted_book_intro = adjust_book_intro(
         resource_dir, resource_lookup_dto.book_code, md, include_tn_book_intros
     )
     return TNBook(
@@ -677,7 +655,7 @@ def tn_book_content(
         lang_name=resource_lookup_dto.lang_name,
         book_code=resource_lookup_dto.book_code,
         resource_type_name=resource_lookup_dto.resource_type_name,
-        intro_html=adjusted_book_intro_html,
+        book_intro=adjusted_book_intro,
         chapters=chapter_verses,
         lang_direction=lang_dir,
     )
@@ -874,22 +852,10 @@ def bc_book_content(
 
 # Define a mapping from resource types to corresponding functions
 RESOURCE_TYPE_FUNCTIONS: dict[str, Callable[..., BookContent]] = {
-    **{
-        typ: usfm_book_content
-        for typ in [*settings.USFM_RESOURCE_TYPES, *settings.EN_USFM_RESOURCE_TYPES]
-    },
-    **{
-        typ: tn_book_content
-        for typ in [*settings.TN_RESOURCE_TYPES, *settings.EN_TN_RESOURCE_TYPES]
-    },
-    **{
-        typ: tq_book_content
-        for typ in [*settings.TQ_RESOURCE_TYPES, *settings.EN_TQ_RESOURCE_TYPES]
-    },
-    **{
-        typ: tw_book_content
-        for typ in [*settings.TW_RESOURCE_TYPES, *settings.EN_TW_RESOURCE_TYPES]
-    },
+    **{typ: usfm_book_content for typ in settings.ALL_USFM_RESOURCE_TYPES},
+    **{typ: tn_book_content for typ in settings.ALL_TN_RESOURCE_TYPES},
+    **{typ: tq_book_content for typ in settings.ALL_TQ_RESOURCE_TYPES},
+    **{typ: tw_book_content for typ in settings.ALL_TW_RESOURCE_TYPES},
     **{typ: bc_book_content for typ in settings.BC_RESOURCE_TYPES},
 }
 
@@ -899,20 +865,17 @@ def book_content(
     resource_dir: str,
     resource_requests: Sequence[ResourceRequest],
     layout_for_print: bool,
-) -> BookContent:
+) -> Optional[BookContent]:
     """Build and return the BookContent instance."""
-    book_content: BookContent
-
     for resource_type_, content_func in RESOURCE_TYPE_FUNCTIONS.items():
         if resource_lookup_dto.resource_type in resource_type_:
-            book_content = content_func(
+            return content_func(
                 resource_lookup_dto,
                 resource_dir,
                 resource_requests,
                 layout_for_print,
             )
-    # FIXME Validation makes this safe, but it is a code smell
-    return book_content
+    return None
 
 
 def markdown_instance(

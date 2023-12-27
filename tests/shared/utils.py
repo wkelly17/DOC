@@ -81,6 +81,7 @@ def check_finished_document_with_verses_success(
         assert body
         verses_html = parser.find_all("span", attrs={"class": "v-num"})
         assert verses_html
+        assert len("".join([str(verse) for verse in verses_html])) >= 300
         # Test defect that can occur in USFM file parsing of
         # non-standalone USFM files, e.g., aba, reg, tit.
         repeating_verse_num_defect = re.search(

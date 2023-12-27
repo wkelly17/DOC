@@ -248,7 +248,12 @@ class LinkPrintTransformerPreprocessor(markdown.preprocessors.Preprocessor):
 
         return source
 
-    def transform_tw_wiki_prefixed_rc_links(self, source: str, tw: str = "tw") -> str:
+    def transform_tw_wiki_prefixed_rc_links(
+        self,
+        source: str,
+        tw: str = "tw",
+        fmt_str: str = settings.TRANSLATION_WORD_PREFIX_FMT_STR,
+    ) -> str:
         """
         Transform the translation word rc TW wikilink into source anchor link
         pointing to a destination anchor link for the translation word
@@ -278,7 +283,7 @@ class LinkPrintTransformerPreprocessor(markdown.preprocessors.Preprocessor):
                 # Build the anchor links
                 source = source.replace(
                     match.group(0),  # The whole match
-                    settings.TRANSLATION_WORD_PREFIX_FMT_STR.format(
+                    fmt_str.format(
                         match.group("prefix_text"),
                         localized_translation_word_,
                     ),

@@ -114,12 +114,19 @@ class Settings(BaseSettings):
     # and TN resource types that translations.json lists as available) for
     # the GL languages and books chosen.
     EN_USFM_RESOURCE_TYPES: Sequence[str] = ["ulb-wa"]
+    ALL_USFM_RESOURCE_TYPES: Sequence[str] = [
+        *USFM_RESOURCE_TYPES,
+        *EN_USFM_RESOURCE_TYPES,
+    ]
     TN_RESOURCE_TYPES: Sequence[str] = ["tn"]
     EN_TN_RESOURCE_TYPES: Sequence[str] = ["tn-wa"]
+    ALL_TN_RESOURCE_TYPES: Sequence[str] = [*EN_TN_RESOURCE_TYPES, *TN_RESOURCE_TYPES]
     TQ_RESOURCE_TYPES: Sequence[str] = ["tq"]
     EN_TQ_RESOURCE_TYPES: Sequence[str] = ["tq-wa"]
+    ALL_TQ_RESOURCE_TYPES: Sequence[str] = [*EN_TQ_RESOURCE_TYPES, *TQ_RESOURCE_TYPES]
     TW_RESOURCE_TYPES: Sequence[str] = ["tw"]
     EN_TW_RESOURCE_TYPES: Sequence[str] = ["tw-wa"]
+    ALL_TW_RESOURCE_TYPES: Sequence[str] = [*EN_TW_RESOURCE_TYPES, *TW_RESOURCE_TYPES]
     BC_RESOURCE_TYPES: Sequence[str] = ["bc-wa"]
     # List of language codes for which there is a content issue
     # such that a complete document request cannot

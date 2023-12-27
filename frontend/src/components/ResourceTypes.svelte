@@ -22,7 +22,7 @@
     apiRootUrl = getApiRootUrl(),
     sharedResourceTypesUrl = <string>import.meta.env.VITE_SHARED_RESOURCE_TYPES_URL
   ): Promise<Array<[string, string, string]>> {
-    // NOTE Form the URL to ultimately invoke
+    // Form the URL to ultimately invoke
     // resource_lookup.shared_resource_types.
     const url_ = `${apiRootUrl}${sharedResourceTypesUrl}${langCode}/`
     const url = new URL(url_)
