@@ -4,10 +4,12 @@
   import otBooks from '../data/ot_books'
   import { ntBookStore, otBookStore, bookCountStore } from '../stores/BooksStore'
   import { langCodesStore, langCountStore } from '../stores/LanguagesStore'
-  import ProgressIndicator from './ProgressIndicator.svelte'
   import { getApiRootUrl, getName } from '../lib/utils'
-  import Modal from './Modal.svelte'
   import WizardBasketModal from './WizardBasketModal.svelte'
+  import MobileBookDisplay from './MobileBookDisplay.svelte'
+  import DesktopBookDisplay from './DesktopBookDisplay.svelte'
+  import Modal from './Modal.svelte'
+  import ProgressIndicator from './ProgressIndicator.svelte'
 
   async function getSharedBookCodesAndNames(
     lang0Code: string,
@@ -122,22 +124,6 @@
       .catch(err => console.error(err))
   }
 
-  function selectAllOtBookCodes(event: Event) {
-    if ((<HTMLInputElement>event.target).checked) {
-      $otBookStore = otBookCodes
-    } else {
-      $otBookStore = []
-    }
-  }
-
-  function selectAllNtBookCodes(event: Event) {
-    if ((<HTMLInputElement>event.target).checked) {
-      $ntBookStore = ntBookCodes
-    } else {
-      $ntBookStore = []
-    }
-  }
-
   // Derive and set the count of books for use here and in other
   // pages.
   let nonEmptyOtBooks: boolean
@@ -188,7 +174,15 @@
   }
   let showFilterMenu = false
   let showWizardBasketModal = false
+
+  let windowWidth: number
+  $: console.log(`windowWidth: ${windowWidth}`)
+
+  const TAILWIND_SM_MIN_WIDTH = <number>import.meta.env.VITE_TAILWIND_SM_MIN_WIDTH
+  $: console.log(`TAILWIND_SM_MIN_WIDTH: ${TAILWIND_SM_MIN_WIDTH}`)
 </script>
+
+<svelte:window bind:innerWidth={windowWidth} />
 
 <WizardBreadcrumb />
 
@@ -202,8 +196,6 @@
     >
       Select books
     </h3>
-
-    <!-- search and buttons -->
     <div class="flex items-center px-2 py-2 mt-2 bg-white">
       {#if !otBookCodes || !ntBookCodes}
         <div class="ml-4">
@@ -223,9 +215,9 @@
             <div class="hidden sm:flex ml-2" role="group">
               <button
                 class="rounded-l-md w-36 h-10 bg-[#015ad9]
-                             text-white font-medium
-                             leading-tight border-x-2 border-t-2
-                             border-b-2 border-[#015ad9] hover:bg-[#015ad9] focus:bg-[#015ad9] focus:outline-none focus:ring-0 active:bg-[#015ad9] transition duration-150 ease-in-out"
+                              text-white font-medium
+                              leading-tight border-x-2 border-t-2
+                              border-b-2 border-[#015ad9] hover:bg-[#015ad9] focus:bg-[#015ad9] focus:outline-none focus:ring-0 active:bg-[#015ad9] transition duration-150 ease-in-out"
                 on:click={() => (showOldTestament = true)}
               >
                 Old Testament
@@ -308,7 +300,7 @@
                     >
                       <span
                         class="text-[8px]
-                                   text-white">{$langCountStore + $bookCountStore}</span
+                                    text-white">{$langCountStore + $bookCountStore}</span
                       >
                     </div>
                   {/if}
@@ -361,15 +353,15 @@
             <div class="hidden sm:flex ml-2" role="group">
               <button
                 class="rounded-l-md w-36 h-10 bg-white text-[#33445c]
-                       font-medium leading-tight border-x-2
-                       border-x-2 border-t-2 border-b-2 border-[#015ad9] hover:bg-white focus:bg-white focus:outline-none focus:ring-0 active:bg-white transition duration-150 ease-in-out"
+                        font-medium leading-tight border-x-2
+                        border-x-2 border-t-2 border-b-2 border-[#015ad9] hover:bg-white focus:bg-white focus:outline-none focus:ring-0 active:bg-white transition duration-150 ease-in-out"
                 on:click={() => (showOldTestament = true)}
               >
                 Old Testament
               </button>
               <button
                 class="rounded-r-md w-36 h-10 bg-[#015ad9]
-                       text-white font-medium leading-tight border-r-2 border-t-2 border-b-2 border-[#015ad9] hover:bg-[#015ad9] focus:bg-[#015ad9] focus:outline-none focus:ring-0 active:bg-[#feeed8] transition duration-150 ease-in-out"
+                        text-white font-medium leading-tight border-r-2 border-t-2 border-b-2 border-[#015ad9] hover:bg-[#015ad9] focus:bg-[#015ad9] focus:outline-none focus:ring-0 active:bg-[#feeed8] transition duration-150 ease-in-out"
                 on:click={() => (showOldTestament = false)}
               >
                 New Testament
@@ -446,7 +438,7 @@
                     >
                       <span
                         class="text-[8px]
-                                 text-white">{$langCountStore + $bookCountStore}</span
+                                  text-white">{$langCountStore + $bookCountStore}</span
                       >
                     </div>
                   {/if}
@@ -493,84 +485,27 @@
     </div>
 
     {#if $langCountStore > 0}
-      <!-- main content -->
-      <main class="flex-1 overflow-y-auto p-4">
-        {#if showOldTestament}
-          {#if otBookCodes?.length > 0}
-            <div class="flex items-center">
-              <input
-                id="select-all-old-testament"
-                type="checkbox"
-                class="checkbox checkbox-dark-bordered"
-                on:change={event => selectAllOtBookCodes(event)}
-              />
-              <label for="select-all-old-testament" class="text-secondary-content pl-1"
-                >Select all</label
-              >
-            </div>
-          {/if}
-          {#if otBookCodes?.length > 0}
-            {#each otBookCodes as bookCodeAndName, index}
-              <div
-                style={filteredOtBookCodes.includes(bookCodeAndName)
-                  ? ''
-                  : 'display: none'}
-                class="flex items-center"
-              >
-                <input
-                  id="lang-bookcode-ot-{index}"
-                  type="checkbox"
-                  bind:group={$otBookStore}
-                  value={bookCodeAndName}
-                  class="checkbox checkbox-dark-bordered"
-                />
-                <label for="lang-bookcode-ot-{index}" class="text-secondary-content pl-1"
-                  >{getName(bookCodeAndName)}</label
-                >
-              </div>
-            {/each}
-          {/if}
-        {:else}
-          {#if ntBookCodes?.length > 0}
-            <div class="flex items-center">
-              <input
-                id="select-all-new-testament"
-                type="checkbox"
-                class="checkbox checkbox-dark-bordered"
-                on:change={event => selectAllNtBookCodes(event)}
-              />
-              <label for="select-all-new-testament" class="text-secondary-content pl-1"
-                >Select all</label
-              >
-            </div>
-          {/if}
-          {#if ntBookCodes?.length > 0}
-            {#each ntBookCodes as bookCodeAndName, index}
-              <div
-                style={filteredNtBookCodes.includes(bookCodeAndName)
-                  ? ''
-                  : 'display: none'}
-                class="flex items-center"
-              >
-                <input
-                  id="lang-bookcode-nt-{index}"
-                  type="checkbox"
-                  bind:group={$ntBookStore}
-                  value={bookCodeAndName}
-                  class="checkbox checkbox-dark-bordered"
-                />
-                <label for="lang-bookcode-nt-{index}" class="text-secondary-content pl-1"
-                  >{getName(bookCodeAndName)}</label
-                >
-              </div>
-            {/each}
-          {/if}
-        {/if}
-      </main>
+      {#if windowWidth < TAILWIND_SM_MIN_WIDTH}
+        <MobileBookDisplay
+          {showOldTestament}
+          {otBookCodes}
+          {ntBookCodes}
+          {filteredOtBookCodes}
+          {filteredNtBookCodes}
+        />
+      {:else}
+        <DesktopBookDisplay
+          {showOldTestament}
+          {otBookCodes}
+          {ntBookCodes}
+          {filteredOtBookCodes}
+          {filteredNtBookCodes}
+        />
+      {/if}
     {/if}
   </div>
 
-  <!-- {#if isMobile} -->
+  <!-- if isMobile -->
   {#if showWizardBasketModal}
     <WizardBasketModal
       title="Your selections"
@@ -582,14 +517,21 @@
       </svelte:fragment>
     </WizardBasketModal>
   {/if}
-  <!-- {:else} -->
+  <!-- else -->
   <div class="hidden sm:w-1/3 sm:flex">
     <WizardBasket />
   </div>
-  <!-- {/if} -->
+  <!-- end if -->
 </div>
 
 <style global lang="postcss">
+  * :global(.checkbox-dark-bordered) {
+    border-color: #1a130b;
+    border-radius: 3px;
+    width: 1em;
+    height: 1em;
+  }
+
   #filter-ot-books,
   #filter-nt-books {
     text-indent: 17px;
@@ -599,18 +541,19 @@
     background-position: left center;
     outline: 0;
   }
-
-  * :global(.checkbox-dark-bordered) {
-    border-color: #1a130b;
-    border-radius: 3px;
-    width: 1em;
-    height: 1em;
-  }
-
-  input[type='checkbox']:checked + label {
+  div.target:has(input[type='checkbox']:checked) {
     background: #e6eefb;
   }
-  input[type='radio']:checked + label {
+  div.target:has(input[type='radio']:checked) {
     background: #e6eefb;
+  }
+  input.checkbox-dark-bordered[type='checkbox']:checked + label {
+    color: #015ad9;
+  }
+  div.target3:has(input[type='checkbox']:checked) + span {
+    color: #015ad9;
+  }
+  div.target2:has(input[type='checkbox']:checked) + div {
+    color: #015ad9;
   }
 </style>

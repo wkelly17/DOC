@@ -1,10 +1,11 @@
 <script lang="ts">
   import { location } from 'svelte-spa-router'
   import { push } from 'svelte-spa-router'
-  import { langCountStore } from '../stores/LanguagesStore'
+  import { langCodesStore, langCountStore } from '../stores/LanguagesStore'
   import { bookCountStore } from '../stores/BooksStore'
-  import { resourceTypesCountStore } from '../stores/ResourceTypesStore'
+  import { resourceTypesStore, resourceTypesCountStore } from '../stores/ResourceTypesStore'
   import {
+    getResourceTypeLangCode,
     resetStores,
     langRegExp,
     bookRegExp,
@@ -46,7 +47,7 @@
     push('#/settings')
   }
 
-  const MAX_LANGUAGES: number = 2
+  const MAX_LANGUAGES = <number>import.meta.env.VITE_MAX_LANGUAGES
 
   // Turn off and on breadcrumb number circles
   let turnLangStepOn: boolean = false
@@ -84,6 +85,17 @@
       smTitle = 'Review'
       smStepLabel = '4 of 4'
     }
+  }
+
+  let numLang0ResourceTypes = 0
+  let numLang1ResourceTypes = 0
+  $: {
+    numLang0ResourceTypes = $resourceTypesStore.filter(
+      item => $langCodesStore[0] !== getResourceTypeLangCode(item)
+    ).length
+    numLang1ResourceTypes = $resourceTypesStore.filter(
+      item => $langCodesStore[1] !== getResourceTypeLangCode(item)
+    ).length
   }
 </script>
 
@@ -129,7 +141,7 @@
         <NextButton func={submitLanguages} />
       {:else if bookRegExp.test($location) && $bookCountStore > 0}
         <NextButton func={submitBooks} />
-      {:else if resourceTypeRegExp.test($location) && $resourceTypesCountStore > 0}
+      {:else if resourceTypeRegExp.test($location) && (($langCountStore === 1 && $resourceTypesCountStore > 0) || ($langCountStore === 2 && numLang0ResourceTypes > 0 && numLang1ResourceTypes > 0))}
         <NextButton func={submitResourceTypes} />
       {:else}
         <button

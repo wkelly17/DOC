@@ -11,7 +11,7 @@
   export let heartCodesAndNames: Array<string>
   export let filteredGatewayCodeAndNames: Array<string>
   export let filteredHeartCodeAndNames: Array<string>
-  const maxLanguages = 2
+  const maxLanguages = <number>import.meta.env.VITE_MAX_LANGUAGES
 </script>
 
 <main class="flex-1 overflow-y-auto p-4">
@@ -23,7 +23,7 @@
           ? ''
           : 'display: none'}
       >
-        <div class="flex items-center">
+        <div class="flex items-center target2">
           <input
             id="lang-code-{index}"
             type="checkbox"
@@ -44,7 +44,7 @@
         class="flex items-center justify-between target h-[56px] px-4"
         style={filteredHeartCodeAndNames.includes(langCodeAndName) ? '' : 'display: none'}
       >
-        <div class="flex items-center">
+        <div class="flex items-center target2">
           <input
             id="lang-code-{index}"
             type="checkbox"

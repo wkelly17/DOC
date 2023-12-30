@@ -14,7 +14,13 @@
     resourceTypesCountStore
   } from '../stores/ResourceTypesStore'
   import ProgressIndicator from './ProgressIndicator.svelte'
-  import { getApiRootUrl, getCode, getName, getResourceTypeLangCode, getResourceTypeName } from '../lib/utils'
+  import {
+    getApiRootUrl,
+    getCode,
+    getName,
+    getResourceTypeLangCode,
+    getResourceTypeName
+  } from '../lib/utils'
 
   async function getResourceTypesAndNames(
     langCode: string,
@@ -130,9 +136,9 @@
 <!-- container for "center" div -->
 <div class="flex-grow flex flex-row overflow-x-hidden overflow-y-auto">
   <!-- center -->
-  <div class="flex-1 flex sm:w-2/3 flex-col ml-4 mb-6 bg-white">
+  <div class="flex-1 flex sm:w-2/3 flex-col mx-4 mb-6 bg-white">
     <h3 class="text-[#33445C] text-4xl font-normal leading-[48px] mb-4">
-      Select resources
+      Pick your resources
     </h3>
     <!-- mobile basket modal launcher -->
     <div class="sm:hidden text-right mr-4">
@@ -187,7 +193,7 @@
     <div class="flex flex-row flex-shrink-0 flex-grow-0">
       {#if lang0ResourceTypesAndNames && lang0ResourceTypesAndNames.length > 0}
         <div class="w-1/2">
-          <div class="flex items-center">
+          <div class="flex items-center pl-4 py-2">
             <input
               id="select-all-lang0-resource-types"
               type="checkbox"
@@ -201,7 +207,7 @@
           </div>
           <ul>
             {#each lang0ResourceTypesAndNames as lang0ResourceTypeAndName, index}
-              <li class="flex items-center">
+              <li class="flex items-center target pl-4 py-2">
                 <input
                   id="lang0-resourcetype-{index}"
                   type="checkbox"
@@ -218,8 +224,8 @@
         </div>
       {/if}
       {#if lang1ResourceTypesAndNames && lang1ResourceTypesAndNames.length > 0}
-        <div class="w-1/2">
-          <div class="flex items-center">
+        <div class="w-1/2 ml-4">
+          <div class="flex items-center pl-4 py-2">
             <input
               id="select-all-lang1-resource-types"
               type="checkbox"
@@ -233,7 +239,7 @@
           </div>
           <ul>
             {#each lang1ResourceTypesAndNames as lang1ResourceTypeAndName, index}
-              <li class="flex items-center">
+              <li class="flex items-center target pl-4 py-2">
                 <input
                   id="lang1-resourcetype-{index}"
                   type="checkbox"
@@ -252,7 +258,7 @@
     </div>
   </div>
 
-  <!-- {#if isMobile} -->
+  <!-- if isMobile -->
   {#if showWizardBasketModal}
     <WizardBasketModal
       title="Your selections"
@@ -264,11 +270,11 @@
       </svelte:fragment>
     </WizardBasketModal>
   {/if}
-  <!-- {:else} -->
+  <!-- else -->
   <div class="hidden sm:w-1/3 sm:flex">
     <WizardBasket />
   </div>
-  <!-- {/if} -->
+  <!-- end if -->
 </div>
 
 <style global lang="postcss">
@@ -276,11 +282,19 @@
     background: linear-gradient(180deg, #fdd231 0%, #fdad29 100%),
       linear-gradient(0deg, rgba(20, 14, 8, 0.6), rgba(20, 14, 8, 0.6));
   }
-
   * :global(.checkbox-dark-bordered) {
     border-color: #1a130b;
     border-radius: 3px;
     width: 1em;
     height: 1em;
+  }
+  li.target:has(input[type='checkbox']:checked) {
+    background: #e6eefb;
+  }
+  li.target:has(input[type='radio']:checked) {
+    background: #e6eefb;
+  }
+  input.checkbox-dark-bordered[type='checkbox']:checked + label {
+    color: #015ad9;
   }
 </style>
