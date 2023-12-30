@@ -413,20 +413,12 @@ def usfm_book_content(
                 if chapter_footnote_tag
                 else HtmlContent(""),
             )
-            return USFMBook(
-                lang_code=resource_lookup_dto.lang_code,
-                lang_name=resource_lookup_dto.lang_name,
-                book_code=resource_lookup_dto.book_code,
-                resource_type_name=resource_lookup_dto.resource_type_name,
-                chapters=chapters,
-                lang_direction=lang_dir,
-            )
     return USFMBook(
         lang_code=resource_lookup_dto.lang_code,
         lang_name=resource_lookup_dto.lang_name,
         book_code=resource_lookup_dto.book_code,
         resource_type_name=resource_lookup_dto.resource_type_name,
-        chapters={},
+        chapters=chapters if chapters else {},
         lang_direction=lang_dir,
     )
 
@@ -463,7 +455,6 @@ def lang_direction(
                 manifest_candidates = glob(
                     manifest_glob_alt_fmt_str.format(resource_dir, "json")
                 )
-
 
     if manifest_candidates:
         candidate = manifest_candidates[0]
