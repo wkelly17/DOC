@@ -207,18 +207,20 @@
           </div>
           <ul>
             {#each lang0ResourceTypesAndNames as lang0ResourceTypeAndName, index}
-              <li class="flex items-center target pl-4 py-2">
-                <input
-                  id="lang0-resourcetype-{index}"
-                  type="checkbox"
-                  bind:group={$resourceTypesStore}
-                  value={lang0ResourceTypeAndName}
-                  class="checkbox checkbox-dark-bordered"
-                />
-                <label for="lang0-resourcetype-{index}" class="text-primary-content pl-1"
-                  >{getResourceTypeName(lang0ResourceTypeAndName)}</label
-                >
-              </li>
+              <label for="lang0-resourcetype-{index}">
+                <li class="flex items-center target pl-4 py-2">
+                  <input
+                    id="lang0-resourcetype-{index}"
+                    type="checkbox"
+                    bind:group={$resourceTypesStore}
+                    value={lang0ResourceTypeAndName}
+                    class="checkbox checkbox-dark-bordered"
+                  />
+                  <span class="text-primary-content pl-1"
+                    >{getResourceTypeName(lang0ResourceTypeAndName)}</span
+                  >
+                </li>
+              </label>
             {/each}
           </ul>
         </div>
@@ -239,18 +241,20 @@
           </div>
           <ul>
             {#each lang1ResourceTypesAndNames as lang1ResourceTypeAndName, index}
-              <li class="flex items-center target pl-4 py-2">
-                <input
-                  id="lang1-resourcetype-{index}"
-                  type="checkbox"
-                  bind:group={$resourceTypesStore}
-                  value={lang1ResourceTypeAndName}
-                  class="checkbox checkbox-dark-bordered"
-                />
-                <label for="lang1-resourcetype-{index}" class="text-primary-content pl-1"
-                  >{getResourceTypeName(lang1ResourceTypeAndName)}</label
-                >
-              </li>
+              <label for="lang1-resourcetype-{index}">
+                <li class="flex items-center target pl-4 py-2">
+                  <input
+                    id="lang1-resourcetype-{index}"
+                    type="checkbox"
+                    bind:group={$resourceTypesStore}
+                    value={lang1ResourceTypeAndName}
+                    class="checkbox checkbox-dark-bordered"
+                  />
+                  <span class="text-primary-content pl-1"
+                    >{getResourceTypeName(lang1ResourceTypeAndName)}</span
+                  >
+                </li>
+              </label>
             {/each}
           </ul>
         </div>
@@ -294,7 +298,7 @@
   li.target:has(input[type='radio']:checked) {
     background: #e6eefb;
   }
-  input.checkbox-dark-bordered[type='checkbox']:checked + label {
+  input.checkbox-dark-bordered[type='checkbox']:checked + span {
     color: #015ad9;
   }
 </style>

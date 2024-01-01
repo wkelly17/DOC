@@ -42,24 +42,24 @@
     {/if}
     {#if otBookCodes?.length > 0}
       {#each otBookCodes as bookCodeAndName, index}
-        <div
-          class="flex items-center justify-between target h-[56px] px-4"
-          style={filteredOtBookCodes.includes(bookCodeAndName) ? '' : 'display: none'}
-        >
-          <div class="flex items-center target3">
-            <input
-              id="lang-bookcode-ot-{index}"
-              type="checkbox"
-              bind:group={$otBookStore}
-              value={bookCodeAndName}
-              class="checkbox checkbox-dark-bordered"
-            />
-            <label for="lang-bookcode-ot-{index}" class="text-[#33445C] pl-1"
-              >{getName(bookCodeAndName)}</label
-            >
+        <label for="bookcode-ot-{index}">
+          <div
+            class="flex items-center justify-between target h-[56px] px-4"
+            style={filteredOtBookCodes.includes(bookCodeAndName) ? '' : 'display: none'}
+          >
+            <div class="flex items-center target3">
+              <input
+                id="bookcode-ot-{index}"
+                type="checkbox"
+                bind:group={$otBookStore}
+                value={bookCodeAndName}
+                class="checkbox checkbox-dark-bordered"
+              />
+              <span class="text-[#33445C] pl-1">{getName(bookCodeAndName)}</span>
+            </div>
+            <span class="text-[#33445C]">{getCode(bookCodeAndName)}</span>
           </div>
-          <span class="text-[#33445C]">{getCode(bookCodeAndName)}</span>
-        </div>
+        </label>
       {/each}
     {/if}
   {:else}
@@ -78,24 +78,24 @@
     {/if}
     {#if ntBookCodes?.length > 0}
       {#each ntBookCodes as bookCodeAndName, index}
-        <div
-          class="flex items-center justify-between target h-[56px] px-4"
-          style={filteredNtBookCodes.includes(bookCodeAndName) ? '' : 'display: none'}
-        >
-          <div class="flex items-center target3">
-            <input
-              id="lang-bookcode-nt-{index}"
-              type="checkbox"
-              bind:group={$ntBookStore}
-              value={bookCodeAndName}
-              class="checkbox checkbox-dark-bordered"
-            />
-            <label for="lang-bookcode-nt-{index}" class="text-[#33445C] pl-1"
-              >{getName(bookCodeAndName)}</label
-            >
+        <label for="bookcode-nt-{index}">
+          <div
+            class="flex items-center justify-between target h-[56px] px-4"
+            style={filteredNtBookCodes.includes(bookCodeAndName) ? '' : 'display: none'}
+          >
+            <div class="flex items-center target3">
+              <input
+                id="bookcode-nt-{index}"
+                type="checkbox"
+                bind:group={$ntBookStore}
+                value={bookCodeAndName}
+                class="checkbox checkbox-dark-bordered"
+              />
+              <span class="text-[#33445C] pl-1">{getName(bookCodeAndName)}</span>
+            </div>
+            <span class="text-[#33445C]">{getCode(bookCodeAndName)}</span>
           </div>
-          <span class="text-[#33445C]">{getCode(bookCodeAndName)}</span>
-        </div>
+        </label>
       {/each}
     {/if}
   {/if}

@@ -3,6 +3,7 @@
   import {
     gatewayCodeAndNamesStore,
     heartCodeAndNamesStore,
+    langCodesStore,
     langCountStore
   } from '../stores/LanguagesStore'
 
@@ -18,53 +19,53 @@
 <main class="flex-1 overflow-y-auto p-4">
   {#if showGatewayLanguages}
     {#each gatewayCodesAndNames as langCodeAndName, index}
-      <div class="pl-4 py-2 target">
-        <div
-          class="flex items-center justify-between target2"
-          style={filteredGatewayCodeAndNames.includes(langCodeAndName)
-            ? ''
-            : 'display: none'}
-        >
-          <div class="flex items-center target3">
-            <input
-              id="lang-code-{index}"
-              type="checkbox"
-              bind:group={$gatewayCodeAndNamesStore}
-              value={langCodeAndName}
-              class="checkbox checkbox-dark-bordered"
-            />
-            <label for="lang-code-{index}" class="text-[#33445C] pl-1"
-              >{getName(langCodeAndName)}</label
-            >
+      <label for="lang-code-{index}">
+        <div class="pl-4 py-2 target">
+          <div
+            class="flex items-center justify-between target2"
+            style={filteredGatewayCodeAndNames.includes(langCodeAndName)
+              ? ''
+              : 'display: none'}
+          >
+            <div class="flex items-center target3">
+              <input
+                id="lang-code-{index}"
+                type="checkbox"
+                bind:group={$gatewayCodeAndNamesStore}
+                value={langCodeAndName}
+                class="checkbox checkbox-dark-bordered"
+              />
+              <span class="text-[#33445C] pl-1">{getName(langCodeAndName)}</span>
+            </div>
           </div>
+          <div class="ml-6 text-[#33445C]">{getCode(langCodeAndName)}</div>
         </div>
-        <div class="ml-6 text-[#33445C]">{getCode(langCodeAndName)}</div>
-      </div>
+      </label>
     {/each}
   {:else}
     {#each heartCodesAndNames as langCodeAndName, index}
-      <div class="pl-4 py-2 target">
-        <div
-          class="flex items-center justify-between target2"
-          style={filteredHeartCodeAndNames.includes(langCodeAndName)
-            ? ''
-            : 'display: none'}
-        >
-          <div class="flex items-center target3">
-            <input
-              id="lang-code-{index}"
-              type="checkbox"
-              bind:group={$heartCodeAndNamesStore}
-              value={langCodeAndName}
-              class="checkbox checkbox-dark-bordered"
-            />
-            <label for="lang-code-{index}" class="text-[#33445C] pl-1"
-              >{getName(langCodeAndName)}</label
-            >
+      <label for="lang-code-{index}">
+        <div class="pl-4 py-2 target">
+          <div
+            class="flex items-center justify-between target2"
+            style={filteredHeartCodeAndNames.includes(langCodeAndName)
+              ? ''
+              : 'display: none'}
+          >
+            <div class="flex items-center target3">
+              <input
+                id="lang-code-{index}"
+                type="checkbox"
+                bind:group={$heartCodeAndNamesStore}
+                value={langCodeAndName}
+                class="checkbox checkbox-dark-bordered"
+              />
+              <span class="text-[#33445C] pl-1">{getName(langCodeAndName)}</span>
+            </div>
           </div>
+          <div class="ml-6 text-[#33445C]">{getCode(langCodeAndName)}</div>
         </div>
-        <div class="ml-6 text-[#33445C]">{getCode(langCodeAndName)}</div>
-      </div>
+      </label>
     {/each}
   {/if}
   {#if $langCountStore > maxLanguages}

@@ -555,7 +555,7 @@
   div.target:has(input[type='radio']:checked) {
     background: #e6eefb;
   }
-  input.checkbox-dark-bordered[type='checkbox']:checked + label {
+  input.checkbox-dark-bordered[type='checkbox']:checked + span {
     color: #015ad9;
   }
   div.target3:has(input[type='checkbox']:checked) + span {

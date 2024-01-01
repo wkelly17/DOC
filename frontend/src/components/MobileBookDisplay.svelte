@@ -42,26 +42,26 @@
     {/if}
     {#if otBookCodes?.length > 0}
       {#each otBookCodes as bookCodeAndName, index}
-        <div class="pl-4 py-2 target">
-          <div
-            class="flex items-center justify-between target2"
-            style={filteredOtBookCodes.includes(bookCodeAndName) ? '' : 'display: none'}
-          >
-            <div class="flex items-center target3">
-              <input
-                id="bookcode-ot-{index}"
-                type="checkbox"
-                bind:group={$otBookStore}
-                value={bookCodeAndName}
-                class="checkbox checkbox-dark-bordered"
-              />
-              <label for="bookcode-ot-{index}" class="text-[#33445C] pl-1"
-                >{getName(bookCodeAndName)}</label
-              >
+        <label for="bookcode-ot-{index}">
+          <div class="pl-4 py-2 target">
+            <div
+              class="flex items-center justify-between target2"
+              style={filteredOtBookCodes.includes(bookCodeAndName) ? '' : 'display: none'}
+            >
+              <div class="flex items-center target3">
+                <input
+                  id="bookcode-ot-{index}"
+                  type="checkbox"
+                  bind:group={$otBookStore}
+                  value={bookCodeAndName}
+                  class="checkbox checkbox-dark-bordered"
+                />
+                <span class="text-[#33445C] pl-1">{getName(bookCodeAndName)}</span>
+              </div>
             </div>
+            <div class="ml-6 text-[#33445C]">{getCode(bookCodeAndName)}</div>
           </div>
-          <div class="ml-6 text-[#33445C]">{getCode(bookCodeAndName)}</div>
-        </div>
+        </label>
       {/each}
     {/if}
   {:else}
@@ -80,26 +80,26 @@
     {/if}
     {#if ntBookCodes?.length > 0}
       {#each ntBookCodes as bookCodeAndName, index}
-        <div class="pl-4 py-2 target">
-          <div
-            class="flex items-center justify-between target2"
-            style={filteredNtBookCodes.includes(bookCodeAndName) ? '' : 'display: none'}
-          >
-            <div class="flex items-center target3">
-              <input
-                id="bookcode-nt-{index}"
-                type="checkbox"
-                bind:group={$ntBookStore}
-                value={bookCodeAndName}
-                class="checkbox checkbox-dark-bordered"
-              />
-              <label for="bookcode-nt-{index}" class="text-[#33445C] pl-1"
-                >{getName(bookCodeAndName)}</label
-              >
+        <label for="bookcode-nt-{index}">
+          <div class="pl-4 py-2 target">
+            <div
+              class="flex items-center justify-between target2"
+              style={filteredNtBookCodes.includes(bookCodeAndName) ? '' : 'display: none'}
+            >
+              <div class="flex items-center target3">
+                <input
+                  id="bookcode-nt-{index}"
+                  type="checkbox"
+                  bind:group={$ntBookStore}
+                  value={bookCodeAndName}
+                  class="checkbox checkbox-dark-bordered"
+                />
+                <span class="text-[#33445C] pl-1">{getName(bookCodeAndName)}</span>
+              </div>
             </div>
+            <div class="ml-6 text-[#33445C]">{getCode(bookCodeAndName)}</div>
           </div>
-          <div class="ml-6 text-[#33445C]">{getCode(bookCodeAndName)}</div>
-        </div>
+        </label>
       {/each}
     {/if}
   {/if}
