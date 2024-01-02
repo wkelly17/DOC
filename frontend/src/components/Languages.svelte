@@ -323,36 +323,38 @@
               </button>
             </div>
             {#if showFilterMenu}
-              <Modal
-                title="Filter"
-                open={showFilterMenu}
-                on:close={() => (showFilterMenu = false)}
-              >
+              <Modal title="Filter" bind:showFilterMenu>
                 <svelte:fragment slot="body">
-                  <div class="flex items-center">
-                    <input
-                      id="show-gateway-radio-button"
-                      type="radio"
-                      value={true}
-                      bind:group={showGatewayLanguages}
-                      class="radio checked:bg-[#015ad9]"
-                    />
-                    <label for="show-gateway-radio-button" class="text-[#33445C] pl-1"
-                      >Gateway languages</label
+                  <label for="show-gateway-radio-button">
+                    <div
+                      class="flex items-center radio-target
+                                h-[48px] pl-4 pr-8 py-2"
                     >
-                  </div>
-                  <div class="flex items-center">
-                    <input
-                      id="show-heart-radio-button"
-                      type="radio"
-                      value={false}
-                      bind:group={showGatewayLanguages}
-                      class="radio checked:bg-[#015ad9]"
-                    />
-                    <label for="show-heart-radio-button" class="text-[#33445C] pl-1"
-                      >Heart languages</label
+                      <input
+                        id="show-gateway-radio-button"
+                        type="radio"
+                        value={true}
+                        bind:group={showGatewayLanguages}
+                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                      />
+                      <span class="text-[#33445C] pl-1">Gateway languages</span>
+                    </div>
+                  </label>
+                  <label for="show-heart-radio-button">
+                    <div
+                      class="flex items-center radio-target
+                                h-[48px] pl-4 pr-8 py-2"
                     >
-                  </div>
+                      <input
+                        id="show-heart-radio-button"
+                        type="radio"
+                        value={false}
+                        bind:group={showGatewayLanguages}
+                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                      />
+                      <span class="text-[#33445C] pl-1">Heart languages</span>
+                    </div>
+                  </label>
                 </svelte:fragment>
               </Modal>
             {/if}
@@ -456,36 +458,38 @@
               </button>
             </div>
             {#if showFilterMenu}
-              <Modal
-                title="Filter"
-                open={showFilterMenu}
-                on:close={() => (showFilterMenu = false)}
-              >
+              <Modal title="Filter" bind:showFilterMenu>
                 <svelte:fragment slot="body">
-                  <div class="flex items-center">
-                    <input
-                      id="show-gateway-radio-button"
-                      type="radio"
-                      value={true}
-                      bind:group={showGatewayLanguages}
-                      class="radio checked:bg-[#015ad9]"
-                    />
-                    <label for="show-gateway-radio-button" class="text-[#33445C] pl-1"
-                      >Gateway languages</label
+                  <label for="show-gateway-radio-button">
+                    <div
+                      class="flex items-center radio-target
+                                h-[48px] pl-4 pr-8 py-2"
                     >
-                  </div>
-                  <div class="flex items-center">
-                    <input
-                      id="show-heart-radio-button"
-                      type="radio"
-                      value={false}
-                      bind:group={showGatewayLanguages}
-                      class="radio checked:bg-[#015ad9]"
-                    />
-                    <label for="show-heart-radio-button" class="text-[#33445C] pl-1"
-                      >Heart languages</label
+                      <input
+                        id="show-gateway-radio-button"
+                        type="radio"
+                        value={true}
+                        bind:group={showGatewayLanguages}
+                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                      />
+                      <span class="text-[#33445C] pl-1">Gateway languages</span>
+                    </div>
+                  </label>
+                  <label for="show-heart-radio-button">
+                    <div
+                      class="flex items-center radio-target
+                                h-[48px] px-4 py-2"
                     >
-                  </div>
+                      <input
+                        id="show-heart-radio-button"
+                        type="radio"
+                        value={false}
+                        bind:group={showGatewayLanguages}
+                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                      />
+                      <span class="text-[#33445C] pl-1">Heart languages</span>
+                    </div>
+                  </label>
                 </svelte:fragment>
               </Modal>
             {/if}
@@ -554,6 +558,15 @@
   }
   div.target:has(input[type='radio']:checked) {
     background: #e6eefb;
+  }
+  div.radio-target:has(input[type='radio']:checked) {
+    background: #e6eefb;
+  }
+  input.show-gateway-radio-button[type='radio']:checked + span {
+    color: #015ad9;
+  }
+  input.show-heart-radio-button[type='radio']:checked + span {
+    color: #015ad9;
   }
   input.checkbox-dark-bordered[type='checkbox']:checked + span {
     color: #015ad9;
