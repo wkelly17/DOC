@@ -520,11 +520,7 @@
 
   <!-- if isMobile -->
   {#if showWizardBasketModal}
-    <WizardBasketModal
-      title="Your selections"
-      open={showWizardBasketModal}
-      on:close={() => (showWizardBasketModal = false)}
-    >
+    <WizardBasketModal title="Your selections" bind:showWizardBasketModal>
       <svelte:fragment slot="body">
         <WizardBasket />
       </svelte:fragment>
