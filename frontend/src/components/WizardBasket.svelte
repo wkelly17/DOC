@@ -141,7 +141,11 @@
         <div
           class="flex items-center justify-between w-full rounded-lg p-4 bg-white text-[#66768B] mt-2"
         >
-          {getName(langCodeAndName)}
+          <div>
+            <span>{getName(langCodeAndName)}</span><span class="ml-2"
+              >({getCode(langCodeAndName)})</span
+            >
+          </div>
           <button on:click={() => uncheckGatewayLanguage(langCodeAndName)}>
             <svg
               width="24"
@@ -161,7 +165,11 @@
         <div
           class="flex items-center justify-between w-full rounded-lg p-4 bg-white text-[#66768B] mt-2"
         >
-          {getName(langCodeAndName)}
+          <div>
+            <span>{getName(langCodeAndName)}</span><span class="ml-2"
+              >({getCode(langCodeAndName)})</span
+            >
+          </div>
         </div>
       {/if}
     {/each}
@@ -170,7 +178,11 @@
         <div
           class="flex items-center justify-between w-full rounded-lg p-4 bg-white text-[#66768B] mt-2"
         >
-          {getName(langCodeAndName)}
+          <div>
+            <span>{getName(langCodeAndName)}</span><span class="ml-2"
+              >({getCode(langCodeAndName)})</span
+            >
+          </div>
           <button on:click={() => uncheckHeartLanguage(langCodeAndName)}>
             <svg
               width="24"
@@ -190,7 +202,11 @@
         <div
           class="flex items-center justify-between w-full rounded-lg p-4 bg-white text-[#66768B] mt-2"
         >
-          {getName(langCodeAndName)}
+          <div>
+            <span>{getName(langCodeAndName)}</span><span class="ml-2"
+              >({getCode(langCodeAndName)})</span
+            >
+          </div>
         </div>
       {/if}
     {/each}
@@ -258,7 +274,11 @@
         <div
           class="flex items-center justify-between w-full rounded-lg p-4 bg-white text-[#66768B] mt-2"
         >
-          {getName(bookCodeAndName)}
+          <div>
+            <span>{getName(bookCodeAndName)}</span><span class="ml-2"
+              >({getCode(bookCodeAndName)})</span
+            >
+          </div>
           <button on:click={() => uncheckBook(bookCodeAndName)}>
             <svg
               width="24"
@@ -278,7 +298,11 @@
         <div
           class="flex items-center justify-between w-full rounded-lg p-4 bg-white text-[#66768B] mt-2"
         >
-          {getName(bookCodeAndName)}
+          <div>
+            <span>{getName(bookCodeAndName)}</span><span class="ml-2"
+              >({getCode(bookCodeAndName)})</span
+            >
+          </div>
         </div>
       {/if}
     {/each}
@@ -295,7 +319,11 @@
               <div
                 class="flex items-center justify-between w-full rounded-lg bg-white text-[#66768B] p-2 mt-2"
               >
-                {getName(bookCodeAndName)}
+                <div>
+                  <span>{getName(bookCodeAndName)}</span><span class="ml-2"
+                    >({getCode(bookCodeAndName)})</span
+                  >
+                </div>
                 <button on:click={() => uncheckBook(bookCodeAndName)}>
                   <svg
                     width="24"
@@ -315,7 +343,11 @@
               <div
                 class="flex items-center justify-between w-full rounded-lg p-2 bg-white text-[#66768B] mt-2"
               >
-                {getName(bookCodeAndName)}
+                <div>
+                  <span>{getName(bookCodeAndName)}</span><span class="ml-2"
+                    >({getCode(bookCodeAndName)})</span
+                  >
+                </div>
               </div>
             {/if}
           {/each}
