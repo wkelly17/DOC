@@ -3,7 +3,10 @@
   import { push } from 'svelte-spa-router'
   import { langCodesStore, langCountStore } from '../stores/LanguagesStore'
   import { bookCountStore } from '../stores/BooksStore'
-  import { resourceTypesStore, resourceTypesCountStore } from '../stores/ResourceTypesStore'
+  import {
+    resourceTypesStore,
+    resourceTypesCountStore
+  } from '../stores/ResourceTypesStore'
   import {
     getResourceTypeLangCode,
     resetStores,
@@ -120,7 +123,10 @@
         <BackButton url="/resource_types" />
       {:else}
         <button
-          class="flex items-center bg-white border border-[#E5E8EB] text-[#33445c] hover:bg-[#efefef] py-2 px-4 rounded-md"
+          class="flex items-center bg-white border border-[#E5E8EB]
+                 text-[#33445c] py-2 px-4
+                 rounded-md cursor-not-allowed"
+          disabled
         >
           <svg
             width="24"
@@ -145,7 +151,9 @@
         <NextButton func={submitResourceTypes} />
       {:else}
         <button
-          class="flex items-center bg-white border border-[#E5E8EB] text-[#33445c] hover:bg-[#efefef] py-2 px-4 rounded-md ml-2"
+          class="flex items-center bg-white border border-[#E5E8EB]
+                 text-[#33445c] py-2 px-4 rounded-md ml-2 cursor-not-allowed"
+          disabled
         >
           <span class="hidden sm:inline">Next</span>
           <svg
