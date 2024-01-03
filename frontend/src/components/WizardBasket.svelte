@@ -232,7 +232,7 @@
             fill="#33445C"
           />
         </svg>
-        Edit
+        <span class="ml-2"> Edit </span>
       </button>
     </div>
   {:else}
@@ -360,7 +360,7 @@
             fill="#33445C"
           />
         </svg>
-        Edit
+        <span class="ml-2"> Edit </span>
       </button>
     </div>
   {:else}
