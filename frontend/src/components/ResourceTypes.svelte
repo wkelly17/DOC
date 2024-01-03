@@ -129,7 +129,14 @@
       )
     }
   }
+  let windowWidth: number
+  $: console.log(`windowWidth: ${windowWidth}`)
+
+  const TAILWIND_SM_MIN_WIDTH = <number>import.meta.env.VITE_TAILWIND_SM_MIN_WIDTH
+  $: console.log(`TAILWIND_SM_MIN_WIDTH: ${TAILWIND_SM_MIN_WIDTH}`)
 </script>
+
+<svelte:window bind:innerWidth={windowWidth} />
 
 <WizardBreadcrumb />
 
@@ -178,88 +185,171 @@
     {#if ($langCountStore > 0 && lang0ResourceTypesAndNames && lang0ResourceTypesAndNames.length == 0) || ($langCountStore > 1 && !lang1ResourceTypesAndNames)}
       <ProgressIndicator />
     {/if}
-    <div class="flex flex-row flex-shrink-0 flex-grow-0 mb-2">
+    {#if windowWidth < TAILWIND_SM_MIN_WIDTH}
       {#if $langCountStore > 0}
-        <div class="w-1/2">
+        <div>
           <h3 class="text-2xl text-[#33445C]">{$langNamesStore[0]}</h3>
         </div>
       {/if}
-      {#if $langCountStore > 1 && lang1ResourceTypesAndNames}
-        <div class="w-1/2">
-          <h3 class="text-2xl text-[#33445C]">{$langNamesStore[1]}</h3>
-        </div>
-      {/if}
-    </div>
-    <div class="flex flex-row flex-shrink-0 flex-grow-0">
-      {#if lang0ResourceTypesAndNames && lang0ResourceTypesAndNames.length > 0}
-        <div class="w-1/2">
-          <div class="flex items-center pl-4 py-2">
-            <input
-              id="select-all-lang0-resource-types"
-              type="checkbox"
-              class="checkbox checkbox-dark-bordered"
-              on:change={event => selectAllLang0ResourceTypes(event)}
-            />
-            <label
-              for="select-all-lang0-resource-types"
-              class="text-secondary-content pl-1">Select all</label
-            >
+      <div>
+        {#if lang0ResourceTypesAndNames && lang0ResourceTypesAndNames.length > 0}
+          <div>
+            <div class="flex items-center pl-4 py-2">
+              <input
+                id="select-all-lang0-resource-types"
+                type="checkbox"
+                class="checkbox checkbox-dark-bordered"
+                on:change={event => selectAllLang0ResourceTypes(event)}
+              />
+              <label
+                for="select-all-lang0-resource-types"
+                class="text-secondary-content pl-1">Select all</label
+              >
+            </div>
+            <ul>
+              {#each lang0ResourceTypesAndNames as lang0ResourceTypeAndName, index}
+                <label for="lang0-resourcetype-{index}">
+                  <li class="flex items-center target pl-4 py-2">
+                    <input
+                      id="lang0-resourcetype-{index}"
+                      type="checkbox"
+                      bind:group={$resourceTypesStore}
+                      value={lang0ResourceTypeAndName}
+                      class="checkbox checkbox-dark-bordered"
+                    />
+                    <span class="text-primary-content pl-1"
+                      >{getResourceTypeName(lang0ResourceTypeAndName)}</span
+                    >
+                  </li>
+                </label>
+              {/each}
+            </ul>
           </div>
-          <ul>
-            {#each lang0ResourceTypesAndNames as lang0ResourceTypeAndName, index}
-              <label for="lang0-resourcetype-{index}">
-                <li class="flex items-center target pl-4 py-2">
-                  <input
-                    id="lang0-resourcetype-{index}"
-                    type="checkbox"
-                    bind:group={$resourceTypesStore}
-                    value={lang0ResourceTypeAndName}
-                    class="checkbox checkbox-dark-bordered"
-                  />
-                  <span class="text-primary-content pl-1"
-                    >{getResourceTypeName(lang0ResourceTypeAndName)}</span
-                  >
-                </li>
-              </label>
-            {/each}
-          </ul>
-        </div>
-      {/if}
-      {#if lang1ResourceTypesAndNames && lang1ResourceTypesAndNames.length > 0}
-        <div class="w-1/2 ml-4">
-          <div class="flex items-center pl-4 py-2">
-            <input
-              id="select-all-lang1-resource-types"
-              type="checkbox"
-              class="checkbox checkbox-dark-bordered"
-              on:change={event => selectAllLang1ResourceTypes(event)}
-            />
-            <label
-              for="select-all-lang0-resource-types"
-              class="text-secondary-content pl-1">Select all</label
-            >
+        {/if}
+        {#if $langCountStore > 1 && lang1ResourceTypesAndNames}
+          <div>
+            <h3 class="text-2xl text-[#33445C]">{$langNamesStore[1]}</h3>
           </div>
-          <ul>
-            {#each lang1ResourceTypesAndNames as lang1ResourceTypeAndName, index}
-              <label for="lang1-resourcetype-{index}">
-                <li class="flex items-center target pl-4 py-2">
-                  <input
-                    id="lang1-resourcetype-{index}"
-                    type="checkbox"
-                    bind:group={$resourceTypesStore}
-                    value={lang1ResourceTypeAndName}
-                    class="checkbox checkbox-dark-bordered"
-                  />
-                  <span class="text-primary-content pl-1"
-                    >{getResourceTypeName(lang1ResourceTypeAndName)}</span
-                  >
-                </li>
-              </label>
-            {/each}
-          </ul>
-        </div>
-      {/if}
-    </div>
+        {/if}
+        {#if lang1ResourceTypesAndNames && lang1ResourceTypesAndNames.length > 0}
+          <div>
+            <div class="flex items-center pl-4 py-2">
+              <input
+                id="select-all-lang1-resource-types"
+                type="checkbox"
+                class="checkbox checkbox-dark-bordered"
+                on:change={event => selectAllLang1ResourceTypes(event)}
+              />
+              <label
+                for="select-all-lang1-resource-types"
+                class="text-secondary-content pl-1">Select all</label
+              >
+            </div>
+            <ul>
+              {#each lang1ResourceTypesAndNames as lang1ResourceTypeAndName, index}
+                <label for="lang1-resourcetype-{index}">
+                  <li class="flex items-center target pl-4 py-2">
+                    <input
+                      id="lang1-resourcetype-{index}"
+                      type="checkbox"
+                      bind:group={$resourceTypesStore}
+                      value={lang1ResourceTypeAndName}
+                      class="checkbox checkbox-dark-bordered"
+                    />
+                    <span class="text-primary-content pl-1"
+                      >{getResourceTypeName(lang1ResourceTypeAndName)}</span
+                    >
+                  </li>
+                </label>
+              {/each}
+            </ul>
+          </div>
+        {/if}
+      </div>
+    {:else}
+      <div class="flex flex-row flex-shrink-0 flex-grow-0 mb-2">
+        {#if $langCountStore > 0}
+          <div class="w-1/2">
+            <h3 class="text-2xl text-[#33445C]">{$langNamesStore[0]}</h3>
+          </div>
+        {/if}
+        {#if $langCountStore > 1 && lang1ResourceTypesAndNames}
+          <div class="w-1/2">
+            <h3 class="text-2xl text-[#33445C]">{$langNamesStore[1]}</h3>
+          </div>
+        {/if}
+      </div>
+      <div class="flex flex-row flex-shrink-0 flex-grow-0">
+        {#if lang0ResourceTypesAndNames && lang0ResourceTypesAndNames.length > 0}
+          <div class="w-1/2">
+            <div class="flex items-center pl-4 py-2">
+              <input
+                id="select-all-lang0-resource-types"
+                type="checkbox"
+                class="checkbox checkbox-dark-bordered"
+                on:change={event => selectAllLang0ResourceTypes(event)}
+              />
+              <label
+                for="select-all-lang0-resource-types"
+                class="text-secondary-content pl-1">Select all</label
+              >
+            </div>
+            <ul>
+              {#each lang0ResourceTypesAndNames as lang0ResourceTypeAndName, index}
+                <label for="lang0-resourcetype-{index}">
+                  <li class="flex items-center target pl-4 py-2">
+                    <input
+                      id="lang0-resourcetype-{index}"
+                      type="checkbox"
+                      bind:group={$resourceTypesStore}
+                      value={lang0ResourceTypeAndName}
+                      class="checkbox checkbox-dark-bordered"
+                    />
+                    <span class="text-primary-content pl-1"
+                      >{getResourceTypeName(lang0ResourceTypeAndName)}</span
+                    >
+                  </li>
+                </label>
+              {/each}
+            </ul>
+          </div>
+        {/if}
+        {#if lang1ResourceTypesAndNames && lang1ResourceTypesAndNames.length > 0}
+          <div class="w-1/2 ml-4">
+            <div class="flex items-center pl-4 py-2">
+              <input
+                id="select-all-lang1-resource-types"
+                type="checkbox"
+                class="checkbox checkbox-dark-bordered"
+                on:change={event => selectAllLang1ResourceTypes(event)}
+              />
+              <label
+                for="select-all-lang1-resource-types"
+                class="text-secondary-content pl-1">Select all</label
+              >
+            </div>
+            <ul>
+              {#each lang1ResourceTypesAndNames as lang1ResourceTypeAndName, index}
+                <label for="lang1-resourcetype-{index}">
+                  <li class="flex items-center target pl-4 py-2">
+                    <input
+                      id="lang1-resourcetype-{index}"
+                      type="checkbox"
+                      bind:group={$resourceTypesStore}
+                      value={lang1ResourceTypeAndName}
+                      class="checkbox checkbox-dark-bordered"
+                    />
+                    <span class="text-primary-content pl-1"
+                      >{getResourceTypeName(lang1ResourceTypeAndName)}</span
+                    >
+                  </li>
+                </label>
+              {/each}
+            </ul>
+          </div>
+        {/if}
+      </div>
+    {/if}
   </div>
 
   <!-- if isMobile -->
