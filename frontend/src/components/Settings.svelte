@@ -105,8 +105,10 @@
 <!-- container for "center" div -->
 <div class="flex-grow flex flex-row overflow-hidden">
   <!-- center -->
-  <div class="flex-1 flex flex-col sm:w-2/3 bg-white">
-    <h3 class="bg-white text-[#33445C] text-4xl mb-8 mt-2 ml-4">Generate document</h3>
+  <div class="flex-1 flex flex-col sm:w-2/3 bg-white mx-4 mb-6">
+    <h3 class="bg-white text-[#33445C] text-4xl font-normal leading-[48px] mb-4">
+      Generate document
+    </h3>
 
     <!-- mobile basket modal launcher -->
     <div class="sm:hidden text-right mr-4">
@@ -133,9 +135,7 @@
                         rounded-full w-7 h-7"
               style="background: linear-gradient(180deg, #1876FD 0%, #015AD9 100%);"
             >
-              <span
-                class="text-[8px]
-                          text-white"
+              <span class="text-[8px] text-white"
                 >{$langCountStore + $bookCountStore + $resourceTypesCountStore}</span
               >
             </div>
@@ -156,6 +156,7 @@
                 bind:group={$docTypeStore}
                 type="radio"
                 on:change={() => ($settingsUpdated = true)}
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
               />
               <span class="text-[#33445C]">{import.meta.env.VITE_PDF_LABEL}</span>
             </label>
@@ -169,6 +170,7 @@
               bind:group={$docTypeStore}
               type="radio"
               on:change={() => ($settingsUpdated = true)}
+              class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
             />
             <span class="text-[#33445C]">{import.meta.env.VITE_EPUB_LABEL}</span>
           </label>
@@ -181,53 +183,53 @@
               bind:group={$docTypeStore}
               type="radio"
               on:change={() => ($settingsUpdated = true)}
+              class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
             />
             <span class="text-[#33445C]">{import.meta.env.VITE_DOCX_LABEL}</span>
           </label>
         </div>
       </div>
-
-      <h3 class="text-2xl my-2 text-[#33445C]">Layout</h3>
+      <h3 class="text-2xl mt-4 mb-2 text-[#33445C]">Layout</h3>
       <div class="ml-4">
         {#if $langCodesStore[1]}
-          <div class="flex mb-2">
-            <select
-              bind:value={$assemblyStrategyKindStore}
-              name="assemblyStrategy"
-              on:change={() => ($settingsUpdated = true)}
-            >
-              {#each assemblyStrategies as assemblyStrategy}
-                <option value={assemblyStrategy.id}>
-                  <span class="text-[#33445C]">{assemblyStrategy.label}</span>
-                </option>
-              {/each}
-            </select>
-            <span class="ml-2 text-[#33445C]">{assemblyStrategyHeader}</span>
+          <div class="mb-2">
+            <label>
+              <input
+                name="assemblyType"
+                value={'lbo'}
+                bind:group={$assemblyStrategyKindStore}
+                type="radio"
+                on:change={() => ($settingsUpdated = true)}
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              />
+              <span class="text-[#33445C]">Interleave content by book</span>
+            </label>
           </div>
-          <div>
-            <span class="text-sm text-[#33445C]"
-              ><p>
-                Choosing 'Mix' will interleave the content for the chosen languages by
-                chapter.
-              </p>
-              <p>
-                Choosing 'Separate' will interleave the content for the chosen languages
-                by book.
-              </p></span
-            >
+          <div class="mb-6">
+            <label>
+              <input
+                name="assemblyType"
+                value={'blo'}
+                bind:group={$assemblyStrategyKindStore}
+                type="radio"
+                on:change={() => ($settingsUpdated = true)}
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              />
+              <span class="text-[#33445C]">Interleave content by chapter</span>
+            </label>
           </div>
         {/if}
-        <div class="flex my-2">
+        <div class="flex">
           <Switch bind:checked={$layoutForPrintStore} id="layout-for-print-store" />
-          <span class="text-[#33445C] ml-2">Print Optimization</span>
+          <span class="text-[#33445C] ml-2">Print optimization</span>
         </div>
-        <div>
+        <div class="mt-2">
           <span class="text-sm text-[#33445C]"
             >Enabling this option will remove extra whitespace</span
           >
         </div>
         {#if $twResourceRequestedStore}
-          <div class="flex mt-2">
+          <div class="flex mt-6 mb-2">
             <Switch bind:checked={$limitTwStore} id="limit-tw-store" />
             <span class="text-[#33445C] ml-2">Limit TW words</span>
           </div>
@@ -240,7 +242,7 @@
         {/if}
       </div>
 
-      <h3 class="text-2xl my-2 text-[#33445C]">Notification</h3>
+      <h3 class="text-2xl mt-4 mb-2 text-[#33445C]">Notification</h3>
       <div class="ml-4">
         {#if !$documentReadyStore}
           <div>
