@@ -207,6 +207,7 @@
             <label>
               <input
                 id="filter-ot-books"
+                type="search"
                 bind:value={otSearchTerm}
                 placeholder="Search OT books"
                 class="input input-bordered bg-white w-full max-w-xs"
@@ -347,6 +348,7 @@
             <label>
               <input
                 id="filter-nt-books"
+                type="search"
                 bind:value={ntSearchTerm}
                 placeholder="Search NT books"
                 class="input input-bordered bg-white sm:w-full max-w-xs"

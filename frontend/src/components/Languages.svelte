@@ -230,6 +230,7 @@
             <label id="label-for-filter-gl-langs" for="filter-gl-langs">
               <input
                 id="filter-gl-langs"
+                type="search"
                 bind:value={gatewaySearchTerm}
                 placeholder="Search Languages"
                 class="input input-bordered bg-white sm:w-full max-w-xs"
@@ -364,6 +365,7 @@
             <label id="label-for-filter-non-gl-langs" for="filter-non-gl-langs">
               <input
                 id="filter-non-gl-langs"
+                type="search"
                 bind:value={heartSearchTerm}
                 placeholder="Search Languages"
                 class="input input-bordered bg-white sm:w-full max-w-xs"
