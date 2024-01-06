@@ -210,7 +210,7 @@
                 type="search"
                 bind:value={otSearchTerm}
                 placeholder="Search OT books"
-                class="input input-bordered bg-white w-full max-w-xs"
+                class="w-full h-full bg-transparent text-[#33445c] font-sans font-normal outline outline-0 focus:outline-0 disabled:bg-blue-gray-50 disabled:border-0 transition-all placeholder-shown:border placeholder-shown:border-blue-gray-200 placeholder-shown:border-t-blue-gray-200 border focus:border-2 text-sm px-3 py-2.5 rounded-[7px] border-blue-gray-200 focus:border-gray-900"
               />
             </label>
             <div class="hidden sm:flex ml-2" role="group">
@@ -351,7 +351,7 @@
                 type="search"
                 bind:value={ntSearchTerm}
                 placeholder="Search NT books"
-                class="input input-bordered bg-white sm:w-full max-w-xs"
+                class="w-full h-full bg-transparent text-[#33445c] font-sans font-normal outline outline-0 focus:outline-0 disabled:bg-blue-gray-50 disabled:border-0 transition-all placeholder-shown:border placeholder-shown:border-blue-gray-200 placeholder-shown:border-t-blue-gray-200 border focus:border-2 text-sm px-3 py-2.5 rounded-[7px] border-blue-gray-200 focus:border-gray-900"
               />
             </label>
             <div class="hidden sm:flex ml-2" role="group">

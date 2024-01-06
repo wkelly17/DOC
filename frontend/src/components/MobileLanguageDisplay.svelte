@@ -48,7 +48,7 @@
       <label for="lang-code-{index}">
         <div
           class="pl-4 py-2 target"
-          style={filteredGatewayCodeAndNames.includes(langCodeAndName)
+          style={filteredHeartCodeAndNames.includes(langCodeAndName)
             ? ''
             : 'display: none'}
         >
