@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { beforeUpdate } from 'svelte'
   import WizardBasketModal from './WizardBasketModal.svelte'
   import MobileLanguageDisplay from './MobileLanguageDisplay.svelte'
   import Modal from './Modal.svelte'
@@ -204,6 +205,7 @@
   $: console.log(`windowWidth: ${windowWidth}`)
 
   const TAILWIND_SM_MIN_WIDTH = <number>import.meta.env.VITE_TAILWIND_SM_MIN_WIDTH
+  let maxLanguages = <number>import.meta.env.VITE_MAX_LANGUAGES
 </script>
 
 <svelte:window bind:innerWidth={windowWidth} />
@@ -505,6 +507,7 @@
           {heartCodesAndNames}
           {filteredHeartCodeAndNames}
           {filteredGatewayCodeAndNames}
+          {maxLanguages}
         />
       {:else}
         <DesktopLanguageDisplay
@@ -513,6 +516,7 @@
           {heartCodesAndNames}
           {filteredHeartCodeAndNames}
           {filteredGatewayCodeAndNames}
+          {maxLanguages}
         />
       {/if}
     {/if}

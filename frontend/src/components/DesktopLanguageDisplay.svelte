@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { getApiRootUrl, getCode, getName, getResourceTypeLangCode } from '../lib/utils'
+  import { getCode, getName } from '../lib/utils'
   import {
     gatewayCodeAndNamesStore,
     heartCodeAndNamesStore,
-    langCountStore
+    langCountStore,
+    langCodesStore
   } from '../stores/LanguagesStore'
 
   export let showGatewayLanguages: boolean
@@ -11,7 +12,7 @@
   export let heartCodesAndNames: Array<string>
   export let filteredGatewayCodeAndNames: Array<string>
   export let filteredHeartCodeAndNames: Array<string>
-  const maxLanguages = <number>import.meta.env.VITE_MAX_LANGUAGES
+  export let maxLanguages: number
 </script>
 
 <main class="flex-1 overflow-y-auto p-4">
@@ -31,6 +32,8 @@
               bind:group={$gatewayCodeAndNamesStore}
               value={langCodeAndName}
               class="checkbox checkbox-dark-bordered"
+              disabled={$langCountStore == maxLanguages &&
+                !$langCodesStore.includes(getCode(langCodeAndName))}
             />
             <span class="text-[#33445C] pl-1">{getName(langCodeAndName)}</span>
           </div>
@@ -54,6 +57,8 @@
               bind:group={$heartCodeAndNamesStore}
               value={langCodeAndName}
               class="checkbox checkbox-dark-bordered"
+              disabled={$langCountStore == maxLanguages &&
+                !$langCodesStore.includes(getCode(langCodeAndName))}
             />
             <span class="text-[#33445C] pl-1">{getName(langCodeAndName)}</span>
           </div>
@@ -61,16 +66,5 @@
         </div>
       </label>
     {/each}
-  {/if}
-  {#if $langCountStore > maxLanguages}
-    <div class="toast toast-center toast-middle">
-      <div class="alert alert-error">
-        <div>
-          <span
-            >You've selected more than two languages, please choose up to two languages.</span
-          >
-        </div>
-      </div>
-    </div>
   {/if}
 </main>
