@@ -19,13 +19,13 @@
   {#if showGatewayLanguages}
     {#each gatewayCodesAndNames as langCodeAndName, index}
       <label for="lang-code-{index}">
-        <div class="pl-4 py-2 target">
-          <div
-            class="flex items-center justify-between target2"
-            style={filteredGatewayCodeAndNames.includes(langCodeAndName)
-              ? ''
-              : 'display: none'}
-          >
+        <div
+          class="pl-4 py-2 target"
+          style={filteredGatewayCodeAndNames.includes(langCodeAndName)
+            ? ''
+            : 'display: none'}
+        >
+          <div class="flex items-center justify-between target2">
             <div class="flex items-center target3">
               <input
                 id="lang-code-{index}"
@@ -46,13 +46,13 @@
   {:else}
     {#each heartCodesAndNames as langCodeAndName, index}
       <label for="lang-code-{index}">
-        <div class="pl-4 py-2 target">
-          <div
-            class="flex items-center justify-between target2"
-            style={filteredHeartCodeAndNames.includes(langCodeAndName)
-              ? ''
-              : 'display: none'}
-          >
+        <div
+          class="pl-4 py-2 target"
+          style={filteredGatewayCodeAndNames.includes(langCodeAndName)
+            ? ''
+            : 'display: none'}
+        >
+          <div class="flex items-center justify-between target2">
             <div class="flex items-center target3">
               <input
                 id="lang-code-{index}"

@@ -43,11 +43,11 @@
     {#if otBookCodes?.length > 0}
       {#each otBookCodes as bookCodeAndName, index}
         <label for="bookcode-ot-{index}">
-          <div class="pl-4 py-2 target">
-            <div
-              class="flex items-center justify-between target2"
-              style={filteredOtBookCodes.includes(bookCodeAndName) ? '' : 'display: none'}
-            >
+          <div
+            class="pl-4 py-2 target"
+            style={filteredOtBookCodes.includes(bookCodeAndName) ? '' : 'display: none'}
+          >
+            <div class="flex items-center justify-between target2">
               <div class="flex items-center target3">
                 <input
                   id="bookcode-ot-{index}"
@@ -81,11 +81,11 @@
     {#if ntBookCodes?.length > 0}
       {#each ntBookCodes as bookCodeAndName, index}
         <label for="bookcode-nt-{index}">
-          <div class="pl-4 py-2 target">
-            <div
-              class="flex items-center justify-between target2"
-              style={filteredNtBookCodes.includes(bookCodeAndName) ? '' : 'display: none'}
-            >
+          <div
+            class="pl-4 py-2 target"
+            style={filteredNtBookCodes.includes(bookCodeAndName) ? '' : 'display: none'}
+          >
+            <div class="flex items-center justify-between target2">
               <div class="flex items-center target3">
                 <input
                   id="bookcode-nt-{index}"
