@@ -147,7 +147,7 @@
         <NextButton func={submitLanguages} />
       {:else if bookRegExp.test($location) && $bookCountStore > 0}
         <NextButton func={submitBooks} />
-      {:else if resourceTypeRegExp.test($location) && (($langCountStore === 1 && $resourceTypesCountStore > 0) || ($langCountStore === 2 && numLang0ResourceTypes > 0 && numLang1ResourceTypes > 0))}
+      {:else if resourceTypeRegExp.test($location) && (($langCountStore == 1 && $resourceTypesCountStore > 0) || ($langCountStore === 2 && numLang0ResourceTypes > 0 && numLang1ResourceTypes > 0))}
         <NextButton func={submitResourceTypes} />
       {:else}
         <button
@@ -295,7 +295,7 @@
       <NextButton func={submitLanguages} />
     {:else if bookRegExp.test($location) && $bookCountStore > 0}
       <NextButton func={submitBooks} />
-    {:else if resourceTypeRegExp.test($location) && $resourceTypesCountStore > 0}
+    {:else if resourceTypeRegExp.test($location) && (($langCountStore === 1 && $resourceTypesCountStore > 0) || ($langCountStore === 2 && numLang0ResourceTypes > 0 && numLang1ResourceTypes > 0))}
       <NextButton func={submitResourceTypes} />
     {:else}
       <button

@@ -182,7 +182,7 @@
         </div>
       </button>
     </div>
-    {#if ($langCountStore > 0 && lang0ResourceTypesAndNames && lang0ResourceTypesAndNames.length == 0) || ($langCountStore > 1 && !lang1ResourceTypesAndNames)}
+    {#if ($langCountStore > 0 && lang0ResourceTypesAndNames && lang0ResourceTypesAndNames.length == 0) || ($langCountStore > 1 && (!lang1ResourceTypesAndNames || (lang1ResourceTypesAndNames && lang1ResourceTypesAndNames.length == 0)))}
       <ProgressIndicator />
     {/if}
     {#if windowWidth < TAILWIND_SM_MIN_WIDTH}
