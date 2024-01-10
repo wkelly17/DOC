@@ -136,6 +136,7 @@ class Settings(BaseSettings):
     # TODO Test to see which of these languages can be added back now
     # that several content defect handling features have been added.
     LANG_CODE_FILTER_LIST: Sequence[str] = [
+        "aez",  # Has no chapter markers
         "acq",
         "gaj-x-ymnk",
         "fa",

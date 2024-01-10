@@ -368,6 +368,13 @@ def usfm_book_content(
     if html_content:
         parser = BeautifulSoup(html_content, bs_parser_type)
         chapter_break_tags = parser.find_all(h2, attrs={css_attribute_type: "c-num"})
+        if not chapter_break_tags:
+            logger.debug(
+                "lang_code: %s, lang_name: %s, book_code: %s has no chapters because it is missing chapter markers",
+                resource_lookup_dto.lang_code,
+                resource_lookup_dto.lang_name,
+                resource_lookup_dto.book_code,
+            )
         chapters: dict[ChapterNum, USFMChapter] = {}
         for chapter_break in chapter_break_tags:
             chapter_num = int(chapter_break.get_text().split()[1])
@@ -413,6 +420,13 @@ def usfm_book_content(
                 if chapter_footnote_tag
                 else HtmlContent(""),
             )
+    if not chapters:
+        logger.debug(
+            "lang_code: %s, lang_name: %s, book_code: %s chapters is empty because failed to parse content likely due to issue with content",
+            resource_lookup_dto.lang_code,
+            resource_lookup_dto.lang_name,
+            resource_lookup_dto.book_code,
+        )
     return USFMBook(
         lang_code=resource_lookup_dto.lang_code,
         lang_name=resource_lookup_dto.lang_name,
