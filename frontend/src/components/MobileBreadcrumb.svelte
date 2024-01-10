@@ -14,6 +14,10 @@
 
   export let title: string
   export let stepLabel: string
+  export let turnLangStepOn: boolean
+  export let turnBookStepOn: boolean
+  export let turnResourceTypeStepOn: boolean
+  export let turnSettingsStepOn: boolean
   export let submitLanguages: Function
   export let submitBooks: Function
   export let submitResourceTypes: Function
@@ -89,3 +93,13 @@
     {/if}
   </div>
 </div>
+
+{#if turnLangStepOn && !turnBookStepOn && !turnResourceTypeStepOn && !turnSettingsStepOn}
+  <div class="sm:hidden w-1/4 border border-[#015ad9]" />
+{:else if turnBookStepOn && !turnResourceTypeStepOn && !turnSettingsStepOn}
+  <div class="sm:hidden w-1/2 border border-[#015ad9]" />
+{:else if turnResourceTypeStepOn && !turnSettingsStepOn}
+  <div class="sm:hidden w-3/4 border border-[#015ad9]" />
+{:else if turnSettingsStepOn}
+  <div class="sm:hidden w-full border border-[#015ad9]" />
+{/if}

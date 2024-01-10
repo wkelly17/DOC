@@ -110,6 +110,10 @@
   <MobileBreadcrumb
     {title}
     {stepLabel}
+    {turnLangStepOn}
+    {turnBookStepOn}
+    {turnResourceTypeStepOn}
+    {turnSettingsStepOn}
     {submitLanguages}
     {submitBooks}
     {submitResourceTypes}
