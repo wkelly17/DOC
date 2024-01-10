@@ -25,10 +25,10 @@
     if ($bookCountStore > 0 || $resourceTypesCountStore > 0) {
       $resetValuesStore = true
     }
-    resetStores('books')
-    resetStores('resource_types')
-    resetStores('settings')
-    resetStores('notifications')
+    // resetStores('books')
+    // resetStores('resource_types')
+    // resetStores('settings')
+    // resetStores('notifications')
     push('#/books')
   }
 
