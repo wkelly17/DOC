@@ -482,6 +482,24 @@ def shared_resource_types(
                 or link["format"] == "Download"
                 and link["url"]
             ]
+            if not links_for_resource_type:
+                if "subcontents" in resource_type:
+                    logger.debug(
+                        "resource_type['subcontents']: %s", resource_type["subcontents"]
+                    )
+                    try:
+                        links_for_resource_type = [
+                            link
+                            for link in resource_type["subcontents"][0]["links"]
+                            if link["format"] == "zip"
+                            or link["format"] == "Download"
+                            and link["url"]
+                        ]
+                    except:
+                        logger.info(
+                            "resource_type['subcontents'][0]['links'] does not exist"
+                        )
+            logger.debug("links_for_resource_type: %s", links_for_resource_type)
             if (
                 supported_resource_type(resource_type["code"])
                 and book_codes_for_resource_type
