@@ -58,9 +58,6 @@ def assemble_content_by_book_then_lang(
         book_content_units_sorted_by_book,
         book_content_unit_book_code,
     ):
-        # FIXME Consider removing to be more like Docx layout
-        yield book_as_grouper_fmt_str.format(book_names[book])
-
         # Save grouper generator values in list since it will get exhausted
         # when used and exhausted generators cannot be reused.
         book_content_units_grouped_by_book = list(group_by_book)
