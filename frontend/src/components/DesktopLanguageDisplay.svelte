@@ -31,7 +31,7 @@
               type="checkbox"
               bind:group={$gatewayCodeAndNamesStore}
               value={langCodeAndName}
-              class="checkbox checkbox-dark-bordered"
+              class="checkbox-target checkbox-style"
               disabled={$langCountStore == maxLanguages &&
                 !$langCodesStore.includes(getCode(langCodeAndName))}
             />
@@ -56,7 +56,7 @@
               type="checkbox"
               bind:group={$heartCodeAndNamesStore}
               value={langCodeAndName}
-              class="checkbox checkbox-dark-bordered"
+              class="checkbox-target checkbox-style"
               disabled={$langCountStore == maxLanguages &&
                 !$langCodesStore.includes(getCode(langCodeAndName))}
             />

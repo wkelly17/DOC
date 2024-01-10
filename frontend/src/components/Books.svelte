@@ -549,7 +549,7 @@
   div.target:has(input[type='radio']:checked) {
     background: #e6eefb;
   }
-  input.checkbox-dark-bordered[type='checkbox']:checked + span {
+  input.checkbox-target[type='checkbox']:checked + span {
     color: #015ad9;
   }
   div.target3:has(input[type='checkbox']:checked) + span {
@@ -557,5 +557,8 @@
   }
   div.target2:has(input[type='checkbox']:checked) + div {
     color: #015ad9;
+  }
+  .checkbox-style {
+    @apply w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600;
   }
 </style>

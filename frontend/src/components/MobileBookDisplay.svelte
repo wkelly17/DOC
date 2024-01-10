@@ -32,7 +32,7 @@
         <input
           id="select-all-old-testament"
           type="checkbox"
-          class="checkbox checkbox-dark-bordered"
+          class="checkbox-target checkbox-style"
           on:change={event => selectAllOtBookCodes(event)}
         />
         <label for="select-all-old-testament" class="text-[#33445C] pl-1"
@@ -54,7 +54,7 @@
                   type="checkbox"
                   bind:group={$otBookStore}
                   value={bookCodeAndName}
-                  class="checkbox checkbox-dark-bordered"
+                  class="checkbox-target checkbox-style"
                 />
                 <span class="text-[#33445C] pl-1">{getName(bookCodeAndName)}</span>
               </div>
@@ -70,7 +70,7 @@
         <input
           id="select-all-new-testament"
           type="checkbox"
-          class="checkbox checkbox-dark-bordered"
+          class="checkbox-target checkbox-style"
           on:change={event => selectAllNtBookCodes(event)}
         />
         <label for="select-all-new-testament" class="text-[#33445C] pl-1"
@@ -92,7 +92,7 @@
                   type="checkbox"
                   bind:group={$ntBookStore}
                   value={bookCodeAndName}
-                  class="checkbox checkbox-dark-bordered"
+                  class="checkbox-target checkbox-style"
                 />
                 <span class="text-[#33445C] pl-1">{getName(bookCodeAndName)}</span>
               </div>

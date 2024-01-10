@@ -186,7 +186,10 @@
       <BackButton url="/resource_types" />
     {:else}
       <button
-        class="flex items-center bg-white border border-[#E5E8EB] text-[#33445c] hover:bg-[#efefef] py-2 px-4 rounded-md"
+        class="flex items-center bg-white border border-[#E5E8EB]
+                 text-[#33445c] py-2 px-4
+                 rounded-md cursor-not-allowed"
+        disabled
       >
         <svg
           width="24"
@@ -296,7 +299,10 @@
       <NextButton func={submitResourceTypes} />
     {:else}
       <button
-        class="flex items-center bg-white border border-[#E5E8EB] text-[#33445c] hover:bg-[#efefef] py-2 px-4 rounded-md"
+        class="flex items-center bg-white border border-[#E5E8EB]
+                 text-[#33445c] py-2 px-4
+                 rounded-md cursor-not-allowed"
+        disabled
       >
         <span class="hidden sm:inline">Next</span>
         <svg

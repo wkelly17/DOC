@@ -198,7 +198,7 @@
               <input
                 id="select-all-lang0-resource-types"
                 type="checkbox"
-                class="checkbox checkbox-dark-bordered"
+                class="checkbox-target checkbox-style"
                 on:change={event => selectAllLang0ResourceTypes(event)}
               />
               <label
@@ -215,7 +215,7 @@
                       type="checkbox"
                       bind:group={$resourceTypesStore}
                       value={lang0ResourceTypeAndName}
-                      class="checkbox checkbox-dark-bordered"
+                      class="checkbox-target checkbox-style"
                     />
                     <span class="text-primary-content pl-1"
                       >{getResourceTypeName(lang0ResourceTypeAndName)}</span
@@ -237,7 +237,7 @@
               <input
                 id="select-all-lang1-resource-types"
                 type="checkbox"
-                class="checkbox checkbox-dark-bordered"
+                class="checkbox-target checkbox-style"
                 on:change={event => selectAllLang1ResourceTypes(event)}
               />
               <label
@@ -254,7 +254,7 @@
                       type="checkbox"
                       bind:group={$resourceTypesStore}
                       value={lang1ResourceTypeAndName}
-                      class="checkbox checkbox-dark-bordered"
+                      class="checkbox-target checkbox-style"
                     />
                     <span class="text-primary-content pl-1"
                       >{getResourceTypeName(lang1ResourceTypeAndName)}</span
@@ -286,7 +286,7 @@
               <input
                 id="select-all-lang0-resource-types"
                 type="checkbox"
-                class="checkbox checkbox-dark-bordered"
+                class="checkbox-target checkbox-style"
                 on:change={event => selectAllLang0ResourceTypes(event)}
               />
               <label
@@ -303,7 +303,7 @@
                       type="checkbox"
                       bind:group={$resourceTypesStore}
                       value={lang0ResourceTypeAndName}
-                      class="checkbox checkbox-dark-bordered"
+                      class="checkbox-target checkbox-style"
                     />
                     <span class="text-primary-content pl-1"
                       >{getResourceTypeName(lang0ResourceTypeAndName)}</span
@@ -320,7 +320,7 @@
               <input
                 id="select-all-lang1-resource-types"
                 type="checkbox"
-                class="checkbox checkbox-dark-bordered"
+                class="checkbox-target checkbox-style"
                 on:change={event => selectAllLang1ResourceTypes(event)}
               />
               <label
@@ -337,7 +337,7 @@
                       type="checkbox"
                       bind:group={$resourceTypesStore}
                       value={lang1ResourceTypeAndName}
-                      class="checkbox checkbox-dark-bordered"
+                      class="checkbox-target checkbox-style"
                     />
                     <span class="text-primary-content pl-1"
                       >{getResourceTypeName(lang1ResourceTypeAndName)}</span
@@ -384,7 +384,10 @@
   li.target:has(input[type='radio']:checked) {
     background: #e6eefb;
   }
-  input.checkbox-dark-bordered[type='checkbox']:checked + span {
+  input.checkbox-target[type='checkbox']:checked + span {
     color: #015ad9;
+  }
+  .checkbox-style {
+    @apply w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600;
   }
 </style>
