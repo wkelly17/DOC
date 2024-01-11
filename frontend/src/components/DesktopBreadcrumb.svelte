@@ -4,9 +4,7 @@
   import NextButton from './NextButton.svelte'
   import { langCountStore } from '../stores/LanguagesStore'
   import { bookCountStore } from '../stores/BooksStore'
-  import {
-    resourceTypesCountStore
-  } from '../stores/ResourceTypesStore'
+  import { resourceTypesCountStore } from '../stores/ResourceTypesStore'
   import {
     langRegExp,
     bookRegExp,
@@ -25,7 +23,6 @@
   export let numLang1ResourceTypes: number
 
   const MAX_LANGUAGES = <number>import.meta.env.VITE_MAX_LANGUAGES
-
 </script>
 
 <div
@@ -75,7 +72,11 @@
         </div>
       {/if}
     </div>
-    <span class="ml-2"><a href="#/languages">Languages</a></span>
+    {#if turnLangStepOn}
+      <span class="ml-2 text-[#015ad9]"><a href="#/languages">Languages</a></span>
+    {:else}
+      <span class="ml-2 text-[#b3b9c2]">Languages</span>
+    {/if}
   </div>
   <div class="hidden sm:inline-flex items-center">
     <div class="avatar placeholder">
@@ -93,9 +94,9 @@
       {/if}
     </div>
     {#if turnBookStepOn}
-      <span class="ml-2"><a href="#/books">Books</a></span>
+      <span class="ml-2 text-[#015ad9]"><a href="#/books">Books</a></span>
     {:else}
-      <span class="ml-2">Books</span>
+      <span class="ml-2 text-[#b3b9c2]">Books</span>
     {/if}
   </div>
   <div class="hidden sm:inline-flex items-center">
@@ -114,9 +115,9 @@
       {/if}
     </div>
     {#if turnResourceTypeStepOn}
-      <span class="ml-2"><a href="#/resource_types">Resources</a></span>
+      <span class="ml-2 text-[#015ad9]"><a href="#/resource_types">Resources</a></span>
     {:else}
-      <span class="ml-2">Resources</span>
+      <span class="ml-2 text-[#b3b9c2]">Resources</span>
     {/if}
   </div>
   <div class="hidden sm:inline-flex items-center">
@@ -134,7 +135,12 @@
         </div>
       {/if}
     </div>
-    <span class="ml-2">Review</span>
+
+    {#if turnSettingsStepOn}
+      <span class="ml-2 text-[#015ad9]">Review</span>
+    {:else}
+      <span class="ml-2 text-[#b3b9c2]">Review</span>
+    {/if}
   </div>
   <!-- next button logic -->
   {#if langRegExp.test($location) && $langCountStore > 0 && $langCountStore <= MAX_LANGUAGES}
