@@ -904,6 +904,7 @@ def generate_document(document_request_json: Json[Any]) -> Json[Any]:
     """
     This is the main entry point for this module for non-docx generation.
     """
+    current_task.update_state(state="Receiving request")
     document_request = DocumentRequest.parse_raw(document_request_json)
     logger.debug(
         "document_request: %s",

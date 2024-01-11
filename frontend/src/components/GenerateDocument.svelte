@@ -1,10 +1,7 @@
 <script lang="ts">
   import DownloadButton from './DownloadButton.svelte'
   import { documentReadyStore, errorStore } from '../stores/NotificationStore'
-  import {
-    langCodesStore,
-    langCountStore
-  } from '../stores/LanguagesStore'
+  import { langCodesStore, langCountStore } from '../stores/LanguagesStore'
   import { otBookStore, ntBookStore, bookCountStore } from '../stores/BooksStore'
   import {
     resourceTypesStore,
@@ -23,7 +20,13 @@
     settingsUpdated
   } from '../stores/SettingsStore'
   import { taskIdStore, taskStateStore } from '../stores/TaskStore'
-  import { getApiRootUrl, getCode, getFileServerUrl, getResourceTypeLangCode, getResourceTypeCode } from '../lib/utils'
+  import {
+    getApiRootUrl,
+    getCode,
+    getFileServerUrl,
+    getResourceTypeLangCode,
+    getResourceTypeCode
+  } from '../lib/utils'
   import LogRocket from 'logrocket'
   import TaskStatus from './TaskStatus.svelte'
 
@@ -89,16 +92,16 @@
       generate_epub: $generateEpubStore,
       generate_docx: $generateDocxStore,
       resource_requests: resourceRequests,
-      document_request_source: "ui",
+      document_request_source: 'ui',
       limit_words: $limitTwStore
     }
     console.log('document request: ', JSON.stringify(documentRequest, null, 2))
     $errorStore = null
     $documentReadyStore = false
     $documentRequestKeyStore = ''
-    let endpointUrl = "documents"
+    let endpointUrl = 'documents'
     if ($generateDocxStore) {
-      endpointUrl = "documents_docx"
+      endpointUrl = 'documents_docx'
     }
     const response = await fetch(`${apiRootUrl}/${endpointUrl}`, {
       method: 'POST',
@@ -133,7 +136,8 @@
         } else if ($taskStateStore === 'FAILURE') {
           console.log("We're sorry, an internal error occurred which we'll investigate.")
           // Update some UI-related state
-          $errorStore = "We're sorry. An error occurred. The document you requested may not yet be supported or we may have experienced an internal problem which we'll investigate. Please try another document request."
+          $errorStore =
+            "We're sorry. An error occurred. The document you requested may not yet be supported or we may have experienced an internal problem which we'll investigate. Please try another document request."
           $taskStateStore = ''
 
           clearInterval(timer)
@@ -195,6 +199,11 @@
     console.log(`url: ${url}`)
     window.open(url, '_blank')
   }
+  window.addEventListener('beforeunload', event => {
+    if (generatingDocument) {
+      event.returnValue = `Are you sure you want to leave while your document is being generated?`
+    }
+  })
 </script>
 
 <div class="h-28 bg-white pt-12 pb-4">
@@ -211,9 +220,7 @@
     {:else}
       <div class="pb-4">
         <button class="text-center p-4 btn-disabled gray-gradiant w-1/2 rounded-md">
-          <span class="text-[#B3B9C2]" style="color: #140E0866"
-            >Generate File</span
-          >
+          <span class="text-[#b3b9c2]" style="color: #140e0866">Generate File</span>
         </button>
       </div>
     {/if}
@@ -223,9 +230,9 @@
     {/if}
     {#if $documentReadyStore && !$errorStore}
       <div class="bg-white">
-          <div class="h-1 w-1/2 bg-[#F2F3F5]">
-            <div class="h-1 blue-gradient-bar" style="width: 100%"></div>
-          </div>
+        <div class="h-1 w-1/2 bg-[#F2F3F5]">
+          <div class="h-1 blue-gradient-bar" style="width: 100%" />
+        </div>
         <div class="m-auto"><h3 class="text-[#82A93F]">Complete!</h3></div>
         {#if $generatePdfStore}
           <div class="m-auto mt-4">
@@ -243,20 +250,21 @@
           </div>
           <div class="text-secondary-content mt-4">
             <p>
-            Any missing fonts on your computer may be downloaded here:
-            <span style="text-decoration-line: underline;">
-              <a href="https://github.com/Bible-Translation-Tools/ScriptureAppBuilder-pipeline/tree/base/ContainerImage/home/fonts"
-                target="_blank">fonts</a>
-            </span>
+              Any missing fonts on your computer may be downloaded here:
+              <span style="text-decoration-line: underline;">
+                <a
+                  href="https://github.com/Bible-Translation-Tools/ScriptureAppBuilder-pipeline/tree/base/ContainerImage/home/fonts"
+                  target="_blank">fonts</a
+                >
+              </span>
             </p>
           </div>
           <div class="text-secondary-content mt-4">
             <p>
-              Once you have downloaded and installed any missing fonts,
-              select the document text which looks like little empty boxes
-              (indicating a missing font), and change the font for that
-              highlighted text to the appropriate installed font in
-              Word, then save the Word document.
+              Once you have downloaded and installed any missing fonts, select the
+              document text which looks like little empty boxes (indicating a missing
+              font), and change the font for that highlighted text to the appropriate
+              installed font in Word, then save the Word document.
             </p>
           </div>
         {/if}
@@ -286,13 +294,16 @@
         {/if}
       </div>
     {:else}
-      <button class="text-center bg-[#F2F3F5] border border-[#E5E8EB]
+      <button
+        class="text-center bg-[#F2F3F5] border border-[#E5E8EB]
                      hover:bg-[#efefef] p-4 w-1/2 rounded-md
-                     text-[#B3B9C2] mt-2 mb-4" disabled>
-          Download
+                     text-[#B3B9C2] mt-2 mb-4"
+        disabled
+      >
+        Download
       </button>
       <p class="text-[#B3B9C2] mt-4 italic">
-          We appreciate your patience as this can take several minutes for larger documents.
+        We appreciate your patience as this can take several minutes for larger documents.
       </p>
     {/if}
     {#if $errorStore}
@@ -313,14 +324,13 @@
         <div class="m-auto"><h3 class="text-[#B85659] text-center">Uh Oh...</h3></div>
         <div class="m-auto">
           <p class="text-[#B3B9C2]">
-            Something went wrong. Please review your selections or contact tech support for
-            assistance.
+            Something went wrong. Please review your selections or contact tech support
+            for assistance.
           </p>
         </div>
       </div>
     {/if}
   {/if}
-
 </div>
 
 <style>
@@ -333,11 +343,10 @@
       linear-gradient(0deg, rgba(20, 14, 8, 0.05), rgba(20, 14, 8, 0.05));
   }
   * :global(.blue-gradient) {
-    background: linear-gradient(180deg, #1876FD 0%, #015AD9 100%),
-    linear-gradient(0deg, #33445C, #33445C);
+    background: linear-gradient(180deg, #1876fd 0%, #015ad9 100%),
+      linear-gradient(0deg, #33445c, #33445c);
   }
   * :global(.blue-gradient-bar) {
-    background: linear-gradient(180deg, #1876FD 0%, #015AD9 100%);
+    background: linear-gradient(180deg, #1876fd 0%, #015ad9 100%);
   }
-
 </style>
