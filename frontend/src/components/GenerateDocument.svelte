@@ -114,35 +114,9 @@
       $errorStore = data.detail
     } else {
       console.log(`data: ${JSON.stringify(data)}`)
+      // Setting value of taskIdStore will reactively trigger polling
+      // of task status.
       $taskIdStore = data.task_id
-      console.log(`$taskIdStore: ${$taskIdStore}`)
-      const timer = setInterval(async function () {
-        // Poll the server for the task state and result
-        let results = await poll($taskIdStore)
-        console.log(`results: ${results}`)
-        $taskStateStore = Array.isArray(results) ? results[0] : results
-        console.log(`$taskStateStore: ${$taskStateStore}`)
-        if ($taskStateStore === 'SUCCESS' && Array.isArray(results) && results[1]) {
-          let finishedDocumentRequestKey = results[1]
-          console.log(`finishedDocumentReuestKey: ${finishedDocumentRequestKey}`)
-
-          // Update some UI-related state
-          $documentReadyStore = true
-          $documentRequestKeyStore = finishedDocumentRequestKey
-          $errorStore = null
-          $taskStateStore = ''
-
-          clearInterval(timer)
-        } else if ($taskStateStore === 'FAILURE') {
-          console.log("We're sorry, an internal error occurred which we'll investigate.")
-          // Update some UI-related state
-          $errorStore =
-            "We're sorry. An error occurred. The document you requested may not yet be supported or we may have experienced an internal problem which we'll investigate. Please try another document request."
-          $taskStateStore = ''
-
-          clearInterval(timer)
-        }
-      }, 5000)
     }
   }
 
@@ -199,11 +173,48 @@
     console.log(`url: ${url}`)
     window.open(url, '_blank')
   }
+
   window.addEventListener('beforeunload', event => {
     if (generatingDocument) {
       event.returnValue = `Are you sure you want to leave while your document is being generated?`
     }
   })
+
+  $: {
+    if ($taskIdStore) {
+      console.log(`$taskIdStore: ${$taskIdStore}`)
+      generatingDocument = true
+      const timer = setInterval(async function () {
+        // Poll the server for the task state and result
+        let results = await poll($taskIdStore)
+        console.log(`results: ${results}`)
+        $taskStateStore = Array.isArray(results) ? results[0] : results
+        console.log(`$taskStateStore: ${$taskStateStore}`)
+        if ($taskStateStore === 'SUCCESS' && Array.isArray(results) && results[1]) {
+          let finishedDocumentRequestKey = results[1]
+          console.log(`finishedDocumentReuestKey: ${finishedDocumentRequestKey}`)
+
+          // Update some UI-related state
+          $documentReadyStore = true
+          $documentRequestKeyStore = finishedDocumentRequestKey
+          $errorStore = null
+          $taskStateStore = ''
+          generatingDocument = false
+
+          clearInterval(timer)
+        } else if ($taskStateStore === 'FAILURE') {
+          console.log("We're sorry, an internal error occurred which we'll investigate.")
+          // Update some UI-related state
+          $errorStore =
+            "We're sorry. An error occurred. The document you requested may not yet be supported or we may have experienced an internal problem which we'll investigate. Please try another document request."
+          $taskStateStore = ''
+          generatingDocument = false
+
+          clearInterval(timer)
+        }
+      }, 5000)
+    }
+  }
 </script>
 
 <div class="h-28 bg-white pt-12 pb-4">

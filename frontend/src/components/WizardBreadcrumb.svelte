@@ -16,8 +16,6 @@
     settingsRegExp
   } from '../lib/utils'
   import { resetValuesStore } from '../stores/NotificationStore'
-  import BackButton from './BackButton.svelte'
-  import NextButton from './NextButton.svelte'
   import MobileBreadcrumb from './MobileBreadcrumb.svelte'
   import DesktopBreadcrumb from './DesktopBreadcrumb.svelte'
 
@@ -40,19 +38,18 @@
     if ($resourceTypesCountStore > 0) {
       $resetValuesStore = true
     }
-    resetStores('resource_types')
-    resetStores('settings')
-    resetStores('notifications')
+    // resetStores('resource_types')
+    // resetStores('settings')
+    // resetStores('notifications')
     push('#/resource_types')
   }
 
   function submitResourceTypes() {
-    resetStores('settings')
-    resetStores('notifications')
+    // resetStores('settings')
+    // resetStores('notifications')
     push('#/settings')
   }
 
-  const MAX_LANGUAGES = <number>import.meta.env.VITE_MAX_LANGUAGES
 
   // Turn off and on breadcrumb number circles
   let turnLangStepOn: boolean = false
