@@ -420,13 +420,6 @@ def usfm_book_content(
                 if chapter_footnote_tag
                 else HtmlContent(""),
             )
-    if not chapters:
-        logger.debug(
-            "lang_code: %s, lang_name: %s, book_code: %s chapters is empty because failed to parse content likely due to issue with content",
-            resource_lookup_dto.lang_code,
-            resource_lookup_dto.lang_name,
-            resource_lookup_dto.book_code,
-        )
     return USFMBook(
         lang_code=resource_lookup_dto.lang_code,
         lang_name=resource_lookup_dto.lang_name,
