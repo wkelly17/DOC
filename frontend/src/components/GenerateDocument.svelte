@@ -225,13 +225,15 @@
           class="text-center p-4 blue-gradient w-1/2 rounded-md"
           on:click={() => generateDocument()}
         >
-          <span class="text-white">Generate File</span>
+          <span class="text-white text-xl">Generate File</span>
         </button>
       </div>
     {:else}
       <div class="pb-4">
         <button class="text-center p-4 btn-disabled gray-gradiant w-1/2 rounded-md">
-          <span class="text-[#b3b9c2]" style="color: #140e0866">Generate File</span>
+          <span class="text-[#b3b9c2] text-xl" style="color: #140e0866"
+            >Generate File</span
+          >
         </button>
       </div>
     {/if}
@@ -244,7 +246,7 @@
         <div class="h-1 w-1/2 bg-[#F2F3F5]">
           <div class="h-1 blue-gradient-bar" style="width: 100%" />
         </div>
-        <div class="m-auto"><h3 class="text-[#82A93F]">Complete!</h3></div>
+        <div class="m-auto"><h3 class="text-[#82A93F] text-xl">Complete!</h3></div>
         {#if $generatePdfStore}
           <div class="m-auto mt-4">
             <DownloadButton buttonText="Download PDF" url={pdfDownloadUrl} />
@@ -259,7 +261,7 @@
           <div class="m-auto mt-4">
             <DownloadButton buttonText="Download Docx" url={docxDownloadUrl} />
           </div>
-          <div class="text-secondary-content mt-4">
+          <div class="text-[#33445C] mt-4">
             <p>
               Any missing fonts on your computer may be downloaded here:
               <span style="text-decoration-line: underline;">
@@ -270,7 +272,7 @@
               </span>
             </p>
           </div>
-          <div class="text-secondary-content mt-4">
+          <div class="text-[#33445C] text-xl mt-4">
             <p>
               Once you have downloaded and installed any missing fonts, select the
               document text which looks like little empty boxes (indicating a missing
@@ -299,7 +301,7 @@
                   fill-opacity="0.8"
                 />
               </svg>
-              <span class="p-4">View HTML Online</span>
+              <span class="p-4 text-xl">View HTML Online</span>
             </button>
           </div>
         {/if}
@@ -308,12 +310,12 @@
       <button
         class="text-center bg-[#F2F3F5] border border-[#E5E8EB]
                      hover:bg-[#efefef] p-4 w-1/2 rounded-md
-                     text-[#B3B9C2] mt-2 mb-4"
+                     text-[#B3B9C2] text-xl mt-2 mb-4"
         disabled
       >
         Download
       </button>
-      <p class="text-[#B3B9C2] mt-4 italic">
+      <p class="text-[#B3B9C2] text-xl mt-4 italic">
         We appreciate your patience as this can take several minutes for larger documents.
       </p>
     {/if}
@@ -334,7 +336,7 @@
         </svg>
         <div class="m-auto"><h3 class="text-[#B85659] text-center">Uh Oh...</h3></div>
         <div class="m-auto">
-          <p class="text-[#B3B9C2]">
+          <p class="text-[#B3B9C2] text-xl">
             Something went wrong. Please review your selections or contact tech support
             for assistance.
           </p>

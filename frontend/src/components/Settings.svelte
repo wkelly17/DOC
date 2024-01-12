@@ -131,7 +131,7 @@
             <!-- badge -->
             <div
               class="text-center absolute -top-0.5 -right-0.5
-                        bg-neutral-focus text-neutral-content
+                        bg-neutral-focus text-[#33445C]
                         rounded-full w-7 h-7"
               style="background: linear-gradient(180deg, #1876FD 0%, #015AD9 100%);"
             >
@@ -158,7 +158,7 @@
                 on:change={() => ($settingsUpdated = true)}
                 class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
               />
-              <span class="text-[#33445C]">{import.meta.env.VITE_PDF_LABEL}</span>
+              <span class="text-[#33445C] text-xl">{import.meta.env.VITE_PDF_LABEL}</span>
             </label>
           </div>
         {/if}
@@ -172,7 +172,7 @@
               on:change={() => ($settingsUpdated = true)}
               class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
             />
-            <span class="text-[#33445C]">{import.meta.env.VITE_EPUB_LABEL}</span>
+            <span class="text-[#33445C] text-xl">{import.meta.env.VITE_EPUB_LABEL}</span>
           </label>
         </div>
         <div class="mb-2">
@@ -185,7 +185,7 @@
               on:change={() => ($settingsUpdated = true)}
               class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
             />
-            <span class="text-[#33445C]">{import.meta.env.VITE_DOCX_LABEL}</span>
+            <span class="text-[#33445C] text-xl">{import.meta.env.VITE_DOCX_LABEL}</span>
           </label>
         </div>
       </div>
@@ -202,7 +202,7 @@
                 on:change={() => ($settingsUpdated = true)}
                 class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
               />
-              <span class="text-[#33445C]">Interleave content by book</span>
+              <span class="text-[#33445C] text-xl">Interleave content by book</span>
             </label>
           </div>
           <div class="mb-6">
@@ -215,26 +215,26 @@
                 on:change={() => ($settingsUpdated = true)}
                 class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
               />
-              <span class="text-[#33445C]">Interleave content by chapter</span>
+              <span class="text-[#33445C] text-xl">Interleave content by chapter</span>
             </label>
           </div>
         {/if}
         <div class="flex">
           <Switch bind:checked={$layoutForPrintStore} id="layout-for-print-store" />
-          <span class="text-[#33445C] ml-2">Print optimization</span>
+          <span class="text-[#33445C] text-xl ml-2">Print optimization</span>
         </div>
         <div class="mt-2">
-          <span class="text-sm text-[#33445C]"
+          <span class="text-lg text-[#33445C]"
             >Enabling this option will remove extra whitespace</span
           >
         </div>
         {#if $twResourceRequestedStore}
           <div class="flex mt-6 mb-2">
             <Switch bind:checked={$limitTwStore} id="limit-tw-store" />
-            <span class="text-[#33445C] ml-2">Limit TW words</span>
+            <span class="text-[#33445C] text-xl ml-2">Limit TW words</span>
           </div>
           <div>
-            <span class="text-sm text-[#33445C]"
+            <span class="text-lg text-[#33445C]"
               >Enabling this option will filter TW words down to only those that occur in
               the books chosen</span
             >
@@ -253,14 +253,14 @@
               value={showEmail}
               class="checkbox checkbox-dark-bordered"
             />
-            <label for="emailCheckbox" class="text-[#33445C] pl-1"
+            <label for="emailCheckbox" class="text-[#33445C] text-xl pl-1"
               >Email me a copy of my document.</label
             >
           </div>
         {/if}
         {#if showEmail && !showEmailCaptured}
           <div>
-            <label for="email" class="text-[#33445C] pl-1">Email address</label>
+            <label for="email" class="text-[#33445C] text-xl pl-1">Email address</label>
           </div>
           <input
             type="text"
@@ -272,14 +272,14 @@
           />
           <div>
             <button
-              class="rounded-md bg-[#E6EEFB] text-[#015AD9] px-8
+              class="rounded-md bg-[#E6EEFB] text-[#015AD9] text-xl px-8
                            py-4 mt-4"
               on:click={() => (showEmailCaptured = true)}>Submit</button
             >
           </div>
         {/if}
         {#if showEmailCaptured}
-          <div class="text-[#33445C]">
+          <div class="text-[#33445C] text-xl">
             A copy of your file will be sent to {$emailStore} when it is ready.
           </div>
         {/if}

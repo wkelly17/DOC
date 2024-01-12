@@ -27,7 +27,7 @@
       <div
         class="flex flex-shrink-0 items-center justify-between bg-[#f2f3f5] border-b border-[#e5e8eb] p-4"
       >
-        <h5 class="text-lg font-bold text-[#33445C]">{title}</h5>
+        <h5 class="text-xl font-bold text-[#33445C]">{title}</h5>
         <button autofocus on:click={() => dialog.close()}>
           <svg
             class="ml-2"
@@ -52,7 +52,7 @@
         <button
           class="h-[48px] w-[115px] rounded-md border-2
                        border-[#e5e8eb] bg-white font-medium
-                       leading-tight text-[#33445C] transition
+                       leading-tight text-[#33445C] text-xl transition
                        duration-150 ease-in-out"
           on:click={() => dialog.close()}
         >

@@ -168,8 +168,8 @@
             <!-- badge -->
             <div
               class="text-center absolute -top-0.5 -right-0.5
-                        bg-neutral-focus text-neutral-content
-                        rounded-full w-7 h-7"
+                        bg-neutral-focus text-[#33445C]
+                        text-xl rounded-full w-7 h-7"
               style="background: linear-gradient(180deg, #1876FD 0%, #015AD9 100%);"
             >
               <span
@@ -203,7 +203,7 @@
               />
               <label
                 for="select-all-lang0-resource-types"
-                class="text-secondary-content pl-1">Select all</label
+                class="text-[#33445C] text-xl pl-1">Select all</label
               >
             </div>
             <ul>
@@ -217,7 +217,7 @@
                       value={lang0ResourceTypeAndName}
                       class="checkbox-target checkbox-style"
                     />
-                    <span class="text-primary-content pl-1"
+                    <span class="text-primary-content text-xl pl-1"
                       >{getResourceTypeName(lang0ResourceTypeAndName)}</span
                     >
                   </li>
@@ -242,7 +242,7 @@
               />
               <label
                 for="select-all-lang1-resource-types"
-                class="text-secondary-content pl-1">Select all</label
+                class="text-[#33445C] text-xl pl-1">Select all</label
               >
             </div>
             <ul>
@@ -256,7 +256,7 @@
                       value={lang1ResourceTypeAndName}
                       class="checkbox-target checkbox-style"
                     />
-                    <span class="text-primary-content pl-1"
+                    <span class="text-primary-content text-xl pl-1"
                       >{getResourceTypeName(lang1ResourceTypeAndName)}</span
                     >
                   </li>
@@ -291,7 +291,7 @@
               />
               <label
                 for="select-all-lang0-resource-types"
-                class="text-secondary-content pl-1">Select all</label
+                class="text-[#33445C] text-xl pl-1">Select all</label
               >
             </div>
             <ul>
@@ -325,7 +325,7 @@
               />
               <label
                 for="select-all-lang1-resource-types"
-                class="text-secondary-content pl-1">Select all</label
+                class="text-[#33445C] text-xl pl-1">Select all</label
               >
             </div>
             <ul>
@@ -339,7 +339,7 @@
                       value={lang1ResourceTypeAndName}
                       class="checkbox-target checkbox-style"
                     />
-                    <span class="text-primary-content pl-1"
+                    <span class="text-primary-content text-xl pl-1"
                       >{getResourceTypeName(lang1ResourceTypeAndName)}</span
                     >
                   </li>

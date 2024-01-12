@@ -28,12 +28,13 @@
 </script>
 
 <div
-  class="flex sm:hidden items-center justify-between text-[#B3B9C2] leading-8 text-xl font-semibold"
+  class="flex sm:hidden items-center justify-between text-[#B3B9C2]
+         text-xl leading-8 text-xl font-semibold"
 >
   <!-- mobile only page title -->
   <div>
-    <h3 class="text-[#015AD9]">{title}</h3>
-    <h4 class="text-[#33445C]">Step {stepLabel}</h4>
+    <h3 class="text-[#015AD9] text-xl">{title}</h3>
+    <h4 class="text-[#33445C] text-xl">Step {stepLabel}</h4>
   </div>
   <div class="flex items-center">
     <!-- back button logic -->
@@ -46,7 +47,7 @@
     {:else}
       <button
         class="flex items-center bg-white border border-[#E5E8EB]
-                 text-[#33445c] py-2 px-4
+                 text-[#33445c] text-xl py-2 px-4
                  rounded-md cursor-not-allowed"
         disabled
       >
@@ -74,7 +75,7 @@
     {:else}
       <button
         class="flex items-center bg-white border border-[#E5E8EB]
-                 text-[#33445c] py-2 px-4 rounded-md ml-2 cursor-not-allowed"
+                 text-[#33445c] text-xl py-2 px-4 rounded-md ml-2 cursor-not-allowed"
         disabled
       >
         <svg

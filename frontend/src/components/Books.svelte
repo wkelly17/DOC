@@ -210,13 +210,13 @@
                 type="search"
                 bind:value={otSearchTerm}
                 placeholder="Search OT books"
-                class="w-full h-full bg-transparent text-[#33445c] font-sans font-normal outline outline-0 focus:outline-0 disabled:bg-blue-gray-50 disabled:border-0 transition-all placeholder-shown:border placeholder-shown:border-blue-gray-200 placeholder-shown:border-t-blue-gray-200 border focus:border-2 text-sm px-3 py-2.5 rounded-[7px] border-blue-gray-200 focus:border-gray-900"
+                class="w-full h-full bg-transparent text-[#33445c] font-sans font-normal outline outline-0 focus:outline-0 disabled:bg-blue-gray-50 disabled:border-0 transition-all placeholder-shown:border placeholder-shown:border-blue-gray-200 placeholder-shown:border-t-blue-gray-200 border focus:border-2 text-xl px-3 py-2.5 rounded-[7px] border-blue-gray-200 focus:border-gray-900"
               />
             </label>
             <div class="hidden sm:flex ml-2" role="group">
               <button
                 class="rounded-l-md w-36 h-10 bg-[#015ad9]
-                              text-white font-medium
+                              text-white text-xl font-medium
                               leading-tight border-x-2 border-t-2
                               border-b-2 border-[#015ad9] hover:bg-[#015ad9] focus:bg-[#015ad9] focus:outline-none focus:ring-0 active:bg-[#015ad9] transition duration-150 ease-in-out"
                 on:click={() => (showOldTestament = true)}
@@ -224,7 +224,8 @@
                 Old Testament
               </button>
               <button
-                class="rounded-r-md w-36 h-10 bg-white text-[#33445c] font-medium leading-tight border-x-2 border-t-2 border-b-2 border-[#015ad9] hover:bg-white focus:bg-white focus:outline-none focus:ring-0 active:bg-white transition duration-150 ease-in-out"
+                class="rounded-r-md w-36 h-10 bg-white text-[#33445c]
+                       text-xl font-medium leading-tight border-x-2 border-t-2 border-b-2 border-[#015ad9] hover:bg-white focus:bg-white focus:outline-none focus:ring-0 active:bg-white transition duration-150 ease-in-out"
                 on:click={() => (showOldTestament = false)}
               >
                 New Testament
@@ -295,8 +296,8 @@
                     <!-- badge -->
                     <div
                       class="text-center absolute -top-0.5 -right-0.5
-                                bg-neutral-focus text-neutral-content
-                                rounded-full w-7 h-7"
+                                bg-neutral-focus text-[#33445C]
+                                text-xl rounded-full w-7 h-7"
                       style="background: linear-gradient(180deg, #1876FD 0%, #015AD9 100%);"
                     >
                       <span
@@ -323,7 +324,7 @@
                         bind:group={showOldTestament}
                         class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                       />
-                      <span class="text-[#33445C] pl-1">Old Testament</span>
+                      <span class="text-[#33445C] text-xl pl-1">Old Testament</span>
                     </div>
                   </label>
                   <label for="show-nt-radio-button">
@@ -338,7 +339,7 @@
                         bind:group={showOldTestament}
                         class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                       />
-                      <span class="text-[#33445C] pl-1">New Testament</span>
+                      <span class="text-[#33445C] text-xl pl-1">New Testament</span>
                     </div>
                   </label>
                 </svelte:fragment>
@@ -351,21 +352,19 @@
                 type="search"
                 bind:value={ntSearchTerm}
                 placeholder="Search NT books"
-                class="w-full h-full bg-transparent text-[#33445c] font-sans font-normal outline outline-0 focus:outline-0 disabled:bg-blue-gray-50 disabled:border-0 transition-all placeholder-shown:border placeholder-shown:border-blue-gray-200 placeholder-shown:border-t-blue-gray-200 border focus:border-2 text-sm px-3 py-2.5 rounded-[7px] border-blue-gray-200 focus:border-gray-900"
+                class="w-full h-full bg-transparent text-[#33445c] font-sans font-normal outline outline-0 focus:outline-0 disabled:bg-blue-gray-50 disabled:border-0 transition-all placeholder-shown:border placeholder-shown:border-blue-gray-200 placeholder-shown:border-t-blue-gray-200 border focus:border-2 text-xl px-3 py-2.5 rounded-[7px] border-blue-gray-200 focus:border-gray-900"
               />
             </label>
             <div class="hidden sm:flex ml-2" role="group">
               <button
-                class="rounded-l-md w-36 h-10 bg-white text-[#33445c]
-                        font-medium leading-tight border-x-2
-                        border-x-2 border-t-2 border-b-2 border-[#015ad9] hover:bg-white focus:bg-white focus:outline-none focus:ring-0 active:bg-white transition duration-150 ease-in-out"
+                class="rounded-l-md w-36 h-10 bg-white text-[#33445c] text-xl font-medium leading-tight border-x-2 border-x-2 border-t-2 border-b-2 border-[#015ad9] hover:bg-white focus:bg-white focus:outline-none focus:ring-0 active:bg-white transition duration-150 ease-in-out"
                 on:click={() => (showOldTestament = true)}
               >
                 Old Testament
               </button>
               <button
                 class="rounded-r-md w-36 h-10 bg-[#015ad9]
-                        text-white font-medium leading-tight border-r-2 border-t-2 border-b-2 border-[#015ad9] hover:bg-[#015ad9] focus:bg-[#015ad9] focus:outline-none focus:ring-0 active:bg-[#feeed8] transition duration-150 ease-in-out"
+                        text-white text-xl font-medium leading-tight border-r-2 border-t-2 border-b-2 border-[#015ad9] hover:bg-[#015ad9] focus:bg-[#015ad9] focus:outline-none focus:ring-0 active:bg-[#feeed8] transition duration-150 ease-in-out"
                 on:click={() => (showOldTestament = false)}
               >
                 New Testament
@@ -436,7 +435,8 @@
                     <!-- badge -->
                     <div
                       class="text-center absolute -top-0.5 -right-0.5
-                              bg-neutral-focus text-neutral-content
+                              bg-neutral-focus text-[#33445C]
+                              text-xl
                               rounded-full w-7 h-7"
                       style="background: linear-gradient(180deg, #1876FD 0%, #015AD9 100%);"
                     >
@@ -464,7 +464,7 @@
                         bind:group={showOldTestament}
                         class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                       />
-                      <span class="text-[#33445C] pl-1">Old Testament</span>
+                      <span class="text-[#33445C] text-xl pl-1">Old Testament</span>
                     </div>
                   </label>
                   <label for="show-heart-radio-button">
@@ -479,7 +479,7 @@
                         bind:group={showOldTestament}
                         class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                       />
-                      <span class="text-[#33445C] pl-1">New Testament</span>
+                      <span class="text-[#33445C] text-xl pl-1">New Testament</span>
                     </div>
                   </label>
                 </svelte:fragment>

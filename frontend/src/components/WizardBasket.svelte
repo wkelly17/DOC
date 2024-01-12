@@ -116,7 +116,7 @@
         <h2 class="ml-2 font-semibold text-xl text-[#33445C]">Language</h2>
       </div>
       <button
-        class="flex bg-white text-[#33445c] hover:bg-[#efefef] py-2 px-4 rounded"
+        class="flex bg-white text-[#33445c] text-xl hover:bg-[#efefef] py-2 px-4 rounded"
         on:click={() => push('/languages')}
       >
         <svg
@@ -139,7 +139,8 @@
     {#each $gatewayCodeAndNamesStore as langCodeAndName}
       {#if langRegExp.test($location)}
         <div
-          class="flex items-center justify-between w-full rounded-lg p-4 bg-white text-[#66768B] mt-2"
+          class="flex items-center justify-between w-full rounded-lg
+                 p-4 bg-white text-[#66768B] text-xl mt-2"
         >
           <div>
             <span>{getName(langCodeAndName)}</span><span class="ml-2"
@@ -163,7 +164,8 @@
         </div>
       {:else}
         <div
-          class="flex items-center justify-between w-full rounded-lg p-4 bg-white text-[#66768B] mt-2"
+          class="flex items-center justify-between w-full rounded-lg
+                 p-4 bg-white text-[#66768B] text-xl mt-2"
         >
           <div>
             <span>{getName(langCodeAndName)}</span><span class="ml-2"
@@ -176,7 +178,8 @@
     {#each $heartCodeAndNamesStore as langCodeAndName}
       {#if langRegExp.test($location)}
         <div
-          class="flex items-center justify-between w-full rounded-lg p-4 bg-white text-[#66768B] mt-2"
+          class="flex items-center justify-between w-full rounded-lg
+                 p-4 bg-white text-[#66768B] text-xl mt-2"
         >
           <div>
             <span>{getName(langCodeAndName)}</span><span class="ml-2"
@@ -200,7 +203,8 @@
         </div>
       {:else}
         <div
-          class="flex items-center justify-between w-full rounded-lg p-4 bg-white text-[#66768B] mt-2"
+          class="flex items-center justify-between w-full rounded-lg
+                 p-4 bg-white text-[#66768B] text-xl mt-2"
         >
           <div>
             <span>{getName(langCodeAndName)}</span><span class="ml-2"
@@ -211,7 +215,7 @@
       {/if}
     {/each}
   {:else}
-    <div class="rounded-lg p-6 bg-[#e5e8eb] text-[#66768b]">
+    <div class="rounded-lg p-6 bg-[#e5e8eb] text-[#66768b] text-xl">
       Selections will appear here once a language is selected
     </div>
   {/if}
@@ -230,10 +234,10 @@
             fill="#001533"
           />
         </svg>
-        <h2 class="ml-2 font-semibold text-xl text-[#33445C]">Book</h2>
+        <h2 class="ml-2 font-semibold text-xl text-[#33445C] text-xl">Book</h2>
       </div>
       <button
-        class="flex bg-white text-[#33445c] hover:bg-[#efefef] py-2 px-4 rounded"
+        class="flex bg-white text-[#33445c] text-xl hover:bg-[#efefef] py-2 px-4 rounded"
         on:click={() => push('/books')}
       >
         <svg
@@ -265,14 +269,15 @@
           fill="#001533"
         />
       </svg>
-      <h2 class="ml-2 font-semibold text-xl text-[#33445C]">Book</h2>
+      <h2 class="ml-2 font-semibold text-xl text-[#33445C] text-xl">Book</h2>
     </div>
   {/if}
   {#if $bookCountStore > 0}
     {#each shownBooks as bookCodeAndName}
       {#if bookRegExp.test($location)}
         <div
-          class="flex items-center justify-between w-full rounded-lg p-4 bg-white text-[#66768B] mt-2"
+          class="flex items-center justify-between w-full rounded-lg
+                 p-4 bg-white text-[#66768B] text-xl mt-2"
         >
           <div>
             <span>{getName(bookCodeAndName)}</span><span class="ml-2"
@@ -296,7 +301,8 @@
         </div>
       {:else}
         <div
-          class="flex items-center justify-between w-full rounded-lg p-4 bg-white text-[#66768B] mt-2"
+          class="flex items-center justify-between w-full rounded-lg
+                 p-4 bg-white text-[#66768B] text-xl mt-2"
         >
           <div>
             <span>{getName(bookCodeAndName)}</span><span class="ml-2"
@@ -308,7 +314,10 @@
     {/each}
     <!-- Put remainder books in a collapsed accordion that can be expanded -->
     {#if hiddenBooks.length > 0}
-      <div class="collapse collapse-arrow w-full rounded-lg bg-white text-[#66768B] mt-2">
+      <div
+        class="collapse collapse-arrow w-full rounded-lg bg-white
+                  text-[#66768B] text-xl mt-2"
+      >
         <input type="checkbox" />
         <div class="collapse-title">
           ({hiddenBooks.length}) items hidden
@@ -317,7 +326,8 @@
           {#each hiddenBooks as bookCodeAndName}
             {#if bookRegExp.test($location)}
               <div
-                class="flex items-center justify-between w-full rounded-lg bg-white text-[#66768B] p-2 mt-2"
+                class="flex items-center justify-between w-full
+                       rounded-lg bg-white text-[#66768B] text-xl p-2 mt-2"
               >
                 <div>
                   <span>{getName(bookCodeAndName)}</span><span class="ml-2"
@@ -341,7 +351,8 @@
               </div>
             {:else}
               <div
-                class="flex items-center justify-between w-full rounded-lg p-2 bg-white text-[#66768B] mt-2"
+                class="flex items-center justify-between w-full
+                       rounded-lg p-2 bg-white text-[#66768B] text-xl mt-2"
               >
                 <div>
                   <span>{getName(bookCodeAndName)}</span><span class="ml-2"
@@ -355,7 +366,7 @@
       </div>
     {/if}
   {:else}
-    <div class="rounded-lg p-6 bg-[#e5e8eb] text-[#66768B]">
+    <div class="rounded-lg p-6 bg-[#e5e8eb] text-[#66768B] text-xl">
       Selections will appear here once a book is selected
     </div>
   {/if}
@@ -377,7 +388,7 @@
         <h2 class="ml-2 font-semibold text-xl text-[#33445C]">Resource</h2>
       </div>
       <button
-        class="flex bg-white text-[#33445c] hover:bg-[#efefef] py-2 px-4 rounded"
+        class="flex bg-white text-[#33445c] text-xl hover:bg-[#efefef] py-2 px-4 rounded"
         on:click={() => push('/resource_types')}
       >
         <svg
@@ -417,7 +428,7 @@
       {#if resourceTypeRegExp.test($location)}
         <div
           class="inline-flex items-center justify-between w-full
-                        rounded-lg p-4 bg-white text-[#66768B]
+                        rounded-lg p-4 bg-white text-[#66768B] text-xl
                         mt-2"
         >
           {getResourceTypeName(resourceTypeCodeAndName)}
@@ -439,7 +450,8 @@
       {:else}
         <div
           class="inline-flex items-center justify-between w-full
-                        rounded-lg p-4 bg-white text-[#66768B] mt-2"
+                        rounded-lg p-4 bg-white text-[#66768B] text-xl
+                        mt-2"
         >
           {getResourceTypeName(resourceTypeCodeAndName)}
         </div>

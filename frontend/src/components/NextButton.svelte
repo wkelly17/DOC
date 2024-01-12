@@ -4,7 +4,7 @@
 
 <button
   class="flex items-center py-2 px-4 rounded next-button
-               text-white ml-2"
+               text-white text-xl ml-2"
   on:click={() => func()}
 >
   <span class="hidden sm:inline">Next</span>

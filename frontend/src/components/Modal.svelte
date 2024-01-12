@@ -20,7 +20,7 @@
               m-auto flex-col flex border-2
               border-[#e5e8eb] rounded-lg shadow-xl"
   >
-    <h3 class="font-bold text-lg text-[#33445C] ml-4 mt-4">{title}</h3>
+    <h3 class="font-bold text-xl text-[#33445C] ml-4 mt-4">{title}</h3>
     <div class="content">
       <slot name="body" />
     </div>
@@ -29,7 +29,7 @@
       <button
         autofocus
         class="rounded-md w-[115px] h-[48px] ml-4 mb-4 bg-white text-[#33445C]
-                     font-medium leading-tight border-2
+                     text-xl font-medium leading-tight border-2
                      border-[#e5e8eb] transition
                      duration-150 ease-in-out"
         on:click={() => dialog.close()}

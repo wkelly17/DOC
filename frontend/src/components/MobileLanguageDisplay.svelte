@@ -36,10 +36,10 @@
                 disabled={$langCountStore == maxLanguages &&
                   !$langCodesStore.includes(getCode(langCodeAndName))}
               />
-              <span class="text-[#33445C] pl-1">{getName(langCodeAndName)}</span>
+              <span class="text-[#33445C] text-xl pl-1">{getName(langCodeAndName)}</span>
             </div>
           </div>
-          <div class="ml-6 text-[#33445C]">{getCode(langCodeAndName)}</div>
+          <div class="ml-6 text-[#33445C] text-xl">{getCode(langCodeAndName)}</div>
         </div>
       </label>
     {/each}
@@ -63,10 +63,10 @@
                 disabled={$langCountStore == maxLanguages &&
                   !$langCodesStore.includes(getCode(langCodeAndName))}
               />
-              <span class="text-[#33445C] pl-1">{getName(langCodeAndName)}</span>
+              <span class="text-[#33445C] text-xl pl-1">{getName(langCodeAndName)}</span>
             </div>
           </div>
-          <div class="ml-6 text-[#33445C]">{getCode(langCodeAndName)}</div>
+          <div class="ml-6 text-[#33445C] text-xl">{getCode(langCodeAndName)}</div>
         </div>
       </label>
     {/each}

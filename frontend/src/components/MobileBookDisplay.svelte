@@ -35,7 +35,7 @@
           class="checkbox-target checkbox-style"
           on:change={event => selectAllOtBookCodes(event)}
         />
-        <label for="select-all-old-testament" class="text-[#33445C] pl-1"
+        <label for="select-all-old-testament" class="text-[#33445C] text-xl pl-1"
           >Select all</label
         >
       </div>
@@ -56,10 +56,11 @@
                   value={bookCodeAndName}
                   class="checkbox-target checkbox-style"
                 />
-                <span class="text-[#33445C] pl-1">{getName(bookCodeAndName)}</span>
+                <span class="text-[#33445C] text-xl pl-1">{getName(bookCodeAndName)}</span
+                >
               </div>
             </div>
-            <div class="ml-6 text-[#33445C]">{getCode(bookCodeAndName)}</div>
+            <div class="ml-6 text-[#33445C] text-xl">{getCode(bookCodeAndName)}</div>
           </div>
         </label>
       {/each}
@@ -73,8 +74,10 @@
           class="checkbox-target checkbox-style"
           on:change={event => selectAllNtBookCodes(event)}
         />
-        <label for="select-all-new-testament" class="text-[#33445C] pl-1"
-          >Select all</label
+        <label
+          for="select-all-new-testament"
+          class="text-[#33445C]
+                                                     text-xl pl-1">Select all</label
         >
       </div>
     {/if}
@@ -94,10 +97,11 @@
                   value={bookCodeAndName}
                   class="checkbox-target checkbox-style"
                 />
-                <span class="text-[#33445C] pl-1">{getName(bookCodeAndName)}</span>
+                <span class="text-[#33445C] text-xl pl-1">{getName(bookCodeAndName)}</span
+                >
               </div>
             </div>
-            <div class="ml-6 text-[#33445C]">{getCode(bookCodeAndName)}</div>
+            <div class="ml-6 text-[#33445C] text-xl">{getCode(bookCodeAndName)}</div>
           </div>
         </label>
       {/each}

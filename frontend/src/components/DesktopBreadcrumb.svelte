@@ -38,7 +38,7 @@
   {:else}
     <button
       class="flex items-center bg-white border border-[#E5E8EB]
-                 text-[#33445c] py-2 px-4
+                 text-[#33445c] text-xl py-2 px-4
                  rounded-md cursor-not-allowed"
       disabled
     >
@@ -61,85 +61,87 @@
     <div class="avatar placeholder">
       {#if turnLangStepOn}
         <div
-          class="bg-neutral-focus text-neutral-content rounded-full w-8"
+          class="bg-neutral-focus text-[#33445C] rounded-full w-8"
           style="background: linear-gradient(180deg, #1876fd 0%, #015ad9 100%)"
         >
-          <span class="text-xs text-white">1</span>
+          <span class="text-xl text-white">1</span>
         </div>
       {:else}
-        <div class="bg-neutral-focus text-neutral-content rounded-full w-8 bg-[#b3b9c2]">
-          <span class="text-xs text-white">1</span>
+        <div class="bg-neutral-focus text-[#33445C] rounded-full w-8 bg-[#b3b9c2]">
+          <span class="text-xl text-white">1</span>
         </div>
       {/if}
     </div>
     {#if turnLangStepOn}
-      <span class="ml-2 text-[#015ad9]"><a href="#/languages">Languages</a></span>
+      <span class="ml-2 text-[#015ad9] text-xl"><a href="#/languages">Languages</a></span>
     {:else}
-      <span class="ml-2 text-[#b3b9c2]">Languages</span>
+      <span class="ml-2 text-[#b3b9c2] text-xl">Languages</span>
     {/if}
   </div>
   <div class="hidden sm:inline-flex items-center">
     <div class="avatar placeholder">
       {#if turnBookStepOn}
         <div
-          class="bg-neutral-focus text-neutral-content rounded-full w-8"
+          class="bg-neutral-focus text-[#33445C] rounded-full w-8"
           style="background: linear-gradient(180deg, #1876fd 0%, #015ad9 100%)"
         >
-          <span class="text-xs text-white">2</span>
+          <span class="text-xl text-white">2</span>
         </div>
       {:else}
-        <div class="bg-neutral-focus text-neutral-content rounded-full w-8 bg-[#b3b9c2]">
-          <span class="text-xs text-white">2</span>
+        <div class="bg-neutral-focus text-[#33445C] rounded-full w-8 bg-[#b3b9c2]">
+          <span class="text-xl text-white">2</span>
         </div>
       {/if}
     </div>
     {#if turnBookStepOn}
-      <span class="ml-2 text-[#015ad9]"><a href="#/books">Books</a></span>
+      <span class="ml-2 text-[#015ad9] text-xl"><a href="#/books">Books</a></span>
     {:else}
-      <span class="ml-2 text-[#b3b9c2]">Books</span>
+      <span class="ml-2 text-[#b3b9c2] text-xl">Books</span>
     {/if}
   </div>
   <div class="hidden sm:inline-flex items-center">
     <div class="avatar placeholder">
       {#if turnResourceTypeStepOn}
         <div
-          class="bg-neutral-focus text-neutral-content rounded-full w-8"
+          class="bg-neutral-focus text-[#33445C] rounded-full w-8"
           style="background: linear-gradient(180deg, #1876fd 0%, #015ad9 100%)"
         >
-          <span class="text-xs text-white">3</span>
+          <span class="text-xl text-white">3</span>
         </div>
       {:else}
-        <div class="bg-neutral-focus text-neutral-content rounded-full w-8 bg-[#b3b9c2]">
-          <span class="text-xs text-white">3</span>
+        <div class="bg-neutral-focus text-[#33445C] rounded-full w-8 bg-[#b3b9c2]">
+          <span class="text-xl text-white">3</span>
         </div>
       {/if}
     </div>
     {#if turnResourceTypeStepOn}
-      <span class="ml-2 text-[#015ad9]"><a href="#/resource_types">Resources</a></span>
+      <span class="ml-2 text-[#015ad9] text-xl"
+        ><a href="#/resource_types">Resources</a></span
+      >
     {:else}
-      <span class="ml-2 text-[#b3b9c2]">Resources</span>
+      <span class="ml-2 text-[#b3b9c2] text-xl">Resources</span>
     {/if}
   </div>
   <div class="hidden sm:inline-flex items-center">
     <div class="avatar placeholder">
       {#if turnSettingsStepOn}
         <div
-          class="bg-neutral-focus text-neutral-content rounded-full w-8"
+          class="bg-neutral-focus text-[#33445C] rounded-full w-8"
           style="background: linear-gradient(180deg, #1876fd 0%, #015ad9 100%)"
         >
-          <span class="text-xs text-white">4</span>
+          <span class="text-xl text-white">4</span>
         </div>
       {:else}
-        <div class="bg-neutral-focus text-neutral-content rounded-full w-8 bg-[#b3b9c2]">
-          <span class="text-xs text-white">4</span>
+        <div class="bg-neutral-focus text-[#33445C] rounded-full w-8 bg-[#b3b9c2]">
+          <span class="text-xl text-white">4</span>
         </div>
       {/if}
     </div>
 
     {#if turnSettingsStepOn}
-      <span class="ml-2 text-[#015ad9]">Review</span>
+      <span class="ml-2 text-[#015ad9] text-xl">Review</span>
     {:else}
-      <span class="ml-2 text-[#b3b9c2]">Review</span>
+      <span class="ml-2 text-[#b3b9c2] text-xl">Review</span>
     {/if}
   </div>
   <!-- next button logic -->
@@ -152,7 +154,7 @@
   {:else}
     <button
       class="flex items-center bg-white border border-[#E5E8EB]
-                 text-[#33445c] py-2 px-4
+                 text-[#33445c] text-xl py-2 px-4
                  rounded-md cursor-not-allowed"
       disabled
     >

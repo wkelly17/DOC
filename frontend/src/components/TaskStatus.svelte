@@ -47,7 +47,7 @@
   {/if}
 </div>
 {#if $taskStateStore}
-  <p id="state" class="text-[#B3B9C2]">
+  <p id="state" class="text-[#B3B9C2] text-xl">
     <ProgressIndicator labelString={$taskStateStore} />
   </p>
 {/if}
