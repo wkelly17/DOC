@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { beforeUpdate } from 'svelte'
   import WizardBasketModal from './WizardBasketModal.svelte'
   import MobileLanguageDisplay from './MobileLanguageDisplay.svelte'
   import Modal from './Modal.svelte'
@@ -219,7 +218,7 @@
     <h3 class="ml-4 text-[#33445C] text-4xl font-normal leading-[48px]">
       Select up to 2 languages
     </h3>
-    <div class="flex items-center px-2 py-2 mt-2 bg-white">
+    <div class="flex items-center px-2 py-2 mt-2 bg-white ml-4">
       {#if !langCodeNameAndTypes || langCodeNameAndTypes.length === 0}
         <div class="ml-4">
           <ProgressIndicator />
@@ -233,7 +232,7 @@
                 type="search"
                 bind:value={gatewaySearchTerm}
                 placeholder="Search Languages"
-                class="w-full h-full bg-transparent text-[#33445c] font-sans font-normal outline outline-0 focus:outline-0 disabled:bg-blue-gray-50 disabled:border-0 transition-all placeholder-shown:border placeholder-shown:border-blue-gray-200 placeholder-shown:border-t-blue-gray-200 border focus:border-2 text-xl px-3 py-2.5 rounded-[7px] border-blue-gray-200 focus:border-gray-900"
+                class="search-style"
               />
             </label>
             <div class="ml-2 hidden sm:flex" role="group">
@@ -341,7 +340,7 @@
                         type="radio"
                         value={true}
                         bind:group={showGatewayLanguages}
-                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                        class="radio-style"
                       />
                       <span class="text-[#33445C] text-xl pl-1">Gateway languages</span>
                     </div>
@@ -356,7 +355,7 @@
                         type="radio"
                         value={false}
                         bind:group={showGatewayLanguages}
-                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                        class="radio-style"
                       />
                       <span class="text-[#33445C] text-xl pl-1">Heart languages</span>
                     </div>
@@ -370,7 +369,7 @@
                 id="filter-non-gl-langs"
                 type="search"
                 bind:value={heartSearchTerm}
-                class="w-full h-full bg-transparent text-[#33445c] font-sans font-normal outline outline-0 focus:outline-0 disabled:bg-blue-gray-50 disabled:border-0 transition-all placeholder-shown:border placeholder-shown:border-blue-gray-200 placeholder-shown:border-t-blue-gray-200 border focus:border-2 text-xl px-3 py-2.5 rounded-[7px] border-blue-gray-200 focus:border-gray-900"
+                class="search-style"
                 placeholder="Search Languages"
               />
             </label>
@@ -479,7 +478,7 @@
                         type="radio"
                         value={true}
                         bind:group={showGatewayLanguages}
-                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                        class="radio-style"
                       />
                       <span class="text-[#33445C] text-xl pl-1">Gateway languages</span>
                     </div>
@@ -494,7 +493,7 @@
                         type="radio"
                         value={false}
                         bind:group={showGatewayLanguages}
-                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                        class="radio-style"
                       />
                       <span class="text-[#33445C] text-xl pl-1">Heart languages</span>
                     </div>
@@ -545,16 +544,11 @@
 </div>
 
 <style global lang="postcss">
-  * :global(.checkbox-dark-bordered) {
-    border-color: #1a130b;
-    border-radius: 3px;
-    width: 1em;
-    height: 1em;
-  }
   #filter-gl-langs,
   #filter-non-gl-langs {
     text-indent: 17px;
     padding-left: 5px;
+    margin-right: 5px;
     background-image: url('data:image/svg+xml,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15.5014 14.0014H14.7114L14.4314 13.7314C15.0564 13.0054 15.5131 12.1502 15.769 11.2271C16.0248 10.3039 16.0735 9.33559 15.9114 8.39144C15.4414 5.61144 13.1214 3.39144 10.3214 3.05144C9.33706 2.92691 8.33723 3.02921 7.39846 3.35053C6.4597 3.67185 5.60688 4.20366 4.90527 4.90527C4.20366 5.60688 3.67185 6.4597 3.35053 7.39846C3.02921 8.33723 2.92691 9.33706 3.05144 10.3214C3.39144 13.1214 5.61144 15.4414 8.39144 15.9114C9.33559 16.0735 10.3039 16.0248 11.2271 15.769C12.1502 15.5131 13.0054 15.0564 13.7314 14.4314L14.0014 14.7114V15.5014L18.2514 19.7514C18.6614 20.1614 19.3314 20.1614 19.7414 19.7514C20.1514 19.3414 20.1514 18.6714 19.7414 18.2614L15.5014 14.0014ZM9.50144 14.0014C7.01144 14.0014 5.00144 11.9914 5.00144 9.50144C5.00144 7.01144 7.01144 5.00144 9.50144 5.00144C11.9914 5.00144 14.0014 7.01144 14.0014 9.50144C14.0014 11.9914 11.9914 14.0014 9.50144 14.0014Z" fill="%2366768B"/></svg>');
     background-repeat: no-repeat;
     background-position: left center;
@@ -589,5 +583,11 @@
   }
   .checkbox-style {
     @apply w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600;
+  }
+  .radio-style {
+    @apply w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600;
+  }
+  .search-style {
+    @apply w-full h-full bg-transparent text-[#33445c] font-sans font-normal outline outline-0 focus:outline-0 transition-all  border focus:border-2 text-xl px-3 py-2.5 rounded-[7px] border-gray-200 focus:border-gray-900;
   }
 </style>

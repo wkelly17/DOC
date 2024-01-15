@@ -368,20 +368,7 @@
 </div>
 
 <style global lang="postcss">
-  * :global(.orange-gradient) {
-    background: linear-gradient(180deg, #fdd231 0%, #fdad29 100%),
-      linear-gradient(0deg, rgba(20, 14, 8, 0.6), rgba(20, 14, 8, 0.6));
-  }
-  * :global(.checkbox-dark-bordered) {
-    border-color: #1a130b;
-    border-radius: 3px;
-    width: 1em;
-    height: 1em;
-  }
   li.target:has(input[type='checkbox']:checked) {
-    background: #e6eefb;
-  }
-  li.target:has(input[type='radio']:checked) {
     background: #e6eefb;
   }
   input.checkbox-target[type='checkbox']:checked + span {

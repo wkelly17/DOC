@@ -196,7 +196,7 @@
     >
       Select books
     </h3>
-    <div class="flex items-center px-2 py-2 mt-2 bg-white">
+    <div class="flex items-center px-2 py-2 mt-2 bg-white ml-4">
       {#if !otBookCodes || !ntBookCodes}
         <div class="ml-4">
           <ProgressIndicator />
@@ -210,7 +210,7 @@
                 type="search"
                 bind:value={otSearchTerm}
                 placeholder="Search OT books"
-                class="w-full h-full bg-transparent text-[#33445c] font-sans font-normal outline outline-0 focus:outline-0 disabled:bg-blue-gray-50 disabled:border-0 transition-all placeholder-shown:border placeholder-shown:border-blue-gray-200 placeholder-shown:border-t-blue-gray-200 border focus:border-2 text-xl px-3 py-2.5 rounded-[7px] border-blue-gray-200 focus:border-gray-900"
+                class="search-style"
               />
             </label>
             <div class="hidden sm:flex ml-2" role="group">
@@ -322,7 +322,7 @@
                         type="radio"
                         value={true}
                         bind:group={showOldTestament}
-                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                        class="radio-style"
                       />
                       <span class="text-[#33445C] text-xl pl-1">Old Testament</span>
                     </div>
@@ -337,7 +337,7 @@
                         type="radio"
                         value={false}
                         bind:group={showOldTestament}
-                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                        class="radio-style"
                       />
                       <span class="text-[#33445C] text-xl pl-1">New Testament</span>
                     </div>
@@ -352,7 +352,7 @@
                 type="search"
                 bind:value={ntSearchTerm}
                 placeholder="Search NT books"
-                class="w-full h-full bg-transparent text-[#33445c] font-sans font-normal outline outline-0 focus:outline-0 disabled:bg-blue-gray-50 disabled:border-0 transition-all placeholder-shown:border placeholder-shown:border-blue-gray-200 placeholder-shown:border-t-blue-gray-200 border focus:border-2 text-xl px-3 py-2.5 rounded-[7px] border-blue-gray-200 focus:border-gray-900"
+                class="search-style"
               />
             </label>
             <div class="hidden sm:flex ml-2" role="group">
@@ -462,7 +462,7 @@
                         type="radio"
                         value={true}
                         bind:group={showOldTestament}
-                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                        class="radio-style"
                       />
                       <span class="text-[#33445C] text-xl pl-1">Old Testament</span>
                     </div>
@@ -477,7 +477,7 @@
                         type="radio"
                         value={false}
                         bind:group={showOldTestament}
-                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                        class="radio-style"
                       />
                       <span class="text-[#33445C] text-xl pl-1">New Testament</span>
                     </div>
@@ -527,13 +527,6 @@
 </div>
 
 <style global lang="postcss">
-  * :global(.checkbox-dark-bordered) {
-    border-color: #1a130b;
-    border-radius: 3px;
-    width: 1em;
-    height: 1em;
-  }
-
   #filter-ot-books,
   #filter-nt-books {
     text-indent: 17px;
@@ -560,5 +553,11 @@
   }
   .checkbox-style {
     @apply w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600;
+  }
+  .radio-style {
+    @apply w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600;
+  }
+  .search-style {
+    @apply w-full h-full bg-transparent text-[#33445c] font-sans font-normal outline outline-0 focus:outline-0 transition-all  border focus:border-2 text-xl px-3 py-2.5 rounded-[7px] border-gray-200 focus:border-gray-900;
   }
 </style>
