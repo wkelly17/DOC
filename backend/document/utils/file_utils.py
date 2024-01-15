@@ -19,7 +19,6 @@ logger = settings.logger(__name__)
 
 
 def delete_tree(dir: str) -> None:
-    logger.debug("About to delete: %s", dir)
     try:
         shutil.rmtree(dir)
     except OSError:
