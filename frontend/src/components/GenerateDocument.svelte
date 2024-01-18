@@ -56,23 +56,19 @@
 
     let resourceRequests = []
     let bookCodes = [...$otBookStore, ...$ntBookStore]
-    // Create resource_requests for lang0
     for (let bookCode of bookCodes) {
       for (let resourceType of $resourceTypesStore) {
         if (getResourceTypeLangCode(resourceType) === $langCodesStore[0]) {
+          // Create resource request for lang0
           resourceRequests.push({
             lang_code: $langCodesStore[0],
             resource_type: getResourceTypeCode(resourceType),
             book_code: getCode(bookCode)
           })
         }
-      }
-    }
-    if ($langCountStore > 1) {
-      // Create resource_requests for lang1
-      for (let bookCode of bookCodes) {
-        for (let resourceType of $resourceTypesStore) {
+        if ($langCountStore > 1) {
           if (getResourceTypeLangCode(resourceType) === $langCodesStore[1]) {
+            // Create resource request for lang1
             resourceRequests.push({
               lang_code: $langCodesStore[1],
               resource_type: getResourceTypeCode(resourceType),
