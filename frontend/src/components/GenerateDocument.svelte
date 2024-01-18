@@ -170,6 +170,7 @@
     window.open(url, '_blank')
   }
 
+  // Warn user when they attempt to reload page or close tab
   window.addEventListener('beforeunload', event => {
     if (generatingDocument) {
       event.returnValue = `Are you sure you want to leave while your document is being generated?`
