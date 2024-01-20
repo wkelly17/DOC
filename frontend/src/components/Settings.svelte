@@ -25,25 +25,12 @@
   import GenerateDocument from './GenerateDocument.svelte'
   import LogRocket from 'logrocket'
 
-  let bookLanguageOrderStrategy: SelectElement = {
-    id: 'blo',
-    label: <string>import.meta.env.VITE_BOOK_LANGUAGE_ORDER_LABEL
-  }
-  let languageBookOrderStrategy: SelectElement = {
-    id: 'lbo',
-    label: <string>import.meta.env.VITE_LANGUAGE_BOOK_ORDER_LABEL
-  }
   let chapter: SelectElement = {
     id: 'chapter',
     label: <string>import.meta.env.VITE_CHUNK_SIZE_CHAPTER
   }
   // Set default value of chapter
   $assemblyStrategyChunkSizeStore = chapter.id
-
-  // Set up the values for the select drop-downs
-  let assemblyStrategies = [bookLanguageOrderStrategy, languageBookOrderStrategy]
-
-  const assemblyStrategyHeader = <string>import.meta.env.VITE_ASSEMBLY_STRATEGY_HEADER
 
   // Set whether TW has been requested for any of the languages
   // requested so that we can use this fact in the UI to trigger the
@@ -71,7 +58,6 @@
   // Khmer.
   let kmRegexp = new RegExp('km, tn, .*|km, tq, .*')
   let showPdfAsOption: boolean = true
-  // $: console.log(`showPdfAsOption: ${showPdfAsOption}`)
   $: {
     if ($resourceTypesStore) {
       if ($resourceTypesStore.some(item => kmRegexp.test(item))) {
