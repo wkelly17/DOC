@@ -92,9 +92,9 @@ services:
   frontend:
     image: wycliffeassociates/doc-ui:${IMAGE_TAG}
     environment:
-      BACKEND_API_URL: ${BACKEND_API_URL:-http://localhost:5005}
-      FILE_SERVER_URL: ${FILE_SERVER_URL:-http://localhost:8089}
-      LOGROCKET_ID: ${LOGROCKET_ID:-ct7zyg/interleaved-resource-generator}
+      PUBLIC_BACKEND_API_URL: ${PUBLIC_BACKEND_API_URL:-http://localhost:5005}
+      PUBLIC_FILE_SERVER_URL: ${PUBLIC_FILE_SERVER_URL:-http://localhost:8089}
+      PUBLIC_LOGROCKET_ID: ${PUBLIC_LOGROCKET_ID:-ct7zyg/interleaved-resource-generator}
     ports:
       - ${FRONTEND_HOST_PORT:-8001}:80
     depends_on:
@@ -106,7 +106,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/"]
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
       interval: 5s
       timeout: 5s
       retries: 10

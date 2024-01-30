@@ -43,12 +43,9 @@ RUN mkdir -p working/output
 # Make the output directory where generated documents (PDF, ePub, Docx) are copied too.
 RUN mkdir -p document_output
 
-COPY .env .
 COPY pyproject.toml .
 COPY ./backend/requirements.txt .
 COPY ./backend/requirements-prod.txt .
-COPY template.docx .
-COPY template_compact.docx .
 
 # See https://pythonspeed.com/articles/activate-virtualenv-dockerfile/
 # for why a Python virtual env is used inside Docker.
@@ -62,6 +59,9 @@ RUN pip install -v -r requirements-prod.txt
 
 COPY ./backend ./backend
 COPY ./tests ./tests
+COPY .env .
+COPY template.docx .
+COPY template_compact.docx .
 
 # Make sure Python can find the code to run
 ENV PYTHONPATH=/app/backend:/app/tests

@@ -1,4 +1,10 @@
 import {
+  env
+} from '$env/dynamic/public'
+import {
+  PUBLIC_LANGUAGE_BOOK_ORDER
+} from '$env/static/public'
+import {
   gatewayCodeAndNamesStore,
   heartCodeAndNamesStore,
   lang0NameAndCodeStore,
@@ -6,16 +12,16 @@ import {
   langCodesStore,
   langNamesStore,
   langCountStore
-} from '../stores/LanguagesStore'
-import { otBookStore, ntBookStore, bookCountStore } from '../stores/BooksStore'
+} from '$lib/stores/LanguagesStore'
+import { otBookStore, ntBookStore, bookCountStore } from '$lib/stores/BooksStore'
 import {
   // TODO should we include resourceTypesStore and reset it also?
   lang0ResourceTypesStore,
   lang1ResourceTypesStore,
   resourceTypesCountStore,
   twResourceRequestedStore
-} from '../stores/ResourceTypesStore'
-import { documentReadyStore, errorStore } from '../stores/NotificationStore'
+} from '$lib/stores/ResourceTypesStore'
+import { documentReadyStore, errorStore } from '$lib/stores/NotificationStore'
 import {
   layoutForPrintStore,
   assemblyStrategyKindStore,
@@ -23,9 +29,9 @@ import {
   generateEpubStore,
   generateDocxStore,
   documentRequestKeyStore
-} from '../stores/SettingsStore'
+} from '$lib/stores/SettingsStore'
 
-const languageBookOrder: string = <string>import.meta.env.VITE_LANGUAGE_BOOK_ORDER
+const languageBookOrder: string = <string>PUBLIC_LANGUAGE_BOOK_ORDER
 
 type StoreGroup = 'languages' | 'books' | 'resource_types' | 'settings' | 'notifications'
 
@@ -73,40 +79,18 @@ export function resetStores(storeGroup: StoreGroup) {
   }
 }
 
-export function getApiRootUrl(): string {
-  if (<boolean>import.meta.env.PROD) {
-    // @ts-ignore
-    console.log(`BACKEND_API_URL: ${window.env.BACKEND_API_URL}`)
-    // @ts-ignore
-    return <string>window.env.BACKEND_API_URL
-  } else {
-    // If we are running the frontend with 'npm run dev' then this
-    // else will be used
-    console.log(`BACKEND_API_URL: ${<string>import.meta.env.VITE_DEV_BACKEND_API_URL}`)
-    return <string>import.meta.env.VITE_DEV_BACKEND_API_URL
-  }
-}
+// FIXME: These are too inconsequential to be here, just use them from $env/dynamic/private where needed
+// export function getApiRootUrl(): string {
+//   return <string>PUBLIC_BACKEND_API_URL
+// }
 
-export function getFileServerUrl(): string {
-  if (<boolean>import.meta.env.PROD) {
-    // @ts-ignore
-    console.log(`FILE_SERVER_URL: ${window.env.FILE_SERVER_URL}`)
-    // @ts-ignore
-    return <string>window.env.FILE_SERVER_URL
-  } else {
-    // If we are running the frontend with 'npm run dev' then this
-    // else will be used
-    console.log(`FILE_SERVER_URL: ${<string>import.meta.env.VITE_DEV_FILE_SERVER_URL}`)
-    return <string>import.meta.env.VITE_DEV_FILE_SERVER_URL
-  }
-}
+// export function getFileServerUrl(): string {
+//   return <string>env.PUBLIC_FILE_SERVER_URL
+// }
 
-export function getLogRocketId(): string {
-  // @ts-ignore
-  console.log(`LOGROCKET_ID: ${window.env.LOGROCKET_ID}`)
-  // @ts-ignore
-  return <string>window.env.LOGROCKET_ID
-}
+// export function getLogRocketId(): string {
+//   return <string>env.PUBLIC_LOGROCKET_ID
+// }
 
 /**
  * Indicate whether to show Mast, Tabs, and Sidebar

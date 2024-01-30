@@ -1,3 +1,4 @@
+/** @type {import('tailwindcss').Config}*/
 module.exports = {
   content: ['./src/**/*.html', './src/**/*.svelte'],
   media: false, // or 'media' or 'class'
@@ -6,19 +7,19 @@ module.exports = {
   },
   variants: {
     extend: {}
-  },
-  plugins: [require('daisyui')],
-  daisyui: {
-    themes: [
-      {
-        wa: {
-          primary: '#FAA83C',
-          'primary-content': '#1A130B',
-          'secondary-content': '#140E08',
-          'neutral-content': '#1A130BCC',
-          secondary: '#140E08'
-        }
-      }
-    ]
   }
+  // plugins: [require('daisyui')]
+  // daisyui: {
+  //   themes: [
+  //     {
+  //       wa: {
+  //         primary: '#FAA83C',
+  //         'primary-content': '#1A130B',
+  //         'secondary-content': '#140E08',
+  //         'neutral-content': '#1A130BCC',
+  //         secondary: '#140E08'
+  //       }
+  //     }
+  //   ]
+  // }
 }
