@@ -59,4 +59,18 @@ test('test books retained in basket on back button to languages and then forward
     .filter({ hasText: /^Amharic\(am\)$/ })
     .first()
     .click()
+
+test('test multiple resource avaiable on es-419', async ({ page }) => {
+    await page.goto('http://localhost:8001/languages')
+    await page.goto('http://localhost:8001/#/languages')
+    await page.getByText('Español (Latin American').click()
+    await page.getByRole('button', { name: 'Next' }).click()
+    await page.getByText('Matthew').click()
+    await page.getByRole('button', { name: 'Next' }).click()
+    await page.getByText('Translation Notes (tn)').click()
+    await page.getByText('Translation Questions (tq)').click()
+    await page.getByText('Translation Words (tw)').click()
+    await page.getByText('Español Latino Americano ULB').click()
+    await page.getByRole('button', { name: 'Next' }).click()
+    await page.getByRole('button', { name: 'Generate File' }).click()
 })

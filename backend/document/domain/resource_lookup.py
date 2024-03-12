@@ -428,6 +428,30 @@ def supported_resource_type(
     return False
 
 
+def supported_language_scoped_resource_type(
+    lang_code: str,
+    resource_type: str,
+    tn_resource_types: Sequence[str] = settings.TN_RESOURCE_TYPES,
+    en_tn_resource_types: Sequence[str] = settings.EN_TN_RESOURCE_TYPES,
+    tq_resource_types: Sequence[str] = settings.TQ_RESOURCE_TYPES,
+    tw_resource_types: Sequence[str] = settings.TW_RESOURCE_TYPES,
+) -> bool:
+    """
+    Check if resource_type is a TN, TQ, TW type.
+    """
+    if (
+        (
+            resource_type in en_tn_resource_types
+            if lang_code == "en"
+            else resource_type in tn_resource_types
+        )
+        or resource_type in tq_resource_types
+        or resource_type in tw_resource_types
+    ):
+        return True
+    return False
+
+
 def shared_resource_types(
     lang_code: str,
     book_codes: Sequence[str],
@@ -444,8 +468,8 @@ def shared_resource_types(
     >>> from document.domain import resource_lookup
     >>> list(resource_lookup.shared_resource_types("en", ["2co"]))
     [('ulb-wa', 'Unlocked Literal Bible (ULB)'), ('tn-wa', 'ULB Translation Notes'), ('tq-wa', 'ULB Translation Questions'), ('tw-wa', 'ULB Translation Words'), ('bc-wa', 'Bible Commentary')]
-    >>> list(resource_lookup.shared_resource_types("kbt", ["2co"]))
-    [('reg', 'Bible (reg)')]
+    >>> list(resource_lookup.shared_resource_types("zh", ["2co"]))
+    [('cuv', '新标点和合本 (cuv)'), ('tn', 'Translation Notes (tn)'), ('tq', 'Translation Questions (tq)'), ('tw', 'Translation Words (tw)')]
     >>> list(resource_lookup.shared_resource_types("pt-br", ["gen"]))
     [('tn', 'Translation Notes (tn)'), ('tq', 'Translation Questions (tq)'), ('tw', 'Translation Words (tw)'), ('ulb', 'Brazilian Portuguese Unlocked Literal Bible (ulb)')]
     >>> list(resource_lookup.shared_resource_types("fr", ["gen"]))
@@ -482,28 +506,19 @@ def shared_resource_types(
                 or link["format"] == "Download"
                 and link["url"]
             ]
-            if not links_for_resource_type:
-                if "subcontents" in resource_type:
-                    logger.debug(
-                        "resource_type['subcontents']: %s", resource_type["subcontents"]
-                    )
-                    try:
-                        links_for_resource_type = [
-                            link
-                            for link in resource_type["subcontents"][0]["links"]
-                            if link["format"] == "zip"
-                            or link["format"] == "Download"
-                            and link["url"]
-                        ]
-                    except:
-                        logger.info(
-                            "resource_type['subcontents'][0]['links'] does not exist"
-                        )
-            logger.debug("links_for_resource_type: %s", links_for_resource_type)
             if (
                 supported_resource_type(resource_type["code"])
-                and book_codes_for_resource_type
-                and links_for_resource_type
+                # Check if there are book codes associated with this resource type
+                # which conincide with the book codes that the user selected.
+                and (
+                    book_codes_for_resource_type
+                    or (
+                        supported_language_scoped_resource_type(
+                            lang_code, resource_type["code"]
+                        )
+                        and links_for_resource_type
+                    )
+                )
             ):
                 values.append(
                     (
@@ -522,10 +537,10 @@ def shared_book_codes(lang0_code: str, lang1_code: str) -> Sequence[tuple[str, s
     >>> from document.domain import resource_lookup
     >>> # Hack to ignore logging output: https://stackoverflow.com/a/33400983/3034580
     >>> # FIXME kbt shouldn't be obtainable due to an invalid URL in translations.json
-    >>> ();data = resource_lookup.shared_book_codes("pt-br", "kbt");() # doctest: +ELLIPSIS
+    >>> ();data = resource_lookup.shared_book_codes("pt-br", "es-419");() # doctest: +ELLIPSIS
     (...)
     >>> list(data)
-    [('2co', '2 Corinthians')]
+    [('gen', 'Genesis'), ('exo', 'Exodus'), ('lev', 'Leviticus'), ('num', 'Numbers'), ('deu', 'Deuteronomy'), ('jos', 'Joshua'), ('jdg', 'Judges'), ('rut', 'Ruth'), ('1sa', '1 Samuel'), ('2sa', '2 Samuel'), ('1ki', '1 Kings'), ('2ki', '2 Kings'), ('1ch', '1 Chronicles'), ('2ch', '2 Chronicles'), ('ezr', 'Ezra'), ('neh', 'Nehemiah'), ('est', 'Esther'), ('job', 'Job'), ('psa', 'Psalms'), ('pro', 'Proverbs'), ('ecc', 'Ecclesiastes'), ('sng', 'Song of Solomon'), ('isa', 'Isaiah'), ('jer', 'Jeremiah'), ('lam', 'Lamentations'), ('ezk', 'Ezekiel'), ('dan', 'Daniel'), ('hos', 'Hosea'), ('jol', 'Joel'), ('amo', 'Amos'), ('oba', 'Obadiah'), ('jon', 'Jonah'), ('mic', 'Micah'), ('nam', 'Nahum'), ('hab', 'Habakkuk'), ('zep', 'Zephaniah'), ('hag', 'Haggai'), ('zec', 'Zechariah'), ('mal', 'Malachi'), ('mat', 'Matthew'), ('mrk', 'Mark'), ('luk', 'Luke'), ('jhn', 'John'), ('act', 'Acts'), ('rom', 'Romans'), ('1co', '1 Corinthians'), ('2co', '2 Corinthians'), ('gal', 'Galatians'), ('eph', 'Ephesians'), ('php', 'Philippians'), ('col', 'Colossians'), ('1th', '1 Thessalonians'), ('2th', '2 Thessalonians'), ('1ti', '1 Timothy'), ('2ti', '2 Timothy'), ('tit', 'Titus'), ('phm', 'Philemon'), ('heb', 'Hebrews'), ('jas', 'James'), ('1pe', '1 Peter'), ('2pe', '2 Peter'), ('1jn', '1 John'), ('2jn', '2 John'), ('3jn', '3 John'), ('jud', 'Jude'), ('rev', 'Revelation')]
     """
     # Get book codes for reach language.
     lang0_book_codes = book_codes_for_lang(lang0_code)
