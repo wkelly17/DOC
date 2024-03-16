@@ -67,7 +67,7 @@ build-no-cache-no-pip-update: checkvenv down clean-mypyc-artifacts
 .PHONY: up
 up: checkvenv
 	export IMAGE_TAG=local && \
-	PUBLIC_LOGROCKET_ID=ct7zyg/interleaved-resource-generator PUBLIC_BACKEND_API_URL=http://localhost:5005 PUBLIC_FILE_SERVER_URL=http://localhost:8089 docker compose up --remove-orphans
+	PUBLIC_DOC_VERSION=0.0.2 PUBLIC_DOC_BUILD_TIMESTAMP=03-16-2024 PUBLIC_LOGROCKET_ID=ct7zyg/interleaved-resource-generator PUBLIC_BACKEND_API_URL=http://localhost:5005 PUBLIC_FILE_SERVER_URL=http://localhost:8089 docker compose up --remove-orphans
 
 .PHONY: up-as-daemon
 up-as-daemon: checkvenv
@@ -216,7 +216,7 @@ all-plus-linting: mypy down build up test
 # Run a local Uvicorn server outside Docker
 .PHONY: local-server
 local-server: checkvenv
-	LOGROCKET_ID=ct7zyg/interleaved-resource-generator BACKEND_API_URL=http://localhost:5005 FILE_SERVER_URL=http://localhost:8089 uvicorn document.entrypoints.app:app --reload --host "0.0.0.0" --port "5005" --app-dir "./backend/"
+	PUBLIC_LOGROCKET_ID=ct7zyg/interleaved-resource-generator PUBLIC_BACKEND_API_URL=http://localhost:5005 PUBLIC_FILE_SERVER_URL=http://localhost:8089 uvicorn document.entrypoints.app:app --reload --host "0.0.0.0" --port "5005" --app-dir "./backend/"
 
 # Run a local Gunicorn server outside Docker
 .PHONY: local-gunicorn-server
@@ -225,18 +225,18 @@ local-gunicorn-server: checkvenv
 
 .PHONY: local-update-deps-base
 local-update-deps-base: pyupgrade
-	pip-compile --resolver=backtracking -v ./backend/requirements.in
-	# pip-compile --upgrade ./backend/requirements.in
+	# pip-compile --resolver=backtracking -v ./backend/requirements.in
+	pip-compile --upgrade ./backend/requirements.in
 
 .PHONY: local-update-deps-prod
 local-update-deps-prod: local-update-deps-base
-	pip-compile --resolver=backtracking -v ./backend/requirements-prod.in
-	# pip-compile --upgrade ./backend/requirements-prod.in
+	# pip-compile --resolver=backtracking -v ./backend/requirements-prod.in
+	pip-compile --upgrade ./backend/requirements-prod.in
 
 .PHONY: local-update-deps-dev
 local-update-deps-dev: local-update-deps-base
-	pip-compile --resolver=backtracking -v ./backend/requirements-dev.in
-	# pip-compile --upgrade ./backend/requirements-dev.in
+	# pip-compile --resolver=backtracking -v ./backend/requirements-dev.in
+	pip-compile --upgrade ./backend/requirements-dev.in
 
 .PHONY: local-install-deps-base
 local-install-deps-base: install-cython local-update-deps-base

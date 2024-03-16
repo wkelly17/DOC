@@ -22,7 +22,6 @@
   import { ntBookStore, otBookStore, bookCountStore } from '$lib/stores/BooksStore'
   import { getCode, getName, getResourceTypeLangCode } from '$lib/utils'
   import { resourceTypesStore, resourceTypesCountStore } from '$lib/stores/ResourceTypesStore'
-  // import type { Server } from '@sveltejs/kit'
 
   let showGatewayLanguages = true
   // If user has previously chosen (during this session, i.e., prior
@@ -38,7 +37,6 @@
   let showFilterMenu = false
   let showWizardBasketModal = false
 
-  // TODO: Move to +page.server.ts
   async function getLangCodesNames(
     apiRootUrl: string = env.PUBLIC_BACKEND_API_URL,
     langCodesAndNamesUrl: string = <string>PUBLIC_LANG_CODES_NAMES_URL
@@ -56,20 +54,17 @@
   let langCodeNameAndTypes: Array<[string, string, boolean]> = []
   let gatewayCodesAndNames: Array<string> = []
   let heartCodesAndNames: Array<string> = []
-  // TODO: Move to +page.server.ts and split/leave the reactive code in this +page.ts, access returned langCodeNameAndTypes_ through data.langCodeNameAndTypes_
   getLangCodesNames()
     .then((langCodeNameAndTypes_) => {
       // Save result for later use
       langCodeNameAndTypes = langCodeNameAndTypes_
 
-      // Filter set of all languages for gateway languages
       gatewayCodesAndNames = langCodeNameAndTypes_
         .filter((element: [string, string, boolean]) => {
           return element[2]
         })
         .map((tuple) => `${tuple[0]}, ${tuple[1]}`)
 
-      // Filter set of all languages for heart languages
       heartCodesAndNames = langCodeNameAndTypes_
         .filter((element: [string, string, boolean]) => {
           return !element[2]
@@ -86,9 +81,7 @@
 
   $: {
     if (nonEmptyGatewayLanguages && nonEmptyHeartLanguages) {
-      // Set the langCountStore
       $langCountStore = $gatewayCodeAndNamesStore.length + $heartCodeAndNamesStore.length
-
       // Set the langCodesStore
       let codes = []
       for (let stringTuple of $gatewayCodeAndNamesStore) {
@@ -98,7 +91,6 @@
         codes.push(getCode(stringTuple))
       }
       $langCodesStore = codes
-
       // Set the langNamesStore
       let names = []
       for (let stringTuple of $gatewayCodeAndNamesStore) {
@@ -108,69 +100,52 @@
         names.push(getName(stringTuple))
       }
       $langNamesStore = names
-
-      // Set the resourceTypesStore
       $resourceTypesStore = $resourceTypesStore.filter(
         (item) =>
           $langCodesStore[0] === getResourceTypeLangCode(item) ||
           $langCodesStore[1] === getResourceTypeLangCode(item)
       )
-
-      // Set the resourceTypesCountStore
       $resourceTypesCountStore = $resourceTypesStore.length
     } else if (nonEmptyGatewayLanguages && !nonEmptyHeartLanguages) {
-      // Set the langCountStore
       $langCountStore = $gatewayCodeAndNamesStore.length
-
       // Set the langCodesStore
       let codes = []
       for (let stringTuple of $gatewayCodeAndNamesStore) {
         codes.push(getCode(stringTuple))
       }
       $langCodesStore = codes
-
       // Set the langNamesStore
       let names = []
       for (let stringTuple of $gatewayCodeAndNamesStore) {
         names.push(getName(stringTuple))
       }
       $langNamesStore = names
-
-      // Set the resourceTypesStore
       $resourceTypesStore = $resourceTypesStore.filter(
         (item) =>
           $langCodesStore[0] === getResourceTypeLangCode(item) ||
           $langCodesStore[1] === getResourceTypeLangCode(item)
       )
-
-      // Set the resourceTypesCountStore
       $resourceTypesCountStore = $resourceTypesStore.length
     } else if (!nonEmptyGatewayLanguages && nonEmptyHeartLanguages) {
       // Set the langCountStore
       $langCountStore = $heartCodeAndNamesStore.length
-
       // Set the langCodesStore
       let codes = []
       for (let stringTuple of $heartCodeAndNamesStore) {
         codes.push(getCode(stringTuple))
       }
       $langCodesStore = codes
-
       // Set the langNamesStore
       let names = []
       for (let stringTuple of $heartCodeAndNamesStore) {
         names.push(getName(stringTuple))
       }
       $langNamesStore = names
-
-      // Set the resourceTypesStore
       $resourceTypesStore = $resourceTypesStore.filter(
         (item) =>
           $langCodesStore[0] === getResourceTypeLangCode(item) ||
           $langCodesStore[1] === getResourceTypeLangCode(item)
       )
-
-      // Set the resourceTypesCountStore
       $resourceTypesCountStore = $resourceTypesStore.length
     } else {
       $langCountStore = 0

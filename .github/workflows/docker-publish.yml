@@ -123,9 +123,9 @@ jobs:
       
       - name: Set version inside UI
         run: |
-          VITE_DOC_BUILD_TIMESTAMP=$(TZ='America/New_York' date +"%m-%d-%Y")
-          echo "VITE_DOC_BUILD_TIMESTAMP=$VITE_DOC_BUILD_TIMESTAMP" >> $GITHUB_ENV
-          echo "VITE_DOC_VERSION=$CI_SHA_SHORT" >> $GITHUB_ENV
+          PUBLIC_DOC_BUILD_TIMESTAMP=$(TZ='America/New_York' date +"%m-%d-%Y")
+          echo "PUBLIC_DOC_BUILD_TIMESTAMP=$PUBLIC_DOC_BUILD_TIMESTAMP" >> $GITHUB_ENV
+          echo "PUBLIC_DOC_VERSION=$CI_SHA_SHORT" >> $GITHUB_ENV
 
       - name: Build and conditional push API image
         uses: docker/build-push-action@v3
@@ -148,8 +148,8 @@ jobs:
             ${{ env.DOC_UI_TAG_BRANCH }}
             ${{ env.DOC_UI_TAG_LATEST }}
           build-args: |
-            VITE_DOC_VERSION=${{ env.VITE_DOC_VERSION }}
-            VITE_DOC_BUILD_TIMESTAMP=${{ env.VITE_DOC_BUILD_TIMESTAMP }}
+            PUBLIC_DOC_VERSION=${{ env.PUBLIC_DOC_VERSION }}
+            PUBLIC_DOC_BUILD_TIMESTAMP=${{ env.PUBLIC_DOC_BUILD_TIMESTAMP }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
   Deploy-develop:

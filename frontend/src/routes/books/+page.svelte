@@ -7,7 +7,7 @@
   import { env } from '$env/dynamic/public'
   import WizardBreadcrumb from '$lib/WizardBreadcrumb.svelte'
   import WizardBasket from '$lib/WizardBasket.svelte'
-  import otBooks from './ot_books'
+  import otBooks from '$lib/ot-books'
   import { ntBookStore, otBookStore, bookCountStore } from '$lib/stores/BooksStore'
   import { langCodesStore, langCountStore } from '$lib/stores/LanguagesStore'
   import { getName } from '$lib/utils'

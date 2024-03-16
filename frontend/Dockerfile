@@ -2,11 +2,8 @@ FROM node:21-bookworm-slim as build-stage
 
 WORKDIR /app
 
-# FIXME These aren't used anywhere in this version. They used to be
-# referenced in the about page, but we don't have an about page
-# anymore.
-ARG VITE_DOC_VERSION
-ARG VITE_DOC_BUILD_TIMESTAMP
+ARG PUBLIC_DOC_VERSION
+ARG PUBLIC_DOC_BUILD_TIMESTAMP
 
 COPY . .
 RUN npm install

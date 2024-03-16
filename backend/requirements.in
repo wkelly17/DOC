@@ -9,6 +9,7 @@ fastapi[all]
 flower
 htmldocx
 html2docx
+gql[all]
 gunicorn
 jinja2
 jsonpath-rw

@@ -137,6 +137,7 @@ async def lang_codes_and_names() -> Sequence[tuple[str, str, bool]]:
     """
     Return list of all available language code, name tuples.
     """
+    # return await resource_lookup.lang_codes_and_names() # When using data API
     return resource_lookup.lang_codes_and_names()
 
 

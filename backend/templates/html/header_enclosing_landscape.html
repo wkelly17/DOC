@@ -1,0 +1,143 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>Bible</title>
+    <style media="all" type="text/css">
+      /* Weasyprint page directives for headers and footers */
+      @page {
+        size: landscape;
+        @top-center {
+          content: string(chapterstring);
+          font-size: 0.8em;
+          color: gray;
+        }
+        /*
+        @top-right {
+          content: string(subchapterstring);
+        }
+        */
+        @bottom-center {
+          content: "Page " counter(page) " of " counter(pages);
+          font-size: 0.7em;
+          color: gray;
+        }
+        @bottom-right {
+          content: "{%if timestring%} generated on {{ timestring }}{% endif %}";
+          font-size: 0.5em;
+          color: gray;
+        }
+      }
+
+      h3 {
+        /* page-break-before: always; */
+        string-set: chapterstring content();
+      }
+
+      h4 {
+        string-set: subchapterstring content();
+      }
+
+      /* End of Weasy page directives for headers and footers */
+
+      body {
+        /* Browsers typically default to 16px, let's make our default 12px */
+        font-size: 75%;
+      }
+
+      h5 {
+        padding-bottom: 0;
+        margin-bottom: 0;
+      }
+
+      /* Decrease vertical space between paragraph that follows h5 */
+      h5 + p {
+        margin-top: 0;
+        padding-top: 0;
+      }
+
+      hr {
+        display: block;
+        height: 1px;
+        border: 0;
+        border-top: 1px solid #ccc;
+        margin: 1em 0;
+        padding: 0;
+      }
+
+      .end-of-chapter {
+        break-after: page;
+      }
+
+      .chunk-break {
+        display: block;
+      }
+
+      .indent-0 {
+        margin-left: 0em;
+        margin-bottom: 0em;
+        margin-top: 0em;
+      }
+
+      .indent-1 {
+        margin-left: 0em;
+        margin-bottom: 0em;
+        margin-top: 0em;
+      }
+
+      .indent-2 {
+        margin-left: 1em;
+        margin-bottom: 0em;
+        margin-top: 0em;
+      }
+
+      .indent-3 {
+        margin-left: 2em;
+        margin-bottom: 0em;
+        margin-top: 0em;
+      }
+
+      .c-num {
+        /* color: gray; */
+      }
+
+      .v-num {
+        /* color: gray; */
+      }
+
+      .tetragrammaton {
+        font-variant: small-caps;
+      }
+
+      .footnotes {
+        font-size: 0.8em;
+      }
+
+      .footnotes-hr {
+        width: 90%;
+      }
+
+      .column {
+        float: left;
+        width: 50%;
+      }
+
+      .column-left {
+        float: left;
+        width: 50%;
+      }
+
+      .column-right {
+        float: right;
+        width: 50%;
+      }
+
+      .row:after {
+        content: "";
+        display: table;
+        clear: both;
+      }
+    </style>
+  </head>
+  <body></body>
+</html>

@@ -277,7 +277,7 @@
     </main>
   </div>
 
-  <!-- {#if isMobile} -->
+  <!-- isMobile -->
   {#if showWizardBasketModal}
     <WizardBasketModal title="Your selections" bind:showWizardBasketModal>
       <svelte:fragment slot="body">
@@ -285,9 +285,9 @@
       </svelte:fragment>
     </WizardBasketModal>
   {/if}
-  <!-- {:else} -->
+  <!-- else -->
   <div class="hidden sm:flex sm:w-1/3">
     <WizardBasket />
   </div>
-  <!-- {/if} -->
+  <!-- end if -->
 </div>

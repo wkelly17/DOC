@@ -23,7 +23,7 @@ from document.domain.assembly_strategies.assembly_strategy_utils import (
 from document.domain.assembly_strategies.assembly_strategies_lang_then_book_by_chapter import (
     assemble_usfm_by_book,
     assemble_tn_by_book,
-    assemble_tq_tw_by_book,
+    assemble_tq_by_book,
     assemble_tw_by_book,
 )
 from document.domain.bible_books import BOOK_NAMES
@@ -962,7 +962,7 @@ def assembly_factory_for_lang_then_book_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tq_tw_by_book,
+        ): assemble_tq_by_book,
         (
             False,
             False,
@@ -972,7 +972,7 @@ def assembly_factory_for_lang_then_book_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tq_tw_by_book,
+        ): assemble_tq_by_book,
         (
             False,
             False,
@@ -982,7 +982,7 @@ def assembly_factory_for_lang_then_book_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tq_tw_by_book,
+        ): assemble_tq_by_book,
         (
             False,
             False,
@@ -992,7 +992,7 @@ def assembly_factory_for_lang_then_book_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tq_tw_by_book,
+        ): assemble_tq_by_book,
         (
             False,
             False,
@@ -1022,7 +1022,7 @@ def assembly_factory_for_lang_then_book_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tq_tw_by_book,
+        ): assemble_tq_by_book,
         (
             False,
             False,
@@ -1032,7 +1032,7 @@ def assembly_factory_for_lang_then_book_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tq_tw_by_book,
+        ): assemble_tq_by_book,
         (
             True,
             False,

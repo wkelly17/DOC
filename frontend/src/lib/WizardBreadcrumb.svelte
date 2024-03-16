@@ -6,7 +6,7 @@
   import { resourceTypesStore, resourceTypesCountStore } from '$lib/stores/ResourceTypesStore'
   import {
     getResourceTypeLangCode,
-    resetStores,
+    // resetStores,
     langRegExp,
     bookRegExp,
     resourceTypeRegExp,

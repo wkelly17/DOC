@@ -365,6 +365,7 @@ def usfm_book_content(
     content_file = usfm_asset_file(resource_lookup_dto, resource_dir)
     logger.debug("content_file: %s", content_file)
     html_content = usfm_asset_html(content_file, resource_lookup_dto)
+    chapters: dict[ChapterNum, USFMChapter] = {}
     if html_content:
         parser = BeautifulSoup(html_content, bs_parser_type)
         chapter_break_tags = parser.find_all(h2, attrs={css_attribute_type: "c-num"})
@@ -375,7 +376,6 @@ def usfm_book_content(
                 resource_lookup_dto.lang_name,
                 resource_lookup_dto.book_code,
             )
-        chapters: dict[ChapterNum, USFMChapter] = {}
         for chapter_break in chapter_break_tags:
             chapter_num = int(chapter_break.get_text().split()[1])
             chapter_content = tag_elements_between(

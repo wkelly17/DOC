@@ -44,6 +44,10 @@ def assemble_usfm_by_book(
     bc_book_content_unit: Optional[BCBook],
     footnotes_heading: HtmlContent = settings.FOOTNOTES_HEADING,
 ) -> Composer:
+    """
+    Construct the HTML for a 'by book' strategy wherein at least
+    usfm_book_content_unit exists.
+    """
     html_to_docx = HtmlToDocx()
     doc = Document()
     composer = Composer(doc)
@@ -175,6 +179,10 @@ def assemble_tn_by_book(
     usfm_book_content_unit2: Optional[USFMBook],
     bc_book_content_unit: Optional[BCBook],
 ) -> Composer:
+    """
+    Construct the HTML for a 'by book' strategy wherein at least
+    tn_book_content_unit exists.
+    """
     html_to_docx = HtmlToDocx()
     doc = Document()
     composer = Composer(doc)
@@ -248,7 +256,7 @@ def assemble_tn_by_book(
     return composer
 
 
-def assemble_tq_tw_by_book(
+def assemble_tq_by_book(
     usfm_book_content_unit: Optional[USFMBook],
     tn_book_content_unit: Optional[TNBook],
     tq_book_content_unit: Optional[TQBook],
@@ -256,6 +264,10 @@ def assemble_tq_tw_by_book(
     usfm_book_content_unit2: Optional[USFMBook],
     bc_book_content_unit: Optional[BCBook],
 ) -> Composer:
+    """
+    Construct the HTML for a 'by book' strategy wherein at least
+    tq_book_content_unit exists.
+    """
     html_to_docx = HtmlToDocx()
     doc = Document()
     composer = Composer(doc)
@@ -290,7 +302,7 @@ def assemble_tq_tw_by_book(
     return composer
 
 
-def assemble_tw_by_chapter_for_lang_then_book_1c(
+def assemble_tw_by_book(
     usfm_book_content_unit: Optional[USFMBook],
     tn_book_content_unit: Optional[TNBook],
     tq_book_content_unit: Optional[TQBook],

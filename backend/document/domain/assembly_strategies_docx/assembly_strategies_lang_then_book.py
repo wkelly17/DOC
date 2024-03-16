@@ -24,8 +24,8 @@ from document.domain.assembly_strategies.assembly_strategy_utils import (
 from document.domain.assembly_strategies_docx.assembly_strategies_lang_then_book_by_chapter import (
     assemble_usfm_by_book,
     assemble_tn_by_book,
-    assemble_tq_tw_by_book,
-    assemble_tw_by_chapter_for_lang_then_book_1c,
+    assemble_tq_by_book,
+    assemble_tw_by_book,
 )
 from document.domain.bible_books import BOOK_NAMES
 from document.domain.model import (
@@ -178,9 +178,6 @@ def assembly_factory_for_lang_then_book_strategy(
             Composer,
         ],
     ] = {  # This is a big truth/dispatch table that ensures every case is handled explicitly.
-        # ----------------------------------
-        # By chapter:
-        # ----------------------------------
         (
             True,
             True,
@@ -920,7 +917,7 @@ def assembly_factory_for_lang_then_book_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tq_tw_by_book,
+        ): assemble_tq_by_book,
         (
             False,
             False,
@@ -930,7 +927,7 @@ def assembly_factory_for_lang_then_book_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tq_tw_by_book,
+        ): assemble_tq_by_book,
         (
             False,
             False,
@@ -940,7 +937,7 @@ def assembly_factory_for_lang_then_book_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tq_tw_by_book,
+        ): assemble_tq_by_book,
         (
             False,
             False,
@@ -950,7 +947,7 @@ def assembly_factory_for_lang_then_book_strategy(
             True,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tq_tw_by_book,
+        ): assemble_tq_by_book,
         (
             False,
             False,
@@ -960,7 +957,7 @@ def assembly_factory_for_lang_then_book_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tw_by_chapter_for_lang_then_book_1c,
+        ): assemble_tw_by_book,
         (
             False,
             False,
@@ -970,7 +967,7 @@ def assembly_factory_for_lang_then_book_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tw_by_chapter_for_lang_then_book_1c,
+        ): assemble_tw_by_book,
         (
             False,
             False,
@@ -980,7 +977,7 @@ def assembly_factory_for_lang_then_book_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tq_tw_by_book,
+        ): assemble_tq_by_book,
         (
             False,
             False,
@@ -990,7 +987,7 @@ def assembly_factory_for_lang_then_book_strategy(
             False,
             AssemblyLayoutEnum.ONE_COLUMN_COMPACT,
             ChunkSizeEnum.CHAPTER,
-        ): assemble_tq_tw_by_book,
+        ): assemble_tq_by_book,
         (
             True,
             False,

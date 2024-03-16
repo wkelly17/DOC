@@ -164,6 +164,7 @@ def instantiated_html_header_template(template_lookup_key: str) -> str:
     """
     Instantiate Jinja2 template. Return instantiated template as string.
     """
+    template = ""
     with open(template_path(template_lookup_key), "r") as filepath:
         template = filepath.read()
     env = jinja2.Environment(autoescape=True).from_string(template)
@@ -541,9 +542,10 @@ def assemble_docx_content(
                     )
                 )
             )
-            p = tw_subdoc.paragraphs[-1]
-            add_hr(p)
-            tw_subdocs.append(tw_subdoc)
+            if tw_subdoc.paragraphs:
+                p = tw_subdoc.paragraphs[-1]
+                add_hr(p)
+                tw_subdocs.append(tw_subdoc)
         t1 = time.time()
         logger.debug("Time for adding TW content to document: %s", t1 - t0)
     # Now add any TW subdocs to the composer
@@ -686,8 +688,6 @@ def convert_html_to_docx(
     html_filepath: str,
     docx_filepath: str,
     composer: Composer,
-    document_request_key: str,
-    resource_requests: Sequence[ResourceRequest],
     layout_for_print: bool,
     title1: str = "title1",
     title2: str = "title2",
@@ -1126,8 +1126,6 @@ def generate_docx_document(document_request_json: Json[Any]) -> Json[Any]:
             html_filepath_,
             docx_filepath_,
             composer,
-            document_request_key_,
-            document_request.resource_requests,
             document_request.layout_for_print,
             title1,
             title2,

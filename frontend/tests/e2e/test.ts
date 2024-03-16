@@ -5,15 +5,29 @@ test('test ui part 1', async ({ page }) => {
   await page.getByText('Assamese').click()
   await page.getByText('Vietnamese').click()
   await page.getByRole('button', { name: 'Next' }).click()
-  await page.getByText('Galatians').click()
+  await page.getByRole('button', { name: 'Old Testament' }).click()
+  await page.getByLabel('Genesis gen').check()
+  await page.getByRole('button', { name: 'New Testament' }).click()
+  // await page.getByText('Matthew').click();
   await page.getByRole('button', { name: 'Next' }).click()
-  await page.getByText('Assamese Unlocked Literal Bible (ulb)').click()
-  await page.getByText('Vietnamese Unlocked Literal Bible (ulb)').click()
+  await page.getByText('Translation Notes (tn)').first().click()
+  await page.getByText('Translation Questions (tq)').first().click()
+  await page.getByText('Translation Words (tw)').first().click()
+  await page.getByText('Assamese Unlocked Literal').click()
+  await page.getByText('Translation Notes (tn)').nth(1).click()
+  await page.getByText('Translation Questions (tq)').nth(1).click()
+  await page.getByText('Translation Words (tw)').nth(1).click()
+  await page.getByText('Vietnamese Unlocked Literal').click()
   await page.getByRole('button', { name: 'Next' }).click()
   await page.getByRole('button', { name: 'Generate File' }).click()
-  const page1Promise = page.waitForEvent('popup')
-  await page.getByRole('button', { name: 'Download Docx' }).click()
-  const page1 = await page1Promise
+  await expect(page.locator('body')).toContainText('Assamese')
+  await expect(page.locator('body')).toContainText('Vietnamese')
+  await expect(page.locator('body')).toContainText('Genesis')
+  await expect(page.locator('body')).toContainText('Translation Notes (tn)')
+  await expect(page.locator('body')).toContainText('Translation Questions (tq)')
+  await expect(page.locator('body')).toContainText('Translation Words (tw)')
+  await expect(page.locator('body')).toContainText('Assamese Unlocked Literal Bible (ulb)')
+  await expect(page.locator('body')).toContainText('Vietnamese Unlocked Literal Bible (ulb)')
 })
 
 test('test ui part 2', async ({ page }) => {
@@ -31,7 +45,7 @@ test('test ui part 2', async ({ page }) => {
 })
 
 test('test books retained in basket on back button to languages and then forward', async ({
-    page
+  page
 }) => {
   await page.goto('http://localhost:8001/languages')
   await page.getByText('Amharic').click()
@@ -58,17 +72,24 @@ test('test books retained in basket on back button to languages and then forward
     .click()
 })
 
-test('test multiple resource avaiable on es-419', async ({ page }) => {
-    await page.goto('http://localhost:8001/languages')
-    await page.goto('http://localhost:8001/#/languages')
-    await page.getByText('Español (Latin American').click()
-    await page.getByRole('button', { name: 'Next' }).click()
-    await page.getByText('Matthew').click()
-    await page.getByRole('button', { name: 'Next' }).click()
-    await page.getByText('Translation Notes (tn)').click()
-    await page.getByText('Translation Questions (tq)').click()
-    await page.getByText('Translation Words (tw)').click()
-    await page.getByText('Español Latino Americano ULB').click()
-    await page.getByRole('button', { name: 'Next' }).click()
-    await page.getByRole('button', { name: 'Generate File' }).click()
+test('test transfer from biel', async ({ page }) => {
+  await page.goto(
+    'http://localhost:8001/transfer/repo_url=https%3A%2F%2Fcontent.bibletranslationtools.org%2Fbahasatech.indotengah%2Fbne_gal_text_reg&book_name=Galatians'
+  )
+  await expect(page.getByText('Bintauna')).toBeVisible()
+  await expect(page.getByText('Galatians')).toBeVisible()
+})
+
+test('test es-419 resource types', async ({ page }) => {
+  await page.goto('http://localhost:8001/languages')
+  await page.getByText('Español (Latin American').click()
+  await page.getByRole('button', { name: 'Next' }).click()
+  await page.getByText('Matthew').click()
+  await page.getByRole('button', { name: 'Next' }).click()
+  await page.getByLabel('Translation Notes (tn)').check()
+  await page.getByLabel('Translation Questions (tq)').check()
+  await page.getByLabel('Translation Words (tw)').check()
+  await page.getByLabel('Español Latino Americano ULB').check()
+  await page.getByRole('button', { name: 'Next' }).click()
+  await page.getByRole('button', { name: 'Generate File' }).click()
 })

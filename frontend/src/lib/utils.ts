@@ -1,9 +1,7 @@
-import {
-  env
-} from '$env/dynamic/public'
-import {
-  PUBLIC_LANGUAGE_BOOK_ORDER
-} from '$env/static/public'
+import { browser } from '$app/environment'
+import { goto } from '$app/navigation'
+import { env } from '$env/dynamic/public'
+import { PUBLIC_LANGUAGE_BOOK_ORDER } from '$env/static/public'
 import {
   gatewayCodeAndNamesStore,
   heartCodeAndNamesStore,
@@ -111,4 +109,10 @@ export function getResourceTypeCode(codeAndName: string): string {
 }
 export function getResourceTypeLangCode(codeAndName: string): string {
   return codeAndName?.split(', ')[0]
+}
+
+export function routeToPage(url: string): void {
+  if (browser) {
+    goto(url)
+  }
 }

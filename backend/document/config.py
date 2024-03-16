@@ -135,6 +135,7 @@ class Settings(BaseSettings):
     # git merge markers in source that were accidentally committed.
     # TODO Test to see which of these languages can be added back now
     # that several content defect handling features have been added.
+    # TODO Check for manifest and ignore language if not available.
     LANG_CODE_FILTER_LIST: Sequence[str] = [
         "aez",  # Has no chapter markers
         "acq",
@@ -258,7 +259,7 @@ class Settings(BaseSettings):
 
     def api_test_url(self) -> str:
         """Non-secure local URL for running the Fastapi server for testing."""
-        return "http://{}:{}".format(self.API_TEST_BASE_URL, self.API_LOCAL_PORT)
+        return "{}:{}".format(self.API_TEST_BASE_URL, self.API_LOCAL_PORT)
 
     API_TEST_BASE_URL: str = "http://localhost"
 
@@ -324,6 +325,7 @@ class Settings(BaseSettings):
     TEMPLATE_PATHS_MAP: Mapping[str, str] = {
         "book_intro": "backend/templates/tn/book_intro_template.md",
         "header_enclosing": "backend/templates/html/header_enclosing.html",
+        "header_enclosing_landscape": "backend/templates/html/header_enclosing_landscape.html",  # used by dft project
         "header_no_css_enclosing": "backend/templates/html/header_no_css_enclosing.html",
         "header_compact_enclosing": "backend/templates/html/header_compact_enclosing.html",
         "footer_enclosing": "backend/templates/html/footer_enclosing.html",
@@ -332,8 +334,8 @@ class Settings(BaseSettings):
         "email": "backend/templates/text/email.txt",
     }
 
-    DOCX_TEMPLATE_PATH: str = "/app/template.docx"
-    DOCX_COMPACT_TEMPLATE_PATH: str = "/app/template_compact.docx"
+    DOCX_TEMPLATE_PATH: str = "template.docx"
+    DOCX_COMPACT_TEMPLATE_PATH: str = "template_compact.docx"
 
     # Return boolean indicating if caching of generated documents should be
     # cached.

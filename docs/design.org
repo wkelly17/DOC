@@ -92,7 +92,7 @@ make e2e-tests
 #+begin_src shell
 python3 -m venv .venv
 source .venv/bin/activate
-# or source .venv/bin/activate.fish
+# or source .venv/bin/activate.fish if using fish shell
 #+end_src
 
 then ...
@@ -132,6 +132,8 @@ In another terminal window, in project root directory, in virtual env (source .v
 make local-run-celery
  #+end_src
 
+ If you get an error regarding =cffi=, then uninstall and reinstall the
+ =cffi= package.
 **** (optional) Run flower (a celery dashboard)
 
 In another terminal window, in project root directory, in virtual env:
@@ -149,6 +151,13 @@ In another terminal window, in project root directory, in virtual env:
  make local-server
  #+end_src
 
+**** Run fileserver (TODO)
+Note: Docs for this are not yet implemented for the outside Docker case.
+
+# In another terminal window, in project root directory, in virtual env:
+#  #+begin_src shell
+#  make local-file-server
+#  #+end_src
 **** (optional) Build and run the frontend
 
 You run the frontend in either vite's production mode or vite's
@@ -156,7 +165,7 @@ development mode.
 ***** To run frontend in vite production mode
 In another terminal window, in cd <project-root-directory>/frontend:
  #+begin_src shell
- npm run allbuildandrun
+ npm run check && npm run build && npm run preview --host true
  #+end_src
 
 ***** To run frontend in vite development mode

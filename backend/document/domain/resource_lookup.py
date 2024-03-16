@@ -5,23 +5,20 @@ assets.
 """
 
 
+import json
 import pathlib
 import shutil
 import subprocess
 import urllib
 from os import mkdir, scandir
-from os.path import exists, join, sep, basename
+from os.path import basename, exists, join, sep
 from typing import Any, Callable, Mapping, Optional, Sequence
 from urllib import parse as urllib_parse
 
 import jsonpath_rw_ext as jp  # type: ignore
-from pydantic import HttpUrl
 from document.config import settings
 from document.domain import bible_books, exceptions
-from document.domain.model import (
-    AssetSourceEnum,
-    ResourceLookupDto,
-)
+from document.domain.model import AssetSourceEnum, ResourceLookupDto
 from document.utils.file_utils import (
     asset_file_needs_update,
     download_file,
@@ -30,6 +27,10 @@ from document.utils.file_utils import (
     unzip,
 )
 from fastapi import HTTPException, status
+from gql import Client, gql
+from gql.transport.aiohttp import AIOHTTPTransport
+from pydantic import HttpUrl
+from toolz import unique  # type: ignore
 
 logger = settings.logger(__name__)
 
@@ -300,7 +301,7 @@ def usfm_resource_lookup(
             url_parsing_fn=_parse_repo_url,
         )
     # Zip file and git repo was not available, now try getting it
-    # from individuual book files.
+    # from individual book files.
     if resource_lookup_dto.url is None:
         # Try getting USFM files individually
         resource_lookup_dto = _location(
@@ -332,10 +333,14 @@ def non_usfm_resource_lookup(
     asset_source_enum_kind: AssetSourceEnum = AssetSourceEnum.ZIP,
 ) -> ResourceLookupDto:
     """
-    Given a non-English language resource, comprised of language code,
-    e.g., 'wum', a resource type, e.g., 'tn', and a book code,
-    e.g., 'gen', return a model.ResourceLookupDto instance for
+    Given a non-USFM resource, comprised of language code,
+    e.g., 'cuv', a resource type, e.g., 'tn', and a book code,
+    e.g., 'rev', return a model.ResourceLookupDto instance for
     resource.
+    >>> from document.domain import resource_lookup
+    >>> dto = resource_lookup.resource_lookup_dto("cuv","tn","rev")
+    >>> dto
+    ResourceLookupDto(lang_code='cuv', lang_name='', resource_type='tn', resource_type_name='', book_code='rev', url=None, source=<AssetSourceEnum.ZIP: 'zip'>, jsonpath="$[?code='cuv'].contents[*].subcontents[?code='tn'].links[?format='zip'].url")
     """
     resource_lookup_dto = _location(
         lang_code,
@@ -406,6 +411,84 @@ def lang_codes_and_names(
     return sorted(values, key=lambda value: value[1])
 
 
+# N.B. This works except that there is some slowness and instability in the data API which this morning, Feb 23, 2024 is throwing
+# a Postgres error.
+async def lang_codes_and_names2(
+    # WAITING Needed to download translations.json for other functions where data API is not mature enough yet:
+    working_dir: str = settings.RESOURCE_ASSETS_DIR,
+    # WAITING Needed to download translations.json for other functions where data API is not mature enough yet:
+    translations_json_location: HttpUrl = settings.TRANSLATIONS_JSON_LOCATION,
+    lang_code_filter_list: Sequence[str] = settings.LANG_CODE_FILTER_LIST,
+    gateway_languages: Sequence[str] = settings.GATEWAY_LANGUAGES,
+    data_api_url: str = "https://api.bibleineverylanguage.org/v1/graphql",
+    # WAITING WA is going to add an is_gateway attribute eventually so that we
+    # don't have to figure out if gateway ourselves
+    graphql_query: str = """query MyQuery {
+  content(
+    where: {wa_content_meta: {status: {_eq: "Primary"}, show_on_biel: {_eq: true}}}
+  ) {
+    language {
+      ietf_code
+      english_name
+      national_name
+    }
+  }
+}
+        """,
+) -> Sequence[tuple[str, str, bool]]:
+    """
+    >>> from document.domain import resource_lookup
+    >>> # data = await resource_lookup.lang_codes_and_names2()
+    >>> # data[0]
+    ('abz', 'Abui', False)
+    """
+
+    # WAITING Needed to download translations.json for other functions
+    # where data API is not mature enough yet. Remove when data API can
+    # fully replace translations.json. For now this will make the app
+    # slower.
+    data = fetch_source_data(working_dir, str(translations_json_location))
+
+    # Select your transport with a defined url endpoint
+    transport = AIOHTTPTransport(url=data_api_url)
+
+    # Create a GraphQL client using the defined transport
+    client = Client(transport=transport, fetch_schema_from_transport=True)
+
+    query = gql(graphql_query)
+    data = await client.execute_async(query)
+    languages_info = None
+    values = []
+    try:
+        languages_info = data["content"]
+        # logger.debug("data['content'][0]: %s", languages_info)
+        for language_info in languages_info:
+            language = language_info["language"]
+            ietf_code = language["ietf_code"]
+            english_name = language["english_name"]
+            national_name = language["national_name"]
+            is_gateway = ietf_code in gateway_languages
+            if ietf_code not in lang_code_filter_list:
+                if english_name in national_name:
+                    logger.debug(
+                        "About to add: %s", (ietf_code, national_name, is_gateway)
+                    )
+                    values.append((ietf_code, national_name, is_gateway))
+                else:
+                    logger.debug(
+                        "About to add: %s",
+                        (ietf_code, f"{national_name} ({english_name})", is_gateway),
+                    )
+                    values.append(
+                        (ietf_code, f"{national_name} ({english_name})", is_gateway)
+                    )
+
+    except:
+        logger.exception("Failed due to the following exception")
+    unique_values = unique(values, key=lambda value: value[0])
+    return sorted(unique_values, key=lambda value: value[1])
+
+
 def supported_resource_type(
     resource_type: str,
     all_usfm_resource_types: Sequence[str] = settings.ALL_USFM_RESOURCE_TYPES,
@@ -424,30 +507,6 @@ def supported_resource_type(
         *all_tw_resource_types,
         *bc_resource_types,
     ]:
-        return True
-    return False
-
-
-def supported_language_scoped_resource_type(
-    lang_code: str,
-    resource_type: str,
-    tn_resource_types: Sequence[str] = settings.TN_RESOURCE_TYPES,
-    en_tn_resource_types: Sequence[str] = settings.EN_TN_RESOURCE_TYPES,
-    tq_resource_types: Sequence[str] = settings.TQ_RESOURCE_TYPES,
-    tw_resource_types: Sequence[str] = settings.TW_RESOURCE_TYPES,
-) -> bool:
-    """
-    Check if resource_type is a TN, TQ, TW type.
-    """
-    if (
-        (
-            resource_type in en_tn_resource_types
-            if lang_code == "en"
-            else resource_type in tn_resource_types
-        )
-        or resource_type in tq_resource_types
-        or resource_type in tw_resource_types
-    ):
         return True
     return False
 
@@ -473,7 +532,7 @@ def shared_resource_types(
     >>> list(resource_lookup.shared_resource_types("pt-br", ["gen"]))
     [('tn', 'Translation Notes (tn)'), ('tq', 'Translation Questions (tq)'), ('tw', 'Translation Words (tw)'), ('ulb', 'Brazilian Portuguese Unlocked Literal Bible (ulb)')]
     >>> list(resource_lookup.shared_resource_types("fr", ["gen"]))
-    [('f10', 'French Louis Segond 1910 Bible (f10)'), ('tn', 'Translation Notes (tn)'), ('tq', 'Translation Questions (tq)'), ('tw', 'Translation Words (tw)')]
+    [('f10', 'French Louis Segond 1910 Bible (f10)'), ('tn', 'Translation Notes (tn)'), ('tq', 'Translation Questions (tq)'), ('tw', 'Translation Words (tw)'), ('ulb', 'French ULB (ulb)')]
     >>> list(resource_lookup.shared_resource_types("es-419", ["gen"]))
     [('tn', 'Translation Notes (tn)'), ('tq', 'Translation Questions (tq)'), ('tw', 'Translation Words (tw)'), ('ulb', 'Español Latino Americano ULB (ulb)')]
     >>> list(resource_lookup.shared_resource_types("id", ["mat"]))
@@ -495,7 +554,7 @@ def shared_resource_types(
                 if book_code["code"] in book_codes
             ]
             # Determine if suitable link(s) exist for "contents"-scoped resource
-            # types We use this in the conditional below to assert that TN, TQ, and
+            # types. We use this in the conditional below to assert that TN, TQ, and
             # TW resource types have a downloadable or cloneable asset and thus
             # should be included as avaiable resource types along with book specific
             # assets like those for USFM, BC.
@@ -506,19 +565,8 @@ def shared_resource_types(
                 or link["format"] == "Download"
                 and link["url"]
             ]
-            if (
-                supported_resource_type(resource_type["code"])
-                # Check if there are book codes associated with this resource type
-                # which conincide with the book codes that the user selected.
-                and (
-                    book_codes_for_resource_type
-                    or (
-                        supported_language_scoped_resource_type(
-                            lang_code, resource_type["code"]
-                        )
-                        and links_for_resource_type
-                    )
-                )
+            if supported_resource_type(resource_type["code"]) and (
+                book_codes_for_resource_type or links_for_resource_type
             ):
                 values.append(
                     (

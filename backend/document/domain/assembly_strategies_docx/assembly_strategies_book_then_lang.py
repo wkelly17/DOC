@@ -169,9 +169,6 @@ def assembly_factory_for_book_then_lang_strategy(
             Composer,
         ],
     ] = {
-        # -------------------------
-        # By chapter
-        # -------------------------
         (
             True,
             True,

@@ -1,4 +1,4 @@
-FROM python:3.11-slim-bullseye
+FROM python:3.12-slim-bookworm
 
 RUN apt-get update && apt-get install -y \
     wget \
@@ -20,7 +20,11 @@ RUN apt-get update && apt-get install -y \
     libxcb-xinerama0 \
     libxkbcommon0 \
     libglx0 \
-    libnss3
+    libnss3 \
+    # For weasyprint
+    pango1.0-tools \
+    # For fc-cache
+    fontconfig
 
 # Get and install needed fonts.
 RUN cd /tmp \

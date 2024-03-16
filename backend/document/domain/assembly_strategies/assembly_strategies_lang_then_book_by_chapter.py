@@ -84,7 +84,7 @@ def assemble_tn_by_book(
     yield close_direction_html
 
 
-def assemble_tq_tw_by_book(
+def assemble_tq_by_book(
     usfm_book_content_unit: Optional[USFMBook],
     tn_book_content_unit: Optional[TNBook],
     tq_book_content_unit: Optional[TQBook],
