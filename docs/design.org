@@ -103,7 +103,7 @@ make local-install-deps-dev
 # NOTE This next command takes a long time. Also note
 # that this next command is not idempotent. If you want to run it again
 # simply remove /tmp/USFM-Tools, then issue the command again.
-make build-usfm-tools
+# make build-usfm-tools
 #+end_src
 
 this will setup your environment tools and install production and
@@ -132,8 +132,20 @@ In another terminal window, in project root directory, in virtual env (source .v
 make local-run-celery
  #+end_src
 
+ If you get an error regarding pydantic.core, then try this
+ #+begin_src shell
+ pip uninstall pydantic pydantic-core lxml orjson
+ #+end_src
+ followed by
+ #+begin_src shell
+ pip install pydantic pydantic-core lxml orjson
+ #+end_src
+
+
  If you get an error regarding =cffi=, then uninstall and reinstall the
  =cffi= package.
+
+ If you get an error regarding =PIL=, then uninstall and reinstall =Pillow=
 **** (optional) Run flower (a celery dashboard)
 
 In another terminal window, in project root directory, in virtual env:
@@ -151,13 +163,11 @@ In another terminal window, in project root directory, in virtual env:
  make local-server
  #+end_src
 
-**** Run fileserver (TODO)
-Note: Docs for this are not yet implemented for the outside Docker case.
-
-# In another terminal window, in project root directory, in virtual env:
-#  #+begin_src shell
-#  make local-file-server
-#  #+end_src
+**** Run fileserver
+In another terminal window, in project root directory, in virtual env:
+ #+begin_src shell
+ make local-file-server
+ #+end_src
 **** (optional) Build and run the frontend
 
 You run the frontend in either vite's production mode or vite's
@@ -173,17 +183,6 @@ In another terminal window, in cd <project-root-directory>/frontend:
 In another terminal window, in cd <project-root-directory>/frontend:
  #+begin_src shell
  npm run dev
- #+end_src
-
-**** Deal with our (required for vite production mode) frontend envvars hack
-
-Note: This step is only necessary if the frontend was started in the
-previous step in vite production mode.
-
-In another terminal window, in cd <project-root-directory>/frontend:
- #+begin_src shell
- export BACKEND_API_URL=http://localhost:5005
- cp envvars.js dist/assets/ && envsubst < dist/assets/envvars.js | sponge dist/assets/envvars.js
  #+end_src
 
 **** Note: how to handle situation if you run into runtime error with lxml
