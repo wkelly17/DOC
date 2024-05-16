@@ -1,7 +1,9 @@
-<script lang="ts">
-  import { redirect } from '@sveltejs/kit'
+<script>
+  import { onMount } from 'svelte';
+  import { goto } from '$app/navigation';
 
-  export function load(): void {
-    throw redirect(307, '/languages')
-  }
+  onMount(() => {
+    goto('/languages');
+  });
 </script>
+
