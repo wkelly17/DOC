@@ -206,7 +206,7 @@
   }
 </script>
 
-<div class="h-28 bg-white pb-4 pt-12">
+<div class="bg-white pb-4 pt-12">
   {#if !generatingDocument || $settingsUpdated}
     {#if ($langCountStore > 0 || $langCountStore <= 2) && $assemblyStrategyKindStore && $bookCountStore > 0 && $resourceTypesCountStore > 0}
       <div class="pb-4">
